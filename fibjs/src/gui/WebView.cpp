@@ -53,7 +53,7 @@ void WebView::postWaitFor(exlib::string url)
 {
     for (auto it = m_waitFor.begin(); it != m_waitFor.end();) {
         if (it->first.empty() || it->first == url) {
-            it->second.post(0);
+            it->second.post(result_t());
             it = m_waitFor.erase(it);
         } else {
             ++it;

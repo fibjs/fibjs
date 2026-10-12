@@ -418,7 +418,7 @@ result_t HttpMessage::send(Stream_base* stm, exlib::string& strCommand,
         return result_t::nosync();
 
     m_sent = true;
-    return (new asyncSendTo(this, stm, strCommand, std::move(ac)))->post(0);
+    return (new asyncSendTo(this, stm, strCommand, std::move(ac)))->post(result_t());
 }
 
 result_t HttpMessage::sendHeader(Stream_base* stm, exlib::string& strCommand, bool content_length,
@@ -428,7 +428,7 @@ result_t HttpMessage::sendHeader(Stream_base* stm, exlib::string& strCommand, bo
         return result_t::nosync();
 
     m_sent = true;
-    return (new asyncSendTo(this, stm, strCommand, std::move(ac), true, content_length))->post(0);
+    return (new asyncSendTo(this, stm, strCommand, std::move(ac), true, content_length))->post(result_t());
 }
 
 result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
@@ -522,7 +522,7 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
     _stm->get_stream(m_socket);
     m_stm = _stm;
 
-    return (new asyncReadHeader(this, _stm, std::move(ac)))->post(0);
+    return (new asyncReadHeader(this, _stm, std::move(ac)))->post(result_t());
 }
 
 result_t HttpMessage::readBody(AsyncHandle ac)
@@ -590,7 +590,7 @@ result_t HttpMessage::readBody(AsyncHandle ac)
     if (!m_stm)
         return result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: stream is not set.");
 
-    return (new asyncReadBody(this, m_stm.As<BufferedStream_base>(), std::move(ac)))->post(0);
+    return (new asyncReadBody(this, m_stm.As<BufferedStream_base>(), std::move(ac)))->post(result_t());
 }
 
 result_t HttpMessage::readFrom(Stream_base* stm, AsyncHandle ac)
@@ -623,7 +623,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncHandle ac)
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new asyncReadFrom(this, stm, std::move(ac)))->post(0);
+    return (new asyncReadFrom(this, stm, std::move(ac)))->post(result_t());
 }
 
 void HttpMessage::appendHeader(const char* name, int32_t szName, const char* value,

@@ -863,7 +863,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     if (stm == NULL)
         return result_t::bad_vartype();
 
-    return (new asyncInvoke(this, stm, std::move(ac)))->post(0);
+    return (new asyncInvoke(this, stm, std::move(ac)))->post(result_t());
 }
 
 result_t HttpHandler::enableCrossOrigin(exlib::string allowHeaders)

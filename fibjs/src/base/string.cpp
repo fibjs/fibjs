@@ -110,7 +110,7 @@ v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str)
     size_t length = str.length();
 
     if (length > INT_MAX) {
-        ThrowResult(CALL_E_OVERFLOW);
+        ThrowResult(result_t(CALL_E_OVERFLOW));
         return v8::Local<v8::String>();
     }
 
@@ -133,7 +133,7 @@ v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t 
         length = (ssize_t)qstrlen(data);
 
     if (length > INT_MAX) {
-        ThrowResult(CALL_E_OVERFLOW);
+        ThrowResult(result_t(CALL_E_OVERFLOW));
         return v8::Local<v8::String>();
     }
 
@@ -202,7 +202,7 @@ static bool has_own_toString(Isolate* isolate, v8::Local<v8::Value> v)
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::string& n, bool bStrict)
 {
     if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     v8::Local<v8::String> str;
 
@@ -225,7 +225,7 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::strin
         // object_base::toString reports an error instead of turning into a
         // plausible looking "[object Name]", so those have no string form
         if (bStrict || !v->IsObject())
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
 
         // a read that fails inside the object -- a getter that throws -- is the
         // JavaScript error of that getter, not a type error of the argument
@@ -241,23 +241,23 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::strin
             str = v->ToString(isolate->context()).FromMaybe(v8::Local<v8::String>());
 
             if (trycatch.HasCaught() || str.IsEmpty())
-                return CALL_E_TYPEMISMATCH;
+                return result_t::type_mismatch();
         } else {
             if (trycatch.HasCaught()) {
                 trycatch.ReThrow();
 
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             }
 
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
         }
     }
 
     if (str.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     n = ToString(isolate->m_isolate, str);
-    return 0;
+    return result_t();
 }
 
 result_t GetDOMStringValue(v8::Local<v8::Value> v, exlib::string& retVal)
@@ -281,20 +281,20 @@ result_t GetDOMStringValue(v8::Local<v8::Value> v, exlib::string& retVal)
             // symbol, or a toString() of its own): the engine error stands
             trycatch.ReThrow();
 
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
         }
 
         retVal = "[object ";
         retVal.append(o->Classinfo().name());
         retVal.append("]");
-        return 0;
+        return result_t();
     }
 
     if (str.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     retVal = ToString(isolate->m_isolate, str);
-    return 0;
+    return result_t();
 }
 
 } // namespace fibjs

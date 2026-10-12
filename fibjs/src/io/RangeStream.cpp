@@ -187,7 +187,7 @@ result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
         if (ac.isSync())
             return result_t::nosync();
 
-        return (new asyncRead(this, std::move(ac), bytes, retVal))->post(0);
+        return (new asyncRead(this, std::move(ac), bytes, retVal))->post(result_t());
     } else {
         if (!m_raw_stream)
             return CALL_E_CLOSED;
@@ -236,7 +236,7 @@ result_t RangeStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
         if (ac.isSync())
             return result_t::nosync();
 
-        return (new asyncReadRaw(this, std::move(ac), bytes, retVal))->post(0);
+        return (new asyncReadRaw(this, std::move(ac), bytes, retVal))->post(result_t());
     }
 }
 
@@ -356,7 +356,7 @@ result_t RangeStream::stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac)
         obj_ptr<Stat_base>& m_retVal;
     };
 
-    return (new asyncStat(this, std::move(ac), retVal))->post(0);
+    return (new asyncStat(this, std::move(ac), retVal))->post(result_t());
 }
 
 result_t RangeStream::tell(int64_t& retVal)

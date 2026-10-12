@@ -152,7 +152,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
                     .arg("family", family));
 #endif
             } else
-                resolver->_ac.post(0);
+                resolver->_ac.post(result_t());
 
             uv_freeaddrinfo(res);
             delete resolver;

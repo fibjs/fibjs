@@ -559,7 +559,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<WebSocket> sock = new WebSocket(url, protocols, origin, perMessageDeflate, maxPayload);
     sock->m_holder = new ValueHolder(sock->wrap(This));
 
-    (new asyncConnect(sock, headers, hc, sock->holder()))->apost(0);
+    (new asyncConnect(sock, headers, hc, sock->holder()))->apost(result_t());
 
     retVal = sock;
 
@@ -643,7 +643,7 @@ void WebSocket::startRecv(Isolate* isolate)
             case WebSocket_base::C_PING: {
                 obj_ptr<Stream_base> body;
                 m_msg->get_body(body);
-                (new asyncSend(m_this, SeekableStream_base::getInstance(body), WebSocket_base::C_PONG))->post(0);
+                (new asyncSend(m_this, SeekableStream_base::getInstance(body), WebSocket_base::C_PONG))->post(result_t());
                 break;
             }
             case WebSocket_base::C_CLOSE: {
@@ -651,7 +651,7 @@ void WebSocket::startRecv(Isolate* isolate)
                 m_msg->get_body(body);
 
                 if (m_this->m_closeState.CompareAndSwap(WebSocket_base::C_OPEN, WebSocket_base::C_CLOSING) == WebSocket_base::C_OPEN)
-                    (new asyncSend(m_this, SeekableStream_base::getInstance(body), WebSocket_base::C_CLOSE))->post(0);
+                    (new asyncSend(m_this, SeekableStream_base::getInstance(body), WebSocket_base::C_CLOSE))->post(result_t());
                 else
                     m_this->endConnect(SeekableStream_base::getInstance(body));
 
@@ -687,7 +687,7 @@ void WebSocket::startRecv(Isolate* isolate)
     };
 
     if (m_stream && m_readState.xchg(WebSocket_base::C_OPEN) != WebSocket_base::C_OPEN)
-        (new asyncRead(this, isolate))->apost(0);
+        (new asyncRead(this, isolate))->apost(result_t());
 }
 
 void WebSocket::endConnect(int32_t code, exlib::string reason)
@@ -800,7 +800,7 @@ result_t WebSocket::close(int32_t code, exlib::string reason)
     if (m_readyState.CompareAndSwap(WebSocket_base::C_OPEN, WebSocket_base::C_CLOSING) != WebSocket_base::C_OPEN)
         return 0;
 
-    (new asyncSend(this, code, reason))->post(0);
+    (new asyncSend(this, code, reason))->post(result_t());
     return 0;
 }
 
@@ -815,7 +815,7 @@ result_t WebSocket::send_text(exlib::string data)
         return result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CLOSED state.");
     }
 
-    (new asyncSend(this, data))->post(0);
+    (new asyncSend(this, data))->post(result_t());
     return 0;
 }
 
@@ -830,7 +830,7 @@ result_t WebSocket::send_binary(Buffer_base* data)
         return result_t::make(CALL_E_EXCEPTION).with_message("websocket: WebSocket is in CLOSED state.");
     }
 
-    (new asyncSend(this, data))->post(0);
+    (new asyncSend(this, data))->post(result_t());
     return 0;
 }
 

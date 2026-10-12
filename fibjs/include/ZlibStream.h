@@ -145,17 +145,17 @@ public:
 
     result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
     {
-        return (new asyncWrite(this, m_stm, data, std::move(ac)))->post(0);
+        return (new asyncWrite(this, m_stm, data, std::move(ac)))->post(result_t());
     }
 
     result_t flush(AsyncHandle ac)
     {
-        return (new asyncWrite(this, m_stm, Z_SYNC_FLUSH, std::move(ac)))->post(0);
+        return (new asyncWrite(this, m_stm, Z_SYNC_FLUSH, std::move(ac)))->post(result_t());
     }
 
     result_t close(AsyncHandle ac)
     {
-        return (new asyncWrite(this, m_stm, Z_FINISH, std::move(ac)))->post(0);
+        return (new asyncWrite(this, m_stm, Z_FINISH, std::move(ac)))->post(result_t());
     }
 
 public:
@@ -198,7 +198,7 @@ public:
             obj_ptr<MemoryStream> m_stm;
         };
 
-        return (new asyncProcess(this, data, retVal, std::move(ac)))->post(0);
+        return (new asyncProcess(this, data, retVal, std::move(ac)))->post(result_t());
     }
 
     result_t process(Buffer_base* data, AsyncHandle ac)
@@ -228,7 +228,7 @@ public:
             obj_ptr<Buffer_base> m_data;
         };
 
-        return (new asyncProcess(this, data, std::move(ac)))->post(0);
+        return (new asyncProcess(this, data, std::move(ac)))->post(result_t());
     }
 
     result_t process(Stream_base* src, AsyncHandle ac)
@@ -259,7 +259,7 @@ public:
             int64_t m_size;
         };
 
-        return (new asyncProcess(this, src, std::move(ac)))->post(0);
+        return (new asyncProcess(this, src, std::move(ac)))->post(result_t());
     }
 
 public:

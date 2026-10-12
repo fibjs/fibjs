@@ -96,7 +96,7 @@ result_t mq_base::invoke(Union_invoke_hdlr hdlr, object_base* v,
     if (hr.failed())
         return hr;
 
-    return (new Chain::asyncInvoke(handler, v, std::move(ac)))->post(0);
+    return (new Chain::asyncInvoke(handler, v, std::move(ac)))->post(result_t());
 }
 
 result_t mq_base::nullHandler(obj_ptr<Handler_base>& retVal)

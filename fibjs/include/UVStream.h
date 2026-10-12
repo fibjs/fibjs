@@ -217,7 +217,7 @@ public:
                         outLog(console_base::C_NOTICE, clean_string(m_buf.c_str(), m_buf.length()));
                     }
 
-                    m_ac.post(0);
+                    m_ac.post(result_t());
                 } else
                     m_ac.apost(CALL_RETURN_NULL);
             }
@@ -428,7 +428,7 @@ public:
         if (ac.isSync())
             return result_t::nosync();
 
-        (new AsyncStream<T>::AsyncReadVariant(this, bytes, retVal, std::move(ac)))->post(0);
+        (new AsyncStream<T>::AsyncReadVariant(this, bytes, retVal, std::move(ac)))->post(result_t());
         return result_t::pending();
     }
 
@@ -539,7 +539,7 @@ public:
         auto h = std::make_shared<AsyncHandle>(std::move(ac));
         uv_post([this, h] {
             if (queue_write.count() == 0)
-                h->apost(0);
+                h->apost(result_t());
             else
                 m_flush_waiters.push_back(std::move(*h));
         });
@@ -557,7 +557,7 @@ public:
         pThis->on_handle_closed();
 
         if (pThis->ac_close)
-            pThis->ac_close.apost(0);
+            pThis->ac_close.apost(result_t());
     }
 
     virtual void on_handle_closed()
@@ -578,7 +578,7 @@ public:
                 AsyncRead::post_all_result(this, CALL_E_CLOSED_SOCKET);
                 AsyncWrite::post_all_result(this, CALL_E_CLOSED_SOCKET);
                 if (*h)
-                    h->apost(0);
+                    h->apost(result_t());
                 return;
             }
 

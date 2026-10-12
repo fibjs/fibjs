@@ -567,7 +567,7 @@ public:
         if (ac.isSync())
             return result_t::nosync();
 
-        (new AsyncReadVariant(this, bytes, retVal, std::move(ac)))->apost(0);
+        (new AsyncReadVariant(this, bytes, retVal, std::move(ac)))->apost(result_t());
         return result_t::pending();
     }
 
@@ -619,7 +619,7 @@ public:
         if (ac.isSync())
             return result_t::nosync();
 
-        (new AsyncReadAll(this, retVal, std::move(ac)))->apost(0);
+        (new AsyncReadAll(this, retVal, std::move(ac)))->apost(result_t());
         return result_t::pending();
     }
 
@@ -824,7 +824,7 @@ public:
         }
 
         retVal = this;
-        (new AsyncDestroyEmitter(this, std::move(ac)))->apost(0);
+        (new AsyncDestroyEmitter(this, std::move(ac)))->apost(result_t());
         return result_t::pending();
     }
 
@@ -876,7 +876,7 @@ public:
 
         void start()
         {
-            apost(0);
+            apost(result_t());
         }
 
         ON_STATE(AsyncStreamWriter, doWrite)
@@ -984,7 +984,7 @@ public:
             return result_t::nosync();
 
         retVal = 0;
-        (new AsyncEndEmitter(this, nullptr, std::move(ac)))->apost(0);
+        (new AsyncEndEmitter(this, nullptr, std::move(ac)))->apost(result_t());
         return result_t::pending();
     }
 
@@ -994,7 +994,7 @@ public:
             return result_t::nosync();
 
         retVal = 0;
-        (new AsyncEndEmitter(this, data, std::move(ac)))->apost(0);
+        (new AsyncEndEmitter(this, data, std::move(ac)))->apost(result_t());
         return result_t::pending();
     }
 
@@ -1004,7 +1004,7 @@ public:
             return result_t::nosync();
 
         retVal = 0;
-        (new AsyncEndEmitter(this, data, std::move(ac)))->apost(0);
+        (new AsyncEndEmitter(this, data, std::move(ac)))->apost(result_t());
         return result_t::pending();
     }
 
@@ -1019,7 +1019,7 @@ public:
             return hr;
 
         retVal = 0;
-        (new AsyncEndEmitter(this, buf, std::move(ac)))->apost(0);
+        (new AsyncEndEmitter(this, buf, std::move(ac)))->apost(result_t());
         return result_t::pending();
     }
 
@@ -1094,7 +1094,7 @@ public:
     // Called when connection is established (for Socket)
     // Decrements m_state by 1
     // err: 0 = success, other = error code
-    void on_connected(result_t err = 0)
+    void on_connected(result_t err = result_t())
     {
         if (m_state.dec() == 0) {
             if (err.ok()) {

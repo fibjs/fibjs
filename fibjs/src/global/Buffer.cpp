@@ -336,15 +336,15 @@ Buffer* Buffer::getInstance(v8::Local<v8::Value> o)
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict)
 {
     if (v.IsEmpty() || v->IsNumber() || v->IsNumberObject())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     if (!IsJSBuffer(v)) {
         if (bStrict)
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
 
         if (v->IsArrayBuffer()) {
             vr = new Buffer(v.As<v8::ArrayBuffer>());
-            return 0;
+            return result_t();
         }
 
         if (v->IsSharedArrayBuffer()) {
@@ -355,13 +355,13 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
             } else {
                 Buffer_base::allocUnsafe(0, vr);
             }
-            return 0;
+            return result_t();
         }
 
         if (v->IsDataView()) {
             v8::Local<v8::DataView> view = v.As<v8::DataView>();
             vr = new Buffer(view->Buffer()->GetBackingStore(), view->ByteOffset(), view->ByteLength());
-            return 0;
+            return result_t();
         }
 
         if (v->IsArray())
@@ -371,16 +371,16 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
         if (blob) {
             Blob* b = blob.As<Blob>();
             vr = b->m_impl.getBuffer();
-            return 0;
+            return result_t();
         }
 
         if (!v->IsTypedArray())
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
     }
 
     vr = new Buffer(v.As<v8::TypedArray>());
 
-    return 0;
+    return result_t();
 }
 
 // a binary option (key material, passphrase, header, ...) accepts a string as

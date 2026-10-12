@@ -99,7 +99,7 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new asyncCopy(from, to, bytes, retVal, std::move(ac)))->post(0);
+    return (new asyncCopy(from, to, bytes, retVal, std::move(ac)))->post(result_t());
 }
 
 #define BRIDGE_READ 1
@@ -185,14 +185,14 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncHandle ac)
 
             m_ref = 2;
 
-            (new AsyncCopy(this, 0))->apost(0);
-            (new AsyncCopy(this, 1))->apost(0);
+            (new AsyncCopy(this, 0))->apost(result_t());
+            (new AsyncCopy(this, 1))->apost(result_t());
         }
 
         void release()
         {
             if (m_ref.dec() == 0) {
-                m_ac.post(0);
+                m_ac.post(result_t());
                 delete this;
             }
         }

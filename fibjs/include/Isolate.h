@@ -294,7 +294,7 @@ public:
     typedef v8::Platform* (*platform_creator)();
 
     void Ref();
-    void Unref(result_t hr = 0);
+    void Unref(result_t hr = result_t());
     void registerHoldingObject(object_base* obj);
     void unregisterHoldingObject(object_base* obj);
     void stopHoldingObjects();

@@ -55,14 +55,14 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<obje
 {
     vr = (object_base*)object_base::unwrap(v);
     if (vr != NULL)
-        return 0;
+        return result_t();
 
     if (IsJSBuffer(v)) {
         vr = Buffer::getInstance(v);
-        return 0;
+        return result_t();
     }
 
-    return CALL_E_TYPEMISMATCH;
+    return result_t::type_mismatch();
 }
 
 }

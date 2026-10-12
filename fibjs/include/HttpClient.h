@@ -353,7 +353,7 @@ public:
             for (auto& item : entry->waiters) {
                 *item.session = session;
                 *item.conn = conn;
-                item.ac.post(0);
+                item.ac.post(result_t());
             }
             delete entry;
         }

@@ -517,7 +517,7 @@ void Http2Session::enqueueFlush(AsyncFlushItem* item)
     m_write_spinlock.unlock();
 
     if (should_start)
-        (new asyncWriter(this))->apost(0);
+        (new asyncWriter(this))->apost(result_t());
 }
 
 void Http2Session::startLoops()
@@ -656,7 +656,7 @@ void Http2Session::startLoops()
         exlib::string m_pending_input;
     };
 
-    (new asyncReadLoop(this))->apost(0);
+    (new asyncReadLoop(this))->apost(result_t());
 }
 
 // -- property getters --
@@ -1057,7 +1057,7 @@ result_t Http2Session::close(AsyncHandle ac)
         obj_ptr<Buffer_base> m_buf;
     };
 
-    return (new asyncClose(this, std::move(ac)))->post(0);
+    return (new asyncClose(this, std::move(ac)))->post(result_t());
 }
 
 result_t Http2Session::destroy()

@@ -261,7 +261,7 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new asyncCopy(from, to, bytes, mask, std::move(ac)))->post(0);
+    return (new asyncCopy(from, to, bytes, mask, std::move(ac)))->post(result_t());
 }
 
 result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncHandle ac)
@@ -402,7 +402,7 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncHandle 
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new asyncSendTo(this, stm, wss, std::move(ac)))->post(0);
+    return (new asyncSendTo(this, stm, wss, std::move(ac)))->post(result_t());
 }
 
 result_t WebSocketMessage::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
@@ -594,7 +594,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
 
     m_stm = stm;
 
-    return (new asyncReadFrom(this, stm, wss, std::move(ac)))->post(0);
+    return (new asyncReadFrom(this, stm, wss, std::move(ac)))->post(result_t());
 }
 
 result_t WebSocketMessage::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)

@@ -194,7 +194,7 @@ void UVSocket::on_listen(int status)
         std::pair<obj_ptr<Socket_base>&, AsyncHandle>& _pair = m_accepts.front();
 
         _pair.first = sock;
-        _pair.second.apost(0);
+        _pair.second.apost(result_t());
 
         m_accepts.pop_front();
     } else if (m_socks.size() < 256) {

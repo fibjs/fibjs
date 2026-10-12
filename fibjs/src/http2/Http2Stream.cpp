@@ -305,7 +305,7 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new AsyncRead(this, retVal, std::move(ac)))->post(0);
+    return (new AsyncRead(this, retVal, std::move(ac)))->post(result_t());
 }
 
 result_t Http2Stream::writeBuffer(Buffer_base* data, AsyncHandle ac)
@@ -379,7 +379,7 @@ void Http2Stream::onData(const uint8_t* data, size_t len)
         AsyncHandle ac = std::move(m_recv_ac);
         m_recv_retVal = nullptr;
         m_recv_lock.unlock();
-        ac.apost(0);
+        ac.apost(result_t());
         return;
     }
     m_recv_queue.push_back(buf);
@@ -394,7 +394,7 @@ void Http2Stream::onHeaders(obj_ptr<NObject> headers)
     m_headers_lock.unlock();
 
     if (ac)
-        ac.apost(0);
+        ac.apost(result_t());
 }
 
 result_t Http2Stream::waitHeaders(AsyncHandle ac)

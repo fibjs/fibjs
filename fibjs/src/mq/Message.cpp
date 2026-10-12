@@ -194,7 +194,7 @@ result_t Message::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
         m_bodyUsed = true;
         retVal = (n.is_return_null() || !data) ? new Buffer("", 0) : data;
         return 0;
-    }, std::move(ac)))->post(0);
+    }, std::move(ac)))->post(result_t());
 }
 
 result_t Message::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHandle ac)
@@ -208,7 +208,7 @@ result_t Message::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHand
             data = new Buffer("", 0);
         retVal = new Blob(data, type);
         return 0;
-    }, std::move(ac)))->post(0);
+    }, std::move(ac)))->post(result_t());
 }
 
 result_t Message::write(Union_write_data data, int32_t& retVal, AsyncHandle ac)
@@ -264,7 +264,7 @@ result_t Message::text(exlib::string& retVal, AsyncHandle ac)
         m_bodyUsed = true;
         if (n.is_return_null() || !data) { retVal = ""; return 0; }
         return data->toString(retVal);
-    }, std::move(ac)))->post(0);
+    }, std::move(ac)))->post(result_t());
 }
 
 result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
@@ -277,7 +277,7 @@ result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHa
         if (n.is_return_null() || !data) { retVal = NewBackingStore(0); return 0; }
         retVal = data.As<Buffer>()->backingStore();
         return 0;
-    }, std::move(ac)))->post(0);
+    }, std::move(ac)))->post(result_t());
 }
 
 result_t Message::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
@@ -318,7 +318,7 @@ result_t Message::json(Variant& retVal, AsyncHandle ac)
         data->toString(str);
         retVal.setJSON(str);
         return 0;
-    }, std::move(ac)))->post(0);
+    }, std::move(ac)))->post(result_t());
 }
 
 result_t Message::consumeBody(std::function<result_t(result_t, obj_ptr<Buffer_base>)> fn, AsyncHandle ac)
@@ -326,7 +326,7 @@ result_t Message::consumeBody(std::function<result_t(result_t, obj_ptr<Buffer_ba
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new asyncConsumeBody(this, std::move(fn), std::move(ac)))->post(0);
+    return (new asyncConsumeBody(this, std::move(fn), std::move(ac)))->post(result_t());
 }
 
 result_t Message::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
@@ -365,7 +365,7 @@ result_t Message::pack(Variant& retVal, AsyncHandle ac)
         Buffer* buf = data.As<Buffer>();
         retVal.setMsgpack(exlib::string((const char*)buf->data(), buf->length()));
         return 0;
-    }, std::move(ac)))->post(0);
+    }, std::move(ac)))->post(result_t());
 }
 
 result_t Message::get_length(int64_t& retVal)

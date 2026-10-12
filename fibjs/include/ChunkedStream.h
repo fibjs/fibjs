@@ -141,7 +141,7 @@ public:
             return 0;
         }
 
-        return (new asyncReadFrom(this, bytes, retVal, std::move(ac)))->post(0);
+        return (new asyncReadFrom(this, bytes, retVal, std::move(ac)))->post(result_t());
     }
 
     virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)

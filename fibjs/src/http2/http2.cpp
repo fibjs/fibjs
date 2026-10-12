@@ -207,7 +207,7 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
         obj_ptr<Buffer_base> m_pending_buf;
     };
 
-    return (new asyncConnect(ssl_sock, hostname, port, ipv6, session, retVal, std::move(ac)))->post(0);
+    return (new asyncConnect(ssl_sock, hostname, port, ipv6, session, retVal, std::move(ac)))->post(result_t());
 }
 
 result_t http2_base::getDefaultSettings(obj_ptr<GetDefaultSettingsType>& retVal)

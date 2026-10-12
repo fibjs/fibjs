@@ -602,7 +602,7 @@ void Worker::emitExit(int32_t exitCode)
 
     for (auto& waiter : waiters) {
         *waiter.retVal = exitCode;
-        waiter.ac.post(0);
+        waiter.ac.post(result_t());
     }
 }
 

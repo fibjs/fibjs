@@ -157,7 +157,7 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
         exlib::string m_line;
     };
 
-    (new asyncRead(this))->apost(0);
+    (new asyncRead(this))->apost(result_t());
 }
 
 result_t ChildProcess::Ipc::send(Stream_base* stream, v8::Local<v8::Value> msg)

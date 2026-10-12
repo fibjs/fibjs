@@ -280,11 +280,11 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
         return result_t::nosync();
 
     if (m_subMode == 1) {
-        (new asyncCommand(this))->post(0);
+        (new asyncCommand(this))->post(result_t());
         m_subMode = 2;
     }
 
-    return (new asyncCommand(this, req, retVal, std::move(ac)))->post(0);
+    return (new asyncCommand(this, req, retVal, std::move(ac)))->post(result_t());
 }
 
 result_t Redis::command(exlib::string cmd, OptArgs args,

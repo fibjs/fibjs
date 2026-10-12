@@ -66,7 +66,7 @@ public:
         if (!m_stream)
             return result_t::invalid_call();
 
-        return (new AsyncRead(this, retVal, std::move(ac)))->post(0);
+        return (new AsyncRead(this, retVal, std::move(ac)))->post(result_t());
     }
 
     virtual result_t releaseLock()
@@ -111,7 +111,7 @@ public:
         if (!m_stream)
             return 0;
 
-        return (new AsyncCancel(this, std::move(ac)))->post(0);
+        return (new AsyncCancel(this, std::move(ac)))->post(result_t());
     }
 
     virtual result_t get_closed(v8::Local<v8::Promise>& retVal)

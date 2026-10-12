@@ -53,7 +53,7 @@ result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     if (m_array.size() == 0)
         return result_t::make(CALL_E_EXCEPTION).with_message("Chain: empty chain.");
 
-    return (new asyncInvoke(m_array, v, std::move(ac)))->post(0);
+    return (new asyncInvoke(m_array, v, std::move(ac)))->post(result_t());
 }
 
 result_t Chain::append(Union_append_hdlr hdlr)

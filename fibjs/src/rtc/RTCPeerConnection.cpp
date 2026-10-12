@@ -627,14 +627,14 @@ void RTCPeerConnection::onLocalDescription(rtc::Description description)
         m_offer_description = obj_description;
         for (auto& [retVal, ac] : m_offers) {
             retVal = obj_description;
-            ac.post(0);
+            ac.post(result_t());
         }
         m_offers.clear();
     } else if (description.type() == rtc::Description::Type::Answer) {
         m_answer_description = obj_description;
         for (auto& [retVal, ac] : m_answers) {
             retVal = obj_description;
-            ac.post(0);
+            ac.post(result_t());
         }
         m_answers.clear();
     }

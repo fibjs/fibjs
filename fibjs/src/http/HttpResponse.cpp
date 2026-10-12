@@ -656,7 +656,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
     if (!_stm)
         return result_t::make(CALL_E_EXCEPTION).with_message("HttpResponse: only accept BufferedStream object.");
 
-    return (new asyncReadFrom(this, _stm, std::move(ac), headerOnly))->post(0);
+    return (new asyncReadFrom(this, _stm, std::move(ac), headerOnly))->post(result_t());
 }
 
 result_t HttpResponse::readHeader(Stream_base* stm, AsyncHandle ac)

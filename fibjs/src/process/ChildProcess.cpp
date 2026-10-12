@@ -775,7 +775,7 @@ result_t ChildProcess::join(int32_t& retVal, AsyncHandle ac)
     if (m_ev.wait(waiter)) {
         // Borrowed delivery: the waiter disposes of itself in post().
         AsyncHandle h(waiter);
-        h.apost(0);
+        h.apost(result_t());
     }
 
     return result_t::pending();

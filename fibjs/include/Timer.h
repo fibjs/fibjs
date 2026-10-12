@@ -305,7 +305,7 @@ public:
         m_timer->sleep();
     }
 
-    result_t result(result_t hr = 0)
+    result_t result(result_t hr = result_t())
     {
         m_timer->clear();
 

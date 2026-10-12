@@ -15,7 +15,7 @@ namespace fibjs {
 class EventInfo : public NObject {
 public:
     EventInfo(obj_ptr<object_base> target, exlib::string type,
-        result_t code = 0, exlib::string reason = "")
+        result_t code = result_t(), exlib::string reason = "")
         : m_target(target)
         , m_type(type)
     {

@@ -291,7 +291,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
                 pThis->m_ac.apost(status);
             else {
                 pThis->m_retVal = status;
-                pThis->m_ac.apost(0);
+                pThis->m_ac.apost(result_t());
             }
 
             delete pThis;

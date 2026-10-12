@@ -1135,7 +1135,7 @@ public:
 
         if (ac.isSync())
             return result_t::nosync();
-        return (new asyncRead(this, bytes, retVal, std::move(ac)))->post(0);
+        return (new asyncRead(this, bytes, retVal, std::move(ac)))->post(result_t());
     }
 
     virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
@@ -1312,7 +1312,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new asyncRequest(this, conn, req, retVal, std::move(ac)))->post(0);
+    return (new asyncRequest(this, conn, req, retVal, std::move(ac)))->post(result_t());
 }
 
 // Public virtual implementation — delegates to the streaming overload.
@@ -2490,7 +2490,7 @@ result_t HttpClient::requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_b
     if (o->u->protocol() == "file:")
         return build_file_fetch_response(o, retVal);
 
-    return (new asyncRequest(o, retVal, std::move(ac)))->post(0);
+    return (new asyncRequest(o, retVal, std::move(ac)))->post(result_t());
 }
 
 // Lightweight event that silently absorbs async completion,
@@ -2517,7 +2517,7 @@ result_t HttpClient::request(HttpRequest::Options* o, AsyncHandle ac)
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new asyncRequest(o, std::move(ac)))->post(0);
+    return (new asyncRequest(o, std::move(ac)))->post(result_t());
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
@@ -2637,7 +2637,7 @@ result_t HttpClient::fire_request(exlib::string method, exlib::string url,
         o->req_holder = new ValueHolder(o->req->wrap());
     retVal = o->req;
 
-    (new asyncRequest(o.get(), new FireAndForgetEvent(ac.isolate())))->post(0);
+    (new asyncRequest(o.get(), new FireAndForgetEvent(ac.isolate())))->post(result_t());
     return 0;
 }
 
@@ -2680,7 +2680,7 @@ result_t HttpClient::fire_callback_request(exlib::string method, exlib::string u
     o->auto_send = auto_send;
     retVal = o->req;
 
-    (new asyncRequest(o.get(), new FireAndForgetEvent(ac.isolate())))->post(0);
+    (new asyncRequest(o.get(), new FireAndForgetEvent(ac.isolate())))->post(result_t());
     return 0;
 }
 
@@ -3376,6 +3376,6 @@ result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> op
         return ctx_hr;
 
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac.ctxv()[0].object();
-    return (new asyncFetch(o, retVal, std::move(ac)))->post(0);
+    return (new asyncFetch(o, retVal, std::move(ac)))->post(result_t());
 }
 }

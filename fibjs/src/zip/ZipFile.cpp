@@ -685,7 +685,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
         exlib::string m_fpath1;
     };
 
-    return (new asyncExtractAll(this, path, password, std::move(ac)))->post(0);
+    return (new asyncExtractAll(this, path, password, std::move(ac)))->post(result_t());
 }
 
 result_t ZipFile::readAll(exlib::string password, std::vector<obj_ptr<ZipFile_base::ReadAllType>>& retVal, AsyncHandle ac)

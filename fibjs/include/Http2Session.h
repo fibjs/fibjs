@@ -320,7 +320,7 @@ public:
         AsyncHandle ac = std::move(m_done_ac);
         m_done_lock.unlock();
         if (ac)
-            ac.post(0);
+            ac.post(result_t());
     }
 
     // Collect pending nghttp2 output into a buffer (no I/O)

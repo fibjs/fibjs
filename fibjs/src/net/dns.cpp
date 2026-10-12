@@ -55,7 +55,7 @@ result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVa
                 resolver->_retVal.push_back(addr_info.str());
             }
 
-            resolver->_ac.post(0);
+            resolver->_ac.post(result_t());
 
             uv_freeaddrinfo(res);
             delete resolver;
@@ -179,7 +179,7 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
                 }
 
                 resolver->_retVal = arr;
-                resolver->_ac.post(0);
+                resolver->_ac.post(result_t());
             } else {
                 struct addrinfo* ptr = NULL;
                 for (ptr = res; ptr != NULL; ptr = ptr->ai_next) {
@@ -194,7 +194,7 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
                 }
 
                 if (ptr != NULL)
-                    resolver->_ac.post(0);
+                    resolver->_ac.post(result_t());
                 else
                     resolver->_ac.post(result_t::make(CALL_E_EXCEPTION).with_message("No address found"));
             }

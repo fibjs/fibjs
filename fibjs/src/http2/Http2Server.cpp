@@ -134,7 +134,7 @@ public:
             return result_t::bad_vartype();
 
         Isolate* isolate = ac.isolate();
-        return (new asyncInvoke(this, stm, isolate, std::move(ac)))->post(0);
+        return (new asyncInvoke(this, stm, isolate, std::move(ac)))->post(result_t());
     }
 
 private:
@@ -289,7 +289,7 @@ result_t Http2Server::stop(AsyncHandle ac)
         obj_ptr<Http2Server> m_server;
     };
 
-    return (new asyncStop(this, std::move(ac)))->post(0);
+    return (new asyncStop(this, std::move(ac)))->post(result_t());
 }
 
 result_t Http2Server::close(AsyncHandle ac)

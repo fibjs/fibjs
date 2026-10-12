@@ -217,7 +217,7 @@ result_t TcpServer::start()
                 if (m_pThis->m_eventDelegate)
                     m_pThis->m_eventDelegate->_emit("connection", &sockArg, 1);
 
-                (new asyncInvoke(m_pThis, m_accept, m_holder))->apost(0);
+                (new asyncInvoke(m_pThis, m_accept, m_holder))->apost(result_t());
                 m_accept.Release();
             }
 
@@ -272,7 +272,7 @@ result_t TcpServer::start()
         m_eventDelegateRef = m_eventDelegate;
 
     obj_ptr<ValueHolder> holder = new ValueHolder(wrap());
-    (new asyncAccept(this, holder))->apost(0);
+    (new asyncAccept(this, holder))->apost(result_t());
     _emit("listening");
     if (m_eventDelegate)
         m_eventDelegate->_emit("listening");

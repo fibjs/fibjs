@@ -52,7 +52,7 @@ public:
 public:
     virtual void resume()
     {
-        post(0);
+        post(result_t());
     }
 
 public:
@@ -276,7 +276,7 @@ public:
     //   3. dispose: owned events are deleted by the handle, borrowed ones by
     //      their original owner (the glue stack frame, the self-deleting
     //      machine or receiver).
-    void post(result_t hr = 0)
+    void post(result_t hr = result_t())
     {
         AsyncEvent* ev = m_ac;
         bool owned = !m_borrowed;
@@ -300,7 +300,7 @@ public:
     // disposal duty - so nothing is released early: the post, and the owned
     // disposal that follows it, both run on the pool fiber. An empty handle is
     // a no-op, like post().
-    void apost(result_t hr = 0, int32_t mode = CALL_E_NOSYNC)
+    void apost(result_t hr = result_t(), int32_t mode = CALL_E_NOSYNC)
     {
         if (empty())
             return;
@@ -526,13 +526,13 @@ public:
     };
 
 public:
-    ASResult next(result_t (*fn)(AsyncState*, result_t), result_t r = 0)
+    ASResult next(result_t (*fn)(AsyncState*, result_t), result_t r = result_t())
     {
         m_next = fn;
         return issue(r);
     }
 
-    ASResult next(result_t r = 0)
+    ASResult next(result_t r = result_t())
     {
         m_next = NULL;
         return issue(r);
@@ -681,7 +681,7 @@ public:
 public:
     virtual void resume()
     {
-        apost(0);
+        apost(result_t());
     }
 
 private:
@@ -719,7 +719,7 @@ public:
         // 即 SIGSEGV。普通构建挂等待链的是机器本体，本来就走 apost，这里只是对齐。
         virtual void resume() override
         {
-            apost(0);
+            apost(result_t());
         }
 
         virtual void invoke() override

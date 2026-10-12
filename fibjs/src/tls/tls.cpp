@@ -178,7 +178,7 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
         ssl_sock = (TLSSocket*)ac.ctxv()[0].object();
 
     return (new asyncConnect(u->hostname(), nPort, u->isIPv6(), ssl_sock, timeout, retVal, std::move(ac)))
-        ->post(0);
+        ->post(result_t());
 }
 
 result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
@@ -286,7 +286,7 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
     }
 
     return (new asyncConnect(host, port, Url::isIPv6(host), ssl_sock, timeout, retVal, std::move(ac)))
-        ->post(0);
+        ->post(result_t());
 }
 
 static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
@@ -333,7 +333,7 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
     int32_t port = opts->port.value();
     int32_t timeout = opts->timeout.value();
     return (new asyncConnect(host, port, Url::isIPv6(host), ssl_sock, timeout, retVal, std::move(ac)))
-        ->post(0);
+        ->post(result_t());
 }
 
 result_t tls_base::connect(Union_connect_options options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)

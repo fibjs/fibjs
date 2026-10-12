@@ -282,7 +282,7 @@ static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile_base::Read
 
         return (new asyncResolveZipFile(zip_file, member, bChanged, member1, retVal, std::move(ac)))->post(0);
 #else
-        return (new asyncResolveZipFile(zip_file, member, false, exlib::string(), retVal, std::move(ac)))->post(0);
+        return (new asyncResolveZipFile(zip_file, member, false, exlib::string(), retVal, std::move(ac)))->post(result_t());
 #endif
     }
 

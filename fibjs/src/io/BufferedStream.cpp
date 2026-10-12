@@ -142,7 +142,7 @@ result_t BufferedStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new asyncRead(this, bytes, retVal, std::move(ac)))->post(0);
+    return (new asyncRead(this, bytes, retVal, std::move(ac)))->post(result_t());
 }
 
 result_t BufferedStream::writeBuffer(Buffer_base* data, AsyncHandle ac)
@@ -215,7 +215,7 @@ result_t BufferedStream::readText(int32_t size, exlib::string& retVal,
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new asyncRead(this, size, retVal, std::move(ac)))->post(0);
+    return (new asyncRead(this, size, retVal, std::move(ac)))->post(result_t());
 }
 
 result_t BufferedStream::readLine(int32_t maxlen, exlib::string& retVal,
@@ -355,7 +355,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new asyncRead(this, mk, maxlen, retVal, std::move(ac)))->post(0);
+    return (new asyncRead(this, mk, maxlen, retVal, std::move(ac)))->post(result_t());
 }
 
 result_t BufferedStream::writeText(exlib::string txt, int32_t& retVal, AsyncHandle ac)

@@ -660,7 +660,7 @@ result_t HttpRequest::end(int32_t& retVal, AsyncHandle ac)
         ON_STATE(AsyncEnd, resume)
         {
             if (m_ac)
-                m_ac.post(0);
+                m_ac.post(result_t());
             return next();
         }
 
@@ -680,7 +680,7 @@ result_t HttpRequest::end(int32_t& retVal, AsyncHandle ac)
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new AsyncEnd(this, retVal, std::move(ac)))->post(0);
+    return (new AsyncEnd(this, retVal, std::move(ac)))->post(result_t());
 }
 
 result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
@@ -707,7 +707,7 @@ result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
         ON_STATE(AsyncEnd, resume)
         {
             if (m_ac)
-                m_ac.post(0);
+                m_ac.post(result_t());
             return next();
         }
 
@@ -728,7 +728,7 @@ result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new AsyncEnd(this, data, retVal, std::move(ac)))->post(0);
+    return (new AsyncEnd(this, data, retVal, std::move(ac)))->post(result_t());
 }
 
 result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
@@ -756,7 +756,7 @@ result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& re
         ON_STATE(AsyncEnd, resume)
         {
             if (m_ac)
-                m_ac.post(0);
+                m_ac.post(result_t());
             return next();
         }
 
@@ -778,7 +778,7 @@ result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& re
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new AsyncEnd(this, data, encoding, retVal, std::move(ac)))->post(0);
+    return (new AsyncEnd(this, data, encoding, retVal, std::move(ac)))->post(result_t());
 }
 
 result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
@@ -806,7 +806,7 @@ result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& r
         ON_STATE(AsyncEnd, resume)
         {
             if (m_ac)
-                m_ac.post(0);
+                m_ac.post(result_t());
             return next();
         }
 
@@ -828,7 +828,7 @@ result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& r
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new AsyncEnd(this, data, encoding, retVal, std::move(ac)))->post(0);
+    return (new AsyncEnd(this, data, encoding, retVal, std::move(ac)))->post(result_t());
 }
 
 result_t HttpRequest::isEnded(bool& retVal)
@@ -955,7 +955,7 @@ result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, 
     if (!_stm)
         return result_t::make(CALL_E_EXCEPTION).with_message("HttpRequest: only accept BufferedStream object.");
 
-    return (new asyncReadFrom(this, _stm, std::move(ac)))->post(0);
+    return (new asyncReadFrom(this, _stm, std::move(ac)))->post(result_t());
 }
 
 result_t HttpRequest::get_method(exlib::string& retVal)

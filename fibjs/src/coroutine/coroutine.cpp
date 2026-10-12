@@ -233,7 +233,7 @@ result_t coroutine_base::sleep(int32_t ms, AsyncHandle ac)
         // exlib::Task_base
         virtual void resume()
         {
-            m_ac.post(0);
+            m_ac.post(result_t());
             delete this;
         }
 

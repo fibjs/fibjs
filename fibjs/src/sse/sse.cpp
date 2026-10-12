@@ -92,7 +92,7 @@ result_t EventSourceHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVa
     if (req == NULL)
         return result_t::bad_vartype();
 
-    return (new asyncInvoke(this, req, std::move(ac)))->post(0);
+    return (new asyncInvoke(this, req, std::move(ac)))->post(result_t());
 }
 
 }

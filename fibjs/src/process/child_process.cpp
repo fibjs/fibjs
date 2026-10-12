@@ -160,7 +160,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
                     m_phase = 1;
                     m_stdin->close(this);
                 } else {
-                    m_parent->post(0);
+                    m_parent->post(result_t());
                     delete this;
                 }
                 return 0;
@@ -266,7 +266,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
                 m_retVal->stderr = getBuffer(m_buferr, m_codec);
                 m_cp->get_exitCode(m_retVal->exitCode);
 
-                m_ac.post(0);
+                m_ac.post(result_t());
                 delete this;
             }
 
@@ -453,7 +453,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
                     m_phase = 1;
                     m_stdin->close(this);
                 } else {
-                    m_parent->post(0);
+                    m_parent->post(result_t());
                     delete this;
                 }
                 return 0;
@@ -581,7 +581,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
                 m_retVal->output->append(m_retVal->stdout);
                 m_retVal->output->append(m_retVal->stderr);
 
-                m_ac.post(0);
+                m_ac.post(result_t());
                 delete this;
             }
 
@@ -781,7 +781,7 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
         {
             m_cp->get_exitCode(m_retVal);
 
-            m_ac.post(0);
+            m_ac.post(result_t());
             delete this;
 
             return 0;

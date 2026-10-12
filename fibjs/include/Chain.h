@@ -114,7 +114,7 @@ public:
             // handle 的 apost 交给池投递，与旧 ticket->apost() 的异步回投语义一致。
             AsyncEvent* ticket = m_jsTicket.exchange(nullptr);
             if (ticket)
-                AsyncHandle(ticket).apost(0);
+                AsyncHandle(ticket).apost(result_t());
 
             return m_hr;
         }

@@ -152,8 +152,8 @@ enum {
 #define PROPERTY_ENTER()                                    \
     Isolate* isolate = Isolate::current(args.GetIsolate()); \
     V8_SCOPE(isolate->m_isolate);                           \
-    result_t hr = 0;                                        \
-    result_t hr_argc = 0;                                   \
+    result_t hr;                                        \
+    result_t hr_argc;                                   \
     bool bStrict = false;                                   \
     do {                                                    \
         do {
@@ -168,15 +168,15 @@ enum {
             /* variant that did pass that check: the error of the variant that got further is */      \
             /* the useful diagnosis (an arity error only carries when nothing got past it).    */     \
             result_t hr_prev = hr;                                                                    \
-            hr = 0;                                                                                   \
+            hr = result_t();                                                                                   \
             int32_t argc = argc1;                                                                     \
             if (!bStrict)                                                                             \
                 while (argc > (o) && (args[argc - 1]->IsUndefined() || args[argc - 1]->IsNull()))     \
                     argc--;                                                                           \
             if ((c) >= 0 && argc > (c)) {                                                             \
                 if (hr_prev.is(0) || hr_prev.is(CALL_E_BADPARAMCOUNT) || hr_prev.is(CALL_E_PARAMNOTOPTIONAL)) { \
-                    hr = CALL_E_BADPARAMCOUNT;                                                        \
-                    hr_argc = CALL_E_BADPARAMCOUNT;                                                   \
+                    hr = result_t(CALL_E_BADPARAMCOUNT);                                                        \
+                    hr_argc = result_t(CALL_E_BADPARAMCOUNT);                                                   \
                 } else                                                                                \
                     hr = hr_prev;                                                                     \
                 break;                                                                                \
@@ -184,7 +184,7 @@ enum {
             if ((o) > 0 && argc < (o)) {                                                              \
                 if (hr_prev.is(0) || hr_prev.is(CALL_E_BADPARAMCOUNT) || hr_prev.is(CALL_E_PARAMNOTOPTIONAL)) { \
                     hr = setRuntimeError(CALL_E_PARAMNOTOPTIONAL);                                    \
-                    hr_argc = CALL_E_PARAMNOTOPTIONAL;                                                \
+                    hr_argc = result_t(CALL_E_PARAMNOTOPTIONAL);                                                \
                 } else                                                                                \
                     hr = hr_prev;                                                                     \
                 break;                                                                                \
@@ -194,8 +194,8 @@ enum {
 #define METHOD_ENTER()                                      \
     Isolate* isolate = Isolate::current(args.GetIsolate()); \
     V8_SCOPE(isolate->m_isolate);                           \
-    result_t hr = CALL_E_BADPARAMCOUNT;                     \
-    result_t hr_argc = 0;                                   \
+    result_t hr(CALL_E_BADPARAMCOUNT);                     \
+    result_t hr_argc;                                   \
     bool bStrict = true;                                    \
     int32_t argc1 = args.Length();                          \
     do {                                                    \
@@ -205,8 +205,8 @@ enum {
     METHOD_NAME(name);                                                                                     \
     Isolate* isolate = Isolate::current(args.GetIsolate());                                                \
     V8_SCOPE(isolate->m_isolate);                                                                          \
-    result_t hr = CALL_E_BADPARAMCOUNT;                                                                    \
-    result_t hr_argc = 0;                                                                                  \
+    result_t hr(CALL_E_BADPARAMCOUNT);                                                                    \
+    result_t hr_argc;                                                                                  \
     bool bStrict = true;                                                                                   \
     int32_t argc1 = args.Length();                                                                         \
     v8::Local<v8::Object> cb;                                                                              \
@@ -221,8 +221,8 @@ enum {
     METHOD_NAME(name);                                                                                     \
     Isolate* isolate = Isolate::current(args.GetIsolate());                                                \
     V8_SCOPE(isolate->m_isolate);                                                                          \
-    result_t hr = CALL_E_BADPARAMCOUNT;                                                                    \
-    result_t hr_argc = 0;                                                                                  \
+    result_t hr(CALL_E_BADPARAMCOUNT);                                                                    \
+    result_t hr_argc;                                                                                  \
     bool bStrict = true;                                                                                   \
     int32_t argc1 = args.Length();                                                                         \
     v8::Local<v8::Object> cb;                                                                              \
@@ -238,7 +238,7 @@ enum {
 
 #define CONSTRUCT_ENTER()                \
     if (!args.IsConstructCall()) {       \
-        ThrowResult(CALL_E_CONSTRUCTOR); \
+        ThrowResult(result_t(CALL_E_CONSTRUCTOR)); \
         return;                          \
     }                                    \
     METHOD_ENTER()
@@ -246,14 +246,14 @@ enum {
 #define METHOD_INSTANCE(cls)                    \
     cls* pInst = cls::getInstance(args.This()); \
     if (pInst == NULL) {                        \
-        ThrowResult(CALL_E_NOTINSTANCE);        \
+        ThrowResult(result_t(CALL_E_NOTINSTANCE));        \
         return;                                 \
     }
 
 #define NAMED_METHOD_INSTANCE(cls)              \
     cls* pInst = cls::getInstance(args.This()); \
     if (pInst == NULL) {                        \
-        ThrowResult(CALL_E_NOTINSTANCE);        \
+        ThrowResult(result_t(CALL_E_NOTINSTANCE));        \
         return v8::Intercepted::kNo;            \
     }
 
@@ -262,8 +262,8 @@ enum {
     scope l(pInst);
 
 #define LOAD_ENTER()                       \
-    result_t hr = CALL_E_BADPARAMCOUNT;    \
-    result_t hr_argc = 0;                  \
+    result_t hr(CALL_E_BADPARAMCOUNT);    \
+    result_t hr_argc;                  \
     Isolate* isolate = Isolate::current(); \
     bool bStrict = true;                   \
     int32_t argc1 = 1;                     \
@@ -668,7 +668,7 @@ public:                                                  \
             return CALL_E_TYPEMISMATCH;                                   \
         v8::Local<v8::Object> opt = v.As<v8::Object>();                   \
         obj_ptr<Class> o = new Class();                                   \
-        result_t hr = 0;                                                  \
+        result_t hr;                                                  \
         BOOST_PP_SEQ_FOR_EACH(LOAD_OPTION_MEMBER, o, Members)             \
         retVal = o;                                                       \
         return 0;                                                         \
@@ -702,30 +702,30 @@ result_t GetDOMStringValue(v8::Local<v8::Value> v, exlib::string& retVal);
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, double& n, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     v8::Local<v8::Context> context = isolate->context();
 
     if (v->IsNumber() || v->IsNumberObject()) {
         n = v->NumberValue(context).FromMaybe(NAN);
-        return std::isnan(n) ? CALL_E_TYPEMISMATCH : 0;
+        return std::isnan(n) ? result_t::type_mismatch() : result_t();
     }
 
     if (bStrict)
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     v = v->ToNumber(context).FromMaybe(v8::Local<v8::Number>());
     if (v.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     n = v->NumberValue(context).FromMaybe(NAN);
-    return std::isnan(n) ? CALL_E_TYPEMISMATCH : 0;
+    return std::isnan(n) ? result_t::type_mismatch() : result_t();
 }
 
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, int64_t& n, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     v8::Local<v8::BigInt> mv;
     v8::Local<v8::Context> context = isolate->context();
@@ -733,7 +733,7 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, int64
     if (!v->IsBigInt() && !v->IsBigIntObject()) {
         if (!v->IsNumber() && !v->IsNumberObject()) {
             if (bStrict)
-                return CALL_E_TYPEMISMATCH;
+                return result_t::type_mismatch();
 
             {
                 TryCatch try_catch;
@@ -742,32 +742,32 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, int64
             if (mv.IsEmpty()) {
                 v = v->ToNumber(context).FromMaybe(v8::Local<v8::Number>());
                 if (v.IsEmpty())
-                    return CALL_E_JAVASCRIPT;
+                    return result_t(CALL_E_JAVASCRIPT);
             }
         }
     } else {
         mv = v->ToBigInt(context).FromMaybe(v8::Local<v8::BigInt>());
         if (mv.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
     }
 
     if (!mv.IsEmpty()) {
         bool less;
 
         n = mv->Int64Value(&less);
-        return less ? 0 : CALL_E_OUTRANGE;
+        return less ? result_t() : result_t::out_of_range();
     } else {
         double num;
 
         num = v->NumberValue(context).FromMaybe(NAN);
         if (std::isnan(num))
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
 
         if (num < -9007199254740992ll || num > 9007199254740992ll)
-            return CALL_E_OUTRANGE;
+            return result_t::out_of_range();
 
         n = (int64_t)num;
-        return 0;
+        return result_t();
     }
 }
 
@@ -780,35 +780,35 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, int32
         return hr;
 
     if (num < -2147483648ll || num > 2147483647ll)
-        return CALL_E_OUTRANGE;
+        return result_t::out_of_range();
 
     n = (int32_t)num;
 
-    return 0;
+    return result_t();
 }
 
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, bool& n, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     if (bStrict && !v->IsBoolean() && !v->IsBooleanObject())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     n = isolate->toBoolean(v);
-    return 0;
+    return result_t();
 }
 
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, date_t& d, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     if (v->IsDate()) {
         d = v;
     } else {
         if (bStrict)
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
 
         double n;
         result_t hr = GetArgumentValue(isolate, v, n);
@@ -818,13 +818,13 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, date_
         d = n;
     }
 
-    return 0;
+    return result_t();
 }
 
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, Variant& d, bool bStrict = false)
 {
     d = v;
-    return 0;
+    return result_t();
 }
 
 class OptArgs {
@@ -908,9 +908,9 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& 
 {
     vr = T::getInstance(v);
     if (vr)
-        return 0;
+        return result_t();
     if (bStrict)
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     return T::load(v, vr);
 }
@@ -979,10 +979,10 @@ inline bool IsJSBuffer(v8::Local<v8::Value> v, bool strict = true)
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Object>& vr, bool bStrict = false)
 {
     if (v.IsEmpty() || !IsJSObject(v))
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     vr = v8::Local<v8::Object>::Cast(v);
-    return 0;
+    return result_t();
 }
 
 #define GET_JSVALUE(type)                                                                                                     \
@@ -1008,33 +1008,33 @@ GET_JSVALUE(RegExp);
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Value>& vr, bool bStrict = false)
 {
     vr = v;
-    return 0;
+    return result_t();
 }
 
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::shared_ptr<v8::BackingStore>& vr, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     if (!v->IsArrayBuffer() && !v->IsArrayBufferView() && !v->IsTypedArray())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     v8::Local<v8::ArrayBuffer> ab = v8::Local<v8::ArrayBuffer>::Cast(v);
     vr = ab->GetBackingStore();
     if (vr == nullptr)
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
-    return 0;
+    return result_t();
 }
 
 template <class T>
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::vector<T>& vr, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     if (!v->IsArray())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
     v8::Local<v8::Context> context = isolate->context();
@@ -1044,7 +1044,7 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::
     for (uint32_t i = 0; i < arr->Length(); i++) {
         v8::Local<v8::Value> v1;
         if (!arr->Get(context, i).ToLocal(&v1))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
         T n;
         result_t hr = GetArgumentValue(isolate, v1, n, false);
         if (hr.failed())
@@ -1055,7 +1055,7 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::
 
     vr = r;
 
-    return 0;
+    return result_t();
 }
 
 // A parameter-position union (`Buffer|String`, an IDL `A|B`) converts to one
@@ -1083,7 +1083,7 @@ template <typename... Ts, std::size_t... Is>
 result_t getVariantValue(Isolate* isolate, v8::Local<v8::Value> v,
     std::variant<Ts...>& n, bool bStrict, std::index_sequence<Is...>)
 {
-    result_t hr = CALL_E_TYPEMISMATCH;
+    result_t hr(CALL_E_TYPEMISMATCH);
     bool done = false;
 
     (void)std::initializer_list<bool>{
@@ -1098,7 +1098,7 @@ template <typename... Ts>
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::variant<Ts...>& n, bool bStrict = false)
 {
     if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     return getVariantValue(isolate, v, n, bStrict, std::index_sequence_for<Ts...>());
 }
@@ -1129,7 +1129,7 @@ template <typename T>
 result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, std::optional<T>& n, bool bStrict = false)
 {
     if (o.IsEmpty())
-        return CALL_E_PARAMNOTOPTIONAL;
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
 
     T n1;
     Isolate* isolate = Isolate::current(o);
@@ -1139,7 +1139,7 @@ result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, std::optional<
     else if (!hr.is_param_missing())
         return hr;
 
-    return 0;
+    return result_t();
 }
 
 template <typename T>
@@ -1371,7 +1371,7 @@ inline result_t LastError(const char* syscall, const exlib::string& path = exlib
     int32_t err = LastError();
 
     if (err >= 0 || err <= CALL_E_MAX)
-        return err;
+        return result_t(err);
 
     return result_t::from_system(err)
         .with_syscall(syscall)
@@ -1402,7 +1402,7 @@ inline result_t ReadError(const char* syscall, const exlib::string& path = exlib
     int32_t err = ReadError();
 
     if (err >= 0 || err <= CALL_E_MAX)
-        return err;
+        return result_t(err);
 
     return result_t::from_system(err)
         .with_syscall(syscall)
@@ -1425,7 +1425,7 @@ inline result_t SocketError(const char* syscall, const exlib::string& path = exl
     int32_t err = SocketError();
 
     if (err >= 0 || err <= CALL_E_MAX)
-        return err;
+        return result_t(err);
 
     return result_t::from_system(err)
         .with_syscall(syscall)

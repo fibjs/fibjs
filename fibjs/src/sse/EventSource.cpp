@@ -294,7 +294,7 @@ result_t EventSource_base::_new(exlib::string url, v8::Local<v8::Object> options
     obj_ptr<HttpRequest::Options> o = (HttpRequest::Options*)ac->m_ctx[0].object();
     es->m_url = o->u->href();
 
-    ac->apost(0);
+    ac->apost(result_t());
 
     return 0;
 }
@@ -443,7 +443,7 @@ result_t EventSource::close(AsyncHandle ac)
 
         // 票据交给 close 状态机消费（一次性），本对象不再持有。认领语义见
         // EventSource::Ticket：重复/迟到的回投都是 no-op。
-        (new asyncClose(m_stream, std::move(ac), m_ac))->apost(0);
+        (new asyncClose(m_stream, std::move(ac), m_ac))->apost(result_t());
         return result_t::pending();
     }
 

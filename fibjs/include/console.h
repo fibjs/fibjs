@@ -155,7 +155,7 @@ public:
 
     virtual void invoke()
     {
-        post(0);
+        post(result_t());
     }
 
 public:

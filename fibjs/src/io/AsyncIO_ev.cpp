@@ -371,7 +371,7 @@ result_t AsyncIO::close(AsyncHandle ac)
                     ((AsyncSockProc*)m_pSendProc)->on_watched();
             }
 
-            m_ac.apost(0);
+            m_ac.apost(result_t());
             delete this;
         }
 

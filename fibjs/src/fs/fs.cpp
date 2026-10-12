@@ -1997,7 +1997,7 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
                     // nothing was created: Node.js reports undefined
                     if (pThis->m_retVal && !pThis->m_first.empty())
                         *pThis->m_retVal = pThis->m_first;
-                    pThis->m_ac.apost(0);
+                    pThis->m_ac.apost(result_t());
                     delete pThis;
                     return;
                 }
@@ -2113,7 +2113,7 @@ public:
             // Path doesn't exist or other error
             if (pThis->m_force && ret == UV_ENOENT) {
                 // force: silently ignore nonexistent paths (Node.js behavior)
-                pThis->m_ac.apost(0);
+                pThis->m_ac.apost(result_t());
             } else {
                 pThis->m_ac.apost(result_t::from_system(ret)
                     .with_syscall("rmdir")
@@ -3014,7 +3014,7 @@ public:
     {
         if (m_entries.empty()) {
             // All entries copied
-            m_ac.apost(0);
+            m_ac.apost(result_t());
             delete this;
             return;
         }

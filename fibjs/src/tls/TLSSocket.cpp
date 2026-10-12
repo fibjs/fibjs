@@ -346,9 +346,9 @@ result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, Asyn
     }
 
     if (!m_connect_event)
-        return (new AsyncHandshake(this, socket, false, server_name, std::move(ac)))->post(0);
+        return (new AsyncHandshake(this, socket, false, server_name, std::move(ac)))->post(result_t());
 
-    (new AsyncHandshake(this, socket, false, server_name, holder()))->post(0);
+    (new AsyncHandshake(this, socket, false, server_name, holder()))->post(result_t());
     return 0;
 }
 
@@ -378,7 +378,7 @@ result_t TLSSocket::accept(Stream_base* socket, AsyncHandle ac)
         return result_t::nosync();
     }
 
-    return (new AsyncHandshake(this, socket, true, "", std::move(ac)))->post(0);
+    return (new AsyncHandshake(this, socket, true, "", std::move(ac)))->post(result_t());
 }
 
 result_t TLSSocket::get_stream(obj_ptr<Stream_base>& retVal)
@@ -595,7 +595,7 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new AsyncRead(this, bytes, retVal, std::move(ac)))->post(0);
+    return (new AsyncRead(this, bytes, retVal, std::move(ac)))->post(result_t());
 }
 
 result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncHandle ac)
@@ -666,7 +666,7 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncHandle ac)
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new AsyncWrite(this, data, std::move(ac)))->post(0);
+    return (new AsyncWrite(this, data, std::move(ac)))->post(result_t());
 }
 
 result_t TLSSocket::flush(AsyncHandle ac)
@@ -727,7 +727,7 @@ result_t TLSSocket::close(AsyncHandle ac)
     if (ac.isSync())
         return result_t::nosync();
 
-    return (new AsyncClose(this, std::move(ac)))->post(0);
+    return (new AsyncClose(this, std::move(ac)))->post(result_t());
 }
 
 int TLSSocket::Write(const char* data, int len)

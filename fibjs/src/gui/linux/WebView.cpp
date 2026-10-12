@@ -121,7 +121,7 @@ void gethtml_cb(GObject* object, GAsyncResult* result, gpointer user_data)
         webkit_javascript_result_unref(js_result);
     }
 
-    data->m_ac.post(0);
+    data->m_ac.post(result_t());
 
     delete data;
 }
@@ -250,7 +250,7 @@ void eval_cb(GObject* object, GAsyncResult* result, gpointer user_data)
         if (g_error_matches(error, WEBKIT_JAVASCRIPT_ERROR, 601)) {
             // Ignore Promise return values
             g_clear_error(&error);
-            data->m_ac.post(0);
+            data->m_ac.post(result_t());
             delete data;
             return;
         }
@@ -273,12 +273,12 @@ void eval_cb(GObject* object, GAsyncResult* result, gpointer user_data)
             jsc_context_clear_exception(jsc_value_get_context(value));
         } else {
             jsc2Variant(value, data->m_retVal);
-            data->m_ac.post(0);
+            data->m_ac.post(result_t());
         }
 
         webkit_javascript_result_unref(js_result);
     } else {
-        data->m_ac.post(0);
+        data->m_ac.post(result_t());
     }
 
     delete data;
@@ -473,7 +473,7 @@ void capture_cb(GObject* source_object, GAsyncResult* res, gpointer user_data)
         cairo_surface_destroy(surface);
 
         cb_data->m_retVal = cb_data->m_strs.buffer();
-        cb_data->m_ac.post(0);
+        cb_data->m_ac.post(result_t());
         delete cb_data;
     } else {
         cb_data->m_ac.post(result_t::make(CALL_E_EXCEPTION).with_message("Failed to capture screenshot"));
