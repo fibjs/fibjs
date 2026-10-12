@@ -458,7 +458,7 @@ result_t process_base::cwd(exlib::string& retVal)
 
         if (uv_cwd(buf, &size)) {
             s_cwd_lock.unlock();
-            return CHECK_ERROR(LastError());
+            return CHECK_ERROR(LastError("uv_cwd"));
         }
 
         s_cwd = buf;
@@ -471,7 +471,7 @@ result_t process_base::cwd(exlib::string& retVal)
 result_t process_base::chdir(exlib::string directory)
 {
     if (uv_chdir(directory.c_str()))
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("chdir"));
 
     s_cwd_lock.lock();
     s_cwd.clear();

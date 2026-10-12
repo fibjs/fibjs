@@ -444,48 +444,64 @@ result_t DgramSocket::close(v8::Local<v8::Function> callback)
 
 result_t DgramSocket::addMembership(exlib::string multicastAddress, exlib::string multicastInterface)
 {
-    return uv_udp_set_membership(&m_udp, multicastAddress.c_str(),
-        multicastInterface.empty() ? nullptr : multicastInterface.c_str(),
-        UV_JOIN_GROUP);
+    return uv_call([&] {
+        return uv_udp_set_membership(&m_udp, multicastAddress.c_str(),
+            multicastInterface.empty() ? nullptr : multicastInterface.c_str(),
+            UV_JOIN_GROUP);
+    });
 }
 
 result_t DgramSocket::dropMembership(exlib::string multicastAddress, exlib::string multicastInterface)
 {
-    return uv_udp_set_membership(&m_udp, multicastAddress.c_str(),
-        multicastInterface.empty() ? nullptr : multicastInterface.c_str(),
-        UV_LEAVE_GROUP);
+    return uv_call([&] {
+        return uv_udp_set_membership(&m_udp, multicastAddress.c_str(),
+            multicastInterface.empty() ? nullptr : multicastInterface.c_str(),
+            UV_LEAVE_GROUP);
+    });
 }
 
 result_t DgramSocket::setMulticastTTL(int32_t ttl)
 {
-    return uv_udp_set_multicast_ttl(&m_udp, ttl);
+    return uv_call([&] {
+        return uv_udp_set_multicast_ttl(&m_udp, ttl);
+    });
 }
 
 result_t DgramSocket::getRecvBufferSize(int32_t& retVal)
 {
     retVal = 0;
-    return uv_recv_buffer_size(&m_handle, &retVal);
+    return uv_call([&] {
+        return uv_recv_buffer_size(&m_handle, &retVal);
+    });
 }
 
 result_t DgramSocket::getSendBufferSize(int32_t& retVal)
 {
     retVal = 0;
-    return uv_send_buffer_size(&m_handle, &retVal);
+    return uv_call([&] {
+        return uv_send_buffer_size(&m_handle, &retVal);
+    });
 }
 
 result_t DgramSocket::setRecvBufferSize(int32_t size)
 {
-    return uv_recv_buffer_size(&m_handle, &size);
+    return uv_call([&] {
+        return uv_recv_buffer_size(&m_handle, &size);
+    });
 }
 
 result_t DgramSocket::setSendBufferSize(int32_t size)
 {
-    return uv_send_buffer_size(&m_handle, &size);
+    return uv_call([&] {
+        return uv_send_buffer_size(&m_handle, &size);
+    });
 }
 
 result_t DgramSocket::setBroadcast(bool flag)
 {
-    return uv_udp_set_broadcast(&m_udp, flag ? 1 : 0);
+    return uv_call([&] {
+        return uv_udp_set_broadcast(&m_udp, flag ? 1 : 0);
+    });
 }
 
 result_t DgramSocket::ref(obj_ptr<DgramSocket_base>& retVal)

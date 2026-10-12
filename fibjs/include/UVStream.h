@@ -398,9 +398,11 @@ public:
         }
 
         uv_os_fd_t fd;
-        result_t hr = uv_fileno(&m_handle, &fd);
-        if (hr.failed())
-            return hr;
+        // In-place framing, not uv_call: get_fd() is reached from fs entry
+        // points that may run on the loop thread (uv_call posts and waits).
+        int32_t err = uv_fileno(&m_handle, &fd);
+        if (err < 0)
+            return result_t::from_system(err);
 
         retVal = (int32_t)(intptr_t)fd;
         return 0;

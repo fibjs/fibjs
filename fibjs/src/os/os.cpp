@@ -47,7 +47,7 @@ result_t os_base::hostname(exlib::string& retVal)
     char s[255];
 
     if (gethostname(s, 255) < 0)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("gethostname"));
 
     retVal = s;
     return 0;

@@ -51,7 +51,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     snprintf(stat_filepath, sizeof(stat_filepath), "/proc/%d/stat", m_process.pid);
     FILE* fpstat = fopen(stat_filepath, "r");
     if (fpstat == NULL)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("open", stat_filepath));
 
     long unsigned int utime_ticks = 0;
     long unsigned int stime_ticks = 0;

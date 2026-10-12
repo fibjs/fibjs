@@ -655,7 +655,17 @@ result_t ChildProcess::kill(Union_kill_signal signal)
 result_t ChildProcess::kill(int32_t signal)
 {
     m_killed = true;
-    return uv_process_kill(&m_process, signal);
+
+    // In-place framing: uv_call posts to the loop thread and waits, but kill()
+    // also runs on the loop thread itself (KillTimer::on_timer); blocking there
+    // would deadlock. The raw status crosses into the value here, once.
+    int32_t err = uv_process_kill(&m_process, signal);
+    if (err < 0) {
+        // Node.js compatible shape: a kill(2) failure names its syscall.
+        return result_t::from_system(err).with_syscall("kill");
+    }
+
+    return 0;
 }
 
 result_t ChildProcess::kill(exlib::string signal)

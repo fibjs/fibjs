@@ -391,7 +391,7 @@ result_t console_base::get_width(int32_t& retVal)
     while (err == -1 && errno == EINTR);
 
     if (err == -1)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("ioctl"));
 
     retVal = ws.ws_col;
 
@@ -408,7 +408,7 @@ result_t console_base::get_height(int32_t& retVal)
     while (err == -1 && errno == EINTR);
 
     if (err == -1)
-        return CHECK_ERROR(LastError());
+        return CHECK_ERROR(LastError("ioctl"));
 
     retVal = ws.ws_row;
 
