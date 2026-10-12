@@ -108,7 +108,18 @@ public:
 private:
     friend class MySQLStmtImpl;
 
-    inline result_t error()
+    // The parameters of a failed connect attempt, for diagnostics: the layer
+    // that reports the failure builds them into its own value (there is no
+    // upper-layer merge). The password never enters the payload.
+    struct ConnectDiag {
+        const char* host;
+        int32_t port;
+        const char* username;
+        const char* password;
+        const char* dbName;
+    };
+
+    inline result_t error(const ConnectDiag* diag = nullptr)
     {
         const char* errorMessage = NULL;
         int32_t errCode;
@@ -119,7 +130,18 @@ private:
             result_t::builder b = result_t::make(CALL_E_EXCEPTION);
             if (errCode > 0)
                 b = std::move(b).with_errno(errCode);
-            return result_t(std::move(b).with_message(errorMessage ? exlib::string(errorMessage) : exlib::string()));
+
+            b = std::move(b).with_message(errorMessage ? exlib::string(errorMessage) : exlib::string());
+
+            if (diag)
+                b = std::move(b)
+                        .arg("host", diag->host)
+                        .arg("port", diag->port)
+                        .arg("database", diag->dbName)
+                        .arg("user", diag->username)
+                        .arg_redacted("password");
+
+            return result_t(std::move(b));
         }
         return socket::last_error();
     }

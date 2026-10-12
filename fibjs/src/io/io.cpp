@@ -70,12 +70,19 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
             // A closed stream - or any other non-I/O end of the copy - surfaces
             // as an internal code. Those are normal ends of the operation and
             // must not build detail that the error path would only discard;
-            // only a real I/O failure gets the failing leg named.
+            // only a real I/O failure gets the failing leg named. The leg is
+            // this machine's own knowledge: the transport's context gives way
+            // to its code across the junction and the value is rebuilt here,
+            // once.
             if (v.is_system_error()) {
+                result_t::builder b = result_t::from_system(std::move(v));
+
                 if (at(write))
-                    v = result_t(result_t::inherit(std::move(v)).arg("to", m_to.get()));
+                    b = std::move(b).arg("to", m_to.get());
                 else
-                    v = result_t(result_t::inherit(std::move(v)).arg("from", m_from.get()));
+                    b = std::move(b).arg("from", m_from.get());
+
+                v = result_t(std::move(b));
             }
 
             return v;

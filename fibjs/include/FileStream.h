@@ -78,7 +78,10 @@ public:
 public:
     result_t open(exlib::string fname, exlib::string flags, int32_t mode = 0666);
     result_t close();
-    result_t Write(const char* p, int32_t sz);
+    // diag_buffer_len < 0 means "no buffer summary": the failing layer adds it
+    // only for a caller that holds the Buffer (Write below passes its length
+    // down; there is no upper-layer merge).
+    result_t Write(const char* p, int32_t sz, int64_t diag_buffer_len = -1);
 
     result_t Write(exlib::string data)
     {
@@ -89,16 +92,10 @@ public:
     {
         obj_ptr<Buffer> buf = Buffer::Cast(data);
         int32_t len = (int32_t)buf->length();
-        result_t hr = Write((const char*)buf->data(), len);
 
-        // Only a real I/O failure carries a summary: internal codes (closed
-        // handle and friends) end the operation normally, and a successful
-        // write must never touch the payload (CALL_E_MAX is negative, so the
-        // upper bound alone would also match hr == 0).
-        if (hr.is_system_error())
-            return result_t::inherit(std::move(hr)).arg("buffer", data);
-
-        return hr;
+        // The buffer summary travels with the write: only a real I/O failure
+        // carries it, and it is built into the value at the failing layer.
+        return Write((const char*)buf->data(), len, len);
     }
 
 protected:

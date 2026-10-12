@@ -501,27 +501,42 @@ static bool is_fd_syscall(const exlib::string& syscall)
         || syscall == "ftruncate";
 }
 
+// The effective code of a failing value: some producers keep the real code in
+// the payload (the overload retry band would read a band code in the value as
+// "this variant did not apply" and try the next one), so the boundary reads it
+// back here, as data -- the value itself is never rewritten.
+static result_t effective_error(result_t hr)
+{
+    const ErrorPayload* p = hr.payload();
+
+    if (p && hr.is_exception() && !p->result_code.has_value())
+        return p->result_code;
+
+    return hr;
+}
+
 static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::string type_name, exlib::string msg)
 {
     // The description rides with the failing value; a value without one
     // (a pure sentinel) falls back to the scalar fields below.
     const ErrorPayload* payload = hr.payload();
+    result_t eff = effective_error(hr);
 
     // Precedence: payload name (crosses threads) > caller name > hr default.
     if (payload && !payload->error_type_name.empty())
         type_name = payload->error_type_name;
     if (type_name.empty())
-        type_name = getDefaultErrorTypeName(hr);
+        type_name = getDefaultErrorTypeName(eff);
 
     v8::Local<v8::Value> v = MakeException(isolate, type_name, msg);
     v8::Local<v8::Object> e = v.As<v8::Object>();
     v8::Local<v8::Context> context = isolate->context();
 
-    e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr.code())).IsJust();
+    e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -eff.code())).IsJust();
 
-    const char* _name = uv_error_name(hr.code());
+    const char* _name = uv_error_name(eff.code());
     if (!_name) {
-        int uv_err = uv_translate_sys_error(-hr.code());
+        int uv_err = uv_translate_sys_error(-eff.code());
         if (uv_err != UV_UNKNOWN)
             _name = uv_error_name(uv_err);
     }
@@ -540,8 +555,8 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
         // Node.js reports errno as a negative value for system errors
         if (payload->has_errno)
             e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, payload->errno_value)).IsJust();
-        else if (hr.is_system_error())
-            e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, hr.code())).IsJust();
+        else if (eff.is_system_error())
+            e->Set(context, isolate->NewString("errno"), v8::Int32::New(isolate->m_isolate, eff.code())).IsJust();
 
         if (!payload->syscall.empty())
             e->Set(context, isolate->NewString("syscall"), isolate->NewString(payload->syscall)).IsJust();
@@ -571,13 +586,13 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
             else if (!payload->path.empty() && payload->syscall == "connect")
                 msg = payload->syscall + " " + final_code + " " + payload->path;
             else if (!payload->path.empty() && !is_fd_syscall(payload->syscall)) {
-                msg = final_code + ": " + error_text(hr) + ", " + payload->syscall + " '" + payload->path + "'";
+                msg = final_code + ": " + error_text(eff) + ", " + payload->syscall + " '" + payload->path + "'";
 
                 if (!payload->path2.empty())
                     msg += " -> '" + payload->path2 + "'";
             }
             else
-                msg = final_code + ": " + error_text(hr) + ", " + payload->syscall;
+                msg = final_code + ": " + error_text(eff) + ", " + payload->syscall;
         }
 
         // MakeException() set the message it was given; when the payload refined
@@ -638,23 +653,18 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
     return e;
 }
 
-static void resolveException(result_t& hr, exlib::string& type_name, exlib::string& msg)
+static void resolveException(result_t hr, exlib::string& type_name, exlib::string& msg)
 {
     if (hr.is_exception()) {
         const ErrorPayload* p = hr.payload();
 
         if (p && !p->empty()) {
-            // type / message ride with the value; the strings are copied out
-            // first, then a payload-carried code (the overload retry band) is
-            // resolved onto the sentinel with the description kept.
+            // type / message ride with the value; the strings are copied out.
+            // A payload-carried code (the overload retry band) is not resolved
+            // onto the sentinel here: the value is never rewritten, BuildError
+            // reads the carried code as data (effective_error).
             type_name = p->error_type_name;
             msg = p->message;
-
-            if (!p->result_code.has_value()) {
-                result_t code = p->result_code;
-                hr = result_t(result_t::inherit_as(std::move(hr), code));
-            }
-            return;
         }
     }
 }
@@ -672,7 +682,7 @@ v8::Local<v8::Value> FillError(result_t hr)
     exlib::string msg;
     resolveException(hr, type_name, msg);
     if (msg.empty())
-        msg = getResultMessage(hr);
+        msg = getResultMessage(effective_error(hr));
     return BuildError(Isolate::current(), hr, type_name, msg);
 }
 
@@ -682,7 +692,7 @@ v8::Local<v8::Value> FillError(result_t hr, v8::Local<v8::StackTrace> stack)
     exlib::string msg;
     resolveException(hr, type_name, msg);
     if (msg.empty())
-        msg = getResultMessage(hr);
+        msg = getResultMessage(effective_error(hr));
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Value> v = BuildError(isolate, hr, type_name, msg);

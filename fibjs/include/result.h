@@ -162,8 +162,6 @@ public:
     // re-codes a value carried across a layer boundary (the transports).
     static builder from_system(int32_t errno_code);
     static builder from_system(result_t hr);
-    static builder inherit(result_t&& base);
-    static builder inherit_as(result_t&& base, result_t code);
 
     // The bridge control codes as named constructions (E2 of the strict
     // audit): protocol signals of the async bridge -- the sync / async /
@@ -385,7 +383,8 @@ struct ErrorPayload : public obj_base {
     // The carried code for the producers whose code belongs to the overload
     // retry band (CALL_E_MIN_ARG, CALL_E_MAX): it must not become the value's
     // code or the METHOD_OVER machinery would read it as "this variant did not
-    // apply" and try the next variant. The boundary resolves it (resolveException).
+    // apply" and try the next variant. The boundary reads it back as data
+    // (BuildError's effective code), the value is never rewritten.
     result_t result_code = 0;
     bool has_errno = false;
     int32_t errno_value = 0;
@@ -681,27 +680,6 @@ inline result_t::builder result_t::from_system(int32_t errno_code)
 inline result_t::builder result_t::from_system(result_t hr)
 {
     return from_system(hr.code());
-}
-
-// Take over a base value's description and keep building on it (the augment
-// path: "create a new value on the base of the old one"; zero clone).
-inline result_t::builder result_t::inherit(result_t&& base)
-{
-    builder b(base.m_code);
-
-    b.m_payload = std::move(base.m_payload);
-    return b;
-}
-
-// Take over a base value's description and land it under a different code: the
-// boundary resolving a sentinel to the payload-carried code (resolveException),
-// the description kept on the value.
-inline result_t::builder result_t::inherit_as(result_t&& base, result_t code)
-{
-    builder b(code.code());
-
-    b.m_payload = std::move(base.m_payload);
-    return b;
 }
 
 inline result_t::result_t(builder&& b)

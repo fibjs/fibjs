@@ -48,15 +48,24 @@ namespace fibjs {
 
 // WHATWG Fetch: an aborted fetch rejects with a DOMException named AbortError,
 // or TimeoutError when the signal came from AbortSignal.timeout().
+// The request context (method/url) is built into the value here, where it is
+// created (there is no upper-layer merge).
 // Note: no v8 handles are touched here, this may run outside a handle scope.
-static result_t setAbortError(AbortSignal_base* signal)
+static result_t setAbortError(AbortSignal_base* signal, const char* method = nullptr,
+    const exlib::string& url = exlib::string())
 {
     AbortSignal* s = signal ? static_cast<AbortSignal*>(signal) : NULL;
 
-    if (s && s->is_timeout_abort())
-        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTimeoutError).with_message("The operation timed out.");
+    result_t::builder b = (s && s->is_timeout_abort())
+        ? result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTimeoutError).with_message("The operation timed out.")
+        : result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kAbortError).with_message("The operation was aborted.");
 
-    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kAbortError).with_message("The operation was aborted.");
+    if (method && *method)
+        b = std::move(b).arg("method", method);
+    if (!url.empty())
+        b = std::move(b).arg("url", url);
+
+    return result_t(std::move(b));
 }
 
 // Diagnostics-only view of a request URL: protocol/host/path/query with the
@@ -1545,9 +1554,14 @@ public:
                 // to find and cancel the pending connection.
                 exlib::string tcpUrl = "tcp://";
                 tcpUrl.append(m_connUrl.substr(6));
-                return net_base::connect(tcpUrl, timeout(), m_conn, next(ssl_handshake));
-            } else
-                return net_base::connect(m_connUrl, timeout(), m_conn, next(connected));
+                m_connectUrl = tcpUrl;
+                m_afterConnect = ssl_handshake;
+            } else {
+                m_connectUrl = m_connUrl;
+                m_afterConnect = connected;
+            }
+
+            return next(resolve);
         } else {
             bool socks = m_http_proxy[0] == 's';
 
@@ -1596,13 +1610,52 @@ public:
             if (u->port().empty())
                 connUrl.append(def_port);
 
-            return net_base::connect(connUrl, timeout(), m_conn,
-                next(socks
-                        ? socks_hello
-                        : m_ssl
-                        ? ssl_connect
-                        : connected));
+            m_connectUrl = connUrl;
+            m_afterConnect = socks
+                ? socks_hello
+                : m_ssl
+                ? ssl_connect
+                : connected;
+
+            return next(resolve);
         }
+    }
+
+    ON_STATE(asyncRequest, resolve)
+    {
+        // Resolution is an own step so the failing operation is visible to
+        // error(): a resolver failure crosses into the request layer as
+        // "getaddrinfo", the connect that follows as "connect".
+        if (qstrcmp(m_connectUrl.c_str(), "tcp:", 4))
+            return next(connect);
+
+        obj_ptr<Url> u = new Url();
+        result_t hr = u->parse(m_connectUrl);
+        if (hr.failed())
+            return hr;
+
+        // An address literal needs no lookup (net_base::connect would use it
+        // as is), and a missing port is net_base::connect's own diagnosis.
+        if (Url::isIPv4(u->hostname()) || u->isIPv6() || u->port().empty())
+            return next(connect);
+
+        exlib::string addr;
+        hr = net_base::cc_resolve(u->hostname(), net_base::C_AF_INET, addr);
+        if (hr.failed())
+            return hr;
+
+        // Hand the address down: the connect that follows must not resolve
+        // again (the SNI / verification host stays with m_sslhost).
+        exlib::string url = "tcp://";
+        url.append(addr).append(1, ':').append(u->port());
+        m_connectUrl = url;
+
+        return next(connect);
+    }
+
+    ON_STATE(asyncRequest, connect)
+    {
+        return net_base::connect(m_connectUrl, timeout(), m_conn, next(m_afterConnect));
     }
 
     ON_STATE(asyncRequest, socks_hello)
@@ -2240,28 +2293,36 @@ public:
             m_is_h2_leader = false;
         }
 
-        // D.3: if abort was requested, convert the connection error to AbortError
+        // D.3: if abort was requested, convert the connection error to
+        // AbortError; the request context is built into it where it is created
+        // (setAbortError).
         if (m_o->signal) {
             bool aborted;
             m_o->signal->get_aborted(aborted);
             if (aborted)
-                v = setAbortError(m_o->signal.get());
+                v = setAbortError(m_o->signal.get(), m_o->method.c_str(), sanitize_url_for_error(m_o->u));
         }
 
-        // Attach request diagnostics to the terminal error, carrying them on
-        // the value itself (they cross threads and fibers with it).
-        {
+        // A transport failure crosses this junction as its code: this layer
+        // rebuilds it once with its own vocabulary -- the resolve step names
+        // "getaddrinfo", the connect step "connect", and the request context
+        // rides as method/url (the socket's hostname/args duplicate the url).
+        if (v.is_system_error()) {
+            result_t::builder b = result_t::from_system(std::move(v));
+
+            if (at(resolve))
+                b = std::move(b).with_syscall("getaddrinfo");
+            else if (at(connect))
+                b = std::move(b).with_syscall("connect");
+
+            if (!m_o->method.empty())
+                b = std::move(b).arg("method", m_o->method);
+
             exlib::string url_str = sanitize_url_for_error(m_o->u);
+            if (!url_str.empty())
+                b = std::move(b).arg("url", url_str);
 
-            if (!m_o->method.empty() || !url_str.empty()) {
-                result_t::builder b = result_t::inherit(std::move(v));
-
-                if (!m_o->method.empty())
-                    b = std::move(b).arg("method", m_o->method);
-                if (!url_str.empty())
-                    b = std::move(b).arg("url", url_str);
-                v = result_t(std::move(b));
-            }
+            v = result_t(std::move(b));
         }
 
         // Emit 'error' event on the request when in async (callback/deferred) mode
@@ -2402,6 +2463,12 @@ private:
     bool m_h2_waiting = false;
     int32_t m_http1_retry_count = 0;
     int32_t m_h2_retry_count = 0;
+
+    // Connection setup: the target net_base::connect is called with and the
+    // state entered when it completes (resolve -> connect are own states so
+    // the failing operation is visible to error()).
+    exlib::string m_connectUrl;
+    result_t (*m_afterConnect)(AsyncState*, result_t) = nullptr;
 };
 
 // AsyncEvent is the internal binding execution context. It is still used

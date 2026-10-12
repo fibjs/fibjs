@@ -188,7 +188,7 @@ result_t FileStream::readAllText(exlib::string& retVal)
     return 0;
 }
 
-result_t FileStream::Write(const char* p, int32_t sz)
+result_t FileStream::Write(const char* p, int32_t sz, int64_t diag_buffer_len)
 {
     if (m_fd == -1)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("FileStream: file is closed."));
@@ -198,8 +198,16 @@ result_t FileStream::Write(const char* p, int32_t sz)
         if (n < 0) {
             int32_t err = LastError();
 
-            if (err < 0 && err > CALL_E_MAX)
-                return CHECK_ERROR(result_t::from_system(err).with_syscall("write").with_path(name).arg("length", sz));
+            if (err < 0 && err > CALL_E_MAX) {
+                // The failing layer builds the complete value: the write
+                // context plus the buffer summary its caller handed down.
+                result_t::builder b = result_t::from_system(err).with_syscall("write").with_path(name).arg("length", sz);
+
+                if (diag_buffer_len >= 0)
+                    b = std::move(b).arg_buffer("buffer", diag_buffer_len);
+
+                return CHECK_ERROR(result_t(std::move(b)));
+            }
 
             return CHECK_ERROR(err);
         }

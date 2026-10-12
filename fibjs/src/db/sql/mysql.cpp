@@ -432,16 +432,8 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
     hr = conn->connect(u->hostname().c_str(), nPort, username.c_str(),
         password.c_str(),
         pathname.length() > 0 ? pathname.c_str() + 1 : "");
-    if (hr.failed()) {
-        // Augment the driver error with the connection parameters. The password
-        // never reaches the payload, not even as a truncated summary.
-        return result_t::inherit(std::move(hr))
-            .arg("host", u->hostname())
-            .arg("port", nPort)
-            .arg("database", pathname.length() > 0 ? pathname.c_str() + 1 : "")
-            .arg("user", username)
-            .arg_redacted("password");
-    }
+    if (hr.failed())
+        return hr;
 
     retVal = conn;
 
@@ -466,7 +458,8 @@ result_t mysql::connect(const char* host, int32_t port, const char* username,
     m_conn = UMConnection_Create(&capi);
     if (!UMConnection_Connect(m_conn, host, port, username, password, dbName,
             NULL, MCS_utf8mb4_bin)) {
-        result_t hr = CHECK_ERROR(error());
+        ConnectDiag diag = { host, port, username, password, dbName };
+        result_t hr = CHECK_ERROR(error(&diag));
 
         UMConnection_Destroy(m_conn);
         m_conn = NULL;

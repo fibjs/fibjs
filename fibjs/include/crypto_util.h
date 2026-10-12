@@ -124,7 +124,9 @@ result_t randomBytes(uint8_t* buf, int32_t size);
 
 const EVP_MD* _evp_md_type(const char* algo);
 int GetCurveFromName(const char* name);
-result_t openssl_error();
+// The diagnostic pair rides into the value at construction (the failing layer
+// builds it; there is no upper-layer merge).
+result_t openssl_error(const char* arg_name = nullptr, const exlib::string& arg_value = exlib::string());
 
 // scrypt options are read in the sync phase, where the JS scope is available,
 // and carried to the async phase in ctx[0]

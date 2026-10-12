@@ -144,30 +144,39 @@ static const char* tls_verify_code(long vr)
     return nullptr;
 }
 
-static result_t tls_handshake_error(SSL* ssl)
+static result_t tls_handshake_error(SSL* ssl, const exlib::string& server_name)
 {
     long vr = SSL_get_verify_result(ssl);
     if (vr != X509_V_OK) {
         const char* code = tls_verify_code(vr);
         exlib::string reason = X509_verify_cert_error_string(vr);
+        exlib::string final_code;
 
         if (code)
-            return result_t::make(CALL_E_EXCEPTION).with_code(code).with_message(reason);
-
-        // Unknown verification result: fall back to the upper-snake form.
-        exlib::string c = reason;
-        for (size_t i = 0; i < c.length(); i++) {
-            char ch = c[i];
-            if (ch == ' ')
-                c[i] = '_';
-            else if (ch >= 'a' && ch <= 'z')
-                c[i] = (char)(ch - 'a' + 'A');
+            final_code = code;
+        else {
+            // Unknown verification result: fall back to the upper-snake form.
+            final_code = reason;
+            for (size_t i = 0; i < final_code.length(); i++) {
+                char ch = final_code[i];
+                if (ch == ' ')
+                    final_code[i] = '_';
+                else if (ch >= 'a' && ch <= 'z')
+                    final_code[i] = (char)(ch - 'a' + 'A');
+            }
         }
 
-        return result_t::make(CALL_E_EXCEPTION).with_code(c).with_message(reason);
+        // The SNI / verification host is this layer's own context: the failing
+        // layer builds it into the value (there is no merge above).
+        result_t::builder b = result_t::make(CALL_E_EXCEPTION).with_code(final_code).with_message(reason);
+
+        if (!server_name.empty())
+            b = std::move(b).arg("servername", server_name);
+
+        return result_t(std::move(b));
     }
 
-    return openssl_error();
+    return openssl_error("servername", server_name);
 }
 
 class AsyncHandshake : public AsyncState {
@@ -234,7 +243,7 @@ public:
         ERR_clear_error();
         m_state = SSL_get_error(m_sock->m_tls, SSL_do_handshake(m_sock->m_tls));
         if (m_state == SSL_ERROR_SSL)
-            return tls_handshake_error(m_sock->m_tls);
+            return tls_handshake_error(m_sock->m_tls, m_server_name);
         if (m_sock->m_out)
             return m_sock->m_stream->writeBuffer(m_sock->m_out, next(read));
 
@@ -262,21 +271,31 @@ public:
         case SSL_ERROR_WANT_WRITE:
             return next(handshake);
         case SSL_ERROR_SSL:
-            return tls_handshake_error(m_sock->m_tls);
+            return tls_handshake_error(m_sock->m_tls, m_server_name);
         }
 
-        return result_t::make(CALL_E_EXCEPTION).with_message("handshake failed");
+        // The handshake's own failure: the layer builds the servername into the
+        // value (there is no merge above).
+        result_t::builder b = result_t::make(CALL_E_EXCEPTION).with_message("handshake failed");
+
+        if (!m_server_name.empty())
+            b = std::move(b).arg("servername", m_server_name);
+
+        return result_t(std::move(b));
     }
 
     virtual result_t error(result_t v)
     {
         m_sock->on_connected(v);
 
-        // The SNI / verification host is the key context for a failed handshake:
-        // enrich the value itself (it crosses into the emit fiber, which may run
-        // on another thread, and the sync/callback path reads it too).
-        if (!m_server_name.empty())
-            v = result_t(result_t::inherit(std::move(v)).arg("servername", m_server_name));
+        // A transport failure crosses into the handshake as its code; the
+        // handshake's own failures carry the servername from their
+        // construction. Here only the transport-born value is rebuilt with the
+        // SNI / verification host -- the key context of a failed handshake (it
+        // crosses into the emit fiber, which may run on another thread, and the
+        // sync/callback path reads it too).
+        if (v.is_system_error() && !m_server_name.empty())
+            v = result_t(result_t::from_system(std::move(v)).arg("servername", m_server_name));
 
         if (m_isolate) {
             obj_ptr<TLSSocket> sock = m_sock;
@@ -299,7 +318,12 @@ public:
             return next(handshake);
         }
 
-        return result_t::make(CALL_E_EXCEPTION).with_message("socket closed");
+        result_t::builder b = result_t::make(CALL_E_EXCEPTION).with_message("socket closed");
+
+        if (!m_server_name.empty())
+            b = std::move(b).arg("servername", m_server_name);
+
+        return result_t(std::move(b));
     }
 
 public:

@@ -220,18 +220,31 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
     if (options == NULL)
         options = &s_default_connect_options;
 
+    // The connection parameters of a failed attempt: psql / mssql / dm / odbc
+    // all share this entry, and the failing layer builds them into its own
+    // value (there is no upper-layer merge). The password never enters the
+    // payload, not even as a truncated summary.
+    auto diag = [&](result_t::builder&& b) -> result_t {
+        return result_t(std::move(b)
+                .arg("host", host)
+                .arg("port", port)
+                .arg("database", dbName)
+                .arg("user", username)
+                .arg_redacted("password"));
+    };
+
     SQLRETURN hr;
     if (!g_odbc) {
         hr = SQLAllocEnv((SQLHENV*)&g_odbc);
         if (hr < 0)
-            return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("odbc: unable to allocate environment."));
+            return CHECK_ERROR(diag(result_t::make(CALL_E_EXCEPTION).with_message("odbc: unable to allocate environment.")));
     }
 
     hr = SQLAllocConnect(g_odbc, (SQLHDBC*)&conn);
     if (hr < 0) {
         odbc_disconnect(conn);
         conn = NULL;
-        return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("odbc: unable to allocate connection."));
+        return CHECK_ERROR(diag(result_t::make(CALL_E_EXCEPTION).with_message("odbc: unable to allocate connection.")));
     }
 
     if (*driver) {
@@ -316,7 +329,7 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
                 b = std::move(b).with_code(info.sqlstate);
             if (info.has_native)
                 b = std::move(b).with_errno(info.native);
-            return result_t(std::move(b).with_message(err));
+            return CHECK_ERROR(diag(std::move(b).with_message(err)));
         }
     }
 
@@ -361,17 +374,8 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
     hr = odbc_connect(driver, u->hostname().c_str(), port,
         username.c_str(), password.c_str(),
         pathname.length() > 0 ? pathname.c_str() + 1 : "", conn, options);
-    if (hr.failed()) {
-        // Connection parameters for diagnostics - psql / mssql / dm / odbc all
-        // share this entry. The password never enters the payload, not even as
-        // a truncated summary.
-        return result_t::inherit(std::move(hr))
-            .arg("host", u->hostname())
-            .arg("port", port)
-            .arg("database", pathname.length() > 0 ? pathname.c_str() + 1 : "")
-            .arg("user", username)
-            .arg_redacted("password");
-    }
+    if (hr.failed())
+        return hr;
 
     return 0;
 }
