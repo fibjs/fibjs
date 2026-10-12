@@ -940,7 +940,7 @@ result_t Http2Session::goaway(int32_t code, int32_t lastStreamId)
 result_t Http2Session::ping(int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_destroyed || !m_nghttp2)
         return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session is destroyed.");
@@ -995,7 +995,7 @@ result_t Http2Session::settings(v8::Local<v8::Object> settings)
 result_t Http2Session::close(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_closed)
         return 0;

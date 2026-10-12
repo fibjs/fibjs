@@ -168,7 +168,7 @@ public:
     result_t use(exlib::string dbName, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_LONGSYNC);
+            return CHECK_ERROR(result_t::longsync());
 
         if (!m_conn)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -182,7 +182,7 @@ public:
     result_t begin(exlib::string point, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_LONGSYNC);
+            return CHECK_ERROR(result_t::longsync());
 
         if (!m_conn)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -203,7 +203,7 @@ public:
     result_t commit(exlib::string point, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_LONGSYNC);
+            return CHECK_ERROR(result_t::longsync());
 
         if (!m_conn)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -220,7 +220,7 @@ public:
     result_t rollback(exlib::string point, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_LONGSYNC);
+            return CHECK_ERROR(result_t::longsync());
 
         if (!m_conn)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -264,7 +264,7 @@ public:
             ac.ctxv().resize(1);
             ac.ctxv()[0] = str;
 
-            return CHECK_ERROR(CALL_E_LONGSYNC);
+            return CHECK_ERROR(result_t::longsync());
         }
 
         if (!m_conn)
@@ -292,7 +292,7 @@ public:
             ac.ctxv().resize(1);
             ac.ctxv()[0] = str;
 
-            return CHECK_ERROR(CALL_E_LONGSYNC);
+            return CHECK_ERROR(result_t::longsync());
         }
 
         if (!m_conn)
@@ -383,7 +383,7 @@ public:
         AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_LONGSYNC);
+            return CHECK_ERROR(result_t::longsync());
 
         if (!m_conn)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -409,7 +409,7 @@ public:
                 if (hr.failed())
                     return hr;
             }
-            return CHECK_ERROR(CALL_E_LONGSYNC);
+            return CHECK_ERROR(result_t::longsync());
         }
 
         if (!m_conn)

@@ -135,7 +135,7 @@ result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
     WebKitWebView* webView = WEBKIT_WEB_VIEW(m_webview);
     webkit_web_view_run_javascript(webView, "document.documentElement.outerHTML.toString()", nullptr, gethtml_cb, new gethtml_callback_data(retVal, std::move(ac)));
 
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t WebView::isReady(bool& retVal, AsyncHandle ac)
@@ -291,7 +291,7 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
         return hr;
 
     webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(m_webview), code.c_str(), nullptr, eval_cb, new eval_callback_data(retVal, std::move(ac)));
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
@@ -493,7 +493,7 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
 
     webkit_web_view_get_snapshot(webView, region, options, NULL, capture_cb, new capture_callback_data(retVal, std::move(ac)));
 
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t WebView::close(AsyncHandle ac)

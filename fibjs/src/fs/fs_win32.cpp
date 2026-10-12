@@ -17,7 +17,7 @@ result_t lchmod_platform(exlib::string path, int32_t mode, AsyncHandle ac)
 result_t fs_base::truncate(exlib::string path, int32_t len, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     // Node.js compatibility: a negative length is treated as zero
     if (len < 0)

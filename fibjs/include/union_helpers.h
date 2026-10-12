@@ -106,7 +106,7 @@ result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal, AsyncH
             ac.ctxv()[0] = retVal;
         }
 
-        return CALL_E_NOSYNC;
+        return result_t::nosync();
     }
 
     // async / cc_: the slot prepared by the sync phase comes first
@@ -226,7 +226,7 @@ result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncHandle& 
             ac.ctxv()[0] = retVal;
         }
 
-        return CALL_E_NOSYNC;
+        return result_t::nosync();
     }
 
     // async / cc_: the slot prepared by the sync phase comes first

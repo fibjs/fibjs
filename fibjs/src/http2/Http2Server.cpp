@@ -111,7 +111,7 @@ public:
                 // initial_write state.
                 m_session->startLoops();
 
-                return CALL_E_PENDDING;
+                return result_t::pending();
             }
 
             ON_STATE(asyncInvoke, wait_done)
@@ -127,7 +127,7 @@ public:
         };
 
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         obj_ptr<Stream_base> stm = Stream_base::getInstance(v);
         if (stm == NULL)
@@ -259,7 +259,7 @@ result_t Http2Server::start()
 result_t Http2Server::stop(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     class asyncStop : public AsyncState {
     public:

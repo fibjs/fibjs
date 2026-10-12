@@ -282,7 +282,7 @@ result_t Service::run(AsyncHandle ac)
 
         s_isolate = holder();
 
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
     }
 
     exlib::wstring wname = utf8to16String(m_name);

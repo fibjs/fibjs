@@ -148,7 +148,7 @@ result_t TTYOutputStream::clearScreenDown()
 result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (x < 0)
         return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("cursorTo: x must be non-negative, received %d.", x).with_result(CALL_E_INVALIDARG));
@@ -168,7 +168,7 @@ result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncHandle ac)
 result_t TTYOutputStream::moveCursor(int32_t dx, int32_t dy, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     char numStr[64];
     char* data = numStr;

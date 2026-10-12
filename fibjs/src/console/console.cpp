@@ -456,7 +456,7 @@ bool g_in_readline = false;
 result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, bool no_echo)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     flushLog();
 
@@ -508,7 +508,7 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, boo
 result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, bool no_echo)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     flushLog();
     std_logger::out(msg);

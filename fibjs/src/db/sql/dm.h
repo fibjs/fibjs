@@ -62,7 +62,7 @@ public:
     virtual result_t begin(exlib::string point, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_LONGSYNC);
+            return CHECK_ERROR(result_t::longsync());
 
         if (!m_conn)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -82,7 +82,7 @@ public:
     virtual result_t commit(exlib::string point, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_LONGSYNC);
+            return CHECK_ERROR(result_t::longsync());
 
         if (!m_conn)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -107,7 +107,7 @@ public:
     virtual result_t rollback(exlib::string point, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_LONGSYNC);
+            return CHECK_ERROR(result_t::longsync());
 
         if (!m_conn)
             return CHECK_ERROR(CALL_E_INVALID_CALL);

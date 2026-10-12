@@ -312,7 +312,7 @@ public:
             return 0;
         });
 
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t error(result_t v)
@@ -364,7 +364,7 @@ public:
                 return 0;
             });
             next(recv);
-            return CALL_E_PENDDING;
+            return result_t::pending();
         }
 
         obj_ptr<Stream_base> stream = m_this;
@@ -565,10 +565,10 @@ public:
         }
 
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         (new AsyncReadVariant(this, bytes, retVal, std::move(ac)))->apost(0);
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     // Async state machine for readAll: loop readBuffer(-1) until EOF
@@ -617,10 +617,10 @@ public:
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         (new AsyncReadAll(this, retVal, std::move(ac)))->apost(0);
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Stream_base>& retVal)
@@ -642,7 +642,7 @@ public:
     virtual result_t writeBuffer(exlib::string data, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         obj_ptr<Buffer_base> buf;
 
@@ -684,7 +684,7 @@ public:
         if (needStartWriter)
             m_writer->start();
 
-        return CALL_E_NOSYNC;
+        return result_t::nosync();
     }
 
     virtual result_t write(Buffer_base* data, bool& retVal, AsyncHandle ac)
@@ -701,7 +701,7 @@ public:
 
         retVal = ac.ctxv()[1].boolVal();
         ev->set();
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t write(Buffer_base* data, exlib::string encoding, bool& retVal, AsyncHandle ac)
@@ -718,7 +718,7 @@ public:
 
         retVal = ac.ctxv()[1].boolVal();
         ev->set();
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t write(exlib::string data, exlib::string encoding, bool& retVal, AsyncHandle ac)
@@ -744,7 +744,7 @@ public:
 
         retVal = ac.ctxv()[1].boolVal();
         ev->set();
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncHandle ac)
@@ -820,12 +820,12 @@ public:
             }
             m_ended = true;
             retVal = this;
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
         }
 
         retVal = this;
         (new AsyncDestroyEmitter(this, std::move(ac)))->apost(0);
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t resume(obj_ptr<Stream_base>& retVal)
@@ -981,37 +981,37 @@ public:
     virtual result_t end(int32_t& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         retVal = 0;
         (new AsyncEndEmitter(this, nullptr, std::move(ac)))->apost(0);
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         retVal = 0;
         (new AsyncEndEmitter(this, data, std::move(ac)))->apost(0);
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         retVal = 0;
         (new AsyncEndEmitter(this, data, std::move(ac)))->apost(0);
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         obj_ptr<Buffer_base> buf;
         result_t hr = Buffer_base::from(data, encoding, buf);
@@ -1020,7 +1020,7 @@ public:
 
         retVal = 0;
         (new AsyncEndEmitter(this, buf, std::move(ac)))->apost(0);
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t getReader(obj_ptr<StreamReader_base>& retVal)

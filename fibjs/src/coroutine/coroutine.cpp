@@ -242,10 +242,10 @@ result_t coroutine_base::sleep(int32_t ms, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     exlib::Fiber::sleep(ms, new AcyncSleep(std::move(ac)));
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)

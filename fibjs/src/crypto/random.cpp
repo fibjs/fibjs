@@ -42,7 +42,7 @@ result_t crypto_base::randomFill(Union_randomFill_buffer buffer, int32_t offset,
     obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<Buffer_base> buf;
 

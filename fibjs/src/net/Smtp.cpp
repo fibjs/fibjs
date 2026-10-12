@@ -209,7 +209,7 @@ result_t Smtp::connect(exlib::string url, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -221,7 +221,7 @@ result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string& retV
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -232,7 +232,7 @@ result_t Smtp::command(exlib::string cmd, exlib::string arg, exlib::string& retV
 result_t Smtp::command(exlib::string cmd, exlib::string arg, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -322,7 +322,7 @@ result_t Smtp::hello(exlib::string hostname, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -396,7 +396,7 @@ result_t Smtp::login(exlib::string username, exlib::string password,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -474,7 +474,7 @@ result_t Smtp::data(exlib::string txt, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

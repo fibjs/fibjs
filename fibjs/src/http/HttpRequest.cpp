@@ -372,7 +372,7 @@ result_t HttpRequest::write(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 result_t HttpRequest::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
@@ -678,7 +678,7 @@ result_t HttpRequest::end(int32_t& retVal, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new AsyncEnd(this, retVal, std::move(ac)))->post(0);
 }
@@ -726,7 +726,7 @@ result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new AsyncEnd(this, data, retVal, std::move(ac)))->post(0);
 }
@@ -776,7 +776,7 @@ result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& re
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new AsyncEnd(this, data, encoding, retVal, std::move(ac)))->post(0);
 }
@@ -826,7 +826,7 @@ result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& r
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new AsyncEnd(this, data, encoding, retVal, std::move(ac)))->post(0);
 }
@@ -865,7 +865,7 @@ result_t HttpRequest::clear()
 result_t HttpRequest::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     exlib::string strCommand = m_method;
     exlib::string strProtocol;
@@ -949,7 +949,7 @@ result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, 
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
     if (!_stm)

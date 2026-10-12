@@ -20,7 +20,7 @@ result_t db_base::openSQLite(exlib::string connString,
     obj_ptr<SQLite_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     result_t hr;
 
@@ -394,7 +394,7 @@ result_t SQLite::prepareStmt(db_tmpl<SQLite_base, SQLite>* db,
 result_t SQLite::close(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!m_conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed."));
@@ -417,7 +417,7 @@ result_t SQLite::close(AsyncHandle ac)
 result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!m_conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed."));
@@ -542,7 +542,7 @@ result_t SQLite::set_timeout(int32_t newVal)
 result_t SQLite::backup(exlib::string fileName, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!m_conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed."));
@@ -590,7 +590,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncHandle ac)
 result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!m_conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed."));
@@ -603,7 +603,7 @@ result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
 result_t SQLite::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!m_conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed."));

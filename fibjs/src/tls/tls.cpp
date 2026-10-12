@@ -156,7 +156,7 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
             ac.ctxv()[0] = ssl_sock;
         }
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     obj_ptr<Url> u = new Url();
@@ -208,7 +208,7 @@ result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> options, v8:
 
         ac.ctxv()[1] = timeout;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     if (ac.ctxv().size() < 2) {
@@ -270,7 +270,7 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
 
         ac.ctxv()[1] = timeout;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     obj_ptr<TLSSocket> ssl_sock;
@@ -317,7 +317,7 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
 
         ac.ctxv()[1] = opts;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     result_t ctx_hr = ac.ctx(0);

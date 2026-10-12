@@ -428,7 +428,7 @@ result_t EventSource::close(AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_readyState == sse_base::C_OPEN) {
         m_readyState = sse_base::C_CLOSED;
@@ -444,7 +444,7 @@ result_t EventSource::close(AsyncHandle ac)
         // 票据交给 close 状态机消费（一次性），本对象不再持有。认领语义见
         // EventSource::Ticket：重复/迟到的回投都是 no-op。
         (new asyncClose(m_stream, std::move(ac), m_ac))->apost(0);
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     return 0;
@@ -463,7 +463,7 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
         ac.ctxv().resize(1);
         ac.ctxv()[0] = opts;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     if (m_readyState != sse_base::C_SENDER) {

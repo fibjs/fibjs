@@ -186,7 +186,7 @@ result_t subtle_base::generateKey(Union_generateKey_algorithm algorithm, bool ex
 
         ac.ctxv()[0] = key;
 
-        return CALL_E_NOSYNC;
+        return result_t::nosync();
     }
 
     // the algorithm object was read in the sync phase

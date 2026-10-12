@@ -14,7 +14,7 @@ namespace fibjs {
 result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Variant& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CALL_E_NOSYNC;
+        return result_t::nosync();
 
     CryptoKey* ckey = (CryptoKey*)key;
     KeyObject::KeyType keyType = ckey->type();
@@ -142,7 +142,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
             ac.ctxv()[2] = buf;
         }
 
-        return CALL_E_NOSYNC;
+        return result_t::nosync();
     }
 
     // the algorithm object and the key data were read in the sync phase

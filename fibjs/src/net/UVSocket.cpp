@@ -40,7 +40,7 @@ result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
 result_t UVSocket::close(AsyncHandle ac)
 {
     if (ac && ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     result_t hr = UVStream_tmpl<Socket_base>::close(std::move(ac));
 
@@ -341,7 +341,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
     startConnectEvent();
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     retVal = this;
     bool use_path = m_family == net_base::C_AF_UNIX || port == 0;
@@ -404,7 +404,7 @@ result_t UVSocket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         ac.ctxv()[0] = opts;
 
         startConnectEvent();
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -458,7 +458,7 @@ result_t UVSocket::connect(v8::Local<v8::Object> options, v8::Local<v8::Function
 result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     result_t hr = 0;
 
@@ -471,7 +471,7 @@ result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
         m_socks.pop_front();
     } else {
         m_accepts.push_back(std::pair<obj_ptr<Socket_base>&, AsyncHandle>(retVal, std::move(ac)));
-        hr = CALL_E_PENDDING;
+        hr = result_t::pending();
     }
 
     m_lock.unlock();
@@ -497,7 +497,7 @@ result_t UVSocket::send(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 result_t UVSocket::send(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
@@ -513,10 +513,10 @@ result_t UVSocket::send(exlib::string data, int32_t& retVal, AsyncHandle ac)
 result_t UVSocket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     uv_post(new AsyncRead(this, false, bytes, retVal, std::move(ac)));
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t UVSocket::setKeepAlive(bool enable, int32_t initialDelay)

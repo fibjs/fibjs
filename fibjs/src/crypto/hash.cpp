@@ -136,7 +136,7 @@ result_t crypto_base::hkdf(exlib::string algoName, Union_hkdf_password password,
     Union_hkdf_info info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (size < 1)
         return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_format("hkdf: size must be positive, received %d.", size).with_result(CALL_E_INVALIDARG));
@@ -186,7 +186,7 @@ result_t crypto_base::pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt s
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (iterations < 1 || size < 1)
         return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("pbkdf2: iterations and size must be positive.").with_result(CALL_E_INVALIDARG));
@@ -251,7 +251,7 @@ result_t scrypt_load_options(v8::Local<v8::Object> options, AsyncHandle& ac)
     ac.ctxv().resize(1);
     ac.ctxv()[0] = opt;
 
-    return CALL_E_NOSYNC;
+    return result_t::nosync();
 }
 
 result_t crypto_base::scrypt(Union_scrypt_password password, Union_scrypt_salt salt, int32_t keylen,

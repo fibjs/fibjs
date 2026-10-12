@@ -404,7 +404,7 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (qstrcmp(connString.c_str(), "mysql:", 6))
         return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("openMySQL: connection string must start with 'mysql:'.").with_result(CALL_E_INVALIDARG));
@@ -479,7 +479,7 @@ result_t mysql::get_type(exlib::string& retVal)
 result_t mysql::close(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!m_conn)
         return 0;
@@ -496,7 +496,7 @@ result_t mysql::close(AsyncHandle ac)
 result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!m_conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("MySQL: connection is closed."));
@@ -569,7 +569,7 @@ result_t mysql::set_txBufferSize(int32_t newVal)
 result_t mysql::getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!m_conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("MySQL: connection is closed."));
@@ -582,7 +582,7 @@ result_t mysql::getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
 result_t mysql::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!m_conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("MySQL: connection is closed."));

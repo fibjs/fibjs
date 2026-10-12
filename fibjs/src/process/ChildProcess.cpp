@@ -733,7 +733,7 @@ result_t ChildProcess::kill(exlib::string signal)
 result_t ChildProcess::join(int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     class WaitExitCode : public AsyncEvent {
     public:
@@ -768,7 +768,7 @@ result_t ChildProcess::join(int32_t& retVal, AsyncHandle ac)
         h.apost(0);
     }
 
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t ChildProcess::get_connected(bool& retVal)

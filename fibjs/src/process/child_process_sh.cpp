@@ -134,7 +134,7 @@ result_t child_process_base::sh(v8::Local<v8::Array> strings, OptArgs args, exli
         ac.ctxv().resize(3);
         ac.ctxv()[2] = cmd;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     result_t ctx_hr = ac.ctx(2);

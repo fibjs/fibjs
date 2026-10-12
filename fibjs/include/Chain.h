@@ -91,7 +91,7 @@ public:
                 // handler 转 JS 线程执行：票交由 js_invoke() 持票回投
                 m_jsTicket.store(ticket);
                 m_hdlr->holder()->post_task(this);
-                return CALL_E_PENDDING;
+                return result_t::pending();
             }
 
             return hr;

@@ -218,7 +218,7 @@ result_t Socket::flush(AsyncHandle ac)
 result_t Socket::close(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_aio.m_fd == INVALID_SOCKET)
         return 0;
@@ -476,7 +476,7 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_
     startConnectEvent();
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
 #ifdef _WIN32
     if (!m_bBind) {
@@ -513,7 +513,7 @@ result_t Socket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& re
         ac.ctxv()[0] = opts;
 
         startConnectEvent();
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -586,7 +586,7 @@ result_t Socket::send(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 result_t Socket::send(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);

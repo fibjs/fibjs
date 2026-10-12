@@ -169,7 +169,7 @@ public:
         m_acLog.putTail(i);
         if (!m_bWorking) {
             m_bWorking = true;
-            async(CALL_E_NOSYNC);
+            async(result_t::nosync());
         }
         m_lock.unlock();
     }

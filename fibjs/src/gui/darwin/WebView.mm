@@ -134,7 +134,7 @@ result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
                   h->post(0);
               }];
 
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t WebView::isReady(bool& retVal, AsyncHandle ac)
@@ -296,7 +296,7 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
                                 }
                             }];
 
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
@@ -479,7 +479,7 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
                              }
                          }];
 
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t WebView::close(AsyncHandle ac)

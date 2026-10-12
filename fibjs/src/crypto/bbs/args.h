@@ -55,7 +55,7 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncHandle&
         return hr;
     ac.ctxv()[3] = proof_header;
 
-    return CALL_E_NOSYNC;
+    return result_t::nosync();
 }
 
 static result_t bbs_get_args(exlib::string key, bool priv, AsyncHandle& ac)
@@ -103,7 +103,7 @@ static result_t bbs_get_args(KeyObject_base* key, bool priv, AsyncHandle& ac)
     ac.ctxv()[2] = (Buffer_base*)nullptr;
     ac.ctxv()[3] = (Buffer_base*)nullptr;
 
-    return CALL_E_NOSYNC;
+    return result_t::nosync();
 }
 
 // the key of a BBS operation is a union argument (Buffer|KeyObject|Object|String):
@@ -130,7 +130,7 @@ static result_t bbs_prepare_key(std::variant<Ts...>& key, bool priv, AsyncHandle
 {
     if (ac.isSync()) {
         if (std::holds_alternative<obj_ptr<KeyObject_base>>(key))
-            return CALL_E_NOSYNC; // pure C++: left to the async phase
+            return result_t::nosync(); // pure C++: left to the async phase
 
         return bbs_get_args(key, priv, ac);
     }

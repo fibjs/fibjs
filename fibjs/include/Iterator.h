@@ -73,7 +73,7 @@ public:
         }
 
         if (ac.isSync()) {
-            return CALL_E_NOSYNC;
+            return result_t::nosync();
         }
 
         // The callback is a std::function (copyable target required) and the
@@ -89,7 +89,7 @@ public:
                 h->post(err); // err < 0 => next() throws on the JS side
             });
 
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
 public:

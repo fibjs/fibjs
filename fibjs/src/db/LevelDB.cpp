@@ -16,7 +16,7 @@ result_t db_base::openLevelDB(exlib::string connString,
     obj_ptr<LevelDB_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     result_t hr;
     const char* c_str = connString.c_str();
@@ -84,7 +84,7 @@ static result_t leveldb_to_buffer(const std::variant<obj_ptr<Buffer_base>, exlib
 result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!db())
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
@@ -115,7 +115,7 @@ result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncHandle ac)
 result_t LevelDB::get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!db())
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
@@ -213,7 +213,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
 result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     leveldb::Status s = db()->Write(leveldb::WriteOptions(), batch);
     if (!s.ok())
@@ -225,7 +225,7 @@ result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncHandle ac)
 result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!db())
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
@@ -319,7 +319,7 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
 result_t LevelDB::remove(Union_remove_key key, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!db())
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
@@ -343,7 +343,7 @@ result_t LevelDB::remove(Union_remove_key key, AsyncHandle ac)
 result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!db())
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
@@ -364,7 +364,7 @@ result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 result_t LevelDB::lastKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!db())
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("LevelDB: database is closed."));
@@ -625,7 +625,7 @@ result_t LevelDB::close(AsyncHandle ac)
         return 0;
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     delete m_db;
     m_db = NULL;

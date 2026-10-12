@@ -54,7 +54,7 @@ result_t Semaphore::wait(int32_t timeout, bool& retVal, AsyncHandle ac)
     }
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     retVal = m_sem.wait(timeout);
     return 0;

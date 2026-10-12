@@ -69,7 +69,7 @@ void Dir::unload()
 result_t Dir::read(obj_ptr<DirEntry_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     // Node.js: a closed directory reports the end of the iteration
     if (m_closed)
@@ -91,7 +91,7 @@ result_t Dir::read(obj_ptr<DirEntry_base>& retVal, AsyncHandle ac)
 result_t Dir::close(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     unload();
 
@@ -127,7 +127,7 @@ result_t Dir::symbol_asyncIterator(obj_ptr<Iterator_base>& retVal)
 result_t Dir::next(obj_ptr<NextType>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     result_t hr = load();
     if (hr.failed())

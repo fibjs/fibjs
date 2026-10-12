@@ -607,7 +607,7 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
             ac.ctxv()[4] = salt_len;
         }
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     // the algorithm and the object key options were prepared in the sync phase
@@ -706,7 +706,7 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
             ac.ctxv()[4] = salt_len;
         }
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     // the algorithm and the object key options were prepared in the sync phase

@@ -90,7 +90,7 @@ result_t WebSocketMessage::write(Buffer_base* data, int32_t& retVal, AsyncHandle
 result_t WebSocketMessage::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
@@ -259,7 +259,7 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new asyncCopy(from, to, bytes, mask, std::move(ac)))->post(0);
 }
@@ -400,7 +400,7 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncHandle 
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new asyncSendTo(this, stm, wss, std::move(ac)))->post(0);
 }
@@ -590,7 +590,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     m_stm = stm;
 

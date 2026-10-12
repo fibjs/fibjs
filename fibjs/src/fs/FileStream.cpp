@@ -36,7 +36,7 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == -1)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("FileStream: file is closed."));
@@ -93,7 +93,7 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == -1)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("FileStream: file is closed."));
@@ -222,7 +222,7 @@ result_t FileStream::Write(const char* p, int32_t sz, int64_t diag_buffer_len)
 result_t FileStream::writeBuffer(Buffer_base* data, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == -1)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("FileStream: file is closed."));
@@ -345,7 +345,7 @@ result_t FileStream::rewind()
 result_t FileStream::flush(AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == -1)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("FileStream: file is closed."));
@@ -372,7 +372,7 @@ result_t FileStream::close(AsyncHandle ac)
 {
     if (m_fd != -1) {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         return close();
     }
@@ -383,7 +383,7 @@ result_t FileStream::close(AsyncHandle ac)
 result_t FileStream::truncate(int64_t bytes, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == -1)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("FileStream: file is closed."));
@@ -400,7 +400,7 @@ result_t FileStream::chmod(int32_t mode, AsyncHandle ac)
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 #else
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (::fchmod(m_fd, mode))
         return CHECK_ERROR(LastError("fchmod", name));

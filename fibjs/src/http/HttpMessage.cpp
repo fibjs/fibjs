@@ -415,7 +415,7 @@ result_t HttpMessage::send(Stream_base* stm, exlib::string& strCommand,
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     m_sent = true;
     return (new asyncSendTo(this, stm, strCommand, std::move(ac)))->post(0);
@@ -425,7 +425,7 @@ result_t HttpMessage::sendHeader(Stream_base* stm, exlib::string& strCommand, bo
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     m_sent = true;
     return (new asyncSendTo(this, stm, strCommand, std::move(ac), true, content_length))->post(0);
@@ -511,7 +511,7 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     m_headers->m_lowercase_keys = true;
 
@@ -585,7 +585,7 @@ result_t HttpMessage::readBody(AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (!m_stm)
         return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("HttpMessage: stream is not set."));
@@ -621,7 +621,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new asyncReadFrom(this, stm, std::move(ac)))->post(0);
 }

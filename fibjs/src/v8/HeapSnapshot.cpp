@@ -318,7 +318,7 @@ result_t HeapSnapshot::load(exlib::string fname)
 result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     class buf_file {
     public:

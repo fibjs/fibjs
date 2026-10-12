@@ -307,7 +307,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             vs[1] = m_httpreq;
             pHandler->_emit("accept", vs, 2);
 
-            return CALL_E_PENDDING;
+            return result_t::pending();
         }
 
     private:
@@ -319,7 +319,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<HttpRequest_base> req = HttpRequest_base::getInstance(v);
     if (req == NULL)

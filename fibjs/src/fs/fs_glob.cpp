@@ -505,7 +505,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
 
         ac.ctxv()[0] = _opts;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     result_t ctx_hr = ac.ctx(0);

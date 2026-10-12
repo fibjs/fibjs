@@ -30,7 +30,7 @@ result_t gui_base::input(exlib::string message, bool password, exlib::string& re
 result_t gui_base::input(exlib::string title, exlib::string message, bool password, exlib::string& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_GUICALL);
+        return CHECK_ERROR(result_t::guicall());
 
     NSAlert* alert = [[NSAlert alloc] init];
     [alert setMessageText:toNSString(title)];

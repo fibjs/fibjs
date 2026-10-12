@@ -65,7 +65,7 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
                 return hr;
         }
 
-        return CALL_E_NOSYNC;
+        return result_t::nosync();
     }
 
     CryptoKey* _baseKey = (CryptoKey*)baseKey;

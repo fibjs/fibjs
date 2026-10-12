@@ -98,7 +98,7 @@ function gen_stub(argn, bInst, bRet) {
             txt.push('	_t ac(NULL' + (bCCall ? ', isolate' : bInst ? ', holder()' : ', Isolate::current()') + '); \\');
 
         if (bCCall) {
-            txt.push('	return ac.check_result(CALL_E_NOSYNC); \\\n	}');
+            txt.push('	return ac.check_result(result_t::nosync()); \\\n	}');
         } else {
             s = '	return ac.check_result(m(';
             if (argn > 0) {

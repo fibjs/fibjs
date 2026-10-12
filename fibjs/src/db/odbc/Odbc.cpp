@@ -68,7 +68,7 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (qstrcmp(connString.c_str(), "odbc:", 5))
         return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("openOdbc: connection string must start with 'odbc:'.").with_result(CALL_E_INVALIDARG));
@@ -96,7 +96,7 @@ result_t odbc_disconnect(void* conn)
 result_t odbc_close(void*& conn, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));
@@ -388,7 +388,7 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
 result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));
@@ -940,7 +940,7 @@ result_t odbc_prepareStmt(void* conn, int32_t* activeStmt, exlib::string sql,
 result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));
@@ -991,7 +991,7 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncHandle ac)
 result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(result_t::longsync());
 
     if (!conn)
         return CHECK_ERROR(result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed."));

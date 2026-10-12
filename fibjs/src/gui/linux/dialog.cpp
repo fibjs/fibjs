@@ -34,7 +34,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         ac.ctxv().resize(1);
         ac.ctxv()[0] = opts;
 
-        return CHECK_ERROR(CALL_E_GUICALL);
+        return CHECK_ERROR(result_t::guicall());
     }
 
     result_t ctx_hr = ac.ctx(0);

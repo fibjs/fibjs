@@ -75,7 +75,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
     exlib::string& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (family != net_base::C_AF_INET && family != net_base::C_AF_INET6)
         return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_format("resolve: invalid address family %d.", family));
@@ -164,7 +164,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
         return CHECK_ERROR(r);
     }
 
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t net_base::ip(exlib::string name, exlib::string& retVal,
@@ -187,7 +187,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         return tls_base::connect(url, timeout, retVal, std::move(ac));
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (qstrcmp(url.c_str(), "tcp:", 4) && qstrcmp(url.c_str(), "unix:", 5) && qstrcmp(url.c_str(), "pipe:", 5))
         return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_format("connect: unknown protocol in url '%s'.", url.c_str()));
@@ -227,7 +227,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
 result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     bool is_ipv6 = Url::isIPv6(host);
     int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
@@ -252,7 +252,7 @@ result_t net_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& 
         ac.ctxv().resize(1);
         ac.ctxv()[0] = opts;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -301,7 +301,7 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8
             socket->once(socket->holder()->NewString("connect"), connectListener, _retVal);
         }
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     obj_ptr<Socket_base> holder;
@@ -370,7 +370,7 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
         v8::Local<v8::Object> _retVal;
         socket->once(socket->holder()->NewString("connect"), connectListener, _retVal);
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -389,7 +389,7 @@ result_t net_base::openSmtp(exlib::string url, int32_t timeout,
     obj_ptr<Smtp_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     result_t hr;
 

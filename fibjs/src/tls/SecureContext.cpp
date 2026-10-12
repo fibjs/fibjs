@@ -627,7 +627,7 @@ result_t SecureContext::getSNIContext(exlib::string servername, bool auto_resolv
     obj_ptr<SecureContext_base>& retVal, AsyncHandle ac)
 {
     if (auto_resolve && ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<SecureContext> ctx;
     if (!m_sniContexts.lookup(servername, ctx, auto_resolve))

@@ -116,7 +116,7 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
                 return hr;
         }
 
-        return CALL_E_NOSYNC;
+        return result_t::nosync();
     }
 
     obj_ptr<Buffer_base> data_buffer;
@@ -221,7 +221,7 @@ result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* k
                 return hr;
         }
 
-        return CALL_E_NOSYNC;
+        return result_t::nosync();
     }
 
     obj_ptr<Buffer_base> signature_buffer, data_buffer;

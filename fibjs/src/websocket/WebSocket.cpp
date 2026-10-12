@@ -313,7 +313,7 @@ public:
 
     result_t lock(exlib::Locker& l, AsyncEvent* pThis)
     {
-        return l.lock(pThis) ? 0 : CALL_E_PENDDING;
+        return l.lock(pThis) ? result_t() : result_t::pending();
     }
 
 private:

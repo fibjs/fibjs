@@ -163,7 +163,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncHandle ac)
 {
     if (ac.isSync()) {
         m_holder = new ValueHolder(wrap());
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     return bind_core(port, addr);
@@ -229,7 +229,7 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncHandle ac)
         ac.ctxv()[0] = port;
         ac.ctxv()[1] = addr;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -259,7 +259,7 @@ result_t DgramSocket::send(exlib::string msg, int32_t port, exlib::string addres
     int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(msg, "utf8", buf);
@@ -313,7 +313,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
     }
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     inetAddr addr_info;
 
@@ -360,7 +360,7 @@ result_t DgramSocket::send(exlib::string msg, int32_t offset, int32_t length, in
     exlib::string address, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (offset < 0 || length <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -380,7 +380,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int
     exlib::string address, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (offset < 0 || length <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);

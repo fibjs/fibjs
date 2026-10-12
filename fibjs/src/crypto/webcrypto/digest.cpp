@@ -28,7 +28,7 @@ result_t subtle_base::digest(Union_digest_algorithm algorithm, Union_digest_data
 
         ac.ctxv()[0] = alg;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     } else {
         // the algorithm object was read in the sync phase
         result_t ctx_hr = ac.ctx(0);

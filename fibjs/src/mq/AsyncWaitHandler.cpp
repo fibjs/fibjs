@@ -25,14 +25,14 @@ result_t AsyncWaitHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_invoked.xchg(1) != 0)
         return 0;
 
     m_as = new asyncWaiter(std::move(ac));
     if (m_stat.CompareAndSwap(AC_INIT, AC_WAIT) == AC_INIT)
-        return CHECK_ERROR(CALL_E_PENDDING);
+        return CHECK_ERROR(result_t::pending());
 
     delete m_as;
     m_as = NULL;
@@ -43,7 +43,7 @@ result_t AsyncWaitHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 result_t AsyncWaitHandler::end()
 {
     if (m_stat.xchg(AC_END) == AC_WAIT) {
-        m_as->async(CALL_E_NOSYNC);
+        m_as->async(result_t::nosync());
         m_as = NULL;
     }
 

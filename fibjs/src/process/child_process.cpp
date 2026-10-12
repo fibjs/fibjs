@@ -134,7 +134,7 @@ static result_t execFile_prepare(exlib::string command, v8::Local<v8::Array> arg
     if (input_buf)
         ac.ctxv()[1] = input_buf;
 
-    return CHECK_ERROR(CALL_E_NOSYNC);
+    return CHECK_ERROR(result_t::nosync());
 }
 
 result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array> args,
@@ -301,7 +301,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         return execFile_prepare(command, args, options, retVal, ac);
 
     new ReadStdout(retVal, std::move(ac));
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Object> options,
@@ -668,11 +668,11 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
         if (input_buf)
             ac.ctxv()[1] = input_buf;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     new ReadStdout(retVal, std::move(ac));
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Array> args,
@@ -814,11 +814,11 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
 
         ac.ctxo() = cp;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     new WaitJoin(retVal, std::move(ac));
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t child_process_base::run(exlib::string command, v8::Local<v8::Object> options,

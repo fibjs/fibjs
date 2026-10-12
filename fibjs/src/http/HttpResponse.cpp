@@ -137,7 +137,7 @@ result_t HttpResponse::write(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 result_t HttpResponse::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<Buffer_base> buf;
     result_t hr = Buffer_base::from(data, "utf8", buf);
@@ -201,7 +201,7 @@ result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> opt
         }
 
         ac.ctxv()[1] = opts;
-        return CALL_E_NOSYNC;
+        return result_t::nosync();
     }
 
     // Async phase (C++-only, no V8 access): apply status / statusText /
@@ -650,7 +650,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<BufferedStream_base> _stm = BufferedStream_base::getInstance(stm);
     if (!_stm)
@@ -679,7 +679,7 @@ result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, A
         ac.ctxv().resize(1);
         ac.ctxv()[0] = _options;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     exlib::string strCommand = prepareHeaders();
@@ -705,7 +705,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, v8::Local<v8::Object> options,
         ac.ctxv().resize(1);
         ac.ctxv()[0] = _options;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     if (ac.ctxv().size() == 1) {
@@ -945,7 +945,7 @@ result_t HttpResponse_base::error(obj_ptr<HttpResponse_base>& retVal)
 result_t HttpResponse::sendHeader(Stream_base* stm, bool content_length, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     exlib::string strCommand = prepareHeaders();
     return m_message->sendHeader(stm, strCommand, content_length, std::move(ac));

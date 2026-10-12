@@ -16,7 +16,7 @@ namespace fibjs {
 result_t fs_base::truncate(exlib::string path, int32_t len, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     // Node.js compatibility: a negative length is treated as zero
     if (len < 0)
@@ -31,7 +31,7 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncHandle ac)
 result_t lchmod_platform(exlib::string path, int32_t mode, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
 #ifdef Linux
     if (::fchmodat(AT_FDCWD, path.c_str(), mode, AT_SYMLINK_NOFOLLOW))

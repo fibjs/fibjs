@@ -199,7 +199,7 @@ public:
             post();
         }
 
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t process()
@@ -383,7 +383,7 @@ result_t AsyncIO::close(AsyncHandle ac)
     };
 
     (new asyncClose(m_fd, m_RecvOpt, m_SendOpt, std::move(ac)))->post();
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int32_t timeout)
@@ -402,7 +402,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
             if (n == SOCKET_ERROR) {
                 int32_t nError = errno;
                 if (nError == EINPROGRESS)
-                    return CHECK_ERROR(CALL_E_PENDDING);
+                    return CHECK_ERROR(result_t::pending());
 
                 return CHECK_ERROR(-nError);
             }
@@ -428,7 +428,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -493,7 +493,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -540,7 +540,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                             m_read_buf.Release();
 
                         if (nError == EWOULDBLOCK)
-                            return CHECK_ERROR(CALL_E_PENDDING);
+                            return CHECK_ERROR(result_t::pending());
 
                         return CHECK_ERROR(-nError);
                     }
@@ -573,7 +573,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -609,7 +609,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncHandle ac, int32_t timeout)
                 if (n == SOCKET_ERROR) {
                     int32_t nError = errno;
                     if (nError == EWOULDBLOCK)
-                        return CHECK_ERROR(CALL_E_PENDDING);
+                        return CHECK_ERROR(result_t::pending());
                     return CHECK_ERROR(-nError);
                 }
 
@@ -628,7 +628,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncHandle ac, int32_t timeout)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);

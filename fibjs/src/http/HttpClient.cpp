@@ -189,7 +189,7 @@ public:
     virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         if (m_first) {
             Buffer* buf = Buffer::Cast(m_first);
@@ -1134,7 +1134,7 @@ public:
         };
 
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
         return (new asyncRead(this, bytes, retVal, std::move(ac)))->post(0);
     }
 
@@ -1310,7 +1310,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new asyncRequest(this, conn, req, retVal, std::move(ac)))->post(0);
 }
@@ -1391,7 +1391,7 @@ public:
     {
         // 等 JS 调用 req.end()：把票交给请求对象，由 AsyncEnd 持票回投
         m_o->req->m_asyncState = next(prepare);
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     ON_STATE(asyncRequest, prepare)
@@ -1533,7 +1533,7 @@ public:
                 // at(h2_wait_settings) can never be true there. Use the flag
                 // instead to recognize the queued-waiter wake-up.
                 m_h2_waiting = true;
-                return CALL_E_PENDDING;
+                return result_t::pending();
             }
             m_is_h2_leader = true;
         }
@@ -2477,7 +2477,7 @@ private:
 result_t HttpClient::requestSync(HttpRequest::Options* o, obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     // Reject immediately if signal is already aborted
     if (o->signal) {
@@ -2515,7 +2515,7 @@ public:
 result_t HttpClient::request(HttpRequest::Options* o, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new asyncRequest(o, std::move(ac)))->post(0);
 }
@@ -2524,7 +2524,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
     Headers_base* headers, obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<HttpRequest::Options> o = new HttpRequest::Options();
     o->agent = this;
@@ -2572,7 +2572,7 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
 
     ac.ctxv()[0] = o;
 
-    return CHECK_ERROR(CALL_E_NOSYNC);
+    return CHECK_ERROR(result_t::nosync());
 }
 
 result_t HttpClient::requestSync(exlib::string method, exlib::string url, v8::Local<v8::Object> opts,
@@ -3368,7 +3368,7 @@ result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> op
 
         ac.ctxv().resize(1);
         ac.ctxv()[0] = o;
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     result_t ctx_hr = ac.ctx(0);

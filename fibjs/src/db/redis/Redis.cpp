@@ -21,7 +21,7 @@ result_t db_base::openRedis(exlib::string connString,
     obj_ptr<Redis_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     const char* c_str = connString.c_str();
 
@@ -277,7 +277,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_subMode == 1) {
         (new asyncCommand(this))->post(0);

@@ -116,7 +116,7 @@ result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> opti
         ac.ctxv()[3] = u->isIPv6();
         ac.ctxv()[4] = session;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     result_t ctx_hr = ac.ctx(0);

@@ -312,11 +312,11 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
 
             if (ConnectEx(m_s, (sockaddr*)&m_ai, (int32_t)m_ai.size(), NULL, 0,
                     NULL, this))
-                return CHECK_ERROR(CALL_E_PENDDING);
+                return CHECK_ERROR(result_t::pending());
 
             nError = WSAGetLastError();
             if (nError == WSA_IO_PENDING)
-                return CHECK_ERROR(CALL_E_PENDDING);
+                return CHECK_ERROR(result_t::pending());
 
             return CHECK_ERROR(-nError);
         }
@@ -337,7 +337,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -357,7 +357,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
     }
 
     (new asyncConnect(m_fd, addr_info, std::move(ac), m_lockRecv, timeout, this))->post();
-    return CHECK_ERROR(CALL_E_PENDDING);
+    return CHECK_ERROR(result_t::pending());
 }
 
 result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
@@ -390,7 +390,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
 
             if (AcceptEx(m_sListen, m_s, &m_Buf, 0, sizeof(inetAddr) + 16,
                     sizeof(inetAddr) + 16, NULL, this))
-                return CHECK_ERROR(CALL_E_PENDDING);
+                return CHECK_ERROR(result_t::pending());
 
             nError = GetLastError();
             return CHECK_ERROR((nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError);
@@ -413,7 +413,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -429,7 +429,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
     s.Release();
 
     pa->post();
-    return CHECK_ERROR(CALL_E_PENDDING);
+    return CHECK_ERROR(result_t::pending());
 }
 
 result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
@@ -453,7 +453,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
             DWORD len = (DWORD)m_read_buf->length() - m_pos;
             if (ReadFile((HANDLE)m_s, m_read_buf->data() + m_pos, (len <= 65536) ? len : 65536, NULL, this))
-                return CHECK_ERROR(CALL_E_PENDDING);
+                return CHECK_ERROR(result_t::pending());
 
             nError = GetLastError();
 
@@ -461,7 +461,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                 return CALL_RETURN_NULL;
 
             if (nError == ERROR_IO_PENDING)
-                return CHECK_ERROR(CALL_E_PENDDING);
+                return CHECK_ERROR(result_t::pending());
 
             return CHECK_ERROR(-nError);
         }
@@ -511,13 +511,13 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     (new asyncRecv(m_fd, bytes, retVal, std::move(ac), bRead, m_lockRecv, timeout, this))->post();
-    return CHECK_ERROR(CALL_E_PENDDING);
+    return CHECK_ERROR(result_t::pending());
 }
 
 result_t AsyncIO::write(Buffer_base* data, AsyncHandle ac, int32_t timeout)
@@ -541,7 +541,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncHandle ac, int32_t timeout)
 
             DWORD len = (m_sz <= 65536) ? m_sz : 65536;
             if (WriteFile((HANDLE)m_s, (LPCSTR)m_p, len, NULL, this))
-                return CHECK_ERROR(CALL_E_PENDDING);
+                return CHECK_ERROR(result_t::pending());
 
             nError = GetLastError();
             return CHECK_ERROR((nError == ERROR_IO_PENDING) ? CALL_E_PENDDING : -nError);
@@ -575,13 +575,13 @@ result_t AsyncIO::write(Buffer_base* data, AsyncHandle ac, int32_t timeout)
     };
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_fd == INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     (new asyncSend(m_fd, data, std::move(ac), m_lockSend, timeout, this))->post();
-    return CHECK_ERROR(CALL_E_PENDDING);
+    return CHECK_ERROR(result_t::pending());
 }
 
 void AsyncIO::abort()

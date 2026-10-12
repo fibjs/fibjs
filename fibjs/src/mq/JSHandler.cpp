@@ -40,7 +40,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncHandle ac)
 {
     if (ac.isAsync())
-        return CHECK_ERROR(CALL_E_NOASYNC);
+        return CHECK_ERROR(result_t::noasync());
 
     v8::Local<v8::Object> o = v->wrap();
     Isolate* isolate = holder();

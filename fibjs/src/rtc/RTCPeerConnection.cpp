@@ -326,7 +326,7 @@ result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate cand
 result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     m_lock.lock();
     if (m_offer_description) {
@@ -337,13 +337,13 @@ result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& 
     m_offers.emplace_back(retVal, std::move(ac));
     m_lock.unlock();
 
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t RTCPeerConnection::createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     m_lock.lock();
     if (m_answer_description) {
@@ -354,13 +354,13 @@ result_t RTCPeerConnection::createAnswer(v8::Local<v8::Object> options, Variant&
     m_answers.emplace_back(retVal, std::move(ac));
     m_lock.unlock();
 
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t RTCPeerConnection::getStats(obj_ptr<NMap>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     obj_ptr<NMap> stats = new NMap();
 

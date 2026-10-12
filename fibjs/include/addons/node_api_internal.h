@@ -607,7 +607,7 @@ public:
         // resets V8 handles, which must never happen on a pool thread.
         Ref();
         env_->Ref();
-        async(CALL_E_LONGSYNC);
+        async(fibjs::result_t::longsync());
     }
 
     inline int CancelWork()

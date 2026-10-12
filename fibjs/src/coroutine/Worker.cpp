@@ -479,7 +479,7 @@ void worker_exit_from_inside(Isolate* isolate, int32_t code)
 result_t Worker::terminate(int32_t& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_exited) {
         // 已经退出：立即以记录到的退出码完成（与 Node 一致）
@@ -493,7 +493,7 @@ result_t Worker::terminate(int32_t& retVal, AsyncHandle ac)
 
     requestTerminate();
 
-    return CALL_E_PENDDING;
+    return result_t::pending();
 }
 
 result_t Worker::postMessage(v8::Local<v8::Value> data)

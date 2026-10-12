@@ -409,10 +409,10 @@ public:
     virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         uv_post(new AsyncRead(this, true, bytes, retVal, std::move(ac)));
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t read(int32_t bytes, Variant& retVal, AsyncHandle ac)
@@ -424,10 +424,10 @@ public:
             return AsyncStream<T>::read(bytes, retVal, std::move(ac));
 
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         (new AsyncStream<T>::AsyncReadVariant(this, bytes, retVal, std::move(ac)))->post(0);
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     // Background write event for stdio fd:
@@ -484,10 +484,10 @@ public:
     virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         uv_post(new AsyncWrite(this, data, std::move(ac), m_timeout));
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t write(Buffer_base* data, bool& retVal, AsyncHandle ac) override
@@ -529,7 +529,7 @@ public:
     virtual result_t flush(AsyncHandle ac)
     {
         if (ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         // The uv callback outlives this frame, so the continuation travels in a
         // heap box (the box is the unique holder; the callback moves it out or
@@ -542,7 +542,7 @@ public:
                 m_flush_waiters.push_back(std::move(*h));
         });
 
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     static void on_close(uv_handle_t* handle)
@@ -565,7 +565,7 @@ public:
     virtual result_t close(AsyncHandle ac)
     {
         if (ac && ac.isSync())
-            return CHECK_ERROR(CALL_E_NOSYNC);
+            return CHECK_ERROR(result_t::nosync());
 
         // Same heap-box rule as flush(): the uv callback owns the continuation.
         auto h = std::make_shared<AsyncHandle>(std::move(ac));
@@ -584,7 +584,7 @@ public:
             uv_close(&this->m_handle, on_close);
         });
 
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
     virtual result_t get_timeout(int32_t& retVal)

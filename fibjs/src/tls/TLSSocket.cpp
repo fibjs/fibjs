@@ -342,7 +342,7 @@ result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, Asyn
 
     if (ac.isSync()) {
         startConnectEvent();
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     if (!m_connect_event)
@@ -375,7 +375,7 @@ result_t TLSSocket::accept(Stream_base* socket, AsyncHandle ac)
 
     if (ac.isSync()) {
         startConnectEvent();
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
     }
 
     return (new AsyncHandshake(this, socket, true, "", std::move(ac)))->post(0);
@@ -576,7 +576,7 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
 
         result_t lock(exlib::Locker& l, AsyncEvent* pThis)
         {
-            return l.lock(pThis) ? 0 : CALL_E_PENDDING;
+            return l.lock(pThis) ? result_t() : result_t::pending();
         }
 
     public:
@@ -593,7 +593,7 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
         return hr;
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new AsyncRead(this, bytes, retVal, std::move(ac)))->post(0);
 }
@@ -649,7 +649,7 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncHandle ac)
 
         result_t lock(exlib::Locker& l, AsyncEvent* pThis)
         {
-            return l.lock(pThis) ? 0 : CALL_E_PENDDING;
+            return l.lock(pThis) ? result_t() : result_t::pending();
         }
 
     public:
@@ -664,7 +664,7 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncHandle ac)
         return hr;
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new AsyncWrite(this, data, std::move(ac)))->post(0);
 }
@@ -712,7 +712,7 @@ result_t TLSSocket::close(AsyncHandle ac)
 
         result_t lock(exlib::Locker& l, AsyncEvent* pThis)
         {
-            return l.lock(pThis) ? 0 : CALL_E_PENDDING;
+            return l.lock(pThis) ? result_t() : result_t::pending();
         }
 
     public:
@@ -725,7 +725,7 @@ result_t TLSSocket::close(AsyncHandle ac)
         return hr;
 
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     return (new AsyncClose(this, std::move(ac)))->post(0);
 }

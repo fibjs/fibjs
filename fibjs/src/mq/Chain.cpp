@@ -48,7 +48,7 @@ result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     if (m_array.size() == 0)
         return CHECK_ERROR(result_t::make(CALL_E_EXCEPTION).with_message("Chain: empty chain."));

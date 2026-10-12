@@ -669,7 +669,7 @@ protected:
         m_bAsyncState = true;
         m_v = v;
 
-        async(CALL_E_NOSYNC);
+        async(result_t::nosync());
     }
 
 public:

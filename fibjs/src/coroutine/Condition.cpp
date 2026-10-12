@@ -44,7 +44,7 @@ result_t Condition::count(int32_t& retVal)
 result_t Condition::wait(int32_t timeout, bool& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(result_t::nosync());
 
     retVal = m_cond.wait(m_lockCond->m_lock, timeout);
     return 0;
