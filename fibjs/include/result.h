@@ -193,10 +193,65 @@ public:
         return result_t(CALL_E_GUICALL);
     }
 
+    // The frequent error codes as named constructions (the CHECK_ERROR
+    // macro's retirement): a guard that fails reads its code by name instead
+    // of wrapping a raw int; the raw codes stay for the predicates.
+    static result_t invalid_call()
+    {
+        return result_t(CALL_E_INVALID_CALL);
+    }
+
+    static result_t invalid_arg()
+    {
+        return result_t(CALL_E_INVALIDARG);
+    }
+
+    static result_t invalid_data()
+    {
+        return result_t(CALL_E_INVALID_DATA);
+    }
+
+    static result_t closed()
+    {
+        return result_t(CALL_E_CLOSED);
+    }
+
+    static result_t out_of_range()
+    {
+        return result_t(CALL_E_OUTRANGE);
+    }
+
+    static result_t bad_vartype()
+    {
+        return result_t(CALL_E_BADVARTYPE);
+    }
+
+    static result_t type_mismatch()
+    {
+        return result_t(CALL_E_TYPEMISMATCH);
+    }
+
+    static result_t bad_index()
+    {
+        return result_t(CALL_E_BADINDEX);
+    }
+
+    // The return-value signals: the JS boundary turns them into null /
+    // undefined (the METHOD_RETURN macros read them by predicate).
+    static result_t return_null()
+    {
+        return result_t(CALL_RETURN_NULL);
+    }
+
+    static result_t return_undefined()
+    {
+        return result_t(CALL_RETURN_UNDEFINED);
+    }
+
     // The landing (defined below the builder): converts a builder into this
     // immutable value. A constructor (rather than a conversion operator) so
-    // that direct-initialization forms -- e.g. the CHECK_ERROR(<builder>)
-    // macro's result_t(hr) -- resolve too.
+    // that direct-initialization forms -- the explicit landing at a return
+    // (`result_t(<chain>)`) -- resolve too.
     result_t(builder&& b);
 
     // Semantic checks (P2 replaces the hard coded comparisons with these).
