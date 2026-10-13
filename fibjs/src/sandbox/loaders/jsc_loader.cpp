@@ -176,6 +176,6 @@ result_t jsc_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
         }
     }
 
-    return 0;
+    return result_t();
 }
 }

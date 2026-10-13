@@ -83,7 +83,7 @@ result_t File_base::_new(v8::Local<v8::Object> options, obj_ptr<File_base>& retV
 result_t BlobImpl::get_type(exlib::string& retVal)
 {
     retVal = m_type;
-    return 0;
+    return result_t();
 }
 
 result_t BlobImpl::get_size(int32_t& retVal)
@@ -103,7 +103,7 @@ result_t BlobImpl::clone(BlobImpl& retVal)
 
     retVal.m_buffer = slicedBuffer;
     retVal.m_type = m_type;
-    return 0;
+    return result_t();
 }
 
 result_t BlobImpl::slice(int32_t start, int32_t end, exlib::string contentType, BlobImpl& retVal)
@@ -125,7 +125,7 @@ result_t BlobImpl::slice(int32_t start, int32_t end, exlib::string contentType, 
     retVal.m_buffer = slicedBuffer;
     retVal.m_type = contentType.empty() ? m_type : contentType;
 
-    return 0;
+    return result_t();
 }
 
 result_t BlobImpl::slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal)
@@ -161,7 +161,7 @@ result_t BlobImpl::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncH
     // Create ArrayBuffer with the backing store
     retVal = std::move(store);
 
-    return 0;
+    return result_t();
 }
 
 result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> options)
@@ -264,7 +264,7 @@ result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Obje
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 }

@@ -31,7 +31,7 @@ result_t DOMEvent_base::_new(exlib::string type, v8::Local<v8::Object> eventInit
     obj_ptr<DOMEvent> ev = new DOMEvent(type, bubbles, cancelable, composed);
     ev->wrap(This);
     retVal = ev;
-    return 0;
+    return result_t();
 }
 
 }

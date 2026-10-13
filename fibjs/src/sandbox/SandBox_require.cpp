@@ -83,7 +83,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
 
     if (is_terminated)
         isolate->m_isolate->TerminateExecution();
-    return 0;
+    return result_t();
 }
 
 result_t SandBox::addScript(exlib::string srcname, Union_addScript_script script,
@@ -166,10 +166,10 @@ result_t SandBox::import(exlib::string id, exlib::string base, v8::Local<v8::Pro
 
     v8::MaybeLocal<v8::Promise> result = async_import(id, base);
     if (result.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     retVal = result.ToLocalChecked();
-    return 0;
+    return result_t();
 }
 
 }

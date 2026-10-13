@@ -132,7 +132,7 @@ result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 v8::Local<v8::Object> SandBox::get_module(v8::Local<v8::Object> mods, exlib::string id)
@@ -168,7 +168,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
         result_t hr = fs_base::cc_readFile(fname, "", var, isolate);
         if (hr.is_return_null()) {
             result.second = new Buffer();
-            result.first = 0;
+            result.first = result_t();
         } else {
             result.second = (Buffer_base*)var.object();
             result.first = hr;
@@ -199,7 +199,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
                 result_t hr = fs_base::cc_readFile(fname, "", var, isolate);
                 if (hr.is_return_null()) {
                     result.second = new Buffer();
-                    result.first = 0;
+                    result.first = result_t();
                 } else {
                     result.second = (Buffer_base*)var.object();
                     result.first = hr;
@@ -211,7 +211,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
             } else {
                 int64_t sz = (int64_t)sreq.statbuf.st_size;
 
-                result.first = 0;
+                result.first = result_t();
                 if (sz == 0)
                     result.second = new Buffer();
                 else {
@@ -325,7 +325,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
 {
     size_t cnt = m_loaders.size();
     result_t hr;
-    result_t last_err = CALL_E_FILE_NOT_FOUND;
+    result_t last_err(CALL_E_FILE_NOT_FOUND);
     exlib::string fname1;
 
     // Fast path: check if file exists before expensive realpath call
@@ -341,14 +341,14 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
             *retVal = get_module(mods, fname1);
             if (!IsEmpty(*retVal)) {
                 fname = fname1;
-                return 0;
+                return result_t();
             }
         }
 
         hr = loadFile(fname1, data);
         if (hr.ok()) {
             fname = fname1;
-            return 0;
+            return result_t();
         }
         last_err = hr;
     }
@@ -371,14 +371,14 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
             *retVal = get_module(mods, fname1);
             if (!IsEmpty(*retVal)) {
                 fname = fname1;
-                return 0;
+                return result_t();
             }
         }
 
         hr = loadFile(fname1, data);
         if (hr.ok()) {
             fname = fname1;
-            return 0;
+            return result_t();
         }
         last_err = hr;
     }
@@ -610,7 +610,7 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleTypeInfo& retVal)
             || !qstricmp(fname.c_str() + fname.length() - 4, ".mts"))) {
         retVal.type = kESModule;
         retVal.explicitType = true;
-        return 0;
+        return result_t();
     }
 
     if (fname.length() > 4
@@ -618,7 +618,7 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleTypeInfo& retVal)
             || !qstricmp(fname.c_str() + fname.length() - 4, ".cts"))) {
         retVal.type = kCommonJS;
         retVal.explicitType = true;
-        return 0;
+        return result_t();
     }
 
     result_t hr;
@@ -675,13 +675,13 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleTypeInfo& retVal)
                 retVal.type = kCommonJS;
                 retVal.explicitType = false;
             }
-            return 0;
+            return result_t();
         }
     }
 
     retVal.type = kCommonJS;
     retVal.explicitType = false;
-    return 0;
+    return result_t();
 }
 
 result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_name, obj_ptr<Buffer_base>& data, ModuleType type,
@@ -728,7 +728,7 @@ result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_na
             return hr;
     }
 
-    return CALL_E_FILE_NOT_FOUND;
+    return result_t(CALL_E_FILE_NOT_FOUND);
 }
 
 static const char* predefine_exts[] = {
@@ -742,10 +742,10 @@ static const char* predefine_exts[] = {
 result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler)
 {
     if (extname.empty())
-        return result_t::make(CALL_E_EXCEPTION).with_message("SandBox: extension name must not be empty.").with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_message("SandBox: extension name must not be empty.").with_result(result_t::invalid_arg());
 
     if (extname[0] != '.')
-        return result_t::make(CALL_E_EXCEPTION).with_format("SandBox: extension name must start with '.', got '%s'.", extname.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("SandBox: extension name must start with '.', got '%s'.", extname.c_str()).with_result(result_t::invalid_arg());
 
     for (int32_t i = 0; i < (int32_t)ARRAYSIZE(predefine_exts); i++)
         if (extname == predefine_exts[i])
@@ -761,7 +761,7 @@ result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Functio
     }
     SetPrivate(SandBox::_get_extloader_pname(extname), compiler);
 
-    return 0;
+    return result_t();
 }
 
 result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Object>& retVal)
@@ -774,20 +774,20 @@ result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Object>& ret
 
         v8::Local<v8::Context> func_context;
         if (!func->GetCreationContext().ToLocal(&func_context))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         v8::Local<v8::Value> arg = isolate->NewString(id);
         v8::Local<v8::Value> result = func->Call(func_context, wrap(), 1, &arg).FromMaybe(v8::Local<v8::Value>());
         if (result.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         if (!IsEmpty(result)) {
             retVal = InstallModule(id, result);
-            return 0;
+            return result_t();
         }
     }
 
-    return CALL_E_FILE_NOT_FOUND;
+    return result_t(CALL_E_FILE_NOT_FOUND);
 }
 
 result_t SandBox::resolveId(exlib::string& id, v8::Local<v8::Object>& retVal)
@@ -797,14 +797,14 @@ result_t SandBox::resolveId(exlib::string& id, v8::Local<v8::Object>& retVal)
 
     retVal = get_module(_mods, id);
     if (!IsEmpty(retVal))
-        return 0;
+        return result_t();
 
     for (size_t i = 0; i < cnt; i++) {
         obj_ptr<ExtLoader>& l = m_loaders[i];
 
         retVal = get_module(_mods, id + l->m_ext);
         if (!IsEmpty(retVal))
-            return 0;
+            return result_t();
     }
 
     return custom_resolveId(id, retVal);
@@ -869,7 +869,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
             if (fname.substr(fname.length() - 5) != ".json")
                 id = fname + ".cjs";
             retVal = get_module(mods(), id);
-            return 0;
+            return result_t();
         }
 
         if (isPathSlash(base[base.length() - 1]))
@@ -949,7 +949,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
         }
     }
 
-    return CALL_E_FILE_NOT_FOUND;
+    return result_t(CALL_E_FILE_NOT_FOUND);
 }
 
 result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data, ModuleType type,
@@ -1003,7 +1003,7 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
                     if (p->IsPromise())
                         *pendding = p;
                 }
-                return 0;
+                return result_t();
             }
             
             // Module not loaded yet, need to load file content for run_module()
@@ -1059,6 +1059,6 @@ result_t SandBox::resolve(exlib::string id, exlib::string base, exlib::string& r
         return hr;
 
     retVal = id;
-    return 0;
+    return result_t();
 }
 }

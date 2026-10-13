@@ -32,7 +32,7 @@ result_t custom_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::
 
     v8::Local<v8::Value> fileContent = require_fn->Call(context, v8::Undefined(isolate->m_isolate), 2, transpileArgs).FromMaybe(v8::Local<v8::Value>());
     if (fileContent.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     result_t hr = GetArgumentValue(isolate, fileContent, strScript, true);
     if (hr.failed())

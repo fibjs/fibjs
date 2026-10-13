@@ -57,7 +57,7 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods, v8::Local<v8::Function> 
         return hr;
 
     retVal = sbox;
-    return 0;
+    return result_t();
 }
 
 SandBox::SandBox(bool extLoader)
@@ -257,7 +257,7 @@ result_t SandBox::addBuiltinModules()
         pModule = pModule->m_next;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
@@ -270,7 +270,7 @@ result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
 
     InstallModule(id, mod);
 
-    return 0;
+    return result_t();
 }
 
 result_t SandBox::add(v8::Local<v8::Object> mods)
@@ -290,14 +290,14 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
         JSValue k = ks->Get(context, i);
         v8::Local<v8::Value> v = mods->Get(context, k).FromMaybe(v8::Local<v8::Value>());
         if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         hr = add(isolate->toString(k), v);
         if (hr.failed())
             return hr;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t SandBox::remove(exlib::string id)
@@ -311,7 +311,7 @@ result_t SandBox::remove(exlib::string id)
 
     m->Delete(context, holder()->NewString(id)).IsJust();
 
-    return 0;
+    return result_t();
 }
 
 result_t SandBox::has(exlib::string id, bool& retVal)
@@ -325,7 +325,7 @@ result_t SandBox::has(exlib::string id, bool& retVal)
 
     retVal = m->Has(context, holder()->NewString(id)).FromMaybe(false);
 
-    return 0;
+    return result_t();
 }
 
 result_t SandBox::clone(obj_ptr<SandBox_base>& retVal)
@@ -335,7 +335,7 @@ result_t SandBox::clone(obj_ptr<SandBox_base>& retVal)
 
     retVal = sbox;
 
-    return 0;
+    return result_t();
 }
 
 static result_t deepFreeze(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Value> root)
@@ -345,7 +345,7 @@ static result_t deepFreeze(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v
     if (!isFrozen(isolate->m_isolate, obj)) {
         v8::Local<v8::Context> context;
         if (!obj->GetCreationContext().ToLocal(&context))
-            return 0;
+            return result_t();
         obj->SetIntegrityLevel(context, v8::IntegrityLevel::kFrozen);
 
         JSArray names = obj->GetPropertyNames(context, v8::KeyCollectionMode::kIncludePrototypes,
@@ -360,7 +360,7 @@ static result_t deepFreeze(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t SandBox::freeze()
@@ -388,7 +388,7 @@ result_t SandBox::get_global(v8::Local<v8::Object>& retVal)
         return result_t::invalid_call();
 
     retVal = sandbox_obj.As<v8::Object>();
-    return 0;
+    return result_t();
 }
 
 result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
@@ -401,7 +401,7 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
 
     v8::Local<v8::Context> context;
     if (!ms->GetCreationContext().ToLocal(&context))
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     JSArray ks = ms->GetPropertyNames(context);
 
@@ -416,7 +416,7 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
         retVal->Set(context, k, JSValue(mod.As<v8::Object>()->Get(context, mgetter))).IsJust();
     }
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

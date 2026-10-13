@@ -20,7 +20,7 @@ result_t AbortSignal_base::any(v8::Local<v8::Array> signals, obj_ptr<AbortSignal
     for (uint32_t i = 0; i < len; i++) {
         v8::Local<v8::Value> item;
         if (!signals->Get(isolate->context(), i).ToLocal(&item))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         AbortSignal_base* src = AbortSignal_base::getInstance(item);
         if (!src)
@@ -46,7 +46,7 @@ result_t AbortSignal_base::any(v8::Local<v8::Array> signals, obj_ptr<AbortSignal
     }
 
     retVal = signal;
-    return 0;
+    return result_t();
 }
 
 result_t AbortSignal_base::timeout(double ms, obj_ptr<AbortSignal_base>& retVal)
@@ -61,19 +61,19 @@ result_t AbortSignal_base::timeout(double ms, obj_ptr<AbortSignal_base>& retVal)
     timer->sleep();
 
     retVal = signal;
-    return 0;
+    return result_t();
 }
 
 result_t AbortController_base::_new(obj_ptr<AbortController_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new AbortController(Isolate::current(This));
-    return 0;
+    return result_t();
 }
 
 result_t AbortController::get_signal(obj_ptr<AbortSignal_base>& retVal)
 {
     retVal = m_signal;
-    return 0;
+    return result_t();
 }
 
 result_t AbortController::abort(Union_abort_reason reason)
@@ -124,7 +124,7 @@ result_t AbortSignal::do_abort(exlib::string reason, obj_ptr<AbortSignal_base>& 
 {
     retVal = this;
     if (m_aborted) {
-        return 0;
+        return result_t();
     }
 
     m_aborted = true;
@@ -143,7 +143,7 @@ result_t AbortSignal::do_abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_
 {
     retVal = this;
     if (m_aborted) {
-        return 0;
+        return result_t();
     }
 
     m_aborted = true;
@@ -178,26 +178,26 @@ result_t AbortSignal::throwIfAborted()
         }
         return result_t::make(CALL_E_EXCEPTION).with_message(m_reason);
     }
-    return 0;
+    return result_t();
 }
 
 result_t AbortSignal::get_aborted(bool& retVal)
 {
     retVal = m_aborted;
-    return 0;
+    return result_t();
 }
 
 result_t AbortSignal::get_reason(v8::Local<v8::Value>& retVal)
 {
     if (!m_aborted)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     if (m_has_value_reason)
         retVal = GetPrivate("reason");
     else
         retVal = Isolate::current()->NewString(m_reason);
 
-    return 0;
+    return result_t();
 }
 
 }

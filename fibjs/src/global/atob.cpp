@@ -65,7 +65,7 @@ static result_t utf8ToLatin1(const exlib::string& utf8Str, exlib::string& latin1
         src += bytesConsumed;
     }
 
-    return 0;
+    return result_t();
 }
 
 // Node.js compatible Base64 encoding
@@ -152,7 +152,7 @@ static result_t nodeBase64Decode(const std::string& input, std::string& retVal)
 
     if (len == 0) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     // Validate input characters
@@ -193,7 +193,7 @@ static result_t nodeBase64Decode(const std::string& input, std::string& retVal)
     }
 
     retVal.resize(j);
-    return 0;
+    return result_t();
 }
 
 result_t global_base::btoa(v8::Local<v8::Value> data_, exlib::string& retVal)
@@ -218,7 +218,7 @@ result_t global_base::btoa(v8::Local<v8::Value> data_, exlib::string& retVal)
     exlib::string base64Result;
     nodeBase64Encode(latin1Data.c_str(), latin1Data.length(), base64Result);
     retVal = base64Result;
-    return 0;
+    return result_t();
 }
 
 result_t global_base::atob(v8::Local<v8::Value> data_, exlib::string& retVal)
@@ -262,7 +262,7 @@ result_t global_base::atob(v8::Local<v8::Value> data_, exlib::string& retVal)
     }
 
     retVal = utf8Result;
-    return 0;
+    return result_t();
 }
 
 }

@@ -20,7 +20,7 @@ result_t timers_base::clearInterval(v8::Local<v8::Value> t)
 {
     obj_ptr<Timer_base> _t = Timer_base::getInstance(t);
     if (!_t)
-        return 0;
+        return result_t();
 
     return _t->clear();
 }
@@ -29,7 +29,7 @@ result_t timers_base::clearHrInterval(v8::Local<v8::Value> t)
 {
     obj_ptr<Timer_base> _t = Timer_base::getInstance(t);
     if (!_t)
-        return 0;
+        return result_t();
 
     return _t->clear();
 }
@@ -38,7 +38,7 @@ result_t timers_base::clearTimeout(v8::Local<v8::Value> t)
 {
     obj_ptr<Timer_base> _t = Timer_base::getInstance(t);
     if (!_t)
-        return 0;
+        return result_t();
 
     return _t->clear();
 }
@@ -47,7 +47,7 @@ result_t timers_base::clearImmediate(v8::Local<v8::Value> t)
 {
     obj_ptr<Timer_base> _t = Timer_base::getInstance(t);
     if (!_t)
-        return 0;
+        return result_t();
 
     return _t->clear();
 }
@@ -62,7 +62,7 @@ result_t timers_base::setInterval(v8::Local<v8::Function> callback,
     timer->sleep();
     retVal = timer;
 
-    return 0;
+    return result_t();
 }
 
 result_t timers_base::setHrInterval(v8::Local<v8::Function> callback,
@@ -75,7 +75,7 @@ result_t timers_base::setHrInterval(v8::Local<v8::Function> callback,
     timer->sleep();
     retVal = timer;
 
-    return 0;
+    return result_t();
 }
 
 result_t timers_base::setTimeout(v8::Local<v8::Function> callback,
@@ -88,7 +88,7 @@ result_t timers_base::setTimeout(v8::Local<v8::Function> callback,
     timer->sleep();
     retVal = timer;
 
-    return 0;
+    return result_t();
 }
 
 result_t timers_base::setImmediate(v8::Local<v8::Function> callback,
@@ -98,7 +98,7 @@ result_t timers_base::setImmediate(v8::Local<v8::Function> callback,
     timer->sleep();
     retVal = timer;
 
-    return 0;
+    return result_t();
 }
 
 result_t global_base::clearInterval(v8::Local<v8::Value> t)

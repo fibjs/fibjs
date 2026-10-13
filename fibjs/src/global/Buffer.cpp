@@ -19,23 +19,23 @@ inline result_t generateEnd(const int32_t buffer_length, const int32_t offset, i
         end = buffer_length + end + 1;
 
     if (offset < 0 || end < 0 || offset > end)
-        return CALL_E_INVALIDARG;
+        return result_t::invalid_arg();
 
     if (end > buffer_length)
-        return CALL_E_OUTRANGE;
+        return result_t::out_of_range();
 
-    return 0;
+    return result_t();
 }
 
 inline result_t validOffset(const int32_t buffer_length, const int32_t offset)
 {
     if (offset < 0)
-        return CALL_E_INVALIDARG;
+        return result_t::invalid_arg();
 
     if (offset > buffer_length)
-        return CALL_E_OUTRANGE;
+        return result_t::out_of_range();
 
-    return 0;
+    return result_t();
 }
 
 // the integer fill form: the merged entry dispatches here
@@ -48,13 +48,13 @@ static result_t alloc_fill_int32(int32_t size, int32_t fill, obj_ptr<Buffer_base
         // calloc-backed storage: already zero filled, no eager memset needed
         // (pages the kernel hands back are zeroed on first touch)
         retVal = new Buffer(NULL, size, true);
-        return 0;
+        return result_t();
     }
 
     obj_ptr<Buffer> buf = new Buffer(NULL, size);
     buf->fill(fill, 0, size, retVal);
     retVal = buf;
-    return 0;
+    return result_t();
 }
 
 result_t Buffer_base::alloc(int32_t size, Union_alloc_fill fill, obj_ptr<Buffer_base>& retVal)
@@ -75,13 +75,13 @@ result_t Buffer_base::alloc(int32_t size, exlib::string fill, exlib::string code
 result_t Buffer_base::allocUnsafe(int32_t size, obj_ptr<Buffer_base>& retVal)
 {
     retVal = new Buffer(NULL, size);
-    return 0;
+    return result_t();
 }
 
 result_t Buffer_base::allocUnsafeSlow(int32_t size, obj_ptr<Buffer_base>& retVal)
 {
     retVal = new Buffer(NULL, size);
-    return 0;
+    return result_t();
 }
 
 result_t Buffer_base::from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal)
@@ -112,7 +112,7 @@ result_t Buffer_base::from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& ret
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer_base::from(Buffer_base* buffer, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal)
@@ -130,7 +130,7 @@ result_t Buffer_base::from(Buffer_base* buffer, int32_t byteOffset, int32_t leng
 
     retVal = new Buffer(buffer1->data() + byteOffset, length);
 
-    return 0;
+    return result_t();
 }
 
 // the backing-store form of Buffer.from: a negative offset clamps to 0 and an
@@ -148,7 +148,7 @@ static result_t buffer_from_store(std::shared_ptr<v8::BackingStore> datas, int32
 
     retVal = new Buffer((uint8_t*)datas->Data() + byteOffset, length);
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer_base::from(Union_from_datas datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal)
@@ -157,12 +157,12 @@ result_t Buffer_base::from(Union_from_datas datas, int32_t byteOffset, int32_t l
         v8::Local<v8::Uint8Array> view = std::get<v8::Local<v8::Uint8Array>>(datas);
 
         if (byteOffset < 0)
-            return CALL_E_INVALIDARG;
+            return result_t::invalid_arg();
 
         if (length < 0)
             length = view->ByteLength() - byteOffset;
         else if (length > view->ByteLength() - byteOffset)
-            return CALL_E_INVALIDARG;
+            return result_t::invalid_arg();
 
         return buffer_from_store(view->Buffer()->GetBackingStore(), byteOffset + view->ByteOffset(), length, retVal);
     }
@@ -178,7 +178,7 @@ result_t Buffer_base::from(exlib::string str, exlib::string codec, obj_ptr<Buffe
         return hr;
 
     retVal = new Buffer(strBuf.c_str(), strBuf.length());
-    return 0;
+    return result_t();
 }
 
 result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal)
@@ -195,7 +195,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     for (int32_t i = 0; i < length; i++) {
         v8::Local<v8::Value> val = buflist->Get(context, i).FromMaybe(v8::Local<v8::Value>());
         if (val.IsEmpty() || !val->IsUint8Array())
-            return CALL_E_INVALIDARG;
+            return result_t::invalid_arg();
         bufs[i] = val.As<v8::Uint8Array>();
         sz += bufs[i]->ByteLength();
     }
@@ -218,7 +218,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
 
     retVal = buf;
 
-    return 0;
+    return result_t();
 }
 
 v8::Local<v8::Value> Buffer::load_module()
@@ -554,7 +554,7 @@ void Buffer::proto_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     if (!args.This()->IsUint8Array()) {
-        ThrowResult(CALL_E_NOTINSTANCE);
+        ThrowResult(result_t(CALL_E_NOTINSTANCE));
         return;
     }
 
@@ -567,7 +567,7 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
         --arg_cnt;
 
     if (arg_cnt == 0) {
-        ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+        ThrowResult(result_t(CALL_E_PARAMNOTOPTIONAL));
         return;
     }
 
@@ -577,7 +577,7 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     else if (args[0]->IsStringObject())
         data = args[0].As<v8::StringObject>()->ValueOf();
     else {
-        ThrowResult(CALL_E_TYPEMISMATCH);
+        ThrowResult(result_t::type_mismatch());
         return;
     }
 
@@ -592,13 +592,13 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     size_t offset = 0;
     if (arg_cnt > 1) {
         if (!args[1]->IsNumber() && !args[1]->IsNumberObject()) {
-            ThrowResult(CALL_E_TYPEMISMATCH);
+            ThrowResult(result_t::type_mismatch());
             return;
         }
 
         double offset_num = args[1]->NumberValue(context).FromMaybe(0);
         if (std::floor(offset_num) != offset_num || offset_num < 0 || offset_num > (double)buf.length()) {
-            ThrowResult(CALL_E_OUTRANGE);
+            ThrowResult(result_t::out_of_range());
             return;
         }
 
@@ -609,13 +609,13 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     size_t max_length = buf.length() - offset;
     if (arg_cnt > 2) {
         if (!args[2]->IsNumber() && !args[2]->IsNumberObject()) {
-            ThrowResult(CALL_E_TYPEMISMATCH);
+            ThrowResult(result_t::type_mismatch());
             return;
         }
 
         double length_num = args[2]->NumberValue(context).FromMaybe(0);
         if (std::floor(length_num) != length_num || length_num < 0 || length_num > (double)max_length) {
-            ThrowResult(CALL_E_OUTRANGE);
+            ThrowResult(result_t::out_of_range());
             return;
         }
 
@@ -672,7 +672,7 @@ void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
         --arg_cnt;
 
     if (arg_cnt == 0) {
-        ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+        ThrowResult(result_t(CALL_E_PARAMNOTOPTIONAL));
         return;
     }
 
@@ -700,7 +700,7 @@ void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
         args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, buf->ByteLength()));
         return;
     } else {
-        ThrowResult(CALL_E_TYPEMISMATCH);
+        ThrowResult(result_t::type_mismatch());
         return;
     }
 
@@ -799,7 +799,7 @@ result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
 {
     if (!static_is_safe_codec(codec)) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     if ((codec == "utf8") || (codec == "utf-8") || (codec == "hex")
@@ -809,13 +809,13 @@ result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
     } else {
         retVal = encoding_conv::is_encoding(codec);
     }
-    return 0;
+    return result_t();
 }
 
 result_t Buffer_base::isBuffer(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = !!Buffer_base::getInstance(v);
-    return 0;
+    return result_t();
 }
 
 bool Buffer::is_safe_codec(exlib::string codec)
@@ -837,7 +837,7 @@ result_t Buffer_base::byteLength(exlib::string str, exlib::string codec, int32_t
 
     retVal = (int32_t)Buffer::Cast(buf)->length();
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer_base::byteLength(Union_byteLength_str str, int32_t& retVal)
@@ -847,7 +847,7 @@ result_t Buffer_base::byteLength(Union_byteLength_str str, int32_t& retVal)
     if (std::holds_alternative<obj_ptr<Buffer_base>>(str)) {
         retVal = (int32_t)Buffer::Cast(std::get<obj_ptr<Buffer_base>>(str))->length();
 
-        return 0;
+        return result_t();
     }
 
     Union_from_datas datas = std::holds_alternative<v8::Local<v8::Uint8Array>>(str)
@@ -860,13 +860,13 @@ result_t Buffer_base::byteLength(Union_byteLength_str str, int32_t& retVal)
 
     retVal = (int32_t)Buffer::Cast(buf)->length();
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::get_length(int32_t& retVal)
 {
     retVal = length();
-    return 0;
+    return result_t();
 }
 
 result_t Buffer_base::compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& retVal)
@@ -889,7 +889,7 @@ result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib:
 
     if (buffer_length == offset || length == 0) {
         retVal = 0;
-        return 0;
+        return result_t();
     }
 
     exlib::string strBuf;
@@ -905,7 +905,7 @@ result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib:
     memcpy(data() + offset, strBuf.c_str(), max_length);
     retVal = max_length;
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::write(exlib::string str, int32_t offset, exlib::string codec, int32_t& retVal)
@@ -935,13 +935,13 @@ result_t Buffer::fill(Union_fill_v v, int32_t offset, int32_t end, obj_ptr<Buffe
     }
 
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::fill(const uint8_t* buf, size_t sz, int32_t offset, int32_t end)
 {
     if (sz == 0)
-        return 0;
+        return result_t();
 
     result_t hr = generateEnd((int32_t)length(), offset, end);
     if (hr.failed())
@@ -962,7 +962,7 @@ result_t Buffer::fill(const uint8_t* buf, size_t sz, int32_t offset, int32_t end
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec, obj_ptr<Buffer_base>& retVal)
@@ -980,7 +980,7 @@ result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::strin
         return hr;
 
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::fill(exlib::string v, int32_t offset, exlib::string codec, obj_ptr<Buffer_base>& retVal)
@@ -1001,7 +1001,7 @@ result_t Buffer::fill(int32_t v, int32_t offset, int32_t end)
 
     memset(data() + offset, v & 255, end - offset);
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
@@ -1011,7 +1011,7 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
     if (hr.failed())
         return hr;
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec)
@@ -1028,7 +1028,7 @@ result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::strin
     if (hr.failed())
         return hr;
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::fill(exlib::string v, int32_t offset, exlib::string codec)
@@ -1058,7 +1058,7 @@ result_t Buffer::copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t so
 
     if (targetStart >= bufLen || sourceStart >= sourceEnd) {
         retVal = 0;
-        return 0;
+        return result_t();
     }
 
     int32_t targetSz = bufLen - targetStart;
@@ -1070,7 +1070,7 @@ result_t Buffer::copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t so
 
     retVal = sz;
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::set(Buffer_base* src, int32_t start, int32_t& retVal)
@@ -1098,7 +1098,7 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
 
     if (size == 1) {
         buf[0] = *_data;
-        return 0;
+        return result_t();
     }
 
     if (is_big_endian()) {
@@ -1119,7 +1119,7 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 #define READ_NUMBER(t, le)                                                 \
@@ -1128,21 +1128,21 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
     if (hr.failed())                                                            \
         return hr;                                                         \
     retVal = v;                                                            \
-    return 0;
+    return result_t();
 
 #define READ_U_NUMBER_48(t, sz, le)                                 \
     if (sz <= 0 || sz > 6)                                          \
-        return CALL_E_INVALIDARG;                                   \
+        return result_t::invalid_arg();                                   \
     t v = 0;                                                        \
     result_t hr = readNumber(offset, (char*)&v, sz, sizeof(v), le); \
     if (hr.failed())                                                     \
         return hr;                                                  \
     retVal = v;                                                     \
-    return 0;
+    return result_t();
 
 #define READ_NUMBER_48(t, sz, le)                                   \
     if (sz <= 0 || sz > 6)                                          \
-        return CALL_E_INVALIDARG;                                   \
+        return result_t::invalid_arg();                                   \
     t v = 0;                                                        \
     result_t hr = readNumber(offset, (char*)&v, sz, sizeof(v), le); \
     if (hr.failed())                                                     \
@@ -1150,7 +1150,7 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
     if ((sz < 8) && (v & (((t)1) << (8 * sz - 1))))                 \
         v |= ((t) - 1) << (8 * sz);                                 \
     retVal = v;                                                     \
-    return 0;
+    return result_t();
 
 result_t Buffer::readUInt8(int32_t offset, int32_t& retVal)
 {
@@ -1267,7 +1267,7 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size,
 
     if (size == 1) {
         _data[0] = buf[0];
-        return 0;
+        return result_t();
     }
 
     if (is_big_endian()) {
@@ -1288,7 +1288,7 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size,
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 #define WRITE_NUMBER(t, le)                                                         \
@@ -1296,16 +1296,16 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size,
     result_t hr = writeNumber(offset, (char*)&v, sizeof(v), sizeof(v), le, retVal); \
     if (hr.failed())                                                                     \
         return hr;                                                                  \
-    return 0;
+    return result_t();
 
 #define WRITE_NUMBER_48(t, sz, le)                                           \
     if (sz <= 0 || sz > 6)                                                   \
-        return CALL_E_INVALIDARG;                                            \
+        return result_t::invalid_arg();                                            \
     t v = (t)value;                                                          \
     result_t hr = writeNumber(offset, (char*)&v, sz, sizeof(v), le, retVal); \
     if (hr.failed())                                                              \
         return hr;                                                           \
-    return 0;
+    return result_t();
 
 result_t Buffer::writeUInt8(int32_t value, int32_t offset, int32_t& retVal)
 {
@@ -1422,7 +1422,7 @@ static result_t Buffer_indexOf(Buffer* buf, const uint8_t* v, int32_t v_len, int
         }
         // Clamp offset to buffer length
         retVal = MIN(offset, buf_length);
-        return 0;
+        return result_t();
     }
 
     // Handle negative offset like Node.js: Math.max(0, buf.length + offset)
@@ -1435,13 +1435,13 @@ static result_t Buffer_indexOf(Buffer* buf, const uint8_t* v, int32_t v_len, int
     // For large offsets, return -1 without throwing error
     if (offset >= buf_length) {
         retVal = -1;
-        return 0;
+        return result_t();
     }
 
     const uint8_t* find = exlib::qmemmem(buf->data() + offset, buf->length() - offset, v, v_len);
 
     retVal = find ? (int32_t)(find - buf->data()) : -1;
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::indexOf(Union_indexOf_v v, int32_t offset, int32_t& retVal)
@@ -1475,13 +1475,13 @@ result_t Buffer::indexOf(int32_t v, int32_t offset, int32_t& retVal)
     while (offset < buf_length) {
         if (_data[offset] == (v & 255)) {
             retVal = offset;
-            return 0;
+            return result_t();
         }
         offset++;
     }
 
     retVal = -1;
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::indexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
@@ -1522,12 +1522,12 @@ result_t Buffer::lastIndexOf(int32_t v, int32_t offset, int32_t& retVal)
     for (int32_t i = offset; i >= 0; --i) {
         if (_data[i] == (v & 255)) {
             retVal = i;
-            return 0;
+            return result_t();
         }
     }
 
     retVal = -1;
-    return 0;
+    return result_t();
 }
 
 static result_t Buffer_lastIndexOf(Buffer* buffer, const uint8_t* v, int32_t v_len, int32_t offset, int32_t& retVal)
@@ -1544,13 +1544,13 @@ static result_t Buffer_lastIndexOf(Buffer* buffer, const uint8_t* v, int32_t v_l
             offset = buf_length;
 
         retVal = offset;
-        return 0;
+        return result_t();
     }
 
     // Handle empty buffer
     if (buf_length == 0) {
         retVal = -1;
-        return 0;
+        return result_t();
     }
 
     if (offset == -1)
@@ -1559,7 +1559,7 @@ static result_t Buffer_lastIndexOf(Buffer* buffer, const uint8_t* v, int32_t v_l
     // Handle negative offset like Node.js: clamp to 0
     if (offset < 0) {
         retVal = -1;
-        return 0;
+        return result_t();
     }
 
     // Handle large offsets without throwing error
@@ -1574,12 +1574,12 @@ static result_t Buffer_lastIndexOf(Buffer* buffer, const uint8_t* v, int32_t v_l
     for (int32_t i = start_pos; i >= 0; --i) {
         if (memcmp(_data + i, v, v_len) == 0) {
             retVal = i;
-            return 0;
+            return result_t();
         }
     }
 
     retVal = -1;
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::lastIndexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
@@ -1622,7 +1622,7 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
     else
         retVal = new Buffer(NULL, 0);
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::subarray(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
@@ -1656,7 +1656,7 @@ result_t Buffer::subarray(int32_t start, int32_t end, obj_ptr<Buffer_base>& retV
         retVal = new Buffer(NULL, 0);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::equals(object_base* expected, bool& retVal)
@@ -1664,16 +1664,16 @@ result_t Buffer::equals(object_base* expected, bool& retVal)
     obj_ptr<Buffer> buf = Buffer::getInstance(expected);
     if (!buf) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     if (length() != buf->length()) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     retVal = !memcmp(data(), buf->data(), length());
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::compare(Buffer_base* buf, int32_t& retVal)
@@ -1684,16 +1684,16 @@ result_t Buffer::compare(Buffer_base* buf, int32_t& retVal)
 
     retVal = memcmp(data(), cmpdata->data(), MIN(pos_length, neg_length));
     if (retVal)
-        return 0;
+        return result_t();
 
     retVal = pos_length - neg_length;
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::toString(exlib::string& retVal)
 {
     retVal.assign((const char*)data(), length());
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& retVal)
@@ -1708,7 +1708,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, exlib::string& re
 
     if (offset >= sz) {
         retVal = "";
-        return 0;
+        return result_t();
     }
 
     if (offset > 0) {
@@ -1730,7 +1730,7 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exli
 
     if (end < 0 || offset >= end) {
         retVal = "";
-        return 0;
+        return result_t();
     }
 
     if (end > sz)
@@ -1751,7 +1751,7 @@ result_t Buffer::toArray(std::vector<int32_t>& retVal)
     for (i = 0; i < (int32_t)length(); i++)
         retVal.push_back(_data[i]);
 
-    return 0;
+    return result_t();
 }
 
 result_t Buffer::hex(exlib::string& retVal)

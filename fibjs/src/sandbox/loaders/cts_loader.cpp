@@ -23,7 +23,7 @@ result_t cts_Loader::ts_compile(Isolate* isolate, Buffer_base* src, obj_ptr<Buff
     
     // Try to get cached JS first (skips small files automatically)
     if (ts_cache_get(key, buf->length(), retVal))
-        return 0;
+        return result_t();
 
     // Cache miss: strip TypeScript types. The source buffer belongs to the isolate's
     // file cache (every sandbox in this process shares it), so the stripper works on
@@ -37,7 +37,7 @@ result_t cts_Loader::ts_compile(Isolate* isolate, Buffer_base* src, obj_ptr<Buff
     // Async save to cache (fire and forget, zero copy with ref counting)
     ts_cache_set(key, retVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t cts_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::string name,

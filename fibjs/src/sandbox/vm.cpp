@@ -31,7 +31,7 @@ result_t vm_base::createContext(v8::Local<v8::Object> contextObject, v8::Local<v
     vm_get_global(contextObject, retVal);
     if (!retVal.IsEmpty()) {
         retVal = contextObject;
-        return 0;
+        return result_t();
     }
 
     Isolate* isolate = Isolate::current(contextObject);
@@ -48,7 +48,7 @@ result_t vm_base::isContext(v8::Local<v8::Object> contextObject, bool& retVal)
 
     retVal = !_global.IsEmpty();
 
-    return 0;
+    return result_t();
 }
 
 // the filename form of the vm options: the string is carried as the script file

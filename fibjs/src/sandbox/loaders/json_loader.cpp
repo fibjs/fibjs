@@ -29,6 +29,6 @@ result_t json_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string
     v8::Local<v8::Object> module = args[2].As<v8::Object>();
     module->Set(context, isolate->NewString("exports"), v).IsJust();
 
-    return 0;
+    return result_t();
 }
 }

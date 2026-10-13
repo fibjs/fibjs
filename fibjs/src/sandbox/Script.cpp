@@ -77,7 +77,7 @@ result_t Script::init(exlib::string code, v8::Local<v8::Object> opts)
         v8::MaybeLocal<v8::Module> maybe_module = v8::ScriptCompiler::CompileModule(isolate->m_isolate, &source);
         v8::Local<v8::Module> module;
         if (maybe_module.IsEmpty() || !maybe_module.ToLocal(&module))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         m_module.Reset(isolate->m_isolate, module);
     } else {
@@ -86,12 +86,12 @@ result_t Script::init(exlib::string code, v8::Local<v8::Object> opts)
 
         v8::Local<v8::UnboundScript> ub_script;
         if (maybe_ub_script.IsEmpty() || !maybe_ub_script.ToLocal(&ub_script))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         m_script.Reset(isolate->m_isolate, ub_script);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Script::runInContext(v8::Local<v8::Object> contextifiedObject, v8::Local<v8::Object> opts,
@@ -101,11 +101,11 @@ result_t Script::runInContext(v8::Local<v8::Object> contextifiedObject, v8::Loca
 
     vm_get_global(contextifiedObject, global);
     if (global.IsEmpty())
-        return CALL_E_BADVARTYPE;
+        return result_t::bad_vartype();
 
     v8::Local<v8::Context> _context;
     if (!global->GetCreationContext().ToLocal(&_context))
-        return CALL_E_BADVARTYPE;
+        return result_t::bad_vartype();
 
     _context->Enter();
     result_t hr = runInThisContext(opts, retVal);
@@ -128,7 +128,7 @@ result_t Script::runInNewContext(v8::Local<v8::Object> contextObject, v8::Local<
 
     v8::Local<v8::Context> _context;
     if (global.IsEmpty() || !global->GetCreationContext().ToLocal(&_context))
-        return CALL_E_BADVARTYPE;
+        return result_t::bad_vartype();
 
     _context->Enter();
     hr = runInThisContext(opts, retVal);
@@ -150,12 +150,12 @@ result_t Script::runInThisContext(v8::Local<v8::Object> opts, v8::Local<v8::Valu
         // Module cannot be run directly, but compilation already validates syntax
         // Return undefined for module type
         retVal = v8::Undefined(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     v8::Local<v8::UnboundScript> ub_script = v8::Local<v8::UnboundScript>::New(isolate->m_isolate, m_script);
     if (ub_script.IsEmpty())
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     v8::Local<v8::Script> script = ub_script->BindToCurrentContext();
     v8::MaybeLocal<v8::Value> result;
@@ -170,9 +170,9 @@ result_t Script::runInThisContext(v8::Local<v8::Object> opts, v8::Local<v8::Valu
         result = script->Run(isolate->context());
 
     if (result.IsEmpty() || !result.ToLocal(&retVal))
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
-    return 0;
+    return result_t();
 }
 
 result_t Script::createCachedData(obj_ptr<Buffer_base>& retVal)
@@ -181,18 +181,18 @@ result_t Script::createCachedData(obj_ptr<Buffer_base>& retVal)
 
     if (m_isModule) {
         // Module does not support cached data
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
     }
 
     v8::Local<v8::UnboundScript> ub_script = v8::Local<v8::UnboundScript>::New(isolate->m_isolate, m_script);
     if (ub_script.IsEmpty())
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     std::unique_ptr<v8::ScriptCompiler::CachedData> new_cached_data;
     new_cached_data.reset(v8::ScriptCompiler::CreateCodeCache(ub_script));
     retVal = new Buffer(new_cached_data->data, new_cached_data->length);
 
-    return 0;
+    return result_t();
 }
 
 }

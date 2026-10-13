@@ -22,7 +22,7 @@ result_t global_base::get_globalThis(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
     retVal = isolate->context()->Global();
-    return 0;
+    return result_t();
 }
 
 result_t global_base::run(exlib::string fname)
@@ -58,7 +58,7 @@ result_t global_base::queueMicrotask(v8::Local<v8::Function> callback)
 {
     Isolate* isolate = Isolate::current();
     isolate->m_isolate->EnqueueMicrotask(callback);
-    return 0;
+    return result_t();
 }
 
 }

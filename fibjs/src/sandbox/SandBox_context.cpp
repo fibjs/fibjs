@@ -18,7 +18,7 @@ static void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
     int32_t argc = args.Length();
 
     if (argc < 1) {
-        ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+        ThrowResult(result_t(CALL_E_PARAMNOTOPTIONAL));
         return;
     }
 
@@ -36,7 +36,7 @@ static void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Value> data = args.Data();
     v8::Local<v8::Object> _mod;
     if (data.IsEmpty() || !data->ToObject(context).ToLocal(&_mod) || _mod.IsEmpty()) {
-        ThrowResult(CALL_E_JAVASCRIPT);
+        ThrowResult(result_t(CALL_E_JAVASCRIPT));
         return;
     }
     JSValue path = _mod->Get(context, isolate->NewString("_id"));
@@ -65,12 +65,12 @@ static void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
     int32_t argc = args.Length();
 
     if (argc < 1) {
-        ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+        ThrowResult(result_t(CALL_E_PARAMNOTOPTIONAL));
         return;
     }
 
     if (argc > 1) {
-        ThrowResult(CALL_E_BADPARAMCOUNT);
+        ThrowResult(result_t(CALL_E_BADPARAMCOUNT));
         return;
     }
 
@@ -88,7 +88,7 @@ static void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Value> data = args.Data();
     v8::Local<v8::Object> _mod;
     if (data.IsEmpty() || !data->ToObject(context).ToLocal(&_mod) || _mod.IsEmpty()) {
-        ThrowResult(CALL_E_JAVASCRIPT);
+        ThrowResult(result_t(CALL_E_JAVASCRIPT));
         return;
     }
     JSValue path = _mod->Get(context, isolate->NewString("_id"));
@@ -119,12 +119,12 @@ static void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
     int32_t argc = args.Length();
 
     if (argc < 1) {
-        ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+        ThrowResult(result_t(CALL_E_PARAMNOTOPTIONAL));
         return;
     }
 
     if (argc > 1) {
-        ThrowResult(CALL_E_BADPARAMCOUNT);
+        ThrowResult(result_t(CALL_E_BADPARAMCOUNT));
         return;
     }
 
@@ -139,7 +139,7 @@ static void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Value> data = args.Data();
     v8::Local<v8::Object> _mod;
     if (data.IsEmpty() || !data->ToObject(context).ToLocal(&_mod) || _mod.IsEmpty()) {
-        ThrowResult(CALL_E_JAVASCRIPT);
+        ThrowResult(result_t(CALL_E_JAVASCRIPT));
         return;
     }
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
@@ -173,12 +173,12 @@ static void _createRequire(const v8::FunctionCallbackInfo<v8::Value>& args)
     int32_t argc = args.Length();
 
     if (argc < 1) {
-        ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+        ThrowResult(result_t(CALL_E_PARAMNOTOPTIONAL));
         return;
     }
 
     if (argc > 1) {
-        ThrowResult(CALL_E_BADPARAMCOUNT);
+        ThrowResult(result_t(CALL_E_BADPARAMCOUNT));
         return;
     }
 

@@ -60,11 +60,11 @@ public:
 
         v8::Local<v8::Module> root_module = load_module(id, (Buffer*)data, v8::Local<v8::Value>());
         if (root_module.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         v8::Local<v8::Promise::Resolver> resolver;
         if (!v8::Promise::Resolver::New(_context).ToLocal(&resolver))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
         m_resolver.Reset(m_isolate->m_isolate, resolver);
 
         v8::Local<v8::Private> strPendding = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("pendding"));
@@ -82,9 +82,9 @@ public:
 
         v8::Local<v8::Value> result = m_isolate->await(resolver->GetPromise());
         if (result.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
-        return 0;
+        return result_t();
     }
 
     result_t eval(exlib::string code, exlib::string fname, v8::Local<v8::Value>& retVal)
@@ -101,7 +101,7 @@ public:
         v8::Local<v8::Module> root_module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &source)
                                                 .FromMaybe(v8::Local<v8::Module>());
         if (root_module.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         // Set up module loading scope
         Runtime* rt = Runtime::current();
@@ -114,7 +114,7 @@ public:
         if (hr.ok()) {
             v8::Maybe<bool> result = root_module->InstantiateModule(_context, resolveModuleCallback);
             if (!result.FromMaybe(false))
-                hr = CALL_E_JAVASCRIPT;
+                hr = result_t(CALL_E_JAVASCRIPT);
             else {
                 // After InstantiateModule succeeds, eagerly init import.meta for all SourceTextModules
                 // before resetting m_module_pending. Without this, V8 fires the lazy callback during
@@ -157,7 +157,7 @@ public:
 
         if (result.IsEmpty()) {
             saveModule();
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
         }
 
         // Wait for the promise to resolve
@@ -166,13 +166,13 @@ public:
             result = m_isolate->await(promise);
             if (result.IsEmpty()) {
                 saveModule();
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             }
         }
 
         saveModule();
         retVal = result;
-        return 0;
+        return result_t();
     }
 
     v8::MaybeLocal<v8::Promise> async_import(exlib::string id, exlib::string base)
@@ -284,7 +284,7 @@ private:
 
         // If pendding promise is returned, let caller handle it
         if (!IsEmpty(pendding))
-            return 0;
+            return result_t();
 
         if (IsEmpty(mod)) {
             result_t hr;
@@ -324,10 +324,10 @@ private:
             if (hr.failed())
                 return hr;
 
-            return 0;
+            return result_t();
         }
 
-        return 0;
+        return result_t();
     }
 
     // For static imports in resolveModuleTree: no pendding check needed
@@ -386,17 +386,17 @@ private:
                 v8::Local<v8::Private> strPendding = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("pendding"));
                 JSValue p = mod->GetPrivate(_context, strPendding);
                 if (p->IsPromise() && m_sb->module_map.find(id) != m_sb->module_map.end())
-                    return 0;
+                    return result_t();
             }
 
             hr = m_sb->wait_module(mod, exports);
             if (hr.failed())
                 return hr;
 
-            return 0;
+            return result_t();
         }
 
-        return 0;
+        return result_t();
     }
 
     v8::Local<v8::Module> load_module(exlib::string id, Buffer* data_, v8::Local<v8::Value> exports)
@@ -438,7 +438,7 @@ private:
         if (hr.ok()) {
             v8::Maybe<bool> result = root_module->InstantiateModule(_context, resolveModuleCallback);
             if (!result.FromMaybe(false))
-                hr = CALL_E_JAVASCRIPT;
+                hr = result_t(CALL_E_JAVASCRIPT);
             else {
                 // After InstantiateModule succeeds, init import.meta for all SourceTextModules
                 // Must be done after instantiation to avoid V8 Reset assertion failure
@@ -647,7 +647,7 @@ private:
 
             v8::Local<v8::Module> dep_module = compile_module(id, data.As<Buffer>(), exports, isCJS);
             if (dep_module.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             deps.emplace(dep_id, v8::Global<v8::Module>(m_isolate->m_isolate, dep_module));
 
@@ -656,7 +656,7 @@ private:
                 return hr;
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t evaluate(exlib::string id, v8::Local<v8::Object> mod, v8::Local<v8::Module> root_module)
@@ -672,23 +672,23 @@ private:
 
         if (result.IsEmpty()) {
             try_catch.ReThrow();
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
         }
 
         if (!result->IsPromise())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         v8::Local<v8::Promise> promise = result.As<v8::Promise>();
 
         v8::Local<v8::Function> on_then, on_reject;
         if (!v8::Function::New(_context, promise_then, wrap(m_isolate)).ToLocal(&on_then)
             || !v8::Function::New(_context, promise_reject, wrap(m_isolate)).ToLocal(&on_reject))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         promise->Then(_context, on_then, on_reject)
             .FromMaybe(v8::Local<v8::Promise>());
 
-        return 0;
+        return result_t();
     }
 
 private:

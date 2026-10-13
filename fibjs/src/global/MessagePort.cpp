@@ -33,7 +33,7 @@ public:
         if (m_port)
             return m_port->close();
 
-        return 0;
+        return result_t();
     }
 
     ~MessagePortKeepAliveToken()
@@ -62,7 +62,7 @@ result_t MessageEvent_base::_new(exlib::string type, v8::Local<v8::Object> event
     obj_ptr<MessageEvent> ev = new MessageEvent(type, data);
     ev->wrap(This);
     retVal = ev;
-    return 0;
+    return result_t();
 }
 
 result_t MessageChannel_base::_new(obj_ptr<MessageChannel_base>& retVal, v8::Local<v8::Object> This)
@@ -79,7 +79,7 @@ result_t MessageChannel_base::_new(obj_ptr<MessageChannel_base>& retVal, v8::Loc
     obj_ptr<MessageChannel> mc = new MessageChannel(port1, port2);
     mc->wrap(This);
     retVal = mc;
-    return 0;
+    return result_t();
 }
 
 result_t MessagePort::postMessage(v8::Local<v8::Value> data)
@@ -90,7 +90,7 @@ result_t MessagePort::postMessage(v8::Local<v8::Value> data)
 result_t MessagePort::postMessage(v8::Local<v8::Value> data, v8::Local<v8::Array> transfer)
 {
     if (m_closed || !m_peer || m_peer->m_closed)
-        return 0;
+        return result_t();
 
     obj_ptr<MessagePort> peer = m_peer;
     bool hasTransfer = !transfer.IsEmpty() && transfer->Length() > 0;
@@ -119,7 +119,7 @@ result_t MessagePort::postMessage(v8::Local<v8::Value> data, v8::Local<v8::Array
         return peer->enqueueSerializedMessage(serialized);
     });
 
-    return 0;
+    return result_t();
 }
 
 bool MessagePort::canDeliverMessages()
@@ -174,7 +174,7 @@ result_t MessagePort::enqueueSerializedMessage(Buffer_base* data)
     if (m_started)
         flush();
 
-    return 0;
+    return result_t();
 }
 
 result_t MessagePort::emitSerializedMessage(Buffer_base* data)
@@ -255,14 +255,14 @@ bool MessagePort::hasPendingMessages()
 result_t MessagePort::start()
 {
     if (m_closed)
-        return 0;
+        return result_t();
 
     if (!m_started) {
         m_started = true;
         ensureKeepAliveRef();
         flush();
     }
-    return 0;
+    return result_t();
 }
 
 result_t MessagePort::close()
@@ -291,19 +291,19 @@ result_t MessagePort::close()
         }
         _emit("close");
     }
-    return 0;
+    return result_t();
 }
 
 result_t MessagePort::ref()
 {
     ensureKeepAliveRef();
-    return 0;
+    return result_t();
 }
 
 result_t MessagePort::unref()
 {
     releaseKeepAliveRef();
-    return 0;
+    return result_t();
 }
 
 result_t MessagePort::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
@@ -312,7 +312,7 @@ result_t MessagePort::onEventChange(exlib::string type, exlib::string ev, v8::Lo
         start();
     }
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

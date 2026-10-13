@@ -134,12 +134,12 @@ result_t global_base::structuredClone(v8::Local<v8::Value> value,
                         if (item->IsArrayBuffer()) {
                             transferList.push_back(v8::Local<v8::ArrayBuffer>::Cast(item));
                         } else {
-                            return result_t::make(CALL_E_EXCEPTION).with_type_name("TypeError").with_result(CALL_E_INVALIDARG).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"options.transfer\" property must contain only ArrayBuffer objects");
+                            return result_t::make(CALL_E_EXCEPTION).with_type_name("TypeError").with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"options.transfer\" property must contain only ArrayBuffer objects");
                         }
                     }
                 }
             } else if (!transferValue->IsUndefined()) {
-                return result_t::make(CALL_E_EXCEPTION).with_type_name("TypeError").with_result(CALL_E_INVALIDARG).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"options.transfer\" property must be an array");
+                return result_t::make(CALL_E_EXCEPTION).with_type_name("TypeError").with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"options.transfer\" property must be an array");
             }
         }
     }
@@ -150,7 +150,7 @@ result_t global_base::structuredClone(v8::Local<v8::Value> value,
 
     // Prepare transfer
     if (!serializerDelegate.PrepareTransfer(_isolate)) {
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     }
 
     // Register transferred ArrayBuffers
@@ -164,7 +164,7 @@ result_t global_base::structuredClone(v8::Local<v8::Value> value,
     // Write value
     v8::Maybe<bool> writeResult = serializer.WriteValue(context, value);
     if (writeResult.IsNothing() || !writeResult.FromJust()) {
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     }
 
     // Detach transferred ArrayBuffers after successful serialization
@@ -190,7 +190,7 @@ result_t global_base::structuredClone(v8::Local<v8::Value> value,
     v8::Maybe<bool> headerResult = deserializer.ReadHeader(context);
     if (headerResult.IsNothing() || !headerResult.FromJust()) {
         free(buffer.first);
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     }
 
     // Read value
@@ -198,11 +198,11 @@ result_t global_base::structuredClone(v8::Local<v8::Value> value,
     free(buffer.first);
 
     if (result.IsEmpty()) {
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     }
 
     retVal = result.ToLocalChecked();
-    return 0;
+    return result_t();
 }
 
 }

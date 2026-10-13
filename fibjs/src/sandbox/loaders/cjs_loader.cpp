@@ -53,6 +53,6 @@ result_t cjs_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
     if (script.IsEmpty())
         return throwSyntaxError(try_catch);
 
-    return 0;
+    return result_t();
 }
 }

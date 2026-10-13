@@ -552,7 +552,7 @@ static result_t run_shell(exlib::string cmd_str, const std::vector<char*>& args,
     }
 
     process_base::exit(code);
-    return 0;
+    return result_t();
 }
 
 result_t SandBox::run_main(exlib::string fname)
@@ -619,7 +619,7 @@ result_t SandBox::run_main(exlib::string fname)
                 exlib::string pkg_root;
 
                 if (!find_package_root(pkg_root))
-                    return CALL_E_FILE_NOT_FOUND;
+                    return result_t(CALL_E_FILE_NOT_FOUND);
 
                 v8::Local<v8::Value> v;
                 exlib::string buf;
@@ -628,7 +628,7 @@ result_t SandBox::run_main(exlib::string fname)
 
                 hr = loadFile(pkg_root + "/package.json", bin);
                 if (hr.failed())
-                    return CALL_E_FILE_NOT_FOUND;
+                    return result_t(CALL_E_FILE_NOT_FOUND);
 
                 bin->toString(buf);
                 hr = json_base::decode(buf, v);
@@ -641,13 +641,13 @@ result_t SandBox::run_main(exlib::string fname)
                 v8::Local<v8::Object> o = v.As<v8::Object>();
                 v8::Local<v8::Value> scripts = o->Get(context, isolate->NewString("scripts", 7)).FromMaybe(v8::Local<v8::Value>());
                 if (IsEmpty(scripts) || !scripts->IsObject())
-                    return CALL_E_FILE_NOT_FOUND;
+                    return result_t(CALL_E_FILE_NOT_FOUND);
 
                 o = scripts.As<v8::Object>();
 
                 v8::Local<v8::Value> cmd = o->Get(context, isolate->NewString(rname)).FromMaybe(v8::Local<v8::Value>());
                 if (IsEmpty(cmd) || !cmd->IsString())
-                    return CALL_E_FILE_NOT_FOUND;
+                    return result_t(CALL_E_FILE_NOT_FOUND);
 
                 return run_shell(isolate->toString(cmd), s_argv, pkg_root);
             }

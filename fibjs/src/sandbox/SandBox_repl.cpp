@@ -98,23 +98,23 @@ result_t SandBox::eval_print(exlib::string src)
 
     if (script.IsEmpty()) {
         ReportException(try_catch, 0, false);
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     }
 
     v8::Local<v8::Value> v = script->Run(context).FromMaybe(v8::Local<v8::Value>());
 
     if (v.IsEmpty()) {
         ReportException(try_catch, 0, false);
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     }
 
     console_base::log(OptArgs(v));
 
-    return 0;
+    return result_t();
 }
 result_t SandBox::Context::repl()
 {
-    result_t hr = 0;
+    result_t hr;
     exlib::string buf;
     v8::Local<v8::Value> v;
     Isolate* isolate = Isolate::current();
