@@ -20,7 +20,7 @@ result_t HttpCookie_base::_new(v8::Local<v8::Object> opts,
     cookie->fill(opts, true);
 
     retVal = cookie;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie_base::_new(exlib::string name, exlib::string value,
@@ -36,7 +36,7 @@ result_t HttpCookie_base::_new(exlib::string name, exlib::string value,
     cookie->fill(opts, false);
 
     retVal = cookie;
-    return 0;
+    return result_t();
 }
 
 // Public API: parse a cookie string with URL-decoding of name/value, keeping
@@ -94,7 +94,7 @@ result_t HttpCookie::parse_ex(exlib::string header, bool bDecode)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::fill(v8::Local<v8::Object> opts, bool bBase)
@@ -110,7 +110,7 @@ result_t HttpCookie::fill(v8::Local<v8::Object> opts, bool bBase)
     GetConfigValue(opts, "secure", m_secure);
     GetConfigValue(opts, "httpOnly", m_httpOnly);
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::match(exlib::string url, bool& retVal)
@@ -138,18 +138,18 @@ result_t HttpCookie::match(exlib::string url, bool& retVal)
 
         if (*p1) {
             if (qstricmp(p1, "localhost", 9) && !qstrchr(p1, '.'))
-                return 0;
+                return result_t();
 
             if (sz > hostname.length())
-                return 0;
+                return result_t();
 
             if (sz == hostname.length()) {
                 if (qstrcmp(p1, p2))
-                    return 0;
+                    return result_t();
             } else {
                 p2 += hostname.length() - sz - 1;
                 if (*p2 != '.' || qstrcmp(p1, p2 + 1))
-                    return 0;
+                    return result_t();
             }
         }
     }
@@ -167,103 +167,103 @@ result_t HttpCookie::match(exlib::string url, bool& retVal)
 
         if (sz) {
             if (sz > pathname.length())
-                return 0;
+                return result_t();
 
             if (sz == pathname.length()) {
                 if (qstrcmp(p1, p2, (int32_t)sz))
-                    return 0;
+                    return result_t();
             } else if (p2[sz] != '/' || qstrcmp(p1, p2, (int32_t)sz))
-                return 0;
+                return result_t();
         }
     }
 
     retVal = true;
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::get_name(exlib::string& retVal)
 {
     retVal = m_name;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::set_name(exlib::string newVal)
 {
     m_name = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::get_value(exlib::string& retVal)
 {
     retVal = m_value;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::set_value(exlib::string newVal)
 {
     m_value = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::get_domain(exlib::string& retVal)
 {
     retVal = m_domain;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::set_domain(exlib::string newVal)
 {
     m_domain = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::get_path(exlib::string& retVal)
 {
     retVal = m_path;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::set_path(exlib::string newVal)
 {
     m_path = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::get_expires(date_t& retVal)
 {
     retVal = m_expires;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::set_expires(date_t newVal)
 {
     m_expires = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::get_httpOnly(bool& retVal)
 {
     retVal = m_httpOnly;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::set_httpOnly(bool newVal)
 {
     m_httpOnly = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::get_secure(bool& retVal)
 {
     retVal = m_secure;
-    return 0;
+    return result_t();
 }
 
 result_t HttpCookie::set_secure(bool newVal)
 {
     m_secure = newVal;
-    return 0;
+    return result_t();
 }
 
 static const char* CookieNameTable = " ! #$%&'()*+ -./0123456789: < >?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[ ]^_`abcdefghijklmnopqrstuvwxyz{|}~ ";
@@ -305,6 +305,6 @@ result_t HttpCookie::toString(exlib::string& retVal)
         str.append("; HttpOnly", 10);
 
     retVal = str;
-    return 0;
+    return result_t();
 }
 }

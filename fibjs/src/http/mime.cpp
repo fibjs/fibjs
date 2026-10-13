@@ -1214,7 +1214,7 @@ static int32_t mt_cmp(const void* p, const void* q)
 result_t mime_base::getType(exlib::string fname, exlib::string& retVal)
 {
     if (fname.empty())
-        return 0;
+        return result_t();
 
     exlib::string ext;
 
@@ -1243,7 +1243,7 @@ result_t mime_base::getType(exlib::string fname, exlib::string& retVal)
         retVal = pMimeType->type;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t mime_base::addType(exlib::string ext, exlib::string type)
@@ -1252,7 +1252,7 @@ result_t mime_base::addType(exlib::string ext, exlib::string type)
     s_mimes.insert_or_assign(ext, type);
     s_lock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 }

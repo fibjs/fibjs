@@ -73,7 +73,7 @@ result_t Http2Session::init(Stream_base* conn)
             return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit window_update failed: ") + nghttp2_strerror(rv));
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Http2Session::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
@@ -82,7 +82,7 @@ result_t Http2Session::onEventChange(exlib::string type, exlib::string ev, v8::L
     (void)func;
 
     if (m_internal || ev != "stream")
-        return 0;
+        return result_t();
 
     int32_t count = 0;
     listenerCount(holder()->NewString("stream"), count);
@@ -97,7 +97,7 @@ result_t Http2Session::onEventChange(exlib::string type, exlib::string ev, v8::L
             m_listener_holder.Release();
     }
 
-    return 0;
+    return result_t();
 }
 
 void Http2Session::setupCallbacks(nghttp2_session_callbacks* callbacks)
@@ -348,7 +348,7 @@ void Http2Session::addStream(int32_t stream_id, Http2Stream* stream)
         stream->m_recv_retVal = nullptr;
         stream->m_recv_lock.unlock();
         if (rac)
-            rac.apost(CALL_RETURN_NULL);
+            rac.apost(result_t::return_null());
 
         stream->m_headers_lock.lock();
         AsyncHandle hac = std::move(stream->m_headers_ac);
@@ -394,7 +394,7 @@ result_t Http2Session::collectPendingData(obj_ptr<Buffer_base>& buf)
     else
         buf = nullptr;
 
-    return 0;
+    return result_t();
 }
 
 result_t Http2Session::sendPendingData()
@@ -407,7 +407,7 @@ result_t Http2Session::sendPendingData()
     if (hr.failed())
         return hr;
     if (!buf) {
-        return 0;
+        return result_t();
     }
 
     AsyncFlushItem item(buf, true);
@@ -461,7 +461,7 @@ void Http2Session::enqueueFlush(AsyncFlushItem* item)
             m_session->m_write_spinlock.unlock();
 
             if (item->m_blocking) {
-                item->m_result = 0;
+                item->m_result = result_t();
                 item->m_event.set();
             } else {
                 delete item;
@@ -469,7 +469,7 @@ void Http2Session::enqueueFlush(AsyncFlushItem* item)
 
             if (has_more)
                 return next(do_write);
-            return next(CALL_RETURN_NULL);
+            return next(result_t::return_null());
         }
 
         virtual result_t error(result_t v)
@@ -499,7 +499,7 @@ void Http2Session::enqueueFlush(AsyncFlushItem* item)
             m_session->m_listener_holder.Release();
             abort_transport(m_session->m_conn);
 
-            return next(CALL_RETURN_NULL);
+            return next(result_t::return_null());
         }
 
     private:
@@ -555,7 +555,7 @@ void Http2Session::startLoops()
                 m_session->m_listener_holder.Release();
                 releaseRef();
                 m_session->signalDone();
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
             }
 
             // After GOAWAY (m_closed=true), continue reading only while
@@ -569,7 +569,7 @@ void Http2Session::startLoops()
                     m_session->m_listener_holder.Release();
                     releaseRef();
                     m_session->signalDone();
-                    return next(CALL_RETURN_NULL);
+                    return next(result_t::return_null());
                 }
             }
 
@@ -592,7 +592,7 @@ void Http2Session::startLoops()
                 m_session->m_listener_holder.Release();
                 releaseRef();
                 m_session->signalDone();
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
             }
 
             Buffer* buf = m_buf ? Buffer::Cast(m_buf) : nullptr;
@@ -617,7 +617,7 @@ void Http2Session::startLoops()
                 m_session->m_listener_holder.Release();
                 releaseRef();
                 m_session->signalDone();
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
             }
 
             if ((size_t)rv < input_len)
@@ -647,7 +647,7 @@ void Http2Session::startLoops()
             m_session->m_listener_holder.Release();
             releaseRef();
             m_session->signalDone();
-            return next(CALL_RETURN_NULL);
+            return next(result_t::return_null());
         }
 
     private:
@@ -673,7 +673,7 @@ static result_t build_settings_object(NgHttp2Handler& handler, bool remote, obj_
     retVal->maxFrameSize = handler.get_setting(remote, NGHTTP2_SETTINGS_MAX_FRAME_SIZE);
     retVal->maxHeaderListSize = handler.get_setting(remote, NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE);
 
-    return 0;
+    return result_t();
 }
 
 result_t Http2Session::get_remoteSettings(obj_ptr<RemoteSettingsType>& retVal)
@@ -695,13 +695,13 @@ result_t Http2Session::get_localSettings(obj_ptr<LocalSettingsType>& retVal)
 result_t Http2Session::get_destroyed(bool& retVal)
 {
     retVal = m_destroyed;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Session::get_closed(bool& retVal)
 {
     retVal = m_closed;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Session::get_alpnProtocol(exlib::string& retVal)
@@ -711,13 +711,13 @@ result_t Http2Session::get_alpnProtocol(exlib::string& retVal)
         return tls->get_alpnProtocol(retVal);
 
     retVal = "h2c";
-    return 0;
+    return result_t();
 }
 
 result_t Http2Session::get_socket(obj_ptr<Stream_base>& retVal)
 {
     retVal = m_conn;
-    return 0;
+    return result_t();
 }
 
 // -- methods --
@@ -861,7 +861,7 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
     m_request_lock.unlock();
 
     retVal = stream;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Session::request(const std::vector<std::pair<exlib::string, exlib::string>>& headers,
@@ -921,7 +921,7 @@ result_t Http2Session::request(const std::vector<std::pair<exlib::string, exlib:
 
     retVal = stream;
 
-    return 0;
+    return result_t();
 }
 
 result_t Http2Session::goaway(int32_t code, int32_t lastStreamId)
@@ -934,7 +934,7 @@ result_t Http2Session::goaway(int32_t code, int32_t lastStreamId)
         return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit goaway failed: ") + nghttp2_strerror(rv));
 
     asyncFlushOutput();
-    return 0;
+    return result_t();
 }
 
 result_t Http2Session::ping(int32_t& retVal, AsyncHandle ac)
@@ -959,7 +959,7 @@ result_t Http2Session::ping(int32_t& retVal, AsyncHandle ac)
     if (buf)
         return m_conn->writeBuffer(buf, std::move(ac));
 
-    return 0;
+    return result_t();
 }
 
 result_t Http2Session::settings(v8::Local<v8::Object> settings)
@@ -989,7 +989,7 @@ result_t Http2Session::settings(v8::Local<v8::Object> settings)
         return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit settings failed: ") + nghttp2_strerror(rv));
 
     asyncFlushOutput();
-    return 0;
+    return result_t();
 }
 
 result_t Http2Session::close(AsyncHandle ac)
@@ -998,7 +998,7 @@ result_t Http2Session::close(AsyncHandle ac)
         return result_t::nosync();
 
     if (m_closed)
-        return 0;
+        return result_t();
 
     class asyncClose : public AsyncState {
     public:
@@ -1063,7 +1063,7 @@ result_t Http2Session::close(AsyncHandle ac)
 result_t Http2Session::destroy()
 {
     if (m_destroyed)
-        return 0;
+        return result_t();
 
     m_destroyed = true;
     m_closed = true;
@@ -1088,7 +1088,7 @@ result_t Http2Session::destroy()
     // 中断：让 readLoop 的 pending read 立刻返回
     abortTransport();
 
-    return 0;
+    return result_t();
 }
 
 void Http2Session::abortTransport()

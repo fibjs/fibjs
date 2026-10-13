@@ -38,7 +38,7 @@ result_t HttpsServer_base::_new(SecureContext_base* context, exlib::string addr,
 
     retVal = svr;
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpsServer_base::_new(v8::Local<v8::Object> options, Union_HttpsServer_hdlr hdlr,
@@ -83,7 +83,7 @@ result_t HttpsServer_base::_new(SecureContext_base* context, Union_HttpsServer_h
         return hr;
 
     retVal = svr;
-    return 0;
+    return result_t();
 }
 
 result_t HttpsServer::setup(SecureContext_base* context, Handler_base* hdlr)
@@ -105,7 +105,7 @@ result_t HttpsServer::setup(SecureContext_base* context, Handler_base* hdlr)
     SetPrivate("server", _server->wrap());
     m_server = _server;
     static_cast<TLSServer*>(_server.get())->set_event_delegate(this);
-    return 0;
+    return result_t();
 }
 
 result_t HttpsServer::create(SecureContext_base* context, exlib::string addr, int32_t port, Handler_base* hdlr)
@@ -130,7 +130,7 @@ result_t HttpsServer::create(SecureContext_base* context, exlib::string addr, in
     // override inner TcpServer's delegate to forward events to HttpsServer
     static_cast<TLSServer*>(_server.get())->set_event_delegate(this);
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpsServer::start()

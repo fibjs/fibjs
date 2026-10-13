@@ -55,7 +55,7 @@ static result_t create_server_by_context(SecureContext_base* context, Handler_ba
         return hr;
 
     retVal = svr;
-    return 0;
+    return result_t();
 }
 
 result_t http2_base::connect(exlib::string authority, v8::Local<v8::Object> options,
@@ -221,7 +221,7 @@ result_t http2_base::getDefaultSettings(obj_ptr<GetDefaultSettingsType>& retVal)
     retVal->maxFrameSize = 16384;
     retVal->maxHeaderListSize = 65535;
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

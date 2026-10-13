@@ -161,7 +161,7 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
     // Parse boundary using RFC 2046 compliant parser
     exlib::string parsedBoundary;
     if (!parseBoundary(boundary, parsedBoundary)) {
-        return 0;
+        return result_t();
     }
     uiSplitSize = parsedBoundary.length();
 
@@ -170,7 +170,7 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
     if (nSize < uiSplitSize + 2 || szQueryString[0] != '-'
         || szQueryString[1] != '-'
         || qstrcmp(szQueryString + 2, parsedBoundary.c_str(), uiSplitSize))
-        return 0;
+        return result_t();
 
     uiSplitSize += 2;
     szQueryString += uiSplitSize;
@@ -187,7 +187,7 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
             ch = *szQueryString++;
             nSize--;
             if (ch != '\r')
-                return 0;
+                return result_t();
             if (nSize > 0 && *szQueryString == '\n') {
                 nSize--;
                 szQueryString++;
@@ -211,13 +211,13 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
                     while (p1 < p && *p1 == ' ')
                         p1++;
                     if (p1 + 10 >= p || qstricmp(p1, "form-data;", 10))
-                        return 0;
+                        return result_t();
 
                     p1 += 10;
                     while (p1 < p && *p1 == ' ')
                         p1++;
                     if (p1 + 5 >= p || qstricmp(p1, "name=", 5))
-                        return 0;
+                        return result_t();
 
                     p1 += 5;
 
@@ -285,7 +285,7 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
                 ch = *szQueryString++;
                 nSize--;
                 if (ch != '\r')
-                    return 0;
+                    return result_t();
                 if (nSize > 0 && *szQueryString == '\n') {
                     nSize--;
                     szQueryString++;
@@ -312,7 +312,7 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
             p--;
             ch = *p;
             if (ch != '\n')
-                return 0;
+                return result_t();
 
             if (p > p1 && *(p - 1) == '\r')
                 p--;
@@ -340,7 +340,7 @@ result_t FormData::parseMultipart(Buffer_base* init, const char* boundary)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
@@ -367,7 +367,7 @@ result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
         }
 
         retVal = new Blob(bufs.buffer(), "application/x-www-form-urlencoded");
-        return 0;
+        return result_t();
     } else if (qstristr(type.c_str(), "multipart") != NULL) {
         // Determine boundary to use - parse with RFC 2046 compliance
         exlib::string boundary;
@@ -583,7 +583,7 @@ result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
         // Create Blob with proper content-type including boundary
         exlib::string contentType = "multipart/form-data; boundary=" + boundary;
         retVal = new Blob(resultBuffer, contentType);
-        return 0;
+        return result_t();
     } else {
         return result_t::make(CALL_E_EXCEPTION).with_message("FormData encode: unsupported content type: " + type);
     }

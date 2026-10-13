@@ -14,7 +14,7 @@ namespace fibjs {
 result_t FormData_base::_new(obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new FormData();
-    return 0;
+    return result_t();
 }
 
 result_t FormData_base::_new(Union_FormData_init init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)
@@ -94,7 +94,7 @@ result_t FormData::append(exlib::string name, Union_append_value value)
 
     m_sorted = false;
     m_map.emplace_back(name, v);
-    return 0;
+    return result_t();
 }
 
 result_t FormData::append(exlib::string name, Blob_base* value)
@@ -115,7 +115,7 @@ result_t FormData::append(exlib::string name, Blob_base* value)
     m_sorted = false;
     m_map.emplace_back(name, file);
 
-    return 0;
+    return result_t();
 }
 
 result_t FormData::append(exlib::string name, Variant value, exlib::string filename)
@@ -147,7 +147,7 @@ result_t FormData::append(exlib::string name, Blob_base* value, exlib::string fi
     m_sorted = false;
     m_map.emplace_back(name, fileObj);
 
-    return 0;
+    return result_t();
 }
 
 result_t FormData::set(exlib::string name, Blob_base* value)
@@ -155,7 +155,7 @@ result_t FormData::set(exlib::string name, Blob_base* value)
     remove(name);
     append(name, value);
 
-    return 0;
+    return result_t();
 }
 
 result_t FormData::set(exlib::string name, Variant value, exlib::string filename)
@@ -167,7 +167,7 @@ result_t FormData::set(exlib::string name, Variant value, exlib::string filename
     remove(name);
     append(name, blob.get(), filename);
 
-    return 0;
+    return result_t();
 }
 
 }

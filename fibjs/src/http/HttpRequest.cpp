@@ -28,7 +28,7 @@ namespace fibjs {
 result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new HttpRequest();
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::string url, v8::Local<v8::Object> opts,
@@ -46,7 +46,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
     if (!skip_body) {
         v = opts->Get(context, isolate->NewString("body", 4));
         if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         // Validate: GET and HEAD must not have a body (Fetch API strict mode)
         bool has_body = !v->IsUndefined() && !v->IsNull();
@@ -153,7 +153,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
     if (!has_keepAlive && agent)
         keepAlive = ((HttpClient*)(HttpClient_base*)agent)->m_keepAlive;
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::Options::resolve_url(exlib::string url, v8::Local<v8::Object> opts)
@@ -172,7 +172,7 @@ result_t HttpRequest::Options::resolve_url(exlib::string url, v8::Local<v8::Obje
         return hr;
 
     u = resolved.As<Url>();
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req, bool replace_headers)
@@ -198,7 +198,7 @@ result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req, bool re
     // Headers: an explicit init.headers replaces the request's headers (the Fetch
     // standard), otherwise the request's headers are the base and opts override.
     if (replace_headers)
-        return 0;
+        return result_t();
 
     obj_ptr<Headers_base> req_hdrs;
     req->get_headers(req_hdrs);
@@ -214,7 +214,7 @@ result_t HttpRequest::Options::apply_from_request(HttpRequest_base* req, bool re
         headers = merged;
     }
 
-    return 0;
+    return result_t();
 }
 
 void HttpRequest::set_options(const Options& o, bool replace_headers)
@@ -258,7 +258,7 @@ result_t HttpRequest_base::_new(exlib::string url, v8::Local<v8::Object> options
     req->set_options(o);
 
     retVal = req;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object> options,
@@ -285,7 +285,7 @@ result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object>
     v8::Local<v8::Value> headers_val;
     if (!options.IsEmpty()
         && !options->Get(context, Isolate::current()->NewString("headers", 7)).ToLocal(&headers_val))
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     bool replace_headers = !headers_val.IsEmpty() && !headers_val->IsUndefined();
 
     req->set_options(o, replace_headers);
@@ -303,7 +303,7 @@ result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object>
     }
 
     retVal = req;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::get_protocol(exlib::string& retVal)
@@ -353,7 +353,7 @@ result_t HttpRequest::setEncoding(exlib::string encoding, obj_ptr<Message_base>&
     m_message->setEncoding(encoding, r);
 
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::write(Union_write_data data, int32_t& retVal, AsyncHandle ac)
@@ -529,7 +529,7 @@ result_t HttpRequest::appendHeader(Headers_base* headers)
         auto& it = hdrs->m_map[i];
         _appendHeader(it.first, it.second.string());
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::appendHeader(exlib::string name, Variant value)
@@ -836,7 +836,7 @@ result_t HttpRequest::isEnded(bool& retVal)
     if (m_response) {
         m_response->isEnded(retVal);
         if (retVal)
-            return 0;
+            return result_t();
     }
 
     return m_message->isEnded(retVal);
@@ -859,7 +859,7 @@ result_t HttpRequest::clear()
     m_query.Release();
     m_form.Release();
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
@@ -961,7 +961,7 @@ result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, 
 result_t HttpRequest::get_method(exlib::string& retVal)
 {
     retVal = m_method;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::get_stream(obj_ptr<Stream_base>& retVal)
@@ -972,19 +972,19 @@ result_t HttpRequest::get_stream(obj_ptr<Stream_base>& retVal)
 result_t HttpRequest::set_method(exlib::string newVal)
 {
     m_method = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::get_address(exlib::string& retVal)
 {
     retVal = m_address;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::set_address(exlib::string newVal)
 {
     m_address = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::get_url(exlib::string& retVal)
@@ -996,7 +996,7 @@ result_t HttpRequest::get_url(exlib::string& retVal)
         retVal.append(m_queryString);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::set_url(exlib::string newVal)
@@ -1010,7 +1010,7 @@ result_t HttpRequest::set_url(exlib::string newVal)
         m_queryString.clear();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::get_href(exlib::string& retVal)
@@ -1042,19 +1042,19 @@ result_t HttpRequest::get_href(exlib::string& retVal)
         retVal.append(m_queryString);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::get_queryString(exlib::string& retVal)
 {
     retVal = m_queryString;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::set_queryString(exlib::string newVal)
 {
     m_queryString = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::get_response(obj_ptr<HttpResponse_base>& retVal)
@@ -1063,7 +1063,7 @@ result_t HttpRequest::get_response(obj_ptr<HttpResponse_base>& retVal)
         m_response = new HttpResponse();
 
     retVal = m_response;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::get_cookies(obj_ptr<HttpCollection_base>& retVal)
@@ -1079,7 +1079,7 @@ result_t HttpRequest::get_cookies(obj_ptr<HttpCollection_base>& retVal)
     }
 
     retVal = m_cookies;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::get_form(obj_ptr<FormData_base>& retVal)
@@ -1133,7 +1133,7 @@ result_t HttpRequest::get_form(obj_ptr<FormData_base>& retVal)
 
     retVal = m_form;
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::get_query(obj_ptr<URLSearchParams_base>& retVal)
@@ -1145,7 +1145,7 @@ result_t HttpRequest::get_query(obj_ptr<URLSearchParams_base>& retVal)
     }
 
     retVal = m_query;
-    return 0;
+    return result_t();
 }
 
 static void abort_socket_impl(Stream_base* socket)
@@ -1173,7 +1173,7 @@ void HttpRequest::abort_socket(Stream_base* socket)
 result_t HttpRequest::abort()
 {
     abort_socket_impl(m_socket);
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::clone(obj_ptr<Message_base>& retVal)
@@ -1192,7 +1192,7 @@ result_t HttpRequest::clone(obj_ptr<Message_base>& retVal)
     // they will be recreated on demand from headers/body
 
     retVal = req;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::resume(obj_ptr<Message_base>& retVal)
@@ -1203,7 +1203,7 @@ result_t HttpRequest::resume(obj_ptr<Message_base>& retVal)
         body->resume(r);
     }
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::pause(obj_ptr<Message_base>& retVal)
@@ -1214,7 +1214,7 @@ result_t HttpRequest::pause(obj_ptr<Message_base>& retVal)
         body->pause(r);
     }
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRequest::unpipe(Stream_base* destination)

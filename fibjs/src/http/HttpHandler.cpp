@@ -601,7 +601,7 @@ result_t HttpHandler_base::_new(Union_HttpHandler_hdlr hdlr, obj_ptr<HttpHandler
 
     retVal = ht_hdlr;
 
-    return 0;
+    return result_t();
 }
 
 HttpHandler::HttpHandler()
@@ -618,7 +618,7 @@ HttpHandler::HttpHandler()
 result_t HttpHandler::isRouting(bool& retVal)
 {
     retVal = false;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -651,7 +651,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_rep->get_keepAlive(bKeepAlive);
 
             if (!bKeepAlive)
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
 
             m_options = false;
 
@@ -665,7 +665,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         ON_STATE(asyncInvoke, invoke)
         {
             if (n.is_return_null())
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
 
             exlib::string str;
 
@@ -821,21 +821,21 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 errorLog("HttpHandler: " + err);
 
                 m_rep->set_statusCode(500);
-                return 0;
+                return result_t();
             }
 
             if (at(read)) {
                 if (v.is(CALL_E_CLOSED))
-                    return next(CALL_RETURN_NULL);
+                    return next(result_t::return_null());
 
                 m_rep->set_keepAlive(false);
                 m_rep->set_statusCode(400);
                 next(send);
                 m_d.now();
-                return 0;
+                return result_t();
             }
 
-            return next(CALL_RETURN_NULL);
+            return next(result_t::return_null());
         }
 
     private:
@@ -870,79 +870,79 @@ result_t HttpHandler::enableCrossOrigin(exlib::string allowHeaders)
 {
     m_crossDomain = true;
     m_allowHeaders = allowHeaders;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::get_maxHeadersCount(int32_t& retVal)
 {
     retVal = m_maxHeadersCount;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::set_maxHeadersCount(int32_t newVal)
 {
     if (newVal < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("maxHeadersCount must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE);
+        return result_t::make(CALL_E_EXCEPTION).with_format("maxHeadersCount must be non-negative, received %d.", newVal).with_result(result_t::out_of_range());
 
     m_maxHeadersCount = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::get_maxHeaderSize(int32_t& retVal)
 {
     retVal = m_maxHeaderSize;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::set_maxHeaderSize(int32_t newVal)
 {
     if (newVal < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("maxHeaderSize must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE);
+        return result_t::make(CALL_E_EXCEPTION).with_format("maxHeaderSize must be non-negative, received %d.", newVal).with_result(result_t::out_of_range());
 
     m_maxHeaderSize = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::get_maxBodySize(int32_t& retVal)
 {
     retVal = m_maxBodySize;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::set_maxBodySize(int32_t newVal)
 {
     m_maxBodySize = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::get_enableEncoding(bool& retVal)
 {
     retVal = m_enableEncoding;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::set_enableEncoding(bool newVal)
 {
     m_enableEncoding = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::get_serverName(exlib::string& retVal)
 {
     retVal = m_serverName;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::set_serverName(exlib::string newVal)
 {
     m_serverName = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::get_handler(obj_ptr<Handler_base>& retVal)
 {
     retVal = m_hdlr;
-    return 0;
+    return result_t();
 }
 
 result_t HttpHandler::set_handler(Handler_base* newVal)
@@ -950,6 +950,6 @@ result_t HttpHandler::set_handler(Handler_base* newVal)
     SetPrivate("handler", newVal->wrap());
     m_hdlr = newVal;
 
-    return 0;
+    return result_t();
 }
 }

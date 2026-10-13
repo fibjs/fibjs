@@ -36,7 +36,7 @@ result_t HttpServer_base::_new(exlib::string addr, int32_t port, Union_HttpServe
         return hr;
 
     retVal = svr;
-    return 0;
+    return result_t();
 }
 
 result_t HttpServer_base::_new(exlib::string addr, Union_HttpServer_hdlr hdlr,
@@ -66,7 +66,7 @@ result_t HttpServer_base::_new(Union_HttpServer_hdlr hdlr,
         return hr;
 
     retVal = svr;
-    return 0;
+    return result_t();
 }
 
 result_t HttpServer::setup(Handler_base* hdlr)
@@ -85,7 +85,7 @@ result_t HttpServer::setup(Handler_base* hdlr)
     m_server = _server;
     _server->m_eventDelegate = this;
     _server->set_handler(_handler);
-    return 0;
+    return result_t();
 }
 
 result_t HttpServer::create(exlib::string addr, int32_t port, Handler_base* hdlr)

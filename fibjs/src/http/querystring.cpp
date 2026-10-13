@@ -38,7 +38,7 @@ result_t querystring_base::parse(exlib::string str, exlib::string sep,
 
     retVal = c;
 
-    return 0;
+    return result_t();
 }
 
 result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string sep,
@@ -63,7 +63,7 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
         JSValue k = ks->Get(context, i);
         v8::Local<v8::Value> v = obj->Get(context, k).FromMaybe(v8::Local<v8::Value>());
         if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         GetArgumentValue(isolate, k, strKey);
         encoding_base::encodeURIComponent(strKey, true, strKey);
@@ -102,6 +102,6 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
 
     retVal = bufs.str();
 
-    return 0;
+    return result_t();
 }
 }

@@ -63,7 +63,7 @@ public:
     virtual result_t isRouting(bool& retVal)
     {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -117,7 +117,7 @@ public:
             ON_STATE(asyncInvoke, wait_done)
             {
                 m_pThis->removeSession(m_session);
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
             }
 
         private:
@@ -162,7 +162,7 @@ result_t Http2Server_base::_new(SecureContext_base* context, Union_Http2Server_h
         return hr;
 
     retVal = svr;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Server_base::_new(SecureContext_base* context, int32_t port,
@@ -188,7 +188,7 @@ result_t Http2Server_base::_new(SecureContext_base* context, exlib::string addr,
         return hr;
 
     retVal = svr;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Server_base::_new(v8::Local<v8::Object> options, Union_Http2Server_hdlr hdlr,
@@ -224,7 +224,7 @@ result_t Http2Server::create(SecureContext_base* context, Handler_base* hdlr)
     m_server = _server;
     static_cast<TLSServer*>(_server.get())->set_event_delegate(this);
 
-    return 0;
+    return result_t();
 }
 
 result_t Http2Server::create(SecureContext_base* context, exlib::string addr,
@@ -248,7 +248,7 @@ result_t Http2Server::create(SecureContext_base* context, exlib::string addr,
     m_server = _server;
     static_cast<TLSServer*>(_server.get())->set_event_delegate(this);
 
-    return 0;
+    return result_t();
 }
 
 result_t Http2Server::start()
@@ -325,19 +325,19 @@ result_t Http2Server::get_socket(obj_ptr<Socket_base>& retVal)
 result_t Http2Server::get_handler(obj_ptr<Handler_base>& retVal)
 {
     retVal = m_handler;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Server::set_handler(Handler_base* newVal)
 {
     m_handler = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Server::get_secureContext(obj_ptr<SecureContext_base>& retVal)
 {
     retVal = m_ctx;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Server::setSecureContext(SecureContext_base* context)

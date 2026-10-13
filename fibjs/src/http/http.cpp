@@ -284,7 +284,7 @@ result_t http_base::setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Lo
         return result_t::make(CALL_E_EXCEPTION).with_message("Failed to create restore function");
 
     retVal = maybeFunc.ToLocalChecked();
-    return 0;
+    return result_t();
 }
 
 result_t http_base::request(Stream_base* conn, HttpRequest_base* req,
@@ -523,7 +523,7 @@ static result_t create_server_by_context(SecureContext_base* context, Handler_ba
         return hr;
 
     retVal = server;
-    return 0;
+    return result_t();
 }
 
 result_t http_base::createServer(Union_createServer_options options, Union_createServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal)
@@ -576,6 +576,6 @@ result_t http_base::get_METHODS(std::vector<exlib::string>& retVal)
     for (int i = 0; i < http_methods_count; i++)
         retVal.push_back(http_methods[i]);
 
-    return 0;
+    return result_t();
 }
 }

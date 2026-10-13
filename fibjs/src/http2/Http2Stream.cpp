@@ -17,28 +17,28 @@ namespace fibjs {
 result_t Http2Stream::get_id(int32_t& retVal)
 {
     retVal = m_stream_id;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Stream::get_closed(bool& retVal)
 {
     retVal = m_closed;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Stream::get_destroyed(bool& retVal)
 {
     retVal = m_destroyed;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Stream::get_headers(obj_ptr<NObject>& retVal)
 {
     if (!m_headers)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_headers;
-    return 0;
+    return result_t();
 }
 
 result_t Http2Stream::respond(v8::Local<v8::Object> headers)
@@ -111,7 +111,7 @@ result_t Http2Stream::respond(v8::Local<v8::Object> headers)
         return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Stream: submit response failed: ") + nghttp2_strerror(rv));
 
     m_session->asyncFlushOutput();
-    return 0;
+    return result_t();
 }
 
 result_t Http2Stream::additionalHeaders(v8::Local<v8::Object> headers)
@@ -155,7 +155,7 @@ result_t Http2Stream::additionalHeaders(v8::Local<v8::Object> headers)
         return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Stream: submit headers failed: ") + nghttp2_strerror(rv));
 
     m_session->asyncFlushOutput();
-    return 0;
+    return result_t();
 }
 
 result_t Http2Stream::sendTrailers(v8::Local<v8::Object> headers)
@@ -198,7 +198,7 @@ result_t Http2Stream::sendTrailers(v8::Local<v8::Object> headers)
         return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Stream: submit trailers failed: ") + nghttp2_strerror(rv));
 
     m_session->asyncFlushOutput();
-    return 0;
+    return result_t();
 }
 
 result_t Http2Stream::rstStream(int32_t code)
@@ -214,12 +214,12 @@ result_t Http2Stream::rstStream(int32_t code)
         return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Stream: submit rst_stream failed: ") + nghttp2_strerror(rv));
 
     m_session->asyncFlushOutput();
-    return 0;
+    return result_t();
 }
 
 result_t Http2Stream::get_fd(int32_t& retVal)
 {
-    return CALL_E_INVALID_CALL;
+    return result_t::invalid_call();
 }
 
 result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
@@ -264,7 +264,7 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
                 m_stream->m_recv_lock.unlock();
                 m_stream->m_read_lock.unlock(this);
                 m_locked = false;
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
             }
 
             if (m_stream->m_closed || m_stream->m_destroyed) {
@@ -273,7 +273,7 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
                 m_locked = false;
                 if (m_stream->m_error_code != 0)
                     return result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream reset");
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
             }
 
             // No data available — register as waiter（锁内登记票，由
@@ -290,7 +290,7 @@ result_t Http2Stream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, As
             m_stream->m_read_lock.unlock(this);
             m_locked = false;
             if (n.is_return_null())
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
             if (n.failed())
                 return n;
             return next();
@@ -328,14 +328,14 @@ result_t Http2Stream::writeBuffer(Buffer_base* data, AsyncHandle ac)
     // Signal nghttp2 that data is available via resume
     m_session->m_nghttp2.resume_data(m_stream_id);
     m_session->asyncFlushOutput();
-    return 0;
+    return result_t();
 }
 
 result_t Http2Stream::flush(AsyncHandle ac)
 {
     if (ac.isSync())
         return result_t::nosync();
-    return 0;
+    return result_t();
 }
 
 result_t Http2Stream::close(AsyncHandle ac)
@@ -351,7 +351,7 @@ result_t Http2Stream::close(AsyncHandle ac)
         m_recv_retVal = nullptr;
         m_recv_lock.unlock();
         if (rac)
-            rac.apost(CALL_RETURN_NULL);
+            rac.apost(result_t::return_null());
 
         // Signal send-side end so data_source_read_callback returns EOF
         m_send_lock.lock();
@@ -366,7 +366,7 @@ result_t Http2Stream::close(AsyncHandle ac)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 void Http2Stream::onData(const uint8_t* data, size_t len)
@@ -406,7 +406,7 @@ result_t Http2Stream::waitHeaders(AsyncHandle ac)
 
     if (m_headers) {
         m_headers_lock.unlock();
-        return 0;
+        return result_t();
     }
 
     if (m_closed || m_destroyed || (m_session && (m_session->m_closed || m_session->m_destroyed))) {
@@ -431,7 +431,7 @@ void Http2Stream::onClose(uint32_t error_code)
         if (error_code != 0)
             rac.apost(result_t::make(CALL_E_EXCEPTION).with_message("Http2Stream: stream reset"));
         else
-            rac.apost(CALL_RETURN_NULL);
+            rac.apost(result_t::return_null());
     }
 
     m_headers_lock.lock();
@@ -459,7 +459,7 @@ void Http2Stream::onEnd()
     m_recv_retVal = nullptr;
     m_recv_lock.unlock();
     if (rac)
-        rac.apost(CALL_RETURN_NULL);
+        rac.apost(result_t::return_null());
 }
 
 } /* namespace fibjs */

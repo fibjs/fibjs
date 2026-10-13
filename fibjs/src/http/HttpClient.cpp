@@ -122,7 +122,7 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
     if (method == "HEAD") {
         file.close();
         retVal = resp;
-        return 0;
+        return result_t();
     }
 
     obj_ptr<Buffer_base> buf;
@@ -143,7 +143,7 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
     resp->set_body(body);
 
     retVal = resp;
-    return 0;
+    return result_t();
 }
 
 // Best-effort stale-socket probe for pooled connections.
@@ -202,12 +202,12 @@ public:
                     retVal = new Buffer(buf->data() + m_first_offset, left);
                 m_first.Release();
                 m_first_offset = 0;
-                return 0;
+                return result_t();
             }
 
             retVal = new Buffer(buf->data() + m_first_offset, bytes);
             m_first_offset += bytes;
-            return 0;
+            return result_t();
         }
 
         return m_rest->readBuffer(bytes, retVal, std::move(ac));
@@ -300,7 +300,7 @@ result_t HttpClient_base::_new(Union_HttpClient_options options, obj_ptr<HttpCli
 {
     if (std::holds_alternative<obj_ptr<SecureContext_base>>(options)) {
         retVal = new HttpClient(std::get<obj_ptr<SecureContext_base>>(options).get());
-        return 0;
+        return result_t();
     }
 
     obj_ptr<HttpClient> hc = new HttpClient(nullptr);
@@ -312,7 +312,7 @@ result_t HttpClient_base::_new(Union_HttpClient_options options, obj_ptr<HttpCli
 
     retVal = hc;
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::init(v8::Local<v8::Object> options)
@@ -377,7 +377,7 @@ result_t HttpClient::init(v8::Local<v8::Object> options)
             return hr;
     }
 
-    return 0;
+    return result_t();
 }
 
 bool HttpClient::should_bypass_proxy(exlib::string hostname, int32_t port)
@@ -460,85 +460,85 @@ bool HttpClient::should_bypass_proxy(exlib::string hostname, int32_t port)
 result_t HttpClient::get_enableCookie(bool& retVal)
 {
     retVal = m_enableCookie;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_enableCookie(bool newVal)
 {
     m_enableCookie = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_keepAlive(bool& retVal)
 {
     retVal = m_keepAlive;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_keepAlive(bool newVal)
 {
     m_keepAlive = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_timeout(int32_t& retVal)
 {
     retVal = m_timeout;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_timeout(int32_t newVal)
 {
     m_timeout = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal)
 {
     retVal = m_cookies;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_autoRedirect(bool& retVal)
 {
     retVal = m_autoRedirect;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_autoRedirect(bool newVal)
 {
     m_autoRedirect = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_enableEncoding(bool& retVal)
 {
     retVal = m_enableEncoding;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_enableEncoding(bool newVal)
 {
     m_enableEncoding = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_enableH2(bool& retVal)
 {
     retVal = m_enableH2;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_enableH2(bool newVal)
 {
     m_enableH2 = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_maxHeadersCount(int32_t& retVal)
 {
     retVal = m_maxHeadersCount;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_maxHeadersCount(int32_t newVal)
@@ -547,13 +547,13 @@ result_t HttpClient::set_maxHeadersCount(int32_t newVal)
         return result_t::out_of_range();
 
     m_maxHeadersCount = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_maxHeaderSize(int32_t& retVal)
 {
     retVal = m_maxHeaderSize;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_maxHeaderSize(int32_t newVal)
@@ -562,13 +562,13 @@ result_t HttpClient::set_maxHeaderSize(int32_t newVal)
         return result_t::out_of_range();
 
     m_maxHeaderSize = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_maxChunkSize(int32_t& retVal)
 {
     retVal = m_maxChunkSize;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_maxChunkSize(int32_t newVal)
@@ -577,49 +577,49 @@ result_t HttpClient::set_maxChunkSize(int32_t newVal)
         return result_t::out_of_range();
 
     m_maxChunkSize = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_maxBodySize(int32_t& retVal)
 {
     retVal = m_maxBodySize;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_maxBodySize(int32_t newVal)
 {
     m_maxBodySize = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_userAgent(exlib::string& retVal)
 {
     retVal = m_userAgent;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_userAgent(exlib::string newVal)
 {
     m_userAgent = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_poolTimeout(int32_t& retVal)
 {
     retVal = m_poolTimeout;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_poolTimeout(int32_t newVal)
 {
     m_poolTimeout = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_http_proxy(exlib::string& retVal)
 {
     retVal = m_http_proxy;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_http_proxy(exlib::string newVal)
@@ -650,13 +650,13 @@ result_t HttpClient::set_http_proxy(exlib::string newVal)
     d.add(m_poolTimeout, date_t::_MICROSECOND);
     clean_coon(d);
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_https_proxy(exlib::string& retVal)
 {
     retVal = m_https_proxy;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_https_proxy(exlib::string newVal)
@@ -687,7 +687,7 @@ result_t HttpClient::set_https_proxy(exlib::string newVal)
     d.add(m_poolTimeout, date_t::_MICROSECOND);
     clean_coon(d);
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_proxyEnv(v8::Local<v8::Object>& retVal)
@@ -712,7 +712,7 @@ result_t HttpClient::get_proxyEnv(v8::Local<v8::Object>& retVal)
                   isolate->NewString(m_no_proxy))
             .IsJust();
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_proxyEnv(v8::Local<v8::Object> newVal)
@@ -763,7 +763,7 @@ result_t HttpClient::set_proxyEnv(v8::Local<v8::Object> newVal)
         return hr;
     }
 
-    return 0;
+    return result_t();
 }
 
 void HttpClient::setEnvProxy()
@@ -806,81 +806,81 @@ void HttpClient::setEnvProxy()
 result_t HttpClient::get_maxSockets(int32_t& retVal)
 {
     retVal = m_maxSockets;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_maxSockets(int32_t newVal)
 {
     m_maxSockets = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_maxTotalSockets(int32_t& retVal)
 {
     retVal = m_maxTotalSockets;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_maxTotalSockets(int32_t newVal)
 {
     m_maxTotalSockets = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_maxFreeSockets(int32_t& retVal)
 {
     retVal = m_maxFreeSockets;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_maxFreeSockets(int32_t newVal)
 {
     m_maxFreeSockets = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_defaultPort(int32_t& retVal)
 {
     retVal = m_defaultPort;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_defaultPort(int32_t newVal)
 {
     m_defaultPort = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_protocol(exlib::string& retVal)
 {
     retVal = m_protocol;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::set_protocol(exlib::string newVal)
 {
     m_protocol = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_freeSockets(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = holder();
     retVal = v8::Object::New(isolate->m_isolate);
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_sockets(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = holder();
     retVal = v8::Object::New(isolate->m_isolate);
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_totalSocketCount(int32_t& retVal)
 {
     retVal = 0;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::getName(v8::Local<v8::Object> options, exlib::string& retVal)
@@ -903,7 +903,7 @@ result_t HttpClient::getName(v8::Local<v8::Object> options, exlib::string& retVa
         retVal.append(localAddress);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::destroy()
@@ -917,7 +917,7 @@ result_t HttpClient::destroy()
     });
     s_h2sessions.clear();
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::update(HttpCookie_base* cookie)
@@ -927,7 +927,7 @@ result_t HttpClient::update(HttpCookie_base* cookie)
     date_t t, t1;
 
     if (m_cookies.empty())
-        return 0;
+        return result_t();
 
     for (auto& hc : m_cookies) {
         hc->get_name(str);
@@ -965,9 +965,9 @@ result_t HttpClient::update(HttpCookie_base* cookie)
         if (!t.empty() && !t1.empty() && t.diff(t1) != 0)
             hc->set_expires(t1);
 
-        return -1;
+        return result_t(-1);
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::update_cookies(exlib::string url, std::vector<obj_ptr<HttpCookie_base>>& cookies)
@@ -985,7 +985,7 @@ result_t HttpClient::update_cookies(exlib::string url, std::vector<obj_ptr<HttpC
 
     if (cookies.empty()) {
         m_lock.unlock();
-        return 0;
+        return result_t();
     }
 
     for (auto& hc : cookies) {
@@ -1002,7 +1002,7 @@ result_t HttpClient::update_cookies(exlib::string url, std::vector<obj_ptr<HttpC
     }
 
     m_lock.unlock();
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
@@ -1022,7 +1022,7 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
     m_lock.lock();
     if (m_cookies.empty()) {
         m_lock.unlock();
-        return 0;
+        return result_t();
     }
 
     now.now();
@@ -1053,7 +1053,7 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
         retVal = s.substr(0, s.length() - 2);
 
     m_lock.unlock();
-    return 0;
+    return result_t();
 }
 
 // BodyStream wraps the transport stream chain (ChunkedStream / RangeStream +
@@ -1087,7 +1087,7 @@ public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal)
     {
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
     }
 
     virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
@@ -1095,7 +1095,7 @@ public:
         // 受控同步快路径（C 类例外，见审计报告 §3-C）：两个廉价前置判断后直通
         // 内层 readBuffer（其自身负责相位），不额外引入等待。
         if (!m_inner)
-            return CALL_RETURN_NULL; // already closed
+            return result_t::return_null(); // already closed
         if (!m_cleanup)
             return m_inner->readBuffer(bytes, retVal, std::move(ac));
 
@@ -1140,12 +1140,12 @@ public:
 
     virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
     {
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
     }
 
     virtual result_t flush(AsyncHandle ac)
     {
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
     }
 
     virtual result_t close(AsyncHandle ac)
@@ -1160,7 +1160,7 @@ public:
         m_inner.Release();
         if (socket)
             return socket->close(std::move(ac));
-        return 0;
+        return result_t();
     }
 
 private:
@@ -1209,7 +1209,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
             if (v.failed() && at(send)) {
                 m_send_hr = v;
                 next(recv);
-                return 0;
+                return result_t();
             }
 
             if (v.failed() && m_send_hr.failed())
@@ -1306,7 +1306,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
         obj_ptr<HttpResponse> m_response;
         bool m_bNoBody;
         bool m_bConnect;
-        result_t m_send_hr = 0;
+        result_t m_send_hr;
     };
 
     if (ac.isSync())
@@ -1321,7 +1321,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
 {
     if (ac.isSync())
         return request(conn, req, retVal);
-    return 0;
+    return result_t();
 }
 
 class asyncRequest : public AsyncState {
@@ -1830,7 +1830,7 @@ public:
         // (either ALPN was not h2, or reusing an existing connection),
         // clean up the pending entry so future requests don't hang as waiters.
         if (m_is_h2_leader) {
-            m_hc->h2_fail(m_h2PoolKey, CALL_E_INVALID_CALL);
+            m_hc->h2_fail(m_h2PoolKey, result_t::invalid_call());
             m_is_h2_leader = false;
         }
 
@@ -2087,7 +2087,7 @@ public:
                 m_conn.Release();
                 m_retVal.Release();
                 next(prepare);
-                return 0;
+                return result_t();
             }
 
             return next(requested);
@@ -2240,7 +2240,7 @@ public:
         if (can_retry_transport_error(v) && m_reuse && (at(ssl_connect) || at(connected))) {
             m_reuse = false;
             next(prepare);
-            return 0;
+            return result_t();
         }
 
         if (can_retry_transport_error(v) && can_retry_http1_request()) {
@@ -2252,7 +2252,7 @@ public:
             m_retVal.Release();
             m_conn.Release();
             next(prepare);
-            return 0;
+            return result_t();
         }
 
         // H2 waiter woken by the leader before its handshake finished:
@@ -2270,7 +2270,7 @@ public:
                 m_h2session.Release();
                 m_conn.Release();
                 next(prepare);
-                return 0;
+                return result_t();
             }
             return v;
         }
@@ -2283,7 +2283,7 @@ public:
             m_h2session.Release();
             m_conn.Release();
             next(prepare);
-            return 0;
+            return result_t();
         }
 
         // If this fiber is the H2 leader and hits an error during
@@ -2508,7 +2508,7 @@ public:
     {
         m_isolate->Unref();
         delete this;
-        return 0;
+        return result_t();
     }
 };
 
@@ -2638,7 +2638,7 @@ result_t HttpClient::fire_request(exlib::string method, exlib::string url,
     retVal = o->req;
 
     (new asyncRequest(o.get(), new FireAndForgetEvent(ac.isolate())))->post(result_t());
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
@@ -2651,9 +2651,9 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::request(v8::Local<v8::Object> opts,
@@ -2681,7 +2681,7 @@ result_t HttpClient::fire_callback_request(exlib::string method, exlib::string u
     retVal = o->req;
 
     (new asyncRequest(o.get(), new FireAndForgetEvent(ac.isolate())))->post(result_t());
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
@@ -2695,9 +2695,9 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::request(exlib::string url, v8::Local<v8::Object> opts,
@@ -2717,9 +2717,9 @@ result_t HttpClient::request(exlib::string url, v8::Local<v8::Function> callback
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
@@ -2746,9 +2746,9 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
@@ -2763,9 +2763,9 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
@@ -2781,9 +2781,9 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::postSync(exlib::string url, v8::Local<v8::Object> opts,
@@ -2815,9 +2815,9 @@ result_t HttpClient::post(exlib::string url, v8::Local<v8::Function> callback,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::delSync(exlib::string url, v8::Local<v8::Object> opts,
@@ -2849,9 +2849,9 @@ result_t HttpClient::del(exlib::string url, v8::Local<v8::Function> callback,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::putSync(exlib::string url, v8::Local<v8::Object> opts,
@@ -2883,9 +2883,9 @@ result_t HttpClient::put(exlib::string url, v8::Local<v8::Function> callback,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::patchSync(exlib::string url, v8::Local<v8::Object> opts,
@@ -2917,9 +2917,9 @@ result_t HttpClient::patch(exlib::string url, v8::Local<v8::Function> callback,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::headSync(exlib::string url, v8::Local<v8::Object> opts,
@@ -2939,9 +2939,9 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
@@ -2955,9 +2955,9 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
@@ -2972,9 +2972,9 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
             return hr;
 
         retVal = (HttpRequest_base*)msg.get();
-        return 0;
+        return result_t();
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
@@ -2982,7 +2982,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
 {
     request(conn, req, nullptr, new FireAndForgetEvent(Isolate::current()), true);
     retVal = req;
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
@@ -2996,7 +2996,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::request(v8::Local<v8::Object> opts,
@@ -3023,7 +3023,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::request(v8::Local<v8::Object> opts, v8::Local<v8::Function> callback,
@@ -3063,7 +3063,7 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
@@ -3079,7 +3079,7 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
@@ -3096,7 +3096,7 @@ result_t HttpClient::get(exlib::string url, v8::Local<v8::Function> callback,
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::post(exlib::string url, v8::Local<v8::Object> opts,
@@ -3183,7 +3183,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
@@ -3198,7 +3198,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
-    return 0;
+    return result_t();
 }
 
 result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
@@ -3214,7 +3214,7 @@ result_t HttpClient::head(exlib::string url, v8::Local<v8::Function> callback,
         return hr;
 
     retVal = (HttpRequest_base*)msg.get();
-    return 0;
+    return result_t();
 }
 
 // Async state machine shared by both fetch(url) and fetch(request).
@@ -3358,7 +3358,7 @@ result_t HttpClient::fetch(Union_fetch_request request, v8::Local<v8::Object> op
             v8::Local<v8::Value> headers_val;
             if (!opts.IsEmpty()
                 && !opts->Get(isolate->context(), isolate->NewString("headers", 7)).ToLocal(&headers_val))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             bool replace_headers = !headers_val.IsEmpty() && !headers_val->IsUndefined();
 
             hr = o->apply_from_request(req, replace_headers);

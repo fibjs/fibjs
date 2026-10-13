@@ -21,7 +21,7 @@ namespace fibjs {
 result_t HttpResponse_base::_new(obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new HttpResponse();
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse_base::_new(v8::Local<v8::Value> body, v8::Local<v8::Object> options,
@@ -67,7 +67,7 @@ result_t HttpResponse_base::_new(v8::Local<v8::Value> body, v8::Local<v8::Object
         resp->set_body(stm);
 
     retVal = resp;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::get_protocol(exlib::string& retVal)
@@ -118,7 +118,7 @@ result_t HttpResponse::setEncoding(exlib::string encoding, obj_ptr<Message_base>
 
     // the caller keeps the response it called this on, like node's readable
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::write(Union_write_data data, int32_t& retVal, AsyncHandle ac)
@@ -478,7 +478,7 @@ result_t HttpResponse::clear()
     m_cookies_filled = false;
     m_statusCode = 200;
 
-    return 0;
+    return result_t();
 }
 
 static const char* const status_lines[] = {
@@ -533,7 +533,7 @@ result_t http_base::get_STATUS_CODES(v8::Local<v8::Object>& retVal)
 
     if (!isolate->STATUS_CODES.IsEmpty()) {
         retVal = isolate->STATUS_CODES.Get(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
@@ -543,7 +543,7 @@ result_t http_base::get_STATUS_CODES(v8::Local<v8::Object>& retVal)
     isolate->STATUS_CODES.Reset(isolate->m_isolate, o);
     retVal = o;
 
-    return 0;
+    return result_t();
 }
 
 exlib::string HttpResponse::prepareHeaders()
@@ -730,25 +730,25 @@ result_t HttpResponse::get_stream(obj_ptr<Stream_base>& retVal)
 result_t HttpResponse::get_statusCode(int32_t& retVal)
 {
     retVal = m_statusCode;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::set_statusCode(int32_t newVal)
 {
     m_statusCode = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::get_statusMessage(exlib::string& retVal)
 {
     retVal = m_statusMessage;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::set_statusMessage(exlib::string newVal)
 {
     m_statusMessage = newVal;
-    return 0;
+    return result_t();
 }
 
 // statusText is a Web API alias for statusMessage
@@ -775,7 +775,7 @@ result_t HttpResponse::set_status(int32_t newVal)
 result_t HttpResponse::get_ok(bool& retVal)
 {
     retVal = m_statusCode >= 200 && m_statusCode < 300;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers)
@@ -783,14 +783,14 @@ result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage
     set_statusCode(statusCode);
     set_statusMessage(statusMessage);
     appendHeader(headers);
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::writeHead(int32_t statusCode, v8::Local<v8::Object> headers)
 {
     set_statusCode(statusCode);
     appendHeader(headers);
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal)
@@ -823,7 +823,7 @@ result_t HttpResponse::get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal
     }
 
     retVal = m_cookies;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::addCookie(Union_addCookie_cookie cookie)
@@ -841,7 +841,7 @@ result_t HttpResponse::addCookie(Union_addCookie_cookie cookie)
 
     m_cookies.push_back(cookie_);
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::redirect(exlib::string url)
@@ -856,25 +856,25 @@ result_t HttpResponse::redirect(int32_t statusCode, exlib::string url)
 
     m_statusCode = statusCode;
     setHeader("Location", url);
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::get_url(exlib::string& retVal)
 {
     retVal = m_fetchUrl;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::get_redirected(bool& retVal)
 {
     retVal = m_redirected;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::get_type(exlib::string& retVal)
 {
     retVal = m_fetchType;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse_base::json(v8::Local<v8::Value> data, v8::Local<v8::Object> options,
@@ -920,7 +920,7 @@ result_t HttpResponse_base::json(v8::Local<v8::Value> data, v8::Local<v8::Object
     resp->set_body(ms);
 
     retVal = resp;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse_base::redirect(exlib::string url, int32_t status,
@@ -930,7 +930,7 @@ result_t HttpResponse_base::redirect(exlib::string url, int32_t status,
     resp->set_statusCode(status);
     resp->setHeader("Location", url);
     retVal = resp;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse_base::error(obj_ptr<HttpResponse_base>& retVal)
@@ -939,7 +939,7 @@ result_t HttpResponse_base::error(obj_ptr<HttpResponse_base>& retVal)
     resp->set_statusCode(0);
     resp->m_fetchType = "error";
     retVal = resp;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::sendHeader(Stream_base* stm, bool content_length, AsyncHandle ac)
@@ -978,7 +978,7 @@ result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
     }
 
     retVal = resp;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::resume(obj_ptr<Message_base>& retVal)
@@ -989,7 +989,7 @@ result_t HttpResponse::resume(obj_ptr<Message_base>& retVal)
         body->resume(r);
     }
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::pause(obj_ptr<Message_base>& retVal)
@@ -1000,7 +1000,7 @@ result_t HttpResponse::pause(obj_ptr<Message_base>& retVal)
         body->pause(r);
     }
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t HttpResponse::unpipe(Stream_base* destination)

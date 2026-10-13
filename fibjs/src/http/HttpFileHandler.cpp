@@ -45,7 +45,7 @@ result_t HttpFileHandler::create(exlib::string root, bool autoIndex, obj_ptr<Han
     stat->isDirectory(isDir);
 
     retVal = new HttpFileHandler(root_, isDir, autoIndex);
-    return 0;
+    return result_t();
 }
 
 result_t HttpFileHandler::create(exlib::string root, v8::Local<v8::Object> options, obj_ptr<Handler_base>& retVal)
@@ -121,7 +121,7 @@ result_t HttpFileHandler::create(exlib::string root, v8::Local<v8::Object> optio
     }
 
     retVal = hdlr;
-    return 0;
+    return result_t();
 }
 
 void HttpFileHandler::applyHeaders(const exlib::string& target, HttpResponse_base* rep)
@@ -149,7 +149,7 @@ void HttpFileHandler::applyHeaders(const exlib::string& target, HttpResponse_bas
 result_t HttpFileHandler::isRouting(bool& retVal)
 {
     retVal = true;
-    return 0;
+    return result_t();
 }
 
 result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -206,7 +206,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         ON_STATE(asyncInvoke, stop)
         {
             m_rep->set_statusCode(400);
-            return next(CALL_RETURN_NULL);
+            return next(result_t::return_null());
         }
 
         ON_STATE(asyncInvoke, autoindex)
@@ -284,7 +284,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_rep->set_body(m_file);
                 m_rep->appendHeader("Content-Type", "text/html");
 
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
             }
 
             Variant v;
@@ -338,7 +338,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 if (diff > -1000 && diff < 1000) {
                     m_rep->set_statusCode(304);
-                    return next(CALL_RETURN_NULL);
+                    return next(result_t::return_null());
                 }
             }
 
@@ -351,7 +351,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 if (qstricmp(range.c_str(), "bytes=", 6)) {
                     m_rep->set_statusCode(416);
 
-                    return next(CALL_RETURN_NULL);
+                    return next(result_t::return_null());
                 }
 
                 range = range.substr(6);
@@ -360,7 +360,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 if (RangeStream_base::_new(m_file, range, stm).failed()) {
                     m_rep->set_statusCode(416);
 
-                    return next(CALL_RETURN_NULL);
+                    return next(result_t::return_null());
                 }
 
                 int64_t fsz, bpos, epos;
@@ -377,12 +377,12 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 m_rep->set_body(stm);
 
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
             }
 
             m_rep->set_body(m_file);
 
-            return next(CALL_RETURN_NULL);
+            return next(result_t::return_null());
         }
 
         virtual result_t error(result_t v)
@@ -397,7 +397,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
 
             m_rep->set_statusCode(404);
-            return next(CALL_RETURN_NULL);
+            return next(result_t::return_null());
         }
 
     private:

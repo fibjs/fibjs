@@ -65,7 +65,7 @@ result_t HttpCollection::parseCookie(exlib::string& str)
             append(strKey, strValue);
     }
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

@@ -29,7 +29,7 @@ result_t add_url(std::vector<obj_ptr<Url>>& urls, exlib::string& url)
 
     urls.push_back(u);
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpRepeater_base::_new(exlib::string url, obj_ptr<HttpRepeater_base>& retVal, v8::Local<v8::Object> This)
@@ -40,7 +40,7 @@ result_t HttpRepeater_base::_new(exlib::string url, obj_ptr<HttpRepeater_base>& 
         return hr;
 
     retVal = repeater;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRepeater_base::_new(std::vector<exlib::string>& urls, obj_ptr<HttpRepeater_base>& retVal, v8::Local<v8::Object> This)
@@ -51,7 +51,7 @@ result_t HttpRepeater_base::_new(std::vector<exlib::string>& urls, obj_ptr<HttpR
         return hr;
 
     retVal = repeater;
-    return 0;
+    return result_t();
 }
 
 HttpRepeater::HttpRepeater()
@@ -75,7 +75,7 @@ result_t HttpRepeater::load(std::vector<exlib::string>& urls)
     v8::Local<v8::Context> context = isolate->context();
 
     if (len == 0)
-        return result_t::make(CALL_E_EXCEPTION).with_message("HttpRepeater: urls must not be empty.").with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_message("HttpRepeater: urls must not be empty.").with_result(result_t::invalid_arg());
 
     for (int32_t i = 0; i < len; i++) {
         hr = add_url(_urls, urls[i]);
@@ -88,7 +88,7 @@ result_t HttpRepeater::load(std::vector<exlib::string>& urls)
     m_idx = 0;
     m_lock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpRepeater::get_urls(std::vector<exlib::string>& retVal)
@@ -102,19 +102,19 @@ result_t HttpRepeater::get_urls(std::vector<exlib::string>& retVal)
     }
     m_lock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpRepeater::get_client(obj_ptr<HttpClient_base>& retVal)
 {
     retVal = m_client;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRepeater::isRouting(bool& retVal)
 {
     retVal = true;
-    return 0;
+    return result_t();
 }
 
 result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -193,7 +193,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             ret->get_body(body);
             m_rep->set_body(body);
 
-            return next(CALL_RETURN_NULL);
+            return next(result_t::return_null());
         }
 
     public:

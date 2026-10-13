@@ -41,13 +41,13 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
 
     // null or undefined - no body
     if (body.IsEmpty() || body->IsNullOrUndefined())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     // Already a SeekableStream - use directly
     obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(body);
     if (stm) {
         retVal = stm;
-        return 0;
+        return result_t();
     }
 
     // Convert various types to Buffer and write to MemoryStream
@@ -201,7 +201,7 @@ result_t body_to_stream(Isolate* isolate, v8::Local<v8::Value> body,
     stm->writeBuffer(buf, nullptr);
     stm->rewind();
     retVal = stm;
-    return 0;
+    return result_t();
 }
 
 #define TINY_SIZE 32768
@@ -307,7 +307,7 @@ public:
 result_t HttpMessage::get_sent(bool& retVal)
 {
     retVal = m_sent;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)
@@ -407,7 +407,7 @@ result_t HttpMessage::formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac)
             return hr;
 
         retVal = form;
-        return 0;
+        return result_t();
     }, std::move(ac));
 }
 
@@ -652,7 +652,7 @@ result_t HttpMessage::appendHeader(exlib::string& strLine)
     p.skipSpace();
     appendHeader(p.string, p2, p.now(), p.left());
 
-    return 0;
+    return result_t();
 }
 
 inline void cp(char* buf, size_t sz, size_t& pos, const char* str, size_t szStr)
@@ -739,7 +739,7 @@ size_t HttpMessage::getData(char* buf, size_t sz, bool content_length)
 result_t HttpMessage::get_protocol(exlib::string& retVal)
 {
     retVal = m_protocol;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::set_protocol(exlib::string newVal)
@@ -753,100 +753,100 @@ result_t HttpMessage::set_protocol(exlib::string newVal)
     m_keepAlive = ((c_str[5] - '0') * 10 + c_str[7] - '0') > 10;
 
     m_protocol = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::get_headers(obj_ptr<Headers_base>& retVal)
 {
     retVal = m_headers;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::get_keepAlive(bool& retVal)
 {
     retVal = m_keepAlive;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::set_keepAlive(bool newVal)
 {
     m_keepAlive = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::get_upgrade(bool& retVal)
 {
     retVal = m_upgrade;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::set_upgrade(bool newVal)
 {
     m_upgrade = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::get_maxHeadersCount(int32_t& retVal)
 {
     retVal = m_maxHeadersCount;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::set_maxHeadersCount(int32_t newVal)
 {
     if (newVal < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("maxHeadersCount must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE);
+        return result_t::make(CALL_E_EXCEPTION).with_format("maxHeadersCount must be non-negative, received %d.", newVal).with_result(result_t::out_of_range());
 
     m_maxHeadersCount = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::get_maxHeaderSize(int32_t& retVal)
 {
     retVal = m_maxHeaderSize;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::set_maxHeaderSize(int32_t newVal)
 {
     if (newVal < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("maxHeaderSize must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE);
+        return result_t::make(CALL_E_EXCEPTION).with_format("maxHeaderSize must be non-negative, received %d.", newVal).with_result(result_t::out_of_range());
 
     m_maxHeaderSize = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::get_maxChunkSize(int32_t& retVal)
 {
     retVal = m_maxChunkSize;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::set_maxChunkSize(int32_t newVal)
 {
     m_maxChunkSize = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::get_maxBodySize(int32_t& retVal)
 {
     retVal = m_maxBodySize;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::set_maxBodySize(int32_t newVal)
 {
     m_maxBodySize = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::get_socket(obj_ptr<Stream_base>& retVal)
 {
     if (!m_socket)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_socket;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::hasHeader(exlib::string name, bool& retVal)
@@ -878,7 +878,7 @@ result_t HttpMessage::appendHeader(Headers_base* headers)
         appendHeader(it.first.c_str(), (int32_t)it.first.length(),
             value.c_str(), (int32_t)value.length());
     }
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::appendHeader(exlib::string name, Variant value)
@@ -925,7 +925,7 @@ result_t HttpMessage::getHeader(exlib::string name, v8::Local<v8::Value>& retVal
         return hr;
 
     if (!has)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     Variant value;
     hr = m_headers->first(name, value);
@@ -933,7 +933,7 @@ result_t HttpMessage::getHeader(exlib::string name, v8::Local<v8::Value>& retVal
         return hr;
 
     retVal = value;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::getHeaders(obj_ptr<NObject>& retVal)
@@ -944,7 +944,7 @@ result_t HttpMessage::getHeaders(obj_ptr<NObject>& retVal)
 result_t HttpMessage::get_headersSent(bool& retVal)
 {
     retVal = m_sent;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::get_trailers(obj_ptr<Headers_base>& retVal)
@@ -952,7 +952,7 @@ result_t HttpMessage::get_trailers(obj_ptr<Headers_base>& retVal)
     if (!m_trailers)
         m_trailers = new Headers();
     retVal = m_trailers;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::addTrailers(v8::Local<v8::Object> headers)
@@ -965,10 +965,10 @@ result_t HttpMessage::addTrailers(v8::Local<v8::Object> headers)
 result_t HttpMessage::get_stream(obj_ptr<Stream_base>& retVal)
 {
     if (!m_stm)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_stm;
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::clear()
@@ -995,7 +995,7 @@ result_t HttpMessage::clear()
     m_bChunked = false;
     m_sent = false;
 
-    return 0;
+    return result_t();
 }
 
 result_t HttpMessage::clone(obj_ptr<Message_base>& retVal)
