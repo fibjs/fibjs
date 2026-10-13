@@ -18,7 +18,7 @@ namespace fibjs {
 result_t Smtp_base::_new(obj_ptr<Smtp_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new Smtp();
-    return 0;
+    return result_t();
 }
 
 #define SMTP_MAX_LINE 1024
@@ -490,22 +490,22 @@ result_t Smtp::quit(AsyncHandle ac)
 result_t Smtp::get_timeout(int32_t& retVal)
 {
     retVal = m_timeout;
-    return 0;
+    return result_t();
 }
 
 result_t Smtp::set_timeout(int32_t newVal)
 {
     m_timeout = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t Smtp::get_socket(obj_ptr<Stream_base>& retVal)
 {
     if (!m_conn)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_conn;
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

@@ -37,7 +37,7 @@ static result_t create_socket_by_type(exlib::string type, obj_ptr<DgramSocket_ba
 {
     int32_t family = get_family(type);
     if (family < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(result_t::invalid_arg());
 
     obj_ptr<DgramSocket> s = new DgramSocket();
     result_t hr = s->create(family, 0);
@@ -45,7 +45,7 @@ static result_t create_socket_by_type(exlib::string type, obj_ptr<DgramSocket_ba
         return hr;
 
     retVal = s;
-    return 0;
+    return result_t();
 }
 
 result_t dgram_base::createSocket(Union_createSocket_opts opts, obj_ptr<DgramSocket_base>& retVal)
@@ -66,7 +66,7 @@ result_t dgram_base::createSocket(Union_createSocket_opts opts, v8::Local<v8::Fu
     v8::Local<v8::Object> r;
     retVal->on(retVal->holder()->NewString("message"), callback, r);
 
-    return 0;
+    return result_t();
 }
 
 static result_t create_socket_by_options(v8::Local<v8::Object> opts, obj_ptr<DgramSocket_base>& retVal)
@@ -90,7 +90,7 @@ static result_t create_socket_by_options(v8::Local<v8::Object> opts, obj_ptr<Dgr
 
     int32_t family = get_family(type);
     if (family < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(result_t::invalid_arg());
 
     obj_ptr<DgramSocket> s = new DgramSocket();
     hr = s->create(family, (reuseAddr ? UV_UDP_REUSEADDR : 0) | (ipv6Only ? UV_UDP_IPV6ONLY : 0));
@@ -107,7 +107,7 @@ static result_t create_socket_by_options(v8::Local<v8::Object> opts, obj_ptr<Dgr
 
     retVal = s;
 
-    return 0;
+    return result_t();
 }
 
 result_t DgramSocket::create(int32_t family, int32_t flags)
@@ -288,7 +288,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
             AsyncSend* pThis = (AsyncSend*)req;
 
             if (status < 0)
-                pThis->m_ac.apost(status);
+                pThis->m_ac.apost(result_t::from_system(status));
             else {
                 pThis->m_retVal = status;
                 pThis->m_ac.apost(result_t());
@@ -338,9 +338,9 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
     if (status >= 0) {
         delete _send;
         retVal = status;
-        return 0;
+        return result_t();
     } else if (status != UV_ENOSYS && status != UV_EAGAIN)
-        return status;
+        return result_t::from_system(status);
 
     return uv_async([&] {
         return uv_udp_send(_send, &m_udp, &_send->m_buf, 1, (sockaddr*)&addr_info, AsyncSend::callback);
@@ -413,7 +413,7 @@ result_t DgramSocket::address(obj_ptr<AddressType>& retVal)
     retVal->address = addr_info.str();
     retVal->port = addr_info.port();
 
-    return 0;
+    return result_t();
 }
 
 static void on_close(uv_handle_t* handle)
@@ -429,6 +429,7 @@ result_t DgramSocket::close()
     if (uv_is_closing(&m_handle))
         return result_t::make(CALL_E_INVALID_CALL).with_message("dgram: socket is already closing.");
 
+    // The uv_call lambda speaks the raw uv status (int32_t) by contract.
     return uv_call([&] {
         uv_close(&m_handle, on_close);
         return 0;
@@ -508,13 +509,13 @@ result_t DgramSocket::ref(obj_ptr<DgramSocket_base>& retVal)
 {
     isolate_ref();
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t DgramSocket::unref(obj_ptr<DgramSocket_base>& retVal)
 {
     isolate_unref();
     retVal = this;
-    return 0;
+    return result_t();
 }
 }

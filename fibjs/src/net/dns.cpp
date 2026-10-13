@@ -44,7 +44,7 @@ result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVa
             if (status < 0) {
                 uv_freeaddrinfo(res);
                 // 先投递再释放：resolver 在 post 之前保持有效；投递即移交，无需中转
-                resolver->_ac.post(status);
+                resolver->_ac.post(result_t::from_system(status));
                 delete resolver;
                 return;
             }
@@ -112,11 +112,11 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
             else if (family == "IPv6")
                 opt->family = 6;
             else
-                return result_t::make(CALL_E_EXCEPTION).with_type_name("TypeError").with_result(CALL_E_INVALIDARG).with_format("Invalid family: %s", family.c_str()).arg("family", family);
+                return result_t::make(CALL_E_EXCEPTION).with_type_name("TypeError").with_result(result_t::invalid_arg()).with_format("Invalid family: %s", family.c_str()).arg("family", family);
         } else {
             int32_t family = std::get<int32_t>(opt->family.value());
             if (family != 0 && family != 4 && family != 6)
-                return result_t::make(CALL_E_EXCEPTION).with_type_name("TypeError").with_result(CALL_E_INVALIDARG).with_format("Invalid family: %d", family).arg("family", family);
+                return result_t::make(CALL_E_EXCEPTION).with_type_name("TypeError").with_result(result_t::invalid_arg()).with_format("Invalid family: %d", family).arg("family", family);
         }
 
         ac.ctxv().resize(1);

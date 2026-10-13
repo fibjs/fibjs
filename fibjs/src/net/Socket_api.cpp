@@ -47,7 +47,7 @@ namespace socket {
     int32_t c_connect(void* sock, const char* host, int32_t port)
     {
         if (!sock) {
-            set_last_error(CALL_E_INVALID_CALL);
+            set_last_error(result_t::invalid_call());
             return 0;
         }
 
@@ -79,7 +79,7 @@ namespace socket {
     int32_t c_recv(void* sock, void* buffer, int32_t cbBuffer)
     {
         if (!sock) {
-            set_last_error(CALL_E_INVALID_CALL);
+            set_last_error(result_t::invalid_call());
             return -1;
         }
 
@@ -105,7 +105,7 @@ namespace socket {
     int32_t c_read(void* sock, void* buffer, int32_t cbBuffer)
     {
         if (!sock) {
-            set_last_error(CALL_E_INVALID_CALL);
+            set_last_error(result_t::invalid_call());
             return -1;
         }
 
@@ -137,7 +137,7 @@ namespace socket {
     int32_t c_send(void* sock, const void* buffer, int32_t cbBuffer)
     {
         if (!sock) {
-            set_last_error(CALL_E_INVALID_CALL);
+            set_last_error(result_t::invalid_call());
             return -1;
         }
 

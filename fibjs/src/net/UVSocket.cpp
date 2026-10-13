@@ -48,7 +48,7 @@ result_t UVSocket::close(AsyncHandle ac)
 
     m_socks.clear();
     while (m_accepts.size() > 0) {
-        m_accepts.front().second.apost(CALL_E_INVALID_CALL);
+        m_accepts.front().second.apost(result_t::invalid_call());
         m_accepts.pop_front();
     }
 
@@ -60,7 +60,7 @@ result_t UVSocket::close(AsyncHandle ac)
 result_t UVSocket::get_family(int32_t& retVal)
 {
     retVal = m_family;
-    return 0;
+    return result_t();
 }
 
 result_t UVSocket::abort()
@@ -72,7 +72,7 @@ result_t UVSocket::setTimeout(int32_t timeout, obj_ptr<Socket_base>& retVal)
 {
     m_timeout = timeout;
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t UVSocket::setTimeout(int32_t timeout, v8::Local<v8::Function> callback, obj_ptr<Socket_base>& retVal)
@@ -83,7 +83,7 @@ result_t UVSocket::setTimeout(int32_t timeout, v8::Local<v8::Function> callback,
         once(holder()->NewString("timeout"), callback, r);
     }
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t UVSocket::get_remoteAddress(exlib::string& retVal)
@@ -97,7 +97,7 @@ result_t UVSocket::get_remoteAddress(exlib::string& retVal)
 
     retVal = addr_info.str();
 
-    return 0;
+    return result_t();
 }
 
 result_t UVSocket::get_remotePort(int32_t& retVal)
@@ -111,7 +111,7 @@ result_t UVSocket::get_remotePort(int32_t& retVal)
 
     retVal = addr_info.port();
 
-    return 0;
+    return result_t();
 }
 
 result_t UVSocket::get_localAddress(exlib::string& retVal)
@@ -125,7 +125,7 @@ result_t UVSocket::get_localAddress(exlib::string& retVal)
 
     retVal = addr_info.str();
 
-    return 0;
+    return result_t();
 }
 
 result_t UVSocket::get_localPort(int32_t& retVal)
@@ -139,7 +139,7 @@ result_t UVSocket::get_localPort(int32_t& retVal)
 
     retVal = addr_info.port();
 
-    return 0;
+    return result_t();
 }
 
 result_t UVSocket::bind(exlib::string addr, int32_t port, bool allowIPv4)
@@ -288,7 +288,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
             if (m_timedout && status == UV_ECANCELED)
                 status = CALL_E_TIMEOUT;
 
-            result_t err = status < 0 ? error_value(status) : result_t(0);
+            result_t err = status < 0 ? error_value(status) : result_t();
 
             // Deliver before handing the error to the reader (same order as the
             // ev backend): the error event is the single delivery of a failed
@@ -357,7 +357,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
             return 0;
         });
 
-        return 0;
+        return result_t();
     } else {
         inetAddr addr_info;
 
@@ -382,7 +382,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
             return uv_tcp_connect(new AsyncConnect(holder(), this, timeout, host, use_path, port), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
         });
 
-        return 0;
+        return result_t();
     }
 }
 
@@ -460,7 +460,7 @@ result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
     if (ac.isSync())
         return result_t::nosync();
 
-    result_t hr = 0;
+    result_t hr;
 
     m_lock.lock();
 
@@ -528,7 +528,7 @@ result_t UVSocket::setKeepAlive(bool enable, int32_t initialDelay)
     if (hr < 0)
         return hr;
 
-    return 0;
+    return result_t();
 }
 
 result_t UVSocket::setNoDelay(bool noDelay)
@@ -540,7 +540,7 @@ result_t UVSocket::setNoDelay(bool noDelay)
     if (hr < 0)
         return hr;
 
-    return 0;
+    return result_t();
 }
 
 result_t UVSocket::isAlive(bool& retVal)
@@ -548,15 +548,15 @@ result_t UVSocket::isAlive(bool& retVal)
     retVal = false;
 
     if (m_state.value() > 1 || m_readEnded || m_destroyed)
-        return 0;
+        return result_t();
 
     if (uv_is_closing(&m_handle))
-        return 0;
+        return result_t();
 
     int32_t fd;
     result_t hr = get_fd(fd);
     if (hr.failed())
-        return 0;
+        return result_t();
 
     return socket_isAlive((SOCKET)fd, retVal);
 }

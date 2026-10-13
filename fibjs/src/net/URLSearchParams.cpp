@@ -16,7 +16,7 @@ namespace fibjs {
 result_t URLSearchParams_base::_new(obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new URLSearchParams();
-    return 0;
+    return result_t();
 }
 
 static result_t url_search_params_init_iterable(Variant init, obj_ptr<URLSearchParams_base>& retVal);
@@ -76,7 +76,7 @@ static result_t url_search_params_init_iterable(Variant init, obj_ptr<URLSearchP
     // fall into the string fallback below and turn into a bogus
     // `undefined=`/`null=` parameter.
     if (v->IsNullOrUndefined())
-        return 0;
+        return result_t();
 
     // WebIDL: the init argument may be a sequence of pairs. Any JS iterable
     // (FormData, Map, Set, another URLSearchParams ...) is materialized through
@@ -99,7 +99,7 @@ static result_t url_search_params_init_iterable(Variant init, obj_ptr<URLSearchP
                     v8::Local<v8::Value> entries;
 
                     if (!fromFn.As<v8::Function>()->Call(context, arrCtor, 1, argv).ToLocal(&entries))
-                        return CALL_E_JAVASCRIPT;
+                        return result_t(CALL_E_JAVASCRIPT);
 
                     if (entries->IsArray()) {
                         result_t hr = params->append(entries.As<v8::Array>());
@@ -124,7 +124,7 @@ result_t URLSearchParams::get_size(int32_t& retVal)
 {
     // WHATWG URL: the number of name-value pairs, duplicates included
     retVal = (int32_t)m_map.size();
-    return 0;
+    return result_t();
 }
 
 result_t URLSearchParams::toString(exlib::string& retVal)
@@ -147,7 +147,7 @@ result_t URLSearchParams::toString(exlib::string& retVal)
     }
 
     retVal = bufs.str();
-    return 0;
+    return result_t();
 }
 
 result_t URLSearchParams::has(exlib::string name, v8::Local<v8::Value> value, bool& retVal)
@@ -167,7 +167,7 @@ result_t URLSearchParams::has(exlib::string name, v8::Local<v8::Value> value, bo
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t URLSearchParams::_delete(exlib::string name, v8::Local<v8::Value> value)
@@ -182,7 +182,7 @@ result_t URLSearchParams::_delete(exlib::string name, v8::Local<v8::Value> value
             return entry.first == name && entry.second.string() == expected;
         });
     m_map.erase(it, m_map.end());
-    return 0;
+    return result_t();
 }
 
 }

@@ -38,7 +38,7 @@ result_t url_base::format(exlib::string href, exlib::string& retVal)
 
     retVal = _url->get_href();
 
-    return 0;
+    return result_t();
 }
 
 result_t url_base::parse(exlib::string url, bool parseQueryString,
@@ -52,7 +52,7 @@ result_t url_base::parse(exlib::string url, bool parseQueryString,
 
     retVal = u;
 
-    return 0;
+    return result_t();
 }
 
 result_t url_base::resolve(exlib::string _from, exlib::string to,
@@ -74,7 +74,7 @@ result_t url_base::resolve(exlib::string _from, exlib::string to,
 
     retVal = _url->get_href();
 
-    return 0;
+    return result_t();
 }
 
 result_t url_base::fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Object> options, exlib::string& retVal)
@@ -155,11 +155,11 @@ result_t url_base::fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Obje
                 char letter = hostname[0] | 0x20;
                 if (letter >= 'a' && letter <= 'z') {
                     retVal = exlib::string(1, hostname[0]) + ":" + decoded_pathname;
-                    return 0;
+                    return result_t();
                 }
             }
             retVal = "\\\\" + ada::idna::to_unicode(hostname) + decoded_pathname;
-            return 0;
+            return result_t();
         }
 
         char letter = decoded_pathname[1] | 0x20;
@@ -191,7 +191,7 @@ result_t url_base::fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Obje
         retVal = ada::unicode::percent_decode(pathname, first_percent);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t url_base::pathToFileURL(exlib::string path, v8::Local<v8::Object> options, obj_ptr<UrlObject_base>& retVal)
@@ -219,7 +219,7 @@ result_t url_base::pathToFileURL(exlib::string path, v8::Local<v8::Object> optio
                 p2++;
 
             if (p2 == p1 || *p2 != PATH_SLASH_WIN32)
-                return CALL_E_INVALID_DATA;
+                return result_t::invalid_data();
 
             domain.assign(p1, p2 - p1);
 
@@ -257,13 +257,13 @@ result_t url_base::pathToFileURL(exlib::string path, v8::Local<v8::Object> optio
 result_t url_base::domainToASCII(exlib::string domain, exlib::string& retVal)
 {
     retVal = ada::idna::to_ascii(domain);
-    return 0;
+    return result_t();
 }
 
 result_t url_base::domainToUnicode(exlib::string domain, exlib::string& retVal)
 {
     retVal = ada::idna::to_unicode(domain);
-    return 0;
+    return result_t();
 }
 
 result_t url_base::format(Union_format_urlObject urlObject, v8::Local<v8::Object> options, exlib::string& retVal)

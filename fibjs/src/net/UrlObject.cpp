@@ -97,7 +97,7 @@ result_t UrlObject_base::_new(v8::Local<v8::Object> args, obj_ptr<UrlObject_base
 
     retVal = u;
 
-    return 0;
+    return result_t();
 }
 
 result_t UrlObject_base::canParse(exlib::string url, exlib::string base, bool& retVal)
@@ -108,14 +108,14 @@ result_t UrlObject_base::canParse(exlib::string url, exlib::string base, bool& r
         _base = ada::parse(base, &s_base);
         if (!_base || !_base->validate()) {
             retVal = false;
-            return 0;
+            return result_t();
         }
     }
 
     ada::result<ada::url_aggregator> _url = ada::parse(url, _base ? &_base.value() : nullptr);
     retVal = _url && _url->validate();
 
-    return 0;
+    return result_t();
 }
 
 result_t UrlObject_base::parse(exlib::string url, exlib::string base, obj_ptr<UrlObject_base>& retVal)
@@ -128,7 +128,7 @@ result_t UrlObject_base::parse(exlib::string url, exlib::string base, obj_ptr<Ur
 
     retVal = u;
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::parse(exlib::string url, exlib::string base)
@@ -147,7 +147,7 @@ result_t Url::parse(exlib::string url, exlib::string base)
     if (!m_url || !m_url->validate())
         return result_t::make(CALL_E_EXCEPTION).with_message("url: Invalid URL '" + url + "'.");
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::legacy_parse(exlib::string url, bool parseQueryString)
@@ -220,7 +220,7 @@ result_t Url::legacy_parse(exlib::string url, bool parseQueryString)
     if (!m_url || !m_url->validate())
         return result_t::make(CALL_E_EXCEPTION).with_message("url: Invalid URL '" + url + "'.");
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::format(v8::Local<v8::Object> args)
@@ -340,7 +340,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     if (GetConfigValue(args, "hash", str, true).ok())
         set_hash(str);
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::resolve(exlib::string to, obj_ptr<UrlObject_base>& retVal)
@@ -354,7 +354,7 @@ result_t Url::resolve(exlib::string to, obj_ptr<UrlObject_base>& retVal)
 
     retVal = u;
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_href(exlib::string& retVal)
@@ -377,7 +377,7 @@ result_t Url::get_href(exlib::string& retVal)
             retVal = retVal.substr(0, n) + retVal.substr(n + 2);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::set_href(exlib::string newVal)
@@ -389,13 +389,13 @@ result_t Url::set_href(exlib::string newVal)
 result_t Url::get_slashes(bool& retVal)
 {
     retVal = m_slashes;
-    return 0;
+    return result_t();
 }
 
 result_t Url::set_slashes(bool newVal)
 {
     m_slashes = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_protocol(exlib::string& retVal)
@@ -403,7 +403,7 @@ result_t Url::get_protocol(exlib::string& retVal)
     if (m_url)
         retVal = m_url->get_protocol();
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::set_protocol(exlib::string newVal)
@@ -411,7 +411,7 @@ result_t Url::set_protocol(exlib::string newVal)
     if (m_url)
         m_url->set_protocol(newVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_origin(exlib::string& retVal)
@@ -419,7 +419,7 @@ result_t Url::get_origin(exlib::string& retVal)
     if (m_url)
         retVal = m_url->get_origin();
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_auth(exlib::string& retVal)
@@ -427,7 +427,7 @@ result_t Url::get_auth(exlib::string& retVal)
     if (m_isLegacy) {
         // In legacy mode, check if we found an @ symbol during parsing
         if (!m_hasAuthSeparator) {
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         }
 
         // If we have @ separator, decode and return the auth (even if empty)
@@ -435,7 +435,7 @@ result_t Url::get_auth(exlib::string& retVal)
         decodeURI(decoded_auth, decoded_auth);
         retVal = decoded_auth;
 
-        return 0;
+        return result_t();
     }
 
     // For non-legacy mode (WHATWG API), use the parsed components
@@ -449,7 +449,7 @@ result_t Url::get_auth(exlib::string& retVal)
 
         // If no @ symbol found, return null like Node.js
         if (at_pos == exlib::string::npos) {
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         }
 
         retVal = username;
@@ -458,10 +458,10 @@ result_t Url::get_auth(exlib::string& retVal)
             retVal.append(password);
         }
     } else {
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_username(exlib::string& retVal)
@@ -472,7 +472,7 @@ result_t Url::get_username(exlib::string& retVal)
             decodeURI(retVal, retVal);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::set_username(exlib::string newVal)
@@ -483,7 +483,7 @@ result_t Url::set_username(exlib::string newVal)
         m_url->set_username(newVal);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_password(exlib::string& retVal)
@@ -494,7 +494,7 @@ result_t Url::get_password(exlib::string& retVal)
             decodeURI(retVal, retVal);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::set_password(exlib::string newVal)
@@ -505,7 +505,7 @@ result_t Url::set_password(exlib::string newVal)
         m_url->set_password(newVal);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get__host(exlib::string& retVal)
@@ -513,7 +513,7 @@ result_t Url::get__host(exlib::string& retVal)
     if (m_url)
         retVal = m_url->get_host();
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::set__host(exlib::string newVal)
@@ -521,7 +521,7 @@ result_t Url::set__host(exlib::string newVal)
     if (m_url)
         m_url->set_host(newVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_hostname(exlib::string& retVal)
@@ -529,7 +529,7 @@ result_t Url::get_hostname(exlib::string& retVal)
     if (m_url)
         retVal = m_url->get_hostname();
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::set_hostname(exlib::string newVal)
@@ -537,7 +537,7 @@ result_t Url::set_hostname(exlib::string newVal)
     if (m_url)
         m_url->set_hostname(newVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_port(exlib::string& retVal)
@@ -546,7 +546,7 @@ result_t Url::get_port(exlib::string& retVal)
         retVal = m_url->get_port();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::set_port(exlib::string newVal)
@@ -554,7 +554,7 @@ result_t Url::set_port(exlib::string newVal)
     if (m_url)
         m_url->set_port(newVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_path(exlib::string& retVal)
@@ -564,7 +564,7 @@ result_t Url::get_path(exlib::string& retVal)
         retVal += m_url->get_search();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_pathname(exlib::string& retVal)
@@ -572,7 +572,7 @@ result_t Url::get_pathname(exlib::string& retVal)
     if (m_url)
         retVal = m_url->get_pathname();
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::set_pathname(exlib::string newVal)
@@ -580,7 +580,7 @@ result_t Url::set_pathname(exlib::string newVal)
     if (m_url)
         m_url->set_pathname(newVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_search(exlib::string& retVal)
@@ -591,7 +591,7 @@ result_t Url::get_search(exlib::string& retVal)
     if (m_url)
         retVal = m_url->get_search();
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::set_search(exlib::string newVal)
@@ -604,13 +604,13 @@ result_t Url::set_search(exlib::string newVal)
             m_url->set_search(newVal);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_query(v8::Local<v8::Value>& retVal)
 {
     if (!m_url)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     if (m_parseQuery) {
         parse_search_params();
@@ -621,7 +621,7 @@ result_t Url::get_query(v8::Local<v8::Value>& retVal)
             retVal = holder()->NewString(search.data() + 1, search.length() - 1);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::set_query(v8::Local<v8::Value> newVal)
@@ -639,19 +639,19 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
         v8::Local<v8::Object> obj = newVal.As<v8::Object>();
         v8::Local<v8::Array> keys;
         if (!obj->GetPropertyNames(holder()->context()).ToLocal(&keys))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
         int32_t len = keys->Length();
 
         if (len == 0)
-            return 0;
+            return result_t();
 
         for (uint32_t i = 0; i < len; i++) {
             v8::Local<v8::Value> key;
             if (!keys->Get(holder()->context(), i).ToLocal(&key))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             v8::Local<v8::Value> value;
             if (!obj->Get(holder()->context(), key).ToLocal(&value))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             // the legacy query serializer renders its keys and values: a
             // numeric entry becomes its text, as querystring does in node
@@ -665,10 +665,10 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
 
         set_search('?' + search_params_str);
 
-        return 0;
+        return result_t();
     }
 
-    return CALL_E_INVALID_DATA;
+    return result_t::invalid_data();
 }
 
 result_t Url::get_hash(exlib::string& retVal)
@@ -676,7 +676,7 @@ result_t Url::get_hash(exlib::string& retVal)
     if (m_url)
         retVal = m_url->get_hash();
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::set_hash(exlib::string newVal)
@@ -684,18 +684,18 @@ result_t Url::set_hash(exlib::string newVal)
     if (m_url)
         m_url->set_hash(newVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::get_searchParams(obj_ptr<URLSearchParams_base>& retVal)
 {
     if (!m_url)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     parse_search_params();
     retVal = m_searchParams;
 
-    return 0;
+    return result_t();
 }
 
 result_t Url::toString(exlib::string& retVal)
@@ -712,7 +712,7 @@ result_t Url::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 
     Isolate* isolate = holder();
     retVal = isolate->NewString(href);
-    return 0;
+    return result_t();
 }
 
 result_t Url::parse_search_params()
@@ -728,7 +728,7 @@ result_t Url::parse_search_params()
             return hr;
     }
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

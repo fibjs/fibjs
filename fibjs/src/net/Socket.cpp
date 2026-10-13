@@ -27,7 +27,7 @@ result_t socket_isAlive(SOCKET fd, bool& retVal)
     retVal = false;
 
     if (fd == INVALID_SOCKET)
-        return 0;
+        return result_t();
 
 #ifdef _WIN32
     fd_set readfds;
@@ -45,16 +45,16 @@ result_t socket_isAlive(SOCKET fd, bool& retVal)
     if (pr == SOCKET_ERROR) {
         int32_t err = WSAGetLastError();
         retVal = err == WSAEINTR;
-        return 0;
+        return result_t();
     }
 
     if (pr == 0) {
         retVal = true;
-        return 0;
+        return result_t();
     }
 
     if (FD_ISSET(fd, &exceptfds))
-        return 0;
+        return result_t();
 
     if (FD_ISSET(fd, &readfds)) {
         char ch;
@@ -66,11 +66,11 @@ result_t socket_isAlive(SOCKET fd, bool& retVal)
             retVal = err == WSAEWOULDBLOCK || err == WSAEINTR;
         }
 
-        return 0;
+        return result_t();
     }
 
     retVal = true;
-    return 0;
+    return result_t();
 #else
     struct pollfd pfd;
     pfd.fd = fd;
@@ -83,12 +83,12 @@ result_t socket_isAlive(SOCKET fd, bool& retVal)
     int pr = ::poll(&pfd, 1, 0);
     if (pr < 0) {
         retVal = errno == EINTR;
-        return 0;
+        return result_t();
     }
 
     if (pr == 0) {
         retVal = true;
-        return 0;
+        return result_t();
     }
 
     if (pfd.revents & (POLLERR | POLLHUP | POLLNVAL
@@ -96,7 +96,7 @@ result_t socket_isAlive(SOCKET fd, bool& retVal)
             | POLLRDHUP
 #endif
             ))
-        return 0;
+        return result_t();
 
     if (pfd.revents & POLLIN) {
         char ch;
@@ -106,11 +106,11 @@ result_t socket_isAlive(SOCKET fd, bool& retVal)
         else if (rr < 0)
             retVal = errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR;
 
-        return 0;
+        return result_t();
     }
 
     retVal = true;
-    return 0;
+    return result_t();
 #endif
 }
 
@@ -152,7 +152,7 @@ result_t Socket::create(int32_t family, obj_ptr<Socket_base>& retVal)
 
     retVal = sock;
 
-    return 0;
+    return result_t();
 }
 
 result_t Socket::create(int32_t family)
@@ -190,13 +190,13 @@ result_t Socket::create(int32_t family)
         sizeof(set_option));
 #endif
 
-    return 0;
+    return result_t();
 }
 
 result_t Socket::get_fd(int32_t& retVal)
 {
     retVal = (int32_t)m_aio.m_fd;
-    return 0;
+    return result_t();
 }
 
 result_t Socket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
@@ -212,7 +212,7 @@ result_t Socket::writeBuffer(Buffer_base* data, AsyncHandle ac)
 
 result_t Socket::flush(AsyncHandle ac)
 {
-    return 0;
+    return result_t();
 }
 
 result_t Socket::close(AsyncHandle ac)
@@ -221,7 +221,7 @@ result_t Socket::close(AsyncHandle ac)
         return result_t::nosync();
 
     if (m_aio.m_fd == INVALID_SOCKET)
-        return 0;
+        return result_t();
 
     return m_aio.close(std::move(ac));
 }
@@ -233,7 +233,7 @@ result_t Socket::get_family(int32_t& retVal)
 
     retVal = m_aio.m_family;
 
-    return 0;
+    return result_t();
 }
 
 result_t Socket::get_remoteAddress(exlib::string& retVal)
@@ -249,7 +249,7 @@ result_t Socket::get_remoteAddress(exlib::string& retVal)
 
     retVal = addr_info.str();
 
-    return 0;
+    return result_t();
 }
 
 result_t Socket::get_remotePort(int32_t& retVal)
@@ -265,7 +265,7 @@ result_t Socket::get_remotePort(int32_t& retVal)
 
     retVal = addr_info.port();
 
-    return 0;
+    return result_t();
 }
 
 result_t Socket::get_localAddress(exlib::string& retVal)
@@ -281,7 +281,7 @@ result_t Socket::get_localAddress(exlib::string& retVal)
 
     retVal = addr_info.str();
 
-    return 0;
+    return result_t();
 }
 
 result_t Socket::get_localPort(int32_t& retVal)
@@ -297,25 +297,25 @@ result_t Socket::get_localPort(int32_t& retVal)
 
     retVal = addr_info.port();
 
-    return 0;
+    return result_t();
 }
 
 result_t Socket::get_timeout(int32_t& retVal)
 {
     retVal = m_timeout;
-    return 0;
+    return result_t();
 }
 result_t Socket::set_timeout(int32_t newVal)
 {
     m_timeout = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t Socket::setTimeout(int32_t timeout, obj_ptr<Socket_base>& retVal)
 {
     m_timeout = timeout;
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t Socket::setTimeout(int32_t timeout, v8::Local<v8::Function> callback, obj_ptr<Socket_base>& retVal)
@@ -326,13 +326,13 @@ result_t Socket::setTimeout(int32_t timeout, v8::Local<v8::Function> callback, o
         once(holder()->NewString("timeout"), callback, r);
     }
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t Socket::abort()
 {
     m_aio.abort();
-    return 0;
+    return result_t();
 }
 
 result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4)
@@ -368,7 +368,7 @@ result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4)
     m_bBind = TRUE;
 #endif
 
-    return 0;
+    return result_t();
 }
 
 result_t Socket::bind(int32_t port, bool allowIPv4)
@@ -387,7 +387,7 @@ result_t Socket::listen(int32_t backlog)
     if (::listen(m_aio.m_fd, backlog) == SOCKET_ERROR)
         return SocketError("listen");
 
-    return 0;
+    return result_t();
 }
 
 class connectWrapper : public AsyncEvent {
@@ -441,7 +441,7 @@ public:
                 if (v.failed())
                     v = error_value(v);
 
-                m_sock->on_connected(v.failed() ? v : result_t(0));
+                m_sock->on_connected(v.failed() ? v : result_t());
                 m_ac.post(v);
             } else {
                 if (v.failed()) {
@@ -454,12 +454,12 @@ public:
                     m_sock->emitClose(m_sock, true);
                     m_sock->on_connected(v);
                 } else {
-                    m_sock->on_connected(0);
+                    m_sock->on_connected();
                     (new EventInfo(m_sock, "connect"))->emit();
                 }
             }
             delete this;
-            return 0;
+            return result_t();
         }
 
 private:
@@ -492,7 +492,7 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_
         return m_aio.connect(host, port, new connectWrapper(this, std::move(ac), host, use_path, port), timeout);
 
     m_aio.connect(host, port, new connectWrapper(holder(), this, host, use_path, port), timeout);
-    return 0;
+    return result_t();
 }
 
 result_t Socket::connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
@@ -612,7 +612,7 @@ result_t Socket::setKeepAlive(bool enable, int32_t initialDelay)
         return result_t::invalid_call();
 
     fibjs::setKeepAlive(m_aio.m_fd, enable ? 1 : 0, initialDelay, 0, 0);
-    return 0;
+    return result_t();
 }
 
 result_t Socket::setNoDelay(bool noDelay)
@@ -621,7 +621,7 @@ result_t Socket::setNoDelay(bool noDelay)
         return result_t::invalid_call();
 
     fibjs::setNoDelay(m_aio.m_fd, noDelay ? 1 : 0);
-    return 0;
+    return result_t();
 }
 
 result_t Socket::isAlive(bool& retVal)
@@ -629,7 +629,7 @@ result_t Socket::isAlive(bool& retVal)
     retVal = false;
 
     if (m_aio.m_fd == INVALID_SOCKET || m_state.value() > 1 || m_readEnded || m_destroyed)
-        return 0;
+        return result_t();
 
     return socket_isAlive((SOCKET)m_aio.m_fd, retVal);
 }

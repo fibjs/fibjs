@@ -23,13 +23,13 @@ DECLARE_MODULE(net);
 result_t net_base::get_use_uv_socket(bool& retVal)
 {
     retVal = g_uv_socket;
-    return 0;
+    return result_t();
 }
 
 result_t net_base::set_use_uv_socket(bool newVal)
 {
     g_uv_socket = newVal;
-    return 0;
+    return result_t();
 }
 
 // Node.js >= 18.13 net module: autoSelectFamily default options.
@@ -42,28 +42,28 @@ static int32_t s_autoSelectFamilyAttemptTimeout = 250;
 result_t net_base::getDefaultAutoSelectFamily(bool& retVal)
 {
     retVal = s_autoSelectFamily;
-    return 0;
+    return result_t();
 }
 
 result_t net_base::setDefaultAutoSelectFamily(bool enabled)
 {
     s_autoSelectFamily = enabled;
-    return 0;
+    return result_t();
 }
 
 result_t net_base::getDefaultAutoSelectFamilyAttemptTimeout(int32_t& retVal)
 {
     retVal = s_autoSelectFamilyAttemptTimeout;
-    return 0;
+    return result_t();
 }
 
 result_t net_base::setDefaultAutoSelectFamilyAttemptTimeout(int32_t milliseconds)
 {
     if (milliseconds < 10)
-        return result_t::make(CALL_E_EXCEPTION).with_format("setDefaultAutoSelectFamilyAttemptTimeout: milliseconds must be >= 10, got %d.", milliseconds).with_result(CALL_E_OUTRANGE);
+        return result_t::make(CALL_E_EXCEPTION).with_format("setDefaultAutoSelectFamilyAttemptTimeout: milliseconds must be >= 10, got %d.", milliseconds).with_result(result_t::out_of_range());
 
     s_autoSelectFamilyAttemptTimeout = milliseconds;
-    return 0;
+    return result_t();
 }
 
 result_t net_base::info(v8::Local<v8::Object>& retVal)
@@ -78,7 +78,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
         return result_t::nosync();
 
     if (family != net_base::C_AF_INET && family != net_base::C_AF_INET6)
-        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_format("resolve: invalid address family %d.", family);
+        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_format("resolve: invalid address family %d.", family);
 
     class resolve_data : public uv_getaddrinfo_t {
     public:
@@ -190,7 +190,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         return result_t::nosync();
 
     if (qstrcmp(url.c_str(), "tcp:", 4) && qstrcmp(url.c_str(), "unix:", 5) && qstrcmp(url.c_str(), "pipe:", 5))
-        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_format("connect: unknown protocol in url '%s'.", url.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_format("connect: unknown protocol in url '%s'.", url.c_str());
 
     if (!qstrcmp(url.c_str(), "tcp:", 4)) {
         obj_ptr<Url> u = new Url();
@@ -201,7 +201,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
 
         exlib::string port = u->port();
         if (port.length() == 0)
-            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_format("connect: missing port in url '%s'.", url.c_str());
+            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_format("connect: missing port in url '%s'.", url.c_str());
 
         int32_t nPort = atoi(port.c_str());
         int32_t family = u->isIPv6() ? net_base::C_AF_INET6 : net_base::C_AF_INET;
@@ -422,17 +422,17 @@ result_t net_base::isIP(v8::Local<v8::Value> ip, int32_t& retVal)
     retVal = 0;
 
     if (!is_ip_string(ip, s))
-        return 0;
+        return result_t();
 
     if (Url::isIPv4(s)) {
         retVal = 4;
-        return 0;
+        return result_t();
     }
 
     if (Url::isIPv6(s))
         retVal = 6;
 
-    return 0;
+    return result_t();
 }
 
 result_t net_base::isIPv4(v8::Local<v8::Value> ip, bool& retVal)
@@ -440,7 +440,7 @@ result_t net_base::isIPv4(v8::Local<v8::Value> ip, bool& retVal)
     exlib::string s;
 
     retVal = is_ip_string(ip, s) && Url::isIPv4(s);
-    return 0;
+    return result_t();
 }
 
 result_t net_base::isIPv6(v8::Local<v8::Value> ip, bool& retVal)
@@ -448,7 +448,7 @@ result_t net_base::isIPv6(v8::Local<v8::Value> ip, bool& retVal)
     exlib::string s;
 
     retVal = is_ip_string(ip, s) && Url::isIPv6(s);
-    return 0;
+    return result_t();
 }
 
 result_t net_base::createServer(v8::Local<v8::Object> options, Union_createServer_listener listener, obj_ptr<TcpServer_base>& retVal)

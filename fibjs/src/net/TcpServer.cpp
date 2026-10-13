@@ -32,7 +32,7 @@ result_t _new_tcpServer(exlib::string addr, int32_t port,
 
     retVal = svr;
 
-    return 0;
+    return result_t();
 }
 
 result_t TcpServer_base::_new(int32_t port, Union_TcpServer_listener listener,
@@ -71,7 +71,7 @@ result_t TcpServer_base::_new(Union_TcpServer_listener listener,
     svr->wrap(This);
     svr->set_handler(handler);
     retVal = svr;
-    return 0;
+    return result_t();
 }
 
 result_t TcpServer_base::_new(v8::Local<v8::Object> options, Union_TcpServer_listener listener,
@@ -132,7 +132,7 @@ result_t TcpServer::create(exlib::string addr, int32_t port,
 
     set_handler(listener);
 
-    return 0;
+    return result_t();
 }
 
 result_t TcpServer::start()
@@ -251,7 +251,7 @@ result_t TcpServer::start()
             m_pThis->_emit("error", &errArg, 1);
             if (m_pThis->m_eventDelegate)
                 m_pThis->m_eventDelegate->_emit("error", &errArg, 1);
-            return 0;
+            return result_t();
         }
 
     private:
@@ -276,7 +276,7 @@ result_t TcpServer::start()
     _emit("listening");
     if (m_eventDelegate)
         m_eventDelegate->_emit("listening");
-    return 0;
+    return result_t();
 }
 
 result_t TcpServer::stop(AsyncHandle ac)
@@ -284,7 +284,7 @@ result_t TcpServer::stop(AsyncHandle ac)
     // a server that never listened has nothing to close; node treats close()
     // on a non-listening server as a no-op instead of failing
     if (!m_socket)
-        return 0;
+        return result_t();
 
     // emit 'close' immediately when m_running transitions to false,
     // so JS listeners fire on next yield regardless of asyncAccept timing
@@ -330,13 +330,13 @@ result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, As
 result_t TcpServer::get_timeout(int32_t& retVal)
 {
     retVal = m_timeout;
-    return 0;
+    return result_t();
 }
 
 result_t TcpServer::set_timeout(int32_t newVal)
 {
     m_timeout = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t TcpServer::get_socket(obj_ptr<Socket_base>& retVal)
@@ -345,7 +345,7 @@ result_t TcpServer::get_socket(obj_ptr<Socket_base>& retVal)
         return result_t::invalid_call();
 
     retVal = m_socket;
-    return 0;
+    return result_t();
 }
 
 result_t TcpServer::address(obj_ptr<AddressType>& retVal)
@@ -362,13 +362,13 @@ result_t TcpServer::address(obj_ptr<AddressType>& retVal)
     m_socket->get_family(family);
     retVal->family = family == net_base::C_AF_INET6 ? "IPv6" : "IPv4";
 
-    return 0;
+    return result_t();
 }
 
 result_t TcpServer::get_handler(obj_ptr<Handler_base>& retVal)
 {
     retVal = m_hdlr;
-    return 0;
+    return result_t();
 }
 
 result_t TcpServer::set_handler(Handler_base* newVal)
@@ -376,7 +376,7 @@ result_t TcpServer::set_handler(Handler_base* newVal)
     SetPrivate("handler", newVal->wrap());
     m_hdlr = newVal;
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

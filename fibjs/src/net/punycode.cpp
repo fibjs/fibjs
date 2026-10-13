@@ -22,7 +22,7 @@ result_t punycode_base::encode(exlib::string domain, exlib::string& retVal)
 
     retVal = out;
 
-    return 0;
+    return result_t();
 }
 
 result_t punycode_base::decode(exlib::string domain, exlib::string& retVal)
@@ -32,19 +32,19 @@ result_t punycode_base::decode(exlib::string domain, exlib::string& retVal)
 
     retVal = utf32to8String(out);
 
-    return 0;
+    return result_t();
 }
 
 result_t punycode_base::toASCII(exlib::string domain, exlib::string& retVal)
 {
     retVal = ada::idna::to_ascii(domain);
-    return 0;
+    return result_t();
 }
 
 result_t punycode_base::toUnicode(exlib::string domain, exlib::string& retVal)
 {
     retVal = ada::idna::to_unicode(domain);
-    return 0;
+    return result_t();
 }
 
 }
