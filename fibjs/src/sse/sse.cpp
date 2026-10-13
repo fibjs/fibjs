@@ -20,7 +20,7 @@ result_t sse_base::upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
 
     retVal = new EventSourceHandler(accept);
-    return 0;
+    return result_t();
 }
 
 EventSourceHandler::EventSourceHandler(v8::Local<v8::Function> accept)
@@ -32,7 +32,7 @@ EventSourceHandler::EventSourceHandler(v8::Local<v8::Function> accept)
 result_t EventSourceHandler::isRouting(bool& retVal)
 {
     retVal = false;
-    return 0;
+    return result_t();
 }
 
 result_t EventSourceHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -68,7 +68,7 @@ result_t EventSourceHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVa
             es->m_stream = m_stm;
             // 把票交给 EventSource：关闭收尾由 EventSource::close 持票回投；
             // Ticket 保证这张票只送达一次（重复回投是 no-op）
-            es->setTicket(next(CALL_RETURN_NULL));
+            es->setTicket(next(result_t::return_null()));
 
             Variant vs[2];
             vs[0] = es;

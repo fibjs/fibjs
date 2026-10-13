@@ -63,7 +63,7 @@ public:
         if (stm)
             stm->cc_close(holder());
 
-        return 0;
+        return result_t();
     }
 
     ~EventSourceHoldToken()
@@ -296,7 +296,7 @@ result_t EventSource_base::_new(exlib::string url, v8::Local<v8::Object> options
 
     ac->apost(result_t());
 
-    return 0;
+    return result_t();
 }
 
 // 对端已经消失（客户端断开、进程被终止、网络中断）时，终止分块 "0\r\n\r\n" 已经没有
@@ -347,7 +347,7 @@ public:
     {
         if (m_claimed.xchg(1) == 0)
             m_target.post(v);
-        return 0;
+        return result_t();
     }
 
     virtual Isolate* isolate() override
@@ -376,7 +376,7 @@ EventSource::~EventSource()
     // 续体就地跑起来（可能分配对象、进 JS 回调）；apost 只把事件丢进
     // AsyncEvent::async -> s_acPool（纯队列，不触碰 V8），留到下一轮 JS 线程执行。
     if (m_ac)
-        m_ac.apost(CALL_RETURN_NULL); // owned: 池任务投递，投递后由 handle 释放票据
+        m_ac.apost(result_t::return_null()); // owned: 池任务投递，投递后由 handle 释放票据
 }
 
 result_t EventSource::close(AsyncHandle ac)
@@ -402,7 +402,7 @@ result_t EventSource::close(AsyncHandle ac)
 
         ON_STATE(asyncClose, done)
         {
-            m_ac_req.post(CALL_RETURN_NULL);
+            m_ac_req.post(result_t::return_null());
             return next();
         }
 
@@ -415,7 +415,7 @@ result_t EventSource::close(AsyncHandle ac)
             // 当作继续，于是 done 再投一次）：票据是一次性的，重复回投是 no-op。
             // 正确性由 EventSource::Ticket 的认领语义保证，不依赖本函数的返回值约定。
             if (is_connection_gone(v))
-                v = CALL_RETURN_NULL;
+                v = result_t::return_null();
 
             m_ac_req.post(v);
             return v;
@@ -447,7 +447,7 @@ result_t EventSource::close(AsyncHandle ac)
         return result_t::pending();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncHandle ac)
@@ -563,29 +563,29 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
 result_t EventSource::get_readyState(int32_t& retVal)
 {
     retVal = m_readyState;
-    return 0;
+    return result_t();
 }
 
 result_t EventSource::get_url(exlib::string& retVal)
 {
     retVal = m_url;
-    return 0;
+    return result_t();
 }
 
 result_t EventSource::get_withCredentials(bool& retVal)
 {
     retVal = false;
-    return 0;
+    return result_t();
 }
 
 result_t EventSource::get_response(obj_ptr<HttpResponse_base>& retVal)
 {
     if (!m_response)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = static_cast<HttpResponse_base*>(m_response.get());
 
-    return 0;
+    return result_t();
 }
 
 }

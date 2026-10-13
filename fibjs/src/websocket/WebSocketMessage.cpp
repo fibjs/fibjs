@@ -21,7 +21,7 @@ result_t WebSocketMessage_base::_new(int32_t type, bool masked, bool compress, i
     v8::Local<v8::Object> This)
 {
     retVal = new WebSocketMessage(type, masked, compress, maxSize);
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketMessage::get_sent(bool& retVal)
@@ -71,7 +71,7 @@ result_t WebSocketMessage::setEncoding(exlib::string encoding, obj_ptr<Message_b
     m_message->setEncoding(encoding, r);
 
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketMessage::write(Union_write_data data, int32_t& retVal, AsyncHandle ac)
@@ -188,7 +188,7 @@ result_t WebSocketMessage::isEnded(bool& retVal)
 result_t WebSocketMessage::clear()
 {
     m_message = new Message();
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t bytes, uint32_t mask, AsyncHandle ac)
@@ -605,10 +605,10 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, v8::Local<v8::Object> opti
 result_t WebSocketMessage::get_stream(obj_ptr<Stream_base>& retVal)
 {
     if (!m_stm)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_stm;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketMessage::get_type(int32_t& retVal)
@@ -629,14 +629,14 @@ result_t WebSocketMessage::get_data(v8::Local<v8::Value>& retVal)
 
     auto& body = m_message->body();
     if (!body)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     body->rewind();
 
     obj_ptr<Buffer_base> data;
     result_t hr = body->readAll(data, NULL);
     if (hr.is_return_null() || !data)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     if (hr.failed())
         return hr;
 
@@ -644,7 +644,7 @@ result_t WebSocketMessage::get_data(v8::Local<v8::Value>& retVal)
         exlib::string txt;
         data->toString(txt);
         retVal = holder()->NewString(txt);
-        return 0;
+        return result_t();
     }
 
     return data->valueOf(retVal);
@@ -653,40 +653,40 @@ result_t WebSocketMessage::get_data(v8::Local<v8::Value>& retVal)
 result_t WebSocketMessage::get_masked(bool& retVal)
 {
     retVal = m_masked;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketMessage::set_masked(bool newVal)
 {
     m_masked = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketMessage::get_compress(bool& retVal)
 {
     retVal = m_compress;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketMessage::set_compress(bool newVal)
 {
     m_compress = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketMessage::get_maxSize(int32_t& retVal)
 {
     retVal = m_maxSize;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketMessage::set_maxSize(int32_t newVal)
 {
     if (newVal < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("maxSize must be non-negative, received %d.", newVal).with_result(CALL_E_OUTRANGE);
+        return result_t::make(CALL_E_EXCEPTION).with_format("maxSize must be non-negative, received %d.", newVal).with_result(result_t::out_of_range());
 
     m_maxSize = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketMessage::clone(obj_ptr<Message_base>& retVal)
@@ -700,7 +700,7 @@ result_t WebSocketMessage::clone(obj_ptr<Message_base>& retVal)
     m_message->copyTo(msg->m_message);
 
     retVal = msg;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketMessage::pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)

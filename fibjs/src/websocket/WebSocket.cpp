@@ -126,7 +126,7 @@ result_t normalize_protocols(const std::vector<exlib::string>& input, std::vecto
         protocols.push_back(protocol);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t load_protocol_options(v8::Local<v8::Object> opts, exlib::string& protocolHeader)
@@ -146,7 +146,7 @@ result_t load_protocol_options(v8::Local<v8::Object> opts, exlib::string& protoc
     if (hasProtocols) {
         v8::Local<v8::Value> protocolsValue;
         if (!opts->Get(context, protocolsKey).ToLocal(&protocolsValue))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         hr = GetArgumentValue(isolate, protocolsValue, protocolList);
         if (hr.failed())
@@ -163,7 +163,7 @@ result_t load_protocol_options(v8::Local<v8::Object> opts, exlib::string& protoc
         return hr;
 
     protocolHeader = join_protocols(normalizedProtocols);
-    return 0;
+    return result_t();
 }
 
 } // namespace
@@ -563,7 +563,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
     retVal = sock;
 
-    return 0;
+    return result_t();
 }
 
 WebSocket::~WebSocket()
@@ -573,7 +573,7 @@ WebSocket::~WebSocket()
             m_stream->cc_close();
 
         if (m_ac)
-            m_ac.post(CALL_RETURN_NULL);
+            m_ac.post(result_t::return_null());
     }
 }
 
@@ -712,7 +712,7 @@ void WebSocket::endConnect(int32_t code, exlib::string reason)
             m_stream->cc_close();
 
         if (m_ac)
-            m_ac.post(CALL_RETURN_NULL);
+            m_ac.post(result_t::return_null());
     }
 }
 
@@ -755,25 +755,25 @@ void WebSocket::enableCompress()
 result_t WebSocket::get_url(exlib::string& retVal)
 {
     retVal = m_url;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocket::get_protocol(exlib::string& retVal)
 {
     retVal = m_protocol;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocket::get_origin(exlib::string& retVal)
 {
     retVal = m_origin;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocket::get_readyState(int32_t& retVal)
 {
     retVal = (int32_t)m_readyState;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocket::stop()
@@ -781,15 +781,15 @@ result_t WebSocket::stop()
     m_readyState.xchg(WebSocket_base::C_CLOSED);
 
     if (m_closeState.xchg(WebSocket_base::C_CLOSED) == WebSocket_base::C_CLOSED)
-        return 0;
+        return result_t();
 
     if (m_stream)
         m_stream->cc_close();
 
     if (m_ac)
-        m_ac.post(CALL_RETURN_NULL);
+        m_ac.post(result_t::return_null());
 
-    return 0;
+    return result_t();
 }
 
 result_t WebSocket::close(int32_t code, exlib::string reason)
@@ -798,10 +798,10 @@ result_t WebSocket::close(int32_t code, exlib::string reason)
         return result_t::make(CALL_E_EXCEPTION).with_message("websocket: The code must be either 1000, or between 3000 and 4999.");
 
     if (m_readyState.CompareAndSwap(WebSocket_base::C_OPEN, WebSocket_base::C_CLOSING) != WebSocket_base::C_OPEN)
-        return 0;
+        return result_t();
 
     (new asyncSend(this, code, reason))->post(result_t());
-    return 0;
+    return result_t();
 }
 
 result_t WebSocket::send_text(exlib::string data)
@@ -816,7 +816,7 @@ result_t WebSocket::send_text(exlib::string data)
     }
 
     (new asyncSend(this, data))->post(result_t());
-    return 0;
+    return result_t();
 }
 
 result_t WebSocket::send_binary(Buffer_base* data)
@@ -831,7 +831,7 @@ result_t WebSocket::send_binary(Buffer_base* data)
     }
 
     (new asyncSend(this, data))->post(result_t());
-    return 0;
+    return result_t();
 }
 
 // binary data is sent as it is; every other value is rendered with its string
@@ -859,13 +859,13 @@ result_t WebSocket::ref(obj_ptr<WebSocket_base>& retVal)
 {
     isolate_ref();
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocket::unref(obj_ptr<WebSocket_base>& retVal)
 {
     isolate_unref();
     retVal = this;
-    return 0;
+    return result_t();
 }
 }

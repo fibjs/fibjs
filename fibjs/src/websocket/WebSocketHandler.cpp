@@ -119,7 +119,7 @@ result_t normalize_protocols(std::vector<exlib::string>& protocols)
 
     protocols.swap(normalizedProtocols);
 
-    return 0;
+    return result_t();
 }
 
 result_t get_protocols(v8::Local<v8::Object> opts, std::vector<exlib::string>& protocols)
@@ -139,7 +139,7 @@ result_t get_protocols(v8::Local<v8::Object> opts, std::vector<exlib::string>& p
     if (hasProtocols) {
         v8::Local<v8::Value> protocolsValue;
         if (!opts->Get(context, protocolsKey).ToLocal(&protocolsValue))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         hr = GetArgumentValue(isolate, protocolsValue, protocolList);
         if (hr.failed())
@@ -170,7 +170,7 @@ result_t WebSocket_base::upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Funct
         return hr;
 
     retVal = new WebSocketHandler(accept, perMessageDeflate, maxPayload, protocols);
-    return 0;
+    return result_t();
 }
 
 result_t WebSocket_base::upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
@@ -194,7 +194,7 @@ WebSocketHandler::WebSocketHandler(v8::Local<v8::Function> accept, bool enableCo
 result_t WebSocketHandler::isRouting(bool& retVal)
 {
     retVal = false;
-    return 0;
+    return result_t();
 }
 
 result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -298,7 +298,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 return hr;
 
             // 把票交给 WebSocket：握手/结束由 endConnect 持票回投
-            obj_ptr<WebSocket> sock = new WebSocket(m_stm, protocol, next(CALL_RETURN_NULL), m_pThis->m_enableCompress, m_pThis->m_maxSize);
+            obj_ptr<WebSocket> sock = new WebSocket(m_stm, protocol, next(result_t::return_null()), m_pThis->m_enableCompress, m_pThis->m_maxSize);
             if (m_compress)
                 sock->enableCompress();
 
