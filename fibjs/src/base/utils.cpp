@@ -82,7 +82,34 @@ static struct {
     { errtype::kError, "JavaScript error." }, // CALL_E_JAVASCRIPT
     { errtype::kError, "Permission denied." }, // CALL_E_PERMIT
     { errtype::kError, "Object closed." }, // CALL_E_CLOSED
+    { errtype::kError, "Resource is busy." }, // CALL_E_BUSY
 };
+
+// The table covers exactly CALL_E_MAX..CALL_E_BUSY. The lookup below bounds-
+// checks, so a missing entry degrades to the generic system-error text instead
+// of reading past the array -- but the guard makes the omission a build error,
+// which is what keeps it from shipping unnoticed again.
+static_assert(sizeof(s_error_info) / sizeof(s_error_info[0]) == CALL_E_MAX - CALL_E_BUSY + 1,
+    "s_error_info needs one entry per CALL_E_* code, in declaration order: add the "
+    "new code to the table instead of letting its message resolve to garbage");
+
+// The canned message of an internal result code, or NULL when the code is in
+// the band (has_error_info()) but has no table entry. The band reaches down to
+// CALL_E_MIN while the table only covers CALL_E_MAX..CALL_E_BUSY, so the index
+// has to be bounds-checked: an unchecked one ran off the end of the table (a
+// code added without its entry) and qstrlen() then walked a garbage pointer,
+// which crashed the process on Windows.
+static const char* getErrorInfoMessage(result_t hr)
+{
+    if (!hr.has_error_info())
+        return NULL;
+
+    int idx = CALL_E_MAX - hr.code();
+    if (idx < 0 || idx >= (int)(sizeof(s_error_info) / sizeof(s_error_info[0])))
+        return NULL;
+
+    return s_error_info[idx].message;
+}
 
 // Default error class name for an internal result code ("" = generic Error).
 static const char* getDefaultErrorTypeName(result_t hr)
@@ -104,8 +131,9 @@ exlib::string getResultMessage(result_t hr)
             return p->message; // the producer renders "property X is not optional."
     }
 
-    if (hr.has_error_info())
-        return fmtString(-hr.code(), s_error_info[CALL_E_MAX - hr.code()].message);
+    const char* info = getErrorInfoMessage(hr);
+    if (info)
+        return fmtString(-hr.code(), info);
 
     const char* uv_str = uv_error(hr.code());
     if (uv_str)
@@ -478,8 +506,9 @@ exlib::string summarize_for_error(const Variant& value)
 // "<CODE>: <text>, <syscall> '<path>'".
 static exlib::string error_text(result_t hr)
 {
-    if (hr.has_error_info())
-        return s_error_info[CALL_E_MAX - hr.code()].message;
+    const char* info = getErrorInfoMessage(hr);
+    if (info)
+        return exlib::string(info);
 
     const char* uv_str = uv_error(hr.code());
     if (uv_str)
