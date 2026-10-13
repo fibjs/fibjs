@@ -40,11 +40,11 @@ result_t MemoryStream::CloneStream::readBuffer(int32_t bytes,
     }
 
     if (strBuf.length() == 0)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = new Buffer(strBuf.c_str(), strBuf.length());
 
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::CloneStream::readAll(obj_ptr<Buffer_base>& retVal,
@@ -61,7 +61,7 @@ result_t MemoryStream::CloneStream::truncate(int64_t bytes, AsyncHandle ac)
 result_t MemoryStream::CloneStream::eof(bool& retVal)
 {
     retVal = m_pos == (int32_t)m_buffer.length();
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::CloneStream::flush(AsyncHandle ac)
@@ -77,7 +77,7 @@ result_t MemoryStream::CloneStream::writeBuffer(Buffer_base* data,
 
 result_t MemoryStream::CloneStream::close(AsyncHandle ac)
 {
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::CloneStream::stat(obj_ptr<Stat_base>& retVal,
@@ -92,7 +92,7 @@ result_t MemoryStream::CloneStream::stat(obj_ptr<Stat_base>& retVal,
 
     retVal = st;
 
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::CloneStream::seek(int64_t offset, int32_t whence)
@@ -111,25 +111,25 @@ result_t MemoryStream::CloneStream::seek(int64_t offset, int32_t whence)
     else if (m_pos > (int32_t)m_buffer.length())
         m_pos = (int32_t)m_buffer.length();
 
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::CloneStream::tell(int64_t& retVal)
 {
     retVal = m_pos;
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::CloneStream::rewind()
 {
     m_pos = 0;
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::CloneStream::size(int64_t& retVal)
 {
     retVal = m_buffer.length();
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::CloneStream::setTime(date_t d)
@@ -140,7 +140,7 @@ result_t MemoryStream::CloneStream::setTime(date_t d)
 result_t MemoryStream::CloneStream::clone(obj_ptr<MemoryStream_base>& retVal)
 {
     retVal = new CloneStream(m_buffer, m_time);
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::CloneStream::clear()
@@ -150,6 +150,6 @@ result_t MemoryStream::CloneStream::clear()
 
     m_time.now();
 
-    return 0;
+    return result_t();
 }
 }

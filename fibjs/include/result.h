@@ -236,6 +236,16 @@ public:
         return result_t(CALL_E_BADINDEX);
     }
 
+    static result_t timeout()
+    {
+        return result_t(CALL_E_TIMEOUT);
+    }
+
+    static result_t abort()
+    {
+        return result_t(CALL_E_ABORT);
+    }
+
     // The return-value signals: the JS boundary turns them into null /
     // undefined (the METHOD_RETURN macros read them by predicate).
     static result_t return_null()

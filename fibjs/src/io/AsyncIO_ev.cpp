@@ -80,7 +80,7 @@ result_t net_base::backend(exlib::string& retVal)
         break;
     }
 
-    return 0;
+    return result_t();
 }
 
 class evAsyncEvent;
@@ -159,20 +159,20 @@ public:
     virtual void start()
     {
         if (m_sockfd == SOCKET_ERROR) {
-            complete(SOCKET_ERROR, false);
+            complete(result_t(SOCKET_ERROR), false);
             return;
         }
 
         // Timed out while waiting in locker queue. The lock ownership has
         // been transferred to this task before resume(), so we can release it safely here.
         if (m_timedout) {
-            complete(CALL_E_TIMEOUT);
+            complete(result_t::timeout());
             return;
         }
 
         // Check if aborted while waiting in queue
         if (m_pThis && m_pThis->get_abort_version() != m_abort_version) {
-            complete(CALL_E_ABORT);
+            complete(result_t::abort());
             return;
         }
 
@@ -204,7 +204,7 @@ public:
 
     virtual result_t process()
     {
-        return 0;
+        return result_t();
     }
 
     virtual void after_unwatch()
@@ -252,7 +252,7 @@ public:
 
         // Check if aborted
         if (m_pThis && m_pThis->get_abort_version() != m_abort_version) {
-            ready(CALL_E_ABORT);
+            ready(result_t::abort());
             return;
         }
 
@@ -276,7 +276,7 @@ public:
         if (m_opt == this && m_watching) {
             ev_io_stop(s_loop, &m_io_watcher);
             m_watching = false;
-            ready(CALL_E_TIMEOUT);
+            ready(result_t::timeout());
         }
     }
 
@@ -407,7 +407,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
                 return result_t::from_system(-nError);
             }
 
-            return 0;
+            return result_t();
         }
 
         virtual void after_unwatch()
@@ -416,10 +416,10 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
             socklen_t sz1 = sizeof(addr_info);
             
             if (::getpeername(m_sockfd, (sockaddr*)&addr_info, &sz1) == SOCKET_ERROR)
-                ready(-ECONNREFUSED);
+                ready(result_t::from_system(-ECONNREFUSED));
             else {
                 setOption(m_sockfd);
-                ready(0);
+                ready(result_t());
             }
         }
 
@@ -485,7 +485,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac)
 
             m_retVal = sock;
 
-            return 0;
+            return result_t();
         }
 
     public:
@@ -551,7 +551,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
                 m_pos += n;
                 if (m_pos == 0) {
-                    return CALL_RETURN_NULL;
+                    return result_t::return_null();
                 }
             } while (m_bRead && m_pos < (int32_t)m_read_buf->length());
 
@@ -560,7 +560,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             if (g_tcpdump)
                 outLog(console_base::C_NOTICE, clean_string((char*)m_read_buf->data(), m_pos));
 
-            return 0;
+            return result_t();
         }
 
     public:
@@ -617,7 +617,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncHandle ac, int32_t timeout)
                 m_p += n;
             }
 
-            return 0;
+            return result_t();
         }
 
     public:
@@ -673,13 +673,13 @@ void AsyncIO::abort()
             if (m_pRecvProc) {
                 AsyncSockProc* pProc = (AsyncSockProc*)m_pRecvProc;
                 ev_io_stop(s_loop, &pProc->m_io_watcher);
-                pProc->ready(CALL_E_ABORT);
+                pProc->ready(result_t::abort());
             }
 
             if (m_pSendProc) {
                 AsyncSockProc* pProc = (AsyncSockProc*)m_pSendProc;
                 ev_io_stop(s_loop, &pProc->m_io_watcher);
-                pProc->ready(CALL_E_ABORT);
+                pProc->ready(result_t::abort());
             }
 
             delete this;

@@ -24,7 +24,7 @@ public:
 
     virtual result_t process(bool end)
     {
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
 
     ON_STATE(asyncBuffer, read)
@@ -66,7 +66,7 @@ result_t BufferedStream_base::_new(Stream_base* stm,
     v8::Local<v8::Object> This)
 {
     retVal = new BufferedStream(stm);
-    return 0;
+    return result_t();
 }
 
 result_t BufferedStream::get_fd(int32_t& retVal)
@@ -102,11 +102,11 @@ result_t BufferedStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                 exlib::string s = pThis->m_strbuf.str();
 
                 if (s.length() == 0)
-                    return CALL_RETURN_NULL;
+                    return result_t::return_null();
 
                 retVal = new Buffer(s.c_str(), s.length());
 
-                return 0;
+                return result_t();
             }
 
             return result_t::pending();
@@ -130,7 +130,7 @@ result_t BufferedStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             retVal = new Buffer(m_buf.c_str() + m_pos, n);
             m_pos += n;
 
-            return 0;
+            return result_t();
         } else
             return m_stm->readBuffer(bytes, retVal, std::move(ac));
     }
@@ -152,7 +152,7 @@ result_t BufferedStream::writeBuffer(Buffer_base* data, AsyncHandle ac)
 
 result_t BufferedStream::flush(AsyncHandle ac)
 {
-    return 0;
+    return result_t();
 }
 
 result_t BufferedStream::close(AsyncHandle ac)
@@ -190,9 +190,9 @@ result_t BufferedStream::readText(int32_t size, exlib::string& retVal,
                     return hr;
 
                 if (retVal.length() == 0)
-                    return CALL_RETURN_NULL;
+                    return result_t::return_null();
 
-                return 0;
+                return result_t();
             }
 
             return result_t::pending();
@@ -226,11 +226,11 @@ result_t BufferedStream::readLine(int32_t maxlen, exlib::string& retVal,
 
 result_t BufferedStream::readLines(int32_t maxlines, std::vector<exlib::string>& retVal)
 {
-    result_t hr = 0;
+    result_t hr;
     exlib::string str;
 
     if (maxlines == 0)
-        return 0;
+        return result_t();
 
     while (true) {
         hr = ac_readLine(-1, str);
@@ -238,7 +238,7 @@ result_t BufferedStream::readLines(int32_t maxlines, std::vector<exlib::string>&
         if (hr.failed())
             return hr;
         if (hr.is_return_null())
-            return 0;
+            return result_t();
 
         retVal.push_back(str);
         if (maxlines > 0) {
@@ -248,7 +248,7 @@ result_t BufferedStream::readLines(int32_t maxlines, std::vector<exlib::string>&
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
@@ -327,11 +327,11 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
                 if (pThis->m_temp == mklen) {
                     retVal.resize(retVal.length() - pThis->m_temp);
                     pThis->m_temp = 0;
-                    return 0;
+                    return result_t();
                 }
 
                 pThis->m_temp = 0;
-                return streamEnd && (retVal.length() == 0) ? CALL_RETURN_NULL : 0;
+                return streamEnd && (retVal.length() == 0) ? result_t::return_null() : result_t();
             }
 
             return result_t::pending();
@@ -396,25 +396,25 @@ result_t BufferedStream::writeLine(exlib::string txt, int32_t& retVal, AsyncHand
 result_t BufferedStream::get_stream(obj_ptr<Stream_base>& retVal)
 {
     retVal = m_stm;
-    return 0;
+    return result_t();
 }
 
 result_t BufferedStream::get_charset(exlib::string& retVal)
 {
     retVal = m_iconv.charset();
-    return 0;
+    return result_t();
 }
 
 result_t BufferedStream::set_charset(exlib::string newVal)
 {
     m_iconv.open(newVal.c_str());
-    return 0;
+    return result_t();
 }
 
 result_t BufferedStream::get_EOL(exlib::string& retVal)
 {
     retVal = m_eol;
-    return 0;
+    return result_t();
 }
 
 result_t BufferedStream::set_EOL(exlib::string newVal)
@@ -428,7 +428,7 @@ result_t BufferedStream::set_EOL(exlib::string newVal)
     else
         return result_t::invalid_arg();
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

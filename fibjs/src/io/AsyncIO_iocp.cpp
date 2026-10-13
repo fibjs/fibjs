@@ -129,7 +129,7 @@ public:
             cleanup_timer();
             m_locker.unlock(this);
             if (mark_completed())
-                m_ac.apost(CALL_E_TIMEOUT);
+                m_ac.apost(result_t::timeout());
             delete this;
             return;
         }
@@ -139,19 +139,19 @@ public:
             cleanup_timer();
             m_locker.unlock(this);
             if (mark_completed())
-                m_ac.apost(CALL_E_ABORT);
+                m_ac.apost(result_t::abort());
             delete this;
             return;
         }
 
         result_t hr = process();
         if (!hr.is_pending())
-            asyncProc::ready(0, hr);
+            asyncProc::ready(0, hr.code());   // the nError channel speaks raw codes
     }
 
     virtual result_t process()
     {
-        return 0;
+        return result_t();
     }
 
     virtual void ready(DWORD dwBytes, int32_t nError)
@@ -279,7 +279,7 @@ void InitializeAsyncIOThread()
 result_t net_base::backend(exlib::string& retVal)
 {
     retVal = "IOCP";
-    return 0;
+    return result_t();
 }
 
 result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int32_t timeout)
@@ -458,7 +458,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             nError = GetLastError();
 
             if (nError == ERROR_BROKEN_PIPE)
-                return CALL_RETURN_NULL;
+                return result_t::return_null();
 
             if (nError == ERROR_IO_PENDING)
                 return result_t::pending();

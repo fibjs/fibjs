@@ -128,7 +128,7 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncHandle ac)
                 if (m_data->m_states[m_from].CompareAndSwap(
                         BRIDGE_WRITE, BRIDGE_READ)
                     != BRIDGE_WRITE)
-                    return error(0);
+                    return error(result_t());
 
                 return m_data->m_stms[m_from]->readBuffer(-1, m_buf, next(write));
             }
@@ -136,12 +136,12 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncHandle ac)
             ON_STATE(AsyncCopy, write)
             {
                 if (n.is_return_null())
-                    return error(0);
+                    return error(result_t());
 
                 if (m_data->m_states[m_from].CompareAndSwap(
                         BRIDGE_READ, BRIDGE_WRITE)
                     != BRIDGE_READ)
-                    return error(0);
+                    return error(result_t());
 
                 return m_data->m_stms[m_to]->writeBuffer(m_buf, next(read));
             }
@@ -153,7 +153,7 @@ result_t io_base::bridge(Stream_base* stm1, Stream_base* stm2, AsyncHandle ac)
 
             ON_STATE(AsyncCopy, end)
             {
-                return error(0);
+                return error(result_t());
             }
 
             virtual result_t error(result_t v)

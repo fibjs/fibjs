@@ -16,12 +16,12 @@ namespace fibjs {
 result_t MemoryStream_base::_new(obj_ptr<MemoryStream_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new MemoryStream();
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::get_fd(int32_t& retVal)
 {
-    return CALL_E_INVALID_CALL;
+    return result_t::invalid_call();
 }
 
 result_t MemoryStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
@@ -53,11 +53,11 @@ result_t MemoryStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     }
 
     if (strBuf.length() == 0)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = new Buffer(strBuf.c_str(), strBuf.length());
 
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::readAll(obj_ptr<Buffer_base>& retVal,
@@ -79,18 +79,18 @@ result_t MemoryStream::truncate(int64_t bytes, AsyncHandle ac)
 
     m_time.now();
 
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::eof(bool& retVal)
 {
     retVal = m_buffer.eof();
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::flush(AsyncHandle ac)
 {
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::writeBuffer(Buffer_base* data, AsyncHandle ac)
@@ -113,12 +113,12 @@ result_t MemoryStream::writeBuffer(Buffer_base* data, AsyncHandle ac)
 
     m_time.now();
 
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::close(AsyncHandle ac)
 {
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac)
@@ -132,13 +132,13 @@ result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 
     retVal = st;
 
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::seek(int64_t offset, int32_t whence)
 {
     if (whence < fs_base::C_SEEK_SET || whence > fs_base::C_SEEK_END)
-        return result_t::make(CALL_E_EXCEPTION).with_format("seek: invalid whence value %d.", whence).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("seek: invalid whence value %d.", whence).with_result(result_t::invalid_arg());
 
     int64_t p = m_buffer.tellg();
     m_buffer.seekg(0, std::ios::end);
@@ -157,38 +157,38 @@ result_t MemoryStream::seek(int64_t offset, int32_t whence)
     m_buffer.seekg((int64_t)offset, std::ios::beg);
     m_buffer.seekp((int64_t)offset, std::ios::beg);
 
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::tell(int64_t& retVal)
 {
     retVal = m_buffer.tellg();
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::rewind()
 {
     m_buffer.seekg(0, std::ios::beg);
     m_buffer.seekp(0, std::ios::beg);
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::size(int64_t& retVal)
 {
     retVal = m_size;
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::setTime(date_t d)
 {
     m_time = d;
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::clone(obj_ptr<MemoryStream_base>& retVal)
 {
     retVal = new CloneStream(m_buffer.str(), m_time);
-    return 0;
+    return result_t();
 }
 
 result_t MemoryStream::clear()
@@ -199,7 +199,7 @@ result_t MemoryStream::clear()
 
     m_time.now();
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */
