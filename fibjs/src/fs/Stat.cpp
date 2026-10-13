@@ -102,216 +102,216 @@ void Stat::init(Stat_base* st)
 result_t Stat::get_name(exlib::string& retVal)
 {
     retVal = name;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_dev(int32_t& retVal)
 {
     retVal = (int32_t)dev;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_ino(int32_t& retVal)
 {
     retVal = (int32_t)ino;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_mode(int32_t& retVal)
 {
     retVal = (int32_t)m_mode;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_nlink(int32_t& retVal)
 {
     retVal = (int32_t)nlink;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_uid(int32_t& retVal)
 {
     retVal = (int32_t)uid;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_gid(int32_t& retVal)
 {
     retVal = (int32_t)gid;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_rdev(int32_t& retVal)
 {
     retVal = (int32_t)rdev;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_size(double& retVal)
 {
     retVal = (double)size;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_blksize(int32_t& retVal)
 {
     retVal = (int32_t)blksize;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_blocks(int32_t& retVal)
 {
     retVal = (int32_t)blocks;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_mtime(date_t& retVal)
 {
     retVal = mtime;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_mtimeMs(double& retVal)
 {
     retVal = mtime.date();
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_mtimeNs(int64_t& retVal)
 {
     retVal = mtimeNs;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_atime(date_t& retVal)
 {
     retVal = atime;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_atimeMs(double& retVal)
 {
     retVal = atime.date();
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_atimeNs(int64_t& retVal)
 {
     retVal = atimeNs;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_ctime(date_t& retVal)
 {
     retVal = ctime;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_ctimeMs(double& retVal)
 {
     retVal = ctime.date();
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_ctimeNs(int64_t& retVal)
 {
     retVal = ctimeNs;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_birthtime(date_t& retVal)
 {
     retVal = birthtime;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_birthtimeMs(double& retVal)
 {
     retVal = birthtime.date();
-    return 0;
+    return result_t();
 };
 
 result_t Stat::get_birthtimeNs(int64_t& retVal)
 {
     retVal = birthtimeNs;
-    return 0;
+    return result_t();
 };
 
 result_t Stat::isWritable(bool& retVal)
 {
     retVal = (S_IWUSR & m_mode) != 0;
 
-    return 0;
+    return result_t();
 }
 
 result_t Stat::isReadable(bool& retVal)
 {
     retVal = (S_IRUSR & m_mode) != 0;
 
-    return 0;
+    return result_t();
 }
 
 result_t Stat::isExecutable(bool& retVal)
 {
     retVal = (S_IXUSR & m_mode) != 0;
 
-    return 0;
+    return result_t();
 }
 
 result_t Stat::isHidden(bool& retVal)
 {
     retVal = m_isHidden;
-    return 0;
+    return result_t();
 }
 
 result_t Stat::isBlockDevice(bool& retVal)
 {
     retVal = S_ISBLK(m_mode);
-    return 0;
+    return result_t();
 }
 
 result_t Stat::isCharacterDevice(bool& retVal)
 {
     retVal = S_ISCHR(m_mode);
-    return 0;
+    return result_t();
 }
 
 result_t Stat::isDirectory(bool& retVal)
 {
     retVal = S_ISDIR(m_mode);
-    return 0;
+    return result_t();
 }
 
 result_t Stat::isFIFO(bool& retVal)
 {
     retVal = S_ISFIFO(m_mode);
-    return 0;
+    return result_t();
 }
 
 result_t Stat::isFile(bool& retVal)
 {
     retVal = S_ISREG(m_mode);
-    return 0;
+    return result_t();
 }
 
 result_t Stat::isSymbolicLink(bool& retVal)
 {
     retVal = S_ISLNK(m_mode);
 
-    return 0;
+    return result_t();
 }
 
 result_t Stat::isMemory(bool& retVal)
 {
     retVal = m_isMemory;
 
-    return 0;
+    return result_t();
 }
 
 result_t Stat::isSocket(bool& retVal)
 {
     retVal = m_isSocket;
 
-    return 0;
+    return result_t();
 }
 }

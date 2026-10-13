@@ -715,7 +715,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::glob(exlib::string pattern, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncHandle ac)

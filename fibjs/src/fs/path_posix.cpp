@@ -61,7 +61,7 @@ result_t path_posix_base::fullpath(exlib::string path, exlib::string& retVal)
 result_t path_posix_base::isAbsolute(exlib::string path, bool& retVal)
 {
     retVal = isPosixPathSlash(path[0]);
-    return 0;
+    return result_t();
 }
 
 result_t path_posix_base::join(OptArgs ps, exlib::string& retVal)
@@ -83,18 +83,18 @@ result_t path_posix_base::toNamespacedPath(v8::Local<v8::Value> path,
     v8::Local<v8::Value>& retVal)
 {
     retVal = path;
-    return 0;
+    return result_t();
 }
 
 result_t path_posix_base::get_posix(v8::Local<v8::Object>& retVal)
 {
     retVal = path_posix_base::class_info().getModule(Isolate::current());
-    return 0;
+    return result_t();
 }
 
 result_t path_posix_base::get_win32(v8::Local<v8::Object>& retVal)
 {
     retVal = path_win32_base::class_info().getModule(Isolate::current());
-    return 0;
+    return result_t();
 }
 }

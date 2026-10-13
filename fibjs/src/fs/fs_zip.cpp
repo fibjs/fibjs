@@ -122,13 +122,13 @@ static result_t set_zip_fs(exlib::string fname, Buffer_base* data)
     _node = new cache_node();
     _node->init(safe_name, list);
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::clearZipFS(exlib::string fname)
 {
     cache_node::erase(fname);
-    return 0;
+    return result_t();
 }
 
 // The mount lookup is a chain of synchronous-in-fiber steps (open -> stat ->
@@ -235,7 +235,7 @@ public:
 #endif
 
         if (it == m_node->m_map.end())
-            return CALL_E_FILE_NOT_FOUND;
+            return result_t(CALL_E_FILE_NOT_FOUND);
 
         m_retVal = it->second;
         return next();
@@ -280,13 +280,13 @@ static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile_base::Read
                 }
         }
 
-        return (new asyncResolveZipFile(zip_file, member, bChanged, member1, retVal, std::move(ac)))->post(0);
+        return (new asyncResolveZipFile(zip_file, member, bChanged, member1, retVal, std::move(ac)))->post(result_t());
 #else
         return (new asyncResolveZipFile(zip_file, member, false, exlib::string(), retVal, std::move(ac)))->post(result_t());
 #endif
     }
 
-    return CALL_E_FILE_NOT_FOUND;
+    return result_t(CALL_E_FILE_NOT_FOUND);
 }
 
 static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
@@ -306,10 +306,10 @@ static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHa
 
         retVal = pStat;
 
-        return 0;
+        return result_t();
     }
 
-    return CALL_E_FILE_NOT_FOUND;
+    return result_t(CALL_E_FILE_NOT_FOUND);
 }
 
 result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
@@ -327,7 +327,7 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHan
 
     hr = zip_stat(safe_name, retVal, std::move(ac));
     if (hr.ok())
-        return 0;
+        return result_t();
 
     if (!isolate->m_enable_FileSystem)
         return result_t::invalid_call();
@@ -342,7 +342,7 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHan
     pStat->fill(safe_name, &req.statbuf);
     retVal = pStat;
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
@@ -369,7 +369,7 @@ result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_p
 
     result_t hr = lstat(path, retVal, std::move(ac));
     if (hr.failed() && !throwIfNoEntry && (hr.is(UV_ENOENT) || hr.is(UV_ENOTDIR)))
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     return hr;
 }
@@ -389,7 +389,7 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHand
 
     hr = zip_stat(safe_name, retVal, std::move(ac));
     if (hr.ok())
-        return 0;
+        return result_t();
 
     if (!isolate->m_enable_FileSystem)
         return result_t::invalid_call();
@@ -404,7 +404,7 @@ result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHand
     pStat->fill(safe_name, &req.statbuf);
     retVal = pStat;
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
@@ -431,7 +431,7 @@ result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_pt
 
     result_t hr = stat(path, retVal, std::move(ac));
     if (hr.failed() && !throwIfNoEntry && (hr.is(UV_ENOENT) || hr.is(UV_ENOTDIR)))
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     return hr;
 }
@@ -478,7 +478,7 @@ static result_t open_file_string(exlib::string fname, exlib::string flags,
 
         _d = zi->date;
         retVal = new MemoryStream::CloneStream(strData, _d);
-        return 0;
+        return result_t();
     }
 
     if (!isolate->m_enable_FileSystem)
@@ -491,7 +491,7 @@ static result_t open_file_string(exlib::string fname, exlib::string flags,
 
     retVal = pFile;
 
-    return 0;
+    return result_t();
 }
 
 static result_t open_file_int(exlib::string fname, int32_t flags,
@@ -515,6 +515,6 @@ static result_t open_file_int(exlib::string fname, int32_t flags,
 
     retVal = new FileStream(_fd);
 
-    return 0;
+    return result_t();
 }
 }

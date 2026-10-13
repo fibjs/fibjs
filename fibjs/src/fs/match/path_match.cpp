@@ -68,22 +68,22 @@ result_t path_win32_base::matchesGlob(exlib::string path, exlib::string pattern,
 {
     if (pattern.empty()) {
         retVal = path.empty();
-        return 0;
+        return result_t();
     }
 
     retVal = matchPattern(path.c_str(), pattern.c_str(), true);
-    return 0;
+    return result_t();
 }
 
 result_t path_posix_base::matchesGlob(exlib::string path, exlib::string pattern, bool& retVal)
 {
     if (pattern.empty()) {
         retVal = path.empty();
-        return 0;
+        return result_t();
     }
 
     retVal = matchPattern(path.c_str(), pattern.c_str(), false);
-    return 0;
+    return result_t();
 }
 
 }

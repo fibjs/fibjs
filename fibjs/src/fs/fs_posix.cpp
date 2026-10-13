@@ -25,7 +25,7 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncHandle ac)
     if (::truncate(path.c_str(), len) < 0)
         return LastError("ftruncate", path);
 
-    return 0;
+    return result_t();
 }
 
 result_t lchmod_platform(exlib::string path, int32_t mode, AsyncHandle ac)
@@ -40,7 +40,7 @@ result_t lchmod_platform(exlib::string path, int32_t mode, AsyncHandle ac)
 #endif
         return LastError("lchmod", path);
 
-    return 0;
+    return result_t();
 }
 }
 

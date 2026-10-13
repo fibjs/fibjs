@@ -31,6 +31,15 @@ inline result_t uv_async(std::function<int32_t(void)> proc)
     return ret.failed() ? ret : result_t::pending();
 }
 
+// A raw uv status becoming a value -- the async-completion counterpart of the
+// junction above: negative = -errno, anything else success. The completion
+// callbacks hold the status as int32_t; this frames it once at the delivering
+// layer.
+inline result_t uv_status(int32_t status)
+{
+    return status < 0 ? result_t::from_system(status) : result_t();
+}
+
 class AutoReq : public uv_fs_t {
 public:
     ~AutoReq()

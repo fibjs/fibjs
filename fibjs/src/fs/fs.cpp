@@ -38,7 +38,7 @@ DECLARE_MODULE(fs);
 // ERR_OUT_OF_RANGE; the message keeps fibjs' own (more explicit) wording.
 static result_t setRangeError(const char* msg)
 {
-    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(CALL_E_OUTRANGE).with_code("ERR_OUT_OF_RANGE").with_message(msg);
+    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(result_t::out_of_range()).with_code("ERR_OUT_OF_RANGE").with_message(msg);
 }
 
 // Node prints NaN / Infinity by name, integers without a fractional part.
@@ -88,20 +88,20 @@ static exlib::string node_received_text(Variant& v)
 // Node.js ERR_OUT_OF_RANGE: RangeError with the "must be <range>" wording.
 static result_t setOutOfRange(const char* name, const char* range, exlib::string received)
 {
-    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(CALL_E_OUTRANGE).with_code("ERR_OUT_OF_RANGE").with_format("The value of \"%s\" is out of range. It must be %s. Received %s",
+    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(result_t::out_of_range()).with_code("ERR_OUT_OF_RANGE").with_format("The value of \"%s\" is out of range. It must be %s. Received %s",
                 name, range, received.c_str());
 }
 
 // Node.js ERR_INVALID_ARG_VALUE: TypeError with the "must be ..." wording.
 static result_t setInvalidArgValue(const char* name, const char* must_be, exlib::string received)
 {
-    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_code("ERR_INVALID_ARG_VALUE").with_format("The argument '%s' %s. Received %s", name, must_be, received.c_str());
+    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_VALUE").with_format("The argument '%s' %s. Received %s", name, must_be, received.c_str());
 }
 
 // Node.js ERR_INVALID_ARG_TYPE: TypeError with the "Received type ..." wording.
 static result_t setInvalidArgType(const char* name, const char* must_be, exlib::string received)
 {
-    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(CALL_E_INVALIDARG).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"%s\" argument must be %s. Received %s", name, must_be, received.c_str());
+    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"%s\" argument must be %s. Received %s", name, must_be, received.c_str());
 }
 
 // Node.js time argument: Date object | unix timestamp in seconds | date string
@@ -115,7 +115,7 @@ static result_t to_unix_timestamp(Variant& v, double& retVal)
             return setInvalidArgType("time", "an instance of Date or an Time in seconds", "an invalid Date");
 
         retVal = ms / 1000;
-        return 0;
+        return result_t();
     }
     case Variant::VT_String: {
         // Node accepts a numeric string (seconds), nothing else.
@@ -127,7 +127,7 @@ static result_t to_unix_timestamp(Variant& v, double& retVal)
             return setInvalidArgType("time", "an instance of Date or an Time in seconds", node_received_text(v));
 
         retVal = d;
-        return 0;
+        return result_t();
     }
     case Variant::VT_Number: {
         double d = v.dblVal();
@@ -136,12 +136,12 @@ static result_t to_unix_timestamp(Variant& v, double& retVal)
             return setInvalidArgType("time", "an instance of Date or an Time in seconds", node_received_text(v));
 
         retVal = d;
-        return 0;
+        return result_t();
     }
     case Variant::VT_Integer:
     case Variant::VT_Long:
         retVal = v.dblVal();
-        return 0;
+        return result_t();
     default:
         return setInvalidArgType("time", "an instance of Date or an Time in seconds", node_received_text(v));
     }
@@ -154,7 +154,7 @@ static result_t check_encoding(const exlib::string& encoding)
 {
     if (encoding.empty() || encoding == "buffer"
         || encoding_conv::is_buffer_codec(encoding) || encoding_conv::is_encoding(encoding))
-        return 0;
+        return result_t();
 
     return setInvalidArgValue("encoding", "is invalid encoding", "'" + encoding + "'");
 }
@@ -188,7 +188,7 @@ static result_t append_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& 
 
     retVal = n;
 
-    return 0;
+    return result_t();
 }
 
 
@@ -219,7 +219,7 @@ static result_t to_mode_value(Variant& v, int32_t& retVal)
             return setOutOfRange("mode", ">= 0 && <= 4294967295", node_number_text(d));
 
         retVal = (int32_t)d;
-        return 0;
+        return result_t();
     }
     case Variant::VT_String: {
         exlib::string s = v.string();
@@ -242,7 +242,7 @@ static result_t to_mode_value(Variant& v, int32_t& retVal)
             return setOutOfRange("mode", ">= 0 && <= 4294967295", node_number_text(mode));
 
         retVal = (int32_t)mode;
-        return 0;
+        return result_t();
     }
     default:
         return setInvalidArgType("mode", "a 32-bit unsigned integer or an octal string", node_received_text(v));
@@ -252,13 +252,13 @@ static result_t to_mode_value(Variant& v, int32_t& retVal)
 result_t FileHandle_base::_new(int32_t fd, obj_ptr<FileHandle_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new FileHandle(fd);
-    return 0;
+    return result_t();
 }
 
 result_t FileHandle::get_fd(int32_t& retVal)
 {
     retVal = m_fd;
-    return 0;
+    return result_t();
 }
 
 result_t FileHandle::chmod(int32_t mode, AsyncHandle ac)
@@ -333,7 +333,7 @@ result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, i
     obj->buffer = buffer;
     retVal = obj;
 
-    return 0;
+    return result_t();
 }
 
 result_t FileHandle::read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncHandle ac)
@@ -405,7 +405,7 @@ result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, 
 
     retVal = result;
 
-    return 0;
+    return result_t();
 }
 
 result_t FileHandle::write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncHandle ac)
@@ -492,7 +492,7 @@ result_t FileHandle::readFile(Union_readFile_options options, Variant& retVal, A
     }
 
     retVal = new Buffer(strBuf.c_str(), strBuf.length());
-    return 0;
+    return result_t();
 }
 
 
@@ -577,7 +577,7 @@ result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt op
 
     ftruncate64(m_fd, _lseeki64(m_fd, 0, SEEK_CUR));
 
-    return 0;
+    return result_t();
 }
 
 
@@ -664,7 +664,7 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
 
     retVal = new FileHandle(_fd);
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::open(exlib::string fname, int32_t flags, int32_t mode,
@@ -685,7 +685,7 @@ result_t fs_base::open(exlib::string fname, int32_t flags, int32_t mode,
 
     retVal = new FileHandle(_fd);
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::open(exlib::string fname, exlib::string flags, Variant mode,
@@ -762,7 +762,7 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
 
     if (hr.is_return_null()) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     if (hr.failed())
@@ -805,7 +805,7 @@ static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::st
                 return hr;
 
             retVal = strBuf;
-            return 0;
+            return result_t();
         }
     }
 
@@ -833,7 +833,7 @@ static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::st
             retVal = buf;
     }
 
-    return 0;
+    return result_t();
 }
 
 
@@ -873,7 +873,7 @@ static result_t open_file_for_write(exlib::string fname, exlib::string flag, int
 
     retVal = pFile;
 
-    return 0;
+    return result_t();
 }
 
 static result_t write_file_ext(exlib::string fname, Buffer_base* data, exlib::string flag, int32_t mode,
@@ -973,7 +973,7 @@ static result_t read_file_fd(FileHandle_base* fd, exlib::string encoding, Varian
 
     if (encoding == "") {
         retVal = new Buffer(strBuf.c_str(), strBuf.length());
-        return 0;
+        return result_t();
     }
 
     obj_ptr<Buffer_base> buf = new Buffer(strBuf.c_str(), strBuf.length());
@@ -1018,7 +1018,7 @@ static result_t write_file_fd(FileHandle_base* fd, Buffer_base* data, int32_t& r
 
     retVal = n;
 
-    return 0;
+    return result_t();
 }
 
 
@@ -1313,7 +1313,7 @@ static result_t fd_from_union(Variant& fd, int32_t& _fd)
     if (_fd < 0)
         return result_t::invalid_call();
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::read(Union_read_fd fd, Buffer_base* buffer, int32_t offset, int32_t length,
@@ -1367,7 +1367,7 @@ result_t fs_base::read(Union_read_fd fd, Buffer_base* buffer, int32_t offset, in
 
     if (strBuf.length() == 0) {
         retVal = 0;
-        return 0;
+        return result_t();
     }
 
     return buffer->write(strBuf, offset, (int32_t)strBuf.length(), "utf8", retVal);
@@ -1423,7 +1423,7 @@ result_t fs_base::write(Union_write_fd fd, Buffer_base* buffer, int32_t offset, 
                         .arg("length", length)
                         .arg("position", position);
 
-                return err;
+                return result_t(err);
             }
 
             sz -= n;
@@ -1433,7 +1433,7 @@ result_t fs_base::write(Union_write_fd fd, Buffer_base* buffer, int32_t offset, 
 
     retVal = length;
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::write(Union_write_fd fd, exlib::string string, int32_t position,
@@ -1476,7 +1476,7 @@ result_t fs_base::fstat(Union_fstat_fd fd, obj_ptr<Stat_base>& retVal, AsyncHand
     pStat->fill("", &req.statbuf);
     retVal = pStat;
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::fstat(Union_fstat_fd fd, v8::Local<v8::Object> options, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
@@ -1495,7 +1495,7 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncHandle ac)
 
     AutoReq req;
     retVal = uv_fs_access(NULL, &req, path.c_str(), F_OK, NULL) == 0;
-    return 0;
+    return result_t();
 }
 
 // Node.js compatibility: the options argument is accepted and ignored
@@ -1597,14 +1597,14 @@ static result_t path_to_variant(const exlib::string& path, const exlib::string& 
 {
     if (encoding.empty() || encoding == "utf8" || encoding == "utf-8") {
         retVal = path;
-        return 0;
+        return result_t();
     }
 
     obj_ptr<Buffer_base> buf = new Buffer(path.c_str(), path.length());
 
     if (encoding == "buffer") {
         retVal = buf;
-        return 0;
+        return result_t();
     }
 
     exlib::string str;
@@ -1614,7 +1614,7 @@ static result_t path_to_variant(const exlib::string& path, const exlib::string& 
 
     retVal = str;
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::readlink(exlib::string path, Variant& retVal, AsyncHandle ac)
@@ -1632,7 +1632,7 @@ result_t fs_base::readlink(exlib::string path, Variant& retVal, AsyncHandle ac)
         return result_t::from_system(ret).with_syscall("readlink").with_path(path);
 
     retVal = (const char*)req.ptr;
-    return 0;
+    return result_t();
 }
 
 static result_t readlink_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncHandle ac);
@@ -1767,7 +1767,7 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncHandle ac)
 
         if (isSymlink) {
             if (++linkCount > maxLinks)
-                return CALL_E_FILE_NOT_FOUND; // Too many symlinks
+                return result_t(CALL_E_FILE_NOT_FOUND); // Too many symlinks
 
             // Read the symlink target
             Variant linkValue;
@@ -1822,7 +1822,7 @@ result_t fs_base::realpath(exlib::string path, Variant& retVal, AsyncHandle ac)
 #endif
 
     retVal = current;
-    return 0;
+    return result_t();
 }
 
 static result_t realpath_encoding(exlib::string path, exlib::string encoding, Variant& retVal, AsyncHandle ac);
@@ -2216,7 +2216,7 @@ public:
         AsyncUVRM* pThis = (AsyncUVRM*)req;
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
-        pThis->m_ac.apost(ret);
+        pThis->m_ac.apost(uv_status(ret));
         delete pThis;
     }
 
@@ -2225,7 +2225,7 @@ public:
         AsyncUVRM* pThis = (AsyncUVRM*)req;
         int32_t ret = (int32_t)uv_fs_get_result(req);
 
-        pThis->m_ac.apost(ret);
+        pThis->m_ac.apost(uv_status(ret));
         delete pThis;
     }
 
@@ -2291,7 +2291,7 @@ public:
                 m_parent->remove_next_entry();
             }
             delete this;
-            return 0;
+            return result_t();
         }
 
     private:
@@ -2317,10 +2317,10 @@ result_t fs_base::mkdtemp(exlib::string prefix, exlib::string& retVal, AsyncHand
     AutoReq req;
     int32_t ret = uv_fs_mkdtemp(NULL, &req, tpl.c_str(), NULL);
     if (ret < 0)
-        return ret;
+        return result_t::from_system(ret);
 
     retVal = uv_fs_get_path(&req);
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle ac)
@@ -2549,7 +2549,7 @@ result_t fs_base::statfs(exlib::string path, obj_ptr<StatfsType>& retVal, AsyncH
     retVal->files = (double)st->f_files;
     retVal->ffree = (double)st->f_ffree;
 
-    return 0;
+    return result_t();
 }
 
 // the numeric form; the merged entry dispatches here, and so does the string
@@ -2982,7 +2982,7 @@ public:
                 .with_syscall("copyfile")
                 .with_path(pThis->m_requestPath));
         } else
-            pThis->m_ac.apost(ret);
+            pThis->m_ac.apost(uv_status(ret));
 
         delete pThis;
     }
@@ -3067,7 +3067,7 @@ public:
                 m_parent->copy_next_entry();
             }
             delete this;
-            return 0;
+            return result_t();
         }
 
     private:
@@ -3149,7 +3149,7 @@ result_t fs_base::opendir(exlib::string path, obj_ptr<Dir_base>& retVal, AsyncHa
 
     retVal = new Dir(path);
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncHandle ac)
@@ -3172,7 +3172,7 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncHand
     while (uv_fs_scandir_next(&req, &dirent) != UV_EOF)
         retVal->append(dirent.name);
 
-    return 0;
+    return result_t();
 }
 
 // Node.js: readdir's `encoding` option controls how entry names are returned
@@ -3187,14 +3187,14 @@ static result_t append_dirent_name(obj_ptr<NArray>& list, const char* name, exli
 
     if (encoding.empty() || encoding == "utf8" || encoding == "utf-8") {
         list->append(name);
-        return 0;
+        return result_t();
     }
 
     obj_ptr<Buffer_base> buf = new Buffer(name, qstrlen(name));
 
     if (encoding == "buffer") {
         list->append(buf);
-        return 0;
+        return result_t();
     }
 
     exlib::string str;
@@ -3204,7 +3204,7 @@ static result_t append_dirent_name(obj_ptr<NArray>& list, const char* name, exli
 
     list->append(str);
 
-    return 0;
+    return result_t();
 }
 
 static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTypes, exlib::string encoding,
@@ -3273,7 +3273,7 @@ static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTyp
     os_normalize(path, path, true);
 
     if (withFileTypes && encoding != "" && encoding != "utf8" && encoding != "utf-8")
-        return result_t::make(CALL_E_EXCEPTION).with_format("withFileTypes is not supported with encoding '%s'.", encoding.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("withFileTypes is not supported with encoding '%s'.", encoding.c_str()).with_result(result_t::invalid_arg());
 
     QuickArray<exlib::string> paths;
     retVal = new NArray();
@@ -3282,7 +3282,7 @@ static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTyp
         AutoReq req;
         int32_t ret = uv_fs_scandir(NULL, &req, path.c_str(), 0, NULL);
         if (ret < 0)
-            return ret;
+            return result_t::from_system(ret);
 
         uv_dirent_t dirent;
         while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {
@@ -3308,7 +3308,7 @@ static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTyp
             AutoReq req;
             int32_t ret = uv_fs_scandir(NULL, &req, (path + PATH_SLASH + _path).c_str(), 0, NULL);
             if (ret < 0)
-                return ret;
+                return result_t::from_system(ret);
 
             uv_dirent_t dirent;
 
@@ -3329,7 +3329,7 @@ static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTyp
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 // Node.js compatibility: createReadStream/createWriteStream never throw synchronously,
@@ -3349,18 +3349,18 @@ static result_t stream_open_error(exlib::string fname, exlib::string flags, resu
     // The error description rides with the value into the emit.
     async([stm, hr, isolate]() {
         // the emit must run on the JS thread with a valid context
-        isolate->sync([stm, hr]() -> int {
+        isolate->sync([stm, hr]() -> result_t {
             v8::Local<v8::Value> err = FillError(hr);
             bool retVal;
 
             JSTrigger stmTrigger(stm);
             stmTrigger._emit("error", &err, 1, retVal);
 
-            return 0;
+            return result_t();
         });
     });
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> options,
@@ -3409,7 +3409,7 @@ result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> op
         retVal = stm;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t fs_base::createWriteStream(exlib::string fname, v8::Local<v8::Object> options,
@@ -3454,7 +3454,7 @@ result_t fs_base::createWriteStream(exlib::string fname, v8::Local<v8::Object> o
 
     retVal = stm;
 
-    return 0;
+    return result_t();
 }
 
 }

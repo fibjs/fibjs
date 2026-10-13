@@ -64,17 +64,17 @@ result_t path_win32_base::isAbsolute(exlib::string path, bool& retVal)
 
     if (isWin32PathSlash(c_str[0])) {
         retVal = true;
-        return 0;
+        return result_t();
     }
 
     if (qisascii(c_str[0]) && c_str[1] == ':' && isWin32PathSlash(c_str[2])) {
         retVal = true;
-        return 0;
+        return result_t();
     }
 
     retVal = false;
 
-    return 0;
+    return result_t();
 }
 
 result_t path_win32_base::join(OptArgs ps, exlib::string& retVal)
@@ -97,7 +97,7 @@ result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
 {
     if (!path->IsString()) {
         retVal = path;
-        return 0;
+        return result_t();
     }
 
     Isolate* isolate = Isolate::current();
@@ -137,7 +137,7 @@ result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
 #endif
             // For paths that already have \\?\ prefix, return after processing
             retVal = GetReturnValue(isolate, str);
-            return 0;
+            return result_t();
         }
 
         result_t hr = _resolve_win32(str);
@@ -148,30 +148,30 @@ result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
             if (str[2] != '?' && str[2] != '.') {
                 str = "\\\\?\\UNC" + str.substr(1);
                 retVal = GetReturnValue(isolate, str);
-                return 0;
+                return result_t();
             }
         } else if (qisascii(str[0])) {
             if (str[1] == ':' && str[2] == '\\') {
                 str = "\\\\?\\" + str.substr(0);
                 retVal = GetReturnValue(isolate, str);
-                return 0;
+                return result_t();
             }
         }
     }
 
     retVal = path;
-    return 0;
+    return result_t();
 }
 
 result_t path_win32_base::get_posix(v8::Local<v8::Object>& retVal)
 {
     retVal = path_posix_base::class_info().getModule(Isolate::current());
-    return 0;
+    return result_t();
 }
 
 result_t path_win32_base::get_win32(v8::Local<v8::Object>& retVal)
 {
     retVal = path_win32_base::class_info().getModule(Isolate::current());
-    return 0;
+    return result_t();
 }
 }

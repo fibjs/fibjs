@@ -17,13 +17,13 @@ namespace fibjs {
 result_t Dir_base::_new(exlib::string path, obj_ptr<Dir_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new Dir(path);
-    return 0;
+    return result_t();
 }
 
 result_t Dir::get_path(exlib::string& retVal)
 {
     retVal = m_path;
-    return 0;
+    return result_t();
 }
 
 result_t Dir::load()
@@ -32,7 +32,7 @@ result_t Dir::load()
         return result_t::closed();
 
     if (m_loaded)
-        return 0;
+        return result_t();
 
     exlib::string path;
     result_t hr = normalize_file_path_like(m_path, path);
@@ -55,7 +55,7 @@ result_t Dir::load()
 
     m_loaded = true;
 
-    return 0;
+    return result_t();
 }
 
 void Dir::unload()
@@ -73,7 +73,7 @@ result_t Dir::read(obj_ptr<DirEntry_base>& retVal, AsyncHandle ac)
 
     // Node.js: a closed directory reports the end of the iteration
     if (m_closed)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     result_t hr = load();
     if (hr.failed())
@@ -81,11 +81,11 @@ result_t Dir::read(obj_ptr<DirEntry_base>& retVal, AsyncHandle ac)
 
     // Node.js: read() returns null once the iteration is finished
     if (m_index >= m_entries.size())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_entries[m_index++];
 
-    return 0;
+    return result_t();
 }
 
 result_t Dir::close(AsyncHandle ac)
@@ -95,7 +95,7 @@ result_t Dir::close(AsyncHandle ac)
 
     unload();
 
-    return 0;
+    return result_t();
 }
 
 result_t Dir::symbol_iterator(obj_ptr<Iterator_base>& retVal)
@@ -108,15 +108,15 @@ result_t Dir::symbol_iterator(obj_ptr<Iterator_base>& retVal)
         }
 
         if (index >= m_entries.size()) {
-            cb(0, false);
+            cb(result_t(), false);
             return;
         }
 
         retVal = m_entries[index];
-        cb(0, true);
+        cb(result_t(), true);
     });
 
-    return 0;
+    return result_t();
 }
 
 result_t Dir::symbol_asyncIterator(obj_ptr<Iterator_base>& retVal)
@@ -144,7 +144,7 @@ result_t Dir::next(obj_ptr<NextType>& retVal, AsyncHandle ac)
 
     retVal = result;
 
-    return 0;
+    return result_t();
 }
 
 result_t Dir::_return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal)
@@ -156,7 +156,7 @@ result_t Dir::_return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal)
 
     retVal = result;
 
-    return 0;
+    return result_t();
 }
 
 } // namespace fibjs

@@ -83,11 +83,11 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     }
 
     if (strBuf.length() == 0)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = new Buffer(strBuf.c_str(), strBuf.length());
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
@@ -114,7 +114,7 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     int32_t bytes = (int32_t)sz;
 
     if (bytes <= 0)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     // Allocate Buffer directly and read into it to avoid extra copy
     std::shared_ptr<v8::BackingStore> store = NewBackingStore(bytes);
@@ -134,11 +134,11 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 
     int32_t actualBytes = bytes - remaining;
     if (actualBytes == 0)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = new Buffer(store, 0, actualBytes);
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::readAllText(exlib::string& retVal)
@@ -163,7 +163,7 @@ result_t FileStream::readAllText(exlib::string& retVal)
 
     if (bytes <= 0) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     // Allocate string buffer directly and read into it
@@ -185,7 +185,7 @@ result_t FileStream::readAllText(exlib::string& retVal)
     int32_t actualBytes = bytes - remaining;
     retVal.resize(actualBytes);
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::Write(const char* p, int32_t sz, int64_t diag_buffer_len)
@@ -209,14 +209,14 @@ result_t FileStream::Write(const char* p, int32_t sz, int64_t diag_buffer_len)
                 return result_t(std::move(b));
             }
 
-            return err;
+            return result_t(err);
         }
 
         sz -= n;
         p += n;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::writeBuffer(Buffer_base* data, AsyncHandle ac)
@@ -247,7 +247,7 @@ result_t FileStream::get_name(exlib::string& retVal)
         return result_t::make(CALL_E_INVALID_CALL).with_message("FileStream: file is closed.");
 
     retVal = name;
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::get_fd(int32_t& retVal)
@@ -256,7 +256,7 @@ result_t FileStream::get_fd(int32_t& retVal)
         return result_t::make(CALL_E_INVALID_CALL).with_message("FileStream: file is closed.");
 
     retVal = m_fd;
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac)
@@ -284,7 +284,7 @@ result_t FileStream::size(int64_t& retVal)
         return LastError("lseek", name);
 
     retVal = sz;
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::eof(bool& retVal)
@@ -305,7 +305,7 @@ result_t FileStream::eof(bool& retVal)
 
     retVal = sz == p;
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::seek(int64_t offset, int32_t whence)
@@ -316,7 +316,7 @@ result_t FileStream::seek(int64_t offset, int32_t whence)
     if (_lseeki64(m_fd, offset, whence) < 0)
         return LastError("lseek", name);
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::tell(int64_t& retVal)
@@ -328,7 +328,7 @@ result_t FileStream::tell(int64_t& retVal)
     if (retVal < 0)
         return LastError("lseek", name);
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::rewind()
@@ -339,7 +339,7 @@ result_t FileStream::rewind()
     if (_lseeki64(m_fd, 0, SEEK_SET) < 0)
         return LastError("lseek", name);
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::flush(AsyncHandle ac)
@@ -350,7 +350,7 @@ result_t FileStream::flush(AsyncHandle ac)
     if (m_fd == -1)
         return result_t::make(CALL_E_INVALID_CALL).with_message("FileStream: file is closed.");
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::close()
@@ -360,7 +360,7 @@ result_t FileStream::close()
         m_fd = -1;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::close(AsyncHandle ac)
@@ -372,7 +372,7 @@ result_t FileStream::close(AsyncHandle ac)
         return close();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::truncate(int64_t bytes, AsyncHandle ac)
@@ -386,7 +386,7 @@ result_t FileStream::truncate(int64_t bytes, AsyncHandle ac)
     if (ftruncate64(m_fd, bytes) < 0)
         return LastError("ftruncate", name);
 
-    return 0;
+    return result_t();
 }
 
 result_t FileStream::chmod(int32_t mode, AsyncHandle ac)
@@ -400,7 +400,7 @@ result_t FileStream::chmod(int32_t mode, AsyncHandle ac)
     if (::fchmod(m_fd, mode))
         return LastError("fchmod", name);
 
-    return 0;
+    return result_t();
 #endif
 }
 }
