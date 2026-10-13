@@ -18,7 +18,7 @@ namespace fibjs {
 result_t AsyncWaitHandler::isRouting(bool& retVal)
 {
     retVal = false;
-    return 0;
+    return result_t();
 }
 
 result_t AsyncWaitHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -28,7 +28,7 @@ result_t AsyncWaitHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         return result_t::nosync();
 
     if (m_invoked.xchg(1) != 0)
-        return 0;
+        return result_t();
 
     m_as = new asyncWaiter(std::move(ac));
     if (m_stat.CompareAndSwap(AC_INIT, AC_WAIT) == AC_INIT)
@@ -47,7 +47,7 @@ result_t AsyncWaitHandler::end()
         m_as = NULL;
     }
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

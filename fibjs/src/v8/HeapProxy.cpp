@@ -46,11 +46,11 @@ result_t HeapSnapshotProxy::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>&
 
     it = _nodes.find(id);
     if (it == _nodes.end())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_nodes[it->second];
 
-    return 0;
+    return result_t();
 }
 
 result_t HeapSnapshotProxy::save(exlib::string fname, AsyncHandle ac)
@@ -86,20 +86,20 @@ result_t HeapSnapshotProxy::save(exlib::string fname, AsyncHandle ac)
 result_t HeapSnapshotProxy::get_time(date_t& retVal)
 {
     retVal = m_d;
-    return 0;
+    return result_t();
 }
 
 result_t HeapSnapshotProxy::get_root(obj_ptr<HeapGraphNode_base>& retVal)
 {
     retVal = new HeapGraphNodeProxy(this, m_snapshot->GetRoot());
-    return 0;
+    return result_t();
 }
 
 result_t HeapSnapshotProxy::get_nodes(std::vector<obj_ptr<HeapGraphNode_base>>& retVal)
 {
     fill_nodes();
     retVal = m_nodes;
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphNodeProxy::get_type(int32_t& retVal)
@@ -108,7 +108,7 @@ result_t HeapGraphNodeProxy::get_type(int32_t& retVal)
         return result_t::invalid_arg();
 
     retVal = m_node->GetType();
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphNodeProxy::get_name(exlib::string& retVal)
@@ -122,7 +122,7 @@ result_t HeapGraphNodeProxy::get_name(exlib::string& retVal)
 result_t HeapGraphNodeProxy::get_description(exlib::string& retVal)
 {
     HeapGraphNode::get_description(this, retVal);
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphNodeProxy::get_id(int32_t& retVal)
@@ -131,7 +131,7 @@ result_t HeapGraphNodeProxy::get_id(int32_t& retVal)
         return result_t::invalid_arg();
 
     retVal = m_node->GetId();
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphNodeProxy::get_shallowSize(int32_t& retVal)
@@ -140,7 +140,7 @@ result_t HeapGraphNodeProxy::get_shallowSize(int32_t& retVal)
         return result_t::invalid_arg();
 
     retVal = (int32_t)m_node->GetShallowSize();
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphNodeProxy::get_childs(std::vector<obj_ptr<HeapGraphEdge_base>>& retVal)
@@ -158,7 +158,7 @@ result_t HeapGraphNodeProxy::get_childs(std::vector<obj_ptr<HeapGraphEdge_base>>
     }
 
     retVal = m_childs;
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphEdgeProxy::get_type(int32_t& retVal)
@@ -167,7 +167,7 @@ result_t HeapGraphEdgeProxy::get_type(int32_t& retVal)
         return result_t::invalid_arg();
 
     retVal = m_edge->GetType();
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphEdgeProxy::get_name(exlib::string& retVal)
@@ -181,7 +181,7 @@ result_t HeapGraphEdgeProxy::get_name(exlib::string& retVal)
 result_t HeapGraphEdgeProxy::get_description(exlib::string& retVal)
 {
     HeapGraphEdge::get_description(this, retVal);
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphEdgeProxy::getFromNode(obj_ptr<HeapGraphNode_base>& retVal)
@@ -190,7 +190,7 @@ result_t HeapGraphEdgeProxy::getFromNode(obj_ptr<HeapGraphNode_base>& retVal)
         return result_t::invalid_arg();
 
     retVal = new HeapGraphNodeProxy(m_snapshot, m_edge->GetFromNode());
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphEdgeProxy::getToNode(obj_ptr<HeapGraphNode_base>& retVal)
@@ -199,6 +199,6 @@ result_t HeapGraphEdgeProxy::getToNode(obj_ptr<HeapGraphNode_base>& retVal)
         return result_t::invalid_arg();
 
     retVal = new HeapGraphNodeProxy(m_snapshot, m_edge->GetToNode());
-    return 0;
+    return result_t();
 }
 }

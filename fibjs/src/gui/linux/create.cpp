@@ -206,7 +206,7 @@ result_t WebView::createWebView()
 
     config();
 
-    return 0;
+    return result_t();
 }
 
 }

@@ -35,7 +35,7 @@ result_t addLogger(logger* lgr)
         return result_t::make(CALL_E_EXCEPTION).with_message("console: Too many items.");
 
     s_logs[n] = lgr;
-    return 0;
+    return result_t();
 }
 
 void outLog(int32_t priority, exlib::string msg)
@@ -90,13 +90,13 @@ void flushLog()
 result_t console_base::get_loglevel(int32_t& retVal)
 {
     retVal = s_loglevel;
-    return 0;
+    return result_t();
 }
 
 result_t console_base::set_loglevel(int32_t newVal)
 {
     s_loglevel = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t console_base::add(exlib::string type)
@@ -161,7 +161,7 @@ static result_t console_add_object(v8::Local<v8::Object> cfg)
             return hr;
     }
 
-    return 0;
+    return result_t();
 }
 
 static result_t console_add_array(v8::Local<v8::Array> cfg)
@@ -181,7 +181,7 @@ static result_t console_add_array(v8::Local<v8::Array> cfg)
         // a failing element read -- a getter that throws -- is the JavaScript
         // error of that getter, not a type error of the argument
         if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         exlib::string s;
 
@@ -194,13 +194,13 @@ static result_t console_add_array(v8::Local<v8::Array> cfg)
             if (!hr.is_type_mismatch())
                 hr = console_base::add(o);
             else
-                return CALL_E_TYPEMISMATCH;
+                return result_t::type_mismatch();
         }
         if (hr.failed())
             return hr;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t console_base::use(exlib::string type)
@@ -239,6 +239,6 @@ result_t console_base::reset()
             break;
     }
 
-    return 0;
+    return result_t();
 }
 }

@@ -664,10 +664,10 @@ result_t Isolate::call_pipe(v8::Local<v8::Value> src, v8::Local<v8::Value> desti
     v8::Local<v8::Value> argv[] = { src, destination, options };
     v8::Local<v8::Value> result;
     if (!pipe_fn->Call(context(), v8::Undefined(m_isolate), 3, argv).ToLocal(&result))
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     retVal = result;
-    return 0;
+    return result_t();
 }
 
 } // namespace fibjs

@@ -121,7 +121,7 @@ public:
         p->m_describe_block.Reset(Isolate::current()->m_isolate, block);
         now->append(p);
 
-        return 0;
+        return result_t();
     }
 
     bool expand_describe()
@@ -184,7 +184,7 @@ public:
         p->m_block.Reset(Isolate::current()->m_isolate, block);
 
         now->append(p);
-        return 0;
+        return result_t();
     }
 
 public:
@@ -206,7 +206,7 @@ public:
         fa.resize(sz + 1);
         fa[sz].Reset(Isolate::current()->m_isolate, func);
 
-        return 0;
+        return result_t();
     }
 
     static bool matches_any(TestData* td, const exlib::string& name)
@@ -270,7 +270,7 @@ public:
         TestData* td = TestData::current();
 
         if (!td->m_root)
-            return 0;
+            return result_t();
 
         if (td->m_describe != td->m_root)
             return result_t::invalid_call();
@@ -697,7 +697,7 @@ public:
         if (errcnt)
             process_base::set_exitCode(1);
 
-        return 0;
+        return result_t();
     }
 
     static void clear()
@@ -1282,7 +1282,7 @@ result_t test_base::mustCall(v8::Local<v8::Function> func, v8::Local<v8::Functio
 
     retVal = isolate->NewFunction("mustNotCall", must_call, _data);
 
-    return 0;
+    return result_t();
 }
 
 static void not_call(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -1310,7 +1310,7 @@ result_t test_base::mustNotCall(v8::Local<v8::Function> func, v8::Local<v8::Func
 
     Isolate* isolate = Isolate::current();
     retVal = isolate->NewFunction("mustNotCall", not_call, v8::External::New(isolate->m_isolate, td->m_running));
-    return 0;
+    return result_t();
 }
 
 result_t test_base::mustNotCall(v8::Local<v8::Function>& retVal)
@@ -1321,18 +1321,18 @@ result_t test_base::mustNotCall(v8::Local<v8::Function>& retVal)
 
     Isolate* isolate = Isolate::current();
     retVal = isolate->NewFunction("mustNotCall", not_call, v8::External::New(isolate->m_isolate, td->m_running));
-    return 0;
+    return result_t();
 }
 
 result_t test_base::get_slow(int32_t& retVal)
 {
     retVal = s_slow;
-    return 0;
+    return result_t();
 }
 
 result_t test_base::set_slow(int32_t newVal)
 {
     s_slow = newVal;
-    return 0;
+    return result_t();
 }
 }

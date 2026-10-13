@@ -169,7 +169,7 @@ result_t ifZipFile(exlib::string filename, bool& retVal)
         unzClose(unz);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncHandle ac)
@@ -242,7 +242,7 @@ static result_t zip_open_strm(SeekableStream_base* strm, exlib::string mod, exli
     obj_ptr<ZipFile_base>& retVal)
 {
     retVal = new ZipFile(strm, mod, codec);
-    return 0;
+    return result_t();
 }
 
 result_t zip_base::open(Union_open_data data, exlib::string mod, exlib::string codec,
@@ -308,7 +308,7 @@ result_t ZipFile::get_info(obj_ptr<T>& retVal)
     retVal->file_size = file_info.uncompressed_size;
     retVal->compress_size = file_info.compressed_size;
     retVal->password = file_info.flag & 1;
-    return 0;
+    return result_t();
 }
 
 result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncHandle ac)
@@ -351,7 +351,7 @@ result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncHandle ac)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& retVal, AsyncHandle ac)
@@ -394,7 +394,7 @@ result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& ret
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipFile_base::GetinfoType>& retVal, AsyncHandle ac)
@@ -459,7 +459,7 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
     if (err != UNZ_OK)
         return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
 
-    return 0;
+    return result_t();
 }
 
 result_t ZipFile::read(exlib::string password, obj_ptr<Buffer_base>& retVal)
@@ -571,7 +571,7 @@ result_t ZipFile::checkGuard(exlib::string path)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHandle ac)
@@ -729,7 +729,7 @@ result_t ZipFile::readAll(exlib::string password, std::vector<obj_ptr<ZipFile_ba
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
@@ -754,7 +754,7 @@ result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
     }
 
     crc = fileCrc;
-    return 0;
+    return result_t();
 }
 
 result_t ZipFile::write(exlib::string filename, exlib::string password, SeekableStream_base* strm)
@@ -822,7 +822,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
     if (err != ZIP_OK)
         return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
 
-    return 0;
+    return result_t();
 }
 
 result_t ZipFile::write(exlib::string filename, exlib::string inZipName, exlib::string password, AsyncHandle ac)
@@ -893,6 +893,6 @@ result_t ZipFile::close(AsyncHandle ac)
     if (err != ZIP_OK)
         return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
 
-    return 0;
+    return result_t();
 }
 }

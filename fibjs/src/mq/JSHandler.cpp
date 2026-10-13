@@ -33,7 +33,7 @@ JSHandler::JSHandler(v8::Local<v8::Value> proc, bool async)
 result_t JSHandler::isRouting(bool& retVal)
 {
     retVal = false;
-    return 0;
+    return result_t();
 }
 
 result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -61,7 +61,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     if (m_async) {
         v8::Local<v8::Value> v1 = GetPrivate("handler");
         if (IsEmpty(v1))
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
 
         retVal = new AsyncWaitHandler();
         JSFunction proc = v1.As<v8::Function>();
@@ -92,7 +92,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             return result_t::make(CALL_E_EXCEPTION).with_message("function alloc error.");
 
         proc.Call(v8::Undefined(isolate->m_isolate), len + 2 + extra, argv.data());
-        return 0;
+        return result_t();
     }
 
     v8::Local<v8::Value> hdlr = GetPrivate("handler");
@@ -135,14 +135,14 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     isolate->m_isolate, 1, v8::StackTrace::kScriptId);
                 if (stackTrace->GetFrameCount() > 0) {
                     try_catch.ReThrow();
-                    return CALL_E_JAVASCRIPT;
+                    return result_t(CALL_E_JAVASCRIPT);
                 } else
                     return result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, 0, false, true)).with_func(__func__);
             }
         }
 
         if (IsEmpty(hdlr))
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
     }
 
     return GetArgumentValue(isolate, hdlr, retVal);

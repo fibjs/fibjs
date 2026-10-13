@@ -106,11 +106,11 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         }
 
         gtk_widget_destroy(dialog);
-        return 0;
+        return result_t();
     }
 
     gtk_widget_destroy(dialog);
-    return CALL_RETURN_UNDEFINED;
+    return result_t::return_undefined();
 }
 
 }

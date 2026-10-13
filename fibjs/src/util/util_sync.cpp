@@ -135,7 +135,7 @@ result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Loca
     v = func->GetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync"))).FromMaybe(v8::Local<v8::Value>());
     if (!IsEmpty(v)) {
         retVal = v.As<v8::Function>();
-        return 0;
+        return result_t();
     }
 
     if (async_func || func->IsAsyncFunction()) {
@@ -163,6 +163,6 @@ result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Loca
 
     retVal = func1;
 
-    return 0;
+    return result_t();
 }
 }

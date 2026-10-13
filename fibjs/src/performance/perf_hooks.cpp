@@ -31,7 +31,7 @@ result_t PerformanceObserver_base::_new(v8::Local<v8::Function> callback, obj_pt
 
     pos->m_callback.Reset(pos->holder()->m_isolate, callback);
 
-    return 0;
+    return result_t();
 }
 
 result_t PerformanceObserver::observe(v8::Local<v8::Object> options)
@@ -67,7 +67,7 @@ result_t PerformanceObserver::observe(v8::Local<v8::Object> options)
     }
     isolate->m_perfLock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t PerformanceObserver::disconnect()
@@ -84,7 +84,7 @@ result_t PerformanceObserver::disconnect()
     }
     isolate->m_perfLock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t PerformanceObserver::takeRecords(std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
@@ -95,7 +95,7 @@ result_t PerformanceObserver::takeRecords(std::vector<obj_ptr<PerformanceEntry_b
     retVal = std::move(m_entries);
     isolate->m_perfLock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 void PerformanceObserver::emit(obj_ptr<PerformanceEntry_base> entry)
@@ -142,7 +142,7 @@ result_t PerformanceObserverEntryList::getEntries(std::vector<obj_ptr<Performanc
     for (auto& entry : m_entries)
         retVal.push_back(entry);
 
-    return 0;
+    return result_t();
 }
 
 result_t PerformanceObserverEntryList::getEntriesByName(exlib::string name, exlib::string entryType, std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
@@ -163,7 +163,7 @@ result_t PerformanceObserverEntryList::getEntriesByName(exlib::string name, exli
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t PerformanceObserverEntryList::getEntriesByType(exlib::string entryType, std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
@@ -175,7 +175,7 @@ result_t PerformanceObserverEntryList::getEntriesByType(exlib::string entryType,
             retVal.push_back(entry);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t performance_base::clearMarks(exlib::string name)
@@ -189,12 +189,12 @@ result_t performance_base::clearMarks(exlib::string name)
         isolate->m_markEntries.erase(name);
     isolate->m_perfLock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t performance_base::clearMeasures(exlib::string name)
 {
-    return 0;
+    return result_t();
 }
 
 result_t performance_base::mark(exlib::string name, v8::Local<v8::Object> options)
@@ -221,7 +221,7 @@ result_t performance_base::mark(exlib::string name, v8::Local<v8::Object> option
     }
     isolate->m_perfLock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t performance_base::measure(exlib::string name, exlib::string startMark, exlib::string endMark)
@@ -267,7 +267,7 @@ result_t performance_base::measure(exlib::string name, exlib::string startMark, 
 
     isolate->m_perfLock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> options)
@@ -350,7 +350,7 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
 
     isolate->m_perfLock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t performance_base::getEntries(std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
@@ -362,7 +362,7 @@ result_t performance_base::getEntries(std::vector<obj_ptr<PerformanceEntry_base>
         retVal.push_back(entry.second);
     isolate->m_perfLock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t performance_base::getEntriesByType(exlib::string type, std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
@@ -378,7 +378,7 @@ result_t performance_base::getEntriesByType(exlib::string type, std::vector<obj_
     }
     isolate->m_perfLock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t performance_base::getEntriesByName(exlib::string name, exlib::string type, std::vector<obj_ptr<PerformanceEntry_base>>& retVal)
@@ -403,20 +403,20 @@ result_t performance_base::getEntriesByName(exlib::string name, exlib::string ty
     }
     isolate->m_perfLock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t performance_base::now(double& retVal)
 {
     retVal = perf_now();
-    return 0;
+    return result_t();
 }
 
 result_t performance_base::markResourceTiming(v8::Local<v8::Object> timingInfo, exlib::string requestedUrl,
     exlib::string initiatorType, v8::Local<v8::Value> global, exlib::string cacheState,
     v8::Local<v8::Object> bodyInfo, int32_t responseStatus)
 {
-    return 0;
+    return result_t();
 }
 
 }

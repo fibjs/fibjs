@@ -154,6 +154,6 @@ result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
         }
     }
 
-    return 0;
+    return result_t();
 }
 }

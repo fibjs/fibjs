@@ -41,11 +41,11 @@ result_t encoding_conv::encode(exlib::string data, exlib::string& retVal)
 {
     if (data.empty()) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     if (ucs_encode(data, retVal).ok())
-        return 0;
+        return result_t();
 
     int32_t _sz;
     UErrorCode errorCode = U_ZERO_ERROR;
@@ -55,7 +55,7 @@ result_t encoding_conv::encode(exlib::string data, exlib::string& retVal)
         retVal.resize(_sz);
         errorCode = U_ZERO_ERROR;
         ucnv_convert(m_charset.c_str(), "utf-8", retVal.data(), _sz, data.c_str(), data.length(), &errorCode);
-        return 0;
+        return result_t();
     }
 
     return result_t::make(CALL_E_EXCEPTION).with_format("encoding: Unknown charset: '%s'.", m_charset.c_str());
@@ -71,18 +71,18 @@ result_t encoding_conv::encode(exlib::string data, obj_ptr<Buffer_base>& retVal)
 
     retVal = new Buffer(strBuf.c_str(), strBuf.length());
 
-    return 0;
+    return result_t();
 }
 
 result_t encoding_conv::decode(const char* data, size_t sz, exlib::string& retVal)
 {
     if (sz == 0) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     if (ucs_decode(data, sz, retVal).ok())
-        return 0;
+        return result_t();
 
     int32_t _sz;
     UErrorCode errorCode = U_ZERO_ERROR;
@@ -99,7 +99,7 @@ result_t encoding_conv::decode(const char* data, size_t sz, exlib::string& retVa
         ucnv_convert("utf-8", m_charset.c_str(), strBuf.data(), _sz, data, sz, &errorCode);
 
         retVal.assign(std::move(strBuf));
-        return 0;
+        return result_t();
     }
 
     return result_t::make(CALL_E_EXCEPTION).with_format("encoding: Unknown charset: '%s'.", m_charset.c_str());

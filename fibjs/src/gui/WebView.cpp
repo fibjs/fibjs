@@ -42,7 +42,7 @@ result_t WebView::waitFor(exlib::string url, AsyncHandle ac)
         return hr;
 
     if (internal_isReady() && (url.empty() || url == internal_getUrl()))
-        return 0;
+        return result_t();
 
     m_waitFor.push_back({ url, std::move(ac) });
 
@@ -219,7 +219,7 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
     if (m_options->onmessage.has_value())
         setListener("message", m_options->onmessage.value());
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::check_status(AsyncHandle& ac)
@@ -232,7 +232,7 @@ result_t WebView::check_status(AsyncHandle& ac)
     if (!m_window)
         return result_t::make(CALL_E_EXCEPTION).with_message("WebView: webview is closed");
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::async_open()
@@ -245,7 +245,7 @@ result_t WebView::async_open()
     },
         CALL_E_GUICALL);
 
-    return 0;
+    return result_t();
 }
 
 void WebView::release()
@@ -297,24 +297,24 @@ result_t WebView::getMenu(obj_ptr<Menu_base>& retVal)
 {
     if (m_options->menu.has_value()) {
         retVal = m_options->menu.value();
-        return 0;
+        return result_t();
     }
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t WebView::ref(obj_ptr<WebView_base>& retVal)
 {
     isolate_ref();
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t WebView::unref(obj_ptr<WebView_base>& retVal)
 {
     isolate_unref();
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)

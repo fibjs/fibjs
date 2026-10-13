@@ -26,23 +26,23 @@ result_t TextEncoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
     if (!encoding_conv::resolve(codec, canonicalName))
         // Node.js: a bad label is ERR_ENCODING_NOT_SUPPORTED; fibjs resolves real
         // codecs here (an extension - Node's TextEncoder ignores the label).
-        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(CALL_E_INVALIDARG).with_code("ERR_ENCODING_NOT_SUPPORTED").with_format("The \"%s\" encoding is not supported", codec.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(result_t::invalid_arg()).with_code("ERR_ENCODING_NOT_SUPPORTED").with_format("The \"%s\" encoding is not supported", codec.c_str());
 
     retVal = new TextEncoder(canonicalName);
-    return 0;
+    return result_t();
 }
 
 result_t TextEncoder::encode(exlib::string data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal)
 {
     if (data.empty()) {
         retVal = new Buffer(NULL, 0);
-        return 0;
+        return result_t();
     }
 
     // For utf-8, the internal string is already utf-8
     if (m_codec == "utf-8" || m_codec == "utf8") {
         retVal = new Buffer(data.c_str(), data.length());
-        return 0;
+        return result_t();
     }
 
     // For other encodings, use encoding_conv
@@ -104,13 +104,13 @@ result_t TextEncoder::encodeInto(exlib::string source, Buffer_base* destination,
     retVal = new TextEncoder_base::EncodeIntoType();
     retVal->read = (double)read;
     retVal->written = (double)written;
-    return 0;
+    return result_t();
 }
 
 result_t TextEncoder::get_encoding(exlib::string& retVal)
 {
     retVal = m_codec;
-    return 0;
+    return result_t();
 }
 
 // ==================== TextDecoder ====================
@@ -121,7 +121,7 @@ result_t TextDecoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
     exlib::string canonicalName;
     if (!encoding_conv::resolve(codec, canonicalName))
         // Node.js: RangeError + ERR_ENCODING_NOT_SUPPORTED
-        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(CALL_E_INVALIDARG).with_code("ERR_ENCODING_NOT_SUPPORTED").with_format("The \"%s\" encoding is not supported", codec.c_str());
+        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(result_t::invalid_arg()).with_code("ERR_ENCODING_NOT_SUPPORTED").with_format("The \"%s\" encoding is not supported", codec.c_str());
 
     // Parse options
     bool fatal = false;
@@ -131,13 +131,13 @@ result_t TextDecoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
     GetConfigValue(opts, "ignoreBOM", ignoreBOM);
 
     retVal = new TextDecoder(canonicalName, fatal, ignoreBOM);
-    return 0;
+    return result_t();
 }
 
 result_t TextDecoder::ensureConverter()
 {
     if (m_cnv)
-        return 0;
+        return result_t();
 
     UErrorCode err = U_ZERO_ERROR;
     m_cnv = ucnv_open(m_codec.c_str(), &err);
@@ -151,7 +151,7 @@ result_t TextDecoder::ensureConverter()
         ucnv_setToUCallBack(m_cnv, UCNV_TO_U_CALLBACK_STOP, nullptr, nullptr, nullptr, &cbErr);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t TextDecoder::decode(Union_decode_data data, v8::Local<v8::Object> opts, exlib::string& retVal)
@@ -181,7 +181,7 @@ result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVa
 
     if (srcLen == 0 && !flush) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     // Fast path for UTF-8: input is already UTF-8, skip ICU double conversion.
@@ -208,7 +208,7 @@ result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVa
                 if (isolate) {
                     isolate->m_isolate->ThrowException(v8::Exception::TypeError(
                         isolate->NewString("The encoded data was not valid.")));
-                    return CALL_E_JAVASCRIPT;
+                    return result_t(CALL_E_JAVASCRIPT);
                 }
                 return result_t::make(CALL_E_EXCEPTION).with_message("The encoded data was not valid.");
             }
@@ -216,7 +216,7 @@ result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVa
 
         retVal.assign(src + startOffset, srcLen - startOffset);
         m_bomSeen = false;
-        return 0;
+        return result_t();
     }
 
     result_t hr = ensureConverter();
@@ -260,14 +260,14 @@ result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVa
             if (isolate) {
                 isolate->m_isolate->ThrowException(v8::Exception::TypeError(
                     isolate->NewString("The encoded data was not valid.")));
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             }
             return result_t::make(CALL_E_EXCEPTION).with_message("The encoded data was not valid.");
         }
 
         // Should not reach here with SUBSTITUTE callback, but handle gracefully
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     size_t ucharLen = destPtr - ucharBuf.data();
@@ -304,7 +304,7 @@ result_t TextDecoder::decode(Buffer_base* data, bool flush, exlib::string& retVa
     if (flush)
         m_bomSeen = false;
 
-    return 0;
+    return result_t();
 }
 
 result_t TextDecoder::decode(exlib::string& retVal)
@@ -334,17 +334,17 @@ result_t TextDecoder::decode(exlib::string& retVal)
             Isolate* isolate = holder();
             isolate->m_isolate->ThrowException(v8::Exception::TypeError(
                 isolate->NewString("The encoded data was not valid.")));
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
         }
 
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     if (ucharLen == 0) {
         m_bomSeen = false;
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     // Convert UChar to UTF-8
@@ -361,25 +361,25 @@ result_t TextDecoder::decode(exlib::string& retVal)
     }
 
     m_bomSeen = false;
-    return 0;
+    return result_t();
 }
 
 result_t TextDecoder::get_encoding(exlib::string& retVal)
 {
     retVal = m_codec;
-    return 0;
+    return result_t();
 }
 
 result_t TextDecoder::get_fatal(bool& retVal)
 {
     retVal = m_fatal;
-    return 0;
+    return result_t();
 }
 
 result_t TextDecoder::get_ignoreBOM(bool& retVal)
 {
     retVal = m_ignoreBOM;
-    return 0;
+    return result_t();
 }
 
 }

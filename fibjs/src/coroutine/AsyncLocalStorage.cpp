@@ -44,7 +44,7 @@ result_t AsyncLocalStorage_base::_new(v8::Local<v8::Object> options, obj_ptr<Asy
 
     retVal = als;
 
-    return 0;
+    return result_t();
 }
 
 result_t AsyncLocalStorage_base::snapshot(v8::Local<v8::Function>& retVal)
@@ -103,11 +103,11 @@ result_t AsyncLocalStorage_base::snapshot(v8::Local<v8::Function>& retVal)
                 info.GetReturnValue().Set(resolved); }, capturedCtx);
 
     if (maybeSnapshotFn.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     if (!maybeSnapshotFn.ToLocal(&retVal))
-        return CALL_E_JAVASCRIPT;
-    return 0;
+        return result_t(CALL_E_JAVASCRIPT);
+    return result_t();
 }
 
 result_t AsyncLocalStorage_base::bind(v8::Local<v8::Function> fn, v8::Local<v8::Function>& retVal)
@@ -170,17 +170,17 @@ result_t AsyncLocalStorage_base::bind(v8::Local<v8::Function> fn, v8::Local<v8::
                 info.GetReturnValue().Set(resolved); }, data);
 
     if (maybeBoundFn.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     if (!maybeBoundFn.ToLocal(&retVal))
-        return CALL_E_JAVASCRIPT;
-    return 0;
+        return result_t(CALL_E_JAVASCRIPT);
+    return result_t();
 }
 
 result_t AsyncLocalStorage::get_name(exlib::string& retVal)
 {
     retVal = m_name;
-    return 0;
+    return result_t();
 }
 
 result_t AsyncLocalStorage::disable()
@@ -196,7 +196,7 @@ result_t AsyncLocalStorage::disable()
         ctx->Delete(context, key).FromMaybe(false);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t AsyncLocalStorage::getStore(v8::Local<v8::Value>& retVal)
@@ -207,7 +207,7 @@ result_t AsyncLocalStorage::getStore(v8::Local<v8::Value>& retVal)
     if (m_disabled) {
         if (!m_defaultValue.IsEmpty())
             retVal = m_defaultValue.Get(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     v8::Local<v8::Map> ctx = getAsyncContext(isolate);
@@ -222,11 +222,11 @@ result_t AsyncLocalStorage::getStore(v8::Local<v8::Value>& retVal)
             if (maybeValue.ToLocal(&value)) {
                 if (!value->IsUndefined()) {
                     retVal = value;
-                    return 0;
+                    return result_t();
                 }
                 // Key exists but value is undefined - this means exit() was called
                 // Return undefined, not defaultValue
-                return 0;
+                return result_t();
             }
         }
     }
@@ -235,7 +235,7 @@ result_t AsyncLocalStorage::getStore(v8::Local<v8::Value>& retVal)
     if (!m_defaultValue.IsEmpty())
         retVal = m_defaultValue.Get(isolate->m_isolate);
 
-    return 0;
+    return result_t();
 }
 
 result_t AsyncLocalStorage::enterWith(v8::Local<v8::Value> store)
@@ -250,14 +250,14 @@ result_t AsyncLocalStorage::enterWith(v8::Local<v8::Value> store)
     // Clone the current context and add/update the store
     v8::Local<v8::Map> newCtx = cloneAsyncContext(isolate);
     if (newCtx.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     v8::Local<v8::Value> key = v8::Integer::New(isolate->m_isolate, m_id);
     v8::MaybeLocal<v8::Map> setResult = newCtx->Set(context, key, store);
     if (setResult.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     setAsyncContext(isolate, newCtx);
 
-    return 0;
+    return result_t();
 }
 
 result_t AsyncLocalStorage::run(v8::Local<v8::Value> store, v8::Local<v8::Function> callback, OptArgs args, v8::Local<v8::Value>& retVal)
@@ -279,11 +279,11 @@ result_t AsyncLocalStorage::run(v8::Local<v8::Value> store, v8::Local<v8::Functi
     v8::Global<v8::Map> newCtxGlobal;
     v8::Local<v8::Map> newCtx = cloneAsyncContext(isolate);
     if (newCtx.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     v8::Local<v8::Value> key = v8::Integer::New(isolate->m_isolate, m_id);
     v8::MaybeLocal<v8::Map> setResult = newCtx->Set(context, key, store);
     if (setResult.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     newCtxGlobal.Reset(isolate->m_isolate, newCtx);
     setAsyncContext(isolate, newCtx);
 
@@ -303,12 +303,12 @@ result_t AsyncLocalStorage::run(v8::Local<v8::Value> store, v8::Local<v8::Functi
         setAsyncContext(isolate, v8::Local<v8::Map>());
 
     if (result.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     if (!result.ToLocal(&retVal))
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
-    return 0;
+    return result_t();
 }
 
 result_t AsyncLocalStorage::exit(v8::Local<v8::Function> callback, OptArgs args, v8::Local<v8::Value>& retVal)
@@ -326,11 +326,11 @@ result_t AsyncLocalStorage::exit(v8::Local<v8::Function> callback, OptArgs args,
     v8::Global<v8::Map> newCtxGlobal;
     v8::Local<v8::Map> newCtx = cloneAsyncContext(isolate);
     if (newCtx.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     v8::Local<v8::Value> key = v8::Integer::New(isolate->m_isolate, m_id);
     // Set to undefined instead of deleting - this signals "exit" state
     if (newCtx->Set(context, key, v8::Undefined(isolate->m_isolate)).IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     newCtxGlobal.Reset(isolate->m_isolate, newCtx);
     setAsyncContext(isolate, newCtx);
 
@@ -350,11 +350,11 @@ result_t AsyncLocalStorage::exit(v8::Local<v8::Function> callback, OptArgs args,
         setAsyncContext(isolate, v8::Local<v8::Map>());
 
     if (result.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     if (!result.ToLocal(&retVal))
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
-    return 0;
+    return result_t();
 }
 }

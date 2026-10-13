@@ -182,7 +182,7 @@ result_t util_base::isDeepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value
 
     retVal = deepEquals(Isolate::current(), acts, exps, actual, expected, false);
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::isDeepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, bool& retVal)
@@ -192,7 +192,7 @@ result_t util_base::isDeepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8:
 
     retVal = deepEquals(Isolate::current(), acts, exps, actual, expected, true);
 
-    return 0;
+    return result_t();
 }
 
 }

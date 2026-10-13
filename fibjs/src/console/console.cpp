@@ -126,61 +126,61 @@ static void _log_args(int32_t type, OptArgs args)
 result_t console_base::log(OptArgs args)
 {
     _log_args(C_INFO, args);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::debug(OptArgs args)
 {
     _log_args(C_DEBUG, args);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::info(OptArgs args)
 {
     _log_args(C_INFO, args);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::notice(OptArgs args)
 {
     _log_args(C_NOTICE, args);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::warn(OptArgs args)
 {
     _log_args(C_WARN, args);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::warning(OptArgs args)
 {
     _log_args(C_WARN, args);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::error(OptArgs args)
 {
     _log_args(C_ERROR, args);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::crit(OptArgs args)
 {
     _log_args(C_CRIT, args);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::critical(OptArgs args)
 {
     _log_args(C_CRIT, args);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::alert(OptArgs args)
 {
     _log_args(C_ALERT, args);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::trace(OptArgs args)
@@ -204,7 +204,7 @@ result_t console_base::trace(OptArgs args)
         outLog(type, str);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t console_base::dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options)
@@ -213,7 +213,7 @@ result_t console_base::dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> optio
     util_base::inspect(obj, options, strBuffer);
 
     outLog(C_INFO, strBuffer);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::table(v8::Local<v8::Value> obj)
@@ -225,13 +225,13 @@ result_t console_base::table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fiel
 {
     exlib::string strBuffer = table_format(Isolate::current(), obj, fields, colors(C_INFO), true);
     outLog(C_INFO, strBuffer);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::print(OptArgs args)
 {
     _log_args(C_PRINT, args);
-    return 0;
+    return result_t();
 }
 
 static std::unordered_map<exlib::string, int64_t> s_timers;
@@ -240,7 +240,7 @@ result_t console_base::time(exlib::string label)
 {
     s_timers[exlib::string(label)] = Ticks();
 
-    return 0;
+    return result_t();
 }
 
 result_t console_base::timeElapse(exlib::string label)
@@ -258,7 +258,7 @@ result_t console_base::timeElapse(exlib::string label)
     strBuffer.append("ms", 2);
 
     outLog(C_INFO, strBuffer);
-    return 0;
+    return result_t();
 }
 
 result_t console_base::timeEnd(exlib::string label)
@@ -278,7 +278,7 @@ result_t console_base::timeEnd(exlib::string label)
     strBuffer.append("ms", 2);
 
     outLog(C_INFO, strBuffer);
-    return 0;
+    return result_t();
 }
 
 #ifdef _WIN32
@@ -395,7 +395,7 @@ result_t console_base::get_width(int32_t& retVal)
 
     retVal = ws.ws_col;
 
-    return 0;
+    return result_t();
 }
 
 result_t console_base::get_height(int32_t& retVal)
@@ -412,7 +412,7 @@ result_t console_base::get_height(int32_t& retVal)
 
     retVal = ws.ws_row;
 
-    return 0;
+    return result_t();
 }
 
 result_t console_base::moveTo(int32_t row, int32_t column)
@@ -425,26 +425,26 @@ result_t console_base::moveTo(int32_t row, int32_t column)
     snprintf(numStr, sizeof(numStr), "\x1b[%d;%dH", row, column);
     outLog(C_PRINT, numStr);
 
-    return 0;
+    return result_t();
 }
 
 result_t console_base::hideCursor()
 {
     outLog(C_PRINT, "\x1b[?25l");
-    return 0;
+    return result_t();
 }
 
 result_t console_base::showCursor()
 {
     outLog(C_PRINT, "\x1b[?25h");
-    return 0;
+    return result_t();
 }
 
 result_t console_base::clear()
 {
     outLog(C_PRINT, "\x1b"
                     "c");
-    return 0;
+    return result_t();
 }
 
 #endif
@@ -485,7 +485,7 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, boo
         retVal = line;
         free(line);
 
-        return 0;
+        return result_t();
     }
 
     std_logger::out(msg);
@@ -502,7 +502,7 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, boo
     retVal = text;
     free(text);
 
-    return 0;
+    return result_t();
 }
 #else
 result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, bool no_echo)

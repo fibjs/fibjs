@@ -19,10 +19,10 @@ result_t Tray::getMenu(obj_ptr<Menu_base>& retVal)
 {
     if (m_options->menu.has_value()) {
         retVal = m_options->menu.value();
-        return 0;
+        return result_t();
     }
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t Tray::async_open()
@@ -35,7 +35,7 @@ result_t Tray::async_open()
     },
         CALL_E_GUICALL);
 
-    return 0;
+    return result_t();
 }
 
 void Tray::release()

@@ -24,7 +24,7 @@ result_t RTCPeerConnection_base::_new(v8::Local<v8::Object> options,
         return hr;
     retVal = peer;
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCSessionDescription_base::_new(v8::Local<v8::Object> description,
@@ -47,7 +47,7 @@ result_t RTCSessionDescription_base::_new(v8::Local<v8::Object> description,
         return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
     }
 
-    return 0;
+    return result_t();
 }
 
 inline const char* connection_state_str(rtc::PeerConnection::State state)
@@ -247,12 +247,12 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
         m_dataChannels.emplace_back(dc);
     m_lock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::setLocalDescription(AsyncHandle ac)
 {
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::setLocalDescription(Union_setLocalDescription_description description, AsyncHandle ac)
@@ -275,7 +275,7 @@ result_t RTCPeerConnection::setLocalDescription(Union_setLocalDescription_descri
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::setRemoteDescription(Union_setRemoteDescription_description description, AsyncHandle ac)
@@ -300,7 +300,7 @@ result_t RTCPeerConnection::setRemoteDescription(Union_setRemoteDescription_desc
         return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate candidate, AsyncHandle ac)
@@ -320,7 +320,7 @@ result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate cand
         return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
@@ -332,7 +332,7 @@ result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& 
     if (m_offer_description) {
         retVal = m_offer_description;
         m_lock.unlock();
-        return 0;
+        return result_t();
     }
     m_offers.emplace_back(retVal, std::move(ac));
     m_lock.unlock();
@@ -349,7 +349,7 @@ result_t RTCPeerConnection::createAnswer(v8::Local<v8::Object> options, Variant&
     if (m_answer_description) {
         retVal = m_answer_description;
         m_lock.unlock();
-        return 0;
+        return result_t();
     }
     m_answers.emplace_back(retVal, std::move(ac));
     m_lock.unlock();
@@ -432,32 +432,32 @@ result_t RTCPeerConnection::getStats(obj_ptr<NMap>& retVal, AsyncHandle ac)
 
     retVal = stats;
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::close()
 {
     m_peerConnection->close();
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::get_connectionState(exlib::string& retVal)
 {
     retVal = connection_state_str(m_peerConnection->state());
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::get_iceConnectionState(exlib::string& retVal)
 {
     retVal = ice_connection_state_str(m_peerConnection->iceState());
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::get_iceGatheringState(exlib::string& retVal)
 {
     retVal = ice_gathering_state_str(m_peerConnection->gatheringState());
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::get_localDescription(v8::Local<v8::Object>& retVal)
@@ -466,7 +466,7 @@ result_t RTCPeerConnection::get_localDescription(v8::Local<v8::Object>& retVal)
     if (desc.has_value())
         return description_to_object(desc.value())->valueOf(retVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::get_remoteDescription(v8::Local<v8::Object>& retVal)
@@ -475,7 +475,7 @@ result_t RTCPeerConnection::get_remoteDescription(v8::Local<v8::Object>& retVal)
     if (desc.has_value())
         return description_to_object(desc.value())->valueOf(retVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::get_remoteFingerprint(v8::Local<v8::Object>& retVal)
@@ -508,13 +508,13 @@ result_t RTCPeerConnection::get_remoteFingerprint(v8::Local<v8::Object>& retVal)
 
     retVal = obj;
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCPeerConnection::get_signalingState(exlib::string& retVal)
 {
     retVal = signaling_state_str(m_peerConnection->signalingState());
-    return 0;
+    return result_t();
 }
 
 void RTCPeerConnection::onStateChange(rtc::PeerConnection::State state)
@@ -683,7 +683,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
         else if (certificateType == "rsa")
             config.certificateType = rtc::CertificateType::Rsa;
         else
-            return result_t::make(CALL_E_EXCEPTION).with_format("Invalid certificateType: '%s'.", certificateType.c_str()).with_result(CALL_E_INVALIDARG);
+            return result_t::make(CALL_E_EXCEPTION).with_format("Invalid certificateType: '%s'.", certificateType.c_str()).with_result(result_t::invalid_arg());
     }
 
     exlib::string iceTransportPolicy;
@@ -696,7 +696,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
         else if (iceTransportPolicy == "relay")
             config.iceTransportPolicy = rtc::TransportPolicy::Relay;
         else
-            return result_t::make(CALL_E_EXCEPTION).with_format("Invalid iceTransportPolicy: '%s'.", iceTransportPolicy.c_str()).with_result(CALL_E_INVALIDARG);
+            return result_t::make(CALL_E_EXCEPTION).with_format("Invalid iceTransportPolicy: '%s'.", iceTransportPolicy.c_str()).with_result(result_t::invalid_arg());
     }
 
     v8::Local<v8::Array> iceServers;
@@ -872,7 +872,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
         onDataChannel(dataChannel);
     });
 
-    return 0;
+    return result_t();
 }
 
 }

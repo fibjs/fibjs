@@ -476,14 +476,14 @@ inline result_t format_value(Isolate* isolate, v8::Local<v8::Value> v,
         return util_base::inspect(v, options.inspect_options, retVal);
 
     retVal = json_format(isolate, v, options.color);
-    return 0;
+    return result_t();
 }
 
 inline result_t format_json_value(Isolate* isolate, v8::Local<v8::Value> v,
     const format_options& options, exlib::string& retVal)
 {
     retVal = json_format(isolate, v, options.color);
-    return 0;
+    return result_t();
 }
 
 result_t util_format_impl(Isolate* isolate, exlib::string fmt, OptArgs args, const format_options& options, exlib::string& retVal)
@@ -495,7 +495,7 @@ result_t util_format_impl(Isolate* isolate, exlib::string fmt, OptArgs args, con
 
     if (argc == 0) {
         retVal = fmt;
-        return 0;
+        return result_t();
     }
 
     const char* s = fmt.c_str();
@@ -570,7 +570,7 @@ result_t util_format_impl(Isolate* isolate, exlib::string fmt, OptArgs args, con
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 // The format entry points take any values: a leading string argument is the

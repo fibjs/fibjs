@@ -93,7 +93,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
             return result_t::make(CALL_E_EXCEPTION).with_message("console: Count must between 2 to 128.");
     }
 
-    return 0;
+    return result_t();
 }
 
 void file_logger::clearFile()
@@ -193,7 +193,7 @@ result_t file_logger::initFile()
         m_file = f;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t file_logger::write(AsyncEvent* ac)
@@ -238,6 +238,6 @@ result_t file_logger::write(AsyncEvent* ac)
         }
     }
 
-    return 0;
+    return result_t();
 }
 }

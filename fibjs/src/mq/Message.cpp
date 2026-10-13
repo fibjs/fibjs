@@ -22,19 +22,19 @@ namespace fibjs {
 result_t Message::get_sent(bool& retVal)
 {
     retVal = false;
-    return 0;
+    return result_t();
 }
 
 result_t Message::get_value(exlib::string& retVal)
 {
     retVal = m_value;
-    return 0;
+    return result_t();
 }
 
 result_t Message::set_value(exlib::string newVal)
 {
     m_value = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t Message::get_params(obj_ptr<NArray>& retVal)
@@ -43,19 +43,19 @@ result_t Message::get_params(obj_ptr<NArray>& retVal)
         m_params = new NArray();
 
     retVal = m_params;
-    return 0;
+    return result_t();
 }
 
 result_t Message::get_type(int32_t& retVal)
 {
     retVal = m_type;
-    return 0;
+    return result_t();
 }
 
 result_t Message::set_type(int32_t newVal)
 {
     m_type = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t Message::get_body(obj_ptr<Stream_base>& retVal)
@@ -63,20 +63,20 @@ result_t Message::get_body(obj_ptr<Stream_base>& retVal)
     // Streaming body takes precedence over buffered body
     if (m_bodyStream) {
         retVal = m_bodyStream;
-        return 0;
+        return result_t();
     }
 
     if (m_body == NULL)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     // Return null for empty body (Web API compatibility)
     int64_t size = 0;
     m_body->size(size);
     if (size == 0)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_body;
-    return 0;
+    return result_t();
 }
 
 result_t Message::set_body(Stream_base* newVal)
@@ -94,13 +94,13 @@ result_t Message::set_body(Stream_base* newVal)
         m_body.Release();
         m_bodyStream.Release();
     }
-    return 0;
+    return result_t();
 }
 
 result_t Message::get_bodyUsed(bool& retVal)
 {
     retVal = m_bodyUsed;
-    return 0;
+    return result_t();
 }
 
 result_t Message::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
@@ -110,7 +110,7 @@ result_t Message::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         return m_bodyStream->readBuffer(bytes, retVal, std::move(ac));
 
     if (m_body == NULL)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     return m_body->readBuffer(bytes, retVal, std::move(ac));
 }
@@ -182,7 +182,7 @@ result_t Message::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
         return m_body->readAll(retVal, std::move(ac));
     }
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t Message::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
@@ -193,7 +193,7 @@ result_t Message::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
         retVal = (n.is_return_null() || !data) ? new Buffer("", 0) : data;
-        return 0;
+        return result_t();
     }, std::move(ac)))->post(result_t());
 }
 
@@ -207,7 +207,7 @@ result_t Message::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHand
         if (n.is_return_null() || !data)
             data = new Buffer("", 0);
         retVal = new Blob(data, type);
-        return 0;
+        return result_t();
     }, std::move(ac)))->post(result_t());
 }
 
@@ -252,7 +252,7 @@ result_t Message::text(exlib::string data, exlib::string& retVal, AsyncHandle ac
     obj_ptr<MemoryStream> ms = new MemoryStream();
     ms->writeBuffer(buf, nullptr);
     m_body = ms;
-    return 0;
+    return result_t();
 }
 
 result_t Message::text(exlib::string& retVal, AsyncHandle ac)
@@ -262,7 +262,7 @@ result_t Message::text(exlib::string& retVal, AsyncHandle ac)
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
-        if (n.is_return_null() || !data) { retVal = ""; return 0; }
+        if (n.is_return_null() || !data) { retVal = ""; return result_t(); }
         return data->toString(retVal);
     }, std::move(ac)))->post(result_t());
 }
@@ -274,9 +274,9 @@ result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHa
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
-        if (n.is_return_null() || !data) { retVal = NewBackingStore(0); return 0; }
+        if (n.is_return_null() || !data) { retVal = NewBackingStore(0); return result_t(); }
         retVal = data.As<Buffer>()->backingStore();
-        return 0;
+        return result_t();
     }, std::move(ac)))->post(result_t());
 }
 
@@ -302,7 +302,7 @@ result_t Message::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle a
     obj_ptr<MemoryStream> ms = new MemoryStream();
     ms->writeBuffer(buf, nullptr);
     m_body = ms;
-    return 0;
+    return result_t();
 }
 
 result_t Message::json(Variant& retVal, AsyncHandle ac)
@@ -313,11 +313,11 @@ result_t Message::json(Variant& retVal, AsyncHandle ac)
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
         if (n.is_return_null() || !data)
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         exlib::string str;
         data->toString(str);
         retVal.setJSON(str);
-        return 0;
+        return result_t();
     }, std::move(ac)))->post(result_t());
 }
 
@@ -351,7 +351,7 @@ result_t Message::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle a
     obj_ptr<MemoryStream> ms = new MemoryStream();
     ms->writeBuffer(buf, nullptr);
     m_body = ms;
-    return 0;
+    return result_t();
 }
 
 result_t Message::pack(Variant& retVal, AsyncHandle ac)
@@ -361,10 +361,10 @@ result_t Message::pack(Variant& retVal, AsyncHandle ac)
 
     return (new asyncConsumeBody(this, [this, &retVal](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         if (n.is_return_null() || !data)
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         Buffer* buf = data.As<Buffer>();
         retVal.setMsgpack(exlib::string((const char*)buf->data(), buf->length()));
-        return 0;
+        return result_t();
     }, std::move(ac)))->post(result_t());
 }
 
@@ -372,7 +372,7 @@ result_t Message::get_length(int64_t& retVal)
 {
     if (m_body == NULL) {
         retVal = 0;
-        return 0;
+        return result_t();
     }
     return m_body->size(retVal);
 }
@@ -380,14 +380,14 @@ result_t Message::get_length(int64_t& retVal)
 result_t Message_base::_new(obj_ptr<Message_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new Message();
-    return 0;
+    return result_t();
 }
 
 result_t Message::end(int32_t& retVal, AsyncHandle ac)
 {
     m_end = true;
     retVal = 0;
-    return 0;
+    return result_t();
 }
 
 result_t Message::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
@@ -420,7 +420,7 @@ result_t Message::end(exlib::string data, exlib::string encoding, int32_t& retVa
 result_t Message::isEnded(bool& retVal)
 {
     retVal = m_end;
-    return 0;
+    return result_t();
 }
 
 result_t Message::clear()
@@ -431,7 +431,7 @@ result_t Message::clear()
     m_body.Release();
     m_bodyStream.Release();
 
-    return 0;
+    return result_t();
 }
 
 result_t Message::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
@@ -452,13 +452,13 @@ result_t Message::get_stream(obj_ptr<Stream_base>& retVal)
 result_t Message::get_lastError(exlib::string& retVal)
 {
     retVal = m_lastError;
-    return 0;
+    return result_t();
 }
 
 result_t Message::set_lastError(exlib::string newVal)
 {
     m_lastError = newVal;
-    return 0;
+    return result_t();
 }
 
 static bool is_stream_event(exlib::string& ev)
@@ -483,7 +483,7 @@ result_t Message::onEventChange(exlib::string type, exlib::string ev, v8::Local<
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Message::clone(obj_ptr<Message_base>& retVal)
@@ -500,7 +500,7 @@ result_t Message::setEncoding(exlib::string encoding, obj_ptr<Message_base>& ret
         body->setEncoding(encoding, r);
     }
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t Message::resume(obj_ptr<Message_base>& retVal)
@@ -511,7 +511,7 @@ result_t Message::resume(obj_ptr<Message_base>& retVal)
         body->resume(r);
     }
     retVal = this;
-    return 0;
+    return result_t();
 }
 result_t Message::pause(obj_ptr<Message_base>& retVal)
 {
@@ -521,7 +521,7 @@ result_t Message::pause(obj_ptr<Message_base>& retVal)
         body->pause(r);
     }
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t Message::pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
@@ -534,7 +534,7 @@ result_t Message::unpipe(Stream_base* destination)
     obj_ptr<Stream_base> body;
     if (get_body(body).has_value())
         body->unpipe(destination);
-    return 0;
+    return result_t();
 }
 
 void Message::copyTo(Message* target)

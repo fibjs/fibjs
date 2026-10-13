@@ -94,7 +94,7 @@ result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Functi
     v = func->GetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise"))).FromMaybe(v8::Local<v8::Value>());
     if (!IsEmpty(v)) {
         retVal = v.As<v8::Function>();
-        return 0;
+        return result_t();
     }
 
     func1 = isolate->NewFunction("promisify", promisify_stub, func);
@@ -115,7 +115,7 @@ result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Functi
 
     retVal = func1;
 
-    return 0;
+    return result_t();
 }
 
 }

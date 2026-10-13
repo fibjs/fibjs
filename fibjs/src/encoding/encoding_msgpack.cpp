@@ -75,7 +75,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                 msgpack_pack_str_body(&pk, ToCString(v), v.length());
             }
 
-            return 0;
+            return result_t();
         }
 
         result_t pack(v8::Local<v8::Object> element)
@@ -92,7 +92,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                 msgpack_pack_bin(&pk, buf->length());
                 msgpack_pack_bin_body(&pk, buf->data(), buf->length());
 
-                return 0;
+                return result_t();
             }
 
             JSValue jsonFun = element->Get(context, isolate->NewString("toJSON", 6));
@@ -140,7 +140,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                     return hr;
             }
 
-            return 0;
+            return result_t();
         }
 
         result_t pack(v8::Local<v8::Array> element)
@@ -157,7 +157,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                     return hr;
             }
 
-            return 0;
+            return result_t();
         }
 
         result_t pack(v8::Local<v8::Map> element)
@@ -178,7 +178,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                     return hr;
             }
 
-            return 0;
+            return result_t();
         }
 
     public:
@@ -194,7 +194,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
 
     retVal = new Buffer(mp.sbuf.data, mp.sbuf.size);
 
-    return 0;
+    return result_t();
 }
 
 // the buffer form of the merged decode below
@@ -235,9 +235,9 @@ static result_t msgpack_decode_buffer(Buffer_base* data, v8::Local<v8::Value>& r
             Buffer* buf = Buffer::Cast(data);
             msgpack_unpack_return ret = msgpack_unpack((const char*)buf->data(), buf->length(), NULL, &mempool, &deserialized);
             if (ret != 2)
-                return -1;
+                return result_t(-1);
 
-            return 0;
+            return result_t();
         }
 
         v8::Local<v8::Value> map_js_value(msgpack_object* o)
@@ -338,10 +338,10 @@ static result_t msgpack_decode_buffer(Buffer_base* data, v8::Local<v8::Value>& r
 
     result_t hr = mu.unpack(data);
     if (hr.failed())
-        return 0;
+        return result_t();
 
     retVal = mu.jsValue();
 
-    return 0;
+    return result_t();
 }
 }

@@ -37,7 +37,7 @@ result_t assert_base::get_AssertionError(v8::Local<v8::Function>& retVal)
     }
 
     retVal = glob_AssertionError.As<v8::Function>();
-    return 0;
+    return result_t();
 }
 
 v8::Local<v8::Value> AssertionError(exlib::string operator_, v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, exlib::string message, v8::Local<v8::Value> property)
@@ -183,10 +183,10 @@ result_t assert_base::throws(v8::Local<v8::Function> block, v8::Local<v8::Value>
     }
 
     if (err.IsEmpty())
-        return 0;
+        return result_t();
 
     ThrowError(err);
-    return CALL_E_JAVASCRIPT;
+    return result_t(CALL_E_JAVASCRIPT);
 }
 
 result_t assert_base::throws(v8::Local<v8::Function> block, v8::Local<v8::Value> msg)
@@ -289,7 +289,7 @@ result_t assert_base::rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value
         v8::Function::New(context, OnResolve, external).FromMaybe(v8::Local<v8::Function>()),
         v8::Function::New(context, OnReject, external).FromMaybe(v8::Local<v8::Function>()));
 
-    return 0;
+    return result_t();
 }
 
 result_t assert_base::rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal)
@@ -308,14 +308,14 @@ result_t assert_base::rejects(v8::Local<v8::Function> block, v8::Local<v8::Value
         v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).FromMaybe(v8::Local<v8::Promise::Resolver>());
         resolver->Reject(context, try_catch.Exception()).IsJust();
         retVal = resolver->GetPromise();
-        return 0;
+        return result_t();
     }
 
     if (!v->IsPromise()) {
         v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).FromMaybe(v8::Local<v8::Promise::Resolver>());
         resolver->Reject(context, v8::Exception::TypeError(isolate->NewString("The rsult of the function is not a promise."))).IsJust();
         retVal = resolver->GetPromise();
-        return 0;
+        return result_t();
     }
 
     v8::Local<v8::Promise> result = v.As<v8::Promise>();

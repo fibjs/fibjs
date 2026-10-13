@@ -46,7 +46,7 @@ result_t FiberProcJsEntry(Isolate* isolate)
         v8::Local<v8::Value> result;
         v8::Local<v8::Function> _main_func = isolate->NewFunction("main", main_stub);
         if (_main_func.IsEmpty() || !_main_func->Call(_context, _main_func, 0, NULL).ToLocal(&result))
-            s.m_hr = CALL_E_JAVASCRIPT;
+            s.m_hr = result_t(CALL_E_JAVASCRIPT);
     } else {
         RootModule* pModule = RootModule::g_root;
         v8::Local<v8::Context> _context = isolate->context();

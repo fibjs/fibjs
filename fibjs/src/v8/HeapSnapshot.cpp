@@ -51,7 +51,7 @@ result_t v8_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 
     v8::HeapProfiler* profiler = isolate->m_isolate->GetHeapProfiler();
     retVal = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
-    return 0;
+    return result_t();
 }
 
 result_t v8_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal)
@@ -96,7 +96,7 @@ result_t v8_base::loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_base>& 
         return hr;
 
     retVal = hs;
-    return 0;
+    return result_t();
 }
 
 result_t HeapSnapshot::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal)
@@ -107,16 +107,16 @@ result_t HeapSnapshot::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retV
     if (it != _nodes.end()) {
         retVal = m_nodes[it->second];
     } else
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
-    return 0;
+    return result_t();
 }
 
 template <typename T>
 inline result_t GetArray(v8::Local<v8::Value> v, QuickArray<T>& n)
 {
     if (v.IsEmpty() || !v->IsArray())
-        return CALL_E_INVALIDARG;
+        return result_t::invalid_arg();
 
     JSArray a = v.As<v8::Array>();
     result_t hr;
@@ -132,7 +132,7 @@ inline result_t GetArray(v8::Local<v8::Value> v, QuickArray<T>& n)
         n.append(vr);
     }
 
-    return 0;
+    return result_t();
 }
 
 inline bool checkArray(QuickArray<exlib::string>& a, const char* chks[], int32_t sz)
@@ -311,7 +311,7 @@ result_t HeapSnapshot::load(exlib::string fname)
         node_pos++;
     }
 
-    return 0;
+    return result_t();
 }
 
 #define BUF_SIZE 8192
@@ -343,7 +343,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
             bufs.append(s);
             if (bufs.size() > BUF_SIZE)
                 return flush();
-            return 0;
+            return result_t();
         }
 
         result_t append(const char* s, int32_t l = -1)
@@ -351,7 +351,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
             bufs.append(s, l);
             if (bufs.size() > BUF_SIZE)
                 return flush();
-            return 0;
+            return result_t();
         }
 
         result_t append(char ch)
@@ -359,7 +359,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
             bufs.append(ch);
             if (bufs.size() > BUF_SIZE)
                 return flush();
-            return 0;
+            return result_t();
         }
 
         result_t flush()
@@ -544,13 +544,13 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncHandle ac)
     hr = bufs.append("\"]}", 3);
     if (hr.failed())
         return hr;
-    return 0;
+    return result_t();
 }
 
 result_t HeapSnapshot::get_time(date_t& retVal)
 {
     retVal = m_time;
-    return 0;
+    return result_t();
 }
 
 result_t HeapSnapshot::get_root(obj_ptr<HeapGraphNode_base>& retVal)
@@ -561,6 +561,6 @@ result_t HeapSnapshot::get_root(obj_ptr<HeapGraphNode_base>& retVal)
 result_t HeapSnapshot::get_nodes(std::vector<obj_ptr<HeapGraphNode_base>>& retVal)
 {
     retVal = m_nodes;
-    return 0;
+    return result_t();
 }
 }

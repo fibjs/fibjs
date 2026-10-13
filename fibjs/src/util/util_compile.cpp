@@ -115,6 +115,6 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
         return zlib_base::cc_gzip(unz, v8::Local<v8::Object>(), retVal);
     }
 
-    return 0;
+    return result_t();
 }
 }

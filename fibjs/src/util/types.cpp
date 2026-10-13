@@ -18,22 +18,22 @@ result_t types_base::isEmpty(v8::Local<v8::Value> v, bool& retVal)
 {
     if (v->IsNull()) {
         retVal = true;
-        return 0;
+        return result_t();
     }
 
     if (v->IsString()) {
         retVal = v.As<v8::String>()->Length() == 0;
-        return 0;
+        return result_t();
     }
 
     if (v->IsStringObject()) {
         retVal = v.As<v8::StringObject>()->ValueOf()->Length() == 0;
-        return 0;
+        return result_t();
     }
 
     if (v->IsArray()) {
         retVal = v.As<v8::Array>()->Length() == 0;
-        return 0;
+        return result_t();
     }
 
     if (v->IsObject()) {
@@ -41,90 +41,90 @@ result_t types_base::isEmpty(v8::Local<v8::Value> v, bool& retVal)
 
         v8::Local<v8::Context> context;
         if (!o->GetCreationContext().ToLocal(&context))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         v8::Local<v8::Array> keys;
         if (!o->GetOwnPropertyNames(context).ToLocal(&keys) || keys.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
         retVal = keys->Length() == 0;
-        return 0;
+        return result_t();
     }
 
     retVal = true;
 
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isArray(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsArray();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isBoolean(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsBoolean() || v->IsBooleanObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isNull(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsNull();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isNullOrUndefined(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsNull() || v->IsUndefined();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isNumber(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsNumber() || v->IsNumberObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isBigInt(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsBigInt() || v->IsBigIntObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isString(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsString() || v->IsStringObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isUndefined(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsUndefined();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isRegExp(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsRegExp();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isObject(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isDate(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsDate();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isNativeError(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsNativeError();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isPrimitive(v8::Local<v8::Value> v, bool& retVal)
@@ -143,266 +143,266 @@ result_t types_base::isPrimitive(v8::Local<v8::Value> v, bool& retVal)
             retVal = true;
         }
     }
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isSymbol(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsSymbol();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isDataView(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsDataView();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isExternal(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsExternal();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isMap(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsMap();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isMapIterator(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsMapIterator();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isPromise(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsPromise();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isAsyncFunction(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsAsyncFunction();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isSet(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsSet();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isSetIterator(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsSetIterator();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isTypedArray(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsTypedArray();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isFloat32Array(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsFloat32Array();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isFloat64Array(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsFloat64Array();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isInt8Array(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsInt8Array();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isInt16Array(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsInt16Array();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isInt32Array(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsInt32Array();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isUint8Array(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsUint8Array();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isUint8ClampedArray(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsUint8ClampedArray();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isUint16Array(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsUint16Array();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isUint32Array(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsUint32Array();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isFunction(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsFunction();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isBuffer(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = IsJSBuffer(v);
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isBigIntObject(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsBigIntObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isBooleanObject(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsBooleanObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isNumberObject(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsNumberObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isStringObject(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsStringObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isSymbolObject(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsSymbolObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isWeakMap(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsWeakMap();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isWeakSet(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsWeakSet();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isArrayBuffer(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsArrayBuffer();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isArrayBufferView(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsArrayBufferView();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isBigInt64Array(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsBigInt64Array();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isBigUint64Array(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsBigUint64Array();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isFloat16Array(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsFloat16Array();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isAnyArrayBuffer(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsArrayBuffer() || v->IsSharedArrayBuffer();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isSharedArrayBuffer(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsSharedArrayBuffer();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isArgumentsObject(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsArgumentsObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isBoxedPrimitive(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsBooleanObject() || v->IsNumberObject() || v->IsStringObject()
         || v->IsSymbolObject() || v->IsBigIntObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isGeneratorFunction(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsGeneratorFunction();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isGeneratorObject(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsGeneratorObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isProxy(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsProxy();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isModuleNamespaceObject(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = v->IsModuleNamespaceObject();
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isCryptoKey(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = CryptoKey_base::getInstance(v) != NULL;
-    return 0;
+    return result_t();
 }
 
 result_t types_base::isKeyObject(v8::Local<v8::Value> v, bool& retVal)
 {
     retVal = KeyObject_base::getInstance(v) != NULL;
-    return 0;
+    return result_t();
 }
 
 result_t util_base::isEmpty(v8::Local<v8::Value> v, bool& retVal)

@@ -25,10 +25,10 @@ inline result_t _test(bool value, exlib::string operator_, v8::Local<v8::Value> 
             GetArgumentValue(Isolate::current(), msg, message);
 
         ThrowError(AssertionError(operator_, actual, expected, message, property));
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     }
 
-    return 0;
+    return result_t();
 }
 
 }

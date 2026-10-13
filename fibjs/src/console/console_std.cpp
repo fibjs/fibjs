@@ -34,7 +34,7 @@ void std_logger::out(exlib::string& txt, bool is_error)
 
 result_t std_logger::write(AsyncEvent* ac)
 {
-    return 0;
+    return result_t();
 }
 
 // Format a log item into text, same logic as write()

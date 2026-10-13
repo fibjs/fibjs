@@ -155,7 +155,7 @@ static bool uuid_from_string(const char* str, uint8_t* uuid)
 inline result_t toBuffer(const uint8_t* uuid_bytes, obj_ptr<Buffer_base>& retVal)
 {
     retVal = new Buffer(uuid_bytes, 16);
-    return 0;
+    return result_t();
 }
 
 result_t makeUUID_v1(obj_ptr<Buffer_base>& retVal)
@@ -321,7 +321,7 @@ result_t uuid_base::validate(exlib::string uuid, bool& retVal)
 {
     uint8_t uuid_bytes[16];
     retVal = uuid_from_string(uuid.c_str(), uuid_bytes);
-    return 0;
+    return result_t();
 }
 
 result_t uuid_base::stringify(Union_stringify_arr arr, int32_t offset, exlib::string& retVal)
@@ -338,7 +338,7 @@ result_t uuid_base::stringify(Union_stringify_arr arr, int32_t offset, exlib::st
 
     const uint8_t* uuid = (const uint8_t*)data.c_str() + offset;
     uuid_to_string(uuid, retVal);
-    return 0;
+    return result_t();
 }
 
 result_t uuid_base::v1(v8::Local<v8::Object> options, exlib::string& retVal)
@@ -450,7 +450,7 @@ result_t uuid_base::v1(v8::Local<v8::Object> options, exlib::string& retVal)
     memcpy(&uuid[10], node_id, 6);
 
     uuid_to_string(uuid, retVal);
-    return 0;
+    return result_t();
 }
 
 result_t uuid_base::v4(v8::Local<v8::Object> options, exlib::string& retVal)
@@ -487,7 +487,7 @@ result_t uuid_base::v4(v8::Local<v8::Object> options, exlib::string& retVal)
     uuid[8] = (uuid[8] & 0x3F) | 0x80; // Variant bits
 
     uuid_to_string(uuid, retVal);
-    return 0;
+    return result_t();
 }
 
 result_t uuid_base::v3(exlib::string name, Union_v3_ns ns, exlib::string& retVal)
@@ -528,7 +528,7 @@ result_t uuid_base::v3(exlib::string name, Union_v3_ns ns, exlib::string& retVal
     uuid[8] = (uuid[8] & 0x3F) | 0x80; // Variant bits
 
     uuid_to_string(uuid, retVal);
-    return 0;
+    return result_t();
 }
 
 
@@ -570,7 +570,7 @@ result_t uuid_base::v5(exlib::string name, Union_v5_ns ns, exlib::string& retVal
     uuid[8] = (uuid[8] & 0x3F) | 0x80; // Variant bits
 
     uuid_to_string(uuid, retVal);
-    return 0;
+    return result_t();
 }
 
 
@@ -582,7 +582,7 @@ result_t uuid_base::version(exlib::string uuid, int32_t& retVal)
     }
     
     retVal = (uuid_bytes[6] >> 4) & 0x0F;
-    return 0;
+    return result_t();
 }
 
 result_t uuid_base::v6(v8::Local<v8::Object> options, exlib::string& retVal)
@@ -688,7 +688,7 @@ result_t uuid_base::v6(v8::Local<v8::Object> options, exlib::string& retVal)
     memcpy(&uuid[10], node_id, 6);
 
     uuid_to_string(uuid, retVal);
-    return 0;
+    return result_t();
 }
 
 result_t uuid_base::v7(v8::Local<v8::Object> options, exlib::string& retVal)
@@ -731,7 +731,7 @@ result_t uuid_base::v7(v8::Local<v8::Object> options, exlib::string& retVal)
     uuid[8] = (uuid[8] & 0x3F) | 0x80; // Variant
 
     uuid_to_string(uuid, retVal);
-    return 0;
+    return result_t();
 }
 
 result_t uuid_base::v1ToV6(exlib::string uuid_v1, exlib::string& retVal)
@@ -768,7 +768,7 @@ result_t uuid_base::v1ToV6(exlib::string uuid_v1, exlib::string& retVal)
     memcpy(&v6_bytes[8], &v1_bytes[8], 8);
     
     uuid_to_string(v6_bytes, retVal);
-    return 0;
+    return result_t();
 }
 
 result_t uuid_base::v6ToV1(exlib::string uuid_v6, exlib::string& retVal)
@@ -801,7 +801,7 @@ result_t uuid_base::v6ToV1(exlib::string uuid_v6, exlib::string& retVal)
     memcpy(&v1_bytes[8], &v6_bytes[8], 8);
     
     uuid_to_string(v1_bytes, retVal);
-    return 0;
+    return result_t();
 }
 
 result_t uuid_base::node(obj_ptr<Buffer_base>& retVal)
@@ -876,21 +876,21 @@ result_t uuid_base::snowflake(obj_ptr<Buffer_base>& retVal)
 
     retVal = data;
 
-    return 0;
+    return result_t();
 }
 
 result_t uuid_base::get_hostID(int32_t& retVal)
 {
     Isolate* isolate = Isolate::current();
     retVal = isolate->m_flake_host;
-    return 0;
+    return result_t();
 }
 
 result_t uuid_base::set_hostID(int32_t newVal)
 {
     Isolate* isolate = Isolate::current();
     isolate->m_flake_host = newVal & 0x3ff;
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

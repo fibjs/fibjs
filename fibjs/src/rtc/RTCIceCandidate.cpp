@@ -29,31 +29,31 @@ result_t RTCIceCandidate_base::_new(v8::Local<v8::Object> description,
         return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCIceCandidate::get_candidate(exlib::string& retVal)
 {
     retVal = m_candidate.candidate();
-    return 0;
+    return result_t();
 }
 
 result_t RTCIceCandidate::get_sdpMid(exlib::string& retVal)
 {
     retVal = m_candidate.mid();
-    return 0;
+    return result_t();
 }
 
 result_t RTCIceCandidate::get_priority(int32_t& retVal)
 {
     retVal = m_candidate.priority();
-    return 0;
+    return result_t();
 }
 
 result_t RTCIceCandidate::get_transport(exlib::string& retVal)
 {
     if (!m_candidate.isResolved())
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     switch (m_candidate.transportType()) {
     case rtc::Candidate::TransportType::Udp:
@@ -76,25 +76,25 @@ result_t RTCIceCandidate::get_transport(exlib::string& retVal)
         break;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCIceCandidate::get_address(exlib::string& retVal)
 {
     if (!m_candidate.isResolved())
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     retVal = m_candidate.address().value();
-    return 0;
+    return result_t();
 }
 
 result_t RTCIceCandidate::get_port(int32_t& retVal)
 {
     if (!m_candidate.isResolved())
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     retVal = m_candidate.port().value();
-    return 0;
+    return result_t();
 }
 
 result_t RTCIceCandidate::get_type(exlib::string& retVal)
@@ -117,7 +117,7 @@ result_t RTCIceCandidate::get_type(exlib::string& retVal)
         break;
     }
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

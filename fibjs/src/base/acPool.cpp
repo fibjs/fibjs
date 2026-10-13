@@ -381,7 +381,7 @@ result_t AsyncCallBack::syncFunc()
             fb->m_async_ctx.Reset();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -413,7 +413,7 @@ result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo
             m_v = hr;
             processPromiseResult();
 
-            return CALL_RETURN_UNDEFINED;
+            return result_t::return_undefined();
         }
     } else {
         if (m_ctxo)
@@ -421,7 +421,7 @@ result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo
 
         if (!hr.is_nosync() && !hr.is(CALL_E_LONGSYNC) && !hr.is(CALL_E_GUICALL)) {
             post_result(hr);
-            return CALL_RETURN_UNDEFINED;
+            return result_t::return_undefined();
         }
     }
 
@@ -432,13 +432,13 @@ result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo
             invoke();
 
             if (_rt.is_terminating())
-                m_v = CALL_E_TIMEOUT;
+                m_v = result_t(CALL_E_TIMEOUT);
         } else {
             async(hr);
         }
     }
 
-    return CALL_RETURN_UNDEFINED;
+    return result_t::return_undefined();
 }
 
 void InitializeAcPool()

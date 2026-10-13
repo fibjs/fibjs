@@ -117,7 +117,7 @@ result_t encoding_conv::ucs_encode(exlib::string data, exlib::string& retVal)
 {
     if ((m_charset == "utf8") || (m_charset == "utf-8")) {
         retVal = data;
-        return 0;
+        return result_t();
     }
 
     if ((m_charset == "binary") || (m_charset == "latin1")) {
@@ -129,7 +129,7 @@ result_t encoding_conv::ucs_encode(exlib::string data, exlib::string& retVal)
         char* s1 = retVal.data();
         for (size_t i = 0; i < sz; i++)
             *s1++ = (char)*s++;
-        return 0;
+        return result_t();
     }
 
     if (is_ucs2(m_charset)) {
@@ -137,7 +137,7 @@ result_t encoding_conv::ucs_encode(exlib::string data, exlib::string& retVal)
         retVal.resize(n * sizeof(char16_t));
         utf_convert(data.c_str(), data.length(), (char16_t*)retVal.data(), n);
 
-        return 0;
+        return result_t();
     }
 
     if (is_ucs4(m_charset)) {
@@ -145,7 +145,7 @@ result_t encoding_conv::ucs_encode(exlib::string data, exlib::string& retVal)
         retVal.resize(n * sizeof(char32_t));
         utf_convert(data.c_str(), data.length(), (char32_t*)retVal.data(), n);
 
-        return 0;
+        return result_t();
     }
 
     if (is_ucs2_s(m_charset)) {
@@ -153,7 +153,7 @@ result_t encoding_conv::ucs_encode(exlib::string data, exlib::string& retVal)
         retVal.resize(n * sizeof(char16_t));
         utf_convert_s(data.c_str(), data.length(), (char16_t*)retVal.data(), n);
 
-        return 0;
+        return result_t();
     }
 
     if (is_ucs4_s(m_charset)) {
@@ -161,17 +161,17 @@ result_t encoding_conv::ucs_encode(exlib::string data, exlib::string& retVal)
         retVal.resize(n * sizeof(char32_t));
         utf_convert_s(data.c_str(), data.length(), (char32_t*)retVal.data(), n);
 
-        return 0;
+        return result_t();
     }
 
-    return -1;
+    return result_t(-1);
 }
 
 result_t encoding_conv::ucs_decode(const char* data, size_t sz, exlib::string& retVal)
 {
     if ((m_charset == "utf8") || (m_charset == "utf-8")) {
         retVal.assign(data, sz);
-        return 0;
+        return result_t();
     }
 
     if ((m_charset == "binary") || (m_charset == "latin1")) {
@@ -182,30 +182,30 @@ result_t encoding_conv::ucs_decode(const char* data, size_t sz, exlib::string& r
             *s1++ = *data++;
 
         retVal = utf16to8String(wdata);
-        return 0;
+        return result_t();
     }
 
     if (is_ucs2(m_charset)) {
         retVal = utf16to8String((const char16_t*)data, sz / sizeof(char16_t));
-        return 0;
+        return result_t();
     }
 
     if (is_ucs4(m_charset)) {
         retVal = utf32to8String((const char32_t*)data, sz / sizeof(char32_t));
-        return 0;
+        return result_t();
     }
 
     if (is_ucs2_s(m_charset)) {
         retVal = utf16to8String_s((const char16_t*)data, sz / sizeof(char16_t));
-        return 0;
+        return result_t();
     }
 
     if (is_ucs4_s(m_charset)) {
         retVal = utf32to8String_s((const char32_t*)data, sz / sizeof(char32_t));
-        return 0;
+        return result_t();
     }
 
-    return -1;
+    return result_t(-1);
 }
 
 result_t encoding_conv::ucs_decode(exlib::string data, exlib::string& retVal)

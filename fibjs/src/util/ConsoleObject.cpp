@@ -32,7 +32,7 @@ static bool is_writable(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::
 result_t ConsoleObject_base::_new(obj_ptr<ConsoleObject_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new ConsoleObject();
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject_base::_new(v8::Local<v8::Value> stdout_val, v8::Local<v8::Value> stderr_val,
@@ -66,7 +66,7 @@ result_t ConsoleObject_base::_new(v8::Local<v8::Value> stdout_val, v8::Local<v8:
         return result_t::make(CALL_E_EXCEPTION).with_message("ConsoleObject: stderr must have a write() method.");
 
     retVal = new ConsoleObject(isolate->m_isolate, stdout_obj, stderr_obj);
-    return 0;
+    return result_t();
 }
 
 result_t util_base::debuglog(exlib::string section, obj_ptr<ConsoleObject_base>& retVal)
@@ -75,7 +75,7 @@ result_t util_base::debuglog(exlib::string section, obj_ptr<ConsoleObject_base>&
         return result_t::make(CALL_E_EXCEPTION).with_message("ConsoleObject: section is required.");
 
     retVal = new ConsoleObject(section);
-    return 0;
+    return result_t();
 }
 
 result_t util_base::debuglog(exlib::string section, v8::Local<v8::Function> fn, obj_ptr<ConsoleObject_base>& retVal)
@@ -84,7 +84,7 @@ result_t util_base::debuglog(exlib::string section, v8::Local<v8::Function> fn, 
         return result_t::make(CALL_E_EXCEPTION).with_message("ConsoleObject: section is required.");
 
     retVal = new ConsoleObject(section, fn);
-    return 0;
+    return result_t();
 }
 
 result_t util_base::debug(exlib::string section, obj_ptr<ConsoleObject_base>& retVal)
@@ -278,13 +278,13 @@ void ConsoleObject::_log(int32_t type, exlib::string str, bool is_color)
 result_t ConsoleObject::get_section(exlib::string& retVal)
 {
     retVal = m_section;
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::get_enabled(bool& retVal)
 {
     retVal = check_env();
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::_function(OptArgs args)
@@ -295,61 +295,61 @@ result_t ConsoleObject::_function(OptArgs args)
 result_t ConsoleObject::log(OptArgs args)
 {
     _log(console_base::C_INFO, args);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::debug(OptArgs args)
 {
     _log(console_base::C_DEBUG, args);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::info(OptArgs args)
 {
     _log(console_base::C_INFO, args);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::notice(OptArgs args)
 {
     _log(console_base::C_NOTICE, args);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::warn(OptArgs args)
 {
     _log(console_base::C_WARN, args);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::warning(OptArgs args)
 {
     _log(console_base::C_WARN, args);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::error(OptArgs args)
 {
     _log(console_base::C_ERROR, args);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::crit(OptArgs args)
 {
     _log(console_base::C_CRIT, args);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::critical(OptArgs args)
 {
     _log(console_base::C_CRIT, args);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::alert(OptArgs args)
 {
     _log(console_base::C_ALERT, args);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::trace(OptArgs args)
@@ -388,7 +388,7 @@ result_t ConsoleObject::trace(OptArgs args)
 
     _log(console_base::C_WARN, str);
 
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options)
@@ -397,7 +397,7 @@ result_t ConsoleObject::dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
     util_base::inspect(obj, options, strBuffer);
 
     _log(console_base::C_INFO, strBuffer, true);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::table(v8::Local<v8::Value> obj)
@@ -415,7 +415,7 @@ result_t ConsoleObject::table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fie
         strBuffer = "\n" + strBuffer;
 
     _log(console_base::C_INFO, strBuffer, is_color);
-    return 0;
+    return result_t();
 }
 
 static inline int64_t Ticks()
@@ -426,7 +426,7 @@ static inline int64_t Ticks()
 result_t ConsoleObject::time(exlib::string label)
 {
     m_timers[label] = Ticks();
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::timeElapse(exlib::string label)
@@ -444,7 +444,7 @@ result_t ConsoleObject::timeElapse(exlib::string label)
     strBuffer.append("ms", 2);
 
     _log(console_base::C_INFO, strBuffer);
-    return 0;
+    return result_t();
 }
 
 result_t ConsoleObject::timeEnd(exlib::string label)
@@ -464,7 +464,7 @@ result_t ConsoleObject::timeEnd(exlib::string label)
     strBuffer.append("ms", 2);
 
     _log(console_base::C_INFO, strBuffer);
-    return 0;
+    return result_t();
 }
 
 }

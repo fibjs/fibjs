@@ -13,13 +13,13 @@ namespace fibjs {
 result_t NullHandler::isRouting(bool& retVal)
 {
     retVal = false;
-    return 0;
+    return result_t();
 }
 
 result_t NullHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncHandle ac)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 } /* namespace fibjs */

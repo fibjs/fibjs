@@ -28,7 +28,7 @@ result_t v8_base::getHeapCodeStatistics(v8::Local<v8::Object>& retVal)
 
     retVal = o;
 
-    return 0;
+    return result_t();
 }
 
 result_t v8_base::getHeapSpaceStatistics(std::vector<obj_ptr<GetHeapSpaceStatisticsType>>& retVal)
@@ -54,7 +54,7 @@ result_t v8_base::getHeapSpaceStatistics(std::vector<obj_ptr<GetHeapSpaceStatist
         retVal.push_back(item);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t v8_base::getHeapStatistics(obj_ptr<GetHeapStatisticsType>& retVal)
@@ -78,7 +78,7 @@ result_t v8_base::getHeapStatistics(obj_ptr<GetHeapStatisticsType>& retVal)
     retVal->number_of_native_contexts = (double)hs.number_of_native_contexts();
     retVal->number_of_detached_contexts = (double)hs.number_of_detached_contexts();
 
-    return 0;
+    return result_t();
 }
 
 }

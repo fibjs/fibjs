@@ -45,7 +45,7 @@ result_t tty_base::isatty(Union_isatty_fd fd, bool& retVal)
         return result_t::from_system(LastError());
 
     retVal = !!hr;
-    return 0;
+    return result_t();
 }
 
 result_t TTYInputStream_base::_new(Union_TTYInputStream_fd fd, v8::Local<v8::Object> opts, obj_ptr<TTYInputStream_base>& retVal,
@@ -66,16 +66,16 @@ result_t TTYInputStream_base::_new(Union_TTYInputStream_fd fd, v8::Local<v8::Obj
         return hr;
 
     if (!_tty)
-        return result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(result_t::invalid_arg());
 
     retVal = new TTYInputStream(_fd);
-    return 0;
+    return result_t();
 }
 
 result_t TTYInputStream::get_isRaw(bool& retVal)
 {
     retVal = m_isRaw;
-    return 0;
+    return result_t();
 }
 
 result_t TTYInputStream::setRawMode(bool isRawMode, obj_ptr<TTYInputStream_base>& retVal)
@@ -87,7 +87,7 @@ result_t TTYInputStream::setRawMode(bool isRawMode, obj_ptr<TTYInputStream_base>
 
     retVal = this;
 
-    return 0;
+    return result_t();
 }
 
 result_t TTYOutputStream_base::_new(Union_TTYOutputStream_fd fd, v8::Local<v8::Object> opts, obj_ptr<TTYOutputStream_base>& retVal,
@@ -108,10 +108,10 @@ result_t TTYOutputStream_base::_new(Union_TTYOutputStream_fd fd, v8::Local<v8::O
         return hr;
 
     if (!_tty)
-        return result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(result_t::invalid_arg());
 
     retVal = new TTYOutputStream(_fd);
-    return 0;
+    return result_t();
 }
 
 const char* TTYOutputStream::kClearToLineBeginning = "\x1b[1K";
@@ -132,17 +132,17 @@ result_t TTYOutputStream::clearLine(int32_t dir)
         outLog(console_base::C_PRINT, kClearLine);
         break;
     default:
-        return result_t::make(CALL_E_EXCEPTION).with_format("clearLine: invalid direction %d, expected -1, 0, or 1.", dir).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("clearLine: invalid direction %d, expected -1, 0, or 1.", dir).with_result(result_t::invalid_arg());
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t TTYOutputStream::clearScreenDown()
 {
     outLog(console_base::C_PRINT, kClearScreenDown);
 
-    return 0;
+    return result_t();
 }
 
 result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncHandle ac)
@@ -151,7 +151,7 @@ result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncHandle ac)
         return result_t::nosync();
 
     if (x < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("cursorTo: x must be non-negative, received %d.", x).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("cursorTo: x must be non-negative, received %d.", x).with_result(result_t::invalid_arg());
 
     char numStr[64];
 
@@ -162,7 +162,7 @@ result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncHandle ac)
 
     outLog(console_base::C_PRINT, numStr);
 
-    return 0;
+    return result_t();
 }
 
 result_t TTYOutputStream::moveCursor(int32_t dx, int32_t dy, AsyncHandle ac)
@@ -185,7 +185,7 @@ result_t TTYOutputStream::moveCursor(int32_t dx, int32_t dy, AsyncHandle ac)
 
     outLog(console_base::C_PRINT, numStr);
 
-    return 0;
+    return result_t();
 }
 
 result_t TTYOutputStream::getWindowSize(std::vector<double>& retVal)
@@ -196,7 +196,7 @@ result_t TTYOutputStream::getWindowSize(std::vector<double>& retVal)
     retVal.push_back(width);
     retVal.push_back(height);
 
-    return 0;
+    return result_t();
 }
 
 result_t TTYOutputStream::get_columns(int32_t& retVal)
@@ -204,7 +204,7 @@ result_t TTYOutputStream::get_columns(int32_t& retVal)
     int32_t height;
     uv_tty_get_winsize(&m_tty, &retVal, &height);
 
-    return 0;
+    return result_t();
 }
 
 result_t TTYOutputStream::get_rows(int32_t& retVal)
@@ -212,7 +212,7 @@ result_t TTYOutputStream::get_rows(int32_t& retVal)
     int32_t width;
     uv_tty_get_winsize(&m_tty, &width, &retVal);
 
-    return 0;
+    return result_t();
 }
 
 TTYOutputStream::TTYOutputStream(int32_t fd)

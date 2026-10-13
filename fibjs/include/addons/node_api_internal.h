@@ -656,7 +656,7 @@ public:
         // destroyed here.
         Unref();
 
-        return 0;
+        return fibjs::result_t();
     }
 
     virtual void DoThreadPoolWork() = 0;

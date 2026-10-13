@@ -461,7 +461,7 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
         retVal = json_format(isolate, obj, colors, depth, maxArrayLength, maxStringLength);
     }
 
-    return 0;
+    return result_t();
 }
 
 }

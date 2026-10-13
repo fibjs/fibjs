@@ -35,14 +35,14 @@ static result_t throw_worker_path_error(Isolate* isolate)
         "The worker script or module filename must be an absolute path or a relative path starting with './' or '../'."));
     err.As<v8::Object>()->Set(context, isolate->NewString("code"), isolate->NewString("ERR_WORKER_PATH")).IsJust();
     isolate->m_isolate->ThrowException(err);
-    return CALL_E_JAVASCRIPT;
+    return result_t(CALL_E_JAVASCRIPT);
 }
 
 result_t worker_threads_base::get_isMainThread(bool& retVal)
 {
     Isolate* isolate = Isolate::current();
     retVal = (isolate == NULL || isolate->m_parent_worker == NULL);
-    return 0;
+    return result_t();
 }
 
 result_t worker_threads_base::get_threadId(int32_t& retVal)
@@ -53,7 +53,7 @@ result_t worker_threads_base::get_threadId(int32_t& retVal)
     else
         retVal = isolate->m_id;
 
-    return 0;
+    return result_t();
 }
 
 result_t worker_threads_base::get_parentPort(obj_ptr<MessagePort_base>& retVal)
@@ -61,11 +61,11 @@ result_t worker_threads_base::get_parentPort(obj_ptr<MessagePort_base>& retVal)
     Isolate* isolate = Isolate::current();
 
     if (isolate->m_parent_port == NULL)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = isolate->m_parent_port;
 
-    return 0;
+    return result_t();
 }
 
 result_t worker_threads_base::get_workerData(v8::Local<v8::Value>& retVal)
@@ -73,11 +73,11 @@ result_t worker_threads_base::get_workerData(v8::Local<v8::Value>& retVal)
     Isolate* isolate = Isolate::current();
 
     if (isolate->m_parent_worker == NULL)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     obj_ptr<Worker> worker = isolate->m_parent_worker.As<Worker>();
     if (!worker->m_has_worker_data || worker->m_workerData == NULL)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     return v8_base::deserialize(worker->m_workerData, retVal);
 }
@@ -90,7 +90,7 @@ result_t worker_threads_base::receiveMessageOnPort(MessagePort_base* port, v8::L
 
     if (!messagePort->receiveMessage(retVal)) {
         retVal = v8::Undefined(Isolate::current()->m_isolate);
-        return 0;
+        return result_t();
     }
 
     Isolate* isolate = Isolate::current();
@@ -99,7 +99,7 @@ result_t worker_threads_base::receiveMessageOnPort(MessagePort_base* port, v8::L
     message->Set(ctx, isolate->NewString("message"), retVal).IsJust();
     retVal = message;
 
-    return 0;
+    return result_t();
 }
 
 // Mark an object as not cloneable. No-op in fibjs: fibjs uses V8's
@@ -108,13 +108,13 @@ result_t worker_threads_base::receiveMessageOnPort(MessagePort_base* port, v8::L
 // with packages (e.g. undici) that call it in Web API constructors.
 result_t worker_threads_base::markAsUncloneable(v8::Local<v8::Value> object)
 {
-    return 0;
+    return result_t();
 }
 
 // Mark an object as not transferable. No-op in fibjs.
 result_t worker_threads_base::markAsUntransferable(v8::Local<v8::Value> object)
 {
-    return 0;
+    return result_t();
 }
 
 // Check if an object is marked as not transferable. Always returns false
@@ -122,7 +122,7 @@ result_t worker_threads_base::markAsUntransferable(v8::Local<v8::Value> object)
 result_t worker_threads_base::isMarkedAsUntransferable(v8::Local<v8::Value> object, bool& retVal)
 {
     retVal = false;
-    return 0;
+    return result_t();
 }
 
 result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
@@ -182,7 +182,7 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
     worker->start();
 
     retVal = worker;
-    return 0;
+    return result_t();
 }
 
 void Worker::start()
@@ -327,7 +327,7 @@ Worker::Worker(exlib::string source, v8::Local<v8::Object> opts, bool isEval)
 result_t Worker::get_threadId(int32_t& retVal)
 {
     retVal = m_threadId;
-    return 0;
+    return result_t();
 }
 
 bool Worker::canEmit(exlib::string ev)
@@ -484,7 +484,7 @@ result_t Worker::terminate(int32_t& retVal, AsyncHandle ac)
     if (m_exited) {
         // 已经退出：立即以记录到的退出码完成（与 Node 一致）
         retVal = m_exitCode;
-        return 0;
+        return result_t();
     }
 
     m_terminate_lock.lock();
@@ -516,14 +516,14 @@ result_t Worker::ref()
 {
     isolate_ref();
 
-    return 0;
+    return result_t();
 }
 
 result_t Worker::unref()
 {
     isolate_unref();
 
-    return 0;
+    return result_t();
 }
 
 result_t Worker::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
@@ -535,7 +535,7 @@ result_t Worker::onEventChange(exlib::string type, exlib::string ev, v8::Local<v
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 void Worker::onIsolateIdle(int32_t exitCode)

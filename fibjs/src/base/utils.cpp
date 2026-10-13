@@ -881,7 +881,7 @@ result_t throwSyntaxError(TryCatch& try_catch)
         return result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, 0, false, true)).with_func(__func__);
     }
 
-    return CALL_E_JAVASCRIPT;
+    return result_t(CALL_E_JAVASCRIPT);
 }
 
 exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl)
@@ -917,7 +917,7 @@ result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
             return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("unknown option \'") + *k + "\'.");
     }
 
-    return 0;
+    return result_t();
 }
 
 const char* signo_string(int signo)

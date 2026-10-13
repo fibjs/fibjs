@@ -72,7 +72,7 @@ result_t Tray::close(AsyncHandle ac)
     g_object_unref(G_OBJECT(m_tray));
     release();
 
-    return 0;
+    return result_t();
 }
 
 } // namespace fibjs

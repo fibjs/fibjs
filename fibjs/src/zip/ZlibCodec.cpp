@@ -132,27 +132,27 @@ public:
         else
             retVal = new Buffer((const char*)output.data(), output.size());
 
-        return 0;
+        return result_t();
     }
 
     virtual result_t close() override
     {
         cleanup();
         m_closed = true;
-        return 0;
+        return result_t();
     }
 
     virtual result_t reset() override
     {
         if (m_closed)
-            return 0;
+            return result_t();
 
         if (is_deflate())
             deflateReset(&m_strm);
         else
             inflateReset(&m_strm);
 
-        return 0;
+        return result_t();
     }
 
     virtual result_t get__handle(v8::Local<v8::Value>& retVal) override
@@ -169,21 +169,21 @@ public:
                         // no-op close for compatibility
                     })
                      .ToLocal(&closeFn))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             handle->Set(context, isolate->NewString("close"), closeFn).IsJust();
             m_handle.Reset(isolate->m_isolate, handle);
         }
 
         retVal = m_handle.Get(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     virtual result_t set__handle(v8::Local<v8::Value> newVal) override
     {
         Isolate* isolate = this->holder();
         m_handle.Reset(isolate->m_isolate, newVal);
-        return 0;
+        return result_t();
     }
 
     virtual result_t params(int32_t level, int32_t strategy) override
@@ -195,7 +195,7 @@ public:
             return result_t::invalid_call();
 
         deflateParams(&m_strm, level, strategy);
-        return 0;
+        return result_t();
     }
 
 private:
@@ -273,7 +273,7 @@ result_t Gzip_base::_new(v8::Local<v8::Object> opts, obj_ptr<Gzip_base>& retVal,
     int32_t level, windowBits, memLevel, strategy;
     extract_opts(opts, ZLIB_GZIP, level, windowBits, memLevel, strategy);
     retVal = new ZlibCodecImpl<Gzip_base>(ZLIB_GZIP, level, windowBits, memLevel, strategy);
-    return 0;
+    return result_t();
 }
 
 // Gunzip
@@ -282,7 +282,7 @@ result_t Gunzip_base::_new(v8::Local<v8::Object> opts, obj_ptr<Gunzip_base>& ret
     int32_t level, windowBits, memLevel, strategy;
     extract_opts(opts, ZLIB_GUNZIP, level, windowBits, memLevel, strategy);
     retVal = new ZlibCodecImpl<Gunzip_base>(ZLIB_GUNZIP, level, windowBits, memLevel, strategy);
-    return 0;
+    return result_t();
 }
 
 // Deflate
@@ -291,7 +291,7 @@ result_t Deflate_base::_new(v8::Local<v8::Object> opts, obj_ptr<Deflate_base>& r
     int32_t level, windowBits, memLevel, strategy;
     extract_opts(opts, ZLIB_DEFLATE, level, windowBits, memLevel, strategy);
     retVal = new ZlibCodecImpl<Deflate_base>(ZLIB_DEFLATE, level, windowBits, memLevel, strategy);
-    return 0;
+    return result_t();
 }
 
 // Inflate
@@ -300,7 +300,7 @@ result_t Inflate_base::_new(v8::Local<v8::Object> opts, obj_ptr<Inflate_base>& r
     int32_t level, windowBits, memLevel, strategy;
     extract_opts(opts, ZLIB_INFLATE, level, windowBits, memLevel, strategy);
     retVal = new ZlibCodecImpl<Inflate_base>(ZLIB_INFLATE, level, windowBits, memLevel, strategy);
-    return 0;
+    return result_t();
 }
 
 // DeflateRaw
@@ -309,7 +309,7 @@ result_t DeflateRaw_base::_new(v8::Local<v8::Object> opts, obj_ptr<DeflateRaw_ba
     int32_t level, windowBits, memLevel, strategy;
     extract_opts(opts, ZLIB_DEFLATERAW, level, windowBits, memLevel, strategy);
     retVal = new ZlibCodecImpl<DeflateRaw_base>(ZLIB_DEFLATERAW, level, windowBits, memLevel, strategy);
-    return 0;
+    return result_t();
 }
 
 // InflateRaw
@@ -318,7 +318,7 @@ result_t InflateRaw_base::_new(v8::Local<v8::Object> opts, obj_ptr<InflateRaw_ba
     int32_t level, windowBits, memLevel, strategy;
     extract_opts(opts, ZLIB_INFLATERAW, level, windowBits, memLevel, strategy);
     retVal = new ZlibCodecImpl<InflateRaw_base>(ZLIB_INFLATERAW, level, windowBits, memLevel, strategy);
-    return 0;
+    return result_t();
 }
 
 // Unzip
@@ -327,7 +327,7 @@ result_t Unzip_base::_new(v8::Local<v8::Object> opts, obj_ptr<Unzip_base>& retVa
     int32_t level, windowBits, memLevel, strategy;
     extract_opts(opts, ZLIB_UNZIP, level, windowBits, memLevel, strategy);
     retVal = new ZlibCodecImpl<Unzip_base>(ZLIB_UNZIP, level, windowBits, memLevel, strategy);
-    return 0;
+    return result_t();
 }
 
 } // namespace fibjs

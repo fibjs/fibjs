@@ -14,7 +14,7 @@ result_t Lock_base::_new(obj_ptr<Lock_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new Lock();
 
-    return 0;
+    return result_t();
 }
 
 result_t Lock::acquire(bool blocking, bool& retVal, AsyncHandle ac)
@@ -24,12 +24,12 @@ result_t Lock::acquire(bool blocking, bool& retVal, AsyncHandle ac)
     // 等待才进 async 相位。
     if (m_lock.trylock()) {
         retVal = true;
-        return 0;
+        return result_t();
     }
 
     if (!blocking) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     if (ac.isSync())
@@ -37,18 +37,18 @@ result_t Lock::acquire(bool blocking, bool& retVal, AsyncHandle ac)
 
     retVal = true;
     m_lock.lock();
-    return 0;
+    return result_t();
 }
 
 result_t Lock::release()
 {
     m_lock.unlock();
-    return 0;
+    return result_t();
 }
 
 result_t Lock::count(int32_t& retVal)
 {
     retVal = m_lock.count();
-    return 0;
+    return result_t();
 }
 }

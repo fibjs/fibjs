@@ -428,7 +428,7 @@ result_t has_prop(v8::Local<v8::Value> v, v8::Local<v8::Value> prop,
     Isolate* isolate = Isolate::current();
     retVal = v.As<v8::Object>()->Has(isolate->context(), prop).FromMaybe(false);
 
-    return 0;
+    return result_t();
 }
 
 result_t assert_base::property(v8::Local<v8::Value> object,
@@ -471,7 +471,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
         if (object.IsEmpty() || (!object->IsObject() && !object->IsString())) {
             retVal = false;
-            return 0;
+            return result_t();
         }
 
         v = object.As<v8::Object>();
@@ -480,7 +480,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
     retVal = v->Has(context, isolate->NewString(p)).FromMaybe(false);
 
-    return 0;
+    return result_t();
 }
 
 result_t assert_base::deepProperty(v8::Local<v8::Value> object,
@@ -516,11 +516,11 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
     got = JSValue(object.As<v8::Object>()->Get(context, prop));
     if (got.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     retVal = value->StrictEquals(got);
 
-    return 0;
+    return result_t();
 }
 
 result_t assert_base::propertyVal(v8::Local<v8::Value> object,
@@ -569,7 +569,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
         if (object.IsEmpty() || (!object->IsObject() && !object->IsString())) {
             retVal = false;
-            return 0;
+            return result_t();
         }
 
         v = object.As<v8::Object>();
@@ -578,10 +578,10 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
     got = JSValue(v->Get(context, isolate->NewString(p)));
     if (got.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     retVal = value->StrictEquals(got);
 
-    return 0;
+    return result_t();
 }
 
 result_t assert_base::deepPropertyVal(v8::Local<v8::Value> object,
@@ -618,6 +618,6 @@ result_t assert_base::ifError(v8::Local<v8::Value> v)
         ThrowError(v);
     }
 
-    return 0;
+    return result_t();
 }
 }

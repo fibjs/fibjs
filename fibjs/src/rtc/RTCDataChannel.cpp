@@ -65,7 +65,7 @@ result_t RTCDataChannel::send(Union_send_data data)
             return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
         }
 
-        return 0;
+        return result_t();
     }
 
     Buffer* buffer = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
@@ -76,7 +76,7 @@ result_t RTCDataChannel::send(Union_send_data data)
         return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t RTCDataChannel::close()
@@ -84,31 +84,31 @@ result_t RTCDataChannel::close()
     m_self.Release();
     m_dataChannel->resetCallbacks();
     m_dataChannel->close();
-    return 0;
+    return result_t();
 }
 
 result_t RTCDataChannel::get_id(int32_t& retVal)
 {
     retVal = m_dataChannel->id().value_or(-1);
-    return 0;
+    return result_t();
 }
 
 result_t RTCDataChannel::get_label(exlib::string& retVal)
 {
     retVal = m_dataChannel->label();
-    return 0;
+    return result_t();
 }
 
 result_t RTCDataChannel::get_protocol(exlib::string& retVal)
 {
     retVal = m_dataChannel->protocol();
-    return 0;
+    return result_t();
 }
 
 result_t RTCDataChannel::get_bufferedAmount(double& retVal)
 {
     retVal = m_dataChannel->bufferedAmount();
-    return 0;
+    return result_t();
 }
 
 }

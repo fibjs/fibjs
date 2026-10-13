@@ -21,7 +21,7 @@ static exlib::fiber_local<JSFiber*> s_current;
 
 void JSFiber::FiberProcRunJavascript(void* p)
 {
-    result_t hr = 0;
+    result_t hr;
     Isolate* isolate = (Isolate*)p;
 
     {
@@ -112,10 +112,10 @@ result_t JSFiber::join()
     if (!m_quit.isSet()) {
         Isolate::LeaveJsScope _rt(holder());
         m_quit.wait();
-        return _rt.is_terminating() ? CALL_E_TIMEOUT : 0;
+        return _rt.is_terminating() ? result_t(CALL_E_TIMEOUT) : result_t();
     }
 
-    return 0;
+    return result_t();
 }
 
 save_method_name::save_method_name(const char* name)
@@ -134,7 +134,7 @@ save_method_name::~save_method_name()
 result_t JSFiber::get_id(int64_t& retVal)
 {
     retVal = m_id;
-    return 0;
+    return result_t();
 }
 
 result_t JSFiber::get_stack(exlib::string& retVal)
@@ -162,7 +162,7 @@ result_t JSFiber::get_stack(exlib::string& retVal)
         retVal = str;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t JSFiber::get_stack_usage(int32_t& retVal)
@@ -178,7 +178,7 @@ result_t JSFiber::get_stack_usage(int32_t& retVal)
     else
         retVal = 0;
 
-    return 0;
+    return result_t();
 }
 
 JSFiber* JSFiber::current()
@@ -256,7 +256,7 @@ result_t JSFiber::js_invoke()
 
     if (isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating() || func.IsEmpty()) {
         Unref();
-        return 0;
+        return result_t();
     }
 
     if (pThis.IsEmpty())
@@ -268,7 +268,7 @@ result_t JSFiber::js_invoke()
 
     Unref();
 
-    return 0;
+    return result_t();
 }
 
 void JSFiber::pin_wrapper()

@@ -106,7 +106,7 @@ result_t util_base::callbackify(v8::Local<v8::Function> func, v8::Local<v8::Func
     v = func->GetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async"))).FromMaybe(v8::Local<v8::Value>());
     if (!IsEmpty(v)) {
         retVal = v.As<v8::Function>();
-        return 0;
+        return result_t();
     }
 
     func1 = isolate->NewFunction("async_promise", async_promise, func);
@@ -126,6 +126,6 @@ result_t util_base::callbackify(v8::Local<v8::Function> func, v8::Local<v8::Func
 
     retVal = func1;
 
-    return 0;
+    return result_t();
 }
 }

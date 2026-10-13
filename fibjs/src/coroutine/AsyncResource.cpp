@@ -48,19 +48,19 @@ result_t AsyncResource_base::_new(exlib::string type, Union_AsyncResource_trigge
         ar->m_asyncContext.Reset(isolate->m_isolate, ctx);
 
     retVal = ar;
-    return 0;
+    return result_t();
 }
 
 result_t AsyncResource::asyncId(double& retVal)
 {
     retVal = m_asyncId;
-    return 0;
+    return result_t();
 }
 
 result_t AsyncResource::triggerAsyncId(double& retVal)
 {
     retVal = m_triggerAsyncId;
-    return 0;
+    return result_t();
 }
 
 result_t AsyncResource::runInAsyncScope(v8::Local<v8::Function> fn, v8::Local<v8::Value> thisArg,
@@ -68,7 +68,7 @@ result_t AsyncResource::runInAsyncScope(v8::Local<v8::Function> fn, v8::Local<v8
 {
     Isolate* isolate = holder();
     if (async_resource_should_stop(isolate))
-        return 0;
+        return result_t();
 
     v8::Local<v8::Context> context = isolate->context();
 
@@ -107,17 +107,17 @@ result_t AsyncResource::runInAsyncScope(v8::Local<v8::Function> fn, v8::Local<v8
         setAsyncContext(isolate, v8::Local<v8::Map>());
 
     if (result.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     if (!result.ToLocal(&retVal))
-        return CALL_E_JAVASCRIPT;
-    return 0;
+        return result_t(CALL_E_JAVASCRIPT);
+    return result_t();
 }
 
 result_t AsyncResource::emitDestroy(obj_ptr<AsyncResource_base>& retVal)
 {
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t AsyncResource::bind(v8::Local<v8::Function> fn, v8::Local<v8::Value> thisArg,
@@ -197,17 +197,17 @@ result_t AsyncResource::bind(v8::Local<v8::Function> fn, v8::Local<v8::Value> th
         data);
 
     if (maybeBound.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     v8::Local<v8::Function> boundFn;
     if (!maybeBound.ToLocal(&boundFn))
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     // Set asyncResource property on the bound function
     boundFn->Set(context, isolate->NewString("asyncResource"), wrap()).FromMaybe(false);
 
     retVal = boundFn;
-    return 0;
+    return result_t();
 }
 
 result_t AsyncResource_base::bind(v8::Local<v8::Function> fn, exlib::string type,

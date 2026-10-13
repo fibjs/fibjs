@@ -52,7 +52,7 @@ static result_t union_to_buffer(DataVariant& data, obj_ptr<Buffer_base>& buf)
     }
 
     buf = std::get<obj_ptr<Buffer_base>>(data);
-    return 0;
+    return result_t();
 }
 
 // The `*To` families share one shape: `Buffer|Stream|String data` written into
@@ -75,37 +75,37 @@ static result_t process_to(DataVariant& data, Stream_base* stm, int32_t param, A
 result_t zlib_base::createDeflate(Stream_base* to, obj_ptr<Stream_base>& retVal)
 {
     retVal = new def(to, -1);
-    return 0;
+    return result_t();
 }
 
 result_t zlib_base::createDeflateRaw(Stream_base* to, obj_ptr<Stream_base>& retVal)
 {
     retVal = new defraw(to);
-    return 0;
+    return result_t();
 }
 
 result_t zlib_base::createGunzip(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal)
 {
     retVal = new gunz(to, maxSize);
-    return 0;
+    return result_t();
 }
 
 result_t zlib_base::createGzip(Stream_base* to, obj_ptr<Stream_base>& retVal)
 {
     retVal = new gz(to);
-    return 0;
+    return result_t();
 }
 
 result_t zlib_base::createInflate(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal)
 {
     retVal = new inf(to, maxSize);
-    return 0;
+    return result_t();
 }
 
 result_t zlib_base::createInflateRaw(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal)
 {
     retVal = new infraw(to, maxSize);
-    return 0;
+    return result_t();
 }
 
 // One implementation for the whole union family: the sync phase extracts the
@@ -331,13 +331,13 @@ result_t zlib_base::inflateRawTo(Union_inflateRawTo_data data, Stream_base* stm,
 result_t zlib_base::createZip(Stream_base* to, int32_t level, obj_ptr<Stream_base>& retVal)
 {
     retVal = new class zip(to, level);
-    return 0;
+    return result_t();
 }
 
 result_t zlib_base::createUnzip(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal)
 {
     retVal = new class unzip(to, maxSize);
-    return 0;
+    return result_t();
 }
 
 result_t zlib_base::zip(Union_zip_data data, Union_zip_level level, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)

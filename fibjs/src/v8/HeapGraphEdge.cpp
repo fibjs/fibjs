@@ -15,19 +15,19 @@ namespace fibjs {
 result_t HeapGraphEdge::get_type(int32_t& retVal)
 {
     retVal = m_type;
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphEdge::get_name(exlib::string& retVal)
 {
     retVal = m_name;
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphEdge::get_description(exlib::string& retVal)
 {
     get_description(this, retVal);
-    return 0;
+    return result_t();
 }
 
 result_t HeapGraphEdge::getFromNode(obj_ptr<HeapGraphNode_base>& retVal)

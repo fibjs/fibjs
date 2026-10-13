@@ -98,121 +98,121 @@ public:
 result_t colors_base::get_hasColors(bool& retVal)
 {
     retVal = hasColors;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_clear(exlib::string& retVal)
 {
     retVal = COLOR_RESET;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_normal(exlib::string& retVal)
 {
     retVal = COLOR_NORMAL;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_black(exlib::string& retVal)
 {
     retVal = COLOR_BLACK;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_gray(exlib::string& retVal)
 {
     retVal = COLOR_GRAY;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_red(exlib::string& retVal)
 {
     retVal = COLOR_RED;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_green(exlib::string& retVal)
 {
     retVal = COLOR_GREEN;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_yellow(exlib::string& retVal)
 {
     retVal = COLOR_YELLOW;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_blue(exlib::string& retVal)
 {
     retVal = COLOR_BLUE;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_magenta(exlib::string& retVal)
 {
     retVal = COLOR_MAGENTA;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_cyan(exlib::string& retVal)
 {
     retVal = COLOR_CYAN;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_white(exlib::string& retVal)
 {
     retVal = COLOR_WHITE;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_lightred(exlib::string& retVal)
 {
     retVal = COLOR_LIGHTRED;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_lightgreen(exlib::string& retVal)
 {
     retVal = COLOR_LIGHTGREEN;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_lightyellow(exlib::string& retVal)
 {
     retVal = COLOR_LIGHTYELLOW;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_lightblue(exlib::string& retVal)
 {
     retVal = COLOR_LIGHTBLUE;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_lightmagenta(exlib::string& retVal)
 {
     retVal = COLOR_LIGHTMAGENTA;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_lightcyan(exlib::string& retVal)
 {
     retVal = COLOR_LIGHTCYAN;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_lightwhite(exlib::string& retVal)
 {
     retVal = COLOR_LIGHTWHITE;
-    return 0;
+    return result_t();
 }
 
 result_t colors_base::get_bold(exlib::string& retVal)
 {
     retVal = COLOR_BOLD;
-    return 0;
+    return result_t();
 }
 
 } // namespace fibjs

@@ -34,7 +34,7 @@ result_t json_base::encode(v8::Local<v8::Value> data, exlib::string& retVal)
 
     v8::Local<v8::String> str = v8::JSON::Stringify(isolate->context(), data).FromMaybe(v8::Local<v8::String>());
     if (str.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     return GetArgumentValue(isolate, str, retVal);
 }
@@ -145,7 +145,7 @@ inline result_t _jsonDecode(exlib::string data,
                 if (c0_ != '.' && c0_ != 'e' && c0_ != 'E' && digits < 10) {
                     SkipWhitespace();
                     retVal = factory()->NewNumberFromInt(negative ? -i : i);
-                    return 0;
+                    return result_t();
                 }
             }
 
@@ -178,7 +178,7 @@ inline result_t _jsonDecode(exlib::string data,
             number = atof(chars.c_str());
             SkipWhitespace();
             retVal = factory()->NewNumber(number);
-            return 0;
+            return result_t();
         }
 
         result_t ParseJsonString(i::MaybeHandle<i::Object>& retVal, exlib::wstring& str)
@@ -252,7 +252,7 @@ inline result_t _jsonDecode(exlib::string data,
 
             base::Vector<const uint16_t> data_((const uint16_t*)str.c_str(), str.length());
             retVal = factory()->NewStringFromTwoByte(data_, i::AllocationType::kYoung);
-            return 0;
+            return result_t();
         }
 
         result_t ParseJsonArray(i::MaybeHandle<i::Object>& retVal)
@@ -289,7 +289,7 @@ inline result_t _jsonDecode(exlib::string data,
             for (int i = 0; i < elements_size; i++)
                 elems->set(i, *els[i]);
             retVal = factory()->NewJSArrayWithElements(elems);
-            return 0;
+            return result_t();
         }
 
         result_t ParseJsonObject(i::MaybeHandle<i::Object>& retVal)
@@ -340,7 +340,7 @@ inline result_t _jsonDecode(exlib::string data,
             AdvanceSkipWhitespace();
 
             retVal = json_object;
-            return 0;
+            return result_t();
         }
 
         result_t ParseJsonValue(i::MaybeHandle<i::Object>& retVal)
@@ -364,7 +364,7 @@ inline result_t _jsonDecode(exlib::string data,
                     AdvanceSkipWhitespace();
                     retVal = factory()->false_value();
 
-                    return 0;
+                    return result_t();
                 }
                 return ReportUnexpectedCharacter();
             }
@@ -374,7 +374,7 @@ inline result_t _jsonDecode(exlib::string data,
                     AdvanceSkipWhitespace();
                     retVal = factory()->true_value();
 
-                    return 0;
+                    return result_t();
                 }
                 return ReportUnexpectedCharacter();
             }
@@ -384,7 +384,7 @@ inline result_t _jsonDecode(exlib::string data,
                     AdvanceSkipWhitespace();
                     retVal = factory()->null_value();
 
-                    return 0;
+                    return result_t();
                 }
                 return ReportUnexpectedCharacter();
             }
@@ -400,8 +400,8 @@ inline result_t _jsonDecode(exlib::string data,
                 return hr;
 
             if (!Utils::ToMaybeLocal(maybe).ToLocal(&retVal))
-                return CALL_E_JAVASCRIPT;
-            return 0;
+                return result_t(CALL_E_JAVASCRIPT);
+            return result_t();
         }
 
         result_t ParseJson(v8::Local<v8::Value>& retVal)
@@ -436,7 +436,7 @@ result_t json_base::decode(exlib::string data, v8::Local<v8::Value>& retVal)
         Isolate* isolate = Isolate::current();
 
         retVal = v8::JSON::Parse(isolate->context(), isolate->NewString(data)).FromMaybe(v8::Local<v8::Value>());
-        return retVal.IsEmpty() ? CALL_E_JAVASCRIPT : 0;
+        return retVal.IsEmpty() ? result_t(CALL_E_JAVASCRIPT) : result_t();
     }
 
     return _jsonDecode(data, retVal);
@@ -451,7 +451,7 @@ result_t encoding_base::jsstr(exlib::string str, bool json, exlib::string& retVa
     exlib::string s;
 
     if (str.empty())
-        return 0;
+        return result_t();
 
     const char* ptr = str.c_str();
     const char* ptr_end = ptr + str.length();
@@ -501,6 +501,6 @@ result_t encoding_base::jsstr(exlib::string str, bool json, exlib::string& retVa
     }
 
     retVal = s;
-    return 0;
+    return result_t();
 }
 }

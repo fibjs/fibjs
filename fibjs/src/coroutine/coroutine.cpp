@@ -66,7 +66,7 @@ private:
         if (m_fibers == 0)
             m_event->set();
 
-        return 0;
+        return result_t();
     }
 
     result_t run(v8::Local<v8::Array>& retVal)
@@ -111,7 +111,7 @@ public:
         m_count = funcs->Length();
         if (m_count == 0) {
             retVal = v8::Array::New(m_isolate->m_isolate, 0);
-            return 0;
+            return result_t();
         }
 
         m_fibers = (fibers > 0 && fibers < m_count) ? fibers : m_count;
@@ -135,7 +135,7 @@ public:
         m_count = datas->Length();
         if (m_count == 0) {
             retVal = v8::Array::New(m_isolate->m_isolate, 0);
-            return 0;
+            return result_t();
         }
 
         m_fibers = (fibers > 0 && fibers < m_count) ? fibers : m_count;
@@ -205,7 +205,7 @@ result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
     JSFiber* fb = JSFiber::current();
 
     if (!fb)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     // Keep the JS wrapper of the running fiber alive for as long as the fiber
     // object lives: object_base holds it weakly, so without this a GC between
@@ -217,7 +217,7 @@ result_t coroutine_base::current(obj_ptr<Fiber_base>& retVal)
 
     retVal = fb;
 
-    return 0;
+    return result_t();
 }
 
 result_t coroutine_base::sleep(int32_t ms, AsyncHandle ac)
@@ -262,19 +262,19 @@ result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
         p = p->m_next;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t coroutine_base::get_spareFibers(int32_t& retVal)
 {
     retVal = g_spareFibers;
-    return 0;
+    return result_t();
 }
 
 result_t coroutine_base::set_spareFibers(int32_t newVal)
 {
     g_spareFibers = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t coroutine_base::get_vmid(int32_t& retVal)
@@ -282,7 +282,7 @@ result_t coroutine_base::get_vmid(int32_t& retVal)
     Isolate* isolate = Isolate::current();
 
     retVal = isolate->m_id;
-    return 0;
+    return result_t();
 }
 
 }

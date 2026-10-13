@@ -24,7 +24,7 @@ result_t Chain_base::_new(std::vector<obj_ptr<Handler_base>>& hdlrs,
 
     retVal = chain;
 
-    return 0;
+    return result_t();
 }
 
 result_t Chain::isRouting(bool& retVal)
@@ -36,12 +36,12 @@ result_t Chain::isRouting(bool& retVal)
         m_array[i]->isRouting(isRouting);
         if (isRouting) {
             retVal = true;
-            return 0;
+            return result_t();
         }
     }
 
     retVal = false;
-    return 0;
+    return result_t();
 }
 
 result_t Chain::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -71,7 +71,7 @@ result_t Chain::append(Union_append_hdlr hdlr)
     SetPrivate(strBuf, handler->wrap());
     m_array.append(handler);
 
-    return 0;
+    return result_t();
 }
 
 result_t Chain::append(std::vector<obj_ptr<Handler_base>>& hdlrs)
@@ -88,7 +88,7 @@ result_t Chain::append(std::vector<obj_ptr<Handler_base>>& hdlrs)
             return hr;
     }
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

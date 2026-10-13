@@ -22,14 +22,14 @@ result_t v8_base::serialize(v8::Local<v8::Value> value, obj_ptr<Buffer_base>& re
 
     v8::Maybe<bool> result = serializer.WriteValue(context, value);
     if (result.IsNothing() || !result.FromJust())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     std::pair<uint8_t*, size_t> buffer = serializer.Release();
 
     retVal = new Buffer((const char*)buffer.first, buffer.second);
     free(buffer.first);
 
-    return 0;
+    return result_t();
 }
 
 result_t v8_base::deserialize(Union_deserialize_data data, v8::Local<v8::Value>& retVal)
@@ -49,15 +49,15 @@ result_t v8_base::deserialize(Union_deserialize_data data, v8::Local<v8::Value>&
 
     v8::Maybe<bool> headerResult = deserializer.ReadHeader(context);
     if (headerResult.IsNothing() || !headerResult.FromJust())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     v8::MaybeLocal<v8::Value> result = deserializer.ReadValue(context);
     if (result.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     retVal = result.ToLocalChecked();
 
-    return 0;
+    return result_t();
 }
 
 

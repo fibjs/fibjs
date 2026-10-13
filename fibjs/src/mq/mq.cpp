@@ -33,7 +33,7 @@ result_t Handler_base::_new(exlib::string hdlr, obj_ptr<Handler_base>& retVal,
     } else
         return HttpFileHandler::create(hdlr, false, retVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t Handler_base::_new(std::vector<obj_ptr<Handler_base>>& hdlrs, obj_ptr<Handler_base>& retVal,
@@ -46,7 +46,7 @@ result_t Handler_base::_new(std::vector<obj_ptr<Handler_base>>& hdlrs, obj_ptr<H
 
     retVal = chain;
 
-    return 0;
+    return result_t();
 }
 
 result_t Handler_base::_new(v8::Local<v8::Object> map, obj_ptr<Handler_base>& retVal,
@@ -59,7 +59,7 @@ result_t Handler_base::_new(v8::Local<v8::Object> map, obj_ptr<Handler_base>& re
 
     retVal = routing;
 
-    return 0;
+    return result_t();
 }
 
 result_t Handler_base::_new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>& retVal,
@@ -79,7 +79,7 @@ result_t Handler_base::_new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>&
     else
         retVal = new JSHandler(hdlr);
 
-    return 0;
+    return result_t();
 }
 
 result_t mq_base::invoke(Union_invoke_hdlr hdlr, object_base* v,
@@ -102,6 +102,6 @@ result_t mq_base::invoke(Union_invoke_hdlr hdlr, object_base* v,
 result_t mq_base::nullHandler(obj_ptr<Handler_base>& retVal)
 {
     retVal = new NullHandler();
-    return 0;
+    return result_t();
 }
 }

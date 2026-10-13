@@ -24,10 +24,10 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Menu
             return Menu::create(items, vr);
         }
 
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t gui_base::createMenu(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu_base>& retVal)
@@ -47,109 +47,109 @@ result_t Menu::create(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu>& 
 result_t MenuItem::get_id(exlib::string& retVal)
 {
     retVal = id.value();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::set_id(exlib::string newVal)
 {
     id = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::get_type(exlib::string& retVal)
 {
     retVal = type.value();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::get_icon(exlib::string& retVal)
 {
     if (!icon.has_value())
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     retVal = icon.value();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::set_icon(exlib::string newVal)
 {
     if (!icon.has_value())
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     icon = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::get_label(exlib::string& retVal)
 {
     if (!label.has_value())
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     retVal = label.value();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::set_label(exlib::string newVal)
 {
     if (!label.has_value())
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     label = newVal;
     update_os_menu_item();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::get_tooltip(exlib::string& retVal)
 {
     if (!tooltip.has_value())
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     retVal = tooltip.value();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::set_tooltip(exlib::string newVal)
 {
     if (!tooltip.has_value())
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     tooltip = newVal;
     update_os_menu_item();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::get_enabled(bool& retVal)
 {
     retVal = enabled.value();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::set_enabled(bool newVal)
 {
     enabled = newVal;
     update_os_menu_item();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::get_checked(bool& retVal)
 {
     if (!checked.has_value())
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     retVal = checked.value();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::set_checked(bool newVal)
 {
     if (!checked.has_value())
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     checked = newVal;
     update_os_menu_item();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::get_submenu(obj_ptr<Menu_base>& retVal)
 {
     if (!submenu.has_value())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = submenu.value();
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
@@ -186,7 +186,7 @@ result_t MenuItem::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 
     retVal = obj;
 
-    return 0;
+    return result_t();
 }
 
 result_t MenuItem::create(v8::Local<v8::Object> item, obj_ptr<MenuItem>& retVal)
@@ -268,7 +268,7 @@ result_t MenuItem::create(v8::Local<v8::Object> item, obj_ptr<MenuItem>& retVal)
 
     retVal = mi;
 
-    return 0;
+    return result_t();
 }
 
 result_t Menu::_append_items(std::vector<v8::Local<v8::Object>>& items)
@@ -279,7 +279,7 @@ result_t Menu::_append_items(std::vector<v8::Local<v8::Object>>& items)
             return hr;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Menu::append(v8::Local<v8::Object> item)
@@ -295,7 +295,7 @@ result_t Menu::append(v8::Local<v8::Object> item)
     m_items.push_back(mi);
     m_itemholders.push_back(new ValueHolder(mi->wrap()));
 
-    return 0;
+    return result_t();
 }
 
 result_t Menu::insert(int32_t pos, v8::Local<v8::Object> item)
@@ -304,7 +304,7 @@ result_t Menu::insert(int32_t pos, v8::Local<v8::Object> item)
         return result_t::make(CALL_E_EXCEPTION).with_message("Menu: Menu is already attached to a window");
 
     if (pos < 0 || pos > m_items.size())
-        return CALL_E_OUTRANGE;
+        return result_t::out_of_range();
 
     obj_ptr<MenuItem> mi;
     result_t hr = MenuItem::create(item, mi);
@@ -314,7 +314,7 @@ result_t Menu::insert(int32_t pos, v8::Local<v8::Object> item)
     m_items.insert(m_items.begin() + pos, mi);
     m_itemholders.insert(m_itemholders.begin() + pos, new ValueHolder(mi->wrap()));
 
-    return 0;
+    return result_t();
 }
 
 result_t Menu::remove(int32_t pos)
@@ -323,18 +323,18 @@ result_t Menu::remove(int32_t pos)
         return result_t::make(CALL_E_EXCEPTION).with_message("Menu: Menu is already attached to a window");
 
     if (pos < 0 || pos >= m_items.size())
-        return CALL_E_OUTRANGE;
+        return result_t::out_of_range();
 
     m_items.erase(m_items.begin() + pos);
     m_itemholders.erase(m_itemholders.begin() + pos);
 
-    return 0;
+    return result_t();
 }
 
 result_t Menu::get_length(int32_t& retVal)
 {
     retVal = m_items.size();
-    return 0;
+    return result_t();
 }
 
 result_t Menu::getMenuItemById(exlib::string id, obj_ptr<MenuItem_base>& retVal)
@@ -342,7 +342,7 @@ result_t Menu::getMenuItemById(exlib::string id, obj_ptr<MenuItem_base>& retVal)
     for (auto& item : m_items) {
         if (item->id.value() == id) {
             retVal = item;
-            return 0;
+            return result_t();
         }
 
         if (item->submenu.has_value()) {
@@ -350,19 +350,19 @@ result_t Menu::getMenuItemById(exlib::string id, obj_ptr<MenuItem_base>& retVal)
             // has_value() = found (0); a miss is CALL_RETURN_NULL (100000),
             // which ok() would mistake for success and return a null item.
             if (hr.has_value())
-                return 0;
+                return result_t();
         }
     }
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t Menu::_indexed_getter(uint32_t index, obj_ptr<MenuItem_base>& retVal)
 {
     if (index >= m_items.size())
-        return CALL_E_OUTRANGE;
+        return result_t::out_of_range();
     retVal = m_items[index];
-    return 0;
+    return result_t();
 }
 
 result_t Menu::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
@@ -379,7 +379,7 @@ result_t Menu::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 
     retVal = arr;
 
-    return 0;
+    return result_t();
 }
 
 }

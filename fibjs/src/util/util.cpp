@@ -25,7 +25,7 @@ result_t util_base::inherits(v8::Local<v8::Value> constructor,
 {
     if (!constructor->IsObject() || !superConstructor->IsObject()
         || constructor->IsNullOrUndefined() || superConstructor->IsNullOrUndefined())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -37,13 +37,13 @@ result_t util_base::inherits(v8::Local<v8::Value> constructor,
 
     v8::Local<v8::Value> v_superConstructor_proto = _superConstructor->Get(context, isolate->NewString("prototype")).FromMaybe(v8::Local<v8::Value>());
     if (v_superConstructor_proto.IsEmpty() || v_superConstructor_proto->IsUndefined())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     v8::Local<v8::Object> superConstructor_proto = v_superConstructor_proto->ToObject(context).FromMaybe(v8::Local<v8::Object>());
 
     _constructor->Set(context, isolate->NewString("super_"), _superConstructor).IsJust();
     constructor_proto->Set(context, isolate->NewString("__proto__"), superConstructor_proto).IsJust();
-    return 0;
+    return result_t();
 }
 
 result_t util_base::parseEnv(exlib::string content, v8::Local<v8::Object>& retVal)
@@ -64,14 +64,14 @@ result_t util_base::parseEnv(exlib::string content, v8::Local<v8::Object>& retVa
     }
 
     retVal = result;
-    return 0;
+    return result_t();
 }
 
 result_t util_base::has(v8::Local<v8::Value> v, exlib::string key, bool& retVal)
 {
     if (v->IsUndefined() || v->IsNull()) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     if (!v->IsObject())
@@ -82,7 +82,7 @@ result_t util_base::has(v8::Local<v8::Value> v, exlib::string key, bool& retVal)
 
     v8::Local<v8::Object> obj = v->ToObject(context).FromMaybe(v8::Local<v8::Object>());
     retVal = obj->HasOwnProperty(context, isolate->NewString(key)).FromMaybe(false);
-    return 0;
+    return result_t();
 }
 
 result_t util_base::keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
@@ -105,7 +105,7 @@ result_t util_base::keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
     } else
         retVal = v8::Array::New(isolate->m_isolate);
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
@@ -126,7 +126,7 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
             JSValue key = keys->Get(context, i);
             v8::Local<v8::Value> v = obj->Get(context, key).FromMaybe(v8::Local<v8::Value>());
             if (v.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             arr->Set(context, n++, v).IsJust();
         }
@@ -135,13 +135,13 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
     } else
         retVal = v8::Array::New(isolate->m_isolate);
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
 {
     if (v.IsEmpty())
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
 
     if (!v->IsProxy() && v->IsObject() && !object_base::getInstance(v)) {
         Isolate* isolate = Isolate::current();
@@ -151,7 +151,7 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
             retVal = v;
         else if (v->IsDate()) {
             if (!v8::Date::New(_context, isolate->toNumber(v)).ToLocal(&retVal))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
         }
         else if (v->IsBooleanObject())
             retVal = v8::BooleanObject::New(isolate->m_isolate, isolate->toBoolean(v));
@@ -163,7 +163,7 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
         } else if (v->IsRegExp()) {
             v8::Local<v8::RegExp> re = v.As<v8::RegExp>();
             if (!v8::RegExp::New(_context, re->GetSource(), re->GetFlags()).ToLocal(&retVal))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
         } else if (v->IsFunction() || v->IsArray() || IsJSObject(v))
             retVal = v.As<v8::Object>()->Clone();
         else
@@ -171,20 +171,20 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
     } else
         retVal = v;
 
-    return 0;
+    return result_t();
 }
 
 static result_t _deepFreeze(Isolate* isolate, v8::Local<v8::Value> v)
 {
     if (v.IsEmpty() || !v->IsObject())
-        return 0;
+        return result_t();
 
     v8::Local<v8::Object> obj = v.As<v8::Object>();
 
     if (!isFrozen(isolate->m_isolate, obj)) {
         v8::Local<v8::Context> _context = isolate->context();
         if (obj->SetIntegrityLevel(_context, v8::IntegrityLevel::kFrozen).IsNothing())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         JSArray names = obj->GetPropertyNames(_context);
         for (int32_t i = 0; i < (int32_t)names->Length(); i++) {
@@ -194,7 +194,7 @@ static result_t _deepFreeze(Isolate* isolate, v8::Local<v8::Value> v)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::deepFreeze(v8::Local<v8::Value> v)
@@ -208,7 +208,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
 {
     if (v->IsUndefined() || v->IsNull()) {
         retVal = v;
-        return 0;
+        return result_t();
     }
 
     if (!v->IsObject())
@@ -239,7 +239,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
             JSValue key = keys->Get(context, j);
             v8::Local<v8::Value> v = obj1->Get(context, key).FromMaybe(v8::Local<v8::Value>());
             if (v.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             obj->Set(context, key, v).IsJust();
         }
@@ -247,7 +247,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
 
     retVal = obj;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::_extend(v8::Local<v8::Value> v, OptArgs objs,
@@ -264,7 +264,7 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
 
     if (v->IsUndefined() || v->IsNull()) {
         retVal = v8::Object::New(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     if (!v->IsObject())
@@ -286,7 +286,7 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
                 JSValue k = arr->Get(context, j);
                 v8::Local<v8::Value> v = obj->Get(context, k).FromMaybe(v8::Local<v8::Value>());
                 if (v.IsEmpty())
-                    return CALL_E_JAVASCRIPT;
+                    return result_t(CALL_E_JAVASCRIPT);
 
                 if (obj->Has(context, k).FromMaybe(false))
                     obj1->Set(context, k, v).IsJust();
@@ -295,7 +295,7 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
             JSValue k = o;
             v8::Local<v8::Value> v = obj->Get(context, k).FromMaybe(v8::Local<v8::Value>());
             if (v.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             if (obj->Has(context, k).FromMaybe(false))
                 obj1->Set(context, k, v).IsJust();
@@ -304,7 +304,7 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
 
     retVal = obj1;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
@@ -315,7 +315,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
 
     if (v->IsUndefined() || v->IsNull()) {
         retVal = v8::Object::New(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     if (!v->IsObject())
@@ -353,7 +353,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
         if (_map.find(isolate->toString(key)) == _map.end()) {
             v8::Local<v8::Value> value = obj->Get(context, key).FromMaybe(v8::Local<v8::Value>());
             if (value.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             obj1->Set(context, key, value).IsJust();
         }
@@ -361,7 +361,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
 
     retVal = obj1;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::intersection(OptArgs arrs,
@@ -378,7 +378,7 @@ result_t util_base::intersection(OptArgs arrs,
 
         if (v0->IsUndefined() || v0->IsNull()) {
             retVal = arr;
-            return 0;
+            return result_t();
         }
 
         if (!v0->IsArray())
@@ -429,7 +429,7 @@ result_t util_base::intersection(OptArgs arrs,
 
     retVal = arr;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::first(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
@@ -439,7 +439,7 @@ result_t util_base::first(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
 
     if (v->IsUndefined() || v->IsNull()) {
         retVal = v8::Undefined(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     if (!v->IsArray())
@@ -450,12 +450,12 @@ result_t util_base::first(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
 
     if (len == 0) {
         retVal = v8::Undefined(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     retVal = JSValue(arr->Get(context, 0));
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>& retVal)
@@ -465,7 +465,7 @@ result_t util_base::first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value
 
     if (v->IsUndefined() || v->IsNull() || n <= 0) {
         retVal = v8::Array::New(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     if (!v->IsArray())
@@ -485,7 +485,7 @@ result_t util_base::first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value
 
     retVal = arr1;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::last(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
@@ -495,7 +495,7 @@ result_t util_base::last(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
 
     if (v->IsUndefined() || v->IsNull()) {
         retVal = v8::Undefined(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     if (!v->IsArray())
@@ -506,11 +506,11 @@ result_t util_base::last(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
 
     if (len == 0) {
         retVal = v8::Undefined(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     retVal = JSValue(arr->Get(context, len - 1));
-    return 0;
+    return result_t();
 }
 
 result_t util_base::last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>& retVal)
@@ -519,7 +519,7 @@ result_t util_base::last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>
     v8::Local<v8::Context> context = isolate->context();
     if (v->IsUndefined() || v->IsNull() || n <= 0) {
         retVal = v8::Array::New(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     if (!v->IsArray())
@@ -539,7 +539,7 @@ result_t util_base::last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>
 
     retVal = arr1;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Array>& retVal)
@@ -548,7 +548,7 @@ result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Ar
     v8::Local<v8::Context> context = isolate->context();
     if (v->IsUndefined() || v->IsNull()) {
         retVal = v8::Array::New(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     if (!v->IsArray())
@@ -585,7 +585,7 @@ result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Ar
 
     retVal = arr1;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::_union(OptArgs arrs,
@@ -620,7 +620,7 @@ result_t util_base::_union(OptArgs arrs,
 
     retVal = arr;
 
-    return 0;
+    return result_t();
 }
 
 static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
@@ -672,7 +672,7 @@ static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
             retVal->Set(context, cnt++, JSValue(o->Get(context, i))).IsJust();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
@@ -715,7 +715,7 @@ result_t util_base::without(v8::Local<v8::Value> arr, OptArgs els,
 
     retVal = arr1;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::difference(v8::Local<v8::Array> arr, OptArgs arrs,
@@ -753,7 +753,7 @@ result_t util_base::difference(v8::Local<v8::Array> arr, OptArgs arrs,
 
     retVal = arr1;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator,
@@ -761,7 +761,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
 {
     if (!list->IsObject()) {
         retVal = list;
-        return 0;
+        return result_t();
     }
 
     v8::Local<v8::Value> args[3];
@@ -787,12 +787,12 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = JSValue(keys->Get(_context, i));
             if (!o->Get(_context, args[1]).ToLocal(&args[0]))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             if (args[0].IsEmpty() || args[1].IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             if (!iterator->Call(_context, context, 3, args).ToLocal(&v))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             v = handle_scope.Escape(v);
         }
     } else {
@@ -807,19 +807,19 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = v8::Int32::New(isolate->m_isolate, i);
             if (!o->Get(_context, args[1]).ToLocal(&args[0]))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             if (args[0].IsEmpty() || args[1].IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             if (!iterator->Call(_context, context, 3, args).ToLocal(&v))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             v = handle_scope.Escape(v);
         }
     }
 
     retVal = list;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator,
@@ -831,7 +831,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
 
     if (!list->IsObject()) {
         retVal = arr;
-        return 0;
+        return result_t();
     }
 
     v8::Local<v8::Value> args[3];
@@ -855,12 +855,12 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = JSValue(keys->Get(_context, i));
             if (!o->Get(_context, args[1]).ToLocal(&args[0]))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             if (args[0].IsEmpty() || args[1].IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             if (!iterator->Call(_context, context, 3, args).ToLocal(&v))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             arr->Set(_context, cnt++, handle_scope.Escape(v)).IsJust();
         }
@@ -876,12 +876,12 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = v8::Int32::New(isolate->m_isolate, i);
             if (!o->Get(_context, args[1]).ToLocal(&args[0]))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             if (args[0].IsEmpty() || args[1].IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             if (!iterator->Call(_context, context, 3, args).ToLocal(&v))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             arr->Set(_context, cnt++, handle_scope.Escape(v)).IsJust();
         }
@@ -889,7 +889,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
 
     retVal = arr;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator,
@@ -898,7 +898,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 {
     if (!list->IsObject()) {
         retVal = memo;
-        return 0;
+        return result_t();
     }
 
     v8::Local<v8::Value> args[4];
@@ -924,14 +924,14 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[2] = JSValue(keys->Get(_context, i));
             if (!o->Get(_context, args[2]).ToLocal(&args[1]))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             if (args[1].IsEmpty() || args[2].IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             args[0] = memo;
 
             if (!iterator->Call(_context, context, 4, args).ToLocal(&memo))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             memo = handle_scope.Escape(memo);
         }
     } else {
@@ -946,28 +946,28 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[2] = v8::Int32::New(isolate->m_isolate, i);
             if (!o->Get(_context, args[2]).ToLocal(&args[1]))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             if (args[1].IsEmpty() || args[2].IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             args[0] = memo;
 
             if (!iterator->Call(_context, context, 4, args).ToLocal(&memo))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             memo = handle_scope.Escape(memo);
         }
     }
 
     retVal = memo;
 
-    return 0;
+    return result_t();
 }
 
 result_t util_base::deprecate(v8::Local<v8::Function> fn, exlib::string msg,
     exlib::string code, v8::Local<v8::Function>& retVal)
 {
     retVal = fn;
-    return 0;
+    return result_t();
 }
 
 result_t util_base::parseArgs(exlib::string command, obj_ptr<NArray>& retVal)
@@ -1014,14 +1014,14 @@ result_t util_base::parseArgs(exlib::string command, obj_ptr<NArray>& retVal)
     }
 
     retVal = arr;
-    return 0;
+    return result_t();
 }
 
 result_t util_base::stripTypeScript(exlib::string code, exlib::string& retVal)
 {
     try {
         retVal = ts_strip::strip(code);
-        return 0;
+        return result_t();
     } catch (const std::exception& e) {
         return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
     }
@@ -1068,7 +1068,7 @@ result_t util_base::getStringWidth(exlib::string str, int32_t& retVal)
     }
 
     retVal = sz;
-    return 0;
+    return result_t();
 }
 
 result_t util_base::stripVTControlCharacters(exlib::string str, exlib::string& retVal)
@@ -1114,6 +1114,6 @@ result_t util_base::stripVTControlCharacters(exlib::string str, exlib::string& r
     }
 
     retVal = result;
-    return 0;
+    return result_t();
 }
 }

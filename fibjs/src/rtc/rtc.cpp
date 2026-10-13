@@ -60,12 +60,12 @@ public:
     virtual result_t stop()
     {
         if (m_ended)
-            return 0;
+            return result_t();
 
         juice_mux_stop_listen(listen_addr(), m_local_port);
         detach();
 
-        return 0;
+        return result_t();
     }
 
 private:
@@ -167,7 +167,7 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
     exlib::string key = rtc_listen_key(bind_address, local_port);
     isolate->m_rtcListenHolders[key] = new RTCListenHoldToken(isolate, bind_address, local_port);
 
-    return 0;
+    return result_t();
 }
 
 result_t rtc_base::listen(int32_t local_port, v8::Local<v8::Function> cb)
@@ -185,13 +185,13 @@ result_t rtc_base::stopListen(exlib::string bind_address, int32_t local_port)
     if (it == isolate->m_rtcListenHolders.end()) {
         // 没有对应的 holder（例如非 listen() 建立的监听）：保持原行为，仅停监听
         juice_mux_stop_listen(bind_address.empty() ? nullptr : bind_address.c_str(), local_port);
-        return 0;
+        return result_t();
     }
 
     // 结束策略：停监听 + 摘表 + 释放 hold，与 isolate 终止路径共用
     static_cast<RTCListenHoldToken*>((object_base*)it->second)->endListen();
 
-    return 0;
+    return result_t();
 }
 
 result_t rtc_base::stopListen(int32_t local_port)
@@ -262,7 +262,7 @@ result_t rtc_base::startServer(v8::Local<v8::Object> config)
     if (!server)
         return result_t::make(CALL_E_EXCEPTION).with_message("Failed to create the server");
 
-    return 0;
+    return result_t();
 }
 
 result_t rtc_base::setSctpSettings(v8::Local<v8::Object> settings)
@@ -308,7 +308,7 @@ result_t rtc_base::setSctpSettings(v8::Local<v8::Object> settings)
 
     rtc::SetSctpSettings(s);
 
-    return 0;
+    return result_t();
 }
 
 static rtc::LogLevel s_level = rtc::LogLevel::None;
@@ -340,7 +340,7 @@ result_t rtc_base::get_loglevel(exlib::string& retVal)
         break;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t rtc_base::set_loglevel(exlib::string newVal)
@@ -366,7 +366,7 @@ result_t rtc_base::set_loglevel(exlib::string newVal)
     rtc::InitLogger(level);
     s_level = level;
 
-    return 0;
+    return result_t();
 }
 
 }

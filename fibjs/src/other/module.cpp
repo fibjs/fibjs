@@ -66,13 +66,13 @@ result_t module_base::get_builtinModules(std::vector<exlib::string>& retVal)
         retVal.push_back(node_name);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t module_base::createRequire(exlib::string base, v8::Local<v8::Function>& retVal)
 {
     // This is handled by SandBox::initModule in SandBox_context.cpp
-    return CALL_E_INVALID_CALL;
+    return result_t::invalid_call();
 }
 
 } /* namespace fibjs */

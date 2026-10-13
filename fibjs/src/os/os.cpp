@@ -28,7 +28,7 @@ result_t os_base::type(exlib::string& retVal)
         return result_t::from_system(ret);
 
     retVal = info.sysname;
-    return 0;
+    return result_t();
 }
 
 result_t os_base::release(exlib::string& retVal)
@@ -39,7 +39,7 @@ result_t os_base::release(exlib::string& retVal)
         return result_t::from_system(ret);
 
     retVal = info.release;
-    return 0;
+    return result_t();
 }
 
 result_t os_base::hostname(exlib::string& retVal)
@@ -50,7 +50,7 @@ result_t os_base::hostname(exlib::string& retVal)
         return LastError("gethostname");
 
     retVal = s;
-    return 0;
+    return result_t();
 }
 
 result_t os_base::platform(exlib::string& retVal)
@@ -73,7 +73,7 @@ result_t os_base::platform(exlib::string& retVal)
     retVal = "freebsd";
 #endif
 
-    return 0;
+    return result_t();
 }
 
 result_t os_base::arch(exlib::string& retVal)
@@ -98,7 +98,7 @@ result_t os_base::arch(exlib::string& retVal)
     retVal = "loong64";
 #endif
 
-    return 0;
+    return result_t();
 }
 
 result_t os_base::get_EOL(exlib::string& retVal)
@@ -109,13 +109,13 @@ result_t os_base::get_EOL(exlib::string& retVal)
     retVal.assign(1, '\n');
 #endif
 
-    return 0;
+    return result_t();
 }
 
 result_t os_base::endianness(exlib::string& retVal)
 {
     retVal = is_big_endian() ? "BE" : "LE";
-    return 0;
+    return result_t();
 }
 
 result_t os_base::time(exlib::string tmString, date_t& retVal)
@@ -125,7 +125,7 @@ result_t os_base::time(exlib::string tmString, date_t& retVal)
     else
         retVal.parse(tmString);
 
-    return 0;
+    return result_t();
 }
 
 result_t os_base::dateAdd(date_t d, int32_t num, exlib::string part, date_t& retVal)
@@ -144,15 +144,15 @@ result_t os_base::dateAdd(date_t d, int32_t num, exlib::string part, date_t& ret
     else if (part == "second")
         retVal.add(num, date_t::_SECOND);
     else
-        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid date part: '%s'.", part.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid date part: '%s'.", part.c_str()).with_result(result_t::invalid_arg());
 
-    return 0;
+    return result_t();
 }
 
 result_t os_base::get_timezone(int32_t& retVal)
 {
     retVal = date_t::timezone();
-    return 0;
+    return result_t();
 }
 
 static int32_t s_cpus = 0;
@@ -168,7 +168,7 @@ result_t os_base::cpuNumbers(int32_t& retVal)
     }
 
     retVal = s_cpus;
-    return 0;
+    return result_t();
 }
 
 result_t os_base::cpus(v8::Local<v8::Array>& retVal)
@@ -211,7 +211,7 @@ result_t os_base::cpus(v8::Local<v8::Array>& retVal)
 
     uv_free_cpu_info(cpu_infos, s_cpus);
 
-    return 0;
+    return result_t();
 }
 
 result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
@@ -288,7 +288,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 
     uv_free_interface_addresses(interfaces, ifs);
 
-    return 0;
+    return result_t();
 }
 
 result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
@@ -331,7 +331,7 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         else
             retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate)).IsJust();
 
-        return 0;
+        return result_t();
     } else {
         commonEncode(encoding, username, username);
         commonEncode(encoding, homedir, homedir);
@@ -344,7 +344,7 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         else
             retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate)).IsJust();
 
-        return 0;
+        return result_t();
     }
 }
 
@@ -358,19 +358,19 @@ result_t os_base::loadavg(std::vector<double>& retVal)
     retVal.push_back(avg[1]);
     retVal.push_back(avg[2]);
 
-    return 0;
+    return result_t();
 }
 
 result_t os_base::totalmem(int64_t& retVal)
 {
     retVal = uv_get_total_memory();
-    return 0;
+    return result_t();
 }
 
 result_t os_base::freemem(int64_t& retVal)
 {
     retVal = uv_get_free_memory();
-    return 0;
+    return result_t();
 }
 
 #ifdef iPhone
@@ -393,7 +393,7 @@ result_t os_base::homedir(exlib::string& retVal)
         return result_t::from_system(ret);
     retVal = buf;
 
-    return 0;
+    return result_t();
 }
 #endif
 
@@ -407,6 +407,6 @@ result_t os_base::tmpdir(exlib::string& retVal)
         return result_t::from_system(ret);
     retVal = buf;
 
-    return 0;
+    return result_t();
 }
 }

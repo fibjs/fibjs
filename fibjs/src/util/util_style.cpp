@@ -74,7 +74,7 @@ result_t util_base::styleText(std::vector<exlib::string>& format, exlib::string 
     colors_base::get_hasColors(hc);
     if (!hc) {
         retVal = text;
-        return 0;
+        return result_t();
     }
 
     exlib::string result = text;
@@ -86,7 +86,7 @@ result_t util_base::styleText(std::vector<exlib::string>& format, exlib::string 
     }
 
     retVal = result;
-    return 0;
+    return result_t();
 }
 
 result_t util_base::styleText(exlib::string format, exlib::string text, exlib::string& retVal)
@@ -95,7 +95,7 @@ result_t util_base::styleText(exlib::string format, exlib::string text, exlib::s
     colors_base::get_hasColors(hc);
     if (!hc) {
         retVal = text;
-        return 0;
+        return result_t();
     }
 
     exlib::string result = text;
@@ -104,7 +104,7 @@ result_t util_base::styleText(exlib::string format, exlib::string text, exlib::s
         apply_ansi(*code, result);
 
     retVal = result;
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

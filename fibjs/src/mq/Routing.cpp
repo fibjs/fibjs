@@ -98,7 +98,7 @@ result_t Routing_base::_new(exlib::string method, v8::Local<v8::Object> map,
 result_t Routing::isRouting(bool& retVal)
 {
     retVal = true;
-    return 0;
+    return result_t();
 }
 
 #define RE_SIZE 64
@@ -219,7 +219,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             pcre2_match_data_free(match_data);
             retVal = r->m_hdlr;
-            return 0;
+            return result_t();
         }
     }
 
@@ -241,7 +241,7 @@ result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
         JSValue k = ks->Get(context, i);
         v8::Local<v8::Value> v = map->Get(context, k).FromMaybe(v8::Local<v8::Value>());
         if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         obj_ptr<Handler_base> hdlr;
         obj_ptr<Routing_base> r;
@@ -255,7 +255,7 @@ result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
 
     retVal = this;
 
-    return 0;
+    return result_t();
 }
 
 exlib::string Routing::path2RegExp(exlib::string pattern, route_info* info)
@@ -456,7 +456,7 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Union_appe
 
     retVal = this;
 
-    return 0;
+    return result_t();
 }
 
 result_t Routing::append(Routing_base* route, obj_ptr<Routing_base>& retVal)
@@ -480,7 +480,7 @@ result_t Routing::append(Routing_base* route, obj_ptr<Routing_base>& retVal)
 
     retVal = this;
 
-    return 0;
+    return result_t();
 }
 
 result_t Routing::append(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)

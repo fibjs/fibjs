@@ -244,7 +244,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
 
     retVal = o;
 
-    return 0;
+    return result_t();
 }
 
 result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal)

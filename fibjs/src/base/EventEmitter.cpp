@@ -17,17 +17,17 @@ namespace fibjs {
 result_t EventEmitter_base::_new(v8::Local<v8::Object> options, obj_ptr<EventEmitter_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new EventEmitter();
-    return 0;
+    return result_t();
 }
 
 result_t EventEmitter_base::get_defaultMaxListeners(int32_t& retVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t EventEmitter_base::set_defaultMaxListeners(int32_t newVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t object_base::on(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
@@ -141,10 +141,10 @@ result_t object_base::getListener(exlib::string ev, v8::Local<v8::Function>& fun
         return hr;
 
     if (r->Length() == 0)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     func = JSValue(r->Get(e.context, 0)).As<v8::Function>();
-    return 0;
+    return result_t();
 }
 
 result_t object_base::listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal)
@@ -173,7 +173,7 @@ result_t object_base::_emit(exlib::string ev, Variant* args, int32_t argCount)
     if (isolate && !isolate->is_terminating())
         (new JSTrigger::AsyncEmitter(isolate, this))->emit(ev, args, argCount);
 
-    return 0;
+    return result_t();
 }
 
 result_t object_base::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
@@ -197,7 +197,7 @@ result_t object_base::listenerCount(v8::Local<v8::Value> o, v8::Local<v8::Value>
     Isolate* isolate = holder();
     v8::Local<v8::Object> o1 = o->ToObject(isolate->context()).FromMaybe(v8::Local<v8::Object>());
     if (o1.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     return JSTrigger(isolate->m_isolate, o1).listenerCount(ev, retVal);
 }
@@ -211,17 +211,17 @@ result_t object_base::eventNames(v8::Local<v8::Array>& retVal)
 // and registered via events.cpp override.
 result_t EventEmitter_base::on(EventEmitter_base* emitter, v8::Local<v8::Value> ev, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
 {
-    return CALL_E_INVALID_CALL;
+    return result_t::invalid_call();
 }
 
 result_t EventEmitter_base::once(EventEmitter_base* emitter, v8::Local<v8::Value> ev, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
 {
-    return CALL_E_INVALID_CALL;
+    return result_t::invalid_call();
 }
 
 result_t EventEmitter_base::addAbortListener(EventEmitter_base* signal, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
-    return CALL_E_INVALID_CALL;
+    return result_t::invalid_call();
 }
 
 void JSTrigger::initEv()
@@ -291,7 +291,7 @@ result_t JSTrigger::putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function
 
     int32_t len = esa->Length();
     esa->Set(context, len, func).IsJust();
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
@@ -308,7 +308,7 @@ result_t JSTrigger::prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::F
         esa->Set(context, i, esa->Get(context, i - 1).FromMaybe(v8::Local<v8::Value>())).IsJust();
 
     esa->Set(context, 0, func).IsJust();
-    return 0;
+    return result_t();
 }
 
 void JSTrigger::spliceOne(v8::Local<v8::Array> esa, int32_t index)
@@ -326,7 +326,7 @@ void JSTrigger::spliceOne(v8::Local<v8::Array> esa, int32_t index)
 result_t JSTrigger::removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
 {
     if (esa.IsEmpty())
-        return 0;
+        return result_t();
 
     int32_t len = esa->Length();
     int32_t i;
@@ -349,11 +349,11 @@ result_t JSTrigger::removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Funct
             hr = onEventChange("removeListener", ev, func);
             if (hr.failed())
                 return hr;
-            return 0;
+            return result_t();
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::_map(v8::Local<v8::Object> m,
@@ -378,7 +378,7 @@ result_t JSTrigger::_map(v8::Local<v8::Object> m,
     }
 
     retVal = o;
-    return 0;
+    return result_t();
 }
 
 void JSTrigger::_onceWrap(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -425,7 +425,7 @@ result_t JSTrigger::once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, 
     putFunction(GetHiddenList(ev, true), wrap, ev);
 
     retVal = o;
-    return 0;
+    return result_t();
 }
 
 
@@ -456,7 +456,7 @@ result_t JSTrigger::prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::F
     prependPutFunction(GetHiddenList(ev, true), wrap, ev);
 
     retVal = o;
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::off(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
@@ -473,7 +473,7 @@ result_t JSTrigger::off(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v
     }
 
     retVal = o;
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::off(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal)
@@ -496,7 +496,7 @@ result_t JSTrigger::off(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal)
         }
 
     retVal = o;
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal)
@@ -527,7 +527,7 @@ result_t JSTrigger::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::O
     }
 
     retVal = o;
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::setMaxListeners(int32_t n)
@@ -536,7 +536,7 @@ result_t JSTrigger::setMaxListeners(int32_t n)
         return result_t::make(CALL_E_EXCEPTION).with_message("\"defaultMaxListeners\" must be a positive number");
 
     o->SetPrivate(context, v8::Private::ForApi(isolate, NewString("_maxListeners")), v8::Integer::New(isolate, n));
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::getMaxListeners(int32_t& retVal)
@@ -548,7 +548,7 @@ result_t JSTrigger::getMaxListeners(int32_t& retVal)
     } else {
         GetArgumentValue(_isolate, maxListeners, retVal, true);
     }
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::set_defaultMaxListeners(int32_t newVal)
@@ -558,14 +558,14 @@ result_t JSTrigger::set_defaultMaxListeners(int32_t newVal)
 
     Isolate* isolate = Isolate::current();
     isolate->m_defaultMaxListeners = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::get_defaultMaxListeners(int32_t& retVal)
 {
     Isolate* isolate = Isolate::current();
     retVal = isolate->m_defaultMaxListeners;
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal)
@@ -594,7 +594,7 @@ result_t JSTrigger::listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& ret
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::rawListeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal)
@@ -612,7 +612,7 @@ result_t JSTrigger::rawListeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& 
             retVal->Set(context, n++, JSValue(esa->Get(context, i))).IsJust();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::listenerCount(v8::Local<v8::Value> ev, int32_t& retVal)
@@ -625,14 +625,14 @@ result_t JSTrigger::listenerCount(v8::Local<v8::Value> ev, int32_t& retVal)
     }
 
     retVal = n;
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::fireTrigger(v8::Local<v8::Array> esa, v8::Local<v8::Value>* args, int32_t argCount,
     QuickArray<obj_ptr<Fiber_base>>& evs, v8::Local<v8::Function>& ff)
 {
     if (esa.IsEmpty())
-        return 0;
+        return result_t();
 
     int32_t len = esa->Length();
     int32_t i;
@@ -653,7 +653,7 @@ result_t JSTrigger::fireTrigger(v8::Local<v8::Array> esa, v8::Local<v8::Value>* 
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
@@ -671,7 +671,7 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
 
         Isolate* holder = _obj->get_holder();
         if (holder && holder->is_terminating())
-            return 0;
+            return result_t();
     }
 
     // Use NewString to convert to v8::Value so GetHiddenList (Value overload) works
@@ -682,7 +682,7 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
     if (ev == "error" && ff.IsEmpty()) {
         Isolate* current_isolate = Isolate::current(isolate);
         if (current_isolate && current_isolate->is_terminating())
-            return 0;
+            return result_t();
 
         if (argCount > 0 && !args[0].IsEmpty() && args[0]->IsNativeError()) {
             isolate->ThrowException(args[0]);
@@ -700,14 +700,14 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
             }
             isolate->ThrowException(v8::Exception::Error(NewString(errMsg)));
         }
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     }
 
     if (!ff.IsEmpty()) {
         JSValue r = ff->Call(context, o, argCount, args);
         retVal = true;
         if (r.IsEmpty())
-            hr = CALL_E_JAVASCRIPT;
+            hr = result_t(CALL_E_JAVASCRIPT);
     }
 
     if (evs.size() > 0) {
@@ -736,7 +736,7 @@ result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
         Isolate* holder = _obj->get_holder();
         if (holder && holder->is_terminating()) {
             retVal = false;
-            return 0;
+            return result_t();
         }
     }
 
@@ -756,7 +756,7 @@ result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
             JSValue r = ff->Call(context, o, (int32_t)datas.size(), datas.data());
             retVal = true;
             if (r.IsEmpty())
-                hr = CALL_E_JAVASCRIPT;
+                hr = result_t(CALL_E_JAVASCRIPT);
         }
 
         if (evs.size() > 0) {
@@ -1086,7 +1086,7 @@ void JSTrigger::s_listenerCount(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Isolate* isolate = args.GetIsolate();
     v8::Local<v8::Object> o = v0->ToObject(isolate->GetCurrentContext()).FromMaybe(v8::Local<v8::Object>());
     if (o.IsEmpty()) {
-        hr = CALL_E_TYPEMISMATCH;
+        hr = result_t(CALL_E_TYPEMISMATCH);
         break;
     }
 
@@ -1568,17 +1568,17 @@ void JSTrigger::s_addAbortListener(const v8::FunctionCallbackInfo<v8::Value>& ar
     v8::Local<v8::Context> context = _isolate->context();
 
     if (args.Length() < 2) {
-        ThrowResult(CALL_E_BADPARAMCOUNT);
+        ThrowResult(result_t(CALL_E_BADPARAMCOUNT));
         return;
     }
 
     if (!args[0]->IsObject()) {
-        ThrowResult(CALL_E_TYPEMISMATCH);
+        ThrowResult(result_t::type_mismatch());
         return;
     }
 
     if (!args[1]->IsFunction()) {
-        ThrowResult(CALL_E_TYPEMISMATCH);
+        ThrowResult(result_t::type_mismatch());
         return;
     }
 
@@ -1631,11 +1631,11 @@ void JSTrigger::s_once_static(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Context> context = _isolate->context();
 
     if (args.Length() < 2) {
-        ThrowResult(CALL_E_BADPARAMCOUNT);
+        ThrowResult(result_t(CALL_E_BADPARAMCOUNT));
         return;
     }
     if (!args[0]->IsObject()) {
-        ThrowResult(CALL_E_TYPEMISMATCH);
+        ThrowResult(result_t::type_mismatch());
         return;
     }
 
@@ -1649,7 +1649,7 @@ void JSTrigger::s_once_static(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     v8::Local<v8::Promise::Resolver> resolver;
     if (!helper_new_resolver(_isolate, context, resolver)) {
-        ThrowResult(CALL_E_INTERNAL);
+        ThrowResult(result_t(CALL_E_INTERNAL));
         return;
     }
 
@@ -1875,11 +1875,11 @@ void JSTrigger::s_on_static(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Context> context = _isolate->context();
 
     if (args.Length() < 2) {
-        ThrowResult(CALL_E_BADPARAMCOUNT);
+        ThrowResult(result_t(CALL_E_BADPARAMCOUNT));
         return;
     }
     if (!args[0]->IsObject()) {
-        ThrowResult(CALL_E_TYPEMISMATCH);
+        ThrowResult(result_t::type_mismatch());
         return;
     }
 

@@ -69,7 +69,7 @@ result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
 
     webkit_web_view_load_uri(WEBKIT_WEB_VIEW(m_webview), url.c_str());
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
@@ -80,7 +80,7 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
 
     retVal = internal_getUrl();
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
@@ -91,7 +91,7 @@ result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
 
     webkit_web_view_load_html(WEBKIT_WEB_VIEW(m_webview), html.c_str(), nullptr);
 
-    return 0;
+    return result_t();
 }
 
 struct gethtml_callback_data {
@@ -144,7 +144,7 @@ result_t WebView::isReady(bool& retVal, AsyncHandle ac)
     m_ready->isSet(is_win_ready);
     if (!is_win_ready) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     result_t hr = check_status(ac);
@@ -153,7 +153,7 @@ result_t WebView::isReady(bool& retVal, AsyncHandle ac)
 
     retVal = internal_isReady();
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::reload(AsyncHandle ac)
@@ -164,7 +164,7 @@ result_t WebView::reload(AsyncHandle ac)
 
     webkit_web_view_reload(WEBKIT_WEB_VIEW(m_webview));
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::goBack(AsyncHandle ac)
@@ -175,7 +175,7 @@ result_t WebView::goBack(AsyncHandle ac)
 
     webkit_web_view_go_back(WEBKIT_WEB_VIEW(m_webview));
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::goForward(AsyncHandle ac)
@@ -186,7 +186,7 @@ result_t WebView::goForward(AsyncHandle ac)
 
     webkit_web_view_go_forward(WEBKIT_WEB_VIEW(m_webview));
 
-    return 0;
+    return result_t();
 }
 
 void jsc2Variant(JSCValue* value, Variant& retVal)
@@ -302,7 +302,7 @@ result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
 
     gtk_window_set_title(GTK_WINDOW(m_window), title.c_str());
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
@@ -318,7 +318,7 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
         retVal = "";
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
@@ -329,7 +329,7 @@ result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
 
     retVal = gtk_widget_get_visible(GTK_WIDGET(m_window)) != 0;
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::show(AsyncHandle ac)
@@ -342,7 +342,7 @@ result_t WebView::show(AsyncHandle ac)
         gtk_widget_show_all(GTK_WIDGET(m_window));
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::hide(AsyncHandle ac)
@@ -355,7 +355,7 @@ result_t WebView::hide(AsyncHandle ac)
         gtk_widget_hide(GTK_WIDGET(m_window));
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
@@ -366,7 +366,7 @@ result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
 
     gtk_window_resize(GTK_WINDOW(m_window), width, height);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
@@ -382,7 +382,7 @@ result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
     retVal->append(width);
     retVal->append(height);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
@@ -393,7 +393,7 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
 
     gtk_window_move(GTK_WINDOW(m_window), left, top);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
@@ -409,7 +409,7 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
     retVal->append(left);
     retVal->append(top);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::isActived(bool& retVal, AsyncHandle ac)
@@ -421,7 +421,7 @@ result_t WebView::isActived(bool& retVal, AsyncHandle ac)
     GtkWindow* window = GTK_WINDOW(m_window);
     retVal = (gtk_window_is_active(window) != 0);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::active(AsyncHandle ac)
@@ -433,7 +433,7 @@ result_t WebView::active(AsyncHandle ac)
     GtkWindow* window = GTK_WINDOW(m_window);
     gtk_window_present(window);
 
-    return 0;
+    return result_t();
 }
 
 struct capture_callback_data {
@@ -505,7 +505,7 @@ result_t WebView::close(AsyncHandle ac)
     m_options->hideOnClose = false;
     gtk_window_close(GTK_WINDOW(m_window));
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
@@ -519,7 +519,7 @@ result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
 
     webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(m_webview), jsCode.c_str(), nullptr, nullptr, nullptr);
 
-    return 0;
+    return result_t();
 }
 
 }
