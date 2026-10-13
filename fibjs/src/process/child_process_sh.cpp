@@ -59,7 +59,7 @@ public:
             m_ac.post(v);
         }
         delete this;
-        return 0;
+        return result_t();
     }
 
     static exlib::string process_command(v8::Local<v8::Array> strings, OptArgs args)
@@ -200,7 +200,7 @@ result_t child_process_base::ssh(exlib::string host, v8::Local<v8::Object> optio
     args->Set(context, 2, isolate->NewString(port_str)).IsJust();
 
     retVal = isolate->NewFunction("ssh", js_ssh, args);
-    return 0;
+    return result_t();
 }
 
 }

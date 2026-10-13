@@ -21,7 +21,7 @@ namespace fibjs {
 result_t XmlNodeList::get_length(int32_t& retVal)
 {
     retVal = (int32_t)m_childs.size();
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::item(int32_t index, obj_ptr<XmlNode_base>& retVal)
@@ -29,21 +29,21 @@ result_t XmlNodeList::item(int32_t index, obj_ptr<XmlNode_base>& retVal)
     if (index < 0 || index >= (int32_t)m_childs.size()) {
         // clear the out parameter: callers may loop on it -- see T16
         retVal = NULL;
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
     retVal = m_childs[index]->m_node;
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::_indexed_getter(uint32_t index, obj_ptr<XmlNode_base>& retVal)
 {
     if (index >= m_childs.size()) {
         retVal = NULL;
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
 
     retVal = m_childs[index]->m_node;
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::toString(exlib::string& retVal)
@@ -55,7 +55,7 @@ result_t XmlNodeList::toString(exlib::string& retVal)
 
     if (sz == 0) {
         retVal.clear();
-        return 0;
+        return result_t();
     } else if (sz == 1)
         return m_childs[0]->m_node->toString(retVal);
 
@@ -68,7 +68,7 @@ result_t XmlNodeList::toString(exlib::string& retVal)
 
     retVal = strs.str();
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::toXmlString(exlib::string& retVal)
@@ -80,7 +80,7 @@ result_t XmlNodeList::toXmlString(exlib::string& retVal)
 
     if (sz == 0) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     for (i = 0; i < sz; i++) {
@@ -97,7 +97,7 @@ result_t XmlNodeList::toXmlString(exlib::string& retVal)
 
     retVal = strs.str();
 
-    return 0;
+    return result_t();
 }
 
 void XmlNodeList::appendRef(XmlNodeImpl* newChild)
@@ -207,20 +207,20 @@ result_t XmlNodeList::firstChild(obj_ptr<XmlNode_base>& retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     if (!sz)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_childs[0]->m_node;
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::lastChild(obj_ptr<XmlNode_base>& retVal)
 {
     int32_t sz = (int32_t)m_childs.size();
     if (!sz)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_childs[sz - 1]->m_node;
-    return 0;
+    return result_t();
 }
 
 XmlNodeImpl* XmlNodeList::checkChild(XmlNode_base* child)
@@ -315,12 +315,12 @@ result_t XmlNodeList::insertBefore(XmlNode_base* newChild, XmlNode_base* refChil
             idx++;
         }
         retVal = newChild;
-        return 0;
+        return result_t();
     }
 
     if (pNew == pRef) {
         retVal = newChild;
-        return 0;
+        return result_t();
     }
 
     if (!checkNew(pNew))
@@ -342,7 +342,7 @@ result_t XmlNodeList::insertBefore(XmlNode_base* newChild, XmlNode_base* refChil
     m_childs[idx] = pNew;
 
     retVal = newChild;
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild,
@@ -387,12 +387,12 @@ result_t XmlNodeList::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild
             idx++;
         }
         retVal = newChild;
-        return 0;
+        return result_t();
     }
 
     if (pNew == pRef) {
         retVal = newChild;
-        return 0;
+        return result_t();
     }
 
     if (!checkNew(pNew))
@@ -414,7 +414,7 @@ result_t XmlNodeList::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild
     m_childs[idx] = pNew;
 
     retVal = newChild;
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChild,
@@ -470,12 +470,12 @@ result_t XmlNodeList::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChil
             idx++;
         }
         retVal = oldChild;
-        return 0;
+        return result_t();
     }
 
     if (pNew == pOld) {
         retVal = newChild;
-        return 0;
+        return result_t();
     }
 
     if (!checkNew(pNew))
@@ -489,7 +489,7 @@ result_t XmlNodeList::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChil
     m_childs[idx] = pNew;
 
     retVal = oldChild;
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal)
@@ -517,7 +517,7 @@ result_t XmlNodeList::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>&
     pOld->clearParent();
 
     retVal = oldChild;
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
@@ -545,7 +545,7 @@ result_t XmlNodeList::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>&
             m_childs.push_back(child);
         }
         retVal = newChild;
-        return 0;
+        return result_t();
     }
 
     if (!checkNew(pNew))
@@ -555,13 +555,13 @@ result_t XmlNodeList::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>&
     m_childs.push_back(pNew);
 
     retVal = newChild;
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::hasChildNodes(bool& retVal)
 {
     retVal = !!m_childs.size();
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::get_children(obj_ptr<XmlNodeList_base>& retVal)
@@ -573,7 +573,7 @@ result_t XmlNodeList::get_children(obj_ptr<XmlNodeList_base>& retVal)
 
     if (doc && m_children && m_childrenEpoch == doc->m_queryEpoch) {
         retVal = m_children;
-        return 0;
+        return result_t();
     }
 
     obj_ptr<XmlNodeList> children = new XmlNodeList(NULL);
@@ -594,7 +594,7 @@ result_t XmlNodeList::get_children(obj_ptr<XmlNodeList_base>& retVal)
         m_childrenEpoch = doc->m_queryEpoch;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::find_element(int32_t base, int32_t step, obj_ptr<XmlNode_base>& retVal)
@@ -603,12 +603,12 @@ result_t XmlNodeList::find_element(int32_t base, int32_t step, obj_ptr<XmlNode_b
         XmlNodeImpl* child = m_childs[base];
         if (child->m_type == xml_base::C_ELEMENT_NODE) {
             retVal = child->m_node;
-            return 0;
+            return result_t();
         }
     }
 
     retVal = NULL;
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 // Deep-clone every child of this list into `to`, without recursion.
@@ -656,7 +656,7 @@ result_t XmlNodeList::cloneChilds(XmlNode_base* to)
             stack.push_back(Frame { &child->m_childs->m_childs, clone, 0 });
     }
 
-    return 0;
+    return result_t();
 }
 
 // Synchronous iterator over an XmlNodeList.
@@ -702,13 +702,13 @@ public:
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal)
     {
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     virtual result_t symbol_asyncIterator(obj_ptr<Iterator_base>& retVal)
     {
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     virtual result_t next(obj_ptr<NextType>& retVal, AsyncHandle ac)
@@ -718,7 +718,7 @@ public:
         if (m_done || m_index >= m_list->m_childs.size()) {
             m_done = true;
             retVal->done = true;
-            return 0;
+            return result_t();
         }
 
         size_t index = m_index++;
@@ -740,7 +740,7 @@ public:
             break;
         }
 
-        return 0;
+        return result_t();
     }
 
     virtual result_t _return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal)
@@ -748,7 +748,7 @@ public:
         m_done = true;
         retVal = new ReturnType();
         retVal->done = true;
-        return 0;
+        return result_t();
     }
 
 private:
@@ -766,19 +766,19 @@ result_t XmlNodeList::symbol_iterator(obj_ptr<Iterator_base>& retVal)
 result_t XmlNodeList::keys(obj_ptr<Iterator_base>& retVal)
 {
     retVal = new XmlNodeListIterator(this, XmlNodeListIterator::kKeys);
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::values(obj_ptr<Iterator_base>& retVal)
 {
     retVal = new XmlNodeListIterator(this, XmlNodeListIterator::kValues);
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::entries(obj_ptr<Iterator_base>& retVal)
 {
     retVal = new XmlNodeListIterator(this, XmlNodeListIterator::kEntries);
-    return 0;
+    return result_t();
 }
 
 // Merge adjacent text nodes and drop the empty ones in one child list.
@@ -834,7 +834,7 @@ result_t XmlNodeList::normalize()
                 return WALK_CONTINUE;
             });
 
-        return 0;
+        return result_t();
     }
 
     // Normalize every child list of the subtree, the root's included.  The walk
@@ -847,7 +847,7 @@ result_t XmlNodeList::normalize()
         return WALK_CONTINUE;
     });
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlNodeList::forEach(v8::Local<v8::Function> callback)
@@ -864,9 +864,9 @@ result_t XmlNodeList::forEach(v8::Local<v8::Function> callback)
 
         v8::Local<v8::Value> result = callback->Call(context, v8::Undefined(isolate->m_isolate), 3, args).FromMaybe(v8::Local<v8::Value>());
         if (result.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
     }
 
-    return 0;
+    return result_t();
 }
 }

@@ -107,7 +107,7 @@ void process_signal_reraise_pending()
 static void emit_signal(Isolate* isolate, const char* name)
 {
     bool r = false;
-    result_t hr = 0;
+    result_t hr;
 
     {
         JSFiber::EnterJsScope s;

@@ -25,24 +25,24 @@ void XmlNamedNodeMap::bumpQueryEpoch()
 result_t XmlNamedNodeMap::get_length(int32_t& retVal)
 {
     retVal = (int32_t)m_childs.size();
-    return 0;
+    return result_t();
 }
 
 result_t XmlNamedNodeMap::item(int32_t index, obj_ptr<XmlAttr_base>& retVal)
 {
     if (index < 0 || index >= (int32_t)m_childs.size())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     retVal = m_childs[index];
-    return 0;
+    return result_t();
 }
 
 result_t XmlNamedNodeMap::_indexed_getter(uint32_t index, obj_ptr<XmlAttr_base>& retVal)
 {
     if (index >= m_childs.size())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_childs[index];
-    return 0;
+    return result_t();
 }
 
 result_t XmlNamedNodeMap::toString(exlib::string& retVal)
@@ -54,7 +54,7 @@ result_t XmlNamedNodeMap::toString(exlib::string& retVal)
 
     if (sz == 0) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     for (i = 0; i < sz; i++)
@@ -73,7 +73,7 @@ result_t XmlNamedNodeMap::toString(exlib::string& retVal)
 
     retVal = strs.str();
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlNamedNodeMap::getNamedItem(exlib::string name, obj_ptr<XmlAttr_base>& retVal)
@@ -85,11 +85,11 @@ result_t XmlNamedNodeMap::getNamedItem(exlib::string name, obj_ptr<XmlAttr_base>
         XmlAttr* node = m_childs[i];
         if (node->check(name)) {
             retVal = node;
-            return 0;
+            return result_t();
         }
     }
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlNamedNodeMap::getNamedItemNS(exlib::string namespaceURI, exlib::string localName,
@@ -102,11 +102,11 @@ result_t XmlNamedNodeMap::getNamedItemNS(exlib::string namespaceURI, exlib::stri
         XmlAttr* node = m_childs[i];
         if (node->check(namespaceURI, localName)) {
             retVal = node;
-            return 0;
+            return result_t();
         }
     }
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlNamedNodeMap::removeNamedItem(exlib::string name)
@@ -126,11 +126,11 @@ result_t XmlNamedNodeMap::removeNamedItem(exlib::string name)
             }
 
             m_childs.resize(sz - 1);
-            return 0;
+            return result_t();
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlNamedNodeMap::removeNamedItemNS(exlib::string namespaceURI, exlib::string localName)
@@ -150,11 +150,11 @@ result_t XmlNamedNodeMap::removeNamedItemNS(exlib::string namespaceURI, exlib::s
             }
 
             m_childs.resize(sz - 1);
-            return 0;
+            return result_t();
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlNamedNodeMap::removeNode(XmlAttr_base* attr)
@@ -174,7 +174,7 @@ result_t XmlNamedNodeMap::removeNode(XmlAttr_base* attr)
             }
 
             m_childs.resize(sz - 1);
-            return 0;
+            return result_t();
         }
     }
 
@@ -194,13 +194,13 @@ result_t XmlNamedNodeMap::setNamedItem(XmlAttr* newNode, obj_ptr<XmlAttr_base>& 
 
             retVal = m_childs[i];
             m_childs[i] = (XmlAttr*)newNode;
-            return 0;
+            return result_t();
         }
     }
 
     bumpQueryEpoch();
     m_childs.append((XmlAttr*)newNode);
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlNamedNodeMap::cloneAttrs(XmlNamedNodeMap* to, XmlNodeImpl* el)
@@ -218,7 +218,7 @@ result_t XmlNamedNodeMap::cloneAttrs(XmlNamedNodeMap* to, XmlNodeImpl* el)
             return hr;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlNamedNodeMap::lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
@@ -232,7 +232,7 @@ result_t XmlNamedNodeMap::lookupPrefix(exlib::string namespaceURI, exlib::string
             return node->get_localName(retVal);
     }
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlNamedNodeMap::lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
@@ -246,6 +246,6 @@ result_t XmlNamedNodeMap::lookupNamespaceURI(exlib::string prefix, exlib::string
             return node->get_value(retVal);
     }
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 }

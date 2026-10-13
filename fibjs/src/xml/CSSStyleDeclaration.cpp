@@ -324,7 +324,7 @@ result_t CSSStyleDeclaration::get_cssText(exlib::string& retVal)
     if (hr.is_return_null())
         retVal.clear();
 
-    return 0;
+    return result_t();
 }
 
 result_t CSSStyleDeclaration::set_cssText(exlib::string newVal)
@@ -351,7 +351,7 @@ result_t CSSStyleDeclaration::get_length(int32_t& retVal)
     parse_declarations(text, decls);
 
     retVal = (int32_t)decls.size();
-    return 0;
+    return result_t();
 }
 
 result_t CSSStyleDeclaration::item(int32_t index, exlib::string& retVal)
@@ -364,11 +364,11 @@ result_t CSSStyleDeclaration::item(int32_t index, exlib::string& retVal)
 
     if (index < 0 || index >= (int32_t)decls.size()) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     retVal = decls[index].name;
-    return 0;
+    return result_t();
 }
 
 result_t CSSStyleDeclaration::getPropertyValue(exlib::string property, exlib::string& retVal)
@@ -387,7 +387,7 @@ result_t CSSStyleDeclaration::getPropertyValue(exlib::string property, exlib::st
             break;
         }
 
-    return 0;
+    return result_t();
 }
 
 result_t CSSStyleDeclaration::getPropertyPriority(exlib::string property, exlib::string& retVal)
@@ -407,7 +407,7 @@ result_t CSSStyleDeclaration::getPropertyPriority(exlib::string property, exlib:
             break;
         }
 
-    return 0;
+    return result_t();
 }
 
 result_t CSSStyleDeclaration::setProperty(exlib::string property, exlib::string value,
@@ -415,7 +415,7 @@ result_t CSSStyleDeclaration::setProperty(exlib::string property, exlib::string 
 {
     // CSSOM: priority must be empty or "important", otherwise the call is a no-op
     if (!priority.empty() && qstricmp(priority.c_str(), "important"))
-        return 0;
+        return result_t();
 
     // CSS property names are case-insensitive, custom property names are not
     if (!is_custom_property(property))
@@ -475,7 +475,7 @@ result_t CSSStyleDeclaration::removeProperty(exlib::string property, exlib::stri
         }
 
     if (found == (size_t)-1)
-        return 0;
+        return result_t();
 
     retVal = decls[found].value;
     decls.erase(decls.begin() + found);
@@ -502,12 +502,12 @@ result_t CSSStyleDeclaration::_named_getter(exlib::string property, Variant& ret
     for (size_t i = 0; i < decls.size(); i++)
         if (name_equals(decls[i].name, name)) {
             retVal = decls[i].value;
-            return 0;
+            return result_t();
         }
 
     // CSSOM returns an empty string for unset (supported) properties
     retVal = "";
-    return 0;
+    return result_t();
 }
 
 result_t CSSStyleDeclaration::_named_enumerator(v8::Local<v8::Array>& retVal)
@@ -515,7 +515,7 @@ result_t CSSStyleDeclaration::_named_enumerator(v8::Local<v8::Array>& retVal)
     Isolate* isolate = Isolate::current();
 
     retVal = v8::Array::New(isolate->m_isolate);
-    return 0;
+    return result_t();
 }
 
 result_t CSSStyleDeclaration::_named_setter(exlib::string property, Variant newVal)
@@ -540,7 +540,7 @@ result_t CSSStyleDeclaration::_named_deleter(exlib::string property, v8::Local<v
     removeProperty(style_name_to_css(property), value);
 
     retVal = v8::True(Isolate::current()->m_isolate);
-    return 0;
+    return result_t();
 }
 
 } // namespace fibjs

@@ -14,29 +14,29 @@ namespace fibjs {
 result_t XmlProcessingInstruction::get_nodeName(exlib::string& retVal)
 {
     retVal = m_target;
-    return 0;
+    return result_t();
 }
 
 result_t XmlProcessingInstruction::get_nodeValue(exlib::string& retVal)
 {
     retVal = m_data;
-    return 0;
+    return result_t();
 }
 
 result_t XmlProcessingInstruction::set_nodeValue(exlib::string newVal)
 {
     m_data = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t XmlProcessingInstruction::get_textContent(exlib::string& retVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlProcessingInstruction::set_textContent(exlib::string newVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlProcessingInstruction::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
@@ -48,19 +48,19 @@ result_t XmlProcessingInstruction::cloneNode(bool deep, obj_ptr<XmlNode_base>& r
 result_t XmlProcessingInstruction::get_target(exlib::string& retVal)
 {
     retVal = m_target;
-    return 0;
+    return result_t();
 }
 
 result_t XmlProcessingInstruction::get_data(exlib::string& retVal)
 {
     retVal = m_data;
-    return 0;
+    return result_t();
 }
 
 result_t XmlProcessingInstruction::set_data(exlib::string newVal)
 {
     m_data = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t XmlProcessingInstruction::toString(exlib::string& retVal)
@@ -71,6 +71,6 @@ result_t XmlProcessingInstruction::toString(exlib::string& retVal)
     retVal.append(m_data);
     retVal.append("?>");
 
-    return 0;
+    return result_t();
 }
 }

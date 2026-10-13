@@ -116,14 +116,14 @@ result_t process_base::get_argv(v8::Local<v8::Array>& retVal)
 
     retVal = isolate->m_argv.Get(isolate->m_isolate);
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::set_argv(v8::Local<v8::Array> newVal)
 {
     Isolate* isolate = Isolate::current();
     isolate->m_argv.Reset(isolate->m_isolate, newVal);
-    return 0;
+    return result_t();
 }
 
 result_t process_base::get_execArgv(std::vector<exlib::string>& retVal)
@@ -133,14 +133,14 @@ result_t process_base::get_execArgv(std::vector<exlib::string>& retVal)
     for (i = 0; i < (int32_t)s_start_argv.size(); i++)
         retVal.push_back(s_start_argv[i]);
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::get_version(exlib::string& retVal)
 {
     retVal.assign(1, 'v');
     retVal.append(fibjs_version);
-    return 0;
+    return result_t();
 }
 
 result_t process_base::get_versions(v8::Local<v8::Object>& retVal)
@@ -151,13 +151,13 @@ result_t process_base::get_versions(v8::Local<v8::Object>& retVal)
 result_t process_base::get_exitCode(int32_t& retVal)
 {
     retVal = Isolate::current()->m_exitCode;
-    return 0;
+    return result_t();
 }
 
 result_t process_base::set_exitCode(int32_t newVal)
 {
     Isolate::current()->m_exitCode = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t process_base::umask(Union_umask_mask mask, int32_t& retVal)
@@ -179,11 +179,11 @@ result_t process_base::umask(Union_umask_mask mask, int32_t& retVal)
         }
 
         retVal = _umask(oct);
-        return 0;
+        return result_t();
     }
 
     retVal = _umask(std::get<int32_t>(mask));
-    return 0;
+    return result_t();
 }
 
 result_t process_base::umask(int32_t& retVal)
@@ -191,7 +191,7 @@ result_t process_base::umask(int32_t& retVal)
     int32_t old = _umask(0);
     retVal = old;
     _umask(old);
-    return 0;
+    return result_t();
 }
 
 #define NANOS_PER_SEC 1000000000LL
@@ -216,7 +216,7 @@ result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& r
 
     retVal = tuple;
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::get_execPath(exlib::string& retVal)
@@ -230,7 +230,7 @@ result_t process_base::get_execPath(exlib::string& retVal)
 
     retVal = buf;
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::get_arch(exlib::string& retVal)
@@ -249,40 +249,40 @@ result_t process_base::get_release(obj_ptr<ReleaseType>& retVal)
     retVal->name = "node";
     retVal->sourceUrl = "https://github.com/fibjs/fibjs";
     retVal->venderUrl = "https://github.com/fibjs/fibjs_vender";
-    return 0;
+    return result_t();
 }
 
 result_t process_base::get_pid(int32_t& retVal)
 {
     retVal = uv_os_getpid();
-    return 0;
+    return result_t();
 }
 
 result_t process_base::get_ppid(int32_t& retVal)
 {
     retVal = uv_os_getppid();
-    return 0;
+    return result_t();
 }
 
 result_t process_base::get_stdin(obj_ptr<Stream_base>& retVal)
 {
     Isolate::current()->get_stdin(retVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::get_stdout(obj_ptr<Stream_base>& retVal)
 {
     Isolate::current()->get_stdout(retVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::get_stderr(obj_ptr<Stream_base>& retVal)
 {
     Isolate::current()->get_stderr(retVal);
 
-    return 0;
+    return result_t();
 }
 
 extern bool g_in_readline;
@@ -298,7 +298,7 @@ result_t process_base::exit()
     if (isolate->m_parent_worker) {
         worker_exit_from_inside(isolate, code);
 
-        return 0;
+        return result_t();
     }
 
     isolate->Ref();
@@ -328,7 +328,7 @@ result_t process_base::exit()
     ::_exit(code);
 #endif
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::exit(int32_t code)
@@ -345,7 +345,7 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, obj_ptr<Cpu
 
     int err = uv_getrusage(&rusage);
     if (err)
-        return err;
+        return result_t(err);
 
     result_t hr;
 
@@ -364,7 +364,7 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, obj_ptr<Cpu
     retVal->user = _user;
     retVal->system = _system;
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::resourceUsage(obj_ptr<ResourceUsageType>& retVal)
@@ -373,7 +373,7 @@ result_t process_base::resourceUsage(obj_ptr<ResourceUsageType>& retVal)
 
     int err = uv_getrusage(&rusage);
     if (err)
-        return err;
+        return result_t(err);
 
     retVal = new ResourceUsageType();
     retVal->userCPUTime = (double)(MICROS_PER_SEC * rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec);
@@ -393,7 +393,7 @@ result_t process_base::resourceUsage(obj_ptr<ResourceUsageType>& retVal)
     retVal->voluntaryContextSwitches = (double)rusage.ru_nvcsw;
     retVal->involuntaryContextSwitches = (double)rusage.ru_nivcsw;
 
-    return 0;
+    return result_t();
 }
 
 extern exlib::atomic g_ExtStringCount;
@@ -435,7 +435,7 @@ result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
 
     retVal = info;
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::uptime(double& retVal)
@@ -443,7 +443,7 @@ result_t process_base::uptime(double& retVal)
     int32_t ret = uv_uptime(&retVal);
     if (ret < 0)
         return result_t::from_system(ret);
-    return 0;
+    return result_t();
 }
 
 static exlib::string s_cwd;
@@ -465,7 +465,7 @@ result_t process_base::cwd(exlib::string& retVal)
     }
     retVal = s_cwd;
     s_cwd_lock.unlock();
-    return 0;
+    return result_t();
 }
 
 result_t process_base::chdir(exlib::string directory)
@@ -477,7 +477,7 @@ result_t process_base::chdir(exlib::string directory)
     s_cwd.clear();
     s_cwd_lock.unlock();
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::nextTick(v8::Local<v8::Function> func, OptArgs args)
@@ -506,7 +506,7 @@ result_t process_base::binding(exlib::string name, v8::Local<v8::Value>& retVal)
                 pModule = pModule->m_next;
     }
 
-    return 0;
+    return result_t();
 }
 
 static RootModule* findNativeModule(exlib::string name)
@@ -577,10 +577,10 @@ result_t process_base::getBuiltinModule(exlib::string id, v8::Local<v8::Value>& 
 
     // Not a builtin module, return undefined instead of throwing
     if (!isBuiltinModuleName(isolate, name))
-        return 0;
+        return result_t();
 
     if (!isolate->m_topSandbox)
-        return 0;
+        return result_t();
 
     // Resolve through the top-level sandbox so that the returned module object
     // is identical to the one returned by require(id)
@@ -595,13 +595,13 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::O
     if (warning->IsString() || warning->IsStringObject()) {
         v8::Local<v8::String> msg = warning->ToString(context).FromMaybe(v8::Local<v8::String>());
         if (msg.IsEmpty())
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
         warning = v8::Exception::Error(msg);
     } else if (!warning->IsNativeError())
-        return CALL_E_BADVARTYPE;
+        return result_t::bad_vartype();
     v8::Local<v8::Object> opts = warning.As<v8::Object>();
     if (opts.IsEmpty())
-        return CALL_E_BADVARTYPE;
+        return result_t::bad_vartype();
 
     exlib::string type("Warning");
     GetConfigValue(options, "type", type, true);
@@ -618,7 +618,7 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::O
     v8::Local<v8::Value> v = opts;
     (new JSTrigger::AsyncEmitter(isolate, class_info().getModule(isolate)))->emit("warning", &v, 1);
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::emitWarning(v8::Local<v8::Value> warning, exlib::string type, exlib::string code)
@@ -629,13 +629,13 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, exlib::string t
     if (warning->IsString() || warning->IsStringObject()) {
         v8::Local<v8::String> msg = warning->ToString(context).FromMaybe(v8::Local<v8::String>());
         if (msg.IsEmpty())
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
         warning = v8::Exception::Error(msg);
     } else if (!warning->IsNativeError())
-        return CALL_E_BADVARTYPE;
+        return result_t::bad_vartype();
     v8::Local<v8::Object> opts = warning.As<v8::Object>();
     if (opts.IsEmpty())
-        return CALL_E_BADVARTYPE;
+        return result_t::bad_vartype();
 
     opts->Set(context, isolate->NewString("name"), isolate->NewString(type)).IsJust();
     opts->Set(context, isolate->NewString("code"), isolate->NewString(code)).IsJust();
@@ -643,7 +643,7 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, exlib::string t
     v8::Local<v8::Value> v = opts;
     (new JSTrigger::AsyncEmitter(isolate, class_info().getModule(isolate)))->emit("warning", &v, 1);
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::getgid(int32_t& retVal)
@@ -653,7 +653,7 @@ result_t process_base::getgid(int32_t& retVal)
 #else
     retVal = 0;
 #endif
-    return 0;
+    return result_t();
 }
 
 result_t process_base::getuid(int32_t& retVal)
@@ -663,7 +663,7 @@ result_t process_base::getuid(int32_t& retVal)
 #else
     retVal = 0;
 #endif
-    return 0;
+    return result_t();
 }
 
 result_t process_base::setgid(int32_t id)
@@ -671,7 +671,7 @@ result_t process_base::setgid(int32_t id)
 #ifndef _WIN32
     ::setgid(id);
 #endif
-    return 0;
+    return result_t();
 }
 
 result_t process_base::setuid(int32_t id)
@@ -679,7 +679,7 @@ result_t process_base::setuid(int32_t id)
 #ifndef _WIN32
     ::setuid(id);
 #endif
-    return 0;
+    return result_t();
 }
 
 result_t process_base::get_connected(bool& retVal)
@@ -688,7 +688,7 @@ result_t process_base::get_connected(bool& retVal)
 
     retVal = !!isolate->m_channel;
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::disconnect()
@@ -708,7 +708,7 @@ result_t process_base::disconnect()
 
     _channel->ac_close();
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::send(v8::Local<v8::Value> msg)
@@ -865,7 +865,7 @@ static result_t kill_numeric(int32_t pid, int32_t signal)
     if (err)
         return result_t::make(CALL_E_EXCEPTION).with_message("process: kill failed with error: " + exlib::string(uv_strerror(err)));
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::kill(int32_t pid, Union_kill_signal signal)

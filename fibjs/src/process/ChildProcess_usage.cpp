@@ -15,7 +15,7 @@
 namespace fibjs {
 result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 {
-    return CALL_E_INVALID_CALL;
+    return result_t::invalid_call();
 }
 }
 #else
@@ -38,7 +38,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 
     retVal = o;
 
-    return 0;
+    return result_t();
 }
 }
 #endif
@@ -78,7 +78,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 
     retVal = o;
 
-    return 0;
+    return result_t();
 }
 }
 #elif defined(Windows)
@@ -123,7 +123,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 
     retVal = o;
 
-    return 0;
+    return result_t();
 }
 }
 #endif

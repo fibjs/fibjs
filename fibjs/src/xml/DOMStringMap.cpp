@@ -83,10 +83,10 @@ result_t DOMStringMap::_indexed_getter(uint32_t index, Variant& retVal)
     if (hr.failed())
         return hr;
     if (hr.is_return_null())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = value;
-    return 0;
+    return result_t();
 }
 
 result_t DOMStringMap::_named_getter(exlib::string property, Variant& retVal)
@@ -98,10 +98,10 @@ result_t DOMStringMap::_named_getter(exlib::string property, Variant& retVal)
     if (hr.failed())
         return hr;
     if (hr.is_return_null())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = value;
-    return 0;
+    return result_t();
 }
 
 result_t DOMStringMap::_named_setter(exlib::string property, Variant newVal)
@@ -127,7 +127,7 @@ result_t DOMStringMap::_named_deleter(exlib::string property, v8::Local<v8::Bool
     m_element->removeAttribute(name);
 
     retVal = v8::True(Isolate::current()->m_isolate);
-    return 0;
+    return result_t();
 }
 
 result_t DOMStringMap::_named_enumerator(v8::Local<v8::Array>& retVal)
@@ -158,7 +158,7 @@ result_t DOMStringMap::_named_enumerator(v8::Local<v8::Array>& retVal)
     }
 
     retVal = arr;
-    return 0;
+    return result_t();
 }
 
 } // namespace fibjs

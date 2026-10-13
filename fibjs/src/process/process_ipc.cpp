@@ -42,7 +42,7 @@ public:
         if (!m_has_reader)
             isolate_unref();
 
-        return 0;
+        return result_t();
     }
 
 private:
@@ -84,7 +84,7 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
             bool r;
             t._emit("message", &v, 1, r);
 
-            return 0;
+            return result_t();
         }
 
     public:
@@ -187,7 +187,7 @@ result_t ChildProcess::Ipc::sync_delete(Ipc* pThis)
     }
 
     delete pThis;
-    return 0;
+    return result_t();
 }
 
 static void on_newListener(const v8::FunctionCallbackInfo<v8::Value>& args)

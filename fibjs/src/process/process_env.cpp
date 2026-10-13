@@ -122,14 +122,14 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
         v8::Local<v8::Object> o;
         if (!templ->GetFunction(context).ToLocal(&ctor)
             || !ctor->NewInstance(context).ToLocal(&o))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         isolate->m_env.Reset(isolate->m_isolate, o);
         retVal = o;
     } else
         retVal = isolate->m_env.Get(isolate->m_isolate);
 
-    return 0;
+    return result_t();
 }
 
 result_t process_base::loadEnvFile(exlib::string path)
@@ -163,7 +163,7 @@ result_t process_base::loadEnvFile(exlib::string path)
             exlib::string(entry.second.c_str(), entry.second.length()));
     }
 
-    return 0;
+    return result_t();
 }
 
 }

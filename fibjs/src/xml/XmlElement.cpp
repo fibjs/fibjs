@@ -21,47 +21,47 @@ namespace fibjs {
 result_t XmlElement::get_nodeName(exlib::string& retVal)
 {
     retVal = m_tagName;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_nodeValue(exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlElement::set_nodeValue(exlib::string newVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_namespaceURI(exlib::string& retVal)
 {
     if (m_namespaceURI.empty())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_namespaceURI;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_prefix(exlib::string& retVal)
 {
     if (m_prefix.empty())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_prefix;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::set_prefix(exlib::string newVal)
 {
     m_prefix = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_localName(exlib::string& retVal)
 {
     retVal = m_localName;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_textContent(exlib::string& retVal)
@@ -70,7 +70,7 @@ result_t XmlElement::get_textContent(exlib::string& retVal)
     getTextContent(strs);
     retVal = strs.str();
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::set_textContent(exlib::string newVal)
@@ -82,7 +82,7 @@ result_t XmlElement::set_textContent(exlib::string newVal)
     obj_ptr<XmlNode_base> out;
     appendChild(text, out);
 
-    return 0;
+    return result_t();
 }
 
 // Both lookups walk up the ancestor chain looking for an xmlns declaration.
@@ -97,7 +97,7 @@ result_t XmlElement::set_textContent(exlib::string newVal)
 result_t XmlElement::lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
 {
     if (globalPrefix(namespaceURI, retVal))
-        return 0;
+        return result_t();
 
     XmlNodeImpl* p = this;
 
@@ -108,20 +108,20 @@ result_t XmlElement::lookupPrefix(exlib::string namespaceURI, exlib::string& ret
         if (hr.failed())
             return hr;
         if (!hr.is_return_null())
-            return retVal.empty() ? CALL_RETURN_NULL : 0;
+            return retVal.empty() ? result_t::return_null() : result_t();
 
         p = p->m_parent;
         if (!p)
             break;
     }
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlElement::lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
 {
     if (globalNamespaceURI(prefix, retVal))
-        return 0;
+        return result_t();
 
     XmlNodeImpl* p = this;
 
@@ -132,14 +132,14 @@ result_t XmlElement::lookupNamespaceURI(exlib::string prefix, exlib::string& ret
         if (hr.failed())
             return hr;
         if (!hr.is_return_null())
-            return retVal.empty() ? CALL_RETURN_NULL : 0;
+            return retVal.empty() ? result_t::return_null() : result_t();
 
         p = p->m_parent;
         if (!p)
             break;
     }
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlElement::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
@@ -159,13 +159,13 @@ result_t XmlElement::get_tagName(exlib::string& retVal)
     if (!m_isXml) {
         exlib::qstrupr(retVal);
     }
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_id(exlib::string& retVal)
 {
     getAttribute("id", retVal);
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::set_id(exlib::string newVal)
@@ -183,7 +183,7 @@ result_t XmlElement::set_id(exlib::string newVal)
     result_t XmlElement::get_##name(exlib::string& retVal) \
     {                                                      \
         getAttribute(#name, retVal);                       \
-        return 0;                                          \
+        return result_t();                                 \
     }                                                      \
     result_t XmlElement::set_##name(exlib::string newVal)   \
     {                                                      \
@@ -215,13 +215,13 @@ result_t XmlElement::get_innerHTML(exlib::string& retVal)
         m_content->hasChildNodes(hasChildren);
         if (hasChildren)
             ((XmlNodeList*)(XmlNodeList_base*)childNodes)->toString(retVal);
-        return 0;
+        return result_t();
     }
 
     if (m_childs->hasChildNodes())
         m_childs->toString(retVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::set_innerHTML(exlib::string newVal)
@@ -231,7 +231,7 @@ result_t XmlElement::set_innerHTML(exlib::string newVal)
     m_childs->removeAll();
 
     if (newVal.empty())
-        return 0;
+        return result_t();
 
     if (m_isXml) {
         // For XML documents, wrap content in a root element for parsing
@@ -270,13 +270,13 @@ result_t XmlElement::set_innerHTML(exlib::string newVal)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_outerHTML(exlib::string& retVal)
 {
     if (m_isXml)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     return toString(retVal);
 }
@@ -284,14 +284,14 @@ result_t XmlElement::get_outerHTML(exlib::string& retVal)
 result_t XmlElement::set_outerHTML(exlib::string newVal)
 {
     if (m_isXml)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     // WHATWG HTML 8.5.5: if the element has no parent, the setter silently
     // does nothing; only a Document parent throws NoModificationAllowedError.
     obj_ptr<XmlNode_base> parent;
     result_t hr = get_parentNode(parent);
     if (hr.failed() || parent == NULL)
-        return 0;
+        return result_t();
 
     int32_t parentType;
     parent->get_nodeType(parentType);
@@ -320,13 +320,13 @@ result_t XmlElement::set_outerHTML(exlib::string newVal)
     // Remove this element from parent
     parent->removeChild(this, out);
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_className(exlib::string& retVal)
 {
     getAttribute("class", retVal);
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::set_className(exlib::string newVal)
@@ -340,53 +340,53 @@ result_t XmlElement::set_className(exlib::string newVal)
 result_t XmlElement::get_classList(obj_ptr<DOMTokenList_base>& retVal)
 {
     if (m_isXml)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     if (!m_classList)
         m_classList = new DOMTokenList(this);
 
     retVal = m_classList;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_style(obj_ptr<CSSStyleDeclaration_base>& retVal)
 {
     if (m_isXml)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     if (!m_style)
         m_style = new CSSStyleDeclaration(this);
 
     retVal = m_style;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_dataset(obj_ptr<DOMStringMap_base>& retVal)
 {
     if (m_isXml)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     if (!m_dataset)
         m_dataset = new DOMStringMap(this);
 
     retVal = m_dataset;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_content(obj_ptr<XmlDocumentFragment_base>& retVal)
 {
     // content property is only valid for <template> elements in HTML mode
     if (m_isXml)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     // Check if this is a template element (case-insensitive for HTML)
     if (qstricmp(m_tagName.c_str(), "TEMPLATE") != 0)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     // Return cached content if available
     if (m_content) {
         retVal = m_content;
-        return 0;
+        return result_t();
     }
 
     // Create a persistent DocumentFragment for template content
@@ -405,13 +405,13 @@ result_t XmlElement::get_content(obj_ptr<XmlDocumentFragment_base>& retVal)
 
     m_content = fragment;
     retVal = fragment;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal)
 {
     retVal = m_attrs;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::hasAttributes(bool& retVal)
@@ -419,7 +419,7 @@ result_t XmlElement::hasAttributes(bool& retVal)
     int32_t len;
     m_attrs->get_length(len);
     retVal = len > 0;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::getAttribute(exlib::string name, exlib::string& retVal)
@@ -477,7 +477,7 @@ result_t XmlElement::setAttributeNS(exlib::string namespaceURI, exlib::string qu
 
         for (i = 0; s_nss[i][0]; i++)
             if (!qstrcmp(c_str + 6, s_nss[i][0]))
-                return 0;
+                return result_t();
     }
 
     obj_ptr<XmlAttr> attr = new XmlAttr(this, namespaceURI, qualifiedName, value);
@@ -494,7 +494,7 @@ result_t XmlElement::setAttributeNode(XmlAttr_base* attr, obj_ptr<XmlAttr_base>&
 
     if (_attr->m_owner == this) {
         retVal = _attr;
-        return 0;
+        return result_t();
     }
 
     return m_attrs->setNamedItem((XmlAttr*)attr, retVal);
@@ -522,7 +522,7 @@ result_t XmlElement::getElementsByTagName(exlib::string tagName, obj_ptr<XmlNode
     getElementsByTagName(tagName, ret);
 
     retVal = ret;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::getElementsByTagNameNS(exlib::string namespaceURI, exlib::string localName,
@@ -532,7 +532,7 @@ result_t XmlElement::getElementsByTagNameNS(exlib::string namespaceURI, exlib::s
     getElementsByTagNameNS(namespaceURI, localName, ret);
 
     retVal = ret;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal)
@@ -559,7 +559,7 @@ result_t XmlElement::getElementsByClassName(exlib::string className, obj_ptr<Xml
         getElementsByClassName(classNames, ret);
 
     retVal = ret;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::hasAttribute(exlib::string name, bool& retVal)
@@ -572,7 +572,7 @@ result_t XmlElement::hasAttribute(exlib::string name, bool& retVal)
         return hr;
 
     retVal = !hr.is_return_null();
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::hasAttributeNS(exlib::string namespaceURI, exlib::string localName, bool& retVal)
@@ -585,7 +585,7 @@ result_t XmlElement::hasAttributeNS(exlib::string namespaceURI, exlib::string lo
         return hr;
 
     retVal = !hr.is_return_null();
-    return 0;
+    return result_t();
 }
 
 void XmlElement::fix_prefix(exlib::string namespaceURI, exlib::string& prefix)
@@ -647,7 +647,7 @@ result_t XmlElement::toString(exlib::string& retVal)
     retVal.clear();
     serializeTo(retVal, false);
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::toXmlString(exlib::string& retVal)
@@ -655,7 +655,7 @@ result_t XmlElement::toXmlString(exlib::string& retVal)
     retVal.clear();
     serializeTo(retVal, true);
 
-    return 0;
+    return result_t();
 }
 
 // Markup before the children: the open tag, its attributes and -- for a
@@ -752,7 +752,7 @@ result_t XmlElement::append(OptArgs nodes)
                 return hr;
         }
     }
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::prepend(OptArgs nodes)
@@ -783,7 +783,7 @@ result_t XmlElement::prepend(OptArgs nodes)
                 return hr;
         }
     }
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::replaceChildren(OptArgs nodes)
@@ -825,7 +825,7 @@ result_t XmlElement::insertAdjacentElement(exlib::string position, XmlElement_ba
     switch (pos) {
     case 0: // beforebegin - insert before this element
         if (!m_parent)
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         hr = m_parent->m_childs->insertBefore(element, this, result);
         break;
     case 1: // afterbegin - insert as first child
@@ -843,7 +843,7 @@ result_t XmlElement::insertAdjacentElement(exlib::string position, XmlElement_ba
         break;
     case 3: // afterend - insert after this element
         if (!m_parent)
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         hr = m_parent->m_childs->insertAfter(element, this, result);
         break;
     }
@@ -852,7 +852,7 @@ result_t XmlElement::insertAdjacentElement(exlib::string position, XmlElement_ba
         return hr;
 
     retVal = element;
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::insertAdjacentHTML(exlib::string position, exlib::string html)
@@ -862,7 +862,7 @@ result_t XmlElement::insertAdjacentHTML(exlib::string position, exlib::string ht
         return result_t::make(CALL_E_EXCEPTION).with_message("XmlElement: Invalid position argument");
 
     if (html.empty())
-        return 0;
+        return result_t();
 
     result_t hr;
     obj_ptr<XmlNode_base> result;
@@ -964,7 +964,7 @@ result_t XmlElement::insertAdjacentHTML(exlib::string position, exlib::string ht
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::insertAdjacentText(exlib::string position, exlib::string text)
@@ -983,7 +983,7 @@ result_t XmlElement::insertAdjacentText(exlib::string position, exlib::string te
     switch (pos) {
     case 0: // beforebegin
         if (!m_parent)
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         hr = m_parent->m_childs->insertBefore(textNode, this, result);
         break;
     case 1: // afterbegin
@@ -1001,7 +1001,7 @@ result_t XmlElement::insertAdjacentText(exlib::string position, exlib::string te
         break;
     case 3: // afterend
         if (!m_parent)
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         hr = m_parent->m_childs->insertAfter(textNode, this, result);
         break;
     }
@@ -1034,7 +1034,7 @@ result_t XmlElement::toggleAttribute(exlib::string name, bool& retVal)
         retVal = true;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::toggleAttribute(exlib::string name, bool force, bool& retVal)
@@ -1066,6 +1066,6 @@ result_t XmlElement::toggleAttribute(exlib::string name, bool force, bool& retVa
         retVal = false;
     }
 
-    return 0;
+    return result_t();
 }
 }

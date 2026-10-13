@@ -1730,12 +1730,12 @@ result_t XmlElement::matches(exlib::string selectors, bool& retVal)
     for (const auto& complexSelector : selectorList.selectors) {
         if (matchesComplexSelector(this, complexSelector, m_isXml)) {
             retVal = true;
-            return 0; // Element matches the selector
+            return result_t(); // Element matches the selector
         }
     }
 
     retVal = false; // No match found
-    return 0;
+    return result_t();
 }
 
 result_t XmlElement::closest(exlib::string selectors, obj_ptr<XmlElement_base>& retVal)
@@ -1756,7 +1756,7 @@ result_t XmlElement::closest(exlib::string selectors, obj_ptr<XmlElement_base>& 
         for (const auto& complexSelector : selectorList.selectors) {
             if (matchesComplexSelector(current, complexSelector, m_isXml)) {
                 retVal = current;
-                return 0;
+                return result_t();
             }
         }
 
@@ -1767,7 +1767,7 @@ result_t XmlElement::closest(exlib::string selectors, obj_ptr<XmlElement_base>& 
     }
 
     retVal = NULL;
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlElement::querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal)
@@ -1794,12 +1794,12 @@ result_t XmlElement::querySelectorImpl(exlib::string selectors, bool includeRoot
         XmlNodeImpl* firstMatch = results->m_childs[0];
         if (firstMatch->m_type == xml_base::C_ELEMENT_NODE) {
             retVal = static_cast<XmlElement*>(firstMatch->m_node);
-            return 0;
+            return result_t();
         }
     }
 
     retVal = NULL;
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlElement::querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal)
@@ -1823,7 +1823,7 @@ result_t XmlElement::querySelectorAllImpl(exlib::string selectors, bool includeR
         queryElements(this, selectorList, results, false, m_isXml, includeRoot);
 
     retVal = results;
-    return 0;
+    return result_t();
 }
 
 }

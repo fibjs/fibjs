@@ -18,47 +18,47 @@ result_t XmlAttr::get_namespaceURI(exlib::string& retVal)
     if (m_namespaceURI.empty()) {
         if (m_name == "xmlns") {
             retVal = "http://www.w3.org/2000/xmlns/";
-            return 0;
+            return result_t();
         }
 
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
 
     retVal = m_namespaceURI;
-    return 0;
+    return result_t();
 }
 
 result_t XmlAttr::get_prefix(exlib::string& retVal)
 {
     if (m_prefix.empty())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_prefix;
-    return 0;
+    return result_t();
 }
 
 result_t XmlAttr::set_prefix(exlib::string newVal)
 {
     m_prefix = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t XmlAttr::get_localName(exlib::string& retVal)
 {
     retVal = m_localName;
-    return 0;
+    return result_t();
 }
 
 result_t XmlAttr::get_name(exlib::string& retVal)
 {
     retVal = m_name;
-    return 0;
+    return result_t();
 }
 
 result_t XmlAttr::get_value(exlib::string& retVal)
 {
     retVal = m_value;
-    return 0;
+    return result_t();
 }
 
 result_t XmlAttr::set_value(exlib::string newVal)
@@ -68,7 +68,7 @@ result_t XmlAttr::set_value(exlib::string newVal)
         m_owner->bumpQueryEpoch();
 
     m_value = newVal;
-    return 0;
+    return result_t();
 }
 
 void XmlAttr::fix_prefix()
@@ -95,7 +95,7 @@ result_t XmlAttr::set_nodeValue(exlib::string newVal)
 result_t XmlAttr::cloneNode(obj_ptr<XmlAttr_base>& retVal)
 {
     retVal = new XmlAttr(*this);
-    return 0;
+    return result_t();
 }
 
 result_t XmlAttr::toString(exlib::string& retVal)
@@ -195,7 +195,7 @@ result_t XmlAttr::toString(exlib::string& retVal)
     retVal.append(str);
     retVal += '\"';
 
-    return 0;
+    return result_t();
 }
 
 bool XmlAttr::check(exlib::string name)

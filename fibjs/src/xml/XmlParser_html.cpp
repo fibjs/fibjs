@@ -173,7 +173,7 @@ result_t XmlParser::parseHtml(XmlDocument* doc, exlib::string source, const XmlP
     if (parser.m_aborted)
         return result_t::make(CALL_E_EXCEPTION).with_message(parser.m_abort_msg);
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

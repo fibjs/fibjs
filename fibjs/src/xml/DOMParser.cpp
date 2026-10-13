@@ -17,7 +17,7 @@ DECLARE_MODULE(DOMParser);
 result_t DOMParser_base::_new(obj_ptr<DOMParser_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new DOMParser();
-    return 0;
+    return result_t();
 }
 
 result_t DOMParser::parseFromString(exlib::string str, exlib::string mimeType,

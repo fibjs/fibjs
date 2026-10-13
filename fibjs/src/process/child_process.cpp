@@ -163,7 +163,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
                     m_parent->post(result_t());
                     delete this;
                 }
-                return 0;
+                return result_t();
             }
 
         private:
@@ -270,7 +270,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
                 delete this;
             }
 
-            return 0;
+            return result_t();
         }
 
     private:
@@ -456,7 +456,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
                     m_parent->post(result_t());
                     delete this;
                 }
-                return 0;
+                return result_t();
             }
 
         private:
@@ -585,7 +585,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
                 delete this;
             }
 
-            return 0;
+            return result_t();
         }
 
     private:
@@ -659,7 +659,7 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
             // message-only Error.
             retVal->error = FillError(hr);
 
-            return 0;
+            return result_t();
         }
 
         ac.ctxo() = cp;
@@ -700,12 +700,12 @@ result_t child_process_base::execSync(exlib::string command, v8::Local<v8::Objec
     if (exec_retVal->exitCode != 0) {
         throwExecSyncError(command, exec_retVal->exitCode,
             exec_retVal->stdout, exec_retVal->stderr, options);
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     } else {
         retVal = exec_retVal->stdout;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t child_process_base::execFileSync(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, Variant& retVal)
@@ -721,12 +721,12 @@ result_t child_process_base::execFileSync(exlib::string command, v8::Local<v8::A
     if (exec_retVal->exitCode != 0) {
         throwExecSyncError(command, exec_retVal->exitCode,
             exec_retVal->stdout, exec_retVal->stderr, options);
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     } else {
         retVal = exec_retVal->stdout;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t child_process_base::execFileSync(exlib::string command, v8::Local<v8::Object> options, Variant& retVal)
@@ -784,7 +784,7 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
             m_ac.post(result_t());
             delete this;
 
-            return 0;
+            return result_t();
         }
 
     private:

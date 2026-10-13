@@ -292,7 +292,7 @@ result_t XmlParser::parse(XmlDocument* doc, exlib::string source, const XmlParse
 
     XML_ParserFree(xml_parser);
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

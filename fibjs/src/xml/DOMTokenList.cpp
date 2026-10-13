@@ -68,7 +68,7 @@ result_t DOMTokenList::get_length(int32_t& retVal)
     std::vector<exlib::string> tokens;
     parseTokens(tokens);
     retVal = (int32_t)tokens.size();
-    return 0;
+    return result_t();
 }
 
 result_t DOMTokenList::get_value(exlib::string& retVal)
@@ -82,10 +82,10 @@ result_t DOMTokenList::item(int32_t index, exlib::string& retVal)
     parseTokens(tokens);
 
     if (index < 0 || index >= (int32_t)tokens.size())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = tokens[index];
-    return 0;
+    return result_t();
 }
 
 result_t DOMTokenList::contains(exlib::string token, bool& retVal)
@@ -94,7 +94,7 @@ result_t DOMTokenList::contains(exlib::string token, bool& retVal)
     parseTokens(tokens);
 
     retVal = std::find(tokens.begin(), tokens.end(), token) != tokens.end();
-    return 0;
+    return result_t();
 }
 
 result_t DOMTokenList::add(OptArgs args)
@@ -120,7 +120,7 @@ result_t DOMTokenList::add(OptArgs args)
     }
 
     updateClassName(tokens);
-    return 0;
+    return result_t();
 }
 
 result_t DOMTokenList::remove(OptArgs args)
@@ -142,7 +142,7 @@ result_t DOMTokenList::remove(OptArgs args)
     }
 
     updateClassName(tokens);
-    return 0;
+    return result_t();
 }
 
 result_t DOMTokenList::toggle(exlib::string token, OptArgs args, bool& retVal)
@@ -187,7 +187,7 @@ result_t DOMTokenList::toggle(exlib::string token, OptArgs args, bool& retVal)
         updateClassName(tokens);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t DOMTokenList::replace(exlib::string oldToken, exlib::string newToken, bool& retVal)
@@ -198,7 +198,7 @@ result_t DOMTokenList::replace(exlib::string oldToken, exlib::string newToken, b
     auto it = std::find(tokens.begin(), tokens.end(), oldToken);
     if (it == tokens.end()) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     // Check if newToken already exists
@@ -213,7 +213,7 @@ result_t DOMTokenList::replace(exlib::string oldToken, exlib::string newToken, b
 
     updateClassName(tokens);
     retVal = true;
-    return 0;
+    return result_t();
 }
 
 result_t DOMTokenList::toString(exlib::string& retVal)

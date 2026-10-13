@@ -14,7 +14,7 @@ namespace fibjs {
 result_t XmlCDATASection::get_nodeName(exlib::string& retVal)
 {
     retVal = "#cdata-section";
-    return 0;
+    return result_t();
 }
 
 result_t XmlCDATASection::get_nodeValue(exlib::string& retVal)
@@ -29,12 +29,12 @@ result_t XmlCDATASection::set_nodeValue(exlib::string newVal)
 
 result_t XmlCDATASection::get_textContent(exlib::string& retVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlCDATASection::set_textContent(exlib::string newVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlCDATASection::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
@@ -98,7 +98,7 @@ result_t XmlCDATASection::splitText(int32_t offset, obj_ptr<XmlText_base>& retVa
         return m_parent->m_childs->insertAfter(retVal, this, out);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlCDATASection::toString(exlib::string& retVal)
@@ -107,7 +107,7 @@ result_t XmlCDATASection::toString(exlib::string& retVal)
     retVal.append(m_data.data());
     retVal.append("]]>");
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

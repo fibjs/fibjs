@@ -22,43 +22,43 @@ result_t XmlDocumentFragment::toString(exlib::string& retVal)
 result_t XmlDocumentFragment::get_nodeName(exlib::string& retVal)
 {
     retVal = "#document-fragment";
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentFragment::get_nodeValue(exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentFragment::set_nodeValue(exlib::string newVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentFragment::get_parentNode(obj_ptr<XmlNode_base>& retVal)
 {
     // DocumentFragment never has a parent
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentFragment::get_previousSibling(obj_ptr<XmlNode_base>& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentFragment::get_nextSibling(obj_ptr<XmlNode_base>& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentFragment::get_previousElementSibling(obj_ptr<XmlNode_base>& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentFragment::get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentFragment::get_textContent(exlib::string& retVal)
@@ -73,7 +73,7 @@ result_t XmlDocumentFragment::get_textContent(exlib::string& retVal)
     }
 
     retVal = strs.str();
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentFragment::set_textContent(exlib::string newVal)
@@ -86,7 +86,7 @@ result_t XmlDocumentFragment::set_textContent(exlib::string newVal)
         appendChild(txt, out);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentFragment::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
@@ -97,36 +97,36 @@ result_t XmlDocumentFragment::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal
 
 result_t XmlDocumentFragment::lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentFragment::lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentFragment::remove(obj_ptr<XmlNode_base>& retVal)
 {
     // DocumentFragment cannot be removed from a parent since it never has one
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentFragment::replaceWith(OptArgs nodes)
 {
     // DocumentFragment cannot be replaced since it never has a parent
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentFragment::before(OptArgs nodes)
 {
     // DocumentFragment cannot have siblings since it never has a parent
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentFragment::after(OptArgs nodes)
 {
     // DocumentFragment cannot have siblings since it never has a parent
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

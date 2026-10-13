@@ -14,37 +14,37 @@ namespace fibjs {
 result_t XmlDocumentType::get_nodeName(exlib::string& retVal)
 {
     retVal = m_name;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentType::get_nodeValue(exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentType::set_nodeValue(exlib::string newVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentType::get_textContent(exlib::string& retVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentType::set_textContent(exlib::string newVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentType::lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentType::lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocumentType::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
@@ -56,19 +56,19 @@ result_t XmlDocumentType::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
 result_t XmlDocumentType::get_name(exlib::string& retVal)
 {
     retVal = m_name;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentType::get_publicId(exlib::string& retVal)
 {
     retVal = m_publicId;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentType::get_systemId(exlib::string& retVal)
 {
     retVal = m_systemId;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocumentType::toString(exlib::string& retVal)
@@ -94,6 +94,6 @@ result_t XmlDocumentType::toString(exlib::string& retVal)
 
     retVal += '>';
 
-    return 0;
+    return result_t();
 }
 }

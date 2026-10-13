@@ -26,7 +26,7 @@ namespace fibjs {
 result_t process_base::dlopen(v8::Local<v8::Object> module, exlib::string filename, int32_t flags)
 {
     if (node::thread_local_modpending != NULL)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     void* handle_ = ::dlopen(filename.c_str(), flags);
     if (handle_ == nullptr)
@@ -73,7 +73,7 @@ result_t process_base::dlopen(v8::Local<v8::Object> module, exlib::string filena
         napi_module_register_by_symbol(exports, module, context, register_func, module_api_version);
     }
 
-    return 0;
+    return result_t();
 }
 
 }

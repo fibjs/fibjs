@@ -234,7 +234,7 @@ result_t ChildProcess::create_pipe(int32_t idx)
     if (idx + 1 > (int32_t)uv_options.stdio_count)
         uv_options.stdio_count = idx + 1;
 
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
@@ -303,7 +303,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
             return create_pipe(3);
         }
 
-        return 0;
+        return result_t();
     }
 
     if (pty_cnt > 0)
@@ -353,7 +353,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
         return create_pipe(3);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
@@ -391,9 +391,9 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
             return hr;
     } else if (opt_envs_v->IsObject()) {
         if (!opt_envs_v->ToObject(context).ToLocal(&opt_envs))
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
     } else
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
 
     v8::Local<v8::Context> env_context;
     if (!opt_envs->GetCreationContext().ToLocal(&env_context))
@@ -455,7 +455,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     _envs[p] = NULL;
     uv_options.env = _envs.data();
 
-    return 0;
+    return result_t();
 }
 
 // Compact ["arg", ...] summary used for spawn diagnostics; ErrorPayload applies
@@ -489,7 +489,7 @@ result_t ChildProcess::fill_arg(v8::Local<v8::Array> args)
     for (i = 0; i < len; i++) {
         JSValue v = args->Get(context, i);
         if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         // node renders every argument with String(): spawn(cmd, ['-e', 42])
         // passes "42", null passes "null"
@@ -502,7 +502,7 @@ result_t ChildProcess::fill_arg(v8::Local<v8::Array> args)
     uv_options.args = _args.data();
     uv_options.file = m_command.c_str();
 
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::fill_opt(v8::Local<v8::Object> options)
@@ -530,7 +530,7 @@ result_t ChildProcess::fill_opt(v8::Local<v8::Object> options)
     GetConfigValue(options, "cols", m_cols);
     GetConfigValue(options, "rows", m_rows);
 
-    return 0;
+    return result_t();
 }
 result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, bool fork)
 {
@@ -665,7 +665,7 @@ result_t ChildProcess::kill(int32_t signal)
         return result_t::from_system(err).with_syscall("kill");
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::kill(exlib::string signal)
@@ -762,7 +762,7 @@ result_t ChildProcess::join(int32_t& retVal, AsyncHandle ac)
             m_ac.post(v);
             delete this;
 
-            return 0;
+            return result_t();
         }
 
     private:
@@ -784,7 +784,7 @@ result_t ChildProcess::join(int32_t& retVal, AsyncHandle ac)
 result_t ChildProcess::get_connected(bool& retVal)
 {
     retVal = !!m_channel;
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::disconnect()
@@ -799,7 +799,7 @@ result_t ChildProcess::disconnect()
 
     _channel->ac_close();
 
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::stop()
@@ -826,7 +826,7 @@ result_t ChildProcess::stop()
             uv_close((uv_handle_t*)&m_process, on_uv_close);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::send(v8::Local<v8::Value> msg)
@@ -840,22 +840,22 @@ result_t ChildProcess::send(v8::Local<v8::Value> msg)
 result_t ChildProcess::get_pid(int32_t& retVal)
 {
     retVal = m_process.pid;
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::get_killed(bool& retVal)
 {
     retVal = m_killed;
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::get_exitCode(int32_t& retVal)
 {
     if (!m_ev.isSet())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_exitCode;
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::get_stdin(obj_ptr<Stream_base>& retVal)
@@ -865,7 +865,7 @@ result_t ChildProcess::get_stdin(obj_ptr<Stream_base>& retVal)
 
     retVal = m_stdio[0];
 
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::get_stdout(obj_ptr<Stream_base>& retVal)
@@ -875,7 +875,7 @@ result_t ChildProcess::get_stdout(obj_ptr<Stream_base>& retVal)
 
     retVal = m_stdio[1];
 
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::get_stderr(obj_ptr<Stream_base>& retVal)
@@ -885,7 +885,7 @@ result_t ChildProcess::get_stderr(obj_ptr<Stream_base>& retVal)
 
     retVal = m_stdio[2];
 
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::get_stdio(v8::Local<v8::Array>& retVal)
@@ -901,7 +901,7 @@ result_t ChildProcess::get_stdio(v8::Local<v8::Array>& retVal)
             retVal->Set(context, i, v8::Null(isolate->m_isolate));
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::resize(int32_t cols, int32_t rows)
@@ -910,7 +910,7 @@ result_t ChildProcess::resize(int32_t cols, int32_t rows)
         return result_t::make(CALL_E_EXCEPTION).with_message("resize() only available in PTY mode");
 
     if (cols <= 0 || rows <= 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("resize: cols and rows must be positive, received %d x %d.", cols, rows).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("resize: cols and rows must be positive, received %d x %d.", cols, rows).with_result(result_t::invalid_arg());
 
     if (m_stdinfd == -1 && m_stdoutfd == -1)
         return result_t::make(CALL_E_EXCEPTION).with_message("PTY not available");
@@ -943,7 +943,7 @@ result_t ChildProcess::get_cols(int32_t& retVal)
     if (!m_pty)
         return result_t::make(CALL_E_EXCEPTION).with_message("cols property only available in PTY mode");
     retVal = m_cols;
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::get_rows(int32_t& retVal)
@@ -951,21 +951,21 @@ result_t ChildProcess::get_rows(int32_t& retVal)
     if (!m_pty)
         return result_t::make(CALL_E_EXCEPTION).with_message("rows property only available in PTY mode");
     retVal = m_rows;
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::ref(obj_ptr<ChildProcess_base>& retVal)
 {
     object_base::isolate_ref();
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::unref(obj_ptr<ChildProcess_base>& retVal)
 {
     object_base::isolate_unref();
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t ChildProcess::onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
@@ -974,7 +974,7 @@ result_t ChildProcess::onEventChange(exlib::string type, exlib::string ev, v8::L
     if (ev == "close" && m_stdio[1])
         m_stdio[1]->startRecvStream();
 
-    return 0;
+    return result_t();
 }
 
 }

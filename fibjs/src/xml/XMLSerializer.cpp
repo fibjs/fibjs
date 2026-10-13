@@ -18,7 +18,7 @@ DECLARE_MODULE(XMLSerializer);
 result_t XMLSerializer_base::_new(obj_ptr<XMLSerializer_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new XMLSerializer();
-    return 0;
+    return result_t();
 }
 
 result_t XMLSerializer::serializeToString(XmlNode_base* node, exlib::string& retVal)

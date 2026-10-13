@@ -14,7 +14,7 @@ namespace fibjs {
 result_t XmlText::get_nodeName(exlib::string& retVal)
 {
     retVal = "#text";
-    return 0;
+    return result_t();
 }
 
 result_t XmlText::get_nodeValue(exlib::string& retVal)
@@ -30,13 +30,13 @@ result_t XmlText::set_nodeValue(exlib::string newVal)
 result_t XmlText::get_textContent(exlib::string& retVal)
 {
     get_nodeValue(retVal);
-    return 0;
+    return result_t();
 }
 
 result_t XmlText::set_textContent(exlib::string newVal)
 {
     set_nodeValue(newVal);
-    return 0;
+    return result_t();
 }
 
 result_t XmlText::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
@@ -100,13 +100,13 @@ result_t XmlText::splitText(int32_t offset, obj_ptr<XmlText_base>& retVal)
         return m_parent->m_childs->insertAfter(retVal, this, out);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlText::toString(exlib::string& retVal)
 {
     retVal = m_data.encodedText();
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

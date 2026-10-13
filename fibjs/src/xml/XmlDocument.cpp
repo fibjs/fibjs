@@ -29,7 +29,7 @@ result_t XmlDocument_base::_new(exlib::string type, obj_ptr<XmlDocument_base>& r
     bool isXml = type == "text/xml";
 
     if (!isXml && (type != "text/html"))
-        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()).with_result(result_t::invalid_arg());
 
     obj_ptr<XmlDocument> doc = new XmlDocument(isXml);
     retVal = doc;
@@ -37,7 +37,7 @@ result_t XmlDocument_base::_new(exlib::string type, obj_ptr<XmlDocument_base>& r
     if (!isXml)
         doc->create_root();
 
-    return 0;
+    return result_t();
 }
 
 result_t getParseLimits(v8::Local<v8::Object> options, XmlParseLimits& limits)
@@ -45,7 +45,7 @@ result_t getParseLimits(v8::Local<v8::Object> options, XmlParseLimits& limits)
     limits = XmlParseLimits();
 
     if (options.IsEmpty() || !options->IsObject())
-        return 0;
+        return result_t();
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -57,16 +57,16 @@ result_t getParseLimits(v8::Local<v8::Object> options, XmlParseLimits& limits)
         v8::Local<v8::Value> v;
 
         if (!options->Get(context, isolate->NewString(name)).ToLocal(&v) || v->IsUndefined() || v->IsNull())
-            return 0;
+            return result_t();
 
         if (!v->IsNumber())
-            return result_t::make(CALL_E_EXCEPTION).with_format("xml: option '%s' must be a number.", name).with_result(CALL_E_INVALIDARG);
+            return result_t::make(CALL_E_EXCEPTION).with_format("xml: option '%s' must be a number.", name).with_result(result_t::invalid_arg());
 
         double d = v->NumberValue(context).FromMaybe(0);
 
         out = std::isfinite(d) ? d : 0;
 
-        return 0;
+        return result_t();
     };
 
     double depth = limits.max_element_depth;
@@ -84,7 +84,7 @@ result_t getParseLimits(v8::Local<v8::Object> options, XmlParseLimits& limits)
     limits.max_element_depth = (int32_t)depth;
     limits.max_node_count = (int64_t)nodes;
 
-    return 0;
+    return result_t();
 }
 
 result_t xml_base::parse(Union_parse_source source, exlib::string type, v8::Local<v8::Object> options,
@@ -93,7 +93,7 @@ result_t xml_base::parse(Union_parse_source source, exlib::string type, v8::Loca
     bool isXml = type == "text/xml";
 
     if (!isXml && (type != "text/html"))
-        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid MIME type: '%s', expected 'text/xml' or 'text/html'.", type.c_str()).with_result(result_t::invalid_arg());
 
     XmlParseLimits limits;
     result_t hr = getParseLimits(options, limits);
@@ -136,27 +136,27 @@ void XmlDocument::create_root()
 result_t XmlDocument::get_nodeName(exlib::string& retVal)
 {
     retVal = "#document";
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::get_nodeValue(exlib::string& retVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocument::set_nodeValue(exlib::string newVal)
 {
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocument::get_textContent(exlib::string& retVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::set_textContent(exlib::string newVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::checkNode(XmlNode_base* newChild)
@@ -178,16 +178,16 @@ result_t XmlDocument::checkNode(XmlNode_base* newChild)
             m_doctype = (XmlDocumentType_base*)newChild;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
 {
     if (globalPrefix(namespaceURI, retVal))
-        return 0;
+        return result_t();
 
     if (!m_element)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     return m_element->lookupPrefix(namespaceURI, retVal);
 }
@@ -195,10 +195,10 @@ result_t XmlDocument::lookupPrefix(exlib::string namespaceURI, exlib::string& re
 result_t XmlDocument::lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
 {
     if (globalNamespaceURI(prefix, retVal))
-        return 0;
+        return result_t();
 
     if (!m_element)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     return m_element->lookupNamespaceURI(prefix, retVal);
 }
@@ -228,7 +228,7 @@ result_t XmlDocument::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChil
 {
     if (newChild == oldChild) {
         retVal = oldChild;
-        return 0;
+        return result_t();
     }
 
     if (oldChild == m_element)
@@ -373,75 +373,75 @@ result_t XmlDocument::load(Buffer_base* source, const XmlParseLimits& limits)
     if (hr.failed())
         return hr;
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::get_doctype(obj_ptr<XmlDocumentType_base>& retVal)
 {
     if (!m_doctype)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_doctype;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::get_documentElement(obj_ptr<XmlElement_base>& retVal)
 {
     if (!m_element)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_element;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::createElement(exlib::string tagName, obj_ptr<XmlElement_base>& retVal)
 {
     retVal = new XmlElement(this, tagName, m_isXml);
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::createElementNS(exlib::string namespaceURI, exlib::string qualifiedName,
     obj_ptr<XmlElement_base>& retVal)
 {
     retVal = new XmlElement(this, namespaceURI, qualifiedName, m_isXml);
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::createTextNode(exlib::string data, obj_ptr<XmlText_base>& retVal)
 {
     retVal = new XmlText(this, data);
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::createComment(exlib::string data, obj_ptr<XmlComment_base>& retVal)
 {
     retVal = new XmlComment(this, data);
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::createCDATASection(exlib::string data, obj_ptr<XmlCDATASection_base>& retVal)
 {
     retVal = new XmlCDATASection(this, data);
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::createProcessingInstruction(exlib::string target, exlib::string data,
     obj_ptr<XmlProcessingInstruction_base>& retVal)
 {
     retVal = new XmlProcessingInstruction(this, target, data);
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::createDocumentFragment(obj_ptr<XmlDocumentFragment_base>& retVal)
 {
     retVal = new XmlDocumentFragment(this);
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::importNode(XmlNode_base* importedNode, bool deep, obj_ptr<XmlNode_base>& retVal)
 {
     if (!importedNode)
-        return CALL_E_INVALIDARG;
+        return result_t::invalid_arg();
 
     int32_t type;
     importedNode->get_nodeType(type);
@@ -462,13 +462,13 @@ result_t XmlDocument::importNode(XmlNode_base* importedNode, bool deep, obj_ptr<
         impl->setDocument(this);
 
     retVal = clonedNode;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::adoptNode(XmlNode_base* adoptedNode, obj_ptr<XmlNode_base>& retVal)
 {
     if (!adoptedNode)
-        return CALL_E_INVALIDARG;
+        return result_t::invalid_arg();
 
     int32_t type;
     adoptedNode->get_nodeType(type);
@@ -489,48 +489,48 @@ result_t XmlDocument::adoptNode(XmlNode_base* adoptedNode, obj_ptr<XmlNode_base>
     }
 
     retVal = adoptedNode;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::get_head(obj_ptr<XmlElement_base>& retVal)
 {
     if (m_isXml)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     XmlElement* pEl = m_element.As<XmlElement>();
     if (pEl)
         return pEl->getFirstElementsByTagName("head", retVal);
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocument::get_title(exlib::string& retVal)
 {
     if (m_isXml)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     XmlElement* pEl = m_element.As<XmlElement>();
     if (pEl) {
         obj_ptr<XmlElement_base> title;
         if (pEl->getFirstElementsByTagName("title", title).is_return_null())
-            return 0;
+            return result_t();
 
         return title->get_textContent(retVal);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::get_body(obj_ptr<XmlElement_base>& retVal)
 {
     if (m_isXml)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     XmlElement* pEl = m_element.As<XmlElement>();
     if (pEl)
         return pEl->getFirstElementsByTagName("body", retVal);
 
-    return CALL_RETURN_NULL;
+    return result_t::return_null();
 }
 
 result_t XmlDocument::getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal)
@@ -562,7 +562,7 @@ result_t XmlDocument::getElementsByTagName(exlib::string tagName, obj_ptr<XmlNod
     }
 
     retVal = ret;
-    return 0;
+    return result_t();
 }
 
 // index key for the (namespaceURI, localName) index
@@ -650,7 +650,7 @@ result_t XmlDocument::getElementsByTagNameNS(exlib::string namespaceURI, exlib::
     }
 
     retVal = ret;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::getElementById(exlib::string id, obj_ptr<XmlElement_base>& retVal)
@@ -671,7 +671,7 @@ result_t XmlDocument::getElementById(exlib::string id, obj_ptr<XmlElement_base>&
     auto it = m_idIndex.byId.find(id);
     if (it != m_idIndex.byId.end()) {
         retVal = it->second;
-        return 0;
+        return result_t();
     }
 
     return result_t::return_null();
@@ -845,17 +845,17 @@ result_t XmlDocument::getElementsByClassName(exlib::string className, obj_ptr<Xm
     }
 
     retVal = ret;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::querySelector(exlib::string selectors, obj_ptr<XmlElement_base>& retVal)
 {
     if (!m_element)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     XmlElement* pEl = m_element.As<XmlElement>();
     if (!pEl)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     // document-level query: the document element itself is a match candidate
     return pEl->querySelectorImpl(selectors, true, retVal);
@@ -864,11 +864,11 @@ result_t XmlDocument::querySelector(exlib::string selectors, obj_ptr<XmlElement_
 result_t XmlDocument::querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeList_base>& retVal)
 {
     if (!m_element)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     XmlElement* pEl = m_element.As<XmlElement>();
     if (!pEl)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     // document-level query: the document element itself is a match candidate
     return pEl->querySelectorAllImpl(selectors, true, retVal);
@@ -877,25 +877,25 @@ result_t XmlDocument::querySelectorAll(exlib::string selectors, obj_ptr<XmlNodeL
 result_t XmlDocument::get_inputEncoding(exlib::string& retVal)
 {
     if (m_encoding.empty())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_encoding;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::get_xmlStandalone(bool& retVal)
 {
     if (m_standalone < 0)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     retVal = m_standalone == 1;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::set_xmlStandalone(bool newVal)
 {
     m_standalone = newVal ? 1 : 0;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::get_xmlVersion(exlib::string& retVal)
@@ -904,13 +904,13 @@ result_t XmlDocument::get_xmlVersion(exlib::string& retVal)
         retVal = "1.0";
     else
         retVal = m_version;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::set_xmlVersion(exlib::string newVal)
 {
     m_version = newVal;
-    return 0;
+    return result_t();
 }
 
 result_t XmlDocument::toString(exlib::string& retVal)
@@ -936,6 +936,6 @@ result_t XmlDocument::toString(exlib::string& retVal)
     } else
         retVal = strChilds;
 
-    return 0;
+    return result_t();
 }
 }

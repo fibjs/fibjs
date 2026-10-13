@@ -14,7 +14,7 @@ namespace fibjs {
 result_t XmlComment::get_nodeName(exlib::string& retVal)
 {
     retVal = "#comment";
-    return 0;
+    return result_t();
 }
 
 result_t XmlComment::get_nodeValue(exlib::string& retVal)
@@ -29,12 +29,12 @@ result_t XmlComment::set_nodeValue(exlib::string newVal)
 
 result_t XmlComment::get_textContent(exlib::string& retVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlComment::set_textContent(exlib::string newVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t XmlComment::cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal)
@@ -89,7 +89,7 @@ result_t XmlComment::toString(exlib::string& retVal)
     retVal.append(m_data.data());
     retVal.append("-->");
 
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */
