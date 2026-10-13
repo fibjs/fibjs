@@ -98,7 +98,7 @@ private:
         m_retVal.Reset();
         m_async_ctx.Reset();
 
-        return m_error ? result_t(CALL_E_INTERNAL) : result_t(0);
+        return m_error ? result_t(CALL_E_INTERNAL) : result_t();
     }
 
 public:

@@ -432,7 +432,7 @@ result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo
             invoke();
 
             if (_rt.is_terminating())
-                m_v = result_t(CALL_E_TIMEOUT);
+                m_v = result_t::timeout();
         } else {
             async(hr);
         }

@@ -1091,7 +1091,7 @@ result_t getVariantValue(Isolate* isolate, v8::Local<v8::Value> v,
               : (done = tryVariantAlternative<Is>(isolate, v, n, bStrict, hr)))...
     };
 
-    return done ? result_t(0) : hr;
+    return done ? result_t() : hr;
 }
 
 template <typename... Ts>

@@ -628,17 +628,6 @@ public:
         return std::move(*this);
     }
 
-    // A system error: the code of this value IS -errno, so the errno field is
-    // the code itself. The call sites that mount a system error rely on the
-    // marking without reading the raw code (P4-final gated code()).
-    builder&& with_system_errno() &&
-    {
-        ErrorPayload* p = ensure();
-        p->has_errno = true;
-        p->errno_value = m_code;
-        return std::move(*this);
-    }
-
     // The code rides the payload instead of the value: only for the overload
     // retry band (see ErrorPayload::result_code).
     builder&& with_result(result_t code) &&

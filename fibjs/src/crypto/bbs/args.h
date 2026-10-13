@@ -142,7 +142,7 @@ static result_t bbs_prepare_key(std::variant<Ts...>& key, bool priv, AsyncHandle
     // otherwise the KeyObject alternative, parsed without touching V8
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
         result_t hr = bbs_get_args(std::get<obj_ptr<KeyObject_base>>(key), priv, ac);
-        return hr.is_nosync() ? result_t(0) : hr;
+        return hr.is_nosync() ? result_t() : hr;
     }
 
     return result_t::make(CALL_E_EXCEPTION).with_message("the key union was not prepared: this entry requires the synchronous phase.").with_result(result_t::type_mismatch());

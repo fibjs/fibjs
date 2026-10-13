@@ -723,7 +723,7 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
     if (hr.failed())
         return hr;
 
-    return !msg.empty() ? result_t::make(CALL_E_EXCEPTION).with_message(msg) : result_t(0);
+    return !msg.empty() ? result_t::make(CALL_E_EXCEPTION).with_message(msg) : result_t();
 }
 
 result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
@@ -770,7 +770,7 @@ result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
 
         if (hr.failed())
             return hr;
-        return !msg.empty() ? result_t::make(CALL_E_EXCEPTION).with_message(msg) : result_t(0);
+        return !msg.empty() ? result_t::make(CALL_E_EXCEPTION).with_message(msg) : result_t();
     }
 
     // String path: convert to exlib::string and use _emit (handles "error" etc.)
@@ -1086,7 +1086,7 @@ void JSTrigger::s_listenerCount(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Isolate* isolate = args.GetIsolate();
     v8::Local<v8::Object> o = v0->ToObject(isolate->GetCurrentContext()).FromMaybe(v8::Local<v8::Object>());
     if (o.IsEmpty()) {
-        hr = result_t(CALL_E_TYPEMISMATCH);
+        hr = result_t::type_mismatch();
         break;
     }
 
