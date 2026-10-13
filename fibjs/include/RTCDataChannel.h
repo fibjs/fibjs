@@ -43,7 +43,7 @@ public:
             m_inited = true;
         }
 
-        return 0;
+        return result_t();
     }
 
 private:

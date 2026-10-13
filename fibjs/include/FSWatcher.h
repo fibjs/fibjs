@@ -80,7 +80,7 @@ private:
             only_evtType = "renameonly";
             v[0] = "rename";
         } else {
-            onError(CALL_E_INVALID_CALL, "Unknown change event type");
+            onError(result_t::invalid_call(), "Unknown change event type");
             return;
         }
 
@@ -131,7 +131,7 @@ public:
             return result_t::make(CALL_E_EXCEPTION).with_message("watch: cannot re-start one closed FSWatcher.");
 
         if (m_started)
-            return 0;
+            return result_t();
 
         // Keep object alive
         m_holder = new ValueHolder(wrap());
@@ -172,7 +172,7 @@ public:
                 if (m_persistent)
                     isolate_unref();
                 m_holder.Release();
-                onError(CALL_E_INVALID_CALL, uv_strerror(uv_err_no));
+                onError(result_t::invalid_call(), uv_strerror(uv_err_no));
                 return uv_err_no;
             }
 
@@ -191,7 +191,7 @@ public:
     virtual result_t close()
     {
         if (m_closed)
-            return 0;
+            return result_t();
 
         m_closed = true;
 
@@ -218,21 +218,21 @@ public:
 
         _emit("close");
 
-        return 0;
+        return result_t();
     }
 
     virtual result_t ref(obj_ptr<FSWatcher_base>& retVal)
     {
         isolate_ref();
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     virtual result_t unref(obj_ptr<FSWatcher_base>& retVal)
     {
         isolate_unref();
         retVal = this;
-        return 0;
+        return result_t();
     }
 
 public:

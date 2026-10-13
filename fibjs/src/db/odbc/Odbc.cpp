@@ -503,7 +503,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
 
     SQLFreeStmt(stmt, SQL_DROP);
 
-    return hr;
+    return result_t(hr);
 }
 
 // ---------------------------------------------------------------------------

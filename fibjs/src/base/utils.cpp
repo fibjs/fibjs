@@ -14,14 +14,14 @@
 
 namespace fibjs {
 
-static exlib::string fmtString(result_t hr, const char* str, int32_t len = -1)
+static exlib::string fmtString(int32_t code, const char* str, int32_t len = -1)
 {
     exlib::string s;
     if (len < 0)
         len = (int32_t)qstrlen(str);
 
     s.resize(len + 16);
-    s.resize(snprintf(s.data(), len + 17, "[%d] %s", hr.code(), str));
+    s.resize(snprintf(s.data(), len + 17, "[%d] %s", code, str));
 
     return s;
 }
@@ -111,14 +111,14 @@ exlib::string getResultMessage(result_t hr)
     if (uv_str)
         return fmtString(-hr.code(), uv_str);
 
-    hr = -hr.code();
+    int32_t code = -hr.code();
 
 #ifdef _WIN32
     char16_t MsgBuf[1024];
 
     if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, hr.code(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)MsgBuf, 1024, NULL)) {
-        exlib::string s = fmtString(hr, UTF8_A(MsgBuf));
+            NULL, code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)MsgBuf, 1024, NULL)) {
+        exlib::string s = fmtString(code, UTF8_A(MsgBuf));
         size_t sz = s.length();
 
         if (sz > 0 && s[sz - 1] == '\n')
@@ -126,9 +126,9 @@ exlib::string getResultMessage(result_t hr)
         return s;
     }
 
-    return fmtString(hr, "Unknown error.");
+    return fmtString(code, "Unknown error.");
 #else
-    return fmtString(hr, strerror(hr.code()));
+    return fmtString(code, strerror(code));
 #endif
 }
 
@@ -878,7 +878,7 @@ result_t throwSyntaxError(TryCatch& try_catch)
     else {
         // The snapshot of a pending V8 exception: type / message ride with the
         // value, and the producing function is kept for diagnostics.
-        return result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, 0, false, true)).with_func(__func__);
+        return result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, result_t(), false, true)).with_func(__func__);
     }
 
     return result_t(CALL_E_JAVASCRIPT);

@@ -58,19 +58,19 @@ public:
 public:
     virtual result_t js_invoke()
     {
-        return 0;
+        return result_t();
     }
 
     // The pool to run this event on, named by the bridge code it came with
     // (NOASYNC / LONGSYNC / GUICALL); a no-op for any other code.
-    void async(result_t type);
+    void async(result_t type = result_t::nosync());
     virtual void invoke()
     {
     }
 
     virtual result_t post(result_t v)
     {
-        return 0;
+        return result_t();
     }
 
     virtual Isolate* isolate()
@@ -114,9 +114,9 @@ public:
     result_t ctx(size_t n)
     {
         if (m_ctx.size() <= n)
-            return result_t::make(CALL_E_EXCEPTION).with_format("the union parameter at ctx[%d] was not prepared: the sync phase of this entry did not run.", (int32_t)n).with_result(CALL_E_INVALIDARG);
+            return result_t::make(CALL_E_EXCEPTION).with_format("the union parameter at ctx[%d] was not prepared: the sync phase of this entry did not run.", (int32_t)n).with_result(result_t::invalid_arg());
 
-        return 0;
+        return result_t();
     }
 
 protected:
@@ -299,8 +299,8 @@ public:
     // deliver. The task carries the handle - and with it the ownership and the
     // disposal duty - so nothing is released early: the post, and the owned
     // disposal that follows it, both run on the pool fiber. An empty handle is
-    // a no-op, like post().
-    void apost(result_t hr = result_t(), int32_t mode = CALL_E_NOSYNC)
+    // a no-op, like post()/apost().
+    void apost(result_t hr = result_t(), result_t mode = result_t::nosync())
     {
         if (empty())
             return;
@@ -330,7 +330,7 @@ public:
             result_t m_hr;
         };
 
-        (new AsyncPost(std::move(*this), hr))->async(mode);
+        (new AsyncPost(std::move(*this), hr))->async(result_t(mode));
     }
 
 private:
@@ -369,7 +369,7 @@ public:
         m_v = v;
         weak.set();
 
-        return 0;
+        return result_t();
     }
 
     result_t check_result(result_t hr)
@@ -380,7 +380,7 @@ public:
             weak.wait();
 
             if (_rt.is_terminating())
-                m_v = CALL_E_TIMEOUT;
+                m_v = result_t::timeout();
         } else if (hr.is(CALL_E_LONGSYNC) || hr.is(CALL_E_GUICALL)) {
             async(hr);
 
@@ -389,7 +389,7 @@ public:
                 weak.wait();
 
                 if (_rt.is_terminating())
-                    m_v = CALL_E_TIMEOUT;
+                    m_v = result_t::timeout();
             }
         } else if (hr.failed())
             return hr;
@@ -425,7 +425,7 @@ public:
         m_v = v;
         weak.set();
 
-        return 0;
+        return result_t();
     }
 
     result_t check_result(result_t hr)
@@ -526,16 +526,15 @@ public:
     };
 
 public:
-    ASResult next(result_t (*fn)(AsyncState*, result_t), result_t r = result_t())
+    ASResult next(result_t (*fn)(AsyncState*, result_t) = NULL, result_t r = result_t())
     {
         m_next = fn;
         return issue(r);
     }
 
-    ASResult next(result_t r = result_t())
+    ASResult next(result_t r)
     {
-        m_next = NULL;
-        return issue(r);
+        return next(NULL, r);
     }
 
 private:
@@ -565,7 +564,7 @@ public:
     {
 #if defined(FIBJS_ASYNC_STATE_CHECK)
         if (m_epoch.load(std::memory_order_relaxed) != 0)
-            state_lock_violation("init() must be called before the machine is dispatched", 0, FIBJS_ASYNC_STATE_CALLER());
+            state_lock_violation("init() must be called before the machine is dispatched", result_t(), FIBJS_ASYNC_STATE_CALLER());
 #endif
         m_next = fn;
     }
@@ -725,7 +724,7 @@ public:
         virtual void invoke() override
         {
             // proxy 本身永远不会被投递进队列；被投递 = 有人对票做了裸 async()
-            m_owner->state_lock_violation("continuation was queued directly (raw async() on the proxy)", 0, FIBJS_ASYNC_STATE_CALLER());
+            m_owner->state_lock_violation("continuation was queued directly (raw async() on the proxy)", result_t(), FIBJS_ASYNC_STATE_CALLER());
         }
 
         virtual Isolate* isolate() override
@@ -767,7 +766,7 @@ inline void AsyncState::Continuation::deliver(result_t v, bool async)
 inline result_t AsyncState::Continuation::post(result_t v)
 {
     deliver(v, false);
-    return 0;
+    return result_t();
 }
 
 inline void AsyncState::Continuation::apost(result_t v)
@@ -795,7 +794,7 @@ inline void AsyncState::state_lock_violation(const char* what, result_t v, void*
     }                                                     \
     result_t _##fn(result_t n)
 
-void async(std::function<void(void)> func, int32_t mode = CALL_E_NOSYNC);
+void async(std::function<void(void)> func, result_t mode = result_t::nosync());
 
 template <typename T>
 class _at {
@@ -1022,7 +1021,7 @@ public:
             return syncFunc();
         });
 
-        return 0;
+        return result_t();
     }
 
     virtual result_t post(result_t v);

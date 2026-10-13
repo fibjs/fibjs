@@ -243,9 +243,9 @@ public:
     template <typename Fn>
     void SetImmediate(Fn&& cb, int32_t flags = 1)
     {
-        sync([this, cb]() -> int {
+        sync([this, cb]() {
             cb(this);
-            return 0;
+            return result_t();
         });
     }
 

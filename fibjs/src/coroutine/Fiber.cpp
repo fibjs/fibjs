@@ -198,9 +198,9 @@ static void handleUnhandledPromiseRejections(Isolate* isolate,
     // error list through a shared_ptr.
     auto pErrors = std::make_shared<std::vector<std::pair<v8::Global<v8::Value>, v8::Global<v8::Value>>>>(std::move(errors));
 
-    isolate->sync([isolate, pErrors]() -> int {
+    isolate->sync([isolate, pErrors]() {
         if (isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating())
-            return 0;
+            return result_t();
 
         JSFiber::EnterJsScope s;
         JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
@@ -217,7 +217,7 @@ static void handleUnhandledPromiseRejections(Isolate* isolate,
                 bool r;
                 t._emit("unhandledRejection", args, 2, r);
             }
-            return 0;
+            return result_t();
         }
 
         for (auto& e : *pErrors) {
@@ -233,7 +233,7 @@ static void handleUnhandledPromiseRejections(Isolate* isolate,
         if (!isolate->m_parent_worker)
             process_base::exit(1);
 
-        return 0;
+        return result_t();
     });
 }
 

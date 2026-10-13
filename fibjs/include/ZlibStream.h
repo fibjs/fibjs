@@ -87,7 +87,7 @@ private:
             int32_t size = ZLIB_CHUNK - m_pThis->strm.avail_out;
             if (m_pThis->m_maxSize >= 0) {
                 if (size > m_pThis->m_maxSize - m_pThis->m_dataSize)
-                    return CALL_E_OVERFLOW;
+                    return result_t(CALL_E_OVERFLOW);
                 m_pThis->m_dataSize += size;
             }
 
@@ -135,12 +135,12 @@ public:
     // Stream_base
     result_t get_fd(int32_t& retVal)
     {
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
     }
 
     result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     {
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
     }
 
     result_t writeBuffer(Buffer_base* data, AsyncHandle ac)

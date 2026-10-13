@@ -31,68 +31,68 @@ public:
     virtual result_t get_type(exlib::string& retVal)
     {
         retVal = m_type;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_bubbles(bool& retVal)
     {
         retVal = m_bubbles;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_cancelable(bool& retVal)
     {
         retVal = m_cancelable;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_composed(bool& retVal)
     {
         retVal = m_composed;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_defaultPrevented(bool& retVal)
     {
         retVal = m_defaultPrevented;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_target(v8::Local<v8::Value>& retVal)
     {
         Isolate* isolate = holder();
         retVal = v8::Null(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_currentTarget(v8::Local<v8::Value>& retVal)
     {
         Isolate* isolate = holder();
         retVal = v8::Null(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_timeStamp(double& retVal)
     {
         retVal = m_timeStamp;
-        return 0;
+        return result_t();
     }
 
     virtual result_t stopPropagation()
     {
-        return 0;
+        return result_t();
     }
 
     virtual result_t stopImmediatePropagation()
     {
-        return 0;
+        return result_t();
     }
 
     virtual result_t preventDefault()
     {
         if (m_cancelable)
             m_defaultPrevented = true;
-        return 0;
+        return result_t();
     }
 
 private:

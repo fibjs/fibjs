@@ -251,7 +251,7 @@ public:
             if (i > 0)
                 async([jobs, i]() {
                     search_thread(&jobs[i]);
-                }, CALL_E_LONGSYNC);
+                }, result_t::longsync());
         }
 
         search_thread(&jobs[0]);

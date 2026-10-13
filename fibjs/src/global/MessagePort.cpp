@@ -209,7 +209,7 @@ void MessagePort::flush()
 
     m_flush_pending = true;
     Isolate* isolate = holder();
-    isolate->sync([this]() -> int {
+    isolate->sync([this]() {
         JSFiber::EnterJsScope s;
 
         while (!m_queue.empty()) {
@@ -222,7 +222,7 @@ void MessagePort::flush()
         isolate_unref();
         m_flush_pending = false;
 
-        return 0;
+        return result_t();
     });
 }
 

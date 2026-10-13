@@ -228,7 +228,7 @@ public:
             return hr;
 
         if (retVal.IsEmpty() || !retVal->IsObject())
-            return 0;
+            return result_t();
 
         Isolate* isolate = this->holder();
         v8::Local<v8::Context> context = isolate->context();
@@ -255,7 +255,7 @@ public:
             o->Delete(context, k).IsJust();
         }
 
-        return 0;
+        return result_t();
     }
 };
 

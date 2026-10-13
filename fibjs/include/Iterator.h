@@ -42,7 +42,7 @@ public:
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal)
     {
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     // Async iterator: returns itself. On the sync prototype next() returns a
@@ -51,7 +51,7 @@ public:
     virtual result_t symbol_asyncIterator(obj_ptr<Iterator_base>& retVal)
     {
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     virtual result_t _return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal)
@@ -59,7 +59,7 @@ public:
         close();
         retVal = new ReturnType();
         retVal->done = true;
-        return 0;
+        return result_t();
     }
 
     virtual result_t next(obj_ptr<NextType>& retVal, AsyncHandle ac)
@@ -69,7 +69,7 @@ public:
         if (m_done) {
             retVal = new NextType();
             retVal->done = true;
-            return 0;
+            return result_t();
         }
 
         if (ac.isSync()) {

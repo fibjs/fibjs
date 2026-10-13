@@ -97,14 +97,14 @@ result_t SandBox::eval_print(exlib::string src)
                                        .FromMaybe(v8::Local<v8::Script>());
 
     if (script.IsEmpty()) {
-        ReportException(try_catch, 0, false);
+        ReportException(try_catch, result_t(), false);
         return result_t(CALL_E_JAVASCRIPT);
     }
 
     v8::Local<v8::Value> v = script->Run(context).FromMaybe(v8::Local<v8::Value>());
 
     if (v.IsEmpty()) {
-        ReportException(try_catch, 0, false);
+        ReportException(try_catch, result_t(), false);
         return result_t(CALL_E_JAVASCRIPT);
     }
 
@@ -144,13 +144,13 @@ result_t SandBox::Context::repl()
             if (script.IsEmpty()) {
                 if (isolate->toString(try_catch.Exception()) != "SyntaxError: Unexpected end of input") {
                     buf.clear();
-                    ReportException(try_catch, 0, true);
+                    ReportException(try_catch, result_t(), true);
                 }
             } else {
                 buf.clear();
                 v = script->Run(context).FromMaybe(v8::Local<v8::Value>());
                 if (v.IsEmpty())
-                    ReportException(try_catch, 0, true);
+                    ReportException(try_catch, result_t(), true);
             }
         }
 

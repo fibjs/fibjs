@@ -544,10 +544,10 @@ void Isolate::Unref(result_t hr)
 
             if (mainWorker) {
                 int32_t exitCode = hr.failed() ? 1 : m_exitCode;
-                mainWorker->holder()->sync([mainWorker, exitCode]() -> int {
+                mainWorker->holder()->sync([mainWorker, exitCode]() {
                     JSFiber::EnterJsScope s;
                     mainWorker->onIsolateIdle(exitCode);
-                    return 0;
+                    return result_t();
                 });
             }
 
@@ -563,7 +563,7 @@ void Isolate::Unref(result_t hr)
         Isolate* isolate = s_isolates.head();
         isolate->m_hr = hr;
 
-        isolate->sync([isolate]() -> int {
+        isolate->sync([isolate]() {
             v8::HandleScope handle_scope(isolate->m_isolate);
             JSFiber::EnterJsScope s;
             v8::Local<v8::Value> code = v8::Number::New(isolate->m_isolate, isolate->m_exitCode);
@@ -588,7 +588,7 @@ void Isolate::Unref(result_t hr)
                     process_base::exit(1);
             }
 
-            return 0;
+            return result_t();
         });
     }
 }
@@ -611,7 +611,7 @@ void Isolate::RequestInterrupt(v8::InterruptCallback callback, void* data)
             JSFiber::EnterJsScope s;
             m_has_timer = 0;
             InvokeApiInterruptCallbacks(m_isolate);
-            return 0;
+            return result_t();
         });
 }
 

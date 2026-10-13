@@ -25,7 +25,7 @@ public:
     result_t get(exlib::string name, Variant& retVal)
     {
         if (name.empty())
-            return CALL_E_INVALIDARG;
+            return result_t::invalid_arg();
 
         exlib::string result;
         bool found = false;
@@ -46,10 +46,10 @@ public:
         }
 
         if (!found)
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
 
         retVal = result;
-        return 0;
+        return result_t();
     }
 
     result_t init(Headers_base* init)
@@ -57,7 +57,7 @@ public:
         Headers* _init = static_cast<Headers*>(init);
         m_map.insert(m_map.end(), _init->m_map.begin(), _init->m_map.end());
 
-        return 0;
+        return result_t();
     }
 
 public:

@@ -165,16 +165,16 @@ static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
     s_pending_signal_name = name;
     s_emit_pending = 1;
 
-    isolate->sync([isolate, name, token]() -> int {
+    isolate->sync([isolate, name, token]() {
         if (s_emit_token != token)
-            return 0; // a newer signal replaced this one
+            return result_t(); // a newer signal replaced this one
 
         // the listener is running now: a following signal may be handled again
         s_check_callback = 0;
         s_emit_pending = 0;
 
         emit_signal(isolate, name);
-        return 0;
+        return result_t();
     });
 
     // A JS loop that never yields cannot run the task above: after a short

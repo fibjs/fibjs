@@ -49,13 +49,13 @@ public:
     {
         retVal = true;
 
-        return 0;
+        return result_t();
     }
     virtual result_t get_readable(bool& retVal)
     {
         retVal = true;
 
-        return 0;
+        return result_t();
     }
     virtual result_t get_isRaw(bool& retVal);
     virtual result_t setRawMode(bool isRawMode, obj_ptr<TTYInputStream_base>& retVal);
@@ -75,7 +75,7 @@ public:
     {
         retVal = true;
 
-        return 0;
+        return result_t();
     }
     virtual result_t get_columns(int32_t& retVal);
     virtual result_t get_rows(int32_t& retVal);

@@ -194,7 +194,7 @@ void SandBox::installBuffer()
     TryCatch try_catch;
     require("internal/sandbox_init", "/builtin", _init);
     if (try_catch.HasCaught())
-        ReportException(try_catch, 0, false);
+        ReportException(try_catch, result_t(), false);
 
     // Save JS helper functions from sandbox_init.js into Isolate for C++ native objects
     if (!_init.IsEmpty() && _init->IsObject()) {

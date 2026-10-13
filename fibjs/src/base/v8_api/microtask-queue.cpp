@@ -52,12 +52,12 @@ void Isolate::RunMicrotasks(MicrotaskCheckpointReason reason)
         // otherwise it can let a promise chain overtake already queued events.
         for (intptr_t i = inline_first_task ? 1 : 0; i < queue->size_; i++) {
             i::Address _task = queue->ring_buffer_[(i + queue->start_) % queue->capacity_];
-            sync_urgent([addr = api_internal::GlobalizeReference(_isolate, _task), this, _isolate]() -> int {
+            sync_urgent([addr = api_internal::GlobalizeReference(_isolate, _task), this, _isolate]() {
                 JSFiber::EnterJsScope s;
 
                 if (is_terminating() || m_isolate->IsExecutionTerminating()) {
                     api_internal::DisposeGlobal(addr);
-                    return 0;
+                    return result_t();
                 }
 
                 std::unique_ptr<i::MicrotaskQueue> queue = i::MicrotaskQueue::New(_isolate);
@@ -71,7 +71,7 @@ void Isolate::RunMicrotasks(MicrotaskCheckpointReason reason)
 
                 api_internal::DisposeGlobal(addr);
 
-                return 0;
+                return result_t();
             });
         }
 

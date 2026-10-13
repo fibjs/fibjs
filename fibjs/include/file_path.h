@@ -20,7 +20,7 @@ inline result_t coerce_file_path_like(exlib::string input, exlib::string& out)
     out = input;
 
     if (!is_file_url_input(input))
-        return 0;
+        return result_t();
 
     return url_base::fileURLToPath(input, v8::Local<v8::Object>(), out);
 }
@@ -32,7 +32,7 @@ inline result_t normalize_file_path_like(exlib::string input, exlib::string& out
         return hr;
 
     path_base::normalize(out, out);
-    return 0;
+    return result_t();
 }
 
 inline result_t absolute_file_path_like(exlib::string input, exlib::string& out)
@@ -46,7 +46,7 @@ inline result_t absolute_file_path_like(exlib::string input, exlib::string& out)
     if (!isAbs)
         _resolve(out);
 
-    return 0;
+    return result_t();
 }
 
 } // namespace fibjs

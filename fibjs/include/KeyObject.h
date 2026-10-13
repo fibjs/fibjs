@@ -35,7 +35,7 @@ public:
 
         retVal = o;
 
-        return 0;
+        return result_t();
     }
 
 public:
@@ -63,7 +63,7 @@ public:
 
         retVal = o;
 
-        return 0;
+        return result_t();
     }
 
     static result_t load(v8::Local<v8::Object> options, const char* key, obj_ptr<keyEncodingParam>& retVal)
@@ -73,7 +73,7 @@ public:
         v8::Local<v8::Object> opt;
         hr = GetConfigValue(options, key, opt, true);
         if (hr.is_param_missing())
-            return 0;
+            return result_t();
         if (hr.failed())
             return hr;
 

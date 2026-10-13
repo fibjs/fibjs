@@ -21,9 +21,9 @@ result_t timers_base::call(v8::Local<v8::Function> func, double timeout,
 
     v8::Local<v8::Context> func_context;
     if (!func->GetCreationContext().ToLocal(&func_context))
-        return ts.result(CALL_E_JAVASCRIPT);
+        return ts.result(result_t(CALL_E_JAVASCRIPT));
 
     retVal = func->Call(func_context, v8::Undefined(ts.m_isolate->m_isolate), (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
-    return ts.result(retVal.IsEmpty() ? CALL_E_JAVASCRIPT : 0);
+    return ts.result(retVal.IsEmpty() ? result_t(CALL_E_JAVASCRIPT) : result_t());
 }
 }

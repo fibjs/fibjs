@@ -134,14 +134,14 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
             data_->address = incoming_info->address;
             data_->port = incoming_info->port;
 
-            ((Isolate*)user_data)->sync([data_]() -> int {
+            ((Isolate*)user_data)->sync([data_]() {
                 Isolate* isolate = Isolate::current();
                 JSFiber::EnterJsScope s;
 
                 v8::Local<v8::Function> cb = v8::Local<v8::Function>::New(isolate->m_isolate, s_cb_global);
                 if (cb.IsEmpty()) {
                     delete data_;
-                    return 0;
+                    return result_t();
                 }
 
                 v8::Local<v8::Object> data = v8::Object::New(isolate->m_isolate);
@@ -156,7 +156,7 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
 
                 v8::Local<v8::Value> result = cb->Call(isolate->context(), v8::Undefined(isolate->m_isolate), 1, argv).FromMaybe(v8::Local<v8::Value>());
 
-                return 0;
+                return result_t();
             }); }, isolate);
 
     if (ret == -1)

@@ -186,7 +186,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
         AutoReq req;
         int32_t fd = uv_fs_open(NULL, &req, fname.c_str(), open_flags, 0, NULL);
         if (fd < 0) {
-            result.first = fd;
+            result.first = result_t::from_system(fd);
         } else {
             AutoReq sreq;
             int32_t sret = uv_fs_fstat(NULL, &sreq, fd, NULL);
@@ -207,7 +207,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
             } else if (sret < 0) {
                 AutoReq creq;
                 uv_fs_close(NULL, &creq, fd, NULL);
-                result.first = sret;
+                result.first = result_t::from_system(sret);
             } else {
                 int64_t sz = (int64_t)sreq.statbuf.st_size;
 
@@ -225,7 +225,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
                         AutoReq rreq;
                         int32_t n = uv_fs_read(NULL, &rreq, fd, &b, 1, got, NULL);
                         if (n < 0) {
-                            result.first = n;
+                            result.first = result_t::from_system(n);
                             break;
                         }
                         if (n == 0)
@@ -278,7 +278,7 @@ result_t SandBox::realpath(exlib::string fname, exlib::string& retVal)
     // Windows 保留 cc_realpath（避免 \\?\ 前缀语义变化）。失败（zip 虚拟路径、
     // 不存在）时调用方回退到原路径，行为不变。
     AutoReq req;
-    result.first = uv_fs_realpath(NULL, &req, fname.c_str(), NULL);
+    result.first = result_t::from_system(uv_fs_realpath(NULL, &req, fname.c_str(), NULL));
     if (result.first.ok())
         result.second = (const char*)req.ptr;
 #endif

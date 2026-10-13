@@ -125,7 +125,7 @@ public:
     result_t start()
     {
         if (m_closed || m_started)
-            return 0;
+            return result_t();
 
         m_started = true;
 
@@ -151,7 +151,7 @@ public:
                 // 收尾回到 JS 侧执行（事件投递/释放 ValueHolder）
                 obj_ptr<StatsWatcher> self = this;
                 async([self, uv_err_no]() {
-                    self->onError(CALL_E_INVALID_CALL, uv_strerror(uv_err_no));
+                    self->onError(result_t::invalid_call(), uv_strerror(uv_err_no));
                     self->close_impl();
                 });
             }
@@ -193,7 +193,7 @@ public:
     virtual result_t close()
     {
         if (m_closed)
-            return 0;
+            return result_t();
 
         close_impl();
 
@@ -203,7 +203,7 @@ public:
                 close_timer();
             });
 
-        return 0;
+        return result_t();
     };
 
     virtual result_t stop()
@@ -217,7 +217,7 @@ public:
 
         retVal = this;
 
-        return 0;
+        return result_t();
     };
 
     virtual result_t unref(obj_ptr<StatsWatcher_base>& retVal)
@@ -226,14 +226,14 @@ public:
 
         retVal = this;
 
-        return 0;
+        return result_t();
     };
 
 public:
     result_t checkStatsChangeOnTimerCb()
     {
         if (m_closed || holder()->is_terminating())
-            return 0;
+            return result_t();
 
         async([this]() {
             if (m_closed || holder()->is_terminating())
@@ -279,7 +279,7 @@ public:
             _emit("change", args, 2);
         });
 
-        return 0;
+        return result_t();
     }
 
 public:

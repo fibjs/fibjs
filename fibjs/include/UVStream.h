@@ -204,7 +204,7 @@ public:
         void post_result(int32_t status)
         {
             if (status < 0 && status != UV_EOF && status != UV_ENOTCONN && status != UV_ECONNRESET) {
-                m_ac.apost(status);
+                m_ac.apost(result_t::from_system(status));
             } else {
                 if (m_pos) {
                     if (m_pos < m_buf.length())
@@ -219,7 +219,7 @@ public:
 
                     m_ac.post(result_t());
                 } else
-                    m_ac.apost(CALL_RETURN_NULL);
+                    m_ac.apost(result_t::return_null());
             }
             UVTimeout::cancel_timer();
         }
@@ -272,7 +272,7 @@ public:
 
             // If request is in-flight, keep queue ownership until uv callback.
             // Otherwise we can complete and release immediately.
-            m_ac.apost(CALL_E_TIMEOUT);
+            m_ac.apost(result_t::timeout());
 
             if (!m_inflight)
                 finalize();
@@ -335,7 +335,7 @@ public:
         static void notify_flush_waiters(UVStream_tmpl* pThis, int32_t status)
         {
             for (auto& flush_ac : pThis->m_flush_waiters)
-                flush_ac.apost(status);
+                flush_ac.apost(uv_status(status));
             pThis->m_flush_waiters.clear();
         }
 
@@ -367,7 +367,7 @@ public:
                 return;
 
             m_posted = true;
-            m_ac.apost(status);
+            m_ac.apost(uv_status(status));
         }
 
         void finalize()
@@ -394,7 +394,7 @@ public:
     {
         if (is_stdio_fd(m_fd)) {
             retVal = m_fd;
-            return 0;
+            return result_t();
         }
 
         uv_os_fd_t fd;
@@ -405,7 +405,7 @@ public:
             return result_t::from_system(err);
 
         retVal = (int32_t)(intptr_t)fd;
-        return 0;
+        return result_t();
     };
 
     virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
@@ -455,18 +455,18 @@ public:
                 obj_ptr<Stream_base> stream = m_pThis;
                 Isolate* isolate = m_isolate;
                 // The description rides with the value into the emit fiber.
-                isolate->sync([stream, v]() -> int32_t {
+                isolate->sync([stream, v]() {
                     JSFiber::EnterJsScope s;
 
                     v8::Local<v8::Value> err = FillError(v);
                     bool retVal;
                     stream->_emit("error", &err, 1, retVal);
-                    return 0;
+                    return result_t();
                 });
             }
             delete this;
 
-            return 0;
+            return result_t();
         }
 
         bool m_retVal;
@@ -498,7 +498,7 @@ public:
             retVal = true;
             auto bgw = new AsyncBackgroundWrite(this);
             AsyncStream<T>::write(data, bgw->m_retVal, bgw);
-            return 0;
+            return result_t();
         }
 
         return AsyncStream<T>::write(data, retVal, std::move(ac));
@@ -510,7 +510,7 @@ public:
             retVal = true;
             auto bgw = new AsyncBackgroundWrite(this);
             AsyncStream<T>::write(data, encoding, bgw->m_retVal, bgw);
-            return 0;
+            return result_t();
         }
 
         return AsyncStream<T>::write(data, encoding, retVal, std::move(ac));
@@ -522,7 +522,7 @@ public:
             retVal = true;
             auto bgw = new AsyncBackgroundWrite(this);
             AsyncStream<T>::write(data, encoding, bgw->m_retVal, bgw);
-            return 0;
+            return result_t();
         }
 
         return AsyncStream<T>::write(data, encoding, retVal, std::move(ac));
@@ -592,13 +592,13 @@ public:
     virtual result_t get_timeout(int32_t& retVal)
     {
         retVal = m_timeout;
-        return 0;
+        return result_t();
     }
 
     virtual result_t set_timeout(int32_t newVal)
     {
         m_timeout = newVal;
-        return 0;
+        return result_t();
     }
 
     virtual result_t abort()
@@ -614,7 +614,7 @@ public:
             }
         });
 
-        return 0;
+        return result_t();
     }
 
 public:
@@ -694,7 +694,7 @@ public:
             }
         }
 
-        return 0;
+        return result_t();
     }
 
 public:
@@ -710,7 +710,7 @@ public:
         stream->m_nonblockWrite = true;
         retVal = stream;
 
-        return 0;
+        return result_t();
     }
 
     static result_t uv_pipe(obj_ptr<UVStream>& retVal, int32_t fd, std::function<void(int32_t)> onClose)
@@ -719,12 +719,12 @@ public:
         uv_pipe_init(s_uv_loop, &stream->m_pipe, 0);
         int ret = uv_pipe_open(&stream->m_pipe, fd);
         if (ret < 0)
-            return ret;
+            return result_t::from_system(ret);
 
         stream->m_nonblockWrite = true;
         retVal = stream;
 
-        return 0;
+        return result_t();
     }
 
 private:

@@ -41,7 +41,7 @@ public:
         FormData* _init = static_cast<FormData*>(init);
         m_map.insert(m_map.end(), _init->m_map.begin(), _init->m_map.end());
 
-        return 0;
+        return result_t();
     }
 
     result_t parseMultipart(Buffer_base* buffer, const char* boundary);

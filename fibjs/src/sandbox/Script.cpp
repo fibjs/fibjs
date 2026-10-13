@@ -163,7 +163,7 @@ result_t Script::runInThisContext(v8::Local<v8::Object> opts, v8::Local<v8::Valu
     if (timeout > 0) {
         TimeoutScope ts(timeout);
         result = script->Run(isolate->context());
-        hr = ts.result(result.IsEmpty() ? CALL_E_JAVASCRIPT : 0);
+        hr = ts.result(result.IsEmpty() ? result_t(CALL_E_JAVASCRIPT) : result_t());
         if (hr.failed())
             return hr;
     } else

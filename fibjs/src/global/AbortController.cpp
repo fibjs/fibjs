@@ -131,7 +131,7 @@ result_t AbortSignal::do_abort(exlib::string reason, obj_ptr<AbortSignal_base>& 
     m_reason = reason;
     m_has_value_reason = false;
 
-    obj_ptr<EventInfo> info = new EventInfo(this, "abort", 0, m_reason);
+    obj_ptr<EventInfo> info = new EventInfo(this, "abort", result_t(), m_reason);
     v8::Local<v8::Value> _info;
     info->valueOf(_info);
 

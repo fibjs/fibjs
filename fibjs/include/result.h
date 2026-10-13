@@ -113,10 +113,11 @@ class object_base;
 #endif
 
 // Return code of every fibjs operation. It is a class (not a bare int) so the
-// common checks become named predicates instead of hard coded comparisons and,
-// in a later step of the migration, the structured error payload can ride with
-// the value. Until then it still converts to and from int32_t implicitly, so
-// existing call sites keep compiling unchanged.
+// common checks are named predicates instead of hard coded comparisons and the
+// structured error payload rides with the value. Both implicit directions are
+// gone (P4-final removed the int32_t conversion, P5 made the raw-code
+// constructor explicit), so a value is now built only through the named
+// factories -- make / from_system / the bridge and success constructions.
 class result_t {
     int32_t m_code = 0;
     obj_ptr<ErrorPayload> m_payload;   // private; const view via payload()
@@ -124,7 +125,12 @@ class result_t {
 public:
     // Success: code 0 and no description (the E1 form -- `return result_t();`).
     result_t() = default;
-    result_t(int32_t c)
+    // A raw code becomes a value only where it is spelled out: the bridge
+    // codes have named constructions, a system error goes through from_system,
+    // and the few remaining literal forms (success in a ternary arm, a file-
+    // private protocol code) are written as result_t(<code>) explicitly.
+    // There is no implicit int -> result_t path (P5 of the incremental route).
+    explicit result_t(int32_t c)
         : m_code(c)
     {
     }
@@ -452,7 +458,7 @@ struct ErrorPayload : public obj_base {
     // code or the METHOD_OVER machinery would read it as "this variant did not
     // apply" and try the next variant. The boundary reads it back as data
     // (BuildError's effective code), the value is never rewritten.
-    result_t result_code = 0;
+    result_t result_code;
     bool has_errno = false;
     int32_t errno_value = 0;
     std::vector<ErrorArg> args;

@@ -36,7 +36,7 @@ public:
         if (m_socket)
             m_socket->stop();
 
-        return 0;
+        return result_t();
     }
 
 public:

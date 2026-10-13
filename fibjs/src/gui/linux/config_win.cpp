@@ -61,7 +61,7 @@ static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer
                 webkit_uri_scheme_request_finish(request, stream, _buf ? _buf->length() : 0, mtype.c_str());
                 g_object_unref(stream);
             },
-                CALL_E_GUICALL);
+                result_t::guicall());
         } else {
             async([fname, request]() {
                 exlib::string page = "<html><body><h1>Error</h1><p>File not found at path:<br>" + fname + "</p></body></html>";
@@ -69,7 +69,7 @@ static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer
                 webkit_uri_scheme_request_finish_error(request, error);
                 g_error_free(error);
             },
-                CALL_E_GUICALL);
+                result_t::guicall());
         }
     });
 }

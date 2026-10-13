@@ -252,7 +252,7 @@ static void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
     s_hSStat = RegisterServiceCtrlHandlerW(s_dispatchTable[0].lpServiceName, service_ctrl);
     if (s_hSStat) {
         Service* srv = s_srv;
-        s_isolate->sync([srv]() -> int {
+        s_isolate->sync([srv]() {
             JSFiber::EnterJsScope s;
             v8::Local<v8::Value> v;
             v8::Local<v8::Function> func;
@@ -268,7 +268,7 @@ static void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
 
             ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0);
 
-            return 0;
+            return result_t();
         });
         ReportStatusToSCMgr(SERVICE_RUNNING, NO_ERROR, 0);
     }

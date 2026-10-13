@@ -35,24 +35,24 @@ public:
     result_t clear()
     {
         m_map.clear();
-        return 0;
+        return result_t();
     }
 
     result_t first(exlib::string name, Variant& retVal)
     {
         if (name.empty() && !m_allow_empty_name)
-            return CALL_E_INVALIDARG;
+            return result_t::invalid_arg();
 
         for (size_t i = 0; i < m_map.size(); i++) {
             pair& _pair = m_map[i];
 
             if (!cmp_key(_pair.first.c_str(), name.c_str())) {
                 retVal = _pair.second;
-                return 0;
+                return result_t();
             }
         }
 
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
 
     result_t get(exlib::string name, Variant& retVal)
@@ -70,7 +70,7 @@ public:
         } else
             all(retVal);
 
-        return 0;
+        return result_t();
     }
 
     result_t getAll(exlib::string name, obj_ptr<NArray>& retVal)
@@ -91,7 +91,7 @@ public:
             }
         }
 
-        return 0;
+        return result_t();
     }
 
     // an array appends every element in order, any other value appends a single entry
@@ -103,7 +103,7 @@ public:
         Variant v = std::get<Variant>(value);
 
         if (name.empty() && !m_allow_empty_name)
-            return CALL_E_INVALIDARG;
+            return result_t::invalid_arg();
 
         if (m_lowercase_keys) {
             for (size_t i = 0; i < name.length(); i++)
@@ -119,7 +119,7 @@ public:
 
         m_map.emplace_back(name, v);
         m_sorted = false;
-        return 0;
+        return result_t();
     }
 
     result_t append(v8::Local<v8::Object> map)
@@ -139,7 +139,7 @@ public:
             JSValue v = map->Get(context, k);
 
             if (v.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             result_t hr;
             if (v->IsArray())
@@ -151,7 +151,7 @@ public:
                 return hr;
         }
 
-        return 0;
+        return result_t();
     }
 
     // the array form of append(): every element is appended in order
@@ -170,7 +170,7 @@ public:
                 return hr;
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t append(v8::Local<v8::Array> entries)
@@ -183,22 +183,22 @@ public:
         for (i = 0; i < len; i++) {
             v8::Local<v8::Value> entry;
             if (!entries->Get(context, i).ToLocal(&entry))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             if (!entry->IsArray())
-                return CALL_E_BADVARTYPE;
+                return result_t::bad_vartype();
 
             v8::Local<v8::Array> pair = entry.As<v8::Array>();
             if (pair->Length() != 2)
-                return CALL_E_BADVARTYPE;
+                return result_t::bad_vartype();
 
             v8::Local<v8::Value> keyValue;
             if (!pair->Get(context, 0).ToLocal(&keyValue))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             exlib::string key = isolate->toString(keyValue);
 
             v8::Local<v8::Value> pairValue;
             if (!pair->Get(context, 1).ToLocal(&pairValue))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
             Variant value = (Variant)pairValue;
 
             result_t hr = append(key, value);
@@ -206,14 +206,14 @@ public:
                 return hr;
         }
 
-        return 0;
+        return result_t();
     }
 
     // an array sets every element in order, any other value sets a single entry
     result_t set(exlib::string name, typename BaseType::Union_set_value value)
     {
         if (name.empty() && !m_allow_empty_name)
-            return CALL_E_INVALIDARG;
+            return result_t::invalid_arg();
 
         if (std::holds_alternative<v8::Local<v8::Array>>(value))
             return set_values(name, std::get<v8::Local<v8::Array>>(value));
@@ -239,7 +239,7 @@ public:
             JSValue v = map->Get(context, k);
 
             if (v.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             if (v->IsArray())
                 set(isolate->toString(k), v.As<v8::Array>());
@@ -247,13 +247,13 @@ public:
                 set(isolate->toString(k), (Variant)v);
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t has(exlib::string name, bool& retVal)
     {
         if (name.empty() && !m_allow_empty_name)
-            return CALL_E_INVALIDARG;
+            return result_t::invalid_arg();
 
         retVal = false;
         for (size_t i = 0; i < m_map.size(); i++)
@@ -262,7 +262,7 @@ public:
                 break;
             }
 
-        return 0;
+        return result_t();
     }
 
     // the array form of set(): the key is replaced by every element in order
@@ -282,26 +282,26 @@ public:
                 return hr;
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t remove(exlib::string name)
     {
         if (name.empty() && !m_allow_empty_name)
-            return CALL_E_INVALIDARG;
+            return result_t::invalid_arg();
 
         auto it = std::remove_if(m_map.begin(), m_map.end(),
             [&name](const pair& p) {
                 return !cmp_key(p.first.c_str(), name.c_str());
             });
         m_map.erase(it, m_map.end());
-        return 0;
+        return result_t();
     }
 
     result_t _delete(exlib::string name)
     {
         if (name.empty() && !m_allow_empty_name)
-            return CALL_E_INVALIDARG;
+            return result_t::invalid_arg();
 
         return remove(name);
     }
@@ -315,7 +315,7 @@ public:
             m_sorted = true;
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t forEach(v8::Local<v8::Function> callback)
@@ -338,10 +338,10 @@ public:
             v8::Local<v8::Value> argv[] = { value, key, thisArg };
             v8::Local<v8::Value> result = callback->Call(context, thisArg, 3, argv).FromMaybe(v8::Local<v8::Value>());
             if (result.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t keys(obj_ptr<Iterator_base>& retVal)
@@ -350,14 +350,14 @@ public:
             sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
-                cb(0, false);
+                cb(result_t(), false);
                 return;
             }
 
             retVal = m_map[index].first;
-            cb(0, true);
+            cb(result_t(), true);
         });
-        return 0;
+        return result_t();
     }
 
     result_t values(obj_ptr<Iterator_base>& retVal)
@@ -366,14 +366,14 @@ public:
             sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
-                cb(0, false);
+                cb(result_t(), false);
                 return;
             }
 
             retVal = m_map[index].second;
-            cb(0, true);
+            cb(result_t(), true);
         });
-        return 0;
+        return result_t();
     }
 
     result_t entries(obj_ptr<Iterator_base>& retVal)
@@ -382,7 +382,7 @@ public:
             sort();
         retVal = new Iterator(this, [this](size_t index, Variant& retVal, Iterator::IteratorCallback cb) {
             if (index >= m_map.size()) {
-                cb(0, false);
+                cb(result_t(), false);
                 return;
             }
 
@@ -392,9 +392,9 @@ public:
             array->append(m_map[index].second);
 
             retVal = array;
-            cb(0, true);
+            cb(result_t(), true);
         });
-        return 0;
+        return result_t();
     }
 
     result_t _named_getter(exlib::string property, Variant& retVal)
@@ -427,10 +427,10 @@ public:
 
         if (n > 0) {
             retVal = v;
-            return 0;
+            return result_t();
         }
 
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
 
     result_t _named_enumerator(v8::Local<v8::Array>& retVal)
@@ -447,7 +447,7 @@ public:
                 retVal->Set(context, n++, isolate->NewString(name)).IsJust();
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t _named_setter(exlib::string property, Variant newVal)
@@ -460,7 +460,9 @@ public:
     {
         size_t n = m_map.size();
         remove(property);
-        return n > m_map.size();
+
+        retVal = v8::Boolean::New(Isolate::current()->m_isolate, n > m_map.size());
+        return result_t();
     }
 
     result_t symbol_iterator(obj_ptr<Iterator_base>& retVal)
@@ -481,7 +483,7 @@ public:
         }
 
         retVal = list;
-        return 0;
+        return result_t();
     }
 
     result_t all(obj_ptr<NObject>& retVal)
@@ -496,7 +498,7 @@ public:
         }
 
         retVal = map;
-        return 0;
+        return result_t();
     }
 
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
@@ -514,7 +516,7 @@ public:
 
             JSValue existing = o->Get(context, name);
             if (existing.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             v8::Local<v8::Value> value = _pair.second;
 
@@ -532,7 +534,7 @@ public:
         }
 
         retVal = o;
-        return 0;
+        return result_t();
     }
 
 public:
@@ -720,7 +722,7 @@ public:
             }
         }
 
-        return 0;
+        return result_t();
     }
 
 private:

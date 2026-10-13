@@ -56,14 +56,14 @@ public:
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {
         startRecv(holder());
-        return 0;
+        return result_t();
     }
 
     virtual result_t onEventEmit(exlib::string ev)
     {
         if (m_closeState == WebSocket_base::C_CLOSED)
             m_readyState.xchg(WebSocket_base::C_CLOSED);
-        return 0;
+        return result_t();
     }
 
 public:

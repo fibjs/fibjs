@@ -240,7 +240,7 @@ v8::Local<v8::Value> Buffer::load_module()
         // 直接把它交给 Object::Set 会走到 V8 内部解引用空 handle 而崩溃
         // （实测栈：Object::Set → PropertySetterCallback → Handle<Object>::operator*）。
         if (try_catch.HasCaught())
-            ReportException(try_catch, 0, false);
+            ReportException(try_catch, result_t(), false);
         return v8::Undefined(isolate->m_isolate);
     }
 
@@ -412,7 +412,7 @@ result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, obj_ptr<Buffer
 #define BUFFER_INSTANCE()                                     \
     obj_ptr<Buffer> pInst = Buffer::getInstance(args.This()); \
     if (pInst == NULL) {                                      \
-        ThrowResult(CALL_E_NOTINSTANCE);                      \
+        ThrowResult(result_t(CALL_E_NOTINSTANCE));            \
         return;                                               \
     }
 

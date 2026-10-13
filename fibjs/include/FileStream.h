@@ -183,7 +183,7 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
         if (err < 0 && err > CALL_E_MAX)
             return result_t::from_system(err).with_syscall("open").with_path(fname).arg("flags", flags);
 
-        return err;
+        return result_t(err);
     }
 
 #ifndef _WIN32
@@ -200,7 +200,7 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
         return LastError("fcntl", fname);
 #endif
-    return 0;
+    return result_t();
 }
 
 // file_open overload accepting integer flags (fibjs portable constants, macOS/BSD values).
@@ -263,7 +263,7 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
         if (err < 0 && err > CALL_E_MAX)
             return result_t::from_system(err).with_syscall("open").with_path(fname).arg("flags", flags);
 
-        return err;
+        return result_t(err);
     }
 
 #ifndef _WIN32
@@ -280,7 +280,7 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
         return LastError("fcntl", fname);
 #endif
-    return 0;
+    return result_t();
 }
 
 class FileHandle : public FileHandle_base {

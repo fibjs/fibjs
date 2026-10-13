@@ -373,7 +373,7 @@ inline result_t _normalize(const exlib::string& path, exlib::string& retVal, boo
 
     retVal = std::move(result);
 
-    return 0;
+    return result_t();
 }
 
 inline void _path_array_win32(const exlib::string& path, std::vector<std::string_view>& a, char& drv_no,
@@ -556,7 +556,7 @@ inline result_t _normalize_win32(const exlib::string& path, exlib::string& retVa
 
     retVal = std::move(result);
 
-    return 0;
+    return result_t();
 }
 
 inline result_t _basename(exlib::string path, exlib::string ext, exlib::string& retVal)
@@ -583,7 +583,7 @@ inline result_t _basename(exlib::string path, exlib::string ext, exlib::string& 
 
     retVal.assign(p2, (int32_t)(p3 - p2));
 
-    return 0;
+    return result_t();
 }
 
 inline result_t _basename_win32(exlib::string path, exlib::string ext, exlib::string& retVal)
@@ -610,7 +610,7 @@ inline result_t _basename_win32(exlib::string path, exlib::string ext, exlib::st
 
     retVal.assign(p2, (int32_t)(p3 - p2));
 
-    return 0;
+    return result_t();
 }
 
 inline result_t _extname(exlib::string path, exlib::string& retVal)
@@ -627,7 +627,7 @@ inline result_t _extname(exlib::string path, exlib::string& retVal)
         p3--;
 
     if (p3 - p2 == 2 && p2[0] == '.' && p2[1] == '.')
-        return 0;
+        return result_t();
 
     p4 = p3;
     while (p4 > p2 + 1 && *(p4 - 1) != '.')
@@ -636,7 +636,7 @@ inline result_t _extname(exlib::string path, exlib::string& retVal)
     if (p4 > p2 + 1)
         retVal.assign(p4 - 1, (int32_t)(p3 - p4 + 1));
 
-    return 0;
+    return result_t();
 }
 
 inline result_t _extname_win32(exlib::string path, exlib::string& retVal)
@@ -653,7 +653,7 @@ inline result_t _extname_win32(exlib::string path, exlib::string& retVal)
         p3--;
 
     if (p3 - p2 == 2 && p2[0] == '.' && p2[1] == '.')
-        return 0;
+        return result_t();
 
     p4 = p3;
     while (p4 > p2 + 1 && *(p4 - 1) != '.')
@@ -662,7 +662,7 @@ inline result_t _extname_win32(exlib::string path, exlib::string& retVal)
     if (p4 > p2 + 1)
         retVal.assign(p4 - 1, (int32_t)(p3 - p4 + 1));
 
-    return 0;
+    return result_t();
 }
 
 inline result_t _universal_format(exlib::string sep, v8::Local<v8::Object> pathObject, exlib::string& retVal)
@@ -711,7 +711,7 @@ inline result_t _universal_format(exlib::string sep, v8::Local<v8::Object> pathO
     else
         retVal = (dirFromRoot || dir == root) ? (dir + base) : (dir + sep + base);
 
-    return 0;
+    return result_t();
 }
 
 inline void fillPathObject(obj_ptr<NObject>& po)
@@ -727,7 +727,7 @@ inline result_t castPathObject(obj_ptr<NObject> po, obj_ptr<NObject>& retVal)
 {
     retVal = po;
 
-    return 0;
+    return result_t();
 }
 
 template <class T>
@@ -736,7 +736,7 @@ inline result_t _parse(exlib::string path, obj_ptr<T>& retVal)
     retVal = new T();
 
     if (!path.length())
-        return 0;
+        return result_t();
 
     bool isAbsolute = path[0] == CHAR_FORWARD_SLASH;
     int start;
@@ -793,7 +793,7 @@ inline result_t _parse(exlib::string path, obj_ptr<T>& retVal)
     else if (isAbsolute)
         retVal->dir = "/";
 
-    return 0;
+    return result_t();
 }
 
 template <class T>
@@ -802,7 +802,7 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<T>& retVal)
     retVal = new T();
 
     if (!path.length())
-        return 0;
+        return result_t();
 
     // Remove trailing path separators except for UNC paths and root paths
     int originalLen = (int)path.length();
@@ -832,7 +832,7 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<T>& retVal)
             retVal->name = path;
         }
 
-        return 0;
+        return result_t();
     }
     if (isPathSeparator(code)) {
         rootEnd = 1;
@@ -861,7 +861,7 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<T>& retVal)
             retVal->root = path;
             retVal->dir = path;
 
-            return 0;
+            return result_t();
         }
         rootEnd = 2;
         if (isPathSeparator(path[2])) {
@@ -869,7 +869,7 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<T>& retVal)
                 retVal->root = path;
                 retVal->dir = path;
 
-                return 0;
+                return result_t();
             }
             rootEnd = 3;
         }
@@ -925,7 +925,7 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<T>& retVal)
     else
         retVal->dir = retVal->root;
 
-    return 0;
+    return result_t();
 }
 
 inline result_t _dirname(exlib::string path, exlib::string& retVal)
@@ -935,14 +935,14 @@ inline result_t _dirname(exlib::string path, exlib::string& retVal)
 
     if (p2 == p1 && !isPosixPathSlash(*p2)) {
         retVal = ".";
-        return 0;
+        return result_t();
     }
 
     retVal.assign(p1, (int32_t)(p2 - p1));
     if (retVal.empty())
         retVal.assign(p2, 1);
 
-    return 0;
+    return result_t();
 }
 
 inline result_t _dirname_win32(exlib::string path, exlib::string& retVal)
@@ -952,14 +952,14 @@ inline result_t _dirname_win32(exlib::string path, exlib::string& retVal)
 
     if (p2 == p1 && !isWin32PathSlash(*p2)) {
         retVal = ".";
-        return 0;
+        return result_t();
     }
 
     retVal.assign(p1, (int32_t)(p2 - p1));
     if (retVal.empty())
         retVal.assign(p2, 1);
 
-    return 0;
+    return result_t();
 }
 
 inline result_t _join(OptArgs ps, exlib::string& retVal)
@@ -1060,7 +1060,7 @@ inline result_t _join(const std::vector<exlib::string>& paths, exlib::string& re
 {
     if (paths.empty()) {
         retVal = "";
-        return 0;
+        return result_t();
     }
 
     Path p;
@@ -1075,7 +1075,7 @@ inline result_t _join_win32(const std::vector<exlib::string>& paths, exlib::stri
 {
     if (paths.empty()) {
         retVal = "";
-        return 0;
+        return result_t();
     }
 
     Path p;
@@ -1203,7 +1203,7 @@ inline result_t _relative(exlib::string from, exlib::string to, exlib::string& r
 {
     if (from == to) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     result_t hr;
@@ -1218,7 +1218,7 @@ inline result_t _relative(exlib::string from, exlib::string to, exlib::string& r
 
     if (from == to) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     // Trim any leading backslashes
@@ -1301,14 +1301,14 @@ inline result_t _relative(exlib::string from, exlib::string to, exlib::string& r
         return _normalize(to.substr(toStart), retVal, false);
     }
 
-    return 0;
+    return result_t();
 }
 
 inline result_t _relative_win32(exlib::string from, exlib::string to, exlib::string& retVal)
 {
     if (from == to) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     exlib::string fromOrig = "" + from;
@@ -1326,7 +1326,7 @@ inline result_t _relative_win32(exlib::string from, exlib::string to, exlib::str
 
     if (from == to) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     from = "" + from;
@@ -1336,7 +1336,7 @@ inline result_t _relative_win32(exlib::string from, exlib::string to, exlib::str
 
     if (from == to) {
         retVal.clear();
-        return 0;
+        return result_t();
     }
 
     // Trim any leading backslashes
@@ -1440,13 +1440,13 @@ inline result_t _relative_win32(exlib::string from, exlib::string to, exlib::str
 inline result_t _sep(exlib::string& retVal)
 {
     retVal.assign(1, PATH_SLASH);
-    return 0;
+    return result_t();
 }
 
 inline result_t _delimiter(exlib::string& retVal)
 {
     retVal.assign(1, PATH_DELIMITER);
-    return 0;
+    return result_t();
 }
 
 inline result_t _fullpath(exlib::string path, exlib::string& retVal)

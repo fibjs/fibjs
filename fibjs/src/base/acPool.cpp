@@ -447,7 +447,7 @@ void InitializeAcPool()
     s_acPool = new acPool(2);
 }
 
-void async(std::function<void(void)> func, int32_t mode)
+void async(std::function<void(void)> func, result_t mode)
 {
     class AsyncFunc : public AsyncEvent {
     public:

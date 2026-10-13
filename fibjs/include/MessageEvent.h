@@ -29,7 +29,7 @@ public:
             retVal = v8::Undefined(isolate->m_isolate);
         else
             retVal = m_data.Get(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
 private:

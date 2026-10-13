@@ -27,7 +27,7 @@ public:
     public:
         virtual void invoke()
         {
-            m_ac.post(CALL_RETURN_NULL);
+            m_ac.post(result_t::return_null());
             delete this;
         }
 

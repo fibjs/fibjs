@@ -357,10 +357,10 @@ protected:
             return;
         handles_closing = true;
 
-        isolate_->sync([this]() -> int {
+        isolate_->sync([this]() {
             fibjs::JSFiber::EnterJsScope s;
             Finalize();
-            return 0;
+            return fibjs::result_t();
         });
     }
 
@@ -370,10 +370,10 @@ protected:
         if ((current_state & kDispatchRunning) == kDispatchRunning)
             return;
 
-        isolate_->sync([this]() -> int {
+        isolate_->sync([this]() {
             fibjs::JSFiber::EnterJsScope s;
             Dispatch();
-            return 0;
+            return fibjs::result_t();
         });
     }
 

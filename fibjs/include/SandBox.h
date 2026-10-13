@@ -252,7 +252,7 @@ public:
         if (!retVal)
             retVal = m_loaders[0];
 
-        return 0;
+        return result_t();
     }
 
     result_t find_loader(exlib::string fname, obj_ptr<ExtLoader>& retVal)
@@ -265,11 +265,11 @@ public:
             if ((fname.length() > l->m_ext.length())
                 && !qstrcmp(fname.c_str() + fname.length() - l->m_ext.length(), l->m_ext.c_str())) {
                 retVal = l;
-                return 0;
+                return result_t();
             }
         }
 
-        return 0;
+        return result_t();
     }
 
     static bool is_relative(exlib::string p)

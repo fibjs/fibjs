@@ -288,7 +288,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
             if (m_timedout && status == UV_ECANCELED)
                 status = CALL_E_TIMEOUT;
 
-            result_t err = status < 0 ? error_value(status) : result_t();
+            result_t err = status < 0 ? error_value(result_t(status)) : result_t();
 
             // Deliver before handing the error to the reader (same order as the
             // ev backend): the error event is the single delivery of a failed
@@ -526,7 +526,7 @@ result_t UVSocket::setKeepAlive(bool enable, int32_t initialDelay)
 
     int32_t hr = uv_tcp_keepalive(&m_tcp, enable ? 1 : 0, initialDelay);
     if (hr < 0)
-        return hr;
+        return result_t::from_system(hr);
 
     return result_t();
 }
@@ -538,7 +538,7 @@ result_t UVSocket::setNoDelay(bool noDelay)
 
     int32_t hr = uv_tcp_nodelay(&m_tcp, noDelay ? 1 : 0);
     if (hr < 0)
-        return hr;
+        return result_t::from_system(hr);
 
     return result_t();
 }

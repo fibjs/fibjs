@@ -2328,13 +2328,13 @@ public:
         // Emit 'error' event on the request when in async (callback/deferred) mode
         if (m_o->is_async && m_req) {
             obj_ptr<HttpRequest> req = m_req;
-            req->holder()->sync([req, v]() -> int32_t {
+            req->holder()->sync([req, v]() {
                 JSFiber::EnterJsScope s;
 
                 v8::Local<v8::Value> err = FillError(v);
                 bool retVal;
                 req->_emit("error", &err, 1, retVal);
-                return 0;
+                return result_t();
             });
         }
 

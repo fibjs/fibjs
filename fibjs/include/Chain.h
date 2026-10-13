@@ -57,12 +57,12 @@ public:
             if (n.is_return_null() || m_hr.is_return_null()) {
                 bool end = false;
 
-                m_hr = 0;
+                m_hr = result_t();
 
                 if (m_msg)
                     m_msg->isEnded(end);
                 if (end || (m_pos == (int32_t)m_hdrs.size()))
-                    return next(CALL_RETURN_NULL);
+                    return next(result_t::return_null());
 
                 m_next = m_hdrs[m_pos++];
             }
@@ -134,7 +134,7 @@ public:
                         m_vholder = new ValueHolder(m_v->wrap());
 
                     m_next = hdlr1;
-                    return 0;
+                    return result_t();
                 }
 
                 if (hr.failed())
@@ -153,7 +153,7 @@ public:
                     hdlr1 = hdlr2;
             }
 
-            return 0;
+            return result_t();
         }
 
     private:

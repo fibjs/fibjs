@@ -48,7 +48,7 @@ public:
             add(isolate->toString(k), JSValue(m->Get(context, k)));
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t get(exlib::string key, Variant& retVal)
@@ -56,10 +56,10 @@ public:
         std::unordered_map<exlib::string, int32_t>::iterator it = m_keys.find(key);
 
         if (it == m_keys.end())
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
 
         retVal = m_values[it->second].m_val;
-        return 0;
+        return result_t();
     }
 
     Variant& get(exlib::string key)
@@ -78,7 +78,7 @@ public:
         std::unordered_map<exlib::string, int32_t>::iterator it = m_keys.find(key);
 
         if (it == m_keys.end())
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
 
         int32_t deleted_pos = it->second;
         m_values.erase(m_values.begin() + deleted_pos);
@@ -89,7 +89,7 @@ public:
                 i.second--;
         }
 
-        return 0;
+        return result_t();
     }
 
 public:
@@ -101,7 +101,7 @@ public:
         valueOf(obj);
         retVal = obj;
 
-        return 0;
+        return result_t();
     }
 
     result_t valueOf(v8::Local<v8::Object>& retVal)
@@ -117,7 +117,7 @@ public:
             retVal->Set(context, isolate->NewString(v.m_pos->first), v.m_val).IsJust();
         }
 
-        return 0;
+        return result_t();
     }
 
     void enable_multi_value()
@@ -161,7 +161,7 @@ public:
             append(v);
         }
 
-        return 0;
+        return result_t();
     }
 
     int32_t length() const
@@ -172,13 +172,13 @@ public:
     result_t _indexed_getter(int32_t idx, Variant& retVal) const
     {
         retVal = m_array[idx];
-        return 0;
+        return result_t();
     }
 
     result_t sort()
     {
         std::sort(m_array.begin(), m_array.end(), compare1);
-        return 0;
+        return result_t();
     }
 
 public:
@@ -190,7 +190,7 @@ public:
         valueOf(arr);
         retVal = arr;
 
-        return 0;
+        return result_t();
     }
 
     result_t valueOf(v8::Local<v8::Object>& retVal)
@@ -200,7 +200,7 @@ public:
         valueOf(arr);
         retVal = arr;
 
-        return 0;
+        return result_t();
     }
 
     result_t valueOf(v8::Local<v8::Array>& retVal)
@@ -248,7 +248,7 @@ public:
 
         retVal = obj;
 
-        return 0;
+        return result_t();
     }
 
     result_t valueOf(v8::Local<v8::Object>& retVal)
@@ -265,7 +265,7 @@ public:
             obj->Set(context, isolate->NewString(v.m_pos->first), v.m_val).IsEmpty();
         }
 
-        return 0;
+        return result_t();
     }
 };
 
@@ -284,7 +284,7 @@ public:
 
         retVal = obj;
 
-        return 0;
+        return result_t();
     }
 
     result_t valueOf(v8::Local<v8::Object>& retVal)
@@ -297,7 +297,7 @@ public:
         to_value(isolate, obj);
 
         retVal = obj;
-        return 0;
+        return result_t();
     }
 
 public:
@@ -365,7 +365,7 @@ public:
 
         NObject::valueOf(err);
         retVal = err;
-        return 0;
+        return result_t();
     }
 
 private:

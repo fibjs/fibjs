@@ -311,7 +311,7 @@ result_t WebView::createWebView()
                                         args->Release();
                                         deferral->Release();
                                     },
-                                        CALL_E_GUICALL);
+                                        result_t::guicall());
                                 } else {
                                     async([fname, args, deferral]() {
                                         exlib::string page = "<html><body><h1>Error</h1><p>File not found at path:<br>" + fname + "</p></body></html>";
@@ -328,7 +328,7 @@ result_t WebView::createWebView()
                                         args->Release();
                                         deferral->Release();
                                     },
-                                        CALL_E_GUICALL);
+                                        result_t::guicall());
                                 }
                             });
 

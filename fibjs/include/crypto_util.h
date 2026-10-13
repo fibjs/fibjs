@@ -165,7 +165,7 @@ inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<
         buf = _buf;
     }
 
-    return 0;
+    return result_t();
 }
 
 inline result_t return_bio(BIO* bio, exlib::string& retVal)
@@ -173,7 +173,7 @@ inline result_t return_bio(BIO* bio, exlib::string& retVal)
     BUF_MEM* mem = nullptr;
     BIO_get_mem_ptr(bio, &mem);
     retVal = exlib::string(mem->data, mem->length);
-    return 0;
+    return result_t();
 }
 
 const int kX509NameFlagsMultiline = ASN1_STRFLGS_ESC_2253 | ASN1_STRFLGS_ESC_CTRL | ASN1_STRFLGS_UTF8_CONVERT | XN_FLAG_SEP_MULTILINE | XN_FLAG_FN_SN;

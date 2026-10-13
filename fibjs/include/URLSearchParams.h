@@ -31,7 +31,7 @@ public:
         URLSearchParams* _init = static_cast<URLSearchParams*>(init);
         m_map.insert(m_map.end(), _init->m_map.begin(), _init->m_map.end());
 
-        return 0;
+        return result_t();
     }
 };
 

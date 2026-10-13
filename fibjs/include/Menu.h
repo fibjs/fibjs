@@ -55,7 +55,7 @@ public:
 
                 Unref();
             },
-                CALL_E_GUICALL);
+                result_t::guicall());
         }
     }
 

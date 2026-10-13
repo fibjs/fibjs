@@ -585,7 +585,7 @@ private:
                         module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &source)
                                      .FromMaybe(v8::Local<v8::Module>());
                         if (module.IsEmpty())
-                            exception = GetException(try_catch, 0, false, false);
+                            exception = GetException(try_catch, result_t(), false, false);
                     }
                 } else {
                     v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
@@ -596,7 +596,7 @@ private:
                     v8::ScriptCompiler::Source source(m_isolate->NewString((const char*)data_->data(), data_->length()), so_origin);
                     module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &source).FromMaybe(v8::Local<v8::Module>());
                     if (module.IsEmpty())
-                        exception = GetException(try_catch, 0, false, false);
+                        exception = GetException(try_catch, result_t(), false, false);
                 }
             }
 

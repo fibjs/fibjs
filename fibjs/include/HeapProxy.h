@@ -23,9 +23,9 @@ public:
 
     ~HeapSnapshotProxy()
     {
-        holder()->sync([snapshot = m_snapshot]() -> int {
+        holder()->sync([snapshot = m_snapshot]() {
             ((v8::HeapSnapshot*)snapshot)->Delete();
-            return 0;
+            return result_t();
         });
     }
 

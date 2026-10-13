@@ -64,14 +64,14 @@ result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal)
 
         if constexpr (std::is_same_v<T, obj_ptr<Handler_base>>) {
             retVal = value;
-            return 0;
+            return result_t();
         } else if constexpr (std::is_same_v<T, std::vector<obj_ptr<Handler_base>>>
             || std::is_same_v<T, v8::Local<v8::Function>>
             || std::is_same_v<T, v8::Local<v8::Object>>
             || std::is_same_v<T, exlib::string>) {
             return Handler_base::_new(value, retVal);
         } else {
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
         }
     }, hdlr);
 }
@@ -94,7 +94,7 @@ result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal, AsyncH
             using T = std::decay_t<decltype(value)>;
 
             if constexpr (std::is_same_v<T, obj_ptr<Handler_base>>)
-                return 0; // already a C++ object: left to the async phase
+                return result_t(); // already a C++ object: left to the async phase
             else
                 return Handler_base::_new(value, retVal);
         }, hdlr);
@@ -113,7 +113,7 @@ result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal, AsyncH
     if (ac.ctxv().size() > 0 && ac.ctxv()[0].object() != NULL) {
         retVal = Handler_base::getInstance(ac.ctxv()[0].object());
         if (retVal != NULL)
-            return 0;
+            return result_t();
     }
 
     // otherwise only the class alternative is usable. No *_new is called here:
@@ -123,10 +123,10 @@ result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal, AsyncH
     // them, so they are reported instead of entered off the JS thread.
     if (std::holds_alternative<obj_ptr<Handler_base>>(hdlr)) {
         retVal = std::get<obj_ptr<Handler_base>>(hdlr);
-        return 0;
+        return result_t();
     }
 
-    return result_t::make(CALL_E_EXCEPTION).with_message("the handler union was not prepared: this entry requires the synchronous phase.").with_result(CALL_E_TYPEMISMATCH);
+    return result_t::make(CALL_E_EXCEPTION).with_message("the handler union was not prepared: this entry requires the synchronous phase.").with_result(result_t::type_mismatch());
 }
 
 // Unmigrated callers pass the raw continuation; borrowing it into a handle for
@@ -151,9 +151,9 @@ result_t filehandle_from_union(Variant& fd, obj_ptr<FileHandle_base>& retVal)
             return FileHandle_base::_new(value, retVal);
         } else if constexpr (std::is_same_v<T, obj_ptr<FileHandle_base>>) {
             retVal = value;
-            return 0;
+            return result_t();
         } else {
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
         }
     }, fd);
 }
@@ -168,13 +168,13 @@ result_t urlobject_from_union(Variant& url, obj_ptr<UrlObject_base>& retVal)
 
         if constexpr (std::is_same_v<T, obj_ptr<UrlObject_base>>) {
             retVal = value;
-            return 0;
+            return result_t();
         } else if constexpr (std::is_same_v<T, exlib::string>) {
             return UrlObject_base::_new(value, exlib::string(""), retVal);
         } else if constexpr (std::is_same_v<T, v8::Local<v8::Object>>) {
             return UrlObject_base::load(value, retVal);
         } else {
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
         }
     }, url);
 }
@@ -190,11 +190,11 @@ result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal)
 
         if constexpr (std::is_same_v<T, obj_ptr<Base>>) {
             retVal = value;
-            return 0;
+            return result_t();
         } else if constexpr (std::is_same_v<T, v8::Local<v8::Object>>) {
             return Base::_new(value, retVal);
         } else {
-            return CALL_E_TYPEMISMATCH;
+            return result_t::type_mismatch();
         }
     }, v);
 }
@@ -212,11 +212,11 @@ result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncHandle& 
             using T = std::decay_t<decltype(value)>;
 
             if constexpr (std::is_same_v<T, obj_ptr<Base>>)
-                return 0; // already a C++ object: left to the async phase
+                return result_t(); // already a C++ object: left to the async phase
             else if constexpr (std::is_same_v<T, v8::Local<v8::Object>>)
                 return Base::_new(value, retVal);
             else
-                return CALL_E_TYPEMISMATCH;
+                return result_t::type_mismatch();
         }, v);
         if (hr.failed())
             return hr;
@@ -233,15 +233,15 @@ result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncHandle& 
     if (ac.ctxv().size() > 0 && ac.ctxv()[0].object() != NULL) {
         retVal = Base::getInstance(ac.ctxv()[0].object());
         if (retVal != NULL)
-            return 0;
+            return result_t();
     }
 
     if (std::holds_alternative<obj_ptr<Base>>(v)) {
         retVal = std::get<obj_ptr<Base>>(v);
-        return 0;
+        return result_t();
     }
 
-    return result_t::make(CALL_E_EXCEPTION).with_message("the object union was not prepared: this entry requires the synchronous phase.").with_result(CALL_E_TYPEMISMATCH);
+    return result_t::make(CALL_E_EXCEPTION).with_message("the object union was not prepared: this entry requires the synchronous phase.").with_result(result_t::type_mismatch());
 }
 
 // Raw-continuation bridge, same rule as handler_from_union above.

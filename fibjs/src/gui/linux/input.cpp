@@ -63,7 +63,7 @@ result_t gui_base::input(exlib::string title, exlib::string message, bool passwo
 
     gtk_widget_destroy(dialog);
 
-    return response == GTK_RESPONSE_OK ? 0 : CALL_RETURN_UNDEFINED;
+    return response == GTK_RESPONSE_OK ? result_t() : result_t::return_undefined();
 }
 
 }

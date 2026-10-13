@@ -46,7 +46,7 @@ public:
     virtual result_t stop()
     {
         requestTerminate();
-        return 0;
+        return result_t();
     }
 
     // Node 语义：terminate() 早于 online 上报时，不得再上报 online。

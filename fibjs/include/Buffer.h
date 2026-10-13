@@ -156,7 +156,7 @@ public:
     {
         if (codec == "buffer") {
             retVal = this;
-            return 0;
+            return result_t();
         }
 
         exlib::string str;
@@ -165,14 +165,14 @@ public:
             return hr;
 
         retVal = str;
-        return 0;
+        return result_t();
     }
 
     result_t toValue(exlib::string codec, v8::Local<v8::Value>& retVal)
     {
         if (codec == "buffer") {
             retVal = wrap(holder());
-            return 0;
+            return result_t();
         }
 
         exlib::string str;
@@ -181,14 +181,14 @@ public:
             return hr;
 
         retVal = holder()->NewString(str);
-        return 0;
+        return result_t();
     }
 
     result_t toValue(exlib::string codec, Variant& retVal)
     {
         if (codec == "buffer") {
             retVal = this;
-            return 0;
+            return result_t();
         }
 
         exlib::string str;
@@ -197,7 +197,7 @@ public:
             return hr;
 
         retVal = str;
-        return 0;
+        return result_t();
     }
 
 public:

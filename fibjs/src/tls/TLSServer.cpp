@@ -36,7 +36,7 @@ result_t TLSServer_base::_new(SecureContext_base* context, exlib::string addr, i
 
     retVal = svr;
 
-    return 0;
+    return result_t();
 }
 
 result_t TLSServer_base::_new(v8::Local<v8::Object> options, Union_TLSServer_listener listener,
@@ -81,7 +81,7 @@ result_t TLSServer_base::_new(SecureContext_base* context, Union_TLSServer_liste
         return hr;
 
     retVal = svr;
-    return 0;
+    return result_t();
 }
 
 result_t TLSServer::setup(SecureContext_base* context, Handler_base* listener)
@@ -100,7 +100,7 @@ result_t TLSServer::setup(SecureContext_base* context, Handler_base* listener)
     m_server = _server;
     _server->m_eventDelegate = this;
     _server->set_handler(_handler);
-    return 0;
+    return result_t();
 }
 
 result_t TLSServer::create(SecureContext_base* context, exlib::string addr, int32_t port, Handler_base* listener)
@@ -124,7 +124,7 @@ result_t TLSServer::create(SecureContext_base* context, exlib::string addr, int3
     m_server = _server;
     static_cast<TcpServer*>(_server.get())->m_eventDelegate = this;
 
-    return 0;
+    return result_t();
 }
 
 result_t TLSServer::start()

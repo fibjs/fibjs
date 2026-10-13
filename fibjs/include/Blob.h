@@ -123,13 +123,13 @@ public:
     virtual result_t get_name(exlib::string& retVal)
     {
         retVal = m_name;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_lastModified(double& retVal)
     {
         retVal = m_lastModified;
-        return 0;
+        return result_t();
     }
 
 public:

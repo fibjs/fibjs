@@ -73,13 +73,13 @@ void WebView::app_rpc(exlib::string json)
 
         v8::Local<v8::Value> v = v8::JSON::Parse(context, isolate->NewString(json)).FromMaybe(v8::Local<v8::Value>());
         if (v.IsEmpty() || !v->IsObject())
-            return 0;
+            return result_t();
         v8::Local<v8::Object> req = v.As<v8::Object>();
 
         v8::Local<v8::String> keyId = isolate->NewString("id");
         v = req->Get(context, keyId).FromMaybe(v8::Local<v8::Value>());
         if (v.IsEmpty() || !v->IsString())
-            return 0;
+            return result_t();
         result->Set(context, keyId, v).IsJust();
 
         do {
@@ -148,7 +148,7 @@ void WebView::app_rpc(exlib::string json)
 
             result_json = v8::JSON::Stringify(context, result).FromMaybe(v8::Local<v8::String>());
             if (result_json.IsEmpty())
-                return 0;
+                return result_t();
         }
 
         v8::String::Utf8Value utf8(isolate->m_isolate, result_json);
@@ -156,8 +156,8 @@ void WebView::app_rpc(exlib::string json)
         async([this, code]() {
             internal_eval(code);
         },
-            CALL_E_GUICALL);
-        return 0;
+            result_t::guicall());
+        return result_t();
     });
 }
 
@@ -243,7 +243,7 @@ result_t WebView::async_open()
     async([this]() {
         createWebView();
     },
-        CALL_E_GUICALL);
+        result_t::guicall());
 
     return result_t();
 }

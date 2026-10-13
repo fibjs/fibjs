@@ -139,7 +139,7 @@ private:
                 from->toString(m_from);
             if (to)
                 to->toString(m_to);
-            return 0;
+            return result_t();
         }
 
     public:

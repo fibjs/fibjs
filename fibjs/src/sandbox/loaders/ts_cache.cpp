@@ -213,7 +213,7 @@ void ts_cache_set(size_t key, Buffer_base* js_buf)
         } else {
             unlink(tmp_path.c_str());
         }
-    }, CALL_E_NOSYNC);
+    }, result_t::nosync());
 }
 
 } // namespace fibjs

@@ -177,7 +177,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
 
         ev.set();
     },
-        CALL_E_LONGSYNC);
+        result_t::longsync());
 
     ev.wait();
 

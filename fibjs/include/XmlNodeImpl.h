@@ -36,7 +36,7 @@ public:
     result_t get_nodeType(int32_t& retVal)
     {
         retVal = m_type;
-        return 0;
+        return result_t();
     }
 
     result_t get_parentNode(obj_ptr<XmlNode_base>& retVal)
@@ -45,26 +45,26 @@ public:
             // clear the out parameter: callers may loop on it
             // (while (p) { ...; get_parentNode(p); }) -- see T16
             retVal = NULL;
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         }
         retVal = m_parent->m_node;
-        return 0;
+        return result_t();
     }
 
     result_t get_parentElement(obj_ptr<XmlElement_base>& retVal)
     {
         if (!m_parent || m_parent->m_type != xml_base::C_ELEMENT_NODE) {
             retVal = NULL;
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         }
         retVal = (XmlElement_base*)m_parent->m_node;
-        return 0;
+        return result_t();
     }
 
     result_t get_childNodes(obj_ptr<XmlNodeList_base>& retVal)
     {
         retVal = m_childs;
-        return 0;
+        return result_t();
     }
 
     result_t get_children(obj_ptr<XmlNodeList_base>& retVal)
@@ -76,7 +76,7 @@ public:
     {
         if (!m_parent) {
             retVal = NULL;
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         }
         return m_parent->m_childs->item(m_index - 1, retVal);
     }
@@ -85,7 +85,7 @@ public:
     {
         if (!m_parent) {
             retVal = NULL;
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         }
         return m_parent->m_childs->item(m_index + 1, retVal);
     }
@@ -103,34 +103,34 @@ public:
     result_t get_previousElementSibling(obj_ptr<XmlNode_base>& retVal)
     {
         if (!m_parent)
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         return m_parent->m_childs->find_element(m_index, -1, retVal);
     }
 
     result_t get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
     {
         if (!m_parent)
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         return m_parent->m_childs->find_element(m_index, 1, retVal);
     }
 
     result_t get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
     {
         retVal = m_document;
-        return !retVal ? CALL_RETURN_NULL : 0;
+        return !retVal ? result_t::return_null() : result_t();
     }
 
     result_t lookupPrefix(exlib::string namespaceURI, exlib::string& retVal)
     {
         if (!m_parent || m_parent->m_type == xml_base::C_DOCUMENT_NODE)
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         return m_parent->m_node->lookupPrefix(namespaceURI, retVal);
     }
 
     result_t lookupNamespaceURI(exlib::string prefix, exlib::string& retVal)
     {
         if (!m_parent || m_parent->m_type == xml_base::C_DOCUMENT_NODE)
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
         return m_parent->m_node->lookupNamespaceURI(prefix, retVal);
     }
 
@@ -143,7 +143,7 @@ public:
         }
 
         retVal = to;
-        return 0;
+        return result_t();
     }
 
     // Serialize this node into retVal without recursion (see XmlNodeImpl.cpp).
@@ -250,16 +250,16 @@ public:
     {
         if (m_parent && m_parent->m_childs) {
             m_parent->m_childs->removeChild(m_node, retVal);
-            return 0;
+            return result_t();
         }
 
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
 
     result_t replaceWith(OptArgs nodes)
     {
         if (!m_parent || !m_parent->m_childs)
-            return 0;
+            return result_t();
 
         // Insert all new nodes before the current node
         int32_t len = nodes.Length();
@@ -285,13 +285,13 @@ public:
         obj_ptr<XmlNode_base> retVal;
         m_parent->m_childs->removeChild(m_node, retVal);
 
-        return 0;
+        return result_t();
     }
 
     result_t before(OptArgs nodes)
     {
         if (!m_parent || !m_parent->m_childs)
-            return 0;
+            return result_t();
 
         // Insert all nodes before the current node
         int32_t len = nodes.Length();
@@ -313,13 +313,13 @@ public:
             }
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t after(OptArgs nodes)
     {
         if (!m_parent || !m_parent->m_childs)
-            return 0;
+            return result_t();
 
         // Insert all nodes after the current node
         // Track the reference node for subsequent insertions
@@ -345,7 +345,7 @@ public:
             }
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t contains(XmlNode_base* node, bool& retVal)
@@ -353,30 +353,30 @@ public:
         retVal = false;
 
         if (!node)
-            return 0;
+            return result_t();
 
         // Check if node is the same as this node
         if (node == m_node) {
             retVal = true;
-            return 0;
+            return result_t();
         }
 
         // Check all descendants
         XmlNodeImpl* impl = fromNode(node);
         if (!impl)
-            return 0;
+            return result_t();
 
         // Walk up the parent chain to see if we are an ancestor
         XmlNodeImpl* parent = impl->m_parent;
         while (parent) {
             if (parent->m_node == m_node) {
                 retVal = true;
-                return 0;
+                return result_t();
             }
             parent = parent->m_parent;
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t getRootNode(obj_ptr<XmlNode_base>& retVal)
@@ -386,7 +386,7 @@ public:
             root = root->m_parent;
 
         retVal = root->m_node;
-        return 0;
+        return result_t();
     }
 
     result_t get_isConnected(bool& retVal)
@@ -398,7 +398,7 @@ public:
             root = root->m_parent;
 
         retVal = (root->m_type == xml_base::C_DOCUMENT_NODE);
-        return 0;
+        return result_t();
     }
 
     result_t compareDocumentPosition(XmlNode_base* other, int32_t& retVal)
@@ -414,19 +414,19 @@ public:
 
         if (!other) {
             retVal = DOCUMENT_POSITION_DISCONNECTED;
-            return 0;
+            return result_t();
         }
 
         // Same node
         if (other == m_node) {
             retVal = 0;
-            return 0;
+            return result_t();
         }
 
         XmlNodeImpl* otherImpl = fromNode(other);
         if (!otherImpl) {
             retVal = DOCUMENT_POSITION_DISCONNECTED;
-            return 0;
+            return result_t();
         }
 
         // Check if nodes are in the same document
@@ -436,7 +436,7 @@ public:
 
         if (thisRoot != otherRoot) {
             retVal = DOCUMENT_POSITION_DISCONNECTED | DOCUMENT_POSITION_PRECEDING;
-            return 0;
+            return result_t();
         }
 
         // Check if other contains this
@@ -444,7 +444,7 @@ public:
         while (parent) {
             if (parent->m_node == other) {
                 retVal = DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING;
-                return 0;
+                return result_t();
             }
             parent = parent->m_parent;
         }
@@ -454,7 +454,7 @@ public:
         while (parent) {
             if (parent->m_node == m_node) {
                 retVal = DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING;
-                return 0;
+                return result_t();
             }
             parent = parent->m_parent;
         }
@@ -498,7 +498,7 @@ public:
 
         if (!commonAncestor) {
             retVal = DOCUMENT_POSITION_DISCONNECTED;
-            return 0;
+            return result_t();
         }
 
         // Compare positions under common ancestor
@@ -515,7 +515,7 @@ public:
             retVal = DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING;
         }
 
-        return 0;
+        return result_t();
     }
 
     // Node-by-node comparison used by isEqualNode(): type, name, value,
@@ -581,11 +581,11 @@ public:
         retVal = false;
 
         if (!other)
-            return 0;
+            return result_t();
 
         XmlNodeImpl* otherImpl = fromNode(other);
         if (!otherImpl)
-            return 0;
+            return result_t();
 
         // Pairwise walk.  Comparing two subtrees used to recurse once per level
         // (2 C++ frames) and killed the process on a deep document; this is the
@@ -600,7 +600,7 @@ public:
         };
 
         if (!isEqualNodeSelf(otherImpl))
-            return 0;
+            return result_t();
 
         std::vector<Frame> stack;
         stack.push_back(Frame { this, otherImpl, 0 });
@@ -621,20 +621,20 @@ public:
             frame.index++;
 
             if (!aChild->isEqualNodeSelf(bChild))
-                return 0;
+                return result_t();
 
             if (aChild->m_childs->hasChildNodes())
                 stack.push_back(Frame { aChild, bChild, 0 });
         }
 
         retVal = true;
-        return 0;
+        return result_t();
     }
 
     result_t isSameNode(XmlNode_base* other, bool& retVal)
     {
         retVal = (other == m_node);
-        return 0;
+        return result_t();
     }
 
 public:

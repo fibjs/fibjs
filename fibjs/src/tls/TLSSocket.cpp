@@ -68,7 +68,7 @@ result_t TLSSocket_base::_new(obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Obj
 
     retVal = sock;
 
-    return 0;
+    return result_t();
 }
 
 result_t TLSSocket_base::_new(SecureContext_base* context, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This)
@@ -79,7 +79,7 @@ result_t TLSSocket_base::_new(SecureContext_base* context, obj_ptr<TLSSocket_bas
 
     retVal = sock;
 
-    return 0;
+    return result_t();
 }
 
 result_t TLSSocket_base::_new(v8::Local<v8::Object> options, bool isServer, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This)
@@ -97,7 +97,7 @@ result_t TLSSocket::init(SecureContext_base* context)
     m_ctx = context;
     m_tls = SSL_new(m_ctx.As<SecureContext>()->ctx());
 
-    return 0;
+    return result_t();
 }
 
 // Node.js exposes the X509_V_ERR_* enumeration name (without the prefix) as
@@ -299,13 +299,13 @@ public:
 
         if (m_isolate) {
             obj_ptr<TLSSocket> sock = m_sock;
-            m_isolate->sync([sock, v]() -> int32_t {
+            m_isolate->sync([sock, v]() {
                 JSFiber::EnterJsScope s;
 
                 v8::Local<v8::Value> err = FillError(v);
                 bool retVal;
                 sock->_emit("error", &err, 1, retVal);
-                return 0;
+                return result_t();
             });
         }
         return v;
@@ -349,7 +349,7 @@ result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, Asyn
         return (new AsyncHandshake(this, socket, false, server_name, std::move(ac)))->post(result_t());
 
     (new AsyncHandshake(this, socket, false, server_name, holder()))->post(result_t());
-    return 0;
+    return result_t();
 }
 
 result_t TLSSocket::connect(Stream_base* socket, v8::Local<v8::Function> connectListener, AsyncHandle ac)
@@ -384,18 +384,18 @@ result_t TLSSocket::accept(Stream_base* socket, AsyncHandle ac)
 result_t TLSSocket::get_stream(obj_ptr<Stream_base>& retVal)
 {
     retVal = m_stream;
-    return 0;
+    return result_t();
 }
 
 result_t TLSSocket::getProtocol(exlib::string& retVal)
 {
     const char* protocol = SSL_get_version(m_tls);
     if (protocol == nullptr)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     retVal = protocol;
 
-    return 0;
+    return result_t();
 }
 
 result_t TLSSocket::getX509Certificate(obj_ptr<X509Certificate_base>& retVal)
@@ -403,14 +403,14 @@ result_t TLSSocket::getX509Certificate(obj_ptr<X509Certificate_base>& retVal)
     if (!m_cert) {
         X509* cert = SSL_get_certificate(m_tls);
         if (cert == nullptr)
-            return CALL_RETURN_UNDEFINED;
+            return result_t::return_undefined();
 
         X509_up_ref(cert);
         m_cert = new X509Certificate(cert);
     }
 
     retVal = m_cert;
-    return 0;
+    return result_t();
 }
 
 result_t TLSSocket::getPeerX509Certificate(obj_ptr<X509Certificate_base>& retVal)
@@ -418,26 +418,26 @@ result_t TLSSocket::getPeerX509Certificate(obj_ptr<X509Certificate_base>& retVal
     if (!m_peer_cert) {
         X509* cert = SSL_get_peer_certificate(m_tls);
         if (cert == nullptr)
-            return CALL_RETURN_UNDEFINED;
+            return result_t::return_undefined();
 
         m_peer_cert = new X509Certificate(cert);
     }
 
     retVal = m_peer_cert;
-    return 0;
+    return result_t();
 }
 
 result_t TLSSocket::get_secureContext(obj_ptr<SecureContext_base>& retVal)
 {
     retVal = m_ctx;
-    return 0;
+    return result_t();
 }
 
 result_t TLSSocket::get_remoteAddress(exlib::string& retVal)
 {
     obj_ptr<Socket_base> sock = Socket_base::getInstance(m_stream);
     if (!sock)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     return sock->get_remoteAddress(retVal);
 }
@@ -446,7 +446,7 @@ result_t TLSSocket::get_remotePort(int32_t& retVal)
 {
     obj_ptr<Socket_base> sock = Socket_base::getInstance(m_stream);
     if (!sock)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     return sock->get_remotePort(retVal);
 }
@@ -455,7 +455,7 @@ result_t TLSSocket::get_localAddress(exlib::string& retVal)
 {
     obj_ptr<Socket_base> sock = Socket_base::getInstance(m_stream);
     if (!sock)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     return sock->get_localAddress(retVal);
 }
@@ -464,7 +464,7 @@ result_t TLSSocket::get_localPort(int32_t& retVal)
 {
     obj_ptr<Socket_base> sock = Socket_base::getInstance(m_stream);
     if (!sock)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     return sock->get_localPort(retVal);
 }
@@ -476,17 +476,17 @@ result_t TLSSocket::get_alpnProtocol(exlib::string& retVal)
 
     SSL_get0_alpn_selected(m_tls, &proto, &proto_len);
     if (proto == nullptr || proto_len == 0)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     retVal.assign(reinterpret_cast<const char*>(proto), proto_len);
-    return 0;
+    return result_t();
 }
 
 result_t TLSSocket::get_fd(int32_t& retVal)
 {
     obj_ptr<Socket_base> sock = Socket_base::getInstance(m_stream);
     if (!sock)
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
 
     return sock->get_fd(retVal);
 }
@@ -554,7 +554,7 @@ result_t TLSSocket::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, Asyn
             }
 
             if (m_pos == 0)
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
 
             m_data->resize(m_pos);
             m_retVal = m_data;
@@ -671,7 +671,7 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncHandle ac)
 
 result_t TLSSocket::flush(AsyncHandle ac)
 {
-    return 0;
+    return result_t();
 }
 
 result_t TLSSocket::close(AsyncHandle ac)

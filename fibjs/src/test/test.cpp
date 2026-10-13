@@ -159,7 +159,7 @@ public:
             // keep running (aligned with Node)
             m_status = false;
             m_before_failed = true;
-            m_hook_error = "[describe] " + GetException(try_catch, 0, false, true);
+            m_hook_error = "[describe] " + GetException(try_catch, result_t(), false, true);
             m_errors.append(m_hook_error);
         }
 
@@ -322,7 +322,7 @@ public:
                                 // before failed: mark the suite failed, all its tests fail,
                                 // keep running (aligned with Node)
                                 p->m_before_failed = true;
-                                p->m_hook_error = "[before] " + GetException(try_catch, 0, false, true);
+                                p->m_hook_error = "[before] " + GetException(try_catch, result_t(), false, true);
                                 p->m_errors.append(p->m_hook_error);
                                 p->m_status = false;
                                 break;
@@ -394,7 +394,7 @@ public:
                                     if (try_catch.HasCaught()) {
                                         // beforeEach failed: current test fails and its block
                                         // is skipped, subsequent tests keep running (aligned with Node)
-                                        p1->m_errors.append("[beforeEach] " + GetException(try_catch, 0, false, true));
+                                        p1->m_errors.append("[beforeEach] " + GetException(try_catch, result_t(), false, true));
                                         break;
                                     }
                                 }
@@ -427,7 +427,7 @@ public:
                             }
 
                             if (try_catch.HasCaught()) {
-                                p1->m_errors.append(GetException(try_catch, 0, false, true));
+                                p1->m_errors.append(GetException(try_catch, result_t(), false, true));
                             } else
                                 for (int32_t i = 0; i < p1->m_evs.size(); i++)
                                     p1->m_evs[i]->ac_wait();
@@ -524,7 +524,7 @@ public:
                                 if (try_catch.HasCaught()) {
                                     // afterEach failed: mark current test failed (even if it
                                     // passed), keep running (aligned with Node)
-                                    exlib::string err = "[afterEach] " + GetException(try_catch, 0, false, true);
+                                    exlib::string err = "[afterEach] " + GetException(try_catch, result_t(), false, true);
                                     bool was_passed = p1->m_errors.size() == 0;
 
                                     p1->m_errors.append(err);
@@ -580,7 +580,7 @@ public:
                             // 不再被改写），钩子失败本身作为一条独立失败记录：走叶子测试相同的
                             // 编号失败通道（计入退出码与失败清单），但不计入 tests/failed 计数
                             // （Node 的 fail 同样不含钩子失败，见 test/runner_hook_test.js）。
-                            exlib::string err = "[after] " + GetException(try_catch, 0, false, true);
+                            exlib::string err = "[after] " + GetException(try_catch, result_t(), false, true);
 
                             p->m_status = false;
                             p->m_errors.append(err);
@@ -1123,7 +1123,7 @@ public:
 
     virtual void resume()
     {
-        m_isolate->sync([isolate = m_isolate]() -> int {
+        m_isolate->sync([isolate = m_isolate]() {
             v8::HandleScope handle_scope(isolate->m_isolate);
             JSFiber::EnterJsScope s;
 
@@ -1151,7 +1151,7 @@ public:
 
             process_base::exit(124);
 
-            return 0;
+            return result_t();
         });
 
         delete this;
@@ -1190,7 +1190,7 @@ void run_test(int32_t mode)
         s_watchdog_ms = ms;
     }
 
-    isolate->sync([isolate, mode, td]() -> int {
+    isolate->sync([isolate, mode, td]() {
         v8::HandleScope handle_scope(isolate->m_isolate);
         JSFiber::EnterJsScope s;
 
@@ -1223,7 +1223,7 @@ void run_test(int32_t mode)
         // collect diagnostics and force exit
         arm_test_watchdog(isolate, s_watchdog_ms);
 
-        return 0;
+        return result_t();
     });
 }
 
@@ -1255,7 +1255,7 @@ static void must_call(const v8::FunctionCallbackInfo<v8::Value>& args)
     args.GetReturnValue().Set(result);
 
     if (try_catch.HasCaught()) {
-        td->m_running->m_errors.append(GetException(try_catch, 0, false, true));
+        td->m_running->m_errors.append(GetException(try_catch, result_t(), false, true));
         try_catch.ReThrow();
     }
 
@@ -1297,7 +1297,7 @@ static void not_call(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Local<v8::Value> exp = FillError(CALL_E_EXCEPTION, "This function must never be called.");
+    v8::Local<v8::Value> exp = FillError(result_t(CALL_E_EXCEPTION), "This function must never be called.");
     td->m_running->m_errors.append(GetException(exp, false, true));
     ThrowError(exp);
 }

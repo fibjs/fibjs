@@ -34,19 +34,19 @@ public:
     result_t get_data(exlib::string& retVal)
     {
         retVal = m_data;
-        return 0;
+        return result_t();
     }
 
     result_t set_data(exlib::string newVal)
     {
         m_data = newVal;
-        return 0;
+        return result_t();
     }
 
     result_t get_length(int32_t& retVal)
     {
         retVal = (int32_t)utf8to16String(m_data).length();
-        return 0;
+        return result_t();
     }
 
     result_t substringData(int32_t offset, int32_t count, exlib::string& retVal)
@@ -60,13 +60,13 @@ public:
             count = (int32_t)_data.length() - offset;
 
         retVal = utf16to8String(_data.substr(offset, count));
-        return 0;
+        return result_t();
     }
 
     result_t appendData(exlib::string arg)
     {
         m_data.append(arg);
-        return 0;
+        return result_t();
     }
 
     result_t insertData(int32_t offset, exlib::string arg)
@@ -78,7 +78,7 @@ public:
 
         _data = _data.substr(0, offset) + utf8to16String(arg) + _data.substr(offset);
         m_data = utf16to8String(_data);
-        return 0;
+        return result_t();
     }
 
     result_t deleteData(int32_t offset, int32_t count)
@@ -93,7 +93,7 @@ public:
 
         _data = _data.substr(0, offset) + _data.substr(offset + count);
         m_data = utf16to8String(_data);
-        return 0;
+        return result_t();
     }
 
     result_t replaceData(int32_t offset, int32_t count, exlib::string arg)
@@ -108,7 +108,7 @@ public:
 
         _data = _data.substr(0, offset) + utf8to16String(arg) + _data.substr(offset + count);
         m_data = utf16to8String(_data);
-        return 0;
+        return result_t();
     }
 
     result_t splitText(int32_t offset, exlib::string& retVal)
@@ -121,7 +121,7 @@ public:
         retVal = utf16to8String(_data.substr(offset));
         _data = _data.substr(0, offset);
         m_data = utf16to8String(_data);
-        return 0;
+        return result_t();
     }
 
     exlib::string encodedText()

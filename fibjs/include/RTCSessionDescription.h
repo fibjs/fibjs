@@ -48,13 +48,13 @@ public:
             break;
         }
 
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_sdp(exlib::string& retVal)
     {
         retVal = m_desc.generateSdp();
-        return 0;
+        return result_t();
     }
 
 public:

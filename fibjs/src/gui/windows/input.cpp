@@ -380,7 +380,7 @@ result_t gui_base::input(exlib::string title, exlib::string message, bool passwo
         hr = params.dialogResult ? 0 : CALL_RETURN_UNDEFINED;
         ev.set();
     },
-        CALL_E_LONGSYNC);
+        result_t::longsync());
 
     ev.wait();
     return hr;

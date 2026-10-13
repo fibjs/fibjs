@@ -157,7 +157,7 @@ public:
     // No body path
     ON_STATE(asyncConsumeBody, noBody)
     {
-        return next(m_fn(CALL_RETURN_NULL, nullptr));
+        return next(m_fn(result_t::return_null(), nullptr));
     }
 
     // Body already consumed path: throw TypeError

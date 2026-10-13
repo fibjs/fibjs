@@ -75,7 +75,7 @@ public:
 
     virtual result_t stop()
     {
-        return 0;
+        return result_t();
     }
 
 private:
@@ -191,7 +191,7 @@ public:
         if (m_isolate)
             m_isolate->sync([this]() {
                 delete this;
-                return 0;
+                return result_t();
             });
         else
             delete this;
@@ -248,12 +248,12 @@ public:
 
     virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {
-        return 0;
+        return result_t();
     }
 
     virtual result_t onEventEmit(exlib::string ev)
     {
-        return 0;
+        return result_t();
     }
 
     // 异步投递事件的「投递前再确认」：_emit 是异步的（JSTrigger::AsyncEmitter 会在
@@ -323,7 +323,7 @@ public:
 
     static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<object_base>& retVal)
     {
-        return CALL_E_TYPEMISMATCH;
+        return result_t::type_mismatch();
     }
 
 public:
@@ -398,7 +398,7 @@ public:
     virtual result_t equals(object_base* expected, bool& retVal)
     {
         retVal = expected == this;
-        return 0;
+        return result_t();
     }
 
     virtual result_t toString(exlib::string& retVal)
@@ -420,13 +420,13 @@ public:
         extend(o, o1);
         retVal = o1;
 
-        return 0;
+        return result_t();
     }
 
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
         retVal = wrap(holder());
-        return 0;
+        return result_t();
     }
 
     result_t unbind_dispose(obj_ptr<object_base>& retVal)
@@ -452,7 +452,7 @@ public:
 
         retVal = this;
 
-        return 0;
+        return result_t();
     }
 
 public:
@@ -524,9 +524,9 @@ public:
     virtual void Unref()
     {
         if (internalUnref() == 0)
-            m_isolate->sync([this]() -> int {
+            m_isolate->sync([this]() {
                 delete this;
-                return 0;
+                return result_t();
             });
     }
 

@@ -94,7 +94,7 @@ public:
 
     ~AsyncStreamResume()
     {
-        finish(0, false);
+        finish(result_t(), false);
     }
 
     AsyncStreamResume(const AsyncStreamResume&) = delete;
@@ -138,6 +138,16 @@ public:
         kWakeDeliveryDone
     };
 
+    // The wake tokens ride the value channel like every other protocol signal
+    // (the bridge codes with named constructions): park() hands the ticket back
+    // with the token it was issued under, and the wake side posts the token as
+    // a value. 0x10000 is above every error code, so the default `!=` compare
+    // still tells a wake from an error.
+    static result_t wake_token(int32_t token)
+    {
+        return result_t(token);
+    }
+
     AsyncStreamReader(Stream_base* pThis, AsyncStreamBase* base)
         : AsyncState(NULL)
         , m_this(pThis)
@@ -158,7 +168,7 @@ public:
     void start()
     {
         m_this->isolate_ref();
-        apost(kWakeStart);
+        apost(wake_token(kWakeStart));
     }
 
     void request_resume()
@@ -182,7 +192,7 @@ public:
         m_ticket_lock.unlock();
 
         if (ticket)
-            ticket.apost(token);
+            ticket.apost(wake_token(token));
         else
             m_pendingWake.store(token);
     }
@@ -221,7 +231,6 @@ public:
             m_wait = kWaitResume;
             return park();
         }
-
         m_wait = kWaitNone;
         return next(recv);
     }
@@ -301,15 +310,15 @@ public:
         ticket = std::move(m_ticket);
         m_ticket_lock.unlock();
         std::shared_ptr<AsyncStreamResume> resume = std::make_shared<AsyncStreamResume>(ticket);
-        m_isolate->sync([stream, data, resume]() mutable -> int32_t {
+        m_isolate->sync([stream, data, resume]() mutable {
             JSFiber::EnterJsScope s;
 
             v8::Local<v8::Value> arg = data;
             bool retVal;
             stream->_emit("data", &arg, 1, retVal);
 
-            resume->commit(kWakeDeliveryDone);
-            return 0;
+            resume->commit(AsyncStreamReader::wake_token(AsyncStreamReader::kWakeDeliveryDone));
+            return result_t();
         });
 
         return result_t::pending();
@@ -358,10 +367,10 @@ public:
 
         if (v.is(CALL_E_TIMEOUT)) {
             obj_ptr<Stream_base> stream = m_this;
-            m_isolate->sync([stream]() -> int32_t {
+            m_isolate->sync([stream]() {
                 JSFiber::EnterJsScope s;
                 stream->_emit("timeout");
-                return 0;
+                return result_t();
             });
             next(recv);
             return result_t::pending();
@@ -369,13 +378,13 @@ public:
 
         obj_ptr<Stream_base> stream = m_this;
         // The description rides with the value into the emit fiber.
-        m_isolate->sync([stream, v]() -> int32_t {
+        m_isolate->sync([stream, v]() {
             JSFiber::EnterJsScope s;
 
             v8::Local<v8::Value> err = FillError(v);
             bool retVal;
             stream->_emit("error", &err, 1, retVal);
-            return 0;
+            return result_t();
         });
 
         return v;
@@ -384,7 +393,7 @@ public:
 private:
     // 挂票等待唤醒（wait 状态）：票据存回 m_ticket，由唤醒方消费；
     // 若期间已有待处理唤醒，立即把它作为一次回投发出去。
-    int32_t park()
+    result_t park()
     {
         m_ticket_lock.lock();
         m_ticket = next(wait);
@@ -398,9 +407,9 @@ private:
             m_ticket_lock.unlock();
 
             if (ticket)
-                ticket.apost(pending);
+                ticket.apost(wake_token(pending));
         }
-        return CALL_E_PENDDING;
+        return result_t::pending();
     }
 
 private:
@@ -438,7 +447,7 @@ public:
         } else if (ev == "connect")
             m_connect_event = true;
 
-        return 0;
+        return result_t();
     }
 
     // Stream_base
@@ -461,7 +470,7 @@ public:
         ON_STATE(AsyncReadVariant, done)
         {
             if (n.is_return_null())
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
 
             if (!m_pThis->m_decoder) {
                 m_retVal = m_buf;
@@ -491,7 +500,7 @@ public:
 
             if (m_pendingQueue.empty()) {
                 m_lock.unlock();
-                return CALL_RETURN_NULL;
+                return result_t::return_null();
             }
 
             // read(n) with n > 0: check if enough bytes buffered
@@ -501,7 +510,7 @@ public:
                     if ((size_t)bytes > m_highWaterMark)
                         m_highWaterMark = roundUpPow2(bytes);
                     m_lock.unlock();
-                    return CALL_RETURN_NULL;
+                    return result_t::return_null();
                 }
             }
 
@@ -561,7 +570,7 @@ public:
                 reader->request_drain();
             }
 
-            return 0;
+            return result_t();
         }
 
         if (ac.isSync())
@@ -591,7 +600,7 @@ public:
         {
             if (n.is_return_null()) {
                 if (m_buf.size() == 0)
-                    return next(CALL_RETURN_NULL);
+                    return next(result_t::return_null());
                 m_retVal = m_buf.buffer();
                 return next(0);
             }
@@ -628,7 +637,7 @@ public:
         this->m_encoding = encoding;
         this->m_decoder = new TextDecoder(encoding, false, false);
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
@@ -755,13 +764,13 @@ public:
     virtual result_t get_writable(bool& retVal)
     {
         retVal = !m_ended;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_readable(bool& retVal)
     {
         retVal = !m_ended;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get__readableState(v8::Local<v8::Object>& retVal)
@@ -770,14 +779,14 @@ public:
         v8::Local<v8::Context> context = isolate->context();
         retVal = v8::Object::New(isolate->m_isolate);
         retVal->Set(context, isolate->NewString("ended"), v8::Boolean::New(isolate->m_isolate, m_ended)).IsJust();
-        return 0;
+        return result_t();
     }
 
     virtual result_t get__writableState(v8::Local<v8::Object>& retVal)
     {
         Isolate* isolate = this->holder();
         retVal = v8::Object::New(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
     class AsyncDestroyEmitter : public AsyncState {
@@ -810,7 +819,7 @@ public:
             // Idempotent: if already destroyed, return immediately
             if (m_destroyed) {
                 retVal = this;
-                return 0;
+                return result_t();
             }
             m_destroyed = true;
 
@@ -840,7 +849,7 @@ public:
             startRecvStream();
         }
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     virtual result_t pause(obj_ptr<Stream_base>& retVal)
@@ -850,7 +859,7 @@ public:
             object_base::isolate_unref();
         }
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     virtual result_t pipe(v8::Local<v8::Value> destination, v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
@@ -860,7 +869,7 @@ public:
 
     virtual result_t unpipe(Stream_base* destination)
     {
-        return 0;
+        return result_t();
     }
 
     // Write queue state machine: processes enqueued writes one at a time (FIFO)
@@ -1026,21 +1035,21 @@ public:
     virtual result_t getReader(obj_ptr<StreamReader_base>& retVal)
     {
         retVal = new StreamReader(this);
-        return 0;
+        return result_t();
     }
 
     virtual result_t ref(obj_ptr<Stream_base>& retVal)
     {
         object_base::isolate_ref();
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     virtual result_t unref(obj_ptr<Stream_base>& retVal)
     {
         object_base::isolate_unref();
         retVal = this;
-        return 0;
+        return result_t();
     }
 
 public:

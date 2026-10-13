@@ -69,7 +69,7 @@ private:
         if (m_closed)
             return result_t::make(CALL_E_EXCEPTION).with_message("socket closed.");
 
-        return 0;
+        return result_t();
     }
 
     result_t is_not_connected()
@@ -77,7 +77,7 @@ private:
         if (m_stream)
             return result_t::make(CALL_E_EXCEPTION).with_message("socket already connected.");
 
-        return 0;
+        return result_t();
     }
 
 public:

@@ -187,9 +187,9 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
 
 void Worker::start()
 {
-    m_isolate->sync([this]() -> int {
+    m_isolate->sync([this]() {
         _main();
-        return 0;
+        return result_t();
     });
 }
 
@@ -408,7 +408,7 @@ void Worker::requestTerminate()
     // 会让出事件循环的 sync 型 native 调用里，实测 zlib.deflateSync 走 AsyncCall
     // 就是如此，timer 能在它返回前触发），清完不还原就等于取消了这次终止 ——
     // JS 会接着跑，terminate() 永不收敛。故先记下原状态，做完 V8 收尾立即还原。
-    peerIsolate->sync([peerIsolate, peerPort]() -> int {
+    peerIsolate->sync([peerIsolate, peerPort]() {
         v8::Isolate* v8_isolate = peerIsolate->m_isolate;
         bool was_terminating = v8_isolate->IsExecutionTerminating();
         v8_isolate->CancelTerminateExecution();
@@ -425,7 +425,7 @@ void Worker::requestTerminate()
         if (was_terminating)
             v8_isolate->TerminateExecution();
 
-        return 0;
+        return result_t();
     });
 }
 
@@ -456,9 +456,9 @@ void Worker::exitFromInside(int32_t code)
     //
     // 先投递「让出后取消」：软中断在边界上升级为 V8 终止后，这里把标志清掉，
     // 避免它跨过中断点影响收尾期的 JS。
-    isolate->sync([isolate]() -> int {
+    isolate->sync([isolate]() {
         isolate->m_isolate->CancelTerminateExecution();
-        return 0;
+        return result_t();
     });
 
     JSFiber* fb = JSFiber::current();
@@ -582,10 +582,10 @@ void Worker::emitExit(int32_t exitCode)
     if (peerPort) {
         Isolate* peerIsolate = peerPort->get_holder();
         if (peerIsolate)
-            peerIsolate->sync([peerPort]() -> int {
+            peerIsolate->sync([peerPort]() {
                 JSFiber::EnterJsScope s;
                 peerPort->close();
-                return 0;
+                return result_t();
             });
     }
 

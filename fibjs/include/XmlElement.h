@@ -182,17 +182,17 @@ public:
 
             if (el->m_prefix.empty()) {
                 def_ns = el->m_namespaceURI;
-                return 0;
+                return result_t();
             }
 
             result_t hr = el->getAttribute("xmlns", def_ns);
             if (!hr.is_return_null())
-                return 0;
+                return result_t();
 
             p = p->m_parent;
         }
 
-        return 0;
+        return result_t();
     }
 
     // includeSelf: document-level queries start at the root element itself,
@@ -233,10 +233,10 @@ public:
 
         if (found) {
             retVal = found;
-            return 0;
+            return result_t();
         }
 
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
 
     void getTextContent(StringBuffer& retVal)
@@ -311,10 +311,10 @@ public:
 
         if (found) {
             retVal = found;
-            return 0;
+            return result_t();
         }
 
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
 
     // split a class attribute / query into whitespace separated tokens,

@@ -113,7 +113,7 @@ public:
             m_levels[console_base::C_PRINT] = true;
         }
 
-        return 0;
+        return result_t();
     }
 
     virtual result_t post(result_t v)

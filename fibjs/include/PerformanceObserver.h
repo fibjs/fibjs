@@ -54,25 +54,25 @@ public:
     virtual result_t get_name(exlib::string& retVal)
     {
         retVal = m_name;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_entryType(exlib::string& retVal)
     {
         retVal = "mark";
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_startTime(double& retVal)
     {
         retVal = m_startTime;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_duration(double& retVal)
     {
         retVal = 0;
-        return 0;
+        return result_t();
     }
 
 public:
@@ -80,7 +80,7 @@ public:
     virtual result_t get_detail(v8::Local<v8::Value>& retVal)
     {
         retVal = v8::Local<v8::Value>::New(holder()->m_isolate, m_detail);
-        return 0;
+        return result_t();
     }
 
 private:
@@ -112,25 +112,25 @@ public:
     virtual result_t get_name(exlib::string& retVal)
     {
         retVal = m_name;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_entryType(exlib::string& retVal)
     {
         retVal = "measure";
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_startTime(double& retVal)
     {
         retVal = m_startTime;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_duration(double& retVal)
     {
         retVal = m_duration;
-        return 0;
+        return result_t();
     }
 
 public:
@@ -138,7 +138,7 @@ public:
     virtual result_t get_detail(v8::Local<v8::Value>& retVal)
     {
         retVal = v8::Local<v8::Value>::New(holder()->m_isolate, m_detail);
-        return 0;
+        return result_t();
     }
 
 private:

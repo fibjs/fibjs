@@ -28,7 +28,7 @@ result_t gui_base::alert(exlib::string title, exlib::string message, AsyncHandle
         MessageBoxW(NULL, (LPCWSTR)utf8to16String(message).c_str(), (LPCWSTR)utf8to16String(title).c_str(), MB_OK | MB_ICONINFORMATION);
         ev.set();
     },
-        CALL_E_LONGSYNC);
+        result_t::longsync());
 
     ev.wait();
 
@@ -51,7 +51,7 @@ result_t gui_base::confirm(exlib::string title, exlib::string message, bool& ret
         retVal = result == IDOK;
         ev.set();
     },
-        CALL_E_LONGSYNC);
+        result_t::longsync());
 
     ev.wait();
 

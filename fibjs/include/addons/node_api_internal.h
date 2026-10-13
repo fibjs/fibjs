@@ -318,10 +318,10 @@ public:
     static void BackingStoreDeleter(void* data, size_t length, void* arg)
     {
         CallBackInfo* info = static_cast<CallBackInfo*>(arg);
-        info->env->sync([data, length, info]() -> int {
+        info->env->sync([data, length, info]() {
             info->callback(static_cast<char*>(data), info->hint);
             delete info;
-            return 0;
+            return fibjs::result_t();
         });
     }
 

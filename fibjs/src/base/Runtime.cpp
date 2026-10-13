@@ -197,7 +197,7 @@ result_t setRuntimeError(int32_t code, const char* err)
     if (err)
         return result_t::make(code).with_message(exlib::string("property ") + err + " is not optional.");
 
-    return code;
+    return result_t(code);
 }
 
 } /* namespace fibjs */

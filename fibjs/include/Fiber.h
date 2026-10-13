@@ -94,7 +94,7 @@ public:
         fb->New(func, args, argCount, pThis);
         retVal = fb;
 
-        return 0;
+        return result_t();
     }
 
     template <typename T>
@@ -109,16 +109,16 @@ public:
         fb->New(func, datas.data(), args.Length(), fb->wrap(isolate), urgent);
         retVal = fb;
 
-        return 0;
+        return result_t();
     }
 
     result_t get_result(v8::Local<v8::Value>& retVal)
     {
         if (m_result.IsEmpty())
-            return CALL_RETURN_NULL;
+            return result_t::return_null();
 
         retVal = m_result.Get(holder()->m_isolate);
-        return 0;
+        return result_t();
     }
 
     void clear()

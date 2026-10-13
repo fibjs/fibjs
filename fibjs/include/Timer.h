@@ -35,12 +35,12 @@ public:
 
     virtual result_t ref(obj_ptr<Timer_base>& retVal)
     {
-        return 0;
+        return result_t();
     }
 
     virtual result_t unref(obj_ptr<Timer_base>& retVal)
     {
-        return 0;
+        return result_t();
     }
 
     virtual result_t clear()
@@ -48,13 +48,13 @@ public:
         if (m_cancel.CompareAndSwap(0, 1) == 0)
             exlib::Fiber::cancel_sleep(this);
 
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_stopped(bool& retVal)
     {
         retVal = m_cancel != 0;
-        return 0;
+        return result_t();
     }
 
 public:
@@ -106,7 +106,7 @@ protected:
             Unref();
         }
 
-        return 0;
+        return result_t();
     }
 
     static result_t _callback(Timer* pThis)
@@ -187,14 +187,14 @@ public:
     {
         isolate_ref();
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     virtual result_t unref(obj_ptr<Timer_base>& retVal)
     {
         isolate_unref();
         retVal = this;
-        return 0;
+        return result_t();
     }
 
 public:

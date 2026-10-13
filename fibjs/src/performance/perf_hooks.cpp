@@ -106,14 +106,14 @@ void PerformanceObserver::emit(obj_ptr<PerformanceEntry_base> entry)
         return;
 
     Isolate* isolate = holder();
-    isolate->sync([this, isolate]() -> int32_t {
+    isolate->sync([this, isolate]() {
         JSFiber::EnterJsScope s;
         v8::Local<v8::Context> context = isolate->context();
 
         v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(isolate->m_isolate, m_callback);
         if (callback.IsEmpty()) {
             m_running = false;
-            return 0;
+            return result_t();
         }
 
         while (true) {
@@ -125,7 +125,7 @@ void PerformanceObserver::emit(obj_ptr<PerformanceEntry_base> entry)
 
             if (entries.empty()) {
                 m_running = false;
-                return 0;
+                return result_t();
             }
 
             obj_ptr<PerformanceObserverEntryList> entryList = new PerformanceObserverEntryList(entries);
@@ -133,7 +133,7 @@ void PerformanceObserver::emit(obj_ptr<PerformanceEntry_base> entry)
             callback->Call(context, wrap(), 1, &args);
         }
 
-        return 0;
+        return result_t();
     });
 }
 

@@ -154,7 +154,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
             }
         }
 
-        result_t setResult(int32_t hr = 0)
+        result_t setResult(result_t hr = result_t())
         {
             while (m_lists.size()) {
                 int32_t idx = (int32_t)m_lists.size() - 1;
@@ -170,10 +170,10 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
                 m_lists.pop();
                 m_counts.pop();
 
-                hr = 0;
+                hr = result_t();
             }
 
-            if (hr < 0)
+            if (hr.failed())
                 return next(hr);
 
             if (m_subMode == 0) {
@@ -212,7 +212,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
 
                 if (sz < 0) {
                     m_val.setNull();
-                    return setResult(CALL_RETURN_NULL);
+                    return setResult(result_t::return_null());
                 }
 
                 return m_stmBuffered->readBuffer(sz + 2, m_buffer, next(bulk_ok));
@@ -223,7 +223,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
 
                 if (sz < 0) {
                     m_val.setNull();
-                    return setResult(CALL_RETURN_NULL);
+                    return setResult(result_t::return_null());
                 }
 
                 if (sz == 0) {
@@ -243,7 +243,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncHandle ac)
         ON_STATE(asyncCommand, bulk_ok)
         {
             if (n.is_return_null())
-                return setResult(CALL_RETURN_NULL);
+                return setResult(result_t::return_null());
 
             int32_t sz = Buffer::Cast(m_buffer)->length();
             obj_ptr<Buffer_base> buf;

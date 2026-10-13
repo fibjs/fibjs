@@ -72,7 +72,7 @@ public:
     virtual result_t releaseLock()
     {
         m_stream.Release();
-        return 0;
+        return result_t();
     }
 
     class AsyncCancel : public AsyncState {
@@ -109,7 +109,7 @@ public:
             return result_t::nosync();
 
         if (!m_stream)
-            return 0;
+            return result_t();
 
         return (new AsyncCancel(this, std::move(ac)))->post(result_t());
     }
@@ -130,7 +130,7 @@ public:
         }
 
         retVal = m_closed_promise.Get(isolate->m_isolate);
-        return 0;
+        return result_t();
     }
 
 private:
@@ -141,7 +141,7 @@ private:
             return;
 
         obj_ptr<StreamReader> pThis(this);
-        isolate->sync([pThis, isolate]() -> int32_t {
+        isolate->sync([pThis, isolate]() {
             JSFiber::EnterJsScope s;
 
             if (!pThis->m_closed_resolver.IsEmpty()) {
@@ -150,7 +150,7 @@ private:
                 resolver->Resolve(context, v8::Undefined(isolate->m_isolate)).FromMaybe(false);
                 pThis->m_closed_resolver.Reset();
             }
-            return 0;
+            return result_t();
         });
     }
 

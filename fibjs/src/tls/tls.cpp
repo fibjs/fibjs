@@ -41,7 +41,7 @@ result_t tls_base::get_secureContext(obj_ptr<SecureContext_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
     retVal = isolate->m_ctx;
-    return 0;
+    return result_t();
 }
 
 class asyncConnect : public AsyncState {
@@ -138,7 +138,7 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
 result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
     if (qstrcmp(url.c_str(), "ssl:", 4))
-        return result_t::make(CALL_E_EXCEPTION).with_format("tls.connect: url must start with 'ssl:', got '%s'.", url.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("tls.connect: url must start with 'ssl:', got '%s'.", url.c_str()).with_result(result_t::invalid_arg());
 
     if (ac.isSync()) {
         // only the listener registration needs the sync phase; without one the
@@ -167,7 +167,7 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
 
     exlib::string port = u->port();
     if (port.length() == 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("tls.connect: missing port in url '%s'.", url.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("tls.connect: missing port in url '%s'.", url.c_str()).with_result(result_t::invalid_arg());
 
     int32_t nPort = atoi(port.c_str());
     obj_ptr<TLSSocket> ssl_sock;

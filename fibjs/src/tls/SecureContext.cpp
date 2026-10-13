@@ -20,20 +20,20 @@ static result_t load_cert_option(v8::Local<v8::Object> options, const char* name
     result_t hr = GetConfigValue(options, name, retVal);
 
     if (hr.ok())
-        return 0;
+        return result_t();
 
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL) && !hr.is_type_mismatch())
         return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("SecureContext: ") + name + " must be a valid X509Certificate, Buffer, or Buffer array.");
 
     if (!js_obj_has_value(options, context, name))
-        return CALL_E_PARAMNOTOPTIONAL;
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
 
     v8::Local<v8::Value> value = options->Get(context, isolate->NewString(name)).FromMaybe(v8::Local<v8::Value>());
     hr = X509Certificate_base::load(value, retVal);
     if (hr.failed())
         return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("SecureContext: ") + name + " must be a valid X509Certificate, Buffer, or Buffer array.");
 
-    return 0;
+    return result_t();
 }
 
 result_t tls_base::createSecureContext(v8::Local<v8::Object> options, bool isServer, obj_ptr<SecureContext_base>& retVal)
@@ -51,7 +51,7 @@ result_t tls_base::createSecureContext(v8::Local<v8::Object> options, bool isSer
 
     retVal = ctx;
 
-    return 0;
+    return result_t();
 }
 
 result_t tls_base::createSecureContext(bool isServer, obj_ptr<SecureContext_base>& retVal)
@@ -100,7 +100,7 @@ result_t SecureContext::init(v8::Local<v8::Object> options, bool isServer)
     } else
         m_sniContexts.resize(0);
 
-    return 0;
+    return result_t();
 }
 
 void SecureContext::init_ctx(const SSL_METHOD* method)
@@ -134,7 +134,7 @@ result_t SecureContext::set_ca(v8::Local<v8::Object> options, bool isServer)
     else if (!isServer)
         return set_ca(isolate->m_ctx.As<SecureContext>()->m_ca);
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::set_ca(X509Certificate_base* cas)
@@ -150,7 +150,7 @@ result_t SecureContext::set_ca(X509Certificate_base* cas)
 
     m_ca = cas;
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::SetRootCerts()
@@ -164,17 +164,17 @@ result_t SecureContext::SetRootCerts()
 
     SSL_CTX_set_verify(m_ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::get_ca(obj_ptr<X509Certificate_base>& retVal)
 {
     if (!m_ca)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     retVal = m_ca;
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::set_key(v8::Local<v8::Object> options)
@@ -211,17 +211,17 @@ result_t SecureContext::set_key(v8::Local<v8::Object> options)
     } else if (m_cert)
         return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: key must be set before cert.");
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::get_key(obj_ptr<KeyObject_base>& retVal)
 {
     if (!m_key)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     retVal = m_key;
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::set_cert(v8::Local<v8::Object> options)
@@ -246,17 +246,17 @@ result_t SecureContext::set_cert(v8::Local<v8::Object> options)
         m_cert = certs;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::get_cert(obj_ptr<X509Certificate_base>& retVal)
 {
     if (!m_cert)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     retVal = m_cert;
 
-    return 0;
+    return result_t();
 }
 
 inline result_t ver_id(const exlib::string& ver, int32_t& retVal)
@@ -276,7 +276,7 @@ inline result_t ver_id(const exlib::string& ver, int32_t& retVal)
     else
         return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: TLS version \"" + ver + "\" is not supported.");
 
-    return 0;
+    return result_t();
 }
 
 inline result_t ver_string(int32_t ver, exlib::string& retVal)
@@ -284,25 +284,25 @@ inline result_t ver_string(int32_t ver, exlib::string& retVal)
     switch (ver) {
     case SSL2_VERSION:
         retVal = "SSLv2";
-        return 0;
+        return result_t();
     case SSL3_VERSION:
         retVal = "SSLv3";
-        return 0;
+        return result_t();
     case TLS1_VERSION:
         retVal = "TLSv1";
-        return 0;
+        return result_t();
     case TLS1_1_VERSION:
         retVal = "TLSv1.1";
-        return 0;
+        return result_t();
     case TLS1_2_VERSION:
         retVal = "TLSv1.2";
-        return 0;
+        return result_t();
     case TLS1_3_VERSION:
         retVal = "TLSv1.3";
-        return 0;
+        return result_t();
     }
 
-    return CALL_RETURN_UNDEFINED;
+    return result_t::return_undefined();
 }
 
 result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool isServer)
@@ -408,7 +408,7 @@ result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool i
     if (maxVersion)
         SSL_CTX_set_max_proto_version(m_ctx, maxVersion);
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::get_maxVersion(exlib::string& retVal)
@@ -432,9 +432,9 @@ result_t SecureContext::get_secureProtocol(exlib::string& retVal)
     else if (method == TLS_server_method())
         retVal = "TLS_server_method";
     else
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
@@ -473,7 +473,7 @@ result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
             return 1;
         });
 
-    return 0;
+    return result_t();
 }
 
 int SecureContext::sn_callback(SSL* ssl, int* ad)
@@ -536,7 +536,7 @@ result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
                 exlib::Event ready;
             } param = { this, key };
 
-            holder()->sync([&param]() -> int {
+            holder()->sync([&param]() {
                 JSFiber::EnterJsScope s;
                 Isolate* isolate = param.self->holder();
                 v8::Local<v8::Context> context = isolate->context();
@@ -548,7 +548,7 @@ result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
 
                 param.ready.set();
 
-                return 0;
+                return result_t();
             });
 
             param.ready.wait();
@@ -564,25 +564,25 @@ result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
     SSL_CTX_set_tlsext_servername_arg(m_ctx, this);
     SSL_CTX_set_tlsext_servername_callback(m_ctx, s_sn_callback);
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::get_requestCert(bool& retVal)
 {
     retVal = !!(SSL_CTX_get_verify_mode(m_ctx) & SSL_VERIFY_PEER);
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::get_rejectUnverified(bool& retVal)
 {
     retVal = SSL_CTX_get_verify_callback(m_ctx) == nullptr;
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::get_rejectUnauthorized(bool& retVal)
 {
     retVal = !!(SSL_CTX_get_verify_mode(m_ctx) & SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::set_sessionTimeout(v8::Local<v8::Object> options)
@@ -598,19 +598,19 @@ result_t SecureContext::set_sessionTimeout(v8::Local<v8::Object> options)
         if (SSL_CTX_set_timeout(m_ctx, timeout) <= 0)
             return openssl_error();
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::get_sessionTimeout(int32_t& retVal)
 {
     retVal = SSL_CTX_get_timeout(m_ctx);
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::setSNIContext(exlib::string servername, SecureContext_base* context)
 {
     m_sniContexts.set(servername, (SecureContext*)context);
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::setSNIContext(exlib::string servername, v8::Local<v8::Object> options)
@@ -631,23 +631,23 @@ result_t SecureContext::getSNIContext(exlib::string servername, bool auto_resolv
 
     obj_ptr<SecureContext> ctx;
     if (!m_sniContexts.lookup(servername, ctx, auto_resolve))
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     retVal = ctx;
 
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::removeSNIContext(exlib::string servername)
 {
     m_sniContexts.erase(servername);
-    return 0;
+    return result_t();
 }
 
 result_t SecureContext::clearSNIContexts()
 {
     m_sniContexts.clear();
-    return 0;
+    return result_t();
 }
 
 int SecureContext::alpn_select_callback(SSL* ssl, const unsigned char** out, unsigned char* outlen,
@@ -676,7 +676,7 @@ result_t SecureContext::set_alpnProtocols(v8::Local<v8::Object> options, bool is
     v8::Local<v8::Value> val;
     hr = GetConfigValue(options, "alpnProtocols", val);
     if (hr.is_param_missing())
-        return 0;
+        return result_t();
     if (hr.failed())
         return hr;
 
@@ -686,7 +686,7 @@ result_t SecureContext::set_alpnProtocols(v8::Local<v8::Object> options, bool is
     v8::Local<v8::Array> arr = val.As<v8::Array>();
     uint32_t len = arr->Length();
     if (len == 0)
-        return 0;
+        return result_t();
 
     // Build wire-format ALPN protocol list: each protocol prefixed by its length byte
     m_alpnProtos.clear();
@@ -711,7 +711,7 @@ result_t SecureContext::set_alpnProtocols(v8::Local<v8::Object> options, bool is
             return result_t::make(CALL_E_EXCEPTION).with_message("SecureContext: failed to set ALPN protocols.");
     }
 
-    return 0;
+    return result_t();
 }
 
 }

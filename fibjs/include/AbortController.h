@@ -39,7 +39,7 @@ public:
             for (const auto& callback : tmp)
                 callback();
         }
-        return 0;
+        return result_t();
     }
 
 public:

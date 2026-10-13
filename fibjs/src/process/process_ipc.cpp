@@ -105,7 +105,7 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
 
         ~asyncRead()
         {
-            m_this->m_isolate->sync([ipc = m_this]() -> int {
+            m_this->m_isolate->sync([ipc = m_this]() {
                 JSFiber::EnterJsScope s;
 
                 if (ipc->m_channel) {
@@ -126,7 +126,7 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
 
                 delete ipc;
 
-                return 0;
+                return result_t();
             });
         }
 

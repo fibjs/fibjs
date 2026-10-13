@@ -33,7 +33,7 @@ result_t Tray::async_open()
         createTray();
         m_ready->set();
     },
-        CALL_E_GUICALL);
+        result_t::guicall());
 
     return result_t();
 }

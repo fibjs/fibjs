@@ -25,13 +25,13 @@ public:
     virtual result_t get_port1(obj_ptr<MessagePort_base>& retVal)
     {
         retVal = m_port1;
-        return 0;
+        return result_t();
     }
 
     virtual result_t get_port2(obj_ptr<MessagePort_base>& retVal)
     {
         retVal = m_port2;
-        return 0;
+        return result_t();
     }
 
 private:

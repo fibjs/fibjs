@@ -107,7 +107,7 @@ public:
     {
         putFunction(GetHiddenList(ev, true), func, ev);
         retVal = o;
-        return 0;
+        return result_t();
     }
 
     // String overload for internal C++ callers
@@ -125,7 +125,7 @@ public:
     {
         prependPutFunction(GetHiddenList(ev, true), func, ev);
         retVal = o;
-        return 0;
+        return result_t();
     }
 
     result_t prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
@@ -221,7 +221,7 @@ public:
             if (m_isolate->is_terminating() || m_isolate->m_isolate->IsExecutionTerminating()
                 || (m_obj && !m_obj->canEmit(m_ev))) {
                 delete this;
-                return 0;
+                return result_t();
             }
 
             std::vector<v8::Local<v8::Value>> argv;
@@ -244,7 +244,7 @@ public:
                 v8::Local<v8::Object> target = m_o.Get(m_isolate->m_isolate);
                 if (target.IsEmpty()) {
                     delete this;
-                    return 0;
+                    return result_t();
                 }
                 m_obj = object_base::getInstance(target);
             }
@@ -259,7 +259,7 @@ public:
 
             delete this;
 
-            return 0;
+            return result_t();
         }
 
         void emit(exlib::string ev, Variant* args, int32_t argCount)
@@ -302,7 +302,7 @@ public:
     result_t eventNames(v8::Local<v8::Array>& retVal)
     {
         retVal = JSArray(events->GetOwnPropertyNames(context));
-        return 0;
+        return result_t();
     }
 
 public:

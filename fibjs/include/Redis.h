@@ -118,7 +118,7 @@ public:
             m_params.append(str);
             m_size += (int32_t)str.length() + 4;
 
-            return 0;
+            return result_t();
         }
 
         result_t add(Buffer_base* buf)
@@ -158,7 +158,7 @@ public:
                     return hr;
             }
 
-            return 0;
+            return result_t();
         }
 
         result_t add(v8::Local<v8::Object> kvs)
@@ -187,7 +187,7 @@ public:
                     return hr;
             }
 
-            return 0;
+            return result_t();
         }
 
         result_t add(OptArgs args)
@@ -201,7 +201,7 @@ public:
                     return hr;
             }
 
-            return 0;
+            return result_t();
         }
 
         template <typename T>
@@ -216,7 +216,7 @@ public:
                     return hr;
             }
 
-            return 0;
+            return result_t();
         }
 
         result_t add(v8::Local<v8::Value> v)
@@ -233,7 +233,7 @@ public:
         template <typename... Ts>
         result_t add(std::variant<Ts...>& v)
         {
-            result_t hr = 0;
+            result_t hr;
 
             std::visit([&hr, this](auto& val) {
                 if (hr.ok())
@@ -285,7 +285,7 @@ public:
         obj_ptr<Buffer_base> v1 = Buffer_base::getInstance(v.object());
         if (v1)
             v1->toString(retVal);
-        return 0;
+        return result_t();
     }
 
     static result_t retValue(Variant& v, obj_ptr<NArray>& retVal)
@@ -297,26 +297,26 @@ public:
     static result_t retValue(Variant& v, bool& retVal)
     {
         retVal = !!v.intVal();
-        return 0;
+        return result_t();
     }
 
     static result_t retValue(Variant& v, int32_t& retVal)
     {
         retVal = v.intVal();
-        return 0;
+        return result_t();
     }
 
     static result_t retValue(Variant& v, int64_t& retVal)
     {
         retVal = v.longVal();
-        return 0;
+        return result_t();
     }
 
     template <typename T>
     static result_t retValue(Variant& v, T& retVal)
     {
         retVal = v;
-        return 0;
+        return result_t();
     }
 
     result_t chkCommand(exlib::string cmd)
@@ -331,7 +331,7 @@ public:
                 return result_t::invalid_call();
         }
 
-        return 0;
+        return result_t();
     }
 
     template <typename T>

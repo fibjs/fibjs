@@ -160,14 +160,14 @@ public:
             exlib::string statusMessage;
             resp->get_statusMessage(statusMessage);
             m_es->m_readyState = sse_base::C_CLOSED;
-            (new EventInfo(m_es, "error", status, "Invalid status: " + statusMessage))->emit();
+            (new EventInfo(m_es, "error", result_t(status), "Invalid status: " + statusMessage))->emit();
             return next();
         }
 
         exlib::string contentType;
         m_es->m_response->firstHeader("Content-Type", contentType);
         m_es->m_readyState = sse_base::C_CLOSED;
-        (new EventInfo(m_es, "error", 0, "Invalid Content-Type: " + contentType))->emit();
+        (new EventInfo(m_es, "error", result_t(), "Invalid Content-Type: " + contentType))->emit();
         return next();
     }
 
@@ -237,7 +237,7 @@ public:
         // 的读循环以错误收尾 —— 那不是连接故障，不该报 error 事件，否则"正常关闭"
         // 在 JS 侧看起来像一次网络错误。只有服务端/网络侧真的断了才报。
         if (m_es->m_readyState != sse_base::C_CLOSED)
-            (new EventInfo(m_es, "error", 0, "Connection error"))->emit();
+            (new EventInfo(m_es, "error", result_t(), "Connection error"))->emit();
         return v;
     }
 

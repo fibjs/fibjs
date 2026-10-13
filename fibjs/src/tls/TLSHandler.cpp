@@ -26,7 +26,7 @@ result_t TLSHandler_base::_new(SecureContext_base* context, Union_TLSHandler_han
     retVal->wrap(This);
     retVal->set_handler(_handler);
 
-    return 0;
+    return result_t();
 }
 
 result_t TLSHandler_base::_new(v8::Local<v8::Object> options, Union_TLSHandler_handler handler, obj_ptr<TLSHandler_base>& retVal, v8::Local<v8::Object> This)
@@ -42,7 +42,7 @@ result_t TLSHandler_base::_new(v8::Local<v8::Object> options, Union_TLSHandler_h
 result_t TLSHandler::isRouting(bool& retVal)
 {
     retVal = false;
-    return 0;
+    return result_t();
 }
 
 result_t TLSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
@@ -78,7 +78,7 @@ result_t TLSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
         ON_STATE(asyncInvoke, exit)
         {
-            return next(CALL_RETURN_NULL);
+            return next(result_t::return_null());
         }
 
     private:
@@ -100,13 +100,13 @@ result_t TLSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 result_t TLSHandler::get_secureContext(obj_ptr<SecureContext_base>& retVal)
 {
     retVal = m_ctx;
-    return 0;
+    return result_t();
 }
 
 result_t TLSHandler::setSecureContext(SecureContext_base* context)
 {
     m_ctx = context;
-    return 0;
+    return result_t();
 }
 
 result_t TLSHandler::setSecureContext(v8::Local<v8::Object> options)
@@ -117,13 +117,13 @@ result_t TLSHandler::setSecureContext(v8::Local<v8::Object> options)
         return hr;
 
     m_ctx = ctx;
-    return 0;
+    return result_t();
 }
 
 result_t TLSHandler::get_handler(obj_ptr<Handler_base>& retVal)
 {
     retVal = m_handler;
-    return 0;
+    return result_t();
 }
 
 result_t TLSHandler::set_handler(Handler_base* newVal)
@@ -131,6 +131,6 @@ result_t TLSHandler::set_handler(Handler_base* newVal)
     SetPrivate("handler", newVal->wrap());
     m_handler = newVal;
 
-    return 0;
+    return result_t();
 }
 }

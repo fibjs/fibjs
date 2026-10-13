@@ -31,7 +31,7 @@ public:
     // Stream_base
     virtual result_t get_fd(int32_t& retVal)
     {
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
     }
 
     virtual result_t readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
@@ -114,7 +114,7 @@ public:
                     // Read next trailer line
                     return m_pThis->m_stm->readLine(64, m_strLine, this);
                 }
-                return next(CALL_RETURN_NULL);
+                return next(result_t::return_null());
             }
 
         public:
@@ -138,7 +138,7 @@ public:
                 m_pos = 0;
             }
 
-            return 0;
+            return result_t();
         }
 
         return (new asyncReadFrom(this, bytes, retVal, std::move(ac)))->post(result_t());
@@ -146,17 +146,17 @@ public:
 
     virtual result_t writeBuffer(Buffer_base* data, AsyncHandle ac)
     {
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
     }
 
     virtual result_t flush(AsyncHandle ac)
     {
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
     }
 
     virtual result_t close(AsyncHandle ac)
     {
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
     }
 
 public:
