@@ -113,7 +113,7 @@ void PerformanceObserver::emit(obj_ptr<PerformanceEntry_base> entry)
         v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(isolate->m_isolate, m_callback);
         if (callback.IsEmpty()) {
             m_running = false;
-            return result_t();
+            return;
         }
 
         while (true) {
@@ -125,7 +125,7 @@ void PerformanceObserver::emit(obj_ptr<PerformanceEntry_base> entry)
 
             if (entries.empty()) {
                 m_running = false;
-                return result_t();
+                return;
             }
 
             obj_ptr<PerformanceObserverEntryList> entryList = new PerformanceObserverEntryList(entries);
@@ -133,7 +133,6 @@ void PerformanceObserver::emit(obj_ptr<PerformanceEntry_base> entry)
             callback->Call(context, wrap(), 1, &args);
         }
 
-        return result_t();
     });
 }
 

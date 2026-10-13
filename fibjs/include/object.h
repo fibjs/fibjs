@@ -191,7 +191,6 @@ public:
         if (m_isolate)
             m_isolate->sync([this]() {
                 delete this;
-                return result_t();
             });
         else
             delete this;
@@ -526,7 +525,6 @@ public:
         if (internalUnref() == 0)
             m_isolate->sync([this]() {
                 delete this;
-                return result_t();
             });
     }
 

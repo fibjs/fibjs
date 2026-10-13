@@ -1017,8 +1017,8 @@ public:
     result_t post_result(result_t v)
     {
         m_v = v;
-        m_isolate->sync([this]() -> result_t {
-            return syncFunc();
+        m_isolate->sync([this]() {
+            syncFunc();
         });
 
         return result_t();

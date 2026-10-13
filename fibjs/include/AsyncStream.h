@@ -318,7 +318,6 @@ public:
             stream->_emit("data", &arg, 1, retVal);
 
             resume->commit(AsyncStreamReader::wake_token(AsyncStreamReader::kWakeDeliveryDone));
-            return result_t();
         });
 
         return result_t::pending();
@@ -370,7 +369,6 @@ public:
             m_isolate->sync([stream]() {
                 JSFiber::EnterJsScope s;
                 stream->_emit("timeout");
-                return result_t();
             });
             next(recv);
             return result_t::pending();
@@ -384,7 +382,6 @@ public:
             v8::Local<v8::Value> err = FillError(v);
             bool retVal;
             stream->_emit("error", &err, 1, retVal);
-            return result_t();
         });
 
         return v;

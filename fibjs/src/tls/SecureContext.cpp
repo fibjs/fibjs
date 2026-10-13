@@ -548,7 +548,6 @@ result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
 
                 param.ready.set();
 
-                return result_t();
             });
 
             param.ready.wait();

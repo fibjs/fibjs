@@ -2334,7 +2334,6 @@ public:
                 v8::Local<v8::Value> err = FillError(v);
                 bool retVal;
                 req->_emit("error", &err, 1, retVal);
-                return result_t();
             });
         }
 

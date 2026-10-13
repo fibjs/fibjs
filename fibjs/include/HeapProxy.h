@@ -25,7 +25,6 @@ public:
     {
         holder()->sync([snapshot = m_snapshot]() {
             ((v8::HeapSnapshot*)snapshot)->Delete();
-            return result_t();
         });
     }
 

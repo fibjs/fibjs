@@ -57,7 +57,7 @@ void Isolate::RunMicrotasks(MicrotaskCheckpointReason reason)
 
                 if (is_terminating() || m_isolate->IsExecutionTerminating()) {
                     api_internal::DisposeGlobal(addr);
-                    return result_t();
+                    return;
                 }
 
                 std::unique_ptr<i::MicrotaskQueue> queue = i::MicrotaskQueue::New(_isolate);
@@ -71,7 +71,6 @@ void Isolate::RunMicrotasks(MicrotaskCheckpointReason reason)
 
                 api_internal::DisposeGlobal(addr);
 
-                return result_t();
             });
         }
 

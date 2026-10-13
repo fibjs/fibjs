@@ -1151,7 +1151,6 @@ public:
 
             process_base::exit(124);
 
-            return result_t();
         });
 
         delete this;
@@ -1223,7 +1222,6 @@ void run_test(int32_t mode)
         // collect diagnostics and force exit
         arm_test_watchdog(isolate, s_watchdog_ms);
 
-        return result_t();
     });
 }
 

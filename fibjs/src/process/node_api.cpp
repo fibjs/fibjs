@@ -360,7 +360,6 @@ protected:
         isolate_->sync([this]() {
             fibjs::JSFiber::EnterJsScope s;
             Finalize();
-            return fibjs::result_t();
         });
     }
 
@@ -373,7 +372,6 @@ protected:
         isolate_->sync([this]() {
             fibjs::JSFiber::EnterJsScope s;
             Dispatch();
-            return fibjs::result_t();
         });
     }
 

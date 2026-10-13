@@ -270,8 +270,8 @@ public:
             for (int32_t i = 0; i < argCount; i++)
                 m_variant_args[i] = args[i];
 
-            m_isolate->sync([this]() -> result_t {
-                return emitter_func();
+            m_isolate->sync([this]() {
+                emitter_func();
             });
         }
 
@@ -283,8 +283,8 @@ public:
             for (int32_t i = 0; i < argCount; i++)
                 m_value_args[i].Reset(m_isolate->m_isolate, args[i]);
 
-            m_isolate->sync([this]() -> result_t {
-                return emitter_func();
+            m_isolate->sync([this]() {
+                emitter_func();
             });
         }
 

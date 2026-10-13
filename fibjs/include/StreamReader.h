@@ -150,7 +150,6 @@ private:
                 resolver->Resolve(context, v8::Undefined(isolate->m_isolate)).FromMaybe(false);
                 pThis->m_closed_resolver.Reset();
             }
-            return result_t();
         });
     }
 

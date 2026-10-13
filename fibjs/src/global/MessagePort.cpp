@@ -114,9 +114,9 @@ result_t MessagePort::postMessage(v8::Local<v8::Value> data, v8::Local<v8::Array
     if (!isCrossIsolatePort)
         return peer->enqueueSerializedMessage(serialized);
 
-    peer->get_holder()->sync([peer, serialized]() -> result_t {
+    peer->get_holder()->sync([peer, serialized]() {
         JSFiber::EnterJsScope s;
-        return peer->enqueueSerializedMessage(serialized);
+        peer->enqueueSerializedMessage(serialized);
     });
 
     return result_t();
@@ -222,7 +222,6 @@ void MessagePort::flush()
         isolate_unref();
         m_flush_pending = false;
 
-        return result_t();
     });
 }
 

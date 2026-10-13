@@ -200,7 +200,7 @@ static void handleUnhandledPromiseRejections(Isolate* isolate,
 
     isolate->sync([isolate, pErrors]() {
         if (isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating())
-            return result_t();
+            return;
 
         JSFiber::EnterJsScope s;
         JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
@@ -217,7 +217,7 @@ static void handleUnhandledPromiseRejections(Isolate* isolate,
                 bool r;
                 t._emit("unhandledRejection", args, 2, r);
             }
-            return result_t();
+            return;
         }
 
         for (auto& e : *pErrors) {
@@ -233,7 +233,6 @@ static void handleUnhandledPromiseRejections(Isolate* isolate,
         if (!isolate->m_parent_worker)
             process_base::exit(1);
 
-        return result_t();
     });
 }
 

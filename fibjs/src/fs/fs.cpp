@@ -3349,14 +3349,12 @@ static result_t stream_open_error(exlib::string fname, exlib::string flags, resu
     // The error description rides with the value into the emit.
     async([stm, hr, isolate]() {
         // the emit must run on the JS thread with a valid context
-        isolate->sync([stm, hr]() -> result_t {
+        isolate->sync([stm, hr]() {
             v8::Local<v8::Value> err = FillError(hr);
             bool retVal;
 
             JSTrigger stmTrigger(stm);
             stmTrigger._emit("error", &err, 1, retVal);
-
-            return result_t();
         });
     });
 

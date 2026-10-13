@@ -35,6 +35,8 @@ result_t FiberProcJsEntry(Isolate* isolate)
 {
     JSFiber::EnterJsScope s;
 
+    result_t hr;
+
     isolate->start_profiler();
     v8::Local<v8::Context> _context = isolate->context();
 
@@ -46,7 +48,7 @@ result_t FiberProcJsEntry(Isolate* isolate)
         v8::Local<v8::Value> result;
         v8::Local<v8::Function> _main_func = isolate->NewFunction("main", main_stub);
         if (_main_func.IsEmpty() || !_main_func->Call(_context, _main_func, 0, NULL).ToLocal(&result))
-            s.m_hr = result_t(CALL_E_JAVASCRIPT);
+            hr = result_t(CALL_E_JAVASCRIPT);
     } else {
         RootModule* pModule = RootModule::g_root;
         v8::Local<v8::Context> _context = isolate->context();
@@ -62,11 +64,17 @@ result_t FiberProcJsEntry(Isolate* isolate)
         }
 
         if (g_exec_print && !isolate->m_jsCode.empty())
-            s.m_hr = isolate->m_topSandbox->eval_print(isolate->m_jsCode);
+            hr = isolate->m_topSandbox->eval_print(isolate->m_jsCode);
         else
-            s.m_hr = isolate->m_topSandbox->repl(isolate->m_jsCode);
+            hr = isolate->m_topSandbox->repl(isolate->m_jsCode);
     }
 
-    return s.m_hr;
+    // The entry result belongs to the isolate, not to the sync() hand-off: the
+    // caller (Runtime::FirstFiber) is gone when the event loop runs dry, and
+    // this value is what decides the process exit code. Storing it here is the
+    // explicit hand-off that used to ride SyncFunc::js_invoke's return value.
+    isolate->m_hr = hr;
+
+    return hr;
 }
 }

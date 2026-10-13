@@ -305,7 +305,6 @@ public:
                 v8::Local<v8::Value> err = FillError(v);
                 bool retVal;
                 sock->_emit("error", &err, 1, retVal);
-                return result_t();
             });
         }
         return v;

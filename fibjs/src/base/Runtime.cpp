@@ -88,8 +88,8 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
         {
             EntryThread* th = (EntryThread*)p;
             Isolate* isolate = new Isolate(th->m_fibjsEntry, g_exec_code);
-            isolate->sync([th, isolate]() -> result_t {
-                return th->m_jsFiber(isolate);
+            isolate->sync([th, isolate]() {
+                th->m_jsFiber(isolate);
             });
         }
 

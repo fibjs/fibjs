@@ -126,7 +126,6 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
 
                 delete ipc;
 
-                return result_t();
             });
         }
 
@@ -144,8 +143,8 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
                 return next();
             }
 
-            m_this->m_isolate->sync([msg = new EventMessage(m_this, m_line)]() -> result_t {
-                return msg->emit();
+            m_this->m_isolate->sync([msg = new EventMessage(m_this, m_line)]() {
+                msg->emit();
             });
 
             return next(read);

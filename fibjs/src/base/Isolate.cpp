@@ -106,47 +106,50 @@ static void FiberProcIsolate(void* p)
     JSFiber::FiberProcRunJavascript(p);
 }
 
-void Isolate::sync(std::function<result_t(void)> func)
+void Isolate::sync(std::function<void(void)> func)
 {
     class SyncFunc : public AsyncEvent {
     public:
-        SyncFunc(std::function<result_t(void)> func)
+        SyncFunc(std::function<void(void)> func)
             : m_func(func)
         {
         }
 
+        // The task is a closure run on the JS thread; it has no result to
+        // report (the aggregation callers decided that in P5): the event's own
+        // completion code is always success, and callers see `void`.
         virtual result_t js_invoke()
         {
-            result_t hr = m_func();
+            m_func();
             delete this;
-            return hr;
+            return result_t();
         }
 
     private:
-        std::function<result_t(void)> m_func;
+        std::function<void(void)> m_func;
     };
 
     post_task(new SyncFunc(func));
 }
 
-void Isolate::sync_urgent(std::function<result_t(void)> func)
+void Isolate::sync_urgent(std::function<void(void)> func)
 {
     class SyncFunc : public AsyncEvent {
     public:
-        SyncFunc(std::function<result_t(void)> func)
+        SyncFunc(std::function<void(void)> func)
             : m_func(func)
         {
         }
 
         virtual result_t js_invoke()
         {
-            result_t hr = m_func();
+            m_func();
             delete this;
-            return hr;
+            return result_t();
         }
 
     private:
-        std::function<result_t(void)> m_func;
+        std::function<void(void)> m_func;
     };
 
     post_urgent_task(new SyncFunc(func));
@@ -547,7 +550,6 @@ void Isolate::Unref(result_t hr)
                 mainWorker->holder()->sync([mainWorker, exitCode]() {
                     JSFiber::EnterJsScope s;
                     mainWorker->onIsolateIdle(exitCode);
-                    return result_t();
                 });
             }
 
@@ -561,7 +563,6 @@ void Isolate::Unref(result_t hr)
         s_iso_count.dec();
 
         Isolate* isolate = s_isolates.head();
-        isolate->m_hr = hr;
 
         isolate->sync([isolate]() {
             v8::HandleScope handle_scope(isolate->m_isolate);
@@ -587,8 +588,6 @@ void Isolate::Unref(result_t hr)
                 } else
                     process_base::exit(1);
             }
-
-            return result_t();
         });
     }
 }
@@ -611,7 +610,6 @@ void Isolate::RequestInterrupt(v8::InterruptCallback callback, void* data)
             JSFiber::EnterJsScope s;
             m_has_timer = 0;
             InvokeApiInterruptCallbacks(m_isolate);
-            return result_t();
         });
 }
 

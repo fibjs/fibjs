@@ -189,7 +189,6 @@ void Worker::start()
 {
     m_isolate->sync([this]() {
         _main();
-        return result_t();
     });
 }
 
@@ -425,7 +424,6 @@ void Worker::requestTerminate()
         if (was_terminating)
             v8_isolate->TerminateExecution();
 
-        return result_t();
     });
 }
 
@@ -458,7 +456,6 @@ void Worker::exitFromInside(int32_t code)
     // 避免它跨过中断点影响收尾期的 JS。
     isolate->sync([isolate]() {
         isolate->m_isolate->CancelTerminateExecution();
-        return result_t();
     });
 
     JSFiber* fb = JSFiber::current();
@@ -585,7 +582,6 @@ void Worker::emitExit(int32_t exitCode)
             peerIsolate->sync([peerPort]() {
                 JSFiber::EnterJsScope s;
                 peerPort->close();
-                return result_t();
             });
     }
 

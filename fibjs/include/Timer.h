@@ -61,8 +61,8 @@ public:
     // exlib::Task_base
     virtual void resume()
     {
-        async([this]() -> result_t {
-            return callback();
+        async([this]() {
+            callback();
         });
     }
 
@@ -171,8 +171,8 @@ public:
         if (m_hr)
             isolate->RequestInterrupt(_InterruptCallback, this);
         else
-            isolate->sync([this]() -> result_t {
-                return callback();
+            isolate->sync([this]() {
+                callback();
             });
     }
 

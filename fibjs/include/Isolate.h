@@ -148,10 +148,13 @@ public:
     }
 
 public:
-    // Run func on the JS thread; its return value is the task's completion
-    // code (SyncFunc::js_invoke returns it as the event's result).
-    void sync(std::function<result_t(void)> func);
-    void sync_urgent(std::function<result_t(void)> func);
+    // Run func on the JS thread. The closure is a task, not a value producer:
+    // it returns nothing and its completion is always success (P5 settled the
+    // aggregation contract -- the return token was read by no caller, so the
+    // one place it reached, Unref()'s isolate-idle branch, never saw a failure
+    // from here).
+    void sync(std::function<void(void)> func);
+    void sync_urgent(std::function<void(void)> func);
     void post_task(exlib::linkitem* task)
     {
         Ref();
@@ -245,7 +248,6 @@ public:
     {
         sync([this, cb]() {
             cb(this);
-            return result_t();
         });
     }
 
@@ -294,6 +296,9 @@ public:
     typedef v8::Platform* (*platform_creator)();
 
     void Ref();
+    // The job-result release: a fiber finishes a task and reports the task's
+    // value. The isolate's own m_hr is NOT rewritten -- m_hr belongs to the JS
+    // entry (FiberProcJsEntry stores it), and it is what the exit code reads.
     void Unref(result_t hr = result_t());
     void registerHoldingObject(object_base* obj);
     void unregisterHoldingObject(object_base* obj);

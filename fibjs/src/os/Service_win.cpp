@@ -268,7 +268,6 @@ static void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
 
             ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0);
 
-            return result_t();
         });
         ReportStatusToSCMgr(SERVICE_RUNNING, NO_ERROR, 0);
     }
