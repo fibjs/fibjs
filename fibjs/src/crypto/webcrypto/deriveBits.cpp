@@ -49,7 +49,7 @@ static result_t get_ecdh_options(v8::Local<v8::Object> algorithm, CryptoKey* bas
         ac.ctxv()[1] = publicKey;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey_base* baseKey, int32_t length,
@@ -190,7 +190,7 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
                 std::shared_ptr<v8::BackingStore> result = NewBackingStore(bytesNeeded);
                 memcpy(result->Data(), ((Buffer*)truncated.get())->data(), bytesNeeded);
                 retVal = result;
-                return 0;
+                return result_t();
             }
         }
 
@@ -201,7 +201,7 @@ result_t subtle_base::deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey
         std::shared_ptr<v8::BackingStore> finalResult = NewBackingStore(bufLen);
         memcpy(finalResult->Data(), ((Buffer*)derivedBits.get())->data(), bufLen);
         retVal = finalResult;
-        return 0;
+        return result_t();
     }
 
     return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: unsupported algorithm for deriveBits: " + name);

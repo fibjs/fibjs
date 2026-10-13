@@ -31,7 +31,7 @@ result_t crypto_base::createECDH(exlib::string curve, obj_ptr<ECDH_base>& retVal
         return result_t::make(CALL_E_EXCEPTION).with_message("Invalid EC curve name");
 
     retVal = new ECDH(curve);
-    return 0;
+    return result_t();
 }
 
 // Helper function to ensure EC key is created and ready
@@ -50,17 +50,17 @@ result_t ECDH::ensureKey()
         m_publicKeySet = false;
         m_privateKeySet = false;
     }
-    return 0;
+    return result_t();
 }
 
 // Helper function to validate point format
 result_t ECDH::validatePointFormat(const exlib::string& format)
 {
     if (format.empty() || format == "uncompressed") {
-        return 0; // Default format is uncompressed
+        return result_t(); // Default format is uncompressed
     }
     if (format == "compressed" || format == "hybrid") {
-        return 0; // Valid formats
+        return result_t(); // Valid formats
     }
 
     return result_t::make(CALL_E_EXCEPTION).with_message("Invalid ECDH format: " + format);
@@ -213,7 +213,7 @@ result_t ECDH::setPrivateKey(Union_setPrivateKey_privateKey privateKey, exlib::s
     m_privateKeySet = true;
     m_publicKeySet = false; // Public key generated from private key
 
-    return 0;
+    return result_t();
 }
 
 
@@ -254,7 +254,7 @@ result_t ECDH::setPublicKey(Union_setPublicKey_publicKey publicKey, exlib::strin
 
     m_publicKeySet = true;
 
-    return 0;
+    return result_t();
 }
 
 
@@ -381,7 +381,7 @@ result_t ECDH_base::convertKey(Union_convertKey_key key, exlib::string curve, ex
 result_t ECDH::get_curveName(exlib::string& retVal)
 {
     retVal = m_curve;
-    return 0;
+    return result_t();
 }
 
 }

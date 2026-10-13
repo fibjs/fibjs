@@ -41,7 +41,7 @@ result_t crypto_base::timingSafeEqual(Union_timingSafeEqual_a a, Union_timingSaf
 
     retVal = CRYPTO_memcmp(_a->data(), _b->data(), _a->length()) == 0;
 
-    return 0;
+    return result_t();
 }
 
 

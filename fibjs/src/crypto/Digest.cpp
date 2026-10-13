@@ -56,7 +56,7 @@ result_t Digest::update(Union_update_data data, exlib::string codec, obj_ptr<Dig
         else
             EVP_DigestUpdate(m_ctx, (const unsigned char*)_data.c_str(), _data.length());
 
-        return 0;
+        return result_t();
     }
 
     Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
@@ -66,7 +66,7 @@ result_t Digest::update(Union_update_data data, exlib::string codec, obj_ptr<Dig
     else
         EVP_DigestUpdate(m_ctx, buf->data(), buf->length());
 
-    return 0;
+    return result_t();
 }
 
 result_t Digest::digest(obj_ptr<Buffer>& retVal)
@@ -88,7 +88,7 @@ result_t Digest::digest(obj_ptr<Buffer>& retVal)
     m_bFinal = true;
 
     retVal = buf;
-    return 0;
+    return result_t();
 }
 
 result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
@@ -110,7 +110,7 @@ result_t Digest::get_size(int32_t& retVal)
         return result_t::make(CALL_E_EXCEPTION).with_message("digest has been called");
 
     retVal = EVP_MD_size(EVP_MD_CTX_md(m_ctx));
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

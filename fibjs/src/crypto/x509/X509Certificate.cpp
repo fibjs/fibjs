@@ -258,7 +258,7 @@ result_t GetFingerprintDigest(const EVP_MD* method, X509* cert, exlib::string& r
 
     retVal = hex;
     OPENSSL_free(hex);
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate_base::_new(Union_X509Certificate_cert cert, obj_ptr<X509Certificate_base>& retVal,
@@ -279,7 +279,7 @@ result_t X509Certificate_base::_new(Union_X509Certificate_cert cert, obj_ptr<X50
         return hr;
 
     retVal = cert_;
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::load_cert(Buffer_base* cert)
@@ -307,7 +307,7 @@ result_t X509Certificate::load_cert(Buffer_base* cert)
     if (!now)
         return openssl_error();
 
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate_base::_new(std::vector<Union_X509Certificate_certs>& certs, obj_ptr<X509Certificate_base>& retVal,
@@ -338,7 +338,7 @@ result_t X509Certificate_base::_new(std::vector<Union_X509Certificate_certs>& ce
         return hr;
 
     retVal = cert_;
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::load_cert(std::vector<obj_ptr<Buffer_base>>& certs)
@@ -371,7 +371,7 @@ result_t X509Certificate::load_cert(std::vector<obj_ptr<Buffer_base>>& certs)
     if (!now)
         return openssl_error();
 
-    return 0;
+    return result_t();
 }
 
 void X509Certificate::LoadRootCerts()
@@ -396,20 +396,20 @@ void X509Certificate::LoadRootCerts()
 result_t X509Certificate::get_ca(bool& retVal)
 {
     retVal = X509_check_ca(m_cert) != 0;
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::get_pathlen(int32_t& retVal)
 {
     retVal = X509_get_pathlen(m_cert);
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::get_x509_array(int32_t nid, const char** names, std::vector<exlib::string>& retVal)
 {
     ASN1_BIT_STRING* usage = (ASN1_BIT_STRING*)X509_get_ext_d2i(m_cert, nid, nullptr, nullptr);
     if (!usage || usage->length == 0)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     unsigned char keyUsage = usage->data[0];
 
@@ -417,7 +417,7 @@ result_t X509Certificate::get_x509_array(int32_t nid, const char** names, std::v
         if (keyUsage & (0x80 >> i))
             retVal.push_back(names[i]);
 
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::get_keyUsage(std::vector<exlib::string>& retVal)
@@ -449,7 +449,7 @@ result_t X509Certificate::get_infoAccess(exlib::string& retVal)
 {
     int index = X509_get_ext_by_NID(m_cert, NID_info_access, -1);
     if (index < 0)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     X509_EXTENSION* ext = X509_get_ext(m_cert, index);
     if (ext == nullptr)
@@ -466,7 +466,7 @@ result_t X509Certificate::get_issuer(exlib::string& retVal)
 {
     X509_NAME* issuer_name = X509_get_issuer_name(m_cert);
     if (issuer_name == nullptr)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     BIOPointer bio(BIO_new(BIO_s_mem()));
     if (X509_NAME_print_ex(bio, issuer_name, 0, kX509NameFlagsMultiline) <= 0)
@@ -479,7 +479,7 @@ result_t X509Certificate::get_publicKey(obj_ptr<KeyObject_base>& retVal)
 {
     if (m_publicKey) {
         retVal = m_publicKey;
-        return 0;
+        return result_t();
     }
 
     EVP_PKEY* pkey = X509_get_pubkey(m_cert);
@@ -492,7 +492,7 @@ result_t X509Certificate::get_publicKey(obj_ptr<KeyObject_base>& retVal)
         return hr;
 
     retVal = m_publicKey = key;
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::get_raw(obj_ptr<Buffer_base>& retVal)
@@ -508,7 +508,7 @@ result_t X509Certificate::get_raw(obj_ptr<Buffer_base>& retVal)
 
     retVal = buf;
 
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::get_pem(exlib::string& retVal)
@@ -530,7 +530,7 @@ result_t X509Certificate::get_serialNumber(exlib::string& retVal)
 {
     ASN1_INTEGER* serial_number = X509_get_serialNumber(m_cert);
     if (serial_number == nullptr)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     BignumPointer bn = ASN1_INTEGER_to_BN(serial_number, nullptr);
     if (bn == nullptr)
@@ -543,14 +543,14 @@ result_t X509Certificate::get_serialNumber(exlib::string& retVal)
     retVal = hex;
     OPENSSL_free(hex);
 
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::get_subject(exlib::string& retVal)
 {
     X509_NAME* name = X509_get_subject_name(m_cert);
     if (name == nullptr)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     BIOPointer bio(BIO_new(BIO_s_mem()));
     if (X509_NAME_print_ex(bio, name, 0, kX509NameFlagsMultiline) <= 0)
@@ -563,7 +563,7 @@ result_t X509Certificate::get_subjectAltName(exlib::string& retVal)
 {
     int index = X509_get_ext_by_NID(m_cert, NID_subject_alt_name, -1);
     if (index < 0)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     X509_EXTENSION* ext = X509_get_ext(m_cert, index);
     if (ext == nullptr)
@@ -593,10 +593,10 @@ result_t X509Certificate::get_validTo(exlib::string& retVal)
 result_t X509Certificate::next(obj_ptr<X509Certificate_base>& retVal)
 {
     if (!m_next)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     retVal = m_next;
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::checkEmail(exlib::string email, v8::Local<v8::Object> options, exlib::string& retVal)
@@ -619,14 +619,14 @@ result_t X509Certificate::checkEmail(exlib::string email, v8::Local<v8::Object> 
         retVal = email;
         break;
     case 0:
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     case -2:
         return result_t::make(CALL_E_EXCEPTION).with_message("Invalid email address");
     default:
         return openssl_error();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::checkHost(exlib::string name, v8::Local<v8::Object> options, exlib::string& retVal)
@@ -681,14 +681,14 @@ result_t X509Certificate::checkHost(exlib::string name, v8::Local<v8::Object> op
         }
         break;
     case 0:
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     case -2:
         return result_t::make(CALL_E_EXCEPTION).with_message("Invalid host name");
     default:
         return openssl_error();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::checkIP(exlib::string ip, exlib::string& retVal)
@@ -698,14 +698,14 @@ result_t X509Certificate::checkIP(exlib::string ip, exlib::string& retVal)
         retVal = ip;
         break;
     case 0:
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     case -2:
         return result_t::make(CALL_E_EXCEPTION).with_message("Invalid IP address");
     default:
         return openssl_error();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::checkIssued(Union_checkIssued_issuer issuer, bool& retVal)
@@ -728,27 +728,27 @@ result_t X509Certificate::checkIssued(Union_checkIssued_issuer issuer, bool& ret
 
     X509Certificate* issuer_cert = (X509Certificate*)issuer_.get();
     retVal = X509_check_issued(issuer_cert->m_cert, m_cert) == X509_V_OK;
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::checkPrivateKey(KeyObject_base* privateKey, bool& retVal)
 {
     KeyObject* key = (KeyObject*)privateKey;
     if (key->type() != KeyObject::kKeyTypePrivate)
-        return result_t::make(CALL_E_EXCEPTION).with_message("checkPrivateKey: key must be a private key.").with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_message("checkPrivateKey: key must be a private key.").with_result(result_t::invalid_arg());
 
     retVal = X509_check_private_key(m_cert, key->pkey()) != 0;
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::verify(KeyObject_base* publicKey, bool& retVal)
 {
     KeyObject* key = (KeyObject*)publicKey;
     if (key->type() != KeyObject::kKeyTypePublic)
-        return result_t::make(CALL_E_EXCEPTION).with_message("verify: key must be a public key.").with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_message("verify: key must be a public key.").with_result(result_t::invalid_arg());
 
     retVal = X509_verify(m_cert, key->pkey()) == 1;
-    return 0;
+    return result_t();
 }
 
 result_t X509Certificate::toString(exlib::string& retVal)
@@ -766,7 +766,7 @@ result_t X509Certificate::toJSON(exlib::string key, v8::Local<v8::Value>& retVal
 
     retVal = holder()->NewString(str);
 
-    return 0;
+    return result_t();
 }
 
 

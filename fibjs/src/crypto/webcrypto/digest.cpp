@@ -59,7 +59,7 @@ result_t subtle_base::digest(Union_digest_algorithm algorithm, Union_digest_data
 
     retVal = std::move(datas);
 
-    return 0;
+    return result_t();
 }
 
 

@@ -106,7 +106,7 @@ result_t KeyObject::GetRsaKeyDetail(v8::Local<v8::Object>& retVal, bool is_pss)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::GetDsaKeyDetail(v8::Local<v8::Object>& retVal)
@@ -128,7 +128,7 @@ result_t KeyObject::GetDsaKeyDetail(v8::Local<v8::Object>& retVal)
     retVal->Set(context, isolate->NewString("divisorLength"), v8::Number::New(isolate->m_isolate, divisor_length))
         .IsNothing();
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::GetEcKeyDetail(v8::Local<v8::Object>& retVal)
@@ -144,18 +144,18 @@ result_t KeyObject::GetEcKeyDetail(v8::Local<v8::Object>& retVal)
     retVal->Set(context, isolate->NewString("namedCurve"), isolate->NewString(OBJ_nid2ln(nid)))
         .IsNothing();
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::GetDhKeyDetail(v8::Local<v8::Object>& retVal)
 {
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::get_asymmetricKeyDetails(v8::Local<v8::Object>& retVal)
 {
     if (m_keyType == kKeyTypeSecret)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     retVal = v8::Object::New(holder()->m_isolate);
 
@@ -173,7 +173,7 @@ result_t KeyObject::get_asymmetricKeyDetails(v8::Local<v8::Object>& retVal)
         return GetDhKeyDetail(retVal);
     }
 
-    return CALL_RETURN_UNDEFINED;
+    return result_t::return_undefined();
 }
 
 }

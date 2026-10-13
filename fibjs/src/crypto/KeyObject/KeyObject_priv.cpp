@@ -42,7 +42,7 @@ result_t crypto_base::createPrivateKey(Union_createPrivateKey_key key, obj_ptr<K
         return hr;
 
     retVal = keyObj;
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::toX25519_privateKey(v8::Local<v8::Object> options)
@@ -66,7 +66,7 @@ result_t KeyObject::toX25519_privateKey(v8::Local<v8::Object> options)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 static int PasswordCallback(char* buf, int size, int rwflag, void* u)
@@ -94,7 +94,7 @@ result_t KeyObject::ParsePrivateKeyPEM(const char* key_pem, int key_pem_len, Buf
 
     m_keyType = kKeyTypePrivate;
 
-    return 0;
+    return result_t();
 }
 
 static bool IsASN1Sequence(const unsigned char* data, size_t size,
@@ -195,7 +195,7 @@ result_t KeyObject::ParsePrivateKey(exlib::string format, exlib::string type, ex
 
     m_keyType = kKeyTypePrivate;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
@@ -370,7 +370,7 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
     } else
         return result_t::make(CALL_E_EXCEPTION).with_message("Invalid format: " + format);
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ExportPrivateKey(keyEncodingParam* param, Variant& retVal, bool useBackingStore)
@@ -389,7 +389,7 @@ result_t KeyObject::ExportPrivateKey(keyEncodingParam* param, v8::Local<v8::Valu
 
     retVal = _retVal;
 
-    return 0;
+    return result_t();
 }
 
 }

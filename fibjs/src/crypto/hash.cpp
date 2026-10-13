@@ -59,7 +59,7 @@ result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVa
     const EVP_MD* md = _evp_md_type(algo.c_str());
     if (md) {
         retVal = new Digest(md);
-        return 0;
+        return result_t();
     }
 
     return result_t::make(CALL_E_INVALID_CALL).with_format("createHash: unknown algorithm '%s'.", algo.c_str());
@@ -74,7 +74,7 @@ static result_t _createHmac(exlib::string algo, const char* key, size_t keylen,
             return result_t::make(CALL_E_INVALID_CALL).with_format("createHmac: XOF hash '%s' is not supported.", algo.c_str());
 
         retVal = new Digest(md, key, keylen);
-        return 0;
+        return result_t();
     }
 
     return result_t::make(CALL_E_INVALID_CALL).with_format("createHmac: unknown algorithm '%s'.", algo.c_str());
@@ -89,7 +89,7 @@ static result_t union_to_buffer(T& v, obj_ptr<Buffer_base>& buf)
         return Buffer_base::from(std::get<exlib::string>(v), "utf8", buf);
 
     buf = std::get<obj_ptr<Buffer_base>>(v);
-    return 0;
+    return result_t();
 }
 
 result_t crypto_base::createHmac(exlib::string algo, Union_createHmac_key key,
@@ -117,7 +117,7 @@ result_t crypto_base::hash(exlib::string algorithm, Union_hash_data data,
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (!md)
-        return result_t::make(CALL_E_EXCEPTION).with_format("hash: unknown algorithm '%s'.", algorithm.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("hash: unknown algorithm '%s'.", algorithm.c_str()).with_result(result_t::invalid_arg());
 
     obj_ptr<Buffer_base> dataBuf;
     result_t hr = union_to_buffer(data, dataBuf);
@@ -139,11 +139,11 @@ result_t crypto_base::hkdf(exlib::string algoName, Union_hkdf_password password,
         return result_t::nosync();
 
     if (size < 1)
-        return result_t::make(CALL_E_EXCEPTION).with_format("hkdf: size must be positive, received %d.", size).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("hkdf: size must be positive, received %d.", size).with_result(result_t::invalid_arg());
 
     const EVP_MD* md = _evp_md_type(algoName.c_str());
     if (!md)
-        return result_t::make(CALL_E_EXCEPTION).with_format("hkdf: unknown algorithm '%s'.", algoName.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("hkdf: unknown algorithm '%s'.", algoName.c_str()).with_result(result_t::invalid_arg());
 
     obj_ptr<Buffer_base> passwordBuf, saltOut, infoOut;
     result_t hr;
@@ -178,7 +178,7 @@ result_t crypto_base::hkdf(exlib::string algoName, Union_hkdf_password password,
 
     retVal = ret;
 
-    return 0;
+    return result_t();
 }
 
 result_t crypto_base::pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt salt, int32_t iterations,
@@ -189,11 +189,11 @@ result_t crypto_base::pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt s
         return result_t::nosync();
 
     if (iterations < 1 || size < 1)
-        return result_t::make(CALL_E_EXCEPTION).with_message("pbkdf2: iterations and size must be positive.").with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_message("pbkdf2: iterations and size must be positive.").with_result(result_t::invalid_arg());
 
     const EVP_MD* md = _evp_md_type(algoName.c_str());
     if (!md)
-        return result_t::make(CALL_E_EXCEPTION).with_format("pbkdf2: unknown algorithm '%s'.", algoName.c_str()).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("pbkdf2: unknown algorithm '%s'.", algoName.c_str()).with_result(result_t::invalid_arg());
 
     obj_ptr<Buffer_base> passwordBuf, saltOut;
     result_t hr;
@@ -217,7 +217,7 @@ result_t crypto_base::pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt s
         return openssl_error();
 
     retVal = ret;
-    return 0;
+    return result_t();
 }
 
 class ScryptOptions : public obj_base {
@@ -246,7 +246,7 @@ result_t scrypt_load_options(v8::Local<v8::Object> options, AsyncHandle& ac)
 
     // Validate r and p are not zero
     if (opt->r.value() == 0 || opt->p.value() == 0)
-        return result_t::make(CALL_E_EXCEPTION).with_message("scrypt: r and p must be positive.").with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_message("scrypt: r and p must be positive.").with_result(result_t::invalid_arg());
 
     ac.ctxv().resize(1);
     ac.ctxv()[0] = opt;
@@ -261,7 +261,7 @@ result_t crypto_base::scrypt(Union_scrypt_password password, Union_scrypt_salt s
         return scrypt_load_options(options, ac);
 
     if (keylen < 1)
-        return result_t::make(CALL_E_EXCEPTION).with_format("scrypt: keylen must be positive, received %d.", keylen).with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_format("scrypt: keylen must be positive, received %d.", keylen).with_result(result_t::invalid_arg());
 
     result_t ctx_hr = ac.ctx(0);
     if (ctx_hr.failed())
@@ -293,13 +293,13 @@ result_t crypto_base::scrypt(Union_scrypt_password password, Union_scrypt_salt s
         return openssl_error();
 
     retVal = ret;
-    return 0;
+    return result_t();
 }
 
 result_t crypto_base::getHashes(std::vector<exlib::string>& retVal)
 {
     retVal = g_hashes;
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

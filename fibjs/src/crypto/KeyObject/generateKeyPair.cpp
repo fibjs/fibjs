@@ -107,7 +107,7 @@ result_t KeyObject::generateRsaKey(int nid, generateKeyPairParam* param)
 
     m_keyType = kKeyTypePrivate;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::generateDsaKey(int nid, generateKeyPairParam* param)
@@ -130,7 +130,7 @@ result_t KeyObject::generateDsaKey(int nid, generateKeyPairParam* param)
 
     m_keyType = kKeyTypePrivate;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::generateEcKey(int nid, generateKeyPairParam* param)
@@ -166,7 +166,7 @@ result_t KeyObject::generateEcKey(int nid, generateKeyPairParam* param)
 
     m_keyType = kKeyTypePrivate;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::generateOKPKey(int nid, generateKeyPairParam* param)
@@ -185,7 +185,7 @@ result_t KeyObject::generateOKPKey(int nid, generateKeyPairParam* param)
 
     m_keyType = kKeyTypePrivate;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::generateKey(exlib::string type, generateKeyPairParam* param)
@@ -282,7 +282,7 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
     } else
         retVal->privateKey = privaterKey;
 
-    return 0;
+    return result_t();
 }
 
 }

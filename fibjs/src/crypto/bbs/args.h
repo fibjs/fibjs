@@ -111,7 +111,7 @@ static result_t bbs_get_args(KeyObject_base* key, bool priv, AsyncHandle& ac)
 template <typename... Ts>
 static result_t bbs_get_args(std::variant<Ts...>& key, bool priv, AsyncHandle& ac)
 {
-    result_t hr = 0;
+    result_t hr;
 
     std::visit([&hr, priv, &ac](auto& val) {
         if (hr.ok())
@@ -137,7 +137,7 @@ static result_t bbs_prepare_key(std::variant<Ts...>& key, bool priv, AsyncHandle
 
     // async / cc_: the slot prepared by the sync phase comes first
     if (ac.ctxv().size() > 0 && ac.ctxv()[0].object() != NULL)
-        return 0;
+        return result_t();
 
     // otherwise the KeyObject alternative, parsed without touching V8
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
@@ -145,7 +145,7 @@ static result_t bbs_prepare_key(std::variant<Ts...>& key, bool priv, AsyncHandle
         return hr.is_nosync() ? result_t(0) : hr;
     }
 
-    return result_t::make(CALL_E_EXCEPTION).with_message("the key union was not prepared: this entry requires the synchronous phase.").with_result(CALL_E_TYPEMISMATCH);
+    return result_t::make(CALL_E_EXCEPTION).with_message("the key union was not prepared: this entry requires the synchronous phase.").with_result(result_t::type_mismatch());
 }
 
 }

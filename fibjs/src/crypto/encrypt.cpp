@@ -75,7 +75,7 @@ result_t PKEY_cipher(EVP_PKEY* pkey, int padding, const EVP_MD* digest,
         out = new Buffer(NULL, 0);
 
     retVal = out;
-    return 0;
+    return result_t();
 }
 
 template <EVP_PKEY_cipher_init_t EVP_PKEY_cipher_init, EVP_PKEY_cipher_t EVP_PKEY_cipher>

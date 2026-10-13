@@ -65,7 +65,7 @@ result_t CryptoKey::check_asymmetric_usage()
             return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: usage " + it.first + " is not allowed for ECDSA key");
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t CryptoKey::get_ecdsa_param(v8::Local<v8::Object> params)
@@ -128,7 +128,7 @@ result_t CryptoKey::get_ecdh_param(v8::Local<v8::Object> params)
             return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: usage " + it.first + " is not allowed for ECDH key");
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
@@ -186,7 +186,7 @@ result_t CryptoKey::get_hmac_param(v8::Local<v8::Object> params)
             return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: usage " + it.first + " is not allowed for HMAC key");
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t CryptoKey::check_asymmetric_import_usage()
@@ -203,7 +203,7 @@ result_t CryptoKey::check_asymmetric_import_usage()
             return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: public key must not have 'sign' usage");
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t CryptoKey::check_ecdsa_import_param()
@@ -251,7 +251,7 @@ result_t CryptoKey::check_ecdh_import_param()
             return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: ECDH public key must not have any usages");
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t CryptoKey::check_import_param()
@@ -288,7 +288,7 @@ result_t CryptoKey::check_hmac_import_param()
             return result_t::make(CALL_E_EXCEPTION).with_message("WebCrypto: HMAC key must not have '" + it.first + "' usage");
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t CryptoKey::check_name(exlib::string name)
@@ -305,7 +305,7 @@ result_t CryptoKey::check_name(exlib::string name)
     if (m_key_type == kKeyNameHMAC && qstricmp(name.c_str(), "hmac"))
         return result_t::make(CALL_E_EXCEPTION).with_format("CryptoKey: invalid key algorithm, expected 'HMAC' but got '%s'.", name.c_str());
 
-    return 0;
+    return result_t();
 }
 
 }

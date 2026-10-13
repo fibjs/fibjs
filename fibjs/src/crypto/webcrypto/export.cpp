@@ -68,7 +68,7 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
                 }
             }
         }
-        return 0;
+        return result_t();
     }
 
     exlib::string type;
@@ -91,7 +91,7 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
                 memcpy(store->Data(), key_obj->data(), key_obj->length());
             }
             retVal = store;
-            return 0;
+            return result_t();
         }
         return result_t::make(CALL_E_EXCEPTION).with_format("WebCrypto: HMAC keys only support 'raw' and 'jwk' export formats, got '%s'.", format.c_str());
     }

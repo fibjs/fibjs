@@ -42,7 +42,7 @@ result_t crypto_base::createCertificateRequest(Union_createCertificateRequest_cs
         return hr;
 
     retVal = csr_;
-    return 0;
+    return result_t();
 }
 
 result_t X509CertificateRequest::load_csr(Buffer_base* csr)
@@ -60,7 +60,7 @@ result_t X509CertificateRequest::load_csr(Buffer_base* csr)
     if (m_csr == nullptr)
         return openssl_error();
 
-    return 0;
+    return result_t();
 }
 
 static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
@@ -105,7 +105,7 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
     if (md_ == nullptr)
         return result_t::make(CALL_E_EXCEPTION).with_format("unknown digest algorithm: '%s'.", hashAlgorithm.c_str());
 
-    return 0;
+    return result_t();
 }
 
 result_t X509CertificateRequest::create(v8::Local<v8::Object> options)
@@ -134,14 +134,14 @@ result_t X509CertificateRequest::create(v8::Local<v8::Object> options)
 
     m_csr = csr.release();
 
-    return 0;
+    return result_t();
 }
 
 result_t X509CertificateRequest::get_subject(exlib::string& retVal)
 {
     X509_NAME* name = X509_REQ_get_subject_name(m_csr);
     if (name == nullptr)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     BIOPointer bio(BIO_new(BIO_s_mem()));
     if (X509_NAME_print_ex(bio, name, 0, kX509NameFlagsMultiline) <= 0)
@@ -154,7 +154,7 @@ result_t X509CertificateRequest::get_publicKey(obj_ptr<KeyObject_base>& retVal)
 {
     if (m_publicKey) {
         retVal = m_publicKey;
-        return 0;
+        return result_t();
     }
 
     EVP_PKEY* pkey = X509_REQ_get_pubkey(m_csr);
@@ -167,18 +167,18 @@ result_t X509CertificateRequest::get_publicKey(obj_ptr<KeyObject_base>& retVal)
         return hr;
 
     retVal = m_publicKey = key;
-    return 0;
+    return result_t();
 }
 
 result_t X509CertificateRequest::get_subjectAltName(exlib::string& retVal)
 {
     STACK_OF(X509_EXTENSION)* exts = X509_REQ_get_extensions(m_csr);
     if (exts == nullptr)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     int index = X509v3_get_ext_by_NID(exts, NID_subject_alt_name, -1);
     if (index < 0)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     X509_EXTENSION* ext = X509v3_get_ext(exts, index);
     if (ext == nullptr)
@@ -197,11 +197,11 @@ result_t X509CertificateRequest::get_infoAccess(exlib::string& retVal)
 {
     STACK_OF(X509_EXTENSION)* exts = X509_REQ_get_extensions(m_csr);
     if (exts == nullptr)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     int index = X509v3_get_ext_by_NID(exts, NID_info_access, -1);
     if (index < 0)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     X509_EXTENSION* ext = X509v3_get_ext(exts, index);
     if (ext == nullptr)
@@ -229,7 +229,7 @@ result_t X509CertificateRequest::get_raw(obj_ptr<Buffer_base>& retVal)
 
     retVal = buf;
 
-    return 0;
+    return result_t();
 }
 
 result_t X509CertificateRequest::get_pem(exlib::string& retVal)
@@ -254,7 +254,7 @@ result_t X509CertificateRequest::checkPrivateKey(KeyObject_base* privateKey, boo
         return result_t::make(CALL_E_EXCEPTION).with_message("key must be a private KeyObject.");
 
     retVal = X509_REQ_check_private_key(m_csr, key->pkey()) != 0;
-    return 0;
+    return result_t();
 }
 
 result_t X509CertificateRequest::fill_option(X509* cert, v8::Local<v8::Object> options, const char* key, int nid, const char** names)
@@ -264,7 +264,7 @@ result_t X509CertificateRequest::fill_option(X509* cert, v8::Local<v8::Object> o
 
     hr = GetConfigValue(options, key, list, true);
     if (hr.is_param_missing())
-        return 0;
+        return result_t();
     if (hr.failed())
         return hr;
 
@@ -297,7 +297,7 @@ result_t X509CertificateRequest::fill_option(X509* cert, v8::Local<v8::Object> o
 
     X509_add_ext(cert, ext, -1);
 
-    return 0;
+    return result_t();
 }
 
 result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X509Certificate_base>& retVal)
@@ -422,7 +422,7 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
 
     retVal = new X509Certificate(cert.release());
 
-    return 0;
+    return result_t();
 }
 
 } // namespace fibjs

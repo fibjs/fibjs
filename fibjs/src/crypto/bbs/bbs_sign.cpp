@@ -47,7 +47,7 @@ result_t get_index(std::vector<int32_t>& index, size_t msg_len, std::vector<int3
     while (pos_j < msg_len)
         idx_j.push_back(pos_j++);
 
-    return 0;
+    return result_t();
 }
 
 static void bbs_hash_to_g1(blst_p1* out, const byte* msg, size_t msg_len,
@@ -187,7 +187,7 @@ static result_t bbsSign_(std::vector<obj_ptr<Buffer_base>>& messages, obj_ptr<Bu
     s.sign(get_sk(ac.ctxv()[0].object()), b);
     s.serialize(retVal);
 
-    return 0;
+    return result_t();
 }
 
 
@@ -205,7 +205,7 @@ static result_t bbsVerify_(std::vector<obj_ptr<Buffer_base>>& messages, Buffer_b
     Signature s;
     if (!s.parse(signature)) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     Generators gens(fr_messages.size(), suite);
@@ -214,7 +214,7 @@ static result_t bbsVerify_(std::vector<obj_ptr<Buffer_base>>& messages, Buffer_b
 
     retVal = s.verify(pk, b);
 
-    return 0;
+    return result_t();
 }
 
 
@@ -325,7 +325,7 @@ static result_t proofGen_(Buffer_base* signature, std::vector<obj_ptr<Buffer_bas
 
     p.serialize(retVal);
 
-    return 0;
+    return result_t();
 }
 
 
@@ -342,7 +342,7 @@ static result_t proofVerify_(std::vector<obj_ptr<Buffer_base>>& messages, std::v
     Proof p;
     if (!p.parse(proof)) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     std::vector<blst_scalar> fr_messages = messagesToFr(messages, suite);
@@ -354,12 +354,12 @@ static result_t proofVerify_(std::vector<obj_ptr<Buffer_base>>& messages, std::v
     result_t hr = get_index(index, msg_len, idx_i, idx_j);
     if (hr.failed()) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     if (fr_messages.size() != idx_i.size()) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     Generators gens(msg_len, suite);
@@ -390,12 +390,12 @@ static result_t proofVerify_(std::vector<obj_ptr<Buffer_base>>& messages, std::v
 
     if (memcmp(&cv, &p.c, sizeof(blst_scalar))) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     retVal = p.verify(pk);
 
-    return 0;
+    return result_t();
 }
 
 
@@ -427,7 +427,7 @@ static result_t messages_to_buffers(std::vector<T>& messages, std::vector<obj_pt
         msgs.push_back(buf);
     }
 
-    return 0;
+    return result_t();
 }
 
 

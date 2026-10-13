@@ -18,14 +18,14 @@ result_t webcrypto_base::getRandomValues(v8::Local<v8::TypedArray> data, v8::Loc
     size_t len = buffer->ByteLength();
 
     if (len > 65536)
-        return CALL_E_OUTRANGE;
+        return result_t::out_of_range();
 
     if (len > 0 && RAND_bytes(ptr, len) != 1)
         return openssl_error();
 
     retVal = data;
 
-    return 0;
+    return result_t();
 }
 
 result_t webcrypto_base::randomUUID(exlib::string& retVal)
@@ -51,7 +51,7 @@ result_t webcrypto_base::randomUUID(exlib::string& retVal)
         *sbuf++ = hex[buf[i] & 0x0f];
     }
 
-    return 0;
+    return result_t();
 }
 
 }

@@ -33,7 +33,7 @@ result_t crypto_base::getCurves(std::vector<exlib::string>& retVal)
     for (size_t i = 0; i < num_curves; i++)
         retVal.push_back(curve_names[i]);
 
-    return 0;
+    return result_t();
 }
 
 static result_t _createSecretKey(const unsigned char* key, size_t size, obj_ptr<KeyObject_base>& retVal)
@@ -44,7 +44,7 @@ static result_t _createSecretKey(const unsigned char* key, size_t size, obj_ptr<
         return hr;
 
     retVal = keyObj;
-    return 0;
+    return result_t();
 }
 
 result_t crypto_base::createSecretKey(Union_createSecretKey_key key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal)
@@ -123,7 +123,7 @@ result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffe
         retVal = buf;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::createSecretKey(const unsigned char* key, size_t size)
@@ -131,13 +131,13 @@ result_t KeyObject::createSecretKey(const unsigned char* key, size_t size)
     m_keyType = kKeyTypeSecret;
     m_key.assign(key, key + size);
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::get_asymmetricKeyType(exlib::string& retVal)
 {
     if (m_keyType == kKeyTypeSecret)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     switch (EVP_PKEY_id(m_pkey)) {
     case EVP_PKEY_RSA:
@@ -177,19 +177,19 @@ result_t KeyObject::get_asymmetricKeyType(exlib::string& retVal)
         retVal = "Bls12381G2";
         break;
     default:
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::get_symmetricKeySize(int32_t& retVal)
 {
     if (m_keyType != kKeyTypeSecret)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     retVal = m_key.size();
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::get_type(exlib::string& retVal)
@@ -209,7 +209,7 @@ result_t KeyObject::get_type(exlib::string& retVal)
         break;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ExportKey(keyEncodingParam* param, Variant& retVal)
@@ -226,7 +226,7 @@ result_t KeyObject::ExportKey(keyEncodingParam* param, Variant& retVal)
             return hr;
 
         retVal = _json;
-        return 0;
+        return result_t();
     }
 
     switch (m_keyType) {
@@ -234,7 +234,7 @@ result_t KeyObject::ExportKey(keyEncodingParam* param, Variant& retVal)
         if (param->format.empty() || param->format == "buffer") {
             obj_ptr<Buffer_base> buf = new Buffer(m_key.data(), m_key.size());
             retVal = buf->wrap(holder());
-            return 0;
+            return result_t();
         }
 
         puts(param->format.c_str());
@@ -265,7 +265,7 @@ result_t KeyObject::_export(v8::Local<v8::Object> options, v8::Local<v8::Value>&
 
     retVal = v;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
@@ -310,7 +310,7 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
                 m_pkey = EVP_PKEY_dup(key__->m_pkey);
             m_keyType = type;
 
-            return 0;
+            return result_t();
         }
     } else if (hr.failed())
         return hr;
@@ -331,7 +331,7 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
     if (type == kKeyTypePrivate)
         return ParsePrivateKey(key);
 
-    return CALL_E_INVALID_CALL;
+    return result_t::invalid_call();
 }
 
 result_t KeyObject::equals(KeyObject_base* otherKey, bool& retVal)
@@ -349,7 +349,7 @@ result_t KeyObject::equals(KeyObject_base* otherKey, bool& retVal)
     else
         retVal = EVP_PKEY_eq(m_pkey, other->m_pkey) == 1;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
@@ -360,7 +360,7 @@ result_t KeyObject::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
         return hr;
 
     retVal = _json;
-    return 0;
+    return result_t();
 }
 
 }

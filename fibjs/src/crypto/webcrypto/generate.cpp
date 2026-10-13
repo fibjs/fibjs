@@ -23,7 +23,7 @@ result_t CryptoKey::generate()
         return generate_ecdh();
     if (m_key_type == kKeyNameHMAC)
         return generate_hmac();
-    return 0;
+    return result_t();
 }
 
 // WebCrypto: the key material of an HMAC key is `length` random bits; `length`
@@ -99,7 +99,7 @@ result_t CryptoKey::createPublicKey()
     }
     // For ECDH, public key should have no usages (already empty)
 
-    return 0;
+    return result_t();
 }
 
 result_t CryptoKey::generate_ecdsa()
@@ -212,7 +212,7 @@ result_t subtle_base::generateKey(Union_generateKey_algorithm algorithm, bool ex
     } else
         retVal = key;
 
-    return 0;
+    return result_t();
 }
 
 

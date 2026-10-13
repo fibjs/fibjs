@@ -57,7 +57,7 @@ result_t crypto_base::createPublicKey(Union_createPublicKey_key key, obj_ptr<Key
         return hr;
 
     retVal = keyObj;
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::fixSM2PublicKey()
@@ -78,7 +78,7 @@ result_t KeyObject::fixSM2PublicKey()
             return openssl_error();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::toX25519_publicKey(v8::Local<v8::Object> options)
@@ -102,7 +102,7 @@ result_t KeyObject::toX25519_publicKey(v8::Local<v8::Object> options)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::createPublicKeyFromKeyObject(KeyObject_base* key)
@@ -135,7 +135,7 @@ result_t KeyObject::createPublicKeyFromPKey(EVP_PKEY* key)
 
     m_keyType = kKeyTypePublic;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::TryParsePublicKey(const BIOPointer& bp, const char* name, const std::function<EVP_PKEY*(const unsigned char** p, long l)>& parse)
@@ -144,7 +144,7 @@ result_t KeyObject::TryParsePublicKey(const BIOPointer& bp, const char* name, co
     long der_len;
 
     if (PEM_bytes_read_bio(&der_data, &der_len, nullptr, name, bp, nullptr, nullptr) != 1)
-        return 1;
+        return result_t(1);
 
     const unsigned char* p = der_data;
     m_pkey = parse(&p, der_len);
@@ -155,7 +155,7 @@ result_t KeyObject::TryParsePublicKey(const BIOPointer& bp, const char* name, co
 
     m_keyType = kKeyTypePublic;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ParsePublicKeyPEM(const char* key_pem, int key_pem_len)
@@ -191,11 +191,11 @@ result_t KeyObject::ParsePublicKeyPEM(const char* key_pem, int key_pem_len)
         },
         nullptr);
     if (!m_pkey)
-        return 1;
+        return result_t(1);
 
     m_keyType = kKeyTypePublic;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ParsePublicKey(exlib::string format, exlib::string type, exlib::string namedCurve, Buffer_base* passphrase, Buffer_base* key)
@@ -217,7 +217,7 @@ result_t KeyObject::ParsePublicKey(exlib::string format, exlib::string type, exl
             return hr;
 
         m_keyType = kKeyTypePublic;
-        return 0;
+        return result_t();
     } else if (format == "der") {
         const unsigned char* p = (unsigned char*)_key->data();
         if (type == "pkcs1")
@@ -261,7 +261,7 @@ result_t KeyObject::ParsePublicKey(exlib::string format, exlib::string type, exl
 
     m_keyType = kKeyTypePublic;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ParsePublicKey(v8::Local<v8::Object> key)
@@ -411,7 +411,7 @@ result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Va
     } else
         return result_t::make(CALL_E_EXCEPTION).with_message("Invalid format: " + format);
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ExportPublicKey(keyEncodingParam* param, Variant& retVal, bool useBackingStore)
@@ -430,7 +430,7 @@ result_t KeyObject::ExportPublicKey(keyEncodingParam* param, v8::Local<v8::Value
 
     retVal = _retVal;
 
-    return 0;
+    return result_t();
 }
 
 }

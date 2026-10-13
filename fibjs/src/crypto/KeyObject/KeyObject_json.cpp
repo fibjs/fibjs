@@ -24,11 +24,11 @@ static result_t GetConfigValue(NObject* obj, const char* key, exlib::string& ret
         return hr;
 
     if (v.type() != Variant::VT_String)
-        return CALL_E_BADVARTYPE;
+        return result_t::bad_vartype();
 
     retVal = v.string();
 
-    return 0;
+    return result_t();
 }
 
 static result_t GetJwkValue(NObject* obj, const char* key, exlib::string& retVal)
@@ -39,7 +39,7 @@ static result_t GetJwkValue(NObject* obj, const char* key, exlib::string& retVal
         return hr;
 
     base64Decode(s.c_str(), s.length(), retVal);
-    return 0;
+    return result_t();
 }
 
 static result_t GetJwkValue(NObject* obj, const char* key, BIGNUM*& n)
@@ -50,7 +50,7 @@ static result_t GetJwkValue(NObject* obj, const char* key, BIGNUM*& n)
         return hr;
 
     n = BN_bin2bn((const unsigned char*)s.c_str(), s.length(), nullptr);
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ImportJWKRsaKey(NObject* key, KeyType type)
@@ -158,7 +158,7 @@ result_t KeyObject::ImportJWKRsaKey(NObject* key, KeyType type)
 
     m_keyType = type;
 
-    return 0;
+    return result_t();
 }
 
 int GetCurveFromName(const char* name)
@@ -232,7 +232,7 @@ result_t KeyObject::ImportJWKEcKey(NObject* key, KeyType type)
 
     m_keyType = type;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
@@ -296,7 +296,7 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
 
     m_keyType = type;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ImportJWKKey(NObject* jwk, KeyType type)
@@ -328,7 +328,7 @@ result_t KeyObject::ImportJWKKey(NObject* jwk, KeyType type)
         return createSecretKey((const unsigned char*)keyData.c_str(), keyData.length());
     }
 
-    return CALL_E_INVALID_CALL;
+    return result_t::invalid_call();
 }
 
 static exlib::string base64Encode(const char* data, size_t size)
@@ -356,7 +356,7 @@ result_t KeyObject::ExportJWKSecretKey(Variant& retVal)
 
     retVal = jwk;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ExportJWKRsaKey(Variant& retVal)
@@ -393,7 +393,7 @@ result_t KeyObject::ExportJWKRsaKey(Variant& retVal)
 
     retVal = jwk;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ExportJWKEcKey(Variant& retVal)
@@ -426,7 +426,7 @@ result_t KeyObject::ExportJWKEcKey(Variant& retVal)
 
     retVal = jwk;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::ExportJWKOKPKey(Variant& retVal)
@@ -453,7 +453,7 @@ result_t KeyObject::ExportJWKOKPKey(Variant& retVal)
 
     retVal = jwk;
 
-    return 0;
+    return result_t();
 }
 
 result_t KeyObject::export_json(Variant& retVal)

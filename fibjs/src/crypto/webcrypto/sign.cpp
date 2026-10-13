@@ -72,7 +72,7 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
         ac.ctxv()[1] = hash;
     }
 
-    return 0;
+    return result_t();
 }
 
 // The string form of the algorithm is pure C++: check_name and the HMAC hash
@@ -99,7 +99,7 @@ static result_t name_hash_from_key(CryptoKey* key, const exlib::string& name, ex
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 
@@ -176,7 +176,7 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
             return openssl_error();
 
         retVal = sig_store;
-        return 0;
+        return result_t();
     }
 
     // Ed25519 uses DER encoding and empty hash (built-in SHA-512)
@@ -192,7 +192,7 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
             memcpy(sig_store->Data(), buf->data(), buf->length());
         }
         retVal = sig_store;
-        return 0;
+        return result_t();
     }
 
     obj_ptr<Buffer_base> sig_buffer;
@@ -206,7 +206,7 @@ result_t subtle_base::sign(Union_sign_algorithm algorithm, CryptoKey_base* key, 
         memcpy(sig_store->Data(), buf->data(), buf->length());
     }
     retVal = sig_store;
-    return 0;
+    return result_t();
 }
 
 
@@ -291,7 +291,7 @@ result_t subtle_base::verify(Union_verify_algorithm algorithm, CryptoKey_base* k
         // Compare computed signature with provided signature
         Buffer* sig = Buffer::Cast(signature_buffer);
         retVal = (computed_sig_len == sig->length()) && (memcmp(computed_sig->data(), sig->data(), computed_sig_len) == 0);
-        return 0;
+        return result_t();
     }
 
     // Ed25519 uses DER encoding and empty hash (built-in SHA-512)

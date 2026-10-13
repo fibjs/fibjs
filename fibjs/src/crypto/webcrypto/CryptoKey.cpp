@@ -23,7 +23,7 @@ result_t CryptoKey::get_algorithm(v8::Local<v8::Object>& retVal)
 result_t CryptoKey::get_extractable(bool& retVal)
 {
     retVal = m_extractable;
-    return 0;
+    return result_t();
 }
 
 result_t CryptoKey::get_usages(std::vector<exlib::string>& retVal)
@@ -31,7 +31,7 @@ result_t CryptoKey::get_usages(std::vector<exlib::string>& retVal)
     for (auto& it : m_usageMap)
         retVal.push_back(it.first);
 
-    return 0;
+    return result_t();
 }
 
 }

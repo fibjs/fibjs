@@ -37,7 +37,7 @@ public:
 result_t crypto_base::getCiphers(std::vector<exlib::string>& retVal)
 {
     retVal = g_ciphers;
-    return 0;
+    return result_t();
 }
 
 // Helper function to get mode name from mode constant
@@ -78,7 +78,7 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
     v8::Local<v8::Object> options, obj_ptr<crypto_base::GetCipherInfoType>& retVal)
 {
     if (!cipher)
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
 
     // Get cipher properties
     int nid = EVP_CIPHER_nid(cipher);
@@ -104,7 +104,7 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
 
     if (hr.ok()) {
         if (key_length != expected_key_length)
-            return CALL_RETURN_UNDEFINED;
+            return result_t::return_undefined();
     }
 
     // Check ivLength filter
@@ -117,15 +117,15 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
         if (mode == EVP_CIPH_CCM_MODE) {
             // CCM mode supports IV length from 7 to 13 bytes
             if (expected_iv_length < 7 || expected_iv_length > 13)
-                return CALL_RETURN_UNDEFINED;
+                return result_t::return_undefined();
         } else if (mode == EVP_CIPH_OCB_MODE) {
             // OCB mode supports IV length from 1 to 15 bytes
             if (expected_iv_length < 1 || expected_iv_length > 15)
-                return CALL_RETURN_UNDEFINED;
+                return result_t::return_undefined();
         } else {
             // For other modes, IV length must match exactly
             if (iv_length != expected_iv_length)
-                return CALL_RETURN_UNDEFINED;
+                return result_t::return_undefined();
         }
     }
 
@@ -136,7 +136,7 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
     retVal->ivLength = iv_length;
     retVal->keyLength = key_length;
     retVal->mode = GetCipherMode(mode);
-    return 0;
+    return result_t();
 }
 
 result_t crypto_base::getCipherInfo(Union_getCipherInfo_nameOrNid nameOrNid, v8::Local<v8::Object> options,
@@ -157,7 +157,7 @@ static result_t cipher_string_arg(T& v, obj_ptr<Buffer_base>& buf)
         return Buffer_base::from(std::get<exlib::string>(v), "utf8", buf);
 
     buf = std::get<obj_ptr<Buffer_base>>(v);
-    return 0;
+    return result_t();
 }
 
 // a string key or iv of the cipher family is decoded as utf8; a KeyObject key
@@ -169,7 +169,7 @@ static result_t cipher_key_args(crypto_base::Union_createCipheriv_key& key, obj_
         if (ko->type() != KeyObject::kKeyTypeSecret)
             return result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Invalid key type");
 
-        return 0;
+        return result_t();
     }
 
     ko = NULL;
@@ -192,7 +192,7 @@ result_t crypto_base::createCipher(exlib::string algorithm, Union_createCipher_k
 
     retVal = ci;
 
-    return 0;
+    return result_t();
 }
 
 result_t crypto_base::createCipheriv(exlib::string algorithm, Union_createCipheriv_key key,
@@ -218,7 +218,7 @@ result_t crypto_base::createCipheriv(exlib::string algorithm, Union_createCipher
 
     retVal = ci;
 
-    return 0;
+    return result_t();
 }
 
 result_t crypto_base::createDecipher(exlib::string algorithm, Union_createDecipher_key key,
@@ -237,7 +237,7 @@ result_t crypto_base::createDecipher(exlib::string algorithm, Union_createDeciph
 
     retVal = ci;
 
-    return 0;
+    return result_t();
 }
 
 result_t crypto_base::createDecipheriv(exlib::string algorithm, Union_createDecipheriv_key key,
@@ -263,7 +263,7 @@ result_t crypto_base::createDecipheriv(exlib::string algorithm, Union_createDeci
 
     retVal = ci;
 
-    return 0;
+    return result_t();
 }
 
 static bool IsSupportedAuthenticatedMode(const EVP_CIPHER* cipher)
@@ -353,7 +353,7 @@ result_t Cipher::InitAuthenticated(int iv_len, unsigned int auth_tag_len)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t Cipher::init(const exlib::string& name, Buffer_base* key, v8::Local<v8::Object> options)
@@ -443,7 +443,7 @@ result_t Cipher::CommonInit(const EVP_CIPHER* cipher, const unsigned char* key, 
     if (EVP_CipherInit_ex(m_ctx, nullptr, nullptr, key, iv, encrypt) != 1)
         return openssl_error();
 
-    return 0;
+    return result_t();
 }
 
 result_t Cipher::setAuthTag(const char* tag, int tag_len)
@@ -467,7 +467,7 @@ result_t Cipher::setAuthTag(const char* tag, int tag_len)
     memset(auth_tag_, 0, sizeof(auth_tag_));
     memcpy(auth_tag_, tag, tag_len);
 
-    return 0;
+    return result_t();
 }
 
 result_t Cipher::setAuthTag(Union_setAuthTag_buffer buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal)
@@ -494,7 +494,7 @@ result_t Cipher::setAuthTag(Union_setAuthTag_buffer buffer, exlib::string encodi
         return hr;
 
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t Cipher::getAuthTag(obj_ptr<Buffer_base>& retVal)
@@ -504,7 +504,7 @@ result_t Cipher::getAuthTag(obj_ptr<Buffer_base>& retVal)
 
     retVal = new Buffer(auth_tag_, auth_tag_len_);
 
-    return 0;
+    return result_t();
 }
 
 result_t Cipher::setAAD(const char* data, int data_len, v8::Local<v8::Object> options)
@@ -539,7 +539,7 @@ result_t Cipher::setAAD(const char* data, int data_len, v8::Local<v8::Object> op
     if (EVP_CipherUpdate(m_ctx, nullptr, &outlen, (const unsigned char*)data, data_len) != 1)
         return openssl_error();
 
-    return 0;
+    return result_t();
 }
 
 result_t Cipher::setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
@@ -571,7 +571,7 @@ result_t Cipher::setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> option
         return hr;
 
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t Cipher::setAutoPadding(bool autoPadding, obj_ptr<Cipher_base>& retVal)
@@ -583,7 +583,7 @@ result_t Cipher::setAutoPadding(bool autoPadding, obj_ptr<Cipher_base>& retVal)
         return openssl_error();
 
     retVal = this;
-    return 0;
+    return result_t();
 }
 
 result_t Cipher::get_result(Buffer* out, exlib::string outputEncoding, v8::Local<v8::Value>& retVal, bool final)
@@ -593,7 +593,7 @@ result_t Cipher::get_result(Buffer* out, exlib::string outputEncoding, v8::Local
             return result_t::make(CALL_E_EXCEPTION).with_message("Cipher: Inconsistent encoding");
 
         retVal = out->wrap(holder());
-        return 0;
+        return result_t();
     }
 
     result_t hr;
@@ -622,7 +622,7 @@ result_t Cipher::get_result(Buffer* out, exlib::string outputEncoding, v8::Local
 
     retVal = holder()->NewString(str);
 
-    return 0;
+    return result_t();
 }
 
 result_t Cipher::update(const unsigned char* data, size_t len, exlib::string outputEncoding, v8::Local<v8::Value>& retVal)

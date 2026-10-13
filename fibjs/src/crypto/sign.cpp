@@ -37,7 +37,7 @@ static result_t get_sig_opt(Isolate* isolate, v8::Local<v8::Object> key, DSASigE
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
-    return 0;
+    return result_t();
 }
 
 static bool ApplyRSAOptions(const EVP_PKEY* pkey, EVP_PKEY_CTX* pkctx, int padding, int salt_len)
@@ -143,14 +143,14 @@ result_t Sign::update(Union_update_data data, exlib::string codec, obj_ptr<Sign_
 
         EVP_DigestUpdate(m_ctx, (const unsigned char*)_data.c_str(), _data.length());
 
-        return 0;
+        return result_t();
     }
 
     Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
 
     EVP_DigestUpdate(m_ctx, buf->data(), buf->length());
 
-    return 0;
+    return result_t();
 }
 
 static bool IsOneShot(const EVP_PKEY* key)
@@ -283,14 +283,14 @@ result_t Verify::update(Union_update_data data, exlib::string codec, obj_ptr<Ver
 
         EVP_DigestUpdate(m_ctx, (const unsigned char*)_data.c_str(), _data.length());
 
-        return 0;
+        return result_t();
     }
 
     Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(data));
 
     EVP_DigestUpdate(m_ctx, buf->data(), buf->length());
 
-    return 0;
+    return result_t();
 }
 
 result_t Verify::verify(KeyObject_base* key, const unsigned char* signature, size_t sig_len, DSASigEnc enc,
@@ -334,7 +334,7 @@ result_t Verify::verify(KeyObject_base* key, const unsigned char* signature, siz
 
     retVal = EVP_PKEY_verify(pkctx, signature, sig_len, m, m_len) == 1;
 
-    return 0;
+    return result_t();
 }
 
 result_t Verify::verify(KeyObject_base* key, Buffer_base* signature, DSASigEnc enc, int padding, int salt_len,
@@ -453,7 +453,7 @@ result_t crypto_base::createSign(exlib::string algorithm, v8::Local<v8::Object> 
         return result_t::make(CALL_E_EXCEPTION).with_format("createSign: unknown algorithm '%s'.", algorithm.c_str());
 
     retVal = new Sign(md);
-    return 0;
+    return result_t();
 }
 
 result_t crypto_base::createVerify(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Verify_base>& retVal)
@@ -463,13 +463,13 @@ result_t crypto_base::createVerify(exlib::string algorithm, v8::Local<v8::Object
         return result_t::make(CALL_E_EXCEPTION).with_format("createVerify: unknown algorithm '%s'.", algorithm.c_str());
 
     retVal = new Verify(md);
-    return 0;
+    return result_t();
 }
 
 result_t get_algorithm(Isolate* isolate, v8::Local<v8::Value> algorithm, exlib::string& retVal)
 {
     if (algorithm->IsNull() || algorithm->IsUndefined())
-        return 0;
+        return result_t();
 
     result_t hr = GetArgumentValue(isolate, algorithm, retVal, true);
     if (hr.failed())
@@ -478,7 +478,7 @@ result_t get_algorithm(Isolate* isolate, v8::Local<v8::Value> algorithm, exlib::
     if (retVal.empty())
         return result_t::make(CALL_E_EXCEPTION).with_message("Invalid algorithm: algorithm must not be empty.");
 
-    return 0;
+    return result_t();
 }
 
 result_t _sign(exlib::string algorithm, Buffer_base* data, KeyObject_base* privateKey, DSASigEnc enc, int padding, int salt_len, obj_ptr<Buffer_base>& retVal)
@@ -523,7 +523,7 @@ result_t _sign(exlib::string algorithm, Buffer_base* data, KeyObject_base* priva
 
     retVal = sig;
 
-    return 0;
+    return result_t();
 }
 
 
@@ -563,7 +563,7 @@ result_t _verify(exlib::string algorithm, Buffer_base* data, KeyObject_base* pub
 
     retVal = EVP_DigestVerify(context, sig->data(), sig->length(), buf->data(), buf->length()) == 1;
 
-    return 0;
+    return result_t();
 }
 
 
