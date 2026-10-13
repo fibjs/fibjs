@@ -2005,6 +2005,246 @@ describe('opt_tools install lifecycle', function () {
         });
     });
 
+    // ===== Phase 14: a cycle through a peer edge =====
+    // `browserslist` depends on `update-browserslist-db`, which declares
+    // `browserslist` as a peer. Resolving that peer from the lockfile without asking
+    // the ancestors first gave it a copy of its own — the copy declares the
+    // dependency again, and the walk never ended: a project carrying such a pair died
+    // with `RangeError: Maximum call stack size exceeded` before anything was
+    // installed. The names are replaced, the shape is the one npm writes
+    if (isFibjs) describe('install / dependency cycle through a peer edge (Phase 14)', function () {
+        var http = require('http');
+        var crypto = require('crypto');
+
+        var server = null;
+        var port = 0;
+        var fixtureDir = '';
+        var registry = {};   // name -> version -> { tarball, integrity, shasum, manifest }
+
+        function pack(name, version, extra) {
+            var dir = path.join(fixtureDir, name + '-' + version);
+            var pkgDir = path.join(dir, 'package');
+
+            var manifest = Object.assign({ name: name, version: version }, extra || {});
+
+            fs.mkdirSync(pkgDir, { recursive: true });
+            fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify(manifest));
+            fs.writeFileSync(path.join(pkgDir, 'index.js'), 'module.exports = ' + JSON.stringify(version) + ';\n');
+
+            var file = name + '-' + version + '.tgz';
+
+            var res = child_process.spawnSync('tar', ['czf', file, 'package'], { cwd: dir, stdio: 'pipe' });
+
+            assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
+
+            var buf = fs.readFileSync(path.join(dir, file));
+
+            return {
+                tarball: buf,
+                manifest: manifest,
+                integrity: 'sha512-' + crypto.createHash('sha512').update(buf).digest('base64'),
+                shasum: crypto.createHash('sha1').update(buf).digest('hex'),
+            };
+        }
+
+        function tarball_url(name, version) {
+            return 'http://127.0.0.1:' + port + '/' + name + '/-/' + name + '-' + version + '.tgz';
+        }
+
+        before(function () {
+            fixtureDir = path.join(TMP_DIR, 'cyc_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+            fs.mkdirSync(fixtureDir, { recursive: true });
+
+            // `cyc-a` depends on `cyc-b`, and `cyc-b` declares `cyc-a` as a peer whose
+            // range the copy satisfies — every copy does, which is what keeps the
+            // resolution quiet and the walk going
+            registry['cyc-host'] = {
+                '1.0.0': pack('cyc-host', '1.0.0', { dependencies: { 'cyc-a': '^1.0.0' } }),
+            };
+            registry['cyc-a'] = {
+                '1.0.0': pack('cyc-a', '1.0.0', { dependencies: { 'cyc-b': '^1.0.0' } }),
+            };
+            registry['cyc-b'] = {
+                '1.0.0': pack('cyc-b', '1.0.0', { peerDependencies: { 'cyc-a': '>= 1.0.0' } }),
+            };
+            registry['cyc-extra'] = {
+                '1.0.0': pack('cyc-extra', '1.0.0'),
+            };
+            // what the lockfile already carries, so that resolving has one edge it
+            // keeps and one it has to look up
+            registry['cyc-need'] = {
+                '1.0.0': pack('cyc-need', '1.0.0'),
+            };
+
+            function handler(r) {
+                var tb = /^\/([^/]+)\/-\/([^/]+)\.tgz$/.exec(r.address);
+
+                if (tb) {
+                    var name = tb[1];
+                    var version = tb[2].slice(name.length + 1);
+
+                    if (registry[name] && registry[name][version]) {
+                        r.response.write(registry[name][version].tarball);
+                        return;
+                    }
+                } else {
+                    var wanted = r.address.slice(1);
+
+                    if (registry[wanted]) {
+                        var versions = {};
+
+                        Object.keys(registry[wanted]).forEach(function (v) {
+                            var entry = registry[wanted][v];
+
+                            versions[v] = Object.assign({}, entry.manifest, {
+                                dist: {
+                                    tarball: tarball_url(wanted, v),
+                                    integrity: entry.integrity,
+                                    shasum: entry.shasum,
+                                },
+                            });
+                        });
+
+                        r.response.write(JSON.stringify({
+                            name: wanted,
+                            'dist-tags': { latest: Object.keys(registry[wanted]).sort().pop() },
+                            versions: versions,
+                        }));
+                        return;
+                    }
+                }
+
+                r.response.statusCode = 404;
+                r.response.write('not found');
+            }
+
+            for (var attempt = 0; attempt < 20 && !server; attempt++) {
+                var candidate = 51000 + Math.floor(Math.random() * 4000);
+                var candidateServer = http.createServer(handler);
+
+                try {
+                    candidateServer.listen(candidate);
+                    port = candidate;
+                    server = candidateServer;
+                } catch (e) {
+                    try { candidateServer.stop(); } catch (e2) { /* ignore */ }
+                }
+            }
+
+            assert.ok(server, 'no free port for the local registry');
+        });
+
+        after(function () {
+            if (server) server.stop();
+            try { rmdirSync(fixtureDir); } catch (e) { /* ignore */ }
+        });
+
+        function code_of(name, spec, version) {
+            return {
+                version: version,
+                resolved: tarball_url(name, version),
+                integrity: registry[name][version].integrity,
+                dependencies: spec && spec.dependencies,
+                peerDependencies: spec && spec.peerDependencies,
+            };
+        }
+
+        /**
+         * @description the fresh clone: package.json declares one dependency the
+         *              lockfile does not carry, so the installer resolves — and that
+         *              resolution starts from the lockfile alone, which is where the
+         *              cycle was walked. `hoisted` puts the pair where npm hoists it,
+         *              the other shape keeps it inside `cyc-host`, with no copy at the
+         *              root for the peer to find
+         */
+        function makeProject(hoisted) {
+            var targetDir = makeTargetDir();
+            var pairs = {};
+
+            if (hoisted) {
+                pairs['node_modules/cyc-a'] = code_of('cyc-a', registry['cyc-a']['1.0.0'].manifest, '1.0.0');
+                pairs['node_modules/cyc-b'] = code_of('cyc-b', registry['cyc-b']['1.0.0'].manifest, '1.0.0');
+            } else {
+                pairs['node_modules/cyc-host/node_modules/cyc-a'] =
+                    code_of('cyc-a', registry['cyc-a']['1.0.0'].manifest, '1.0.0');
+                pairs['node_modules/cyc-host/node_modules/cyc-a/node_modules/cyc-b'] =
+                    code_of('cyc-b', registry['cyc-b']['1.0.0'].manifest, '1.0.0');
+            }
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'cyc-proj', version: '1.0.0',
+                // `cyc-extra` is not in the lockfile: the tree is resolved again
+                dependencies: { 'cyc-host': '1.0.0', 'cyc-need': '1.0.0', 'cyc-extra': '1.0.0' },
+            }, null, 2));
+            fs.writeFileSync(path.join(targetDir, '.npmrc'), 'registry=http://127.0.0.1:' + port + '/\n');
+
+            var packages = {
+                '': {
+                    name: 'cyc-proj', version: '1.0.0',
+                    dependencies: { 'cyc-host': '1.0.0', 'cyc-need': '1.0.0' },
+                },
+                'node_modules/cyc-host': code_of('cyc-host', registry['cyc-host']['1.0.0'].manifest, '1.0.0'),
+                'node_modules/cyc-need': code_of('cyc-need', null, '1.0.0'),
+            };
+
+            Object.keys(pairs).forEach(function (p) { packages[p] = pairs[p]; });
+
+            fs.writeFileSync(path.join(targetDir, 'package-lock.json'), JSON.stringify({
+                name: 'cyc-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: packages,
+            }, null, 2));
+
+            return targetDir;
+        }
+
+        function runCyc(targetDir, args) {
+            return runInstaller(targetDir, args || ['--install'], {
+                env: { HTTP_PROXY: '', HTTPS_PROXY: '', http_proxy: '', https_proxy: '', NO_PROXY: '*' },
+            });
+        }
+
+        function entriesEndingWith(targetDir, suffix) {
+            var lock = JSON.parse(fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8'));
+
+            return Object.keys(lock.packages).filter(function (p) { return p.slice(-suffix.length) === suffix; });
+        }
+
+        it('resolves a pair the disk does not carry, instead of nesting it forever', function () {
+            var targetDir = makeProject(true);
+            var res = runCyc(targetDir);
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + out);
+            assert.ok(out.indexOf('Maximum call stack size exceeded') === -1,
+                'the walk does not recurse without end:\n' + out);
+
+            // one copy of each: the peer is served by the copy that is already there
+            assert.deepEqual(entriesEndingWith(targetDir, '/cyc-a'), ['node_modules/cyc-a'],
+                'cyc-a is resolved once: ' + diag(targetDir, res));
+            assert.deepEqual(entriesEndingWith(targetDir, '/cyc-b'), ['node_modules/cyc-b'],
+                'and so is cyc-b, whose peer edge points back at it');
+            assert.ok(fs.existsSync(path.join(targetDir, 'node_modules', 'cyc-a', 'index.js')),
+                'the pair is on the disk: ' + listDir(path.join(targetDir, 'node_modules')));
+        });
+
+        it('resolves a pair that is nested all the way down, where no copy is at the root', function () {
+            // nothing at the root for the peer to resolve to: the copy it is served by
+            // is the one the walk created inside `cyc-host`, one level up
+            var targetDir = makeProject(false);
+            var res = runCyc(targetDir);
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + out);
+            assert.ok(out.indexOf('Maximum call stack size exceeded') === -1,
+                'the walk does not recurse without end:\n' + out);
+
+            assert.deepEqual(entriesEndingWith(targetDir, '/cyc-a'), ['node_modules/cyc-a'],
+                'cyc-a is resolved once, wherever hoisting put it: ' + diag(targetDir, res));
+            assert.deepEqual(entriesEndingWith(targetDir, '/cyc-b'), ['node_modules/cyc-b'],
+                'and so is cyc-b');
+        });
+    });
+
     // ===== Phase 13: what a tarball carries, and what npm refuses =====
     // two things an install has to get right at the end: a package that bundles its
     // own copy of a dependency must not leave that older copy where the install

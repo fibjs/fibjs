@@ -1317,10 +1317,16 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
             if (refresh) {
                 level_info.updated = true;
                 child_level_info = undefined;
-            } else if (child_level_info === undefined) {
+            } else if (child_level_info === undefined && !find_version(dname, v, level_info)) {
                 // nothing on disk to start from: the lockfile is the tree npm
                 // would have started from, and the version it pins is kept
-                // while it satisfies the spec
+                // while it satisfies the spec. A copy an ancestor already holds is
+                // not materialized again — that is the same placement rule
+                // `find_version` applies below before a fetch, and asking the
+                // lockfile for one produced an endless level per dependency of a
+                // package that depends back on its own provider (browserslist asks
+                // for update-browserslist-db, whose peer edge asks for browserslist
+                // again): every level got its own node and the walk never ended
                 const locked = locked_module_info(dname, v, level_info);
 
                 if (locked)
