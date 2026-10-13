@@ -60,7 +60,7 @@ exlib::string WebView::internal_getUrl()
 result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     WKWebView* webView = (WKWebView*)m_webview;
@@ -80,24 +80,24 @@ result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
         [webView loadRequest:request];
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = internal_getUrl();
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     WKWebView* webView = (WKWebView*)m_webview;
@@ -113,13 +113,13 @@ result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
         [webView loadHTMLString:[NSString stringWithUTF8String:html.c_str()] baseURL:nil];
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // The WebKit completion block outlives this frame: the continuation travels
@@ -131,7 +131,7 @@ result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
               completionHandler:^(NSString* html, NSError* error) {
                   if (error == nil)
                       retVal = [html UTF8String];
-                  h->post(0);
+                  h->post();
               }];
 
     return result_t::pending();
@@ -143,49 +143,49 @@ result_t WebView::isReady(bool& retVal, AsyncHandle ac)
     m_ready->isSet(is_win_ready);
     if (!is_win_ready) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = internal_isReady();
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::reload(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     [(WKWebView*)m_webview reload];
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::goBack(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     [(WKWebView*)m_webview goBack];
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::goForward(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     [(WKWebView*)m_webview goForward];
 
-    return 0;
+    return result_t();
 }
 
 static const int kMaxJs2VariantDepth = 20;
@@ -269,7 +269,7 @@ static NSString* const WKJavaScriptExceptionMessage = @"WKJavaScriptExceptionMes
 result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     // The WebKit completion block outlives this frame: the continuation travels
@@ -280,7 +280,7 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
                             completionHandler:^(id result, NSError* error) {
                                 if (error) {
                                     if (NSInternalSpecifierError == error.code) {
-                                        h->post(0);
+                                        h->post();
                                     } else {
                                         NSString* jsExceptionMessage = error.userInfo[WKJavaScriptExceptionMessage];
                                         if (jsExceptionMessage) {
@@ -292,7 +292,7 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
                                     }
                                 } else {
                                     js2Variant(result, retVal);
-                                    h->post(0);
+                                    h->post();
                                 }
                             }];
 
@@ -302,41 +302,41 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
 result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     NSString* nsTitle = [NSString stringWithUTF8String:title.c_str()];
     [(NSWindow*)m_window setTitle:nsTitle];
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     NSString* nsTitle = [(NSWindow*)m_window title];
     retVal = [nsTitle UTF8String];
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = [(NSWindow*)m_window isVisible];
-    return 0;
+    return result_t();
 }
 
 result_t WebView::show(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (![(NSWindow*)m_window isVisible]) {
@@ -346,13 +346,13 @@ result_t WebView::show(AsyncHandle ac)
         [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::hide(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if ([(NSWindow*)m_window isVisible]) {
@@ -361,26 +361,26 @@ result_t WebView::hide(AsyncHandle ac)
             [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     NSRect frame = [(NSWindow*)m_window frame];
     frame.size = NSMakeSize(width, height);
     [(NSWindow*)m_window setFrame:frame display:YES animate:NO];
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     NSSize size = [(NSWindow*)m_window frame].size;
@@ -389,13 +389,13 @@ result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
     retVal->append(size.width);
     retVal->append(size.height);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     NSRect screen_rect = [[NSScreen mainScreen] frame];
@@ -407,13 +407,13 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
     frame.origin = NSMakePoint(left, top);
     [(NSWindow*)m_window setFrame:frame display:YES animate:NO];
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     NSRect frame = [(NSWindow*)m_window frame];
@@ -424,35 +424,35 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
     retVal->append((int32_t)(frame.origin.x - screen_rect.origin.x));
     retVal->append((int32_t)(screen_rect.size.height + screen_rect.origin.y - (frame.size.height + frame.origin.y)));
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::isActived(bool& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     retVal = [(NSWindow*)m_window isKeyWindow];
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::active(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     [(NSWindow*)m_window makeKeyAndOrderFront:nil];
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     if (fullPage)
@@ -471,7 +471,7 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
                                  NSData* data = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@ {}];
 
                                  retVal = new Buffer([data bytes], [data length]);
-                                 h->post(0);
+                                 h->post();
 
                                  [rep release];
                              } else {
@@ -485,19 +485,19 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
 result_t WebView::close(AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     m_options->hideOnClose = false;
     [(NSWindow*)m_window close];
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
-    if (hr < 0)
+    if (hr.failed())
         return hr;
 
     encoding_base::jsstr(msg, false, msg);
@@ -506,7 +506,7 @@ result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
     NSString* jsCode = [NSString stringWithUTF8String:_jsCode.c_str()];
     [(WKWebView*)m_webview evaluateJavaScript:jsCode completionHandler:nil];
 
-    return 0;
+    return result_t();
 }
 
 }

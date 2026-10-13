@@ -63,7 +63,7 @@
         fibjs::Variant var;
         fibjs::result_t hr = fibjs::fs_base::cc_readFile(fname, "", var, fibjs::Isolate::main());
 
-        if (hr >= 0) {
+        if (hr.ok()) {
             fibjs::async([fname, url, urlSchemeTask, var]() {
                 fibjs::Buffer* _buf = (fibjs::Buffer*)var.object();
                 NSData* data = _buf ? [NSData dataWithBytes:_buf->data() length:_buf->length()] : [NSData data];
@@ -85,7 +85,7 @@
 
                 [(id)urlSchemeTask release];
             },
-                CALL_E_GUICALL);
+                fibjs::result_t::guicall());
         } else {
             fibjs::async([fname, urlSchemeTask]() {
                 NSString* errorHTML = [NSString stringWithFormat:@"<html><body><h1>Error</h1><p>File not found at path:<br>%@</p></body></html>",
@@ -105,7 +105,7 @@
 
                 [(id)urlSchemeTask release];
             },
-                CALL_E_GUICALL);
+                fibjs::result_t::guicall());
         }
     });
 }
@@ -279,7 +279,7 @@ result_t WebView::createWebView()
     else if (m_options->file.has_value()) {
         obj_ptr<UrlObject_base> u;
         result_t hr = url_base::pathToFileURL(m_options->file.value(), v8::Local<v8::Object>(), u);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         u->get_href(url);
@@ -293,7 +293,7 @@ result_t WebView::createWebView()
 
     config();
 
-    return 0;
+    return result_t();
 }
 
 }

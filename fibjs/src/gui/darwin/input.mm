@@ -62,10 +62,10 @@ result_t gui_base::input(exlib::string title, exlib::string message, bool passwo
     if (response == NSAlertFirstButtonReturn) {
         retVal = [[[alert accessoryView] stringValue] UTF8String];
     } else {
-        return CALL_RETURN_UNDEFINED;
+        return result_t::return_undefined();
     }
 
-    return 0;
+    return result_t();
 }
 
 }

@@ -256,11 +256,11 @@ result_t gui_base::input(exlib::string title, exlib::string message, bool passwo
         return result_t::guicall();
 
     exlib::Event ev;
-    result_t hr = CALL_RETURN_UNDEFINED;
+    result_t hr = result_t::return_undefined();
 
     async([&message, &title, &password, &retVal, &hr, &ev]() {
         if (!EnsureMessageLoop()) {
-            hr = CALL_RETURN_UNDEFINED;
+            hr = result_t::return_undefined();
             ev.set();
             return;
         }
@@ -275,7 +275,7 @@ result_t gui_base::input(exlib::string title, exlib::string message, bool passwo
         wc.style = CS_HREDRAW | CS_VREDRAW;
 
         if (!RegisterClassEx(&wc)) {
-            hr = CALL_RETURN_UNDEFINED;
+            hr = result_t::return_undefined();
             ev.set();
             return;
         }
@@ -333,7 +333,7 @@ result_t gui_base::input(exlib::string title, exlib::string message, bool passwo
 
         if (!hwnd) {
             UnregisterClass(L"FibJSInputDialog", GetModuleHandle(NULL));
-            hr = CALL_RETURN_UNDEFINED;
+            hr = result_t::return_undefined();
             ev.set();
             return;
         }
@@ -377,7 +377,7 @@ result_t gui_base::input(exlib::string title, exlib::string message, bool passwo
 
         UnregisterClass(L"FibJSInputDialog", GetModuleHandle(NULL));
 
-        hr = params.dialogResult ? 0 : CALL_RETURN_UNDEFINED;
+        hr = params.dialogResult ? result_t() : result_t::return_undefined();
         ev.set();
     },
         result_t::longsync());

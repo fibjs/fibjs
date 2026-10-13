@@ -31,13 +31,13 @@ private:
 inline result_t Service::get_name(exlib::string& retVal)
 {
     retVal = m_name;
-    return 0;
+    return result_t();
 }
 
 inline result_t Service::set_name(exlib::string newVal)
 {
     m_name = newVal;
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

@@ -125,7 +125,7 @@ result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
 
                     retVal = jsonResult.get<std::string>();
                 }
-                h->post(0);
+                h->post();
                 return S_OK;
             })
             .Get());
@@ -257,7 +257,7 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
                     } else {
                         if (jsonResult.contains("result"))
                             json2Variant(jsonResult["result"], retVal);
-                        h->post(0);
+                        h->post();
                     }
                 } catch (const std::exception& e) {
                     h->post(result_t::make(CALL_E_EXCEPTION).with_message(e.what()));
@@ -455,7 +455,7 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
 
                 base64_base::decode(base64Data, retVal);
 
-                h->post(0);
+                h->post();
 
                 return S_OK;
             })

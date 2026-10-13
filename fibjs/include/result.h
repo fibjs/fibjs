@@ -420,8 +420,9 @@ public:
 
 // The 4-byte P1 layout grew to 16B in P5: code + null payload pointer on the
 // success path (two stores, no atomic, no allocation); the description is
-// allocated only on failures.
-static_assert(sizeof(result_t) == 16, "result_t is { int32_t, obj_ptr<ErrorPayload> }");
+// allocated only on failures. On 32-bit targets the pointer is 4B, so the
+// value is 8B (2 * sizeof(void*)) -- the assertion tracks the pointer size.
+static_assert(sizeof(result_t) == 2 * sizeof(void*), "result_t is { int32_t, obj_ptr<ErrorPayload> }");
 
 // ---------------------------------------------------------------------------
 // The description that rides with a failing result_t. Refcounted (obj_base):

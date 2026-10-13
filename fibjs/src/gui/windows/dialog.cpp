@@ -32,12 +32,15 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
     }
 
     result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr < 0)
+    if (ctx_hr.failed())
         return ctx_hr;
 
     HRESULT hr = 0;
+    // hr carries the COM result only; the value handed back to the caller
+    // travels on its own channel across the async lambda.
+    result_t err;
     exlib::Event ev;
-    async([&hr, &ev, &retVal, &ac]() {
+    async([&hr, &err, &ev, &retVal, &ac]() {
         DialogOptions* opts = (DialogOptions*)ac.ctxv()[0].object();
 
         bool isSaveDialog = opts->type.value() == "saveFile";
@@ -48,6 +51,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         else
             hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
         if (FAILED(hr)) {
+            err = result_t::make(CALL_E_EXCEPTION).with_message("failed to create the file dialog");
             ev.set();
             return;
         }
@@ -64,7 +68,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
                 dwFlags |= FOS_FORCEFILESYSTEM;
             else {
                 pfd->Release();
-                hr = result_t::make(CALL_E_EXCEPTION).with_message("invalid dialog type: " + opts->type.value());
+                err = result_t::make(CALL_E_EXCEPTION).with_message("invalid dialog type: " + opts->type.value());
                 ev.set();
                 return;
             }
@@ -84,7 +88,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
             hr = SHCreateItemFromParsingName((LPCWSTR)utf8to16String(opts->defaultPath.value()).c_str(), nullptr, IID_PPV_ARGS(&psiFolder));
             if (FAILED(hr)) {
                 pfd->Release();
-                hr = result_t::make(CALL_E_EXCEPTION).with_message("invalid defaultPath: " + opts->defaultPath.value());
+                err = result_t::make(CALL_E_EXCEPTION).with_message("invalid defaultPath: " + opts->defaultPath.value());
                 ev.set();
                 return;
             }
@@ -125,7 +129,14 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
 
         if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED)) {
             pfd->Release();
-            hr = CALL_RETURN_UNDEFINED;
+            err = result_t::return_undefined();
+            ev.set();
+            return;
+        }
+
+        if (FAILED(hr)) {
+            pfd->Release();
+            err = result_t::make(CALL_E_EXCEPTION).with_message("failed to show the file dialog");
             ev.set();
             return;
         }
@@ -181,7 +192,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
 
     ev.wait();
 
-    return hr;
+    return err;
 }
 
 }

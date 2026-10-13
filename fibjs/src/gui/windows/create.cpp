@@ -346,7 +346,7 @@ result_t WebView::createWebView()
                     obj_ptr<UrlObject_base> u;
                     result_t hr = url_base::pathToFileURL(m_options->file.value(), v8::Local<v8::Object>(), u);
                     if (hr.failed())
-                        return hr;
+                        return E_FAIL;
 
                     u->get_href(url);
                     url = "fs:" + url.substr(5);

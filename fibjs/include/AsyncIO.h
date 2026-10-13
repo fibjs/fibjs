@@ -109,7 +109,7 @@ public:
 
         m_fd = INVALID_SOCKET;
 
-        return 0;
+        return result_t();
     }
 #endif
 

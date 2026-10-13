@@ -22,7 +22,7 @@ namespace fibjs {
 static bool has_driver_override(exlib::string connString)
 {
     obj_ptr<Url> u = new Url();
-    if (u->parse(connString) < 0)
+    if (u->parse(connString).failed())
         return false;
 
     obj_ptr<URLSearchParams_base> q;

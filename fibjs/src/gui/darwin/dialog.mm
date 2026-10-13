@@ -25,7 +25,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
 
         obj_ptr<DialogOptions> opts;
         result_t hr = DialogOptions::load(options, opts);
-        if (hr < 0)
+        if (hr.failed())
             return hr;
 
         ac.ctxv().resize(1);
@@ -138,10 +138,10 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
                 retVal->append([[url path] UTF8String]);
         }
 
-        return 0;
+        return result_t();
     }
 
-    return CALL_RETURN_UNDEFINED;
+    return result_t::return_undefined();
 }
 
 }

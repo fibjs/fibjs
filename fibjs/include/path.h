@@ -1475,7 +1475,7 @@ inline result_t _fullpath_win32(exlib::string path, exlib::string& retVal)
 
     retVal = utf16to8String(utf16_buffer, (int32_t)utf16_len);
 
-    return 0;
+    return result_t();
 #else
     return result_t::make(CALL_E_EXCEPTION).with_message("not supported on none Win32 platform !");
 #endif

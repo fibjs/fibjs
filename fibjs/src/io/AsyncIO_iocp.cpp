@@ -166,7 +166,9 @@ public:
         if (!mark_completed())
             return;
 
-        m_ac.apost(nError);
+        // The nError channel speaks raw codes; the explicit form is the
+        // documented boundary where one becomes a value again.
+        m_ac.apost(result_t(nError));
         delete this;
     }
 

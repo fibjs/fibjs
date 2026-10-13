@@ -48,6 +48,6 @@ result_t nslog_logger::write(AsyncEvent* ac)
     }
     fflush(stdout);
 
-    return 0;
+    return result_t();
 }
 }
