@@ -40,7 +40,7 @@ public:
     }
 
     static result_t load(v8::Local<v8::Value> v, obj_ptr<Verify_base>& retVal)
-    { return CALL_E_TYPEMISMATCH; }
+    { return result_t::type_mismatch(); }
 
 public:
     static void s_update(const v8::FunctionCallbackInfo<v8::Value>& args);

@@ -30,7 +30,7 @@ public:
     }
 
     static result_t load(v8::Local<v8::Value> v, obj_ptr<perf_hooks_base>& retVal)
-    { return CALL_E_TYPEMISMATCH; }
+    { return result_t::type_mismatch(); }
 };
 }
 

@@ -43,7 +43,7 @@ public:
     }
 
     static result_t load(v8::Local<v8::Value> v, obj_ptr<DOMTokenList_base>& retVal)
-    { return CALL_E_TYPEMISMATCH; }
+    { return result_t::type_mismatch(); }
 
 public:
     static v8::Intercepted i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);

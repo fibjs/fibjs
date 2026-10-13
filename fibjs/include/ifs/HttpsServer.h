@@ -120,7 +120,7 @@ inline void HttpsServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline result_t HttpsServer_base::load(v8::Local<v8::Value> v, obj_ptr<HttpsServer_base>& retVal)
 {
-    return CALL_E_TYPEMISMATCH;
+    return result_t::type_mismatch();
 }
 
 inline void HttpsServer_base::s_get_secureContext(const v8::FunctionCallbackInfo<v8::Value>& args)

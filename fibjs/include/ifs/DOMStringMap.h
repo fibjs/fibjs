@@ -35,7 +35,7 @@ public:
     }
 
     static result_t load(v8::Local<v8::Value> v, obj_ptr<DOMStringMap_base>& retVal)
-    { return CALL_E_TYPEMISMATCH; }
+    { return result_t::type_mismatch(); }
 
 public:
     static v8::Intercepted i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);

@@ -438,7 +438,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         // among its union alternatives): a type mismatch, not
                         // a parameter-count error -- the caller decides what
                         // the value means
-                        txts.push('    return CALL_E_TYPEMISMATCH;\n}\n');
+                        txts.push('    return result_t::type_mismatch();\n}\n');
                     }
                 });
 
@@ -1220,7 +1220,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                 ].join(''));
 
                 txts.push(`    static result_t load(v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal)`);
-                txts.push(`    { return CALL_E_TYPEMISMATCH; }\n`);
+                txts.push(`    { return result_t::type_mismatch(); }\n`);
             }
         }
 

@@ -227,7 +227,7 @@ inline void Message_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline result_t Message_base::load(v8::Local<v8::Value> v, obj_ptr<Message_base>& retVal)
 {
-    return CALL_E_TYPEMISMATCH;
+    return result_t::type_mismatch();
 }
 
 inline void Message_base::s_get_sent(const v8::FunctionCallbackInfo<v8::Value>& args)

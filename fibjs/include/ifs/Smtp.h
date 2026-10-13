@@ -118,7 +118,7 @@ inline void Smtp_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline result_t Smtp_base::load(v8::Local<v8::Value> v, obj_ptr<Smtp_base>& retVal)
 {
-    return CALL_E_TYPEMISMATCH;
+    return result_t::type_mismatch();
 }
 
 inline void Smtp_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)

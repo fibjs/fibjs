@@ -37,7 +37,7 @@ public:
     }
 
     static result_t load(v8::Local<v8::Value> v, obj_ptr<MySQL_base>& retVal)
-    { return CALL_E_TYPEMISMATCH; }
+    { return result_t::type_mismatch(); }
 
 public:
     static void s_get_rxBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);

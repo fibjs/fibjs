@@ -81,7 +81,7 @@ inline void Lock_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline result_t Lock_base::load(v8::Local<v8::Value> v, obj_ptr<Lock_base>& retVal)
 {
-    return CALL_E_TYPEMISMATCH;
+    return result_t::type_mismatch();
 }
 
 inline void Lock_base::s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args)
