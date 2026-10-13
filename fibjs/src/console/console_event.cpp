@@ -50,7 +50,7 @@ result_t event_logger::write(AsyncEvent* ac)
         delete p1;
     }
 
-    return 0;
+    return result_t();
 }
 }
 

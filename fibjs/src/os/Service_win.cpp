@@ -27,7 +27,7 @@ result_t Service_base::_new(exlib::string name, v8::Local<v8::Function> worker,
 
     retVal = srv;
 
-    return 0;
+    return result_t();
 }
 
 result_t Service_base::install(exlib::string name, exlib::string cmd, exlib::string displayName, exlib::string description)
@@ -57,7 +57,7 @@ result_t Service_base::install(exlib::string name, exlib::string cmd, exlib::str
     CloseServiceHandle(schService);
     CloseServiceHandle(schSCManager);
 
-    return 0;
+    return result_t();
 }
 
 result_t Service_base::remove(exlib::string name)
@@ -80,7 +80,7 @@ result_t Service_base::remove(exlib::string name)
     CloseServiceHandle(schService);
     CloseServiceHandle(schSCManager);
 
-    return 0;
+    return result_t();
 }
 
 result_t Service_base::start(exlib::string name)
@@ -103,7 +103,7 @@ result_t Service_base::start(exlib::string name)
     CloseServiceHandle(schService);
     CloseServiceHandle(schSCManager);
 
-    return 0;
+    return result_t();
 }
 
 result_t Service_base::stop(exlib::string name)
@@ -136,7 +136,7 @@ result_t Service_base::stop(exlib::string name)
     CloseServiceHandle(schService);
     CloseServiceHandle(schSCManager);
 
-    return 0;
+    return result_t();
 }
 
 result_t Service_base::restart(exlib::string name)
@@ -168,7 +168,7 @@ result_t Service_base::isInstalled(exlib::string name, bool& retVal)
     }
     CloseServiceHandle(schSCManager);
 
-    return 0;
+    return result_t();
 }
 
 result_t Service_base::isRunning(exlib::string name, bool& retVal)
@@ -192,7 +192,7 @@ result_t Service_base::isRunning(exlib::string name, bool& retVal)
     }
     CloseServiceHandle(schSCManager);
 
-    return 0;
+    return result_t();
 }
 
 void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv);
@@ -295,7 +295,7 @@ result_t Service::run(AsyncHandle ac)
 
     s_srv = NULL;
 
-    return 0;
+    return result_t();
 }
 }
 

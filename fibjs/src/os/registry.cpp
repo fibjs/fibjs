@@ -52,7 +52,7 @@ public:
 
         if (path == "\\") {
             hKey = s_hkeys[root];
-            return 0;
+            return result_t();
         }
 
         int32_t type = bWrite ? KEY_ALL_ACCESS : KEY_READ;
@@ -82,13 +82,13 @@ public:
                 if (lResult != ERROR_SUCCESS)
                     return result_t::from_system(-lResult);
 
-                return 0;
+                return result_t();
             }
 
             return result_t::from_system(-lResult);
         }
 
-        return 0;
+        return result_t();
     }
 
     result_t open(int32_t root, exlib::string key, bool bWrite = false, bool bCreate = false)
@@ -133,7 +133,7 @@ public:
                     retVal.push_back(utf16to8String((const char16_t*)achValue, cchValue));
             }
 
-        return 0;
+        return result_t();
     }
 
     result_t listValue(std::vector<exlib::string>& retVal)
@@ -162,7 +162,7 @@ public:
                     retVal.push_back(utf16to8String((const char16_t*)achValue, cchValue));
             }
 
-        return 0;
+        return result_t();
     }
 
     result_t get(v8::Local<v8::Value>& retVal)
@@ -247,7 +247,7 @@ public:
             return result_t(CALL_E_RETURN_TYPE);
         }
 
-        return 0;
+        return result_t();
     }
 
 public:
@@ -307,7 +307,7 @@ result_t set_reg(int32_t root, exlib::string key, int32_t type, const void* data
     if (lResult != ERROR_SUCCESS)
         return result_t::from_system(-lResult);
 
-    return 0;
+    return result_t();
 }
 
 result_t registry_base::set(int32_t root, exlib::string key, double value, int32_t type)
@@ -370,7 +370,7 @@ result_t set_reg(int32_t root, exlib::string key, exlib::string name, int32_t ty
     if (lResult != ERROR_SUCCESS)
         return result_t::from_system(-lResult);
 
-    return 0;
+    return result_t();
 }
 
 result_t registry_base::set(int32_t root, exlib::string key, exlib::string name, double value, int32_t type)
@@ -427,18 +427,18 @@ result_t registry_base::has(int32_t root, exlib::string key, bool& retVal)
     result_t hr = r.open(root, key);
     if (hr.failed()) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     DWORD dwType = 0;
     LONG lResult = RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, NULL, NULL);
     if (lResult != ERROR_SUCCESS) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     retVal = true;
-    return 0;
+    return result_t();
 }
 
 result_t registry_base::has(int32_t root, exlib::string key, exlib::string name, bool& retVal)
@@ -447,18 +447,18 @@ result_t registry_base::has(int32_t root, exlib::string key, exlib::string name,
     result_t hr = r.open(root, key, name);
     if (hr.failed()) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     DWORD dwType = 0;
     LONG lResult = RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, NULL, NULL);
     if (lResult != ERROR_SUCCESS) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     retVal = true;
-    return 0;
+    return result_t();
 }
 
 result_t registry_base::del(int32_t root, exlib::string key)
@@ -475,7 +475,7 @@ result_t registry_base::del(int32_t root, exlib::string key)
     if (lResult != ERROR_SUCCESS)
         return result_t::from_system(-lResult);
 
-    return 0;
+    return result_t();
 }
 
 result_t registry_base::del(int32_t root, exlib::string key, exlib::string name)
@@ -492,7 +492,7 @@ result_t registry_base::del(int32_t root, exlib::string key, exlib::string name)
     if (lResult != ERROR_SUCCESS)
         return result_t::from_system(-lResult);
 
-    return 0;
+    return result_t();
 }
 }
 

@@ -292,7 +292,7 @@ result_t console_base::get_width(int32_t& retVal)
 
     retVal = info.dwSize.X;
 
-    return 0;
+    return result_t();
 }
 
 result_t console_base::get_height(int32_t& retVal)
@@ -304,7 +304,7 @@ result_t console_base::get_height(int32_t& retVal)
 
     retVal = info.srWindow.Bottom - info.srWindow.Top + 1;
 
-    return 0;
+    return result_t();
 }
 
 result_t console_base::moveTo(int32_t row, int32_t column)
@@ -326,7 +326,7 @@ result_t console_base::moveTo(int32_t row, int32_t column)
 
     SetConsoleCursorPosition(hd, pos);
 
-    return 0;
+    return result_t();
 }
 
 result_t console_base::hideCursor()
@@ -338,7 +338,7 @@ result_t console_base::hideCursor()
     aCursorInfo.bVisible = false;
     SetConsoleCursorInfo(hd, &aCursorInfo);
 
-    return 0;
+    return result_t();
 }
 
 result_t console_base::showCursor()
@@ -350,7 +350,7 @@ result_t console_base::showCursor()
     aCursorInfo.bVisible = true;
     SetConsoleCursorInfo(hd, &aCursorInfo);
 
-    return 0;
+    return result_t();
 }
 
 result_t console_base::clear()
@@ -376,7 +376,7 @@ result_t console_base::clear()
         coordScreen, &cCharsWritten);
 
     SetConsoleCursorPosition(hd, coordScreen);
-    return 0;
+    return result_t();
 }
 
 #else
@@ -543,7 +543,7 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, boo
         retVal = utf16to8String((const char16_t*)utext, textLen);
         free(utext);
 
-        return 0;
+        return result_t();
     }
 
     char* text = (char*)malloc(INPUT_BUFFER_SIZE);
@@ -559,7 +559,7 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncHandle ac, boo
     retVal = text;
     free(text);
 
-    return 0;
+    return result_t();
 }
 #endif
 

@@ -380,7 +380,7 @@ extern "C" const char* get_documents_directory();
 result_t os_base::homedir(exlib::string& retVal)
 {
     retVal = get_documents_directory();
-    return 0;
+    return result_t();
 }
 #else
 result_t os_base::homedir(exlib::string& retVal)

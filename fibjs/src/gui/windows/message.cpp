@@ -32,7 +32,7 @@ result_t gui_base::alert(exlib::string title, exlib::string message, AsyncHandle
 
     ev.wait();
 
-    return 0;
+    return result_t();
 }
 
 result_t gui_base::confirm(exlib::string message, bool& retVal, AsyncHandle ac)
@@ -55,7 +55,7 @@ result_t gui_base::confirm(exlib::string title, exlib::string message, bool& ret
 
     ev.wait();
 
-    return 0;
+    return result_t();
 }
 
 }

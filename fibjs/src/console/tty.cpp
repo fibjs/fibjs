@@ -31,7 +31,7 @@ result_t tty_base::isatty(Union_isatty_fd fd, bool& retVal)
 #else
     if (_fd == -2) {
         retVal = true;
-        return 0;
+        return result_t();
     }
 
     if (_fd < 0)

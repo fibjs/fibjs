@@ -78,7 +78,7 @@ result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
     ((ICoreWebView2*)m_webview)->Navigate((LPCWSTR)wurl.c_str());
     m_isLoading = true;
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
@@ -89,7 +89,7 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
 
     retVal = internal_getUrl();
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
@@ -102,7 +102,7 @@ result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
     ((ICoreWebView2*)m_webview)->NavigateToString((LPCWSTR)whtml.c_str());
     m_isLoading = true;
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
@@ -139,7 +139,7 @@ result_t WebView::isReady(bool& retVal, AsyncHandle ac)
     m_ready->isSet(is_win_ready);
     if (!is_win_ready) {
         retVal = false;
-        return 0;
+        return result_t();
     }
 
     result_t hr = check_status(ac);
@@ -148,7 +148,7 @@ result_t WebView::isReady(bool& retVal, AsyncHandle ac)
 
     retVal = !m_isLoading;
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::reload(AsyncHandle ac)
@@ -159,7 +159,7 @@ result_t WebView::reload(AsyncHandle ac)
 
     ((ICoreWebView2*)m_webview)->Reload();
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::goBack(AsyncHandle ac)
@@ -170,7 +170,7 @@ result_t WebView::goBack(AsyncHandle ac)
 
     ((ICoreWebView2*)m_webview)->GoBack();
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::goForward(AsyncHandle ac)
@@ -181,7 +181,7 @@ result_t WebView::goForward(AsyncHandle ac)
 
     ((ICoreWebView2*)m_webview)->GoForward();
 
-    return 0;
+    return result_t();
 }
 
 void json2Variant(nlohmann::json& json, Variant& retVal)
@@ -279,7 +279,7 @@ result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
     exlib::wstring wtitle = utf8to16String(title);
     SetWindowTextW((HWND)m_window, (LPCWSTR)wtitle.c_str());
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
@@ -292,7 +292,7 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
     int cnt = GetWindowTextW((HWND)m_window, wtitle, sizeof(wtitle) / sizeof(wtitle[0]));
     retVal = utf16to8String((const char16_t*)wtitle, cnt);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
@@ -303,7 +303,7 @@ result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
 
     retVal = IsWindowVisible((HWND)m_window);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::show(AsyncHandle ac)
@@ -319,7 +319,7 @@ result_t WebView::show(AsyncHandle ac)
         controller->put_IsVisible(TRUE);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::hide(AsyncHandle ac)
@@ -332,7 +332,7 @@ result_t WebView::hide(AsyncHandle ac)
         ShowWindow((HWND)m_window, SW_HIDE);
     }
 
-    return 0;
+    return result_t();
 }
 
 extern int dpix, dpiy;
@@ -345,7 +345,7 @@ result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
 
     SetWindowPos((HWND)m_window, nullptr, 0, 0, width * dpix / 96, height * dpiy / 96, SWP_NOZORDER | SWP_NOMOVE);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
@@ -361,7 +361,7 @@ result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
     retVal->append((int32_t)(rect.right - rect.left) * 96 / dpix);
     retVal->append((int32_t)(rect.bottom - rect.top) * 96 / dpiy);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
@@ -372,7 +372,7 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
 
     SetWindowPos((HWND)m_window, nullptr, left * dpix / 96, top * dpiy / 96, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
@@ -388,7 +388,7 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
     retVal->append((int32_t)rect.left * 96 / dpix);
     retVal->append((int32_t)rect.top * 96 / dpiy);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::isActived(bool& retVal, AsyncHandle ac)
@@ -400,7 +400,7 @@ result_t WebView::isActived(bool& retVal, AsyncHandle ac)
     HWND hwnd = (HWND)m_window;
     retVal = (GetForegroundWindow() == hwnd);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::active(AsyncHandle ac)
@@ -412,7 +412,7 @@ result_t WebView::active(AsyncHandle ac)
     HWND hwnd = (HWND)m_window;
     SetForegroundWindow(hwnd);
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
@@ -473,7 +473,7 @@ result_t WebView::close(AsyncHandle ac)
     m_options->hideOnClose = false;
     internal_close();
 
-    return 0;
+    return result_t();
 }
 
 result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
@@ -488,7 +488,7 @@ result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
     exlib::wstring wcode = utf8to16String(code);
     ((ICoreWebView2*)m_webview)->ExecuteScript((LPCWSTR)wcode.c_str(), nullptr);
 
-    return 0;
+    return result_t();
 }
 
 }

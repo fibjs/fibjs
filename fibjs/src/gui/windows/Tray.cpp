@@ -94,7 +94,7 @@ result_t Tray::close(AsyncHandle ac)
 
     release();
 
-    return 0;
+    return result_t();
 }
 
 } // namespace fibjs
