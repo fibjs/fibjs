@@ -271,12 +271,12 @@ enum {
     do {                                   \
         do {
 
-#define LOAD_RETURN() \
-    CHECK_ARGUMENT()  \
-    if (hr.ok()) {    \
-        retVal = vr;  \
-        return 0;     \
-    }                 \
+#define LOAD_RETURN()    \
+    CHECK_ARGUMENT()     \
+    if (hr.ok()) {       \
+        retVal = vr;     \
+        return result_t(); \
+    }                    \
     return hr;
 
 #define CHECK_ARGUMENT()                                                                                        \
@@ -665,13 +665,13 @@ public:                                                  \
     static result_t load(v8::Local<v8::Value> v, obj_ptr<Class>& retVal)  \
     {                                                                     \
         if (!IsJSObject(v))                                               \
-            return CALL_E_TYPEMISMATCH;                                   \
+            return result_t::type_mismatch();                             \
         v8::Local<v8::Object> opt = v.As<v8::Object>();                   \
         obj_ptr<Class> o = new Class();                                   \
-        result_t hr;                                                  \
+        result_t hr;                                                      \
         BOOST_PP_SEQ_FOR_EACH(LOAD_OPTION_MEMBER, o, Members)             \
         retVal = o;                                                       \
-        return 0;                                                         \
+        return result_t();                                                \
     }
 
 #ifndef ARRAYSIZE
@@ -989,11 +989,11 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::L
     inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::type>& vr, bool bStrict = false) \
     {                                                                                                                         \
         if (v.IsEmpty())                                                                                                      \
-            return CALL_E_TYPEMISMATCH;                                                                                       \
+            return result_t::type_mismatch();                                                                                       \
         if (!v->Is##type())                                                                                                   \
-            return CALL_E_TYPEMISMATCH;                                                                                       \
+            return result_t::type_mismatch();                                                                                       \
         vr = v8::Local<v8::type>::Cast(v);                                                                                    \
-        return 0;                                                                                                             \
+        return result_t();                                                                                                             \
     }
 
 GET_JSVALUE(Array);
