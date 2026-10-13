@@ -95,7 +95,7 @@ public:
     virtual result_t get_type(exlib::string& retVal)
     {
         retVal = "odbc";
-        return 0;
+        return result_t();
     }
 
     virtual result_t close(AsyncHandle ac)

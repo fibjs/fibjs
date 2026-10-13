@@ -475,7 +475,7 @@ result_t Redis::getHash(Union_getHash_key key, obj_ptr<RedisHash_base>& retVal)
 
     unionToString(key, k);
     retVal = new RedisHash(k, this);
-    return 0;
+    return result_t();
 }
 
 result_t Redis::getList(Union_getList_key key, obj_ptr<RedisList_base>& retVal)
@@ -484,7 +484,7 @@ result_t Redis::getList(Union_getList_key key, obj_ptr<RedisList_base>& retVal)
 
     unionToString(key, k);
     retVal = new RedisList(k, this);
-    return 0;
+    return result_t();
 }
 
 result_t Redis::getSet(Union_getSet_key key, obj_ptr<RedisSet_base>& retVal)
@@ -493,7 +493,7 @@ result_t Redis::getSet(Union_getSet_key key, obj_ptr<RedisSet_base>& retVal)
 
     unionToString(key, k);
     retVal = new RedisSet(k, this);
-    return 0;
+    return result_t();
 }
 
 result_t Redis::getSortedSet(Union_getSortedSet_key key, obj_ptr<RedisSortedSet_base>& retVal)
@@ -502,7 +502,7 @@ result_t Redis::getSortedSet(Union_getSortedSet_key key, obj_ptr<RedisSortedSet_
 
     unionToString(key, k);
     retVal = new RedisSortedSet(k, this);
-    return 0;
+    return result_t();
 }
 
 result_t Redis::dump(Union_dump_key key, obj_ptr<Buffer_base>& retVal)
@@ -527,7 +527,7 @@ result_t Redis::close()
     m_sock.Release();
     m_stmBuffered.Release();
 
-    return 0;
+    return result_t();
 }
 
 }

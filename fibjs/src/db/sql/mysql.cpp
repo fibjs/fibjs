@@ -251,7 +251,7 @@ static result_t formatMySQL(const char* sql, std::vector<Variant>& args,
     }
 
     retVal = str;
-    return 0;
+    return result_t();
 }
 
 class MySQLStmtImpl : public Statement::impl {
@@ -294,14 +294,14 @@ public:
             m_okResult = m_conn->takeResult();
             hasResult = false;
             m_db->m_activeStmt = 1;
-            return 0;
+            return result_t();
         }
 
         m_fieldCount = m_conn->fieldCount();
         hasResult = true;
         m_open = true;
         m_db->m_activeStmt = 1;
-        return 0;
+        return result_t();
     }
 
     virtual result_t fetchRow(NObject* row, bool& done)
@@ -316,7 +316,7 @@ public:
         if (r == 0) {
             done = true;
             m_open = false;
-            return 0;
+            return result_t();
         }
 
         for (int32_t i = 0; i < m_fieldCount; i++) {
@@ -326,7 +326,7 @@ public:
             mysql::columnValue(&m_conn->fieldInfo(i), value, len, v);
             row->add(m_conn->fieldName(i), v);
         }
-        return 0;
+        return result_t();
     }
 
     virtual result_t runResult(int64_t& changes, int64_t& lastInsertId)
@@ -338,7 +338,7 @@ public:
             capi.destroyResult(m_okResult);
             m_okResult = NULL;
         }
-        return 0;
+        return result_t();
     }
 
     virtual result_t columns(obj_ptr<NArray>& retVal)
@@ -395,7 +395,7 @@ result_t mysql::prepareStmt(db_tmpl<MySQL_base, mysql>* db,
     obj_ptr<Statement> stmt = new Statement(sql,
         new MySQLStmtImpl((mysql*)db, sql));
     retVal = stmt;
-    return 0;
+    return result_t();
 }
 
 // ----------------------------------------------------------------------------------
@@ -407,7 +407,7 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
         return result_t::longsync();
 
     if (qstrcmp(connString.c_str(), "mysql:", 6))
-        return result_t::make(CALL_E_EXCEPTION).with_message("openMySQL: connection string must start with 'mysql:'.").with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_message("openMySQL: connection string must start with 'mysql:'.").with_result(result_t::invalid_arg());
 
     obj_ptr<Url> u = new Url();
 
@@ -437,7 +437,7 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
 
     retVal = conn;
 
-    return 0;
+    return result_t();
 }
 
 mysql::~mysql()
@@ -467,13 +467,13 @@ result_t mysql::connect(const char* host, int32_t port, const char* username,
         return hr;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t mysql::get_type(exlib::string& retVal)
 {
     retVal = "mysql";
-    return 0;
+    return result_t();
 }
 
 result_t mysql::close(AsyncHandle ac)
@@ -482,7 +482,7 @@ result_t mysql::close(AsyncHandle ac)
         return result_t::longsync();
 
     if (!m_conn)
-        return 0;
+        return result_t();
 
     if (m_conn) {
         UMConnection_Close(m_conn);
@@ -490,7 +490,7 @@ result_t mysql::close(AsyncHandle ac)
         m_conn = NULL;
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
@@ -527,7 +527,7 @@ result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle 
         res->Unref();
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t mysql::get_rxBufferSize(int32_t& retVal)
@@ -536,7 +536,7 @@ result_t mysql::get_rxBufferSize(int32_t& retVal)
         return result_t::make(CALL_E_INVALID_CALL).with_message("MySQL: connection is closed.");
 
     retVal = UMConnection_GetRxBufferSize(m_conn);
-    return 0;
+    return result_t();
 }
 
 result_t mysql::set_rxBufferSize(int32_t newVal)
@@ -545,7 +545,7 @@ result_t mysql::set_rxBufferSize(int32_t newVal)
         return result_t::make(CALL_E_INVALID_CALL).with_message("MySQL: connection is closed.");
 
     UMConnection_SetRxBufferSize(m_conn, newVal);
-    return 0;
+    return result_t();
 }
 
 result_t mysql::get_txBufferSize(int32_t& retVal)
@@ -554,7 +554,7 @@ result_t mysql::get_txBufferSize(int32_t& retVal)
         return result_t::make(CALL_E_INVALID_CALL).with_message("MySQL: connection is closed.");
 
     retVal = UMConnection_GetTxBufferSize(m_conn);
-    return 0;
+    return result_t();
 }
 
 result_t mysql::set_txBufferSize(int32_t newVal)
@@ -563,7 +563,7 @@ result_t mysql::set_txBufferSize(int32_t newVal)
         return result_t::make(CALL_E_INVALID_CALL).with_message("MySQL: connection is closed.");
 
     UMConnection_SetTxBufferSize(m_conn, newVal);
-    return 0;
+    return result_t();
 }
 
 result_t mysql::getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)

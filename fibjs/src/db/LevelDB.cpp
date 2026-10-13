@@ -31,7 +31,7 @@ result_t db_base::openLevelDB(exlib::string connString,
 
     retVal = db;
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::open(const char* connString)
@@ -53,7 +53,7 @@ result_t LevelDB::open(const char* connString)
     if (!s.ok())
         return error(s);
 
-    return 0;
+    return result_t();
 }
 
 LevelDB::~LevelDB()
@@ -78,7 +78,7 @@ static result_t leveldb_to_buffer(const std::variant<obj_ptr<Buffer_base>, exlib
     } else
         buf = std::get<obj_ptr<Buffer_base>>(v);
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncHandle ac)
@@ -103,13 +103,13 @@ result_t LevelDB::has(Union_has_key key, bool& retVal, AsyncHandle ac)
         &value);
     if (s.IsNotFound()) {
         retVal = false;
-        return 0;
+        return result_t();
     } else if (!s.ok())
         return error(s);
 
     retVal = true;
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
@@ -133,13 +133,13 @@ result_t LevelDB::get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncHand
         leveldb::Slice((const char*)buf->data(), buf->length()),
         &value);
     if (s.IsNotFound())
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     else if (!s.ok())
         return error(s);
 
     retVal = new Buffer(value.c_str(), value.length());
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::_mget(std::vector<exlib::string>* keys,
@@ -170,7 +170,7 @@ result_t LevelDB::_mget(std::vector<exlib::string>* keys,
 
     retVal = list;
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
@@ -184,7 +184,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
     result_t hr;
 
     if (!len)
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
 
     ks.resize(len);
 
@@ -195,7 +195,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
         JSValue v = keys->Get(context, i);
 
         if (v.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+            return result_t(CALL_E_JAVASCRIPT);
 
         // a key is its string form: a string, or a buffer rendered as utf8
         exlib::string s;
@@ -219,7 +219,7 @@ result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncHandle ac)
     if (!s.ok())
         return error(s);
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncHandle ac)
@@ -250,7 +250,7 @@ result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncHandle ac)
     if (!s.ok())
         return error(s);
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::mset(v8::Local<v8::Object> map)
@@ -282,7 +282,7 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
     }
 
     if (m_batch)
-        return 0;
+        return result_t();
 
     return ac__commit(&batch);
 }
@@ -311,7 +311,7 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
     }
 
     if (m_batch)
-        return 0;
+        return result_t();
 
     return ac__commit(&batch);
 }
@@ -337,7 +337,7 @@ result_t LevelDB::remove(Union_remove_key key, AsyncHandle ac)
     if (!s.ok())
         return error(s);
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
@@ -352,13 +352,13 @@ result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     it->SeekToFirst();
     if (!it->Valid()) {
         delete it;
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
 
     retVal = new Buffer(it->key().data(), it->key().size());
     delete it;
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::lastKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
@@ -373,13 +373,13 @@ result_t LevelDB::lastKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     it->SeekToLast();
     if (!it->Valid()) {
         delete it;
-        return CALL_RETURN_NULL;
+        return result_t::return_null();
     }
 
     retVal = new Buffer(it->key().data(), it->key().size());
     delete it;
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::Iter::_iter(AsyncHandle ac)
@@ -408,7 +408,7 @@ result_t LevelDB::Iter::_iter(AsyncHandle ac)
 
         if (!m_it->Valid()) {
             m_end = true;
-            return 0;
+            return result_t();
         }
     }
 
@@ -447,7 +447,7 @@ result_t LevelDB::Iter::_iter(AsyncHandle ac)
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
@@ -472,11 +472,11 @@ result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
 
             v8::Local<v8::Context> func_context;
             if (!func->GetCreationContext().ToLocal(&func_context))
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             v8::Local<v8::Value> v = func->Call(func_context, v8::Undefined(isolate->m_isolate), 2, args).FromMaybe(v8::Local<v8::Value>());
             if (v.IsEmpty())
-                return CALL_E_JAVASCRIPT;
+                return result_t(CALL_E_JAVASCRIPT);
 
             if (isolate->toBoolean(v)) {
                 m_end = true;
@@ -485,7 +485,7 @@ result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
         }
     } while (!m_end);
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::forEach(v8::Local<v8::Function> func)
@@ -595,7 +595,7 @@ result_t LevelDB::begin(obj_ptr<LevelDB_base>& retVal)
 
     retVal = db;
 
-    return 0;
+    return result_t();
 }
 
 result_t LevelDB::commit()
@@ -618,11 +618,11 @@ result_t LevelDB::close(AsyncHandle ac)
         delete m_batch;
         m_batch = NULL;
 
-        return 0;
+        return result_t();
     }
 
     if (!m_db)
-        return 0;
+        return result_t();
 
     if (ac.isSync())
         return result_t::nosync();
@@ -630,7 +630,7 @@ result_t LevelDB::close(AsyncHandle ac)
     delete m_db;
     m_db = NULL;
 
-    return 0;
+    return result_t();
 }
 
 

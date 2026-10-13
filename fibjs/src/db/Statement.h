@@ -136,7 +136,7 @@ private:
                 ac.ctxv()[i] = s;
             }
         }
-        return 0;
+        return result_t();
     }
 
     result_t openImpl(std::vector<Variant>& args, bool& hasResult)
@@ -151,7 +151,7 @@ private:
         }
 
         m_active = true;
-        return 0;
+        return result_t();
     }
 
     void closeImpl()
@@ -191,7 +191,7 @@ public:
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal)
     {
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     // Async iterator: returns itself. On the async prototype (db.promises
@@ -201,7 +201,7 @@ public:
     virtual result_t symbol_asyncIterator(obj_ptr<Iterator_base>& retVal)
     {
         retVal = this;
-        return 0;
+        return result_t();
     }
 
     virtual result_t next(obj_ptr<NextType>& retVal, AsyncHandle ac);

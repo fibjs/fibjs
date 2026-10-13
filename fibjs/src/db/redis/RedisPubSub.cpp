@@ -62,7 +62,7 @@ result_t Redis::_single(exlib::string key, v8::Local<v8::Function> func, int32_t
         m_subMode = 1;
 
     if (!((cmd & 1) ? unregsub(key1, func) : regsub(key1, func)))
-        return 0;
+        return result_t();
 
     Variant v;
     return doCommand(s_cmd[cmd][0], key, v);
@@ -126,7 +126,7 @@ result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
     }
 
     if (!count)
-        return 0;
+        return result_t();
 
     Variant v;
     return doCommand(s_cmd[cmd][0], subs, v);

@@ -37,7 +37,7 @@ public:
     virtual result_t get_type(exlib::string& retVal)
     {
         retVal = "mssql";
-        return 0;
+        return result_t();
     }
 
     virtual result_t close(AsyncHandle ac)
@@ -89,7 +89,7 @@ public:
 
         if (point.empty())
             return execute("COMMIT", retVal, std::move(ac));
-        return 0;
+        return result_t();
     }
 
     virtual result_t rollback(exlib::string point, AsyncHandle ac)

@@ -39,7 +39,7 @@ result_t db_base::openSQLite(exlib::string connString,
 
     retVal = db;
 
-    return 0;
+    return result_t();
 }
 
 result_t SQLite::open(const char* file)
@@ -71,7 +71,7 @@ result_t SQLite::open(const char* file)
 
     m_file = file;
 
-    return 0;
+    return result_t();
 }
 
 SQLite::~SQLite()
@@ -86,7 +86,7 @@ SQLite::~SQLite()
 result_t SQLite::get_type(exlib::string& retVal)
 {
     retVal = "SQLite";
-    return 0;
+    return result_t();
 }
 
 // Column value conversion (shared by execute and the Statement cursor)
@@ -196,7 +196,7 @@ public:
         }
 
         m_db->m_activeStmt = 1;
-        return 0;
+        return result_t();
     }
 
     virtual result_t fetchRow(NObject* row, bool& done)
@@ -212,13 +212,13 @@ public:
                 row->add(m_names[i], v);
             }
             done = false;
-            return 0;
+            return result_t();
         }
 
         done = true;
         if (r == SQLITE_DONE) {
             reset(); // cursor reset: impl is retained, Statement can be reused
-            return 0;
+            return result_t();
         }
 
         result_t hr = result_t::make(CALL_E_EXCEPTION).with_message(sqlite3_errmsg((sqlite3*)m_db->m_conn));
@@ -229,7 +229,7 @@ public:
     {
         changes = sqlite3_changes((sqlite3*)m_db->m_conn);
         lastInsertId = sqlite3_last_insert_rowid((sqlite3*)m_db->m_conn);
-        return 0;
+        return result_t();
     }
 
     virtual result_t columns(obj_ptr<NArray>& retVal)
@@ -247,7 +247,7 @@ public:
         }
 
         retVal = arr;
-        return 0;
+        return result_t();
     }
 
     // Cursor reset: called after each execute/iteration; the impl is retained
@@ -348,7 +348,7 @@ private:
         }
         }
 
-        return 0;
+        return result_t();
     }
 
 private:
@@ -383,12 +383,12 @@ result_t SQLite::prepareStmt(db_tmpl<SQLite_base, SQLite>* db,
         pTail++;
     if (*pTail) {
         sqlite3_finalize(stmt);
-        return result_t::make(CALL_E_EXCEPTION).with_message("SQLite: prepare accepts a single statement only").with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_message("SQLite: prepare accepts a single statement only").with_result(result_t::invalid_arg());
     }
 
     obj_ptr<Statement> st = new Statement(sql, new SQLiteStmtImpl((SQLite*)db, stmt));
     retVal = st;
-    return 0;
+    return result_t();
 }
 
 result_t SQLite::close(AsyncHandle ac)
@@ -410,7 +410,7 @@ result_t SQLite::close(AsyncHandle ac)
     m_conn = NULL;
     m_activeStmt = 0;
 
-    return 0;
+    return result_t();
 }
 
 
@@ -505,7 +505,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle
         }
     } while (*pStr1);
 
-    return 0;
+    return result_t();
 }
 
 result_t SQLite::get_fileName(exlib::string& retVal)
@@ -514,7 +514,7 @@ result_t SQLite::get_fileName(exlib::string& retVal)
         return result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed.");
 
     retVal = m_file;
-    return 0;
+    return result_t();
 }
 
 result_t SQLite::get_timeout(int32_t& retVal)
@@ -523,7 +523,7 @@ result_t SQLite::get_timeout(int32_t& retVal)
         return result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed.");
 
     retVal = m_nCmdTimeout;
-    return 0;
+    return result_t();
 }
 
 result_t SQLite::set_timeout(int32_t newVal)
@@ -536,7 +536,7 @@ result_t SQLite::set_timeout(int32_t newVal)
     // Sync the busy handler wait budget (0 means no waiting, immediate BUSY)
     sqlite3_busy_timeout((sqlite3*)m_conn, newVal);
 
-    return 0;
+    return result_t();
 }
 
 result_t SQLite::backup(exlib::string fileName, AsyncHandle ac)
@@ -584,7 +584,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncHandle ac)
 
     sqlite3_close(db2);
 
-    return 0;
+    return result_t();
 }
 
 result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)

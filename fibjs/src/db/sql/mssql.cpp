@@ -20,7 +20,7 @@ result_t db_base::openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>
         return result_t::longsync();
 
     if (qstrcmp(connString.c_str(), "mssql:", 6))
-        return result_t::make(CALL_E_EXCEPTION).with_message("openMSSQL: connection string must start with 'mssql:'.").with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_message("openMSSQL: connection string must start with 'mssql:'.").with_result(result_t::invalid_arg());
 
 #ifdef _WIN32
     const char* driver = "SQL Server";
@@ -35,7 +35,7 @@ result_t db_base::openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>
         return hr;
 
     retVal = conn;
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

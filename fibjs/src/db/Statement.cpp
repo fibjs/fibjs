@@ -41,7 +41,7 @@ result_t Statement::get(OptArgs args, Variant& retVal, AsyncHandle ac)
     }
 
     finish();
-    return 0;
+    return result_t();
 }
 
 result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
@@ -89,7 +89,7 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
         return hr;
 
     retVal = arr;
-    return 0;
+    return result_t();
 }
 
 result_t Statement::run(OptArgs args, Variant& retVal, AsyncHandle ac)
@@ -135,7 +135,7 @@ result_t Statement::run(OptArgs args, Variant& retVal, AsyncHandle ac)
     o->add("lastInsertRowid", lastInsertId);
 
     retVal = o;
-    return 0;
+    return result_t();
 }
 
 result_t Statement::iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac)
@@ -162,11 +162,11 @@ result_t Statement::iteratePrepared(std::vector<Variant>& args,
     if (!hasResult) {
         finish();
         retVal = new StatementIterator(this);
-        return 0;
+        return result_t();
     }
 
     retVal = new StatementIterator(this);
-    return 0;
+    return result_t();
 }
 
 result_t Statement::columns(obj_ptr<NArray>& retVal, AsyncHandle ac)
@@ -180,13 +180,13 @@ result_t Statement::columns(obj_ptr<NArray>& retVal, AsyncHandle ac)
 result_t Statement::get_sourceSQL(exlib::string& retVal)
 {
     retVal = m_sql;
-    return 0;
+    return result_t();
 }
 
 result_t Statement::close(AsyncHandle ac)
 {
     closeImpl();
-    return 0;
+    return result_t();
 }
 
 // ---------------------------------------------------------------------------
@@ -201,7 +201,7 @@ result_t StatementIterator::next(obj_ptr<NextType>& retVal, AsyncHandle ac)
     if (m_done) {
         retVal = new NextType();
         retVal->done = true;
-        return 0;
+        return result_t();
     }
 
     obj_ptr<NObject> row;
@@ -219,7 +219,7 @@ result_t StatementIterator::next(obj_ptr<NextType>& retVal, AsyncHandle ac)
     } else
         retVal->value = row;
 
-    return 0;
+    return result_t();
 }
 
 result_t StatementIterator::_return(v8::Local<v8::Value> value, obj_ptr<ReturnType>& retVal)
@@ -229,7 +229,7 @@ result_t StatementIterator::_return(v8::Local<v8::Value> value, obj_ptr<ReturnTy
 
     retVal = new ReturnType();
     retVal->done = true;
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */

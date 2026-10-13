@@ -63,7 +63,7 @@ public:
         }
 
         retVal = str;
-        return 0;
+        return result_t();
     }
 
 private:
@@ -111,7 +111,7 @@ inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> 
 {
     METHOD_NAME("DbConnection.trans");
     v8::Local<v8::Value> v = pThis->wrap();
-    result_t hr = 0;
+    result_t hr;
     retVal = false;
 
     {
@@ -125,7 +125,7 @@ inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> 
     if (!func->GetCreationContext().ToLocal(&func_context)) {
         METHOD_NAME("DbConnection.rollback");
         pThis->ac_rollback(point);
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     }
 
     v8::Local<v8::Value> result = func->Call(func_context, pThis->wrap(), 1, &v).FromMaybe(v8::Local<v8::Value>());
@@ -133,7 +133,7 @@ inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> 
     if (result.IsEmpty()) {
         METHOD_NAME("DbConnection.rollback");
         pThis->ac_rollback(point);
-        return CALL_E_JAVASCRIPT;
+        return result_t(CALL_E_JAVASCRIPT);
     }
 
     if (result->IsFalse()) {
@@ -249,7 +249,7 @@ public:
         if (m_activeStmt)
             return result_t::make(CALL_E_BUSY).with_message("A statement cursor is active on this connection");
 
-        return CALL_E_INVALID_CALL;
+        return result_t::invalid_call();
     }
 
     result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,

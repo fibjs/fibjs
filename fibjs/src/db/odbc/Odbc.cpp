@@ -71,7 +71,7 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
         return result_t::longsync();
 
     if (qstrcmp(connString.c_str(), "odbc:", 5))
-        return result_t::make(CALL_E_EXCEPTION).with_message("openOdbc: connection string must start with 'odbc:'.").with_result(CALL_E_INVALIDARG);
+        return result_t::make(CALL_E_EXCEPTION).with_message("openOdbc: connection string must start with 'odbc:'.").with_result(result_t::invalid_arg());
 
     obj_ptr<Odbc> conn = new Odbc();
 
@@ -80,7 +80,7 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
         return hr;
 
     retVal = conn;
-    return 0;
+    return result_t();
 }
 
 result_t odbc_disconnect(void* conn)
@@ -90,7 +90,7 @@ result_t odbc_disconnect(void* conn)
         SQLFreeConnect(conn);
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t odbc_close(void*& conn, AsyncHandle ac)
@@ -104,7 +104,7 @@ result_t odbc_close(void*& conn, AsyncHandle ac)
     odbc_disconnect(conn);
     conn = NULL;
 
-    return 0;
+    return result_t();
 }
 
 struct OdbcDiagInfo {
@@ -172,7 +172,7 @@ result_t odbc_set_autocommit(void* conn, bool on)
         (SQLPOINTER)(SQLULEN)(on ? SQL_AUTOCOMMIT_ON : SQL_AUTOCOMMIT_OFF), 0);
     if (hr < 0)
         return odbc_set_error(SQL_HANDLE_DBC, conn);
-    return 0;
+    return result_t();
 }
 
 exlib::string safe_conn_string(const char* str)
@@ -333,7 +333,7 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
         }
     }
 
-    return 0;
+    return result_t();
 }
 
 result_t odbc_connect(exlib::string connString, const char* driver, int32_t port, void*& conn,
@@ -377,7 +377,7 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
     if (hr.failed())
         return hr;
 
-    return 0;
+    return result_t();
 }
 
 // Shared column value fetch (used by execute and Statement cursor;
@@ -631,7 +631,7 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
     }
     }
 
-    return 0;
+    return result_t();
 }
 
 // Engine escape callbacks: Variant → SQL literal (each engine has different
@@ -740,7 +740,7 @@ static result_t odbcFormatSQL(const char* sql, std::vector<Variant>& args,
     }
 
     retVal = str;
-    return 0;
+    return result_t();
 }
 
 class OdbcStmtImpl : public Statement::impl {
@@ -847,7 +847,7 @@ public:
         hasResult = (m_columns > 0);
         if (m_activeStmt)
             *m_activeStmt = 1;
-        return 0;
+        return result_t();
     }
 
     virtual result_t fetchRow(NObject* row, bool& done)
@@ -860,7 +860,7 @@ public:
             return odbc_set_error(SQL_HANDLE_STMT, m_stmt);
         if (hr == SQL_NO_DATA) {
             done = true;
-            return 0;
+            return result_t();
         }
 
         for (int32_t i = 0; i < m_columns; i++) {
@@ -870,7 +870,7 @@ public:
                 return hr2;
             row->add(m_names[i], v);
         }
-        return 0;
+        return result_t();
     }
 
     virtual result_t runResult(int64_t& changes, int64_t& lastInsertId)
@@ -881,7 +881,7 @@ public:
         SQLLEN affected = 0;
         SQLRowCount(m_stmt, &affected);
         changes = (int64_t)affected;
-        return 0;
+        return result_t();
     }
 
     virtual result_t columns(obj_ptr<NArray>& retVal)
@@ -934,7 +934,7 @@ result_t odbc_prepareStmt(void* conn, int32_t* activeStmt, exlib::string sql,
     obj_ptr<Statement> stmt = new Statement(sql,
         new OdbcStmtImpl(conn, activeStmt, sql, esc));
     retVal = stmt;
-    return 0;
+    return result_t();
 }
 
 result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncHandle ac)
@@ -985,7 +985,7 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncHandle ac)
 
     SQLFreeStmt(stmt, SQL_DROP);
     retVal = res;
-    return 0;
+    return result_t();
 }
 
 result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac)
@@ -1071,7 +1071,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
             rows++;
         }
 
-        return 0;
+        return result_t();
     };
 
     int32_t rows = 0;
@@ -1111,7 +1111,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
 
     SQLFreeStmt(stmt, SQL_DROP);
     retVal = res;
-    return 0;
+    return result_t();
 }
 
 } /* namespace fibjs */
