@@ -9109,13 +9109,14 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
      *      every local address. A payload larger than 65507 bytes for udp4 (65527 for udp6) throws
-     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. The
-     *      trailing callback form receives (err, bytes); sendSync/sendAsync and the promises namespace
-     *      are generated as well.
+     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. A
+     *      datagram is all-or-nothing, so the returned count is the byte length of the payload: a short
+     *      count is never reported, failures throw instead. The trailing callback form receives
+     *      (err, bytes); sendSync/sendAsync and the promises namespace are generated as well.
      *
      *      The byte-range form send(msg, offset, length, port, address) sends the slice
      *      [offset, offset + length) of the utf8-encoded payload and throws error 20004 for a negative
-     *      offset or a non-positive length.
+     *      offset or a non-positive length; it returns the byte length of that slice.
      *
      *      Example — send the last word of a larger payload:
      *      \`\`\`JavaScript
@@ -9143,7 +9144,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param msg the datagram payload
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the datagram payload
      *
      */
     send(msg: Class_Buffer | string, port: number, address?: string): number;
@@ -9160,13 +9161,14 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
      *      every local address. A payload larger than 65507 bytes for udp4 (65527 for udp6) throws
-     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. The
-     *      trailing callback form receives (err, bytes); sendSync/sendAsync and the promises namespace
-     *      are generated as well.
+     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. A
+     *      datagram is all-or-nothing, so the returned count is the byte length of the payload: a short
+     *      count is never reported, failures throw instead. The trailing callback form receives
+     *      (err, bytes); sendSync/sendAsync and the promises namespace are generated as well.
      *
      *      The byte-range form send(msg, offset, length, port, address) sends the slice
      *      [offset, offset + length) of the utf8-encoded payload and throws error 20004 for a negative
-     *      offset or a non-positive length.
+     *      offset or a non-positive length; it returns the byte length of that slice.
      *
      *      Example — send the last word of a larger payload:
      *      \`\`\`JavaScript
@@ -9194,7 +9196,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param msg the datagram payload
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the datagram payload
      *
      */
     sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
@@ -9209,13 +9211,14 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
      *      every local address. A payload larger than 65507 bytes for udp4 (65527 for udp6) throws
-     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. The
-     *      trailing callback form receives (err, bytes); sendSync/sendAsync and the promises namespace
-     *      are generated as well.
+     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. A
+     *      datagram is all-or-nothing, so the returned count is the byte length of the payload: a short
+     *      count is never reported, failures throw instead. The trailing callback form receives
+     *      (err, bytes); sendSync/sendAsync and the promises namespace are generated as well.
      *
      *      The byte-range form send(msg, offset, length, port, address) sends the slice
      *      [offset, offset + length) of the utf8-encoded payload and throws error 20004 for a negative
-     *      offset or a non-positive length.
+     *      offset or a non-positive length; it returns the byte length of that slice.
      *
      *      Example — send the last word of a larger payload:
      *      \`\`\`JavaScript
@@ -9243,7 +9246,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param msg the datagram payload
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the datagram payload
      *
      */
     sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
@@ -9259,7 +9262,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param length the number of bytes to send
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the slice that was sent
      *
      */
     send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
@@ -9277,7 +9280,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param length the number of bytes to send
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the slice that was sent
      *
      */
     sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
@@ -9293,7 +9296,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param length the number of bytes to send
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the slice that was sent
      *
      */
     sendAsync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
@@ -9860,13 +9863,14 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
      *      every local address. A payload larger than 65507 bytes for udp4 (65527 for udp6) throws
-     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. The
-     *      trailing callback form receives (err, bytes); sendSync/sendAsync and the promises namespace
-     *      are generated as well.
+     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. A
+     *      datagram is all-or-nothing, so the returned count is the byte length of the payload: a short
+     *      count is never reported, failures throw instead. The trailing callback form receives
+     *      (err, bytes); sendSync/sendAsync and the promises namespace are generated as well.
      *
      *      The byte-range form send(msg, offset, length, port, address) sends the slice
      *      [offset, offset + length) of the utf8-encoded payload and throws error 20004 for a negative
-     *      offset or a non-positive length.
+     *      offset or a non-positive length; it returns the byte length of that slice.
      *
      *      Example — send the last word of a larger payload:
      *      \`\`\`JavaScript
@@ -9894,7 +9898,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @param msg the datagram payload
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the datagram payload
      *
      */
     send(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
@@ -9909,13 +9913,14 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
      *      every local address. A payload larger than 65507 bytes for udp4 (65527 for udp6) throws
-     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. The
-     *      trailing callback form receives (err, bytes); sendSync/sendAsync and the promises namespace
-     *      are generated as well.
+     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. A
+     *      datagram is all-or-nothing, so the returned count is the byte length of the payload: a short
+     *      count is never reported, failures throw instead. The trailing callback form receives
+     *      (err, bytes); sendSync/sendAsync and the promises namespace are generated as well.
      *
      *      The byte-range form send(msg, offset, length, port, address) sends the slice
      *      [offset, offset + length) of the utf8-encoded payload and throws error 20004 for a negative
-     *      offset or a non-positive length.
+     *      offset or a non-positive length; it returns the byte length of that slice.
      *
      *      Example — send the last word of a larger payload:
      *      \`\`\`JavaScript
@@ -9943,7 +9948,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @param msg the datagram payload
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the datagram payload
      *
      */
     sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
@@ -9958,13 +9963,14 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
      *      every local address. A payload larger than 65507 bytes for udp4 (65527 for udp6) throws
-     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. The
-     *      trailing callback form receives (err, bytes); sendSync/sendAsync and the promises namespace
-     *      are generated as well.
+     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. A
+     *      datagram is all-or-nothing, so the returned count is the byte length of the payload: a short
+     *      count is never reported, failures throw instead. The trailing callback form receives
+     *      (err, bytes); sendSync/sendAsync and the promises namespace are generated as well.
      *
      *      The byte-range form send(msg, offset, length, port, address) sends the slice
      *      [offset, offset + length) of the utf8-encoded payload and throws error 20004 for a negative
-     *      offset or a non-positive length.
+     *      offset or a non-positive length; it returns the byte length of that slice.
      *
      *      Example — send the last word of a larger payload:
      *      \`\`\`JavaScript
@@ -9992,7 +9998,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @param msg the datagram payload
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the datagram payload
      *
      */
     sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
@@ -10008,7 +10014,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @param length the number of bytes to send
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the slice that was sent
      *
      */
     send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
@@ -10024,7 +10030,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @param length the number of bytes to send
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the slice that was sent
      *
      */
     sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
@@ -10040,7 +10046,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @param length the number of bytes to send
      *      @param port the destination port
      *      @param address the destination address or host name, empty for the loopback address
-     *      @return the number of bytes sent
+     *      @return the byte length of the slice that was sent
      *
      */
     sendAsync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
@@ -12757,7 +12763,7 @@ declare class Class_EventSource extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     send(data: string, options?: FIBJS.GeneralObject): number;
@@ -12811,7 +12817,7 @@ declare class Class_EventSource extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     sendSync(data: string, options?: FIBJS.GeneralObject): number;
@@ -12863,7 +12869,7 @@ declare class Class_EventSource extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     sendAsync(data: string, options?: FIBJS.GeneralObject): Promise<number>;
@@ -13247,7 +13253,7 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     send(data: string, options?: FIBJS.GeneralObject): Promise<number>;
@@ -13299,7 +13305,7 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     sendSync(data: string, options?: FIBJS.GeneralObject): number;
@@ -13351,7 +13357,7 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     sendAsync(data: string, options?: FIBJS.GeneralObject): Promise<number>;
@@ -46575,14 +46581,15 @@ declare class Class_Socket extends Class_Stream {
     recvAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
-     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
      *
-     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
-     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
-     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
+     *      data may be a Buffer or a string; a string is encoded as utf8. Unlike write, which queues the
+     *      buffer and reports whether the stream accepted the data with a boolean, send keeps the fiber
+     *      waiting while the peer does not read and fails with the timeout error (20021) or a
+     *      closed-socket error when it cannot finish. The write loop only returns once the whole buffer
+     *      has been handed to the kernel, so the count never comes back short.
      *      @param data the data to send
-     *      @return returns the number of bytes actually written
+     *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
     send(data: Class_Buffer | string): number;
@@ -46590,27 +46597,29 @@ declare class Class_Socket extends Class_Stream {
     send(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
-     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
      *
-     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
-     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
-     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
+     *      data may be a Buffer or a string; a string is encoded as utf8. Unlike write, which queues the
+     *      buffer and reports whether the stream accepted the data with a boolean, send keeps the fiber
+     *      waiting while the peer does not read and fails with the timeout error (20021) or a
+     *      closed-socket error when it cannot finish. The write loop only returns once the whole buffer
+     *      has been handed to the kernel, so the count never comes back short.
      *      @param data the data to send
-     *      @return returns the number of bytes actually written
+     *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
     sendSync(data: Class_Buffer | string): number;
 
     /**
-     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
      *
-     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
-     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
-     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
+     *      data may be a Buffer or a string; a string is encoded as utf8. Unlike write, which queues the
+     *      buffer and reports whether the stream accepted the data with a boolean, send keeps the fiber
+     *      waiting while the peer does not read and fails with the timeout error (20021) or a
+     *      closed-socket error when it cannot finish. The write loop only returns once the whole buffer
+     *      has been handed to the kernel, so the count never comes back short.
      *      @param data the data to send
-     *      @return returns the number of bytes actually written
+     *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
     sendAsync(data: Class_Buffer | string): Promise<number>;
@@ -47312,40 +47321,43 @@ declare class Class_SocketPromise extends Class_StreamPromise {
     recvAsync(bytes?: number): Promise<Class_Buffer>;
 
     /**
-     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
      *
-     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
-     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
-     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
+     *      data may be a Buffer or a string; a string is encoded as utf8. Unlike write, which queues the
+     *      buffer and reports whether the stream accepted the data with a boolean, send keeps the fiber
+     *      waiting while the peer does not read and fails with the timeout error (20021) or a
+     *      closed-socket error when it cannot finish. The write loop only returns once the whole buffer
+     *      has been handed to the kernel, so the count never comes back short.
      *      @param data the data to send
-     *      @return returns the number of bytes actually written
+     *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
     send(data: Class_Buffer | string): Promise<number>;
 
     /**
-     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
      *
-     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
-     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
-     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
+     *      data may be a Buffer or a string; a string is encoded as utf8. Unlike write, which queues the
+     *      buffer and reports whether the stream accepted the data with a boolean, send keeps the fiber
+     *      waiting while the peer does not read and fails with the timeout error (20021) or a
+     *      closed-socket error when it cannot finish. The write loop only returns once the whole buffer
+     *      has been handed to the kernel, so the count never comes back short.
      *      @param data the data to send
-     *      @return returns the number of bytes actually written
+     *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
     sendSync(data: Class_Buffer | string): number;
 
     /**
-     * @description Writes the given data to the connection, equivalent to the write method; a string data is encoded as utf8
+     * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
      *
-     *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
-     *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
-     *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
+     *      data may be a Buffer or a string; a string is encoded as utf8. Unlike write, which queues the
+     *      buffer and reports whether the stream accepted the data with a boolean, send keeps the fiber
+     *      waiting while the peer does not read and fails with the timeout error (20021) or a
+     *      closed-socket error when it cannot finish. The write loop only returns once the whole buffer
+     *      has been handed to the kernel, so the count never comes back short.
      *      @param data the data to send
-     *      @return returns the number of bytes actually written
+     *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
     sendAsync(data: Class_Buffer | string): Promise<number>;

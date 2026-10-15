@@ -557,6 +557,9 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
     pBuf[pos++] = '\r';
     pBuf[pos++] = '\n';
 
+    // the frame is written whole by the stream, so the encoder reports what it built
+    retVal = pos;
+
     return m_stream->writeBuffer(buf, std::move(ac));
 }
 

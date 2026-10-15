@@ -278,9 +278,8 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
 {
     class AsyncSend : public uv_udp_send_t {
     public:
-        AsyncSend(Buffer_base* msg, int32_t port, int32_t& retVal, AsyncHandle ac)
+        AsyncSend(Buffer_base* msg, int32_t port, AsyncHandle ac)
             : m_ac(std::move(ac))
-            , m_retVal(retVal)
             , m_port(port)
         {
             m_msg = Buffer::Cast(msg);
@@ -293,17 +292,14 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
 
             if (status < 0)
                 pThis->m_ac.apost(result_t::from_system(status));
-            else {
-                pThis->m_retVal = status;
+            else
                 pThis->m_ac.apost(result_t());
-            }
 
             delete pThis;
         }
 
     public:
         AsyncHandle m_ac;
-        int32_t& m_retVal;
         obj_ptr<Buffer> m_msg;
         uv_buf_t m_buf;
         int32_t m_port;
@@ -337,11 +333,15 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
             return result_t::invalid_arg();
     }
 
-    AsyncSend* _send = new AsyncSend(msg, port, retVal, std::move(ac));
+    // the datagram is all-or-nothing: either uv_udp_send hands the whole datagram
+    // to the kernel or the call fails, so the byte count is known up front and the
+    // async completion above does not have to report one
+    retVal = (int32_t)Buffer::Cast(msg)->length();
+
+    AsyncSend* _send = new AsyncSend(msg, port, std::move(ac));
     int32_t status = uv_udp_try_send(&m_udp, &_send->m_buf, 1, (sockaddr*)&addr_info);
     if (status >= 0) {
         delete _send;
-        retVal = status;
         return result_t();
     } else if (status != UV_ENOSYS && status != UV_EAGAIN)
         return result_t::from_system(status);

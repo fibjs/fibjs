@@ -243,7 +243,7 @@ declare class Class_EventSource extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     send(data: string, options?: FIBJS.GeneralObject): number;
@@ -297,7 +297,7 @@ declare class Class_EventSource extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     sendSync(data: string, options?: FIBJS.GeneralObject): number;
@@ -349,7 +349,7 @@ declare class Class_EventSource extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     sendAsync(data: string, options?: FIBJS.GeneralObject): Promise<number>;
@@ -733,7 +733,7 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     send(data: string, options?: FIBJS.GeneralObject): Promise<number>;
@@ -785,7 +785,7 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     sendSync(data: string, options?: FIBJS.GeneralObject): number;
@@ -837,7 +837,7 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *
      *      @param data the event data, sent as one or more data lines
      *      @param options event options, {} by default
-     *      @return the number of bytes sent
+     *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
     sendAsync(data: string, options?: FIBJS.GeneralObject): Promise<number>;

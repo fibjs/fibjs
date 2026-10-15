@@ -208,7 +208,7 @@ interface EventSource : EventEmitter
 
      @param data the event data, sent as one or more data lines
      @param options event options, {} by default
-     @return the number of bytes sent
+     @return the byte length of the encoded SSE frame that was queued to the stream
     */
     Integer send(String data, Object options = {}) async;
 
