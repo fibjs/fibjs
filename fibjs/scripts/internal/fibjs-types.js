@@ -27027,24 +27027,26 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      Equivalent to assigning statusCode and then calling appendHeader(headers): existing
      *      headers are kept and the entries of the object or Headers collection are added. The
      *      reason phrase is left untouched. See the three-argument overload for an explicit
-     *      status message.
+     *      status message. Returns the response itself, so calls can be chained.
      *      @param statusCode specifies the return status of the response message
      *      @param headers specifies the response headers to add to the response message
+     *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): void;
+    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description Sets the status code and reason phrase and appends response headers
      *
      *      Same as the two-argument overload plus an explicit statusMessage; headers are
-     *      appended, not replaced.
+     *      appended, not replaced. Returns the response itself, so calls can be chained.
      *      @param statusCode specifies the return status of the response message
      *      @param statusMessage specifies the return message of the response message
      *      @param headers specifies the response headers to add to the response message
+     *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): void;
+    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description The Set-Cookie headers as an array of HttpCookie objects, read-only
@@ -27377,24 +27379,26 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      Equivalent to assigning statusCode and then calling appendHeader(headers): existing
      *      headers are kept and the entries of the object or Headers collection are added. The
      *      reason phrase is left untouched. See the three-argument overload for an explicit
-     *      status message.
+     *      status message. Returns the response itself, so calls can be chained.
      *      @param statusCode specifies the return status of the response message
      *      @param headers specifies the response headers to add to the response message
+     *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): void;
+    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description Sets the status code and reason phrase and appends response headers
      *
      *      Same as the two-argument overload plus an explicit statusMessage; headers are
-     *      appended, not replaced.
+     *      appended, not replaced. Returns the response itself, so calls can be chained.
      *      @param statusCode specifies the return status of the response message
      *      @param statusMessage specifies the return message of the response message
      *      @param headers specifies the response headers to add to the response message
+     *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): void;
+    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): Class_HttpResponse;
 
     /**
      * @description The Set-Cookie headers as an array of HttpCookie objects, read-only

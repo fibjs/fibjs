@@ -38,8 +38,8 @@ public:
     virtual result_t get_status(int32_t& retVal) = 0;
     virtual result_t set_status(int32_t newVal) = 0;
     virtual result_t get_ok(bool& retVal) = 0;
-    virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers) = 0;
-    virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers) = 0;
+    virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal) = 0;
+    virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal) = 0;
     virtual result_t get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal) = 0;
     virtual result_t addCookie(Union_addCookie_cookie cookie) = 0;
     virtual result_t redirect(exlib::string url) = 0;
@@ -294,6 +294,8 @@ inline void HttpResponse_base::s_get_ok(const v8::FunctionCallbackInfo<v8::Value
 
 inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<HttpResponse_base> vr;
+
     METHOD_INSTANCE(HttpResponse_base);
     METHOD_ENTER();
 
@@ -302,7 +304,7 @@ inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Va
     ARG(int32_t, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
-    hr = pInst->writeHead(v0, v1);
+    hr = pInst->writeHead(v0, v1, vr);
 
     METHOD_OVER(3, 2);
 
@@ -310,9 +312,9 @@ inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Va
     ARG(exlib::string, 1);
     OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
-    hr = pInst->writeHead(v0, v1, v2);
+    hr = pInst->writeHead(v0, v1, v2, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void HttpResponse_base::s_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args)

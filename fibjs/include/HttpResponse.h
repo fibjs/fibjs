@@ -139,8 +139,8 @@ public:
     virtual result_t get_status(int32_t& retVal);
     virtual result_t set_status(int32_t newVal);
     virtual result_t get_ok(bool& retVal);
-    virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers);
-    virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers);
+    virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
     virtual result_t get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal);
     virtual result_t addCookie(Union_addCookie_cookie cookie);
     virtual result_t redirect(exlib::string url);

@@ -778,18 +778,20 @@ result_t HttpResponse::get_ok(bool& retVal)
     return result_t();
 }
 
-result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers)
+result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
 {
     set_statusCode(statusCode);
     set_statusMessage(statusMessage);
     appendHeader(headers);
+    retVal = this;
     return result_t();
 }
 
-result_t HttpResponse::writeHead(int32_t statusCode, v8::Local<v8::Object> headers)
+result_t HttpResponse::writeHead(int32_t statusCode, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
 {
     set_statusCode(statusCode);
     appendHeader(headers);
+    retVal = this;
     return result_t();
 }
 
