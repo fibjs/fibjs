@@ -35,6 +35,18 @@ Stream.Duplex = require('_stream_duplex');
 Stream.Transform = require('_stream_transform');
 Stream.PassThrough = require('_stream_passthrough');
 
+// The async iteration surface of a readable: `for await (const chunk of r)`,
+// `r.iterator({ destroyOnReturn })`, and the operator helpers (`map`, `filter`,
+// `toArray`, `reduce`, ...) Node 17+ installs on the prototype. They live in
+// internal/streams/{async_iterator,operators}.js; this is where they are wired,
+// so that requiring `stream` (or `stream/promises`, which pulls the same
+// Readable) is enough to have them - exactly like Node's lib/stream.js.
+Stream.Readable.prototype[Symbol.asyncIterator] = function () {
+    return require('internal/streams/async_iterator')(this);
+};
+
+Object.assign(Stream.Readable.prototype, require('internal/streams/operators'));
+
 // Callback-based pipeline
 Stream.pipeline = function pipeline() {
     var streams = Array.prototype.slice.call(arguments);
