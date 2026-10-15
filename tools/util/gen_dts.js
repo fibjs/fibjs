@@ -1120,23 +1120,18 @@ function buildDtsMethodParams(paramsHost, getMapParamOptions, { typeOverride } =
 }
 
 /**
- * dts-dom's interface printer writes a call signature's parameters as
- * `name: type` and ignores ParameterFlags (its `printObjectTypeMembers` case
- * "call-signature", unlike writeParameter) - a rest `...args` would come out as
- * `args`. Carry the flags in the name, which is the part that printer writes
- * verbatim.
+ * The parameters of a call signature (`declare interface Class_X { (...): r }`
+ * and the callable modules' `function <module>(...)`).
+ *
+ * dts-dom's object-type writer prints a call signature's parameters through
+ * writeParameter, which honours ParameterFlags and adds the punctuation itself
+ * (`...args`, `options?`). An earlier version prefixed the name here as well -
+ * on the assumption that the "call-signature" printer ignored the flags - which
+ * shipped `(......args: any[]): void` in the corpus (TS1003, reported by
+ * tools/check_dts.js). Hand the flags over unchanged and let the printer do it.
  */
 function callSignatureParameters(params) {
-    return params.map(p => {
-        let name = p.name;
-
-        if (p.flags & dom.ParameterFlags.Rest)
-            name = '...' + name;
-        else if (p.flags & dom.ParameterFlags.Optional)
-            name = name + '?';
-
-        return dom.create.parameter(name, p.type, p.flags);
-    });
+    return params.map(p => dom.create.parameter(p.name, p.type, p.flags));
 }
 
 /**
