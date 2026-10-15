@@ -106,6 +106,9 @@ function ReadableState(options, stream) {
   this.endEmitted = false;
   this.reading = false;
 
+  // whether destroy() emits 'close' (Node's `emitClose`, on by default)
+  this.emitClose = options.emitClose !== false;
+
   // a flag to be able to tell if the event 'readable'/'data' is emitted
   // immediately, or on a later tick.  We set this to true at first, because
   // any actions that shouldn't happen until "later" should generally also
@@ -185,8 +188,13 @@ Object.defineProperty(Readable.prototype, 'destroyed', {
 
 Readable.prototype.destroy = destroyImpl.destroy;
 Readable.prototype._undestroy = destroyImpl.undestroy;
+// Node's own _destroy is a no-op teardown: it does *not* end the readable side,
+// so destroying a stream emits 'close' (and the error, when there is one) but
+// never 'end'. The `push(null)` this port used to do here invented an 'end'
+// event that Node does not emit, and - because it is scheduled before the
+// error - it could deliver 'end' ahead of 'error' and leave the error
+// unhandled.
 Readable.prototype._destroy = function (err, cb) {
-  this.push(null);
   cb(err);
 };
 

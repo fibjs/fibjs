@@ -10,9 +10,13 @@ function destroy(err, cb) {
   if (readableDestroyed || writableDestroyed) {
     if (cb) {
       cb(err);
-    } else if (err &&
-               (!this._writableState || !this._writableState.errorEmitted)) {
-      process.nextTick(emitErrorNT, this, err);
+    } else if (err) {
+      if (!this._writableState) {
+        process.nextTick(emitErrorNT, this, err);
+      } else if (!this._writableState.errorEmitted) {
+        this._writableState.errorEmitted = true;
+        process.nextTick(emitErrorNT, this, err);
+      }
     }
     return this;
   }
@@ -29,18 +33,36 @@ function destroy(err, cb) {
     this._writableState.destroyed = true;
   }
 
+  // The teardown reports through this callback, and 'close' is what tells the
+  // world that it finished (`emitClose`, on by default, and
+  // `{ emitClose: false }` turns it off). The order matters: an error is
+  // emitted *before* 'close', never after, so a consumer that treats 'close'
+  // as "nothing more will arrive" is right. Node code listens for both, and
+  // `stream/promises.finished()` and the async iterator depend on them.
   this._destroy(err || null, (err) => {
     if (!cb && err) {
-      process.nextTick(emitErrorNT, this, err);
-      if (this._writableState) {
+      if (!this._writableState) {
+        process.nextTick(emitErrorAndCloseNT, this, err);
+      } else if (!this._writableState.errorEmitted) {
         this._writableState.errorEmitted = true;
+        process.nextTick(emitErrorAndCloseNT, this, err);
+      } else {
+        process.nextTick(emitCloseNT, this);
       }
     } else if (cb) {
+      process.nextTick(emitCloseNT, this);
       cb(err);
+    } else {
+      process.nextTick(emitCloseNT, this);
     }
   });
 
   return this;
+}
+
+function emitErrorAndCloseNT(self, err) {
+  emitErrorNT(self, err);
+  emitCloseNT(self);
 }
 
 function undestroy() {
@@ -55,6 +77,8 @@ function undestroy() {
     this._writableState.destroyed = false;
     this._writableState.ended = false;
     this._writableState.ending = false;
+    this._writableState.finalCalled = false;
+    this._writableState.prefinished = false;
     this._writableState.finished = false;
     this._writableState.errorEmitted = false;
   }
@@ -62,6 +86,15 @@ function undestroy() {
 
 function emitErrorNT(self, err) {
   self.emit('error', err);
+}
+
+function emitCloseNT(self) {
+  if (self._writableState && !self._writableState.emitClose)
+    return;
+  if (self._readableState && !self._readableState.emitClose)
+    return;
+
+  self.emit('close');
 }
 
 module.exports = {

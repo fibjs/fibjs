@@ -93,6 +93,9 @@ function WritableState(options, stream) {
   // has it been destroyed
   this.destroyed = false;
 
+  // whether destroy() emits 'close' (Node's `emitClose`, on by default)
+  this.emitClose = options.emitClose !== false;
+
   // should we decode strings into buffers before passing to _write?
   // this is here so that some node-core streams can optimize string
   // handling at a lower level.
