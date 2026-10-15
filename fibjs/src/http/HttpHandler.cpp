@@ -668,6 +668,9 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 return next(result_t::return_null());
 
             exlib::string str;
+            // the IDL header setters return the message for chaining; internal
+            // callers that ignore it pass a throwaway slot
+            obj_ptr<HttpMessage_base> hdrRet;
 
             m_req->get_protocol(str);
             m_rep->set_protocol(str);
@@ -685,18 +688,18 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 exlib::string origin;
 
                 if (!m_req->firstHeader("origin", origin).is_return_null()) {
-                    m_rep->setHeader("Access-Control-Allow-Credentials", "true");
-                    m_rep->setHeader("Access-Control-Allow-Origin", origin);
+                    m_rep->setHeader("Access-Control-Allow-Credentials", "true", hdrRet);
+                    m_rep->setHeader("Access-Control-Allow-Origin", origin, hdrRet);
 
                     m_req->get_method(str);
 
                     if (!qstricmp(str.c_str(), "options")) {
                         m_options = true;
 
-                        m_rep->setHeader("Access-Control-Allow-Methods", "*");
+                        m_rep->setHeader("Access-Control-Allow-Methods", "*", hdrRet);
                         m_rep->setHeader("Access-Control-Allow-Headers",
-                            m_pThis->m_allowHeaders);
-                        m_rep->setHeader("Access-Control-Max-Age", "1728000");
+                            m_pThis->m_allowHeaders, hdrRet);
+                        m_rep->setHeader("Access-Control-Max-Age", "1728000", hdrRet);
 
                         return next(send);
                     }
@@ -712,6 +715,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             bool t = false;
             date_t d;
             exlib::string str;
+            obj_ptr<HttpMessage_base> hdrRet;
 
             bool sent = false;
             m_rep->get_sent(sent);
@@ -719,7 +723,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 return next(end);
 
             if (m_rep->firstHeader("Server", str).is_return_null())
-                m_rep->appendHeader("Server", m_pThis->m_serverName);
+                m_rep->appendHeader("Server", m_pThis->m_serverName, hdrRet);
 
             d.now();
 
@@ -727,8 +731,8 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (s == 200 && !m_options) {
                 m_rep->hasHeader("Last-Modified", t);
                 if (!t && (m_rep->firstHeader("Cache-Control", str).is_return_null())) {
-                    m_rep->appendHeader("Cache-Control", "no-cache, no-store");
-                    m_rep->appendHeader("Expires", "-1");
+                    m_rep->appendHeader("Cache-Control", "no-cache, no-store", hdrRet);
+                    m_rep->appendHeader("Expires", "-1", hdrRet);
                 }
             }
 
@@ -773,7 +777,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     }
 
                     if (type != 0) {
-                        m_rep->appendHeader("Content-Encoding", type == 1 ? "gzip" : "deflate");
+                        m_rep->appendHeader("Content-Encoding", type == 1 ? "gzip" : "deflate", hdrRet);
 
                         if (!m_rep->get_body(m_body).is_return_null() && m_body) {
                             obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(m_body);

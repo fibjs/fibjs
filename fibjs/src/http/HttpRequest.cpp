@@ -223,10 +223,12 @@ void HttpRequest::set_options(const Options& o, bool replace_headers)
     if (o.u)
         set_address(o.u->href());
     if (o.headers) {
+        obj_ptr<HttpMessage_base> hdrRet;
+
         // Fetch standard: `new Request(request, init)` with an explicit init.headers
         // replaces the headers of the request being copied
         if (replace_headers)
-            setHeader(o.headers.get());
+            setHeader(o.headers.get(), hdrRet);
         else {
             // a replaced body owns the content-type: the one carried by the copied
             // request must not survive as a duplicate (the standard keeps one)
@@ -236,7 +238,7 @@ void HttpRequest::set_options(const Options& o, bool replace_headers)
                     removeHeader("Content-Type");
             }
 
-            appendHeader(o.headers.get());
+            appendHeader(o.headers.get(), hdrRet);
         }
     }
     if (o.body)
@@ -517,48 +519,56 @@ result_t HttpRequest::allHeader(exlib::string name, obj_ptr<NObject>& retVal)
     return m_message->allHeader(name, retVal);
 }
 
-result_t HttpRequest::appendHeader(v8::Local<v8::Object> map)
+result_t HttpRequest::appendHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->appendHeader(map);
 }
 
-result_t HttpRequest::appendHeader(Headers_base* headers)
+result_t HttpRequest::appendHeader(Headers_base* headers, obj_ptr<HttpMessage_base>& retVal)
 {
     Headers* hdrs = static_cast<Headers*>(headers);
     for (int32_t i = 0; i < (int32_t)hdrs->m_map.size(); i++) {
         auto& it = hdrs->m_map[i];
         _appendHeader(it.first, it.second.string());
     }
+    retVal = this;
     return result_t();
 }
 
-result_t HttpRequest::appendHeader(exlib::string name, Variant value)
+result_t HttpRequest::appendHeader(exlib::string name, Variant value, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->appendHeader(name, value);
 }
 
-result_t HttpRequest::appendHeader(exlib::string name, v8::Local<v8::Array> values)
+result_t HttpRequest::appendHeader(exlib::string name, v8::Local<v8::Array> values, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->appendHeader(name, values);
 }
 
-result_t HttpRequest::setHeader(v8::Local<v8::Object> map)
+result_t HttpRequest::setHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->setHeader(map);
 }
 
-result_t HttpRequest::setHeader(Headers_base* headers)
+result_t HttpRequest::setHeader(Headers_base* headers, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->setHeader(headers);
 }
 
-result_t HttpRequest::setHeader(exlib::string name, Variant value)
+result_t HttpRequest::setHeader(exlib::string name, Variant value, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->setHeader(name, value);
 }
 
-result_t HttpRequest::setHeader(exlib::string name, v8::Local<v8::Array> values)
+result_t HttpRequest::setHeader(exlib::string name, v8::Local<v8::Array> values, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->setHeader(name, values);
 }
 

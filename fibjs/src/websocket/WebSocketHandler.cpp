@@ -218,6 +218,9 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         {
             exlib::string v;
             result_t hr;
+            // the IDL header setters return the message for chaining; internal
+            // callers that ignore it pass a throwaway slot
+            obj_ptr<HttpMessage_base> hdrRet;
 
             hr = m_httpreq->firstHeader("Upgrade", v);
             if (hr.failed())
@@ -263,8 +266,8 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             base64Encode((const char*)output, 20, false, out);
 
             m_httprep->set_statusCode(101);
-            m_httprep->appendHeader("Sec-WebSocket-Accept", out);
-            m_httprep->appendHeader("Upgrade", "websocket");
+            m_httprep->appendHeader("Sec-WebSocket-Accept", out, hdrRet);
+            m_httprep->appendHeader("Upgrade", "websocket", hdrRet);
             m_httprep->set_upgrade(true);
 
             exlib::string protocol;
@@ -273,14 +276,14 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 return hr;
 
             if (!hr.is_return_null() && select_protocol(m_pThis->m_protocols, v, protocol))
-                m_httprep->appendHeader("Sec-WebSocket-Protocol", protocol);
+                m_httprep->appendHeader("Sec-WebSocket-Protocol", protocol, hdrRet);
 
             hr = m_httpreq->firstHeader("Sec-WebSocket-Extensions", v);
             if (hr.failed())
                 return hr;
 
             if (!hr.is_return_null() && m_pThis->m_enableCompress && !qstricmp(v.c_str(), "permessage-deflate", 18)) {
-                m_httprep->appendHeader("Sec-WebSocket-Extensions", "permessage-deflate");
+                m_httprep->appendHeader("Sec-WebSocket-Extensions", "permessage-deflate", hdrRet);
                 m_compress = true;
             }
 

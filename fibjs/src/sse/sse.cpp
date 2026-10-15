@@ -53,8 +53,12 @@ result_t EventSourceHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVa
 
         ON_STATE(asyncInvoke, handshake)
         {
-            m_httprep->appendHeader("Content-Type", "text/event-stream");
-            m_httprep->appendHeader("Transfer-Encoding", "chunked");
+            // the IDL header setters return the message for chaining; internal
+            // callers that ignore it pass a throwaway slot
+            obj_ptr<HttpMessage_base> hdrRet;
+
+            m_httprep->appendHeader("Content-Type", "text/event-stream", hdrRet);
+            m_httprep->appendHeader("Transfer-Encoding", "chunked", hdrRet);
 
             HttpResponse* resp = m_httprep.As<HttpResponse>();
             return resp->sendHeader(m_stm, false, next(accept));

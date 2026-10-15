@@ -112,12 +112,16 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
     resp->set_statusCode(200);
 
     exlib::string mimeType;
+    // the IDL header setters return the message for chaining; internal callers
+    // that ignore it pass a throwaway slot
+    obj_ptr<HttpMessage_base> hdrRet;
+
     if (mime_base::getType(path, mimeType).ok() && !mimeType.empty())
-        resp->setHeader("Content-Type", mimeType);
+        resp->setHeader("Content-Type", mimeType, hdrRet);
 
     int64_t size = 0;
     if (file.size(size).ok())
-        resp->setHeader("Content-Length", std::to_string(size).c_str());
+        resp->setHeader("Content-Length", std::to_string(size).c_str(), hdrRet);
 
     if (method == "HEAD") {
         file.close();
@@ -1460,6 +1464,8 @@ public:
         } else
             m_req->set_address(m_url);
 
+        obj_ptr<HttpMessage_base> hdrRet;
+
         bool enableCookie = false;
         m_hc->get_enableCookie(enableCookie);
         if (enableCookie) {
@@ -1472,33 +1478,33 @@ public:
             if (!bHasCookie) {
                 m_hc->get_cookie(m_url, cookie);
                 if (cookie.length() > 0)
-                    m_req->appendHeader("Cookie", cookie);
+                    m_req->appendHeader("Cookie", cookie, hdrRet);
             }
         }
 
         m_req->set_keepAlive(m_o->keepAlive);
 
         if (m_o->headers)
-            m_req->appendHeader(m_o->headers);
+            m_req->appendHeader(m_o->headers, hdrRet);
 
         exlib::string a = m_hc->agent();
         if (!a.empty()) {
             bool bCheck = false;
             m_req->hasHeader("User-Agent", bCheck);
             if (!bCheck)
-                m_req->appendHeader("User-Agent", a);
+                m_req->appendHeader("User-Agent", a, hdrRet);
         }
 
         bool bHost = false;
         m_req->hasHeader("Host", bHost);
         if (!bHost)
-            m_req->appendHeader("Host", host);
+            m_req->appendHeader("Host", host, hdrRet);
 
         if (m_hc->m_enableEncoding) {
             bool hasAE = false;
             m_req->hasHeader("Accept-Encoding", hasAE);
             if (!hasAE)
-                m_req->appendHeader("Accept-Encoding", "gzip, deflate");
+                m_req->appendHeader("Accept-Encoding", "gzip, deflate", hdrRet);
         }
 
         if (m_o->body)
@@ -1569,13 +1575,15 @@ public:
                 exlib::string host = m_connUrl.substr(6);
                 m_reqConn = new HttpRequest();
 
+                obj_ptr<HttpMessage_base> hdrRet;
+
                 m_reqConn->set_method("CONNECT");
                 m_reqConn->set_address(host);
-                m_reqConn->appendHeader("Host", host);
+                m_reqConn->appendHeader("Host", host, hdrRet);
 
                 exlib::string a = m_hc->agent();
                 if (!a.empty())
-                    m_reqConn->appendHeader("User-Agent", a);
+                    m_reqConn->appendHeader("User-Agent", a, hdrRet);
             }
 
             while (m_hc->get_conn(m_http_proxy, m_conn)) {
@@ -2046,11 +2054,12 @@ public:
             }
 
             // Copy regular headers to HttpResponse
+            obj_ptr<HttpMessage_base> hdrRet;
             for (auto& kv : h2_headers->m_keys) {
                 const exlib::string& key = kv.first;
                 if (key.length() > 0 && key[0] != ':') {
                     int32_t idx = kv.second;
-                    resp->appendHeader(key, h2_headers->m_values[idx].m_val.string());
+                    resp->appendHeader(key, h2_headers->m_values[idx].m_val.string(), hdrRet);
                 }
             }
         }

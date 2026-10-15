@@ -127,11 +127,14 @@ result_t HttpFileHandler::create(exlib::string root, v8::Local<v8::Object> optio
 void HttpFileHandler::applyHeaders(const exlib::string& target, HttpResponse_base* rep)
 {
     exlib::string str;
+    // the IDL header setters return the message for chaining; internal callers
+    // that ignore it pass a throwaway slot
+    obj_ptr<HttpMessage_base> hdrRet;
 
     for (auto& rule : m_headers) {
         if (rule.pattern.match(target)) {
             for (auto& h : rule.headers)
-                rep->setHeader(h.first, h.second);
+                rep->setHeader(h.first, h.second, hdrRet);
             break;
         }
     }
@@ -142,7 +145,7 @@ void HttpFileHandler::applyHeaders(const exlib::string& target, HttpResponse_bas
             snprintf(s, sizeof(s), "public, max-age=%lld, immutable", (long long)m_maxAge);
         else
             snprintf(s, sizeof(s), "public, max-age=%lld", (long long)m_maxAge);
-        rep->appendHeader("Cache-Control", s);
+        rep->appendHeader("Cache-Control", s, hdrRet);
     }
 }
 
@@ -221,6 +224,9 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             static char padding[] = "                                                              ";
             exlib::string s;
             obj_ptr<Buffer_base> buf;
+            // the IDL header setters return the message for chaining; internal
+            // callers that ignore it pass a throwaway slot
+            obj_ptr<HttpMessage_base> hdrRet;
 
             length = m_dir->length();
 
@@ -282,7 +288,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_file->rewind();
 
                 m_rep->set_body(m_file);
-                m_rep->appendHeader("Content-Type", "text/html");
+                m_rep->appendHeader("Content-Type", "text/html", hdrRet);
 
                 return next(result_t::return_null());
             }
@@ -300,13 +306,14 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
         ON_STATE(asyncInvoke, open)
         {
+            obj_ptr<HttpMessage_base> hdrRet;
 
             if (m_index)
-                m_rep->appendHeader("Content-Type", "text/html");
+                m_rep->appendHeader("Content-Type", "text/html", hdrRet);
             else {
                 exlib::string type;
                 mime_base::getType(m_url, type);
-                m_rep->appendHeader("Content-Type", type);
+                m_rep->appendHeader("Content-Type", type, hdrRet);
             }
 
             return m_file->stat(m_stat, next(stat));
@@ -316,6 +323,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         {
             date_t d;
             exlib::string str;
+            obj_ptr<HttpMessage_base> hdrRet;
 
             m_stat->get_mtime(d);
 
@@ -344,7 +352,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             d.toGMTString(lastModified);
 
-            m_rep->appendHeader("Last-Modified", lastModified);
+            m_rep->appendHeader("Last-Modified", lastModified, hdrRet);
 
             exlib::string range;
             if (!m_req->firstHeader("Range", range).is_return_null()) {
@@ -373,7 +381,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 char s[256];
                 snprintf(s, sizeof(s), "bytes %" PRId64 "-%" PRId64 "/%" PRId64 "", bpos, epos - 1, fsz);
-                m_rep->appendHeader("Content-Range", s);
+                m_rep->appendHeader("Content-Range", s, hdrRet);
 
                 m_rep->set_body(stm);
 

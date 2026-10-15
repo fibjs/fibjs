@@ -287,9 +287,10 @@ declare class Class_HttpMessage extends Class_Message {
      *      console.log(req.allHeader('X-Tag').join(',')); // a,b,c,d
      *      ```
      *      @param map specifies the key-value data dictionary to append
+     *      @return returns the current message object
      *
      */
-    appendHeader(map: FIBJS.GeneralObject): void;
+    appendHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
 
     /**
      * @description appends headers; appending data does not modify the headers of an existing key
@@ -297,9 +298,10 @@ declare class Class_HttpMessage extends Class_Message {
      *      Appends every value of the given collection in order, duplicates included; useful to merge
      *      another message's headers into this one.
      *      @param headers specifies the Headers object to append
+     *      @return returns the current message object
      *
      */
-    appendHeader(headers: Class_Headers): void;
+    appendHeader(headers: Class_Headers): Class_HttpMessage;
 
     /**
      * @description appends a group of headers with the specified name; appending data does not modify the headers of an existing key
@@ -308,9 +310,10 @@ declare class Class_HttpMessage extends Class_Message {
      *      are rendered as strings.
      *      @param name specifies the key to append
      *      @param values specifies the group of data to append
+     *      @return returns the current message object
      *
      */
-    appendHeader(name: string, values: any[]): void;
+    appendHeader(name: string, values: any[]): Class_HttpMessage;
 
     /**
      * @description appends a header; appending data does not modify the headers of an existing key
@@ -319,9 +322,10 @@ declare class Class_HttpMessage extends Class_Message {
      *      form. The same effect is available through headers.append(name, value).
      *      @param name specifies the key to append
      *      @param value specifies the data to append
+     *      @return returns the current message object
      *
      */
-    appendHeader(name: string, value: any): void;
+    appendHeader(name: string, value: any): Class_HttpMessage;
 
     /**
      * @description sets a header; setting data modifies the first value of the key and clears the remaining headers with the same key
@@ -348,9 +352,10 @@ declare class Class_HttpMessage extends Class_Message {
      *      console.log(res.firstHeader('X-Extra')); // 1
      *      ```
      *      @param map specifies the key-value data dictionary to set
+     *      @return returns the current message object
      *
      */
-    setHeader(map: FIBJS.GeneralObject): void;
+    setHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
 
     /**
      * @description sets headers; setting data modifies the value of the key and clears the remaining headers with the same key
@@ -358,9 +363,10 @@ declare class Class_HttpMessage extends Class_Message {
      *      Clears every existing header first and copies the given collection, so the result contains
      *      exactly its entries (duplicates preserved).
      *      @param headers specifies the Headers object to set
+     *      @return returns the current message object
      *
      */
-    setHeader(headers: Class_Headers): void;
+    setHeader(headers: Class_Headers): Class_HttpMessage;
 
     /**
      * @description sets a group of headers with the specified name; setting data modifies the value of the key and clears the remaining headers with the same key
@@ -368,9 +374,10 @@ declare class Class_HttpMessage extends Class_Message {
      *      Replaces all values of the key with the given array.
      *      @param name specifies the key to set
      *      @param values specifies the group of data to set
+     *      @return returns the current message object
      *
      */
-    setHeader(name: string, values: any[]): void;
+    setHeader(name: string, values: any[]): Class_HttpMessage;
 
     /**
      * @description sets a header; setting data modifies the first value of the key and clears the remaining headers with the same key
@@ -378,9 +385,10 @@ declare class Class_HttpMessage extends Class_Message {
      *      Replaces all values of the key with the single value.
      *      @param name specifies the key to set
      *      @param value specifies the data to set
+     *      @return returns the current message object
      *
      */
-    setHeader(name: string, value: any): void;
+    setHeader(name: string, value: any): Class_HttpMessage;
 
     /**
      * @description deletes all headers of the specified key
@@ -711,9 +719,10 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      console.log(req.allHeader('X-Tag').join(',')); // a,b,c,d
      *      ```
      *      @param map specifies the key-value data dictionary to append
+     *      @return returns the current message object
      *
      */
-    appendHeader(map: FIBJS.GeneralObject): void;
+    appendHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
 
     /**
      * @description appends headers; appending data does not modify the headers of an existing key
@@ -721,9 +730,10 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      Appends every value of the given collection in order, duplicates included; useful to merge
      *      another message's headers into this one.
      *      @param headers specifies the Headers object to append
+     *      @return returns the current message object
      *
      */
-    appendHeader(headers: Class_Headers): void;
+    appendHeader(headers: Class_Headers): Class_HttpMessage;
 
     /**
      * @description appends a group of headers with the specified name; appending data does not modify the headers of an existing key
@@ -732,9 +742,10 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      are rendered as strings.
      *      @param name specifies the key to append
      *      @param values specifies the group of data to append
+     *      @return returns the current message object
      *
      */
-    appendHeader(name: string, values: any[]): void;
+    appendHeader(name: string, values: any[]): Class_HttpMessage;
 
     /**
      * @description appends a header; appending data does not modify the headers of an existing key
@@ -743,9 +754,10 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      form. The same effect is available through headers.append(name, value).
      *      @param name specifies the key to append
      *      @param value specifies the data to append
+     *      @return returns the current message object
      *
      */
-    appendHeader(name: string, value: any): void;
+    appendHeader(name: string, value: any): Class_HttpMessage;
 
     /**
      * @description sets a header; setting data modifies the first value of the key and clears the remaining headers with the same key
@@ -772,9 +784,10 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      console.log(res.firstHeader('X-Extra')); // 1
      *      ```
      *      @param map specifies the key-value data dictionary to set
+     *      @return returns the current message object
      *
      */
-    setHeader(map: FIBJS.GeneralObject): void;
+    setHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
 
     /**
      * @description sets headers; setting data modifies the value of the key and clears the remaining headers with the same key
@@ -782,9 +795,10 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      Clears every existing header first and copies the given collection, so the result contains
      *      exactly its entries (duplicates preserved).
      *      @param headers specifies the Headers object to set
+     *      @return returns the current message object
      *
      */
-    setHeader(headers: Class_Headers): void;
+    setHeader(headers: Class_Headers): Class_HttpMessage;
 
     /**
      * @description sets a group of headers with the specified name; setting data modifies the value of the key and clears the remaining headers with the same key
@@ -792,9 +806,10 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      Replaces all values of the key with the given array.
      *      @param name specifies the key to set
      *      @param values specifies the group of data to set
+     *      @return returns the current message object
      *
      */
-    setHeader(name: string, values: any[]): void;
+    setHeader(name: string, values: any[]): Class_HttpMessage;
 
     /**
      * @description sets a header; setting data modifies the first value of the key and clears the remaining headers with the same key
@@ -802,9 +817,10 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      Replaces all values of the key with the single value.
      *      @param name specifies the key to set
      *      @param value specifies the data to set
+     *      @return returns the current message object
      *
      */
-    setHeader(name: string, value: any): void;
+    setHeader(name: string, value: any): Class_HttpMessage;
 
     /**
      * @description deletes all headers of the specified key

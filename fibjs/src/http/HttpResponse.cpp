@@ -43,12 +43,14 @@ result_t HttpResponse_base::_new(v8::Local<v8::Value> body, v8::Local<v8::Object
     if (opts->statusText.has_value())
         resp->set_statusMessage(opts->statusText.value());
 
+    obj_ptr<HttpMessage_base> hdrRet;
+
     if (opts->headers.has_value()) {
         auto& headersVar = opts->headers.value();
         if (std::holds_alternative<v8::Local<v8::Object>>(headersVar)) {
-            hr = resp->setHeader(std::get<v8::Local<v8::Object>>(headersVar));
+            hr = resp->setHeader(std::get<v8::Local<v8::Object>>(headersVar), hdrRet);
         } else {
-            hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(headersVar).get());
+            hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(headersVar).get(), hdrRet);
         }
         if (hr.failed())
             return hr;
@@ -216,7 +218,7 @@ result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> opt
         // appendHeader keeps any headers set before json(); the JSON body
         // write below sets/overrides Content-Type.
         if (opts->headers.has_value() && std::holds_alternative<obj_ptr<Headers_base>>(opts->headers.value()))
-            appendHeader(std::get<obj_ptr<Headers_base>>(opts->headers.value()).get());
+            m_message->appendHeader(std::get<obj_ptr<Headers_base>>(opts->headers.value()).get());
     }
 
     return m_message->json(data, retVal, std::move(ac));
@@ -335,43 +337,51 @@ result_t HttpResponse::allHeader(exlib::string name, obj_ptr<NObject>& retVal)
     return m_message->allHeader(name, retVal);
 }
 
-result_t HttpResponse::appendHeader(v8::Local<v8::Object> map)
+result_t HttpResponse::appendHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->appendHeader(map);
 }
 
-result_t HttpResponse::appendHeader(Headers_base* headers)
+result_t HttpResponse::appendHeader(Headers_base* headers, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->appendHeader(headers);
 }
 
-result_t HttpResponse::appendHeader(exlib::string name, Variant value)
+result_t HttpResponse::appendHeader(exlib::string name, Variant value, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->appendHeader(name, value);
 }
 
-result_t HttpResponse::appendHeader(exlib::string name, v8::Local<v8::Array> values)
+result_t HttpResponse::appendHeader(exlib::string name, v8::Local<v8::Array> values, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->appendHeader(name, values);
 }
 
-result_t HttpResponse::setHeader(v8::Local<v8::Object> map)
+result_t HttpResponse::setHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->setHeader(map);
 }
 
-result_t HttpResponse::setHeader(Headers_base* headers)
+result_t HttpResponse::setHeader(Headers_base* headers, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->setHeader(headers);
 }
 
-result_t HttpResponse::setHeader(exlib::string name, Variant value)
+result_t HttpResponse::setHeader(exlib::string name, Variant value, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->setHeader(name, value);
 }
 
-result_t HttpResponse::setHeader(exlib::string name, v8::Local<v8::Array> values)
+result_t HttpResponse::setHeader(exlib::string name, v8::Local<v8::Array> values, obj_ptr<HttpMessage_base>& retVal)
 {
+    retVal = this;
     return m_message->setHeader(name, values);
 }
 
@@ -554,7 +564,7 @@ exlib::string HttpResponse::prepareHeaders()
 
             if (cookie) {
                 cookie->toString(str);
-                appendHeader("Set-Cookie", str);
+                m_message->appendHeader("Set-Cookie", str);
             }
         }
 
@@ -782,7 +792,7 @@ result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage
 {
     set_statusCode(statusCode);
     set_statusMessage(statusMessage);
-    appendHeader(headers);
+    m_message->appendHeader(headers);
     retVal = this;
     return result_t();
 }
@@ -790,7 +800,7 @@ result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage
 result_t HttpResponse::writeHead(int32_t statusCode, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
 {
     set_statusCode(statusCode);
-    appendHeader(headers);
+    m_message->appendHeader(headers);
     retVal = this;
     return result_t();
 }
@@ -857,7 +867,7 @@ result_t HttpResponse::redirect(int32_t statusCode, exlib::string url)
         return result_t::make(CALL_E_EXCEPTION).with_format("HttpResponse: Invalid statusCode %d, expected 301, 302, or 307.", statusCode);
 
     m_statusCode = statusCode;
-    setHeader("Location", url);
+    m_message->setHeader("Location", url);
     return result_t();
 }
 
@@ -896,12 +906,13 @@ result_t HttpResponse_base::json(v8::Local<v8::Value> data, v8::Local<v8::Object
         resp->set_statusCode(opts->status.value());
     if (opts->statusText.has_value())
         resp->set_statusMessage(opts->statusText.value());
+    obj_ptr<HttpMessage_base> hdrRet;
     if (opts->headers.has_value()) {
         auto& hv = opts->headers.value();
         if (std::holds_alternative<v8::Local<v8::Object>>(hv))
-            hr = resp->setHeader(std::get<v8::Local<v8::Object>>(hv));
+            hr = resp->setHeader(std::get<v8::Local<v8::Object>>(hv), hdrRet);
         else
-            hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(hv).get());
+            hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(hv).get(), hdrRet);
         if (hr.failed())
             return hr;
     }
@@ -912,7 +923,7 @@ result_t HttpResponse_base::json(v8::Local<v8::Value> data, v8::Local<v8::Object
     if (hr.failed())
         return hr;
 
-    resp->setHeader("Content-Type", "application/json");
+    resp->setHeader("Content-Type", "application/json", hdrRet);
 
     // Set body as MemoryStream
     obj_ptr<Buffer> buf = new Buffer((const uint8_t*)jsonStr.c_str(), jsonStr.length());
@@ -929,8 +940,9 @@ result_t HttpResponse_base::redirect(exlib::string url, int32_t status,
     obj_ptr<HttpResponse_base>& retVal)
 {
     obj_ptr<HttpResponse> resp = new HttpResponse();
+    obj_ptr<HttpMessage_base> hdrRet;
     resp->set_statusCode(status);
-    resp->setHeader("Location", url);
+    resp->setHeader("Location", url, hdrRet);
     retVal = resp;
     return result_t();
 }

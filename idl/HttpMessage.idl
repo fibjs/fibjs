@@ -256,16 +256,18 @@ interface HttpMessage : Message
      console.log(req.allHeader('X-Tag').join(',')); // a,b,c,d
      ```
      @param map specifies the key-value data dictionary to append
+     @return returns the current message object
      */
-    appendHeader(Object map);
+    HttpMessage appendHeader(Object map);
 
     /*! @brief appends headers; appending data does not modify the headers of an existing key
 
      Appends every value of the given collection in order, duplicates included; useful to merge
      another message's headers into this one.
      @param headers specifies the Headers object to append
+     @return returns the current message object
      */
-    appendHeader(Headers headers);
+    HttpMessage appendHeader(Headers headers);
 
     /*! @brief appends a group of headers with the specified name; appending data does not modify the headers of an existing key
 
@@ -273,8 +275,9 @@ interface HttpMessage : Message
      are rendered as strings.
      @param name specifies the key to append
      @param values specifies the group of data to append
+     @return returns the current message object
      */
-    appendHeader(String name, Array values);
+    HttpMessage appendHeader(String name, Array values);
 
     /*! @brief appends a header; appending data does not modify the headers of an existing key
 
@@ -282,8 +285,9 @@ interface HttpMessage : Message
      form. The same effect is available through headers.append(name, value).
      @param name specifies the key to append
      @param value specifies the data to append
+     @return returns the current message object
      */
-    appendHeader(String name, Variant value);
+    HttpMessage appendHeader(String name, Variant value);
 
     /*! @brief sets a header; setting data modifies the first value of the key and clears the remaining headers with the same key
 
@@ -309,32 +313,36 @@ interface HttpMessage : Message
      console.log(res.firstHeader('X-Extra')); // 1
      ```
      @param map specifies the key-value data dictionary to set
+     @return returns the current message object
      */
-    setHeader(Object map);
+    HttpMessage setHeader(Object map);
 
     /*! @brief sets headers; setting data modifies the value of the key and clears the remaining headers with the same key
 
      Clears every existing header first and copies the given collection, so the result contains
      exactly its entries (duplicates preserved).
      @param headers specifies the Headers object to set
+     @return returns the current message object
      */
-    setHeader(Headers headers);
+    HttpMessage setHeader(Headers headers);
 
     /*! @brief sets a group of headers with the specified name; setting data modifies the value of the key and clears the remaining headers with the same key
 
      Replaces all values of the key with the given array.
      @param name specifies the key to set
      @param values specifies the group of data to set
+     @return returns the current message object
      */
-    setHeader(String name, Array values);
+    HttpMessage setHeader(String name, Array values);
 
     /*! @brief sets a header; setting data modifies the first value of the key and clears the remaining headers with the same key
 
      Replaces all values of the key with the single value.
      @param name specifies the key to set
      @param value specifies the data to set
+     @return returns the current message object
      */
-    setHeader(String name, Variant value);
+    HttpMessage setHeader(String name, Variant value);
 
     /*! @brief deletes all headers of the specified key
 
