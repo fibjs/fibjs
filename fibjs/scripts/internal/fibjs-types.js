@@ -50052,11 +50052,12 @@ declare class Class_Stream extends Class_EventEmitter {
      *
      *      Flushes the queued writes so far and closes the write side, emitting
      *      \`finish\`; when the read side has ended as well the stream closes and emits
-     *      \`close\`. The direct call returns 0 after the stream has been ended, the
-     *      callback form receives null as its error argument, and \`await stm.end()\`
-     *      resolves to the same 0. Writing after end is not meaningful, because the
-     *      stream is being closed. The end(data) and end(data, encoding) overloads
-     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *      \`close\`. The callback form receives null as its error argument, and
+     *      \`await stm.end()\` resolves once the stream has been ended. Writing after
+     *      end is not meaningful, because the stream is being closed. The end(data)
+     *      and end(data, encoding) overloads write one last chunk, utf8 encoded by
+     *      default, before the same shutdown. Returns the stream itself, so calls can
+     *      be chained.
      *
      *      Example — end a write stream and observe its events:
      *      \`\`\`JavaScript
@@ -50078,23 +50079,24 @@ declare class Class_Stream extends Class_EventEmitter {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    end(): number;
+    end(): Class_Stream;
 
-    end(callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    end(callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Ends the stream operation
      *
      *      Flushes the queued writes so far and closes the write side, emitting
      *      \`finish\`; when the read side has ended as well the stream closes and emits
-     *      \`close\`. The direct call returns 0 after the stream has been ended, the
-     *      callback form receives null as its error argument, and \`await stm.end()\`
-     *      resolves to the same 0. Writing after end is not meaningful, because the
-     *      stream is being closed. The end(data) and end(data, encoding) overloads
-     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *      \`close\`. The callback form receives null as its error argument, and
+     *      \`await stm.end()\` resolves once the stream has been ended. Writing after
+     *      end is not meaningful, because the stream is being closed. The end(data)
+     *      and end(data, encoding) overloads write one last chunk, utf8 encoded by
+     *      default, before the same shutdown. Returns the stream itself, so calls can
+     *      be chained.
      *
      *      Example — end a write stream and observe its events:
      *      \`\`\`JavaScript
@@ -50116,21 +50118,22 @@ declare class Class_Stream extends Class_EventEmitter {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endSync(): number;
+    endSync(): Class_Stream;
 
     /**
      * @description Ends the stream operation
      *
      *      Flushes the queued writes so far and closes the write side, emitting
      *      \`finish\`; when the read side has ended as well the stream closes and emits
-     *      \`close\`. The direct call returns 0 after the stream has been ended, the
-     *      callback form receives null as its error argument, and \`await stm.end()\`
-     *      resolves to the same 0. Writing after end is not meaningful, because the
-     *      stream is being closed. The end(data) and end(data, encoding) overloads
-     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *      \`close\`. The callback form receives null as its error argument, and
+     *      \`await stm.end()\` resolves once the stream has been ended. Writing after
+     *      end is not meaningful, because the stream is being closed. The end(data)
+     *      and end(data, encoding) overloads write one last chunk, utf8 encoded by
+     *      default, before the same shutdown. Returns the stream itself, so calls can
+     *      be chained.
      *
      *      Example — end a write stream and observe its events:
      *      \`\`\`JavaScript
@@ -50152,10 +50155,10 @@ declare class Class_Stream extends Class_EventEmitter {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endAsync(): Promise<number>;
+    endAsync(): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -50164,24 +50167,12 @@ declare class Class_Stream extends Class_EventEmitter {
      *      same events and return value as \`end()\`.
      *
      *      @param data the file buffer data to write
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer): number;
+    end(data: Class_Buffer): Class_Stream;
 
-    end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes the given file buffer to the stream and ends the stream operation
-     *
-     *      Writes the buffer as the final chunk and then ends the stream, with the
-     *      same events and return value as \`end()\`.
-     *
-     *      @param data the file buffer data to write
-     *      @return returns 0 after the stream has been ended
-     *
-     */
-    endSync(data: Class_Buffer): number;
+    end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -50190,10 +50181,22 @@ declare class Class_Stream extends Class_EventEmitter {
      *      same events and return value as \`end()\`.
      *
      *      @param data the file buffer data to write
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer): Promise<number>;
+    endSync(data: Class_Buffer): Class_Stream;
+
+    /**
+     * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Writes the buffer as the final chunk and then ends the stream, with the
+     *      same events and return value as \`end()\`.
+     *
+     *      @param data the file buffer data to write
+     *      @return returns the current stream object
+     *
+     */
+    endAsync(data: Class_Buffer): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -50203,12 +50206,12 @@ declare class Class_Stream extends Class_EventEmitter {
      *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer, encoding: string): number;
+    end(data: Class_Buffer, encoding: string): Class_Stream;
 
-    end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -50218,10 +50221,10 @@ declare class Class_Stream extends Class_EventEmitter {
      *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endSync(data: Class_Buffer, encoding: string): number;
+    endSync(data: Class_Buffer, encoding: string): Class_Stream;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -50231,10 +50234,10 @@ declare class Class_Stream extends Class_EventEmitter {
      *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<number>;
+    endAsync(data: Class_Buffer, encoding: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
@@ -50244,25 +50247,12 @@ declare class Class_Stream extends Class_EventEmitter {
      *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    end(data: string, encoding?: string): number;
+    end(data: string, encoding?: string): Class_Stream;
 
-    end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes the given string to the stream and ends the stream operation
-     *
-     *      Encodes the text with the given encoding (utf8 by default), writes it as
-     *      the final chunk and then ends the stream.
-     *
-     *      @param data the string data to write
-     *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 after the stream has been ended
-     *
-     */
-    endSync(data: string, encoding?: string): number;
+    end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
@@ -50272,10 +50262,23 @@ declare class Class_Stream extends Class_EventEmitter {
      *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endAsync(data: string, encoding?: string): Promise<number>;
+    endSync(data: string, encoding?: string): Class_Stream;
+
+    /**
+     * @description Writes the given string to the stream and ends the stream operation
+     *
+     *      Encodes the text with the given encoding (utf8 by default), writes it as
+     *      the final chunk and then ends the stream.
+     *
+     *      @param data the string data to write
+     *      @param encoding the encoding of the string, default is "utf8"
+     *      @return returns the current stream object
+     *
+     */
+    endAsync(data: string, encoding?: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the file buffer content to the physical device
@@ -51441,11 +51444,12 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *
      *      Flushes the queued writes so far and closes the write side, emitting
      *      \`finish\`; when the read side has ended as well the stream closes and emits
-     *      \`close\`. The direct call returns 0 after the stream has been ended, the
-     *      callback form receives null as its error argument, and \`await stm.end()\`
-     *      resolves to the same 0. Writing after end is not meaningful, because the
-     *      stream is being closed. The end(data) and end(data, encoding) overloads
-     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *      \`close\`. The callback form receives null as its error argument, and
+     *      \`await stm.end()\` resolves once the stream has been ended. Writing after
+     *      end is not meaningful, because the stream is being closed. The end(data)
+     *      and end(data, encoding) overloads write one last chunk, utf8 encoded by
+     *      default, before the same shutdown. Returns the stream itself, so calls can
+     *      be chained.
      *
      *      Example — end a write stream and observe its events:
      *      \`\`\`JavaScript
@@ -51467,21 +51471,22 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    end(): Promise<number>;
+    end(): Promise<Class_StreamPromise>;
 
     /**
      * @description Ends the stream operation
      *
      *      Flushes the queued writes so far and closes the write side, emitting
      *      \`finish\`; when the read side has ended as well the stream closes and emits
-     *      \`close\`. The direct call returns 0 after the stream has been ended, the
-     *      callback form receives null as its error argument, and \`await stm.end()\`
-     *      resolves to the same 0. Writing after end is not meaningful, because the
-     *      stream is being closed. The end(data) and end(data, encoding) overloads
-     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *      \`close\`. The callback form receives null as its error argument, and
+     *      \`await stm.end()\` resolves once the stream has been ended. Writing after
+     *      end is not meaningful, because the stream is being closed. The end(data)
+     *      and end(data, encoding) overloads write one last chunk, utf8 encoded by
+     *      default, before the same shutdown. Returns the stream itself, so calls can
+     *      be chained.
      *
      *      Example — end a write stream and observe its events:
      *      \`\`\`JavaScript
@@ -51503,21 +51508,22 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endSync(): number;
+    endSync(): Class_Stream;
 
     /**
      * @description Ends the stream operation
      *
      *      Flushes the queued writes so far and closes the write side, emitting
      *      \`finish\`; when the read side has ended as well the stream closes and emits
-     *      \`close\`. The direct call returns 0 after the stream has been ended, the
-     *      callback form receives null as its error argument, and \`await stm.end()\`
-     *      resolves to the same 0. Writing after end is not meaningful, because the
-     *      stream is being closed. The end(data) and end(data, encoding) overloads
-     *      write one last chunk, utf8 encoded by default, before the same shutdown.
+     *      \`close\`. The callback form receives null as its error argument, and
+     *      \`await stm.end()\` resolves once the stream has been ended. Writing after
+     *      end is not meaningful, because the stream is being closed. The end(data)
+     *      and end(data, encoding) overloads write one last chunk, utf8 encoded by
+     *      default, before the same shutdown. Returns the stream itself, so calls can
+     *      be chained.
      *
      *      Example — end a write stream and observe its events:
      *      \`\`\`JavaScript
@@ -51539,10 +51545,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endAsync(): Promise<number>;
+    endAsync(): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -51551,10 +51557,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      same events and return value as \`end()\`.
      *
      *      @param data the file buffer data to write
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer): Promise<number>;
+    end(data: Class_Buffer): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -51563,10 +51569,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      same events and return value as \`end()\`.
      *
      *      @param data the file buffer data to write
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endSync(data: Class_Buffer): number;
+    endSync(data: Class_Buffer): Class_Stream;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -51575,10 +51581,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      same events and return value as \`end()\`.
      *
      *      @param data the file buffer data to write
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer): Promise<number>;
+    endAsync(data: Class_Buffer): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -51588,10 +51594,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer, encoding: string): Promise<number>;
+    end(data: Class_Buffer, encoding: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -51601,10 +51607,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endSync(data: Class_Buffer, encoding: string): number;
+    endSync(data: Class_Buffer, encoding: string): Class_Stream;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -51614,10 +51620,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *
      *      @param data the file buffer data to write
      *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<number>;
+    endAsync(data: Class_Buffer, encoding: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
@@ -51627,10 +51633,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    end(data: string, encoding?: string): Promise<number>;
+    end(data: string, encoding?: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
@@ -51640,10 +51646,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endSync(data: string, encoding?: string): number;
+    endSync(data: string, encoding?: string): Class_Stream;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
@@ -51653,10 +51659,10 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 after the stream has been ended
+     *      @return returns the current stream object
      *
      */
-    endAsync(data: string, encoding?: string): Promise<number>;
+    endAsync(data: string, encoding?: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the file buffer content to the physical device

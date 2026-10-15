@@ -419,11 +419,12 @@ interface Stream : EventEmitter
 
      Flushes the queued writes so far and closes the write side, emitting
      `finish`; when the read side has ended as well the stream closes and emits
-     `close`. The direct call returns 0 after the stream has been ended, the
-     callback form receives null as its error argument, and `await stm.end()`
-     resolves to the same 0. Writing after end is not meaningful, because the
-     stream is being closed. The end(data) and end(data, encoding) overloads
-     write one last chunk, utf8 encoded by default, before the same shutdown.
+     `close`. The callback form receives null as its error argument, and
+     `await stm.end()` resolves once the stream has been ended. Writing after
+     end is not meaningful, because the stream is being closed. The end(data)
+     and end(data, encoding) overloads write one last chunk, utf8 encoded by
+     default, before the same shutdown. Returns the stream itself, so calls can
+     be chained.
 
      Example — end a write stream and observe its events:
      ```JavaScript
@@ -445,9 +446,9 @@ interface Stream : EventEmitter
      fs.rmSync(dir, { recursive: true, force: true });
      ```
 
-     @return returns 0 after the stream has been ended
+     @return returns the current stream object
      */
-    Integer end() async;
+    Stream end() async;
 
     /*! @brief Writes the given file buffer to the stream and ends the stream operation
 
@@ -455,9 +456,9 @@ interface Stream : EventEmitter
      same events and return value as `end()`.
 
      @param data the file buffer data to write
-     @return returns 0 after the stream has been ended
+     @return returns the current stream object
      */
-    Integer end(Buffer data) async;
+    Stream end(Buffer data) async;
 
     /*! @brief Writes the given file buffer to the stream and ends the stream operation
 
@@ -466,9 +467,9 @@ interface Stream : EventEmitter
 
      @param data the file buffer data to write
      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     @return returns 0 after the stream has been ended
+     @return returns the current stream object
      */
-    Integer end(Buffer data, String encoding) async;
+    Stream end(Buffer data, String encoding) async;
 
     /*! @brief Writes the given string to the stream and ends the stream operation
 
@@ -477,9 +478,9 @@ interface Stream : EventEmitter
 
      @param data the string data to write
      @param encoding the encoding of the string, default is "utf8"
-     @return returns 0 after the stream has been ended
+     @return returns the current stream object
      */
-    Integer end(String data, String encoding = "utf8") async;
+    Stream end(String data, String encoding = "utf8") async;
 
     /*! @brief Writes the file buffer content to the physical device
 

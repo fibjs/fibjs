@@ -396,7 +396,12 @@ result_t Message::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
         m_body = new MemoryStream();
 
     m_end = true;
-    return m_body->end(data, retVal, std::move(ac));
+
+    // the stream end() returns the stream it closed (node: `end()` -> this);
+    // this message is not a Stream, so the value is dropped here (B3 makes the
+    // message return itself)
+    obj_ptr<Stream_base> stm;
+    return m_body->end(data, stm, std::move(ac));
 }
 
 result_t Message::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
@@ -405,7 +410,9 @@ result_t Message::end(Buffer_base* data, exlib::string encoding, int32_t& retVal
         m_body = new MemoryStream();
 
     m_end = true;
-    return m_body->end(data, encoding, retVal, std::move(ac));
+
+    obj_ptr<Stream_base> stm;
+    return m_body->end(data, encoding, stm, std::move(ac));
 }
 
 result_t Message::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
@@ -414,7 +421,9 @@ result_t Message::end(exlib::string data, exlib::string encoding, int32_t& retVa
         m_body = new MemoryStream();
 
     m_end = true;
-    return m_body->end(data, encoding, retVal, std::move(ac));
+
+    obj_ptr<Stream_base> stm;
+    return m_body->end(data, encoding, stm, std::move(ac));
 }
 
 result_t Message::isEnded(bool& retVal)

@@ -984,37 +984,37 @@ public:
         obj_ptr<Buffer_base> m_data;
     };
 
-    virtual result_t end(int32_t& retVal, AsyncHandle ac)
+    virtual result_t end(obj_ptr<Stream_base>& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
             return result_t::nosync();
 
-        retVal = 0;
+        retVal = this;
         (new AsyncEndEmitter(this, nullptr, std::move(ac)))->apost(result_t());
         return result_t::pending();
     }
 
-    virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
+    virtual result_t end(Buffer_base* data, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
             return result_t::nosync();
 
-        retVal = 0;
+        retVal = this;
         (new AsyncEndEmitter(this, data, std::move(ac)))->apost(result_t());
         return result_t::pending();
     }
 
-    virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
+    virtual result_t end(Buffer_base* data, exlib::string encoding, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
             return result_t::nosync();
 
-        retVal = 0;
+        retVal = this;
         (new AsyncEndEmitter(this, data, std::move(ac)))->apost(result_t());
         return result_t::pending();
     }
 
-    virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
+    virtual result_t end(exlib::string data, exlib::string encoding, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
     {
         if (ac.isSync())
             return result_t::nosync();
@@ -1024,7 +1024,7 @@ public:
         if (hr.failed())
             return hr;
 
-        retVal = 0;
+        retVal = this;
         (new AsyncEndEmitter(this, buf, std::move(ac)))->apost(result_t());
         return result_t::pending();
     }
