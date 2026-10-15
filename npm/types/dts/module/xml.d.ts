@@ -219,6 +219,8 @@ declare module 'xml' {
      */
     const Document: typeof Class_XmlDocument;
 
+    type Document = Class_XmlDocument;
+
     /**
      * @description The DOMParser class object, used to parse a string into a DOM document
      *
@@ -226,6 +228,8 @@ declare module 'xml' {
      *
      */
     const DOMParser: typeof Class_DOMParser;
+
+    type DOMParser = Class_DOMParser;
 
     /**
      * @description Parses XML/HTML data and returns a new XmlDocument

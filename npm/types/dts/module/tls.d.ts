@@ -208,6 +208,8 @@ declare module 'tls' {
      */
     const TLSSocket: typeof Class_TLSSocket;
 
+    type TLSSocket = Class_TLSSocket;
+
     /**
      * @description The TLSHandler class entry point, see TLSHandler
      *
@@ -216,6 +218,8 @@ declare module 'tls' {
      *
      */
     const Handler: typeof Class_TLSHandler;
+
+    type Handler = Class_TLSHandler;
 
     /**
      * @description The TLSServer class entry point, see TLSServer
@@ -226,6 +230,8 @@ declare module 'tls' {
      *
      */
     const Server: typeof Class_TLSServer;
+
+    type Server = Class_TLSServer;
 
     /**
      * @description Creates a TLS server from a secure context or the options used to create one

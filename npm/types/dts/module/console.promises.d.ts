@@ -701,6 +701,8 @@ declare module 'console/promises' {
      */
     const Console: typeof Class_ConsoleObject;
 
+    type Console = Class_ConsoleObject;
+
 }
 
 

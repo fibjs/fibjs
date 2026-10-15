@@ -18,6 +18,8 @@ declare module 'io/promises' {
      */
     const MemoryStream: typeof Class_MemoryStream;
 
+    type MemoryStream = Class_MemoryStreamPromise;
+
     /**
      * @description Creates a buffered stream, see BufferedStream
      *
@@ -28,6 +30,8 @@ declare module 'io/promises' {
      */
     const BufferedStream: typeof Class_BufferedStream;
 
+    type BufferedStream = Class_BufferedStreamPromise;
+
     /**
      * @description Creates a range stream, see RangeStream
      *
@@ -37,6 +41,8 @@ declare module 'io/promises' {
      *
      */
     const RangeStream: typeof Class_RangeStream;
+
+    type RangeStream = Class_RangeStreamPromise;
 
     /**
      * @description Copies the data of a stream into a target stream

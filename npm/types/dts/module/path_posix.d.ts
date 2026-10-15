@@ -82,7 +82,7 @@
  *  - fibjs adds fullpath to the rule set; see the path module for the differences from Node.js.
  *
  */
-declare module 'path_posix' {
+declare module 'path/posix' {
     /**
      * @description Normalizes a posix path, resolving '.' and '..' and collapsing '/' separators
      *

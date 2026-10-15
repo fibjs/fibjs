@@ -219,6 +219,8 @@ declare module 'global' {
      */
     const Buffer: typeof Class_Buffer;
 
+    type Buffer = Class_Buffer;
+
     /**
      * @description The URL query parameter collection class, see URLSearchParams
      *
@@ -228,6 +230,8 @@ declare module 'global' {
      *
      */
     const URLSearchParams: typeof Class_URLSearchParams;
+
+    type URLSearchParams = Class_URLSearchParams;
 
     /**
      * @description The URL parser class, see UrlObject
@@ -240,6 +244,8 @@ declare module 'global' {
      */
     const URL: typeof Class_UrlObject;
 
+    type URL = Class_UrlObject;
+
     /**
      * @description The immutable binary data block class of the Web File API, see Blob
      *
@@ -249,6 +255,8 @@ declare module 'global' {
      *
      */
     const Blob: typeof Class_Blob;
+
+    type Blob = Class_Blob;
 
     /**
      * @description The in-memory file class, a Blob with a name and modification time, see File
@@ -260,6 +268,8 @@ declare module 'global' {
      */
     const File: typeof Class_File;
 
+    type File = Class_File;
+
     /**
      * @description The HTTP header collection class, see Headers
      *
@@ -270,6 +280,8 @@ declare module 'global' {
      */
     const Headers: typeof Class_Headers;
 
+    type Headers = Class_Headers;
+
     /**
      * @description The multipart form data container used as a fetch body, see FormData
      *
@@ -279,6 +291,8 @@ declare module 'global' {
      *
      */
     const FormData: typeof Class_FormData;
+
+    type FormData = Class_FormData;
 
     /**
      * @description The HTTP request class used as the fetch request source, see HttpRequest
@@ -291,6 +305,8 @@ declare module 'global' {
      */
     const Request: typeof Class_HttpRequest;
 
+    type Request = Class_HttpRequest;
+
     /**
      * @description The HTTP response class returned by fetch, see HttpResponse
      *
@@ -302,6 +318,8 @@ declare module 'global' {
      */
     const Response: typeof Class_HttpResponse;
 
+    type Response = Class_HttpResponse;
+
     /**
      * @description The text decoder class, see TextDecoder
      *
@@ -312,6 +330,8 @@ declare module 'global' {
      */
     const TextDecoder: typeof Class_TextDecoder;
 
+    type TextDecoder = Class_TextDecoder;
+
     /**
      * @description The text encoder class, see TextEncoder
      *
@@ -321,6 +341,8 @@ declare module 'global' {
      *
      */
     const TextEncoder: typeof Class_TextEncoder;
+
+    type TextEncoder = Class_TextEncoder;
 
     /**
      * @description The controller that aborts asynchronous Web requests, see AbortController
@@ -333,6 +355,8 @@ declare module 'global' {
      */
     const AbortController: typeof Class_AbortController;
 
+    type AbortController = Class_AbortController;
+
     /**
      * @description The signal that communicates cancellation to asynchronous APIs, see AbortSignal
      *
@@ -343,6 +367,8 @@ declare module 'global' {
      *
      */
     const AbortSignal: typeof Class_AbortSignal;
+
+    type AbortSignal = Class_AbortSignal;
 
     /**
      * @description The W3C DOM event class, see DOMEvent
@@ -355,6 +381,8 @@ declare module 'global' {
      */
     const Event: typeof Class_DOMEvent;
 
+    type Event = Class_DOMEvent;
+
     /**
      * @description The event target class, implemented by EventEmitter, see EventEmitter
      *
@@ -366,6 +394,8 @@ declare module 'global' {
      */
     const EventTarget: typeof Class_EventEmitter;
 
+    type EventTarget = Class_EventEmitter;
+
     /**
      * @description The event object carrying a message delivered through MessagePort, see MessageEvent
      *
@@ -375,6 +405,8 @@ declare module 'global' {
      *
      */
     const MessageEvent: typeof Class_MessageEvent;
+
+    type MessageEvent = Class_MessageEvent;
 
     /**
      * @description One end of a message channel, see MessagePort
@@ -387,6 +419,8 @@ declare module 'global' {
      */
     const MessagePort: typeof Class_MessagePort;
 
+    type MessagePort = Class_MessagePort;
+
     /**
      * @description A pair of connected MessagePort objects, see MessageChannel
      *
@@ -396,6 +430,8 @@ declare module 'global' {
      *
      */
     const MessageChannel: typeof Class_MessageChannel;
+
+    type MessageChannel = Class_MessageChannel;
 
     /**
      * @description The child thread class, see Worker
@@ -428,6 +464,8 @@ declare module 'global' {
      */
     const Worker: typeof Class_Worker;
 
+    type Worker = Class_Worker;
+
     /**
      * @description The Web Crypto key class, see CryptoKey
      *
@@ -436,6 +474,8 @@ declare module 'global' {
      *
      */
     const CryptoKey: typeof Class_CryptoKey;
+
+    type CryptoKey = Class_CryptoKey;
 
     /**
      * @description The DOM parser class, see DOMParser
@@ -446,6 +486,8 @@ declare module 'global' {
      */
     const DOMParser: typeof Class_DOMParser;
 
+    type DOMParser = Class_DOMParser;
+
     /**
      * @description The inline CSS declaration block of an element, see CSSStyleDeclaration
      *
@@ -454,6 +496,8 @@ declare module 'global' {
      *
      */
     const CSSStyleDeclaration: typeof Class_CSSStyleDeclaration;
+
+    type CSSStyleDeclaration = Class_CSSStyleDeclaration;
 
     /**
      * @description The map of the data-* attributes of an element, see DOMStringMap
@@ -464,6 +508,8 @@ declare module 'global' {
      */
     const DOMStringMap: typeof Class_DOMStringMap;
 
+    type DOMStringMap = Class_DOMStringMap;
+
     /**
      * @description The serializer that turns DOM nodes into XML strings, see XMLSerializer
      *
@@ -472,6 +518,8 @@ declare module 'global' {
      *
      */
     const XMLSerializer: typeof Class_XMLSerializer;
+
+    type XMLSerializer = Class_XMLSerializer;
 
     /**
      * @description The XML document class, see XmlDocument
@@ -482,6 +530,8 @@ declare module 'global' {
      */
     const XMLDocument: typeof Class_XmlDocument;
 
+    type XMLDocument = Class_XmlDocument;
+
     /**
      * @description The WebSocket client and server class, see WebSocket
      *
@@ -491,6 +541,8 @@ declare module 'global' {
      *
      */
     const WebSocket: typeof Class_WebSocket;
+
+    type WebSocket = Class_WebSocket;
 
     /**
      * @description The console output object, see console
@@ -529,6 +581,8 @@ declare module 'global' {
      *
      */
     const PerformanceObserver: typeof Class_PerformanceObserver;
+
+    type PerformanceObserver = Class_PerformanceObserver;
 
     /**
      * @description The Web Crypto object, see the crypto module

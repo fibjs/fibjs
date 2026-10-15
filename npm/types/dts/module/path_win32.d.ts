@@ -95,7 +95,7 @@
  *    'not supported on none Win32 platform !'.
  *
  */
-declare module 'path_win32' {
+declare module 'path/win32' {
     /**
      * @description Normalizes a win32 path, resolving '.' and '..' and collapsing repeated separators
      *

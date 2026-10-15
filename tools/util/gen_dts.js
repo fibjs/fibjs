@@ -43,15 +43,29 @@ function isCallOperatorMember(mem) {
     return mem.memType === 'method' && mem.name === CALL_OPERATOR_NAME;
 }
 
-// Modules whose runtime name differs from the IDL unit name: SandBox::
-// installGlobal() publishes the assert_strict API as `assert/strict` (plus the
-// fibjs:/node: variants). The declaration and every reference must use the
-// runtime name - otherwise `import strict from 'node:assert/strict'` types
-// nothing while `assert_strict` types a module the runtime refuses. The file
-// keeps the unit name (the bridge and the triple-slash references point at
-// it).
+// Modules whose runtime name differs from the IDL unit name. The declaration
+// and every `import('...')` reference must use the runtime name, otherwise the
+// corpus types a module the runtime refuses while the spelling the runtime
+// accepts types nothing. The *file* keeps the unit name (the bridge and the
+// triple-slash references point at it, and --man indexes by file name).
+//
+//   assert_strict  SandBox::addBuiltinModules() publishes the strict assert
+//                  API as `assert/strict` (+ fibjs:/node:)
+//   path_posix     SandBox.cpp registers `path/posix` (+ prefixes); there is
+//   path_win32     no `path_posix` module at runtime (plans/fibjs-upstream-
+//                  gaps.md B2)
+//   types          SandBox.cpp registers `util/types`; `require('types')`
+//                  fails at runtime
+//
+// Adding an entry also extends the `fibjs:` / `node:` alias generation:
+// gen_builtin_types.prefixedModulesFile() asks the runtime whether
+// `require('node:<declared name>')` resolves, so a corrected name qualifies
+// and the prefixed spelling types along with it.
 const MODULE_RUNTIME_NAMES = {
     assert_strict: 'assert/strict',
+    path_posix: 'path/posix',
+    path_win32: 'path/win32',
+    types: 'util/types',
 };
 
 function runtimeModuleName(unitName) {
@@ -108,6 +122,44 @@ function writeDtsFile(file, content) {
     fs.writeFileSync(file, content);
     console.log(`      ✏️  ${path.basename(file)}`);
     return true;
+}
+
+// ---------------------------------------------------------------------------
+// hand-written module declarations
+//
+// The IDL describes the C++ classes; the Node compatibility layer is plain JS
+// (fibjs/scripts/*.js) and has no IDL, so a handful of modules the runtime
+// really provides (`events`, `buffer`, `stream`, `https`, `readline`,
+// `readline/promises`, `stream/promises`, `stream/web`, `timers/promises`,
+// `diagnostics_channel`) would otherwise type nothing
+// (plans/fibjs-upstream-gaps.md B1; `util/types`, `path/posix` and
+// `path/win32` are covered by the IDL units plus MODULE_RUNTIME_NAMES).
+//
+// One file per module under tools/handwritten/module: the file name is the IDL
+// unit name and the text is appended to that unit's corpus file - for a module
+// with an IDL unit (`net`, adding `AddressInfo`) that is a second
+// `declare module '<name>' { ... }` block in the same file, which TypeScript
+// merges with the generated one; for a module without one it is the whole
+// file.
+const HANDWRITTEN_MODULE_DIR = path.resolve(__dirname, '../../tools/handwritten/module');
+
+/**
+ * @returns {Map<string, string>} unit name -> text, sorted by name
+ */
+function readHandwrittenModules() {
+    const modules = new Map();
+
+    if (!fs.existsSync(HANDWRITTEN_MODULE_DIR))
+        return modules;
+
+    fs.readdirSync(HANDWRITTEN_MODULE_DIR)
+        .filter(f => f.endsWith('.d.ts'))
+        .sort()
+        .forEach(f => {
+            modules.set(path.basename(f, '.d.ts'), fs.readFileSync(path.join(HANDWRITTEN_MODULE_DIR, f), 'utf8'));
+        });
+
+    return modules;
 }
 
 function convertIDLCommentToJSDocComment(comment = '') {
@@ -2250,11 +2302,28 @@ function processDeclareModule(def, {
                 break
             }
             case 'object': {
+                const objectType = mapMemPropertyTypeToDtsType(mem.type, getMapMemberTypeOptions(false));
+
                 dtsUnit.members.push(dtsUnitMember = dom.create.const(
                     mem.name,
-                    mapMemPropertyTypeToDtsType(mem.type, getMapMemberTypeOptions(false)),
+                    objectType,
                     dom.DeclarationFlags.Static | memFlags
-                ))
+                ));
+
+                // `static Server = HttpServer` is a value *and* a type in the
+                // code it exists for: Node's `let s: http.Server` (and
+                // `import type { AddressInfo }`) is how the Node-flavoured
+                // aliases are consumed. A `const X: typeof Class_Y` is only a
+                // value, so the module would answer TS2749 for the type
+                // position (plans/fibjs-upstream-gaps.md B3). Emit the type
+                // twin next to it; every alias in the corpus is checked to be
+                // free of a same-named `type`/`interface` before landing here.
+                if (mem.type && allInterfacesNames.has(mem.type)) {
+                    dtsUnit.members.push(dom.create.alias(
+                        mem.name,
+                        classInstanceTypeRef(mem.type, unitFlavor)
+                    ));
+                }
                 break
             }
             case 'const': {
@@ -2475,6 +2544,11 @@ function reorderSwallowedCallbackMembers(members) {
 function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
     const allInterfacesNames = new Set();
     const allModuleNames = new Set();
+    // the text emitted for each IDL unit this run: the hand-written module
+    // declarations below are appended to it, and starting from the generated
+    // text (rather than from the corpus file on disk) is what keeps the
+    // generation idempotent.
+    const unitDeclareByUnit = new Map();
 
     Object.values(defs)
         .forEach(def => {
@@ -2581,14 +2655,42 @@ function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
             if (unitName === 'Buffer' && !ismodule) {
                 const handWritten = path.resolve(__dirname, '../../tools/handwritten/Buffer.d.ts');
 
-                writeDtsFile(path.join(basedir, `${unitName}.d.ts`),
-                    fs.existsSync(handWritten) ? fs.readFileSync(handWritten, 'utf8') : unitDeclare);
-                return;
+                unitDeclare = fs.existsSync(handWritten) ? fs.readFileSync(handWritten, 'utf8') : unitDeclare;
             }
+
+            unitDeclareByUnit.set(unitName, unitDeclare);
 
             writeDtsFile(path.join(basedir, `${unitName}.d.ts`), unitDeclare);
             // console.notice(`---- generated dts for ${unitCategory}: ${unitName} ---<:`)
         });
+
+    // The Node compatibility layer has no IDL: its modules are appended here
+    // (or written as the whole file when the module has no IDL unit). A module
+    // with an IDL unit gets a second `declare module '<name>' { ... }` block
+    // in the same file, which TypeScript merges with the generated declarations
+    // - the ambient module name in the appended text is what decides the
+    // merge, so a unit whose runtime name differs takes the runtime spelling
+    // inside its own block.
+    //
+    // `unitDeclare` is the *generated* text for the unit (undefined when the
+    // unit has no IDL definition this run emitted), so the file is always
+    // rewritten from its parts: regenerating twice must not stack a second copy
+    // of the appended block (a stale corpus file used to be read back and
+    // appended to, which duplicated every declaration - tools/check_dts.js then
+    // reported hundreds of TS2300).
+    const handwritten = readHandwrittenModules();
+
+    handwritten.forEach((text, unitName) => {
+        const file = path.join(DTS_DIST_DIR, 'module', `${unitName}.d.ts`);
+        const generated = unitDeclareByUnit.get(unitName);
+
+        if (generated === undefined)
+            allModuleNames.add(unitName);
+
+        writeDtsFile(file, generated === undefined
+            ? text
+            : generated.replace(/\s*$/, '\n\n') + text);
+    });
 
     return {
         allInterfacesNames,

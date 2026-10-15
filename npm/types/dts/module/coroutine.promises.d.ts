@@ -19,6 +19,8 @@ declare module 'coroutine/promises' {
      */
     const Lock: typeof Class_Lock;
 
+    type Lock = Class_LockPromise;
+
     /**
      * @description Reference to the Semaphore class
      *
@@ -28,6 +30,8 @@ declare module 'coroutine/promises' {
      *
      */
     const Semaphore: typeof Class_Semaphore;
+
+    type Semaphore = Class_SemaphorePromise;
 
     /**
      * @description Reference to the Condition class
@@ -39,6 +43,8 @@ declare module 'coroutine/promises' {
      */
     const Condition: typeof Class_Condition;
 
+    type Condition = Class_ConditionPromise;
+
     /**
      * @description Reference to the Event class
      *
@@ -48,6 +54,8 @@ declare module 'coroutine/promises' {
      *
      */
     const Event: typeof Class_Event;
+
+    type Event = Class_EventPromise;
 
     /**
      * @description Starts a fiber and returns its Fiber object

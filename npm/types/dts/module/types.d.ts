@@ -116,7 +116,7 @@
  *   `require('util/types')` alias.
  *
  */
-declare module 'types' {
+declare module 'util/types' {
     /**
      * @description Checks whether a value counts as empty
      *

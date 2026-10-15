@@ -183,6 +183,8 @@ declare module 'net/promises' {
      */
     const Socket: typeof Class_Socket;
 
+    type Socket = Class_SocketPromise;
+
     /**
      * @description Creates a Socket object and establishes a connection
      *
@@ -558,6 +560,8 @@ declare module 'net/promises' {
      */
     const Smtp: typeof Class_Smtp;
 
+    type Smtp = Class_SmtpPromise;
+
     /**
      * @description Creates a Smtp object and establishes a connection, see Smtp
      *
@@ -605,6 +609,8 @@ declare module 'net/promises' {
      *
      */
     const TcpServer: typeof Class_TcpServer;
+
+    type TcpServer = Class_TcpServerPromise;
 
     /**
      * @description Creates a TCP server
@@ -661,6 +667,8 @@ declare module 'net/promises' {
      *
      */
     const Url: typeof Class_UrlObject;
+
+    type Url = Class_UrlObject;
 
     /**
      * @description Queries the asynchronous network engine of the current system

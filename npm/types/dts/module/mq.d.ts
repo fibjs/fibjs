@@ -114,6 +114,8 @@ declare module 'mq' {
      */
     const Message: typeof Class_Message;
 
+    type Message = Class_Message;
+
     /**
      * @description Creates an http protocol handler object, see HttpHandler
      *
@@ -134,6 +136,8 @@ declare module 'mq' {
      *
      */
     const HttpHandler: typeof Class_HttpHandler;
+
+    type HttpHandler = Class_HttpHandler;
 
     /**
      * @description Creates a message handler object from any accepted form
@@ -163,6 +167,8 @@ declare module 'mq' {
      */
     const Handler: typeof Class_Handler;
 
+    type Handler = Class_Handler;
+
     /**
      * @description Creates a message handler chain processing object, see Chain
      *
@@ -181,6 +187,8 @@ declare module 'mq' {
      *
      */
     const Chain: typeof Class_Chain;
+
+    type Chain = Class_Chain;
 
     /**
      * @description Creates a message handler routing object, see Routing
@@ -201,6 +209,8 @@ declare module 'mq' {
      *
      */
     const Routing: typeof Class_Routing;
+
+    type Routing = Class_Routing;
 
     /**
      * @description Creates an empty handler object; this handler does nothing and returns directly

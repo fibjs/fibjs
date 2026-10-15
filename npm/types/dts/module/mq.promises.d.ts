@@ -30,6 +30,8 @@ declare module 'mq/promises' {
      */
     const Message: typeof Class_Message;
 
+    type Message = Class_MessagePromise;
+
     /**
      * @description Creates an http protocol handler object, see HttpHandler
      *
@@ -50,6 +52,8 @@ declare module 'mq/promises' {
      *
      */
     const HttpHandler: typeof Class_HttpHandler;
+
+    type HttpHandler = Class_HttpHandlerPromise;
 
     /**
      * @description Creates a message handler object from any accepted form
@@ -79,6 +83,8 @@ declare module 'mq/promises' {
      */
     const Handler: typeof Class_Handler;
 
+    type Handler = Class_HandlerPromise;
+
     /**
      * @description Creates a message handler chain processing object, see Chain
      *
@@ -97,6 +103,8 @@ declare module 'mq/promises' {
      *
      */
     const Chain: typeof Class_Chain;
+
+    type Chain = Class_ChainPromise;
 
     /**
      * @description Creates a message handler routing object, see Routing
@@ -117,6 +125,8 @@ declare module 'mq/promises' {
      *
      */
     const Routing: typeof Class_Routing;
+
+    type Routing = Class_RoutingPromise;
 
     /**
      * @description Creates an empty handler object; this handler does nothing and returns directly

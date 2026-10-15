@@ -15,7 +15,7 @@
  *   fibjs --man    parses the same map, the IDL comments are the manual.
  *
  * source : npm/types (version 0.33.0-dev)
- * files  : 224 corpus files + dts/_builtin/globals.d.ts
+ * files  : 234 corpus files + dts/_builtin/globals.d.ts
  * globals: Buffer URLSearchParams URL Blob File Headers FormData Request Response TextDecoder TextEncoder AbortController AbortSignal Event EventTarget MessageEvent MessagePort MessageChannel Worker CryptoKey DOMParser CSSStyleDeclaration DOMStringMap XMLSerializer XMLDocument WebSocket console process performance PerformanceObserver crypto global run require setTimeout clearTimeout setInterval clearInterval setHrInterval clearHrInterval setImmediate clearImmediate btoa atob structuredClone fetch fetchSync fetchAsync queueMicrotask
  */
 module.exports = {
@@ -73383,6 +73383,8 @@ declare module 'async_hooks' {
      */
     const AsyncLocalStorage: typeof Class_AsyncLocalStorage;
 
+    type AsyncLocalStorage = Class_AsyncLocalStorage;
+
     /**
      * @description The AsyncResource class, see the AsyncResource definition
      *
@@ -73409,6 +73411,8 @@ declare module 'async_hooks' {
      *
      */
     const AsyncResource: typeof Class_AsyncResource;
+
+    type AsyncResource = Class_AsyncResource;
 
 }
 
@@ -73788,6 +73792,86 @@ declare module 'base64' {
 
 }
 
+`,
+        "dts/module/buffer.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+// Hand-written \`buffer\` module (no IDL unit: fibjs/scripts/internal/buffer.js
+// provides the class and the module object).
+//
+// The runtime module is \`{ Buffer, SlowBuffer, constants, kMaxLength,
+// kStringMaxLength, INSPECT_MAX_BYTES, transcode, atob, btoa, isUtf8, isAscii,
+// Blob }\`; \`Buffer\` is the *same* class as the global one
+// (fibjs/scripts/internal/buffer.js, \`class Buffer extends Uint8Array\`), so the
+// declaration points at the existing Class_Buffer instead of re-declaring it.
+
+declare module 'buffer' {
+    /** The Buffer class: \`require('buffer').Buffer === Buffer\` (the global). */
+    const Buffer: typeof Class_Buffer;
+
+    /**
+     * The historical alias of Buffer. Node deprecated it in favour of
+     * \`Buffer.allocUnsafeSlow()\`; fibjs keeps it as a separate binding to the
+     * same class, so \`new SlowBuffer(n)\` still works.
+     */
+    const SlowBuffer: {
+        new (size: number): Class_Buffer;
+        (size: number): Class_Buffer;
+    };
+
+    /** \`{ MAX_LENGTH, MAX_STRING_LENGTH }\`: the Node buffer constants. */
+    const constants: {
+        MAX_LENGTH: number;
+        MAX_STRING_LENGTH: number;
+    };
+
+    /** The maximum length of a Buffer instance (2^53 - 1). */
+    const kMaxLength: number;
+
+    /** The maximum length of a string (2^29 - 24). */
+    const kStringMaxLength: number;
+
+    /** How many bytes \`util.inspect()\` shows before truncating (50). */
+    let INSPECT_MAX_BYTES: number;
+
+    /**
+     * Re-encodes a buffer from one encoding to another
+     * (\`buffer.transcode(source, fromEnc, toEnc)\`); the source is not modified.
+     */
+    function transcode(source: Uint8Array, fromEnc: string, toEnc: string): Class_Buffer;
+
+    /** Decodes a base64 string into a Buffer (a global in fibjs as well). */
+    function atob(data: string): Class_Buffer;
+
+    /** Encodes a Buffer (or a string, taken as utf8) into base64. */
+    function btoa(data: string | Uint8Array): string;
+
+    /** Whether the buffer is valid UTF-8. */
+    function isUtf8(input: Uint8Array | ArrayBufferView | ArrayBufferLike): boolean;
+
+    /** Whether every byte is ASCII (0x00 - 0x7F). */
+    function isAscii(input: Uint8Array | ArrayBufferView | ArrayBufferLike): boolean;
+
+    /**
+     * The Blob class, the same one the global \`Blob\` is. The type twin is what
+     * lets \`import { Blob as B } from 'buffer'\` be used in a type position too.
+     */
+    const Blob: typeof Class_Blob;
+    type Blob = Class_Blob;
+
+    export {
+        Buffer,
+        SlowBuffer,
+        constants,
+        kMaxLength,
+        kStringMaxLength,
+        INSPECT_MAX_BYTES,
+        transcode,
+        atob,
+        btoa,
+        isUtf8,
+        isAscii,
+        Blob,
+    };
+}
 `,
         "dts/module/child_process.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ChildProcess.d.ts" />
@@ -76419,6 +76503,8 @@ declare module 'console' {
      */
     const Console: typeof Class_ConsoleObject;
 
+    type Console = Class_ConsoleObject;
+
 }
 
 `,
@@ -77124,6 +77210,8 @@ declare module 'console/promises' {
      *
      */
     const Console: typeof Class_ConsoleObject;
+
+    type Console = Class_ConsoleObject;
 
 }
 
@@ -78300,6 +78388,8 @@ declare module 'coroutine' {
      */
     const Lock: typeof Class_Lock;
 
+    type Lock = Class_Lock;
+
     /**
      * @description Reference to the Semaphore class
      *
@@ -78309,6 +78399,8 @@ declare module 'coroutine' {
      *
      */
     const Semaphore: typeof Class_Semaphore;
+
+    type Semaphore = Class_Semaphore;
 
     /**
      * @description Reference to the Condition class
@@ -78320,6 +78412,8 @@ declare module 'coroutine' {
      */
     const Condition: typeof Class_Condition;
 
+    type Condition = Class_Condition;
+
     /**
      * @description Reference to the Event class
      *
@@ -78329,6 +78423,8 @@ declare module 'coroutine' {
      *
      */
     const Event: typeof Class_Event;
+
+    type Event = Class_Event;
 
     /**
      * @description Starts a fiber and returns its Fiber object
@@ -78678,6 +78774,8 @@ declare module 'coroutine/promises' {
      */
     const Lock: typeof Class_Lock;
 
+    type Lock = Class_LockPromise;
+
     /**
      * @description Reference to the Semaphore class
      *
@@ -78687,6 +78785,8 @@ declare module 'coroutine/promises' {
      *
      */
     const Semaphore: typeof Class_Semaphore;
+
+    type Semaphore = Class_SemaphorePromise;
 
     /**
      * @description Reference to the Condition class
@@ -78698,6 +78798,8 @@ declare module 'coroutine/promises' {
      */
     const Condition: typeof Class_Condition;
 
+    type Condition = Class_ConditionPromise;
+
     /**
      * @description Reference to the Event class
      *
@@ -78707,6 +78809,8 @@ declare module 'coroutine/promises' {
      *
      */
     const Event: typeof Class_Event;
+
+    type Event = Class_EventPromise;
 
     /**
      * @description Starts a fiber and returns its Fiber object
@@ -79222,6 +79326,8 @@ declare module 'crypto' {
      */
     const KeyObject: typeof Class_KeyObject;
 
+    type KeyObject = Class_KeyObject;
+
     /**
      * @description The X509Certificate class, see X509Certificate
      *
@@ -79230,6 +79336,8 @@ declare module 'crypto' {
      *      certificates that form a chain
      */
     const X509Certificate: typeof Class_X509Certificate;
+
+    type X509Certificate = Class_X509Certificate;
 
     /**
      * @description Lists the digest algorithm names accepted by createHash, createHmac, hash,
@@ -80739,6 +80847,8 @@ declare module 'crypto/promises' {
      */
     const KeyObject: typeof Class_KeyObject;
 
+    type KeyObject = Class_KeyObject;
+
     /**
      * @description The X509Certificate class, see X509Certificate
      *
@@ -80747,6 +80857,8 @@ declare module 'crypto/promises' {
      *      certificates that form a chain
      */
     const X509Certificate: typeof Class_X509Certificate;
+
+    type X509Certificate = Class_X509Certificate;
 
     /**
      * @description Lists the digest algorithm names accepted by createHash, createHmac, hash,
@@ -83810,6 +83922,8 @@ declare module 'dgram' {
      */
     const Socket: typeof Class_DgramSocket;
 
+    type Socket = Class_DgramSocket;
+
     /**
      * @description Creates a UDP socket of the given family
      *
@@ -83896,6 +84010,97 @@ declare module 'dgram' {
 
 }
 
+`,
+        "dts/module/diagnostics_channel.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+// Hand-written \`diagnostics_channel\` module (no IDL unit:
+// fibjs/scripts/diagnostics_channel.js).
+
+declare module 'diagnostics_channel' {
+    /** A subscriber of a named channel. */
+    type ChannelSubscriber = (message: any, name: string) => void;
+
+    /**
+     * @description A named publish/subscribe channel
+     *
+     *      \`dc.channel(name)\` returns the singleton of that name; a channel
+     *      exists whether or not anyone subscribes, so \`hasSubscribers\` is the
+     *      cheap guard before building a message.
+     */
+    class Channel {
+        constructor(name: string);
+
+        /** The channel name. */
+        readonly name: string;
+
+        /** Whether anything is subscribed. */
+        readonly hasSubscribers: boolean;
+
+        /** Subscribes a listener; returns a function that unsubscribes it. */
+        subscribe(listener: ChannelSubscriber): () => void;
+
+        /** Removes a listener. */
+        unsubscribe(listener: ChannelSubscriber): boolean;
+
+        /** Publishes a message to the listeners. */
+        publish(message: any): void;
+    }
+
+    /**
+     * @description A group of channels following one operation through its phases
+     *
+     *      \`dc.tracingChannel(name)\` exposes the six channels Node defines
+     *      (\`<name>:start\`, \`:end\`, \`:asyncStart\`, \`:asyncEnd\`, \`:error\`) plus
+     *      the traceSync/tracePromise/traceCallback wrappers that publish to
+     *      them around a call.
+     */
+    class TracingChannel {
+        constructor(name: string);
+
+        /** Whether anything is subscribed to any of the group's channels. */
+        readonly hasSubscribers: boolean;
+
+        /** Subscribes the same handlers to every channel of the group. */
+        subscribe(handlers: FIBJS.GeneralObject): void;
+
+        /** Removes handlers from every channel of the group. */
+        unsubscribe(handlers: FIBJS.GeneralObject): void;
+
+        /** Runs \`fn\` inside the trace channels and returns its result. */
+        traceSync(fn: (...args: any[]) => any, context?: FIBJS.GeneralObject, thisArg?: any, ...args: any[]): any;
+
+        /** Races the traced call against the Promise it returns. */
+        tracePromise(fn: (...args: any[]) => Promise<any>, context?: FIBJS.GeneralObject, thisArg?: any, ...args: any[]): Promise<any>;
+
+        /** Runs a callback-style call inside the trace channels. */
+        traceCallback(fn: (...args: any[]) => any, position?: number, context?: FIBJS.GeneralObject, thisArg?: any, ...args: any[]): any;
+    }
+
+    /** @description Returns the singleton channel of the given name */
+    function channel(name: string): Channel;
+
+    /** @description Whether the named channel has subscribers */
+    function hasSubscribers(name: string): boolean;
+
+    /** @description Subscribes to the named channel */
+    function subscribe(name: string, listener: ChannelSubscriber): () => void;
+
+    /** @description Removes a listener from the named channel */
+    function unsubscribe(name: string, listener: ChannelSubscriber): boolean;
+
+    /** @description Returns the singleton tracing channel group of the given name */
+    function tracingChannel(name: string): TracingChannel;
+
+    export {
+        Channel,
+        ChannelSubscriber,
+        TracingChannel,
+        channel,
+        hasSubscribers,
+        subscribe,
+        unsubscribe,
+        tracingChannel,
+    };
+}
 `,
         "dts/module/dns.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /**
@@ -84810,6 +85015,58 @@ declare module 'encoding' {
 }
 
 `,
+        "dts/module/events.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+// Hand-written \`events\` module (no IDL unit: fibjs/src/base/events.cpp builds
+// the module from the EventEmitter class directly).
+//
+// At runtime \`require('events')\` returns the EventEmitter class itself
+// (\`require('events') === require('events').EventEmitter\`), with the Node
+// statics attached to it: the class carries the instance API through its
+// prototype and the static helpers (\`events.once\`, \`events.addAbortListener\`,
+// ...) as own properties. The declaration mirrors that with \`export =\` on the
+// class value, the shape @types/node gives \`events\`.
+
+declare module 'events' {
+    /**
+     * @description The event emitter class
+     *
+     *      The runtime's EventEmitter (Class_EventEmitter): a class declaration
+     *      here (rather than a \`const\` alias) is what makes it usable in the
+     *      type position too - \`import { EventEmitter } from 'node:events'\`
+     *      binds one name for both, the way the Node definitions publish it.
+     *      The statics (\`EventEmitter.once\`, \`EventEmitter.addAbortListener\`,
+     *      \`defaultMaxListeners\`, ...) come down from Class_EventEmitter.
+     *
+     *      At runtime the module object *is* the class
+     *      (\`require('events') === require('events').EventEmitter\`), which is
+     *      what \`import events = require('events')\` sees.
+     */
+    class EventEmitter extends Class_EventEmitter {
+    }
+
+    /** The listener-count default of newly constructed emitters. */
+    let defaultMaxListeners: number;
+
+    /**
+     * @description Subscribes to a promise for the named event
+     *
+     *      Node's \`events.once(emitter, name)\`: resolves with the event
+     *      arguments, rejects with an 'error' event.
+     */
+    function once(emitter: Class_EventEmitter, name: string, options?: FIBJS.GeneralObject): Promise<any[]>;
+
+    /**
+     * @description Binds an AbortSignal to a listener
+     *
+     *      Node's \`events.addAbortListener(signal, listener)\`: runs the
+     *      listener when the signal aborts (at once when it is already
+     *      aborted) and returns a handle whose \`dispose()\` removes it.
+     */
+    function addAbortListener(signal: Class_AbortSignal, listener: (event: FIBJS.GeneralObject) => void): { dispose(): void };
+
+    export { EventEmitter, defaultMaxListeners, once, addAbortListener };
+}
+`,
         "dts/module/fs.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/fs_constants.d.ts" />
 /// <reference path="../interface/Stat.d.ts" />
@@ -84988,6 +85245,8 @@ declare module 'fs' {
      */
     const Stats: typeof Class_Stat;
 
+    type Stats = Class_Stat;
+
     /**
      * @description The alias of the DirEntry class, see DirEntry
      *
@@ -84997,6 +85256,8 @@ declare module 'fs' {
      */
     const Dirent: typeof Class_DirEntry;
 
+    type Dirent = Class_DirEntry;
+
     /**
      * @description The alias of the Dir class, see Dir
      *
@@ -85005,6 +85266,8 @@ declare module 'fs' {
      *
      */
     const Dir: typeof Class_Dir;
+
+    type Dir = Class_Dir;
 
     /**
      * @description Checks whether the given file or directory exists
@@ -88222,6 +88485,8 @@ declare module 'fs/promises' {
      */
     const Stats: typeof Class_Stat;
 
+    type Stats = Class_Stat;
+
     /**
      * @description The alias of the DirEntry class, see DirEntry
      *
@@ -88231,6 +88496,8 @@ declare module 'fs/promises' {
      */
     const Dirent: typeof Class_DirEntry;
 
+    type Dirent = Class_DirEntry;
+
     /**
      * @description The alias of the Dir class, see Dir
      *
@@ -88239,6 +88506,8 @@ declare module 'fs/promises' {
      *
      */
     const Dir: typeof Class_Dir;
+
+    type Dir = Class_DirPromise;
 
     /**
      * @description Checks whether the given file or directory exists
@@ -91921,6 +92190,8 @@ declare module 'global' {
      */
     const Buffer: typeof Class_Buffer;
 
+    type Buffer = Class_Buffer;
+
     /**
      * @description The URL query parameter collection class, see URLSearchParams
      *
@@ -91930,6 +92201,8 @@ declare module 'global' {
      *
      */
     const URLSearchParams: typeof Class_URLSearchParams;
+
+    type URLSearchParams = Class_URLSearchParams;
 
     /**
      * @description The URL parser class, see UrlObject
@@ -91942,6 +92215,8 @@ declare module 'global' {
      */
     const URL: typeof Class_UrlObject;
 
+    type URL = Class_UrlObject;
+
     /**
      * @description The immutable binary data block class of the Web File API, see Blob
      *
@@ -91951,6 +92226,8 @@ declare module 'global' {
      *
      */
     const Blob: typeof Class_Blob;
+
+    type Blob = Class_Blob;
 
     /**
      * @description The in-memory file class, a Blob with a name and modification time, see File
@@ -91962,6 +92239,8 @@ declare module 'global' {
      */
     const File: typeof Class_File;
 
+    type File = Class_File;
+
     /**
      * @description The HTTP header collection class, see Headers
      *
@@ -91972,6 +92251,8 @@ declare module 'global' {
      */
     const Headers: typeof Class_Headers;
 
+    type Headers = Class_Headers;
+
     /**
      * @description The multipart form data container used as a fetch body, see FormData
      *
@@ -91981,6 +92262,8 @@ declare module 'global' {
      *
      */
     const FormData: typeof Class_FormData;
+
+    type FormData = Class_FormData;
 
     /**
      * @description The HTTP request class used as the fetch request source, see HttpRequest
@@ -91993,6 +92276,8 @@ declare module 'global' {
      */
     const Request: typeof Class_HttpRequest;
 
+    type Request = Class_HttpRequest;
+
     /**
      * @description The HTTP response class returned by fetch, see HttpResponse
      *
@@ -92004,6 +92289,8 @@ declare module 'global' {
      */
     const Response: typeof Class_HttpResponse;
 
+    type Response = Class_HttpResponse;
+
     /**
      * @description The text decoder class, see TextDecoder
      *
@@ -92014,6 +92301,8 @@ declare module 'global' {
      */
     const TextDecoder: typeof Class_TextDecoder;
 
+    type TextDecoder = Class_TextDecoder;
+
     /**
      * @description The text encoder class, see TextEncoder
      *
@@ -92023,6 +92312,8 @@ declare module 'global' {
      *
      */
     const TextEncoder: typeof Class_TextEncoder;
+
+    type TextEncoder = Class_TextEncoder;
 
     /**
      * @description The controller that aborts asynchronous Web requests, see AbortController
@@ -92035,6 +92326,8 @@ declare module 'global' {
      */
     const AbortController: typeof Class_AbortController;
 
+    type AbortController = Class_AbortController;
+
     /**
      * @description The signal that communicates cancellation to asynchronous APIs, see AbortSignal
      *
@@ -92045,6 +92338,8 @@ declare module 'global' {
      *
      */
     const AbortSignal: typeof Class_AbortSignal;
+
+    type AbortSignal = Class_AbortSignal;
 
     /**
      * @description The W3C DOM event class, see DOMEvent
@@ -92057,6 +92352,8 @@ declare module 'global' {
      */
     const Event: typeof Class_DOMEvent;
 
+    type Event = Class_DOMEvent;
+
     /**
      * @description The event target class, implemented by EventEmitter, see EventEmitter
      *
@@ -92068,6 +92365,8 @@ declare module 'global' {
      */
     const EventTarget: typeof Class_EventEmitter;
 
+    type EventTarget = Class_EventEmitter;
+
     /**
      * @description The event object carrying a message delivered through MessagePort, see MessageEvent
      *
@@ -92077,6 +92376,8 @@ declare module 'global' {
      *
      */
     const MessageEvent: typeof Class_MessageEvent;
+
+    type MessageEvent = Class_MessageEvent;
 
     /**
      * @description One end of a message channel, see MessagePort
@@ -92089,6 +92390,8 @@ declare module 'global' {
      */
     const MessagePort: typeof Class_MessagePort;
 
+    type MessagePort = Class_MessagePort;
+
     /**
      * @description A pair of connected MessagePort objects, see MessageChannel
      *
@@ -92098,6 +92401,8 @@ declare module 'global' {
      *
      */
     const MessageChannel: typeof Class_MessageChannel;
+
+    type MessageChannel = Class_MessageChannel;
 
     /**
      * @description The child thread class, see Worker
@@ -92130,6 +92435,8 @@ declare module 'global' {
      */
     const Worker: typeof Class_Worker;
 
+    type Worker = Class_Worker;
+
     /**
      * @description The Web Crypto key class, see CryptoKey
      *
@@ -92138,6 +92445,8 @@ declare module 'global' {
      *
      */
     const CryptoKey: typeof Class_CryptoKey;
+
+    type CryptoKey = Class_CryptoKey;
 
     /**
      * @description The DOM parser class, see DOMParser
@@ -92148,6 +92457,8 @@ declare module 'global' {
      */
     const DOMParser: typeof Class_DOMParser;
 
+    type DOMParser = Class_DOMParser;
+
     /**
      * @description The inline CSS declaration block of an element, see CSSStyleDeclaration
      *
@@ -92156,6 +92467,8 @@ declare module 'global' {
      *
      */
     const CSSStyleDeclaration: typeof Class_CSSStyleDeclaration;
+
+    type CSSStyleDeclaration = Class_CSSStyleDeclaration;
 
     /**
      * @description The map of the data-* attributes of an element, see DOMStringMap
@@ -92166,6 +92479,8 @@ declare module 'global' {
      */
     const DOMStringMap: typeof Class_DOMStringMap;
 
+    type DOMStringMap = Class_DOMStringMap;
+
     /**
      * @description The serializer that turns DOM nodes into XML strings, see XMLSerializer
      *
@@ -92174,6 +92489,8 @@ declare module 'global' {
      *
      */
     const XMLSerializer: typeof Class_XMLSerializer;
+
+    type XMLSerializer = Class_XMLSerializer;
 
     /**
      * @description The XML document class, see XmlDocument
@@ -92184,6 +92501,8 @@ declare module 'global' {
      */
     const XMLDocument: typeof Class_XmlDocument;
 
+    type XMLDocument = Class_XmlDocument;
+
     /**
      * @description The WebSocket client and server class, see WebSocket
      *
@@ -92193,6 +92512,8 @@ declare module 'global' {
      *
      */
     const WebSocket: typeof Class_WebSocket;
+
+    type WebSocket = Class_WebSocket;
 
     /**
      * @description The console output object, see console
@@ -92231,6 +92552,8 @@ declare module 'global' {
      *
      */
     const PerformanceObserver: typeof Class_PerformanceObserver;
+
+    type PerformanceObserver = Class_PerformanceObserver;
 
     /**
      * @description The Web Crypto object, see the crypto module
@@ -92959,6 +93282,8 @@ declare module 'gui' {
      */
     const WebView: typeof Class_WebView;
 
+    type WebView = Class_WebView;
+
     /**
      * @description Opens a window and visits the specified url
      *
@@ -93519,6 +93844,8 @@ declare module 'gui/promises' {
      *
      */
     const WebView: typeof Class_WebView;
+
+    type WebView = Class_WebViewPromise;
 
     /**
      * @description Opens a window and visits the specified url
@@ -94365,6 +94692,8 @@ declare module 'http' {
      */
     const Request: typeof Class_HttpRequest;
 
+    type Request = Class_HttpRequest;
+
     /**
      * @description Compatibility alias, equivalent to HttpRequest
      *
@@ -94373,6 +94702,8 @@ declare module 'http' {
      *
      */
     const IncomingMessage: typeof Class_HttpRequest;
+
+    type IncomingMessage = Class_HttpRequest;
 
     /**
      * @description The HttpResponse class, used to create response objects
@@ -94385,6 +94716,8 @@ declare module 'http' {
      */
     const Response: typeof Class_HttpResponse;
 
+    type Response = Class_HttpResponse;
+
     /**
      * @description Compatibility alias, equivalent to HttpResponse
      *
@@ -94393,6 +94726,8 @@ declare module 'http' {
      *
      */
     const ServerResponse: typeof Class_HttpResponse;
+
+    type ServerResponse = Class_HttpResponse;
 
     /**
      * @description The Headers class, a case-insensitive name/value collection
@@ -94405,6 +94740,8 @@ declare module 'http' {
      */
     const Headers: typeof Class_Headers;
 
+    type Headers = Class_Headers;
+
     /**
      * @description The HttpCookie class, used to create cookie objects
      *
@@ -94414,6 +94751,8 @@ declare module 'http' {
      *
      */
     const Cookie: typeof Class_HttpCookie;
+
+    type Cookie = Class_HttpCookie;
 
     /**
      * @description The HttpServer class, used to create HTTP servers
@@ -94426,6 +94765,8 @@ declare module 'http' {
      */
     const Server: typeof Class_HttpServer;
 
+    type Server = Class_HttpServer;
+
     /**
      * @description The HttpClient class, used to create independent HTTP clients
      *
@@ -94437,6 +94778,8 @@ declare module 'http' {
      */
     const Client: typeof Class_HttpClient;
 
+    type Client = Class_HttpClient;
+
     /**
      * @description Compatibility alias, equivalent to HttpClient
      *
@@ -94447,6 +94790,8 @@ declare module 'http' {
      */
     const Agent: typeof Class_HttpClient;
 
+    type Agent = Class_HttpClient;
+
     /**
      * @description The HttpsServer class, used to create HTTPS servers
      *
@@ -94455,6 +94800,8 @@ declare module 'http' {
      *
      */
     const HttpsServer: typeof Class_HttpsServer;
+
+    type HttpsServer = Class_HttpsServer;
 
     /**
      * @description Creates an http server
@@ -94521,6 +94868,8 @@ declare module 'http' {
      */
     const Handler: typeof Class_HttpHandler;
 
+    type Handler = Class_HttpHandler;
+
     /**
      * @description Creates an http request repeater object, see HttpRepeater
      *
@@ -94529,6 +94878,8 @@ declare module 'http' {
      *
      */
     const Repeater: typeof Class_HttpRepeater;
+
+    type Repeater = Class_HttpRepeater;
 
     /**
      * @description Returns the collection of standard HTTP response status codes and their short descriptions
@@ -96113,6 +96464,8 @@ declare module 'http/promises' {
      */
     const Request: typeof Class_HttpRequest;
 
+    type Request = Class_HttpRequestPromise;
+
     /**
      * @description Compatibility alias, equivalent to HttpRequest
      *
@@ -96121,6 +96474,8 @@ declare module 'http/promises' {
      *
      */
     const IncomingMessage: typeof Class_HttpRequest;
+
+    type IncomingMessage = Class_HttpRequestPromise;
 
     /**
      * @description The HttpResponse class, used to create response objects
@@ -96133,6 +96488,8 @@ declare module 'http/promises' {
      */
     const Response: typeof Class_HttpResponse;
 
+    type Response = Class_HttpResponsePromise;
+
     /**
      * @description Compatibility alias, equivalent to HttpResponse
      *
@@ -96141,6 +96498,8 @@ declare module 'http/promises' {
      *
      */
     const ServerResponse: typeof Class_HttpResponse;
+
+    type ServerResponse = Class_HttpResponsePromise;
 
     /**
      * @description The Headers class, a case-insensitive name/value collection
@@ -96153,6 +96512,8 @@ declare module 'http/promises' {
      */
     const Headers: typeof Class_Headers;
 
+    type Headers = Class_Headers;
+
     /**
      * @description The HttpCookie class, used to create cookie objects
      *
@@ -96162,6 +96523,8 @@ declare module 'http/promises' {
      *
      */
     const Cookie: typeof Class_HttpCookie;
+
+    type Cookie = Class_HttpCookie;
 
     /**
      * @description The HttpServer class, used to create HTTP servers
@@ -96174,6 +96537,8 @@ declare module 'http/promises' {
      */
     const Server: typeof Class_HttpServer;
 
+    type Server = Class_HttpServerPromise;
+
     /**
      * @description The HttpClient class, used to create independent HTTP clients
      *
@@ -96185,6 +96550,8 @@ declare module 'http/promises' {
      */
     const Client: typeof Class_HttpClient;
 
+    type Client = Class_HttpClientPromise;
+
     /**
      * @description Compatibility alias, equivalent to HttpClient
      *
@@ -96195,6 +96562,8 @@ declare module 'http/promises' {
      */
     const Agent: typeof Class_HttpClient;
 
+    type Agent = Class_HttpClientPromise;
+
     /**
      * @description The HttpsServer class, used to create HTTPS servers
      *
@@ -96203,6 +96572,8 @@ declare module 'http/promises' {
      *
      */
     const HttpsServer: typeof Class_HttpsServer;
+
+    type HttpsServer = Class_HttpsServerPromise;
 
     /**
      * @description Creates an http server
@@ -96269,6 +96640,8 @@ declare module 'http/promises' {
      */
     const Handler: typeof Class_HttpHandler;
 
+    type Handler = Class_HttpHandlerPromise;
+
     /**
      * @description Creates an http request repeater object, see HttpRepeater
      *
@@ -96277,6 +96650,8 @@ declare module 'http/promises' {
      *
      */
     const Repeater: typeof Class_HttpRepeater;
+
+    type Repeater = Class_HttpRepeaterPromise;
 
     /**
      * @description Returns the collection of standard HTTP response status codes and their short descriptions
@@ -98046,6 +98421,8 @@ declare module 'http2' {
      */
     const Server: typeof Class_Http2Server;
 
+    type Server = Class_Http2Server;
+
     /**
      * @description creates an Http2Server from TLS options or a SecureContext
      *
@@ -98331,6 +98708,8 @@ declare module 'http2' {
      */
     const Http2Stream: typeof Class_Http2Stream;
 
+    type Http2Stream = Class_Http2Stream;
+
     /**
      * @description the Http2Session class, see Http2Session
      *
@@ -98340,6 +98719,8 @@ declare module 'http2' {
      *
      */
     const Http2Session: typeof Class_Http2Session;
+
+    type Http2Session = Class_Http2Session;
 
     /**
      * @description the nghttp2 constants of the http2 module, see http2_constants
@@ -98377,6 +98758,8 @@ declare module 'http2/promises' {
      *
      */
     const Server: typeof Class_Http2Server;
+
+    type Server = Class_Http2ServerPromise;
 
     /**
      * @description creates an Http2Server from TLS options or a SecureContext
@@ -98661,6 +99044,8 @@ declare module 'http2/promises' {
      */
     const Http2Stream: typeof Class_Http2Stream;
 
+    type Http2Stream = Class_Http2StreamPromise;
+
     /**
      * @description the Http2Session class, see Http2Session
      *
@@ -98670,6 +99055,8 @@ declare module 'http2/promises' {
      *
      */
     const Http2Session: typeof Class_Http2Session;
+
+    type Http2Session = Class_Http2SessionPromise;
 
     /**
      * @description the nghttp2 constants of the http2 module, see http2_constants
@@ -100051,6 +100438,23 @@ declare module 'http2_constants' {
 }
 
 `,
+        "dts/module/https.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+// Hand-written \`https\` module (no IDL unit: fibjs/src/http/http.cpp registers
+// it with DECLARE_MODULE_EX(https, http), i.e. the *same* class info and the
+// same module object as \`http\`).
+//
+// Runtime check: \`require('https') === require('http')\` and both carry the same
+// 63 keys. The declaration therefore re-exports \`http\` wholesale; there is no
+// separate https class to describe (Node's https has its own Server, but fibjs
+// serves TLS through the same HttpServer plus \`http.createServer(options,
+// handler)\`).
+
+declare module 'https' {
+    import http = require('http');
+
+    export = http;
+}
+`,
         "dts/module/io.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/MemoryStream.d.ts" />
 /// <reference path="../interface/BufferedStream.d.ts" />
@@ -100142,6 +100546,8 @@ declare module 'io' {
      */
     const MemoryStream: typeof Class_MemoryStream;
 
+    type MemoryStream = Class_MemoryStream;
+
     /**
      * @description Creates a buffered stream, see BufferedStream
      *
@@ -100152,6 +100558,8 @@ declare module 'io' {
      */
     const BufferedStream: typeof Class_BufferedStream;
 
+    type BufferedStream = Class_BufferedStream;
+
     /**
      * @description Creates a range stream, see RangeStream
      *
@@ -100161,6 +100569,8 @@ declare module 'io' {
      *
      */
     const RangeStream: typeof Class_RangeStream;
+
+    type RangeStream = Class_RangeStream;
 
     /**
      * @description Copies the data of a stream into a target stream
@@ -100378,6 +100788,8 @@ declare module 'io/promises' {
      */
     const MemoryStream: typeof Class_MemoryStream;
 
+    type MemoryStream = Class_MemoryStreamPromise;
+
     /**
      * @description Creates a buffered stream, see BufferedStream
      *
@@ -100388,6 +100800,8 @@ declare module 'io/promises' {
      */
     const BufferedStream: typeof Class_BufferedStream;
 
+    type BufferedStream = Class_BufferedStreamPromise;
+
     /**
      * @description Creates a range stream, see RangeStream
      *
@@ -100397,6 +100811,8 @@ declare module 'io/promises' {
      *
      */
     const RangeStream: typeof Class_RangeStream;
+
+    type RangeStream = Class_RangeStreamPromise;
 
     /**
      * @description Copies the data of a stream into a target stream
@@ -101133,6 +101549,8 @@ declare module 'mq' {
      */
     const Message: typeof Class_Message;
 
+    type Message = Class_Message;
+
     /**
      * @description Creates an http protocol handler object, see HttpHandler
      *
@@ -101153,6 +101571,8 @@ declare module 'mq' {
      *
      */
     const HttpHandler: typeof Class_HttpHandler;
+
+    type HttpHandler = Class_HttpHandler;
 
     /**
      * @description Creates a message handler object from any accepted form
@@ -101182,6 +101602,8 @@ declare module 'mq' {
      */
     const Handler: typeof Class_Handler;
 
+    type Handler = Class_Handler;
+
     /**
      * @description Creates a message handler chain processing object, see Chain
      *
@@ -101200,6 +101622,8 @@ declare module 'mq' {
      *
      */
     const Chain: typeof Class_Chain;
+
+    type Chain = Class_Chain;
 
     /**
      * @description Creates a message handler routing object, see Routing
@@ -101220,6 +101644,8 @@ declare module 'mq' {
      *
      */
     const Routing: typeof Class_Routing;
+
+    type Routing = Class_Routing;
 
     /**
      * @description Creates an empty handler object; this handler does nothing and returns directly
@@ -101379,6 +101805,8 @@ declare module 'mq/promises' {
      */
     const Message: typeof Class_Message;
 
+    type Message = Class_MessagePromise;
+
     /**
      * @description Creates an http protocol handler object, see HttpHandler
      *
@@ -101399,6 +101827,8 @@ declare module 'mq/promises' {
      *
      */
     const HttpHandler: typeof Class_HttpHandler;
+
+    type HttpHandler = Class_HttpHandlerPromise;
 
     /**
      * @description Creates a message handler object from any accepted form
@@ -101428,6 +101858,8 @@ declare module 'mq/promises' {
      */
     const Handler: typeof Class_Handler;
 
+    type Handler = Class_HandlerPromise;
+
     /**
      * @description Creates a message handler chain processing object, see Chain
      *
@@ -101446,6 +101878,8 @@ declare module 'mq/promises' {
      *
      */
     const Chain: typeof Class_Chain;
+
+    type Chain = Class_ChainPromise;
 
     /**
      * @description Creates a message handler routing object, see Routing
@@ -101466,6 +101900,8 @@ declare module 'mq/promises' {
      *
      */
     const Routing: typeof Class_Routing;
+
+    type Routing = Class_RoutingPromise;
 
     /**
      * @description Creates an empty handler object; this handler does nothing and returns directly
@@ -102183,6 +102619,8 @@ declare module 'net' {
      */
     const Socket: typeof Class_Socket;
 
+    type Socket = Class_Socket;
+
     /**
      * @description Creates a Socket object and establishes a connection
      *
@@ -102564,6 +103002,8 @@ declare module 'net' {
      */
     const Smtp: typeof Class_Smtp;
 
+    type Smtp = Class_Smtp;
+
     /**
      * @description Creates a Smtp object and establishes a connection, see Smtp
      *
@@ -102613,6 +103053,8 @@ declare module 'net' {
      *
      */
     const TcpServer: typeof Class_TcpServer;
+
+    type TcpServer = Class_TcpServer;
 
     /**
      * @description Creates a TCP server
@@ -102669,6 +103111,8 @@ declare module 'net' {
      *
      */
     const Url: typeof Class_UrlObject;
+
+    type Url = Class_UrlObject;
 
     /**
      * @description Queries the asynchronous network engine of the current system
@@ -102760,6 +103204,30 @@ declare module 'net' {
 
 }
 
+// Hand-written addition to the generated \`net\` module declarations
+// (tools/handwritten/module/README.md explains the mechanism). It is merged
+// into the same file, so this is a second \`declare module 'net'\` block.
+
+declare module 'net' {
+    /**
+     * @description The address a server or socket is bound to
+     *
+     *      Node.js returns this shape from \`server.address()\` / \`socket.address()\`;
+     *      fibjs returns the same three fields, so the interface is the shared type of
+     *      both. Node types it \`AddressInfo\` (\`net.AddressInfo\`), which is what
+     *      \`import type { AddressInfo } from 'node:net'\` resolves to.
+     *
+     *      The \`family\` is the string form (\`'IPv4'\` / \`'IPv6'\`); Node's newest
+     *      definitions also allow the number \`4\` / \`6\` and \`'IPv4'\`/\`'IPv6'\`, so both
+     *      are accepted here. For a unix domain socket \`address\` is the path and the
+     *      other two fields are placeholders.
+     */
+    interface AddressInfo {
+        address: string;
+        family: string;
+        port: number;
+    }
+}
 `,
         "dts/module/net.promises.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Socket.d.ts" />
@@ -102945,6 +103413,8 @@ declare module 'net/promises' {
      *
      */
     const Socket: typeof Class_Socket;
+
+    type Socket = Class_SocketPromise;
 
     /**
      * @description Creates a Socket object and establishes a connection
@@ -103321,6 +103791,8 @@ declare module 'net/promises' {
      */
     const Smtp: typeof Class_Smtp;
 
+    type Smtp = Class_SmtpPromise;
+
     /**
      * @description Creates a Smtp object and establishes a connection, see Smtp
      *
@@ -103368,6 +103840,8 @@ declare module 'net/promises' {
      *
      */
     const TcpServer: typeof Class_TcpServer;
+
+    type TcpServer = Class_TcpServerPromise;
 
     /**
      * @description Creates a TCP server
@@ -103424,6 +103898,8 @@ declare module 'net/promises' {
      *
      */
     const Url: typeof Class_UrlObject;
+
+    type Url = Class_UrlObject;
 
     /**
      * @description Queries the asynchronous network engine of the current system
@@ -103644,6 +104120,8 @@ declare module 'os' {
      *
      */
     const Service: typeof Class_Service;
+
+    type Service = Class_Service;
 
     /**
      * @description Queries the hostname of the current runtime environment
@@ -105460,7 +105938,7 @@ declare module 'path' {
  *  - fibjs adds fullpath to the rule set; see the path module for the differences from Node.js.
  *
  */
-declare module 'path_posix' {
+declare module 'path/posix' {
     /**
      * @description Normalizes a posix path, resolving '.' and '..' and collapsing '/' separators
      *
@@ -105846,7 +106324,7 @@ declare module 'path_posix' {
  *    'not supported on none Win32 platform !'.
  *
  */
-declare module 'path_win32' {
+declare module 'path/win32' {
     /**
      * @description Normalizes a win32 path, resolving '.' and '..' and collapsing repeated separators
      *
@@ -106233,6 +106711,8 @@ declare module 'perf_hooks' {
      *
      */
     const PerformanceObserver: typeof Class_PerformanceObserver;
+
+    type PerformanceObserver = Class_PerformanceObserver;
 
     /**
      * @description The performance timeline object, identical to the global \`performance\`, see performance
@@ -107807,6 +108287,246 @@ declare module 'querystring' {
 }
 
 `,
+        "dts/module/readline.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+// Hand-written \`readline\` module (no IDL unit: fibjs/scripts/readline.js plus
+// fibjs/scripts/internal/readline/).
+
+declare module 'readline' {
+    /**
+     * @description The options createInterface() accepts
+     *
+     *      \`input\`/\`output\` are fibjs streams (\`io\` module objects); anything
+     *      with \`on\`/\`read\`/\`write\` works, the same duck typing Node uses.
+     */
+    interface InterfaceOptions {
+        input?: any;
+        output?: any;
+        completer?: (line: string) => [string[], string] | Promise<[string[], string]>;
+        terminal?: boolean;
+        history?: string[];
+        historySize?: number;
+        removeHistoryDuplicates?: boolean;
+        prompt?: string;
+        crlfDelay?: number;
+        escapeCodeTimeout?: number;
+        tabSize?: number;
+        signal?: Class_AbortSignal;
+        [k: string]: any;
+    }
+
+    /**
+     * @description A line-oriented read/write interface
+     *
+     *      Extends EventEmitter, so \`rl.on('line', ...)\` and the other listener
+     *      methods are available; the events Node defines are 'line', 'close',
+     *      'pause', 'resume', 'SIGINT' and 'history'. The runtime builds it on
+     *      Node's \`InterfaceConstructor\`, so the members below are the real
+     *      surface.
+     */
+    class Interface extends Class_EventEmitter {
+        constructor(input: any, output?: any, completer?: any, terminal?: boolean);
+        constructor(options: InterfaceOptions);
+
+        /** Writes \`data\` to the output, followed by a line break by default. */
+        write(data: string | Uint8Array, key?: any): void;
+
+        /** Writes the prompt to the output. */
+        prompt(preserveCursor?: boolean): void;
+
+        /** Asks the user a question, calling back with the answer. */
+        question(query: string, callback: (answer: string) => void): void;
+
+        /**
+         * Asks the user a question, calling back with the answer.
+         *
+         *      Node's signal form (v17+): aborting the signal cancels the
+         *      question. The runtime answers it, so it is typed here.
+         */
+        question(query: string, options: { signal?: Class_AbortSignal }, callback: (answer: string) => void): void;
+
+        /** Sets the prompt string (the alias of the \`prompt\` property). */
+        setPrompt(prompt: string): void;
+
+        /** Continues the input stream. */
+        resume(): this;
+
+        /** Pauses the input stream. */
+        pause(): this;
+
+        /** Closes the interface and releases the streams. */
+        close(): void;
+
+        /** The terminal cursor position, \`{ rows, cols }\`. */
+        getCursorPos(): Promise<{ rows: number; cols: number }>;
+
+        /** The current line. */
+        line: string;
+
+        /** The input stream the interface reads from. */
+        input: any;
+
+        /** The output stream the interface writes to. */
+        output: any;
+
+        /** Whether the interface is in terminal (raw, line-editing) mode. */
+        terminal: boolean;
+
+        /** The completion callback, when one was given. */
+        completer: ((line: string) => any) | undefined;
+
+        /** The entered history lines. */
+        history: string[];
+
+        /** How many history lines are kept. */
+        historySize: number;
+
+        /** Whether a duplicate line replaces the earlier one in the history. */
+        removeHistoryDuplicates: boolean;
+
+        /** The input chunk delay that counts as one line break, in ms. */
+        crlfDelay: number;
+
+        /** Whether tab completion is enabled. */
+        isCompletionEnabled: boolean;
+
+        /** The number of spaces one tab stands for. */
+        tabSize: number;
+
+        /** The async iterator over the entered lines. */
+        [Symbol.asyncIterator](): AsyncIterableIterator<string>;
+
+        /**
+         * @description The listeners of the interface events
+         *
+         *      'line' carries the entered line, 'history' the history array,
+         *      'SIGINT'/'SIGTSTP' nothing; the mirror of the EventEmitter
+         *      overloads keeps the permissive form for everything else.
+         */
+        on<K extends keyof InterfaceEventMap>(event: K, listener: (...args: InterfaceEventMap[K]) => void): this;
+        on(ev: any, func: (...args: any[]) => void): FIBJS.GeneralObject;
+        on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+        /** The once form of the typed listeners. */
+        once<K extends keyof InterfaceEventMap>(event: K, listener: (...args: InterfaceEventMap[K]) => void): this;
+        once(ev: any, func: (...args: any[]) => void): FIBJS.GeneralObject;
+        once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    }
+
+    /** The events an Interface emits. */
+    type InterfaceEventMap = {
+        /** One entered line, without the line break. */
+        'line': [line: string];
+        /** The interface was closed. */
+        'close': [];
+        /** The input stream ran out of data. */
+        'pause': [];
+        /** The input stream has more data. */
+        'resume': [];
+        /** The user pressed Ctrl+C. */
+        'SIGINT': [];
+        /** The user pressed Ctrl+Z. */
+        'SIGTSTP': [];
+        /** A line was added to the history. */
+        'history': [history: string[]];
+    };
+
+    /** @description Creates a line-oriented read/write interface */
+    function createInterface(input: any, output?: any, completer?: any, terminal?: boolean): Interface;
+    function createInterface(options: InterfaceOptions): Interface;
+
+    /** @description Moves the cursor to the given column/row of the stream */
+    function cursorTo(stream: any, x: number, y?: number, callback?: () => void): boolean;
+
+    /** @description Moves the cursor the given number of lines up/down */
+    function moveCursor(stream: any, dx: number, dy: number, callback?: () => void): boolean;
+
+    /** @description Clears the current line of the stream */
+    function clearLine(stream: any, dir: -1 | 0 | 1, callback?: () => void): boolean;
+
+    /** @description Clears the whole screen of the stream */
+    function clearScreenDown(stream: any, callback?: () => void): boolean;
+
+    /** @description Makes the stream emit 'keypress' events for the keys read */
+    function emitKeypressEvents(stream: any, iface?: Interface): void;
+
+    /** The promise-flavoured interface: the same object as \`readline/promises\`. */
+    const promises: typeof import('readline/promises');
+
+    export {
+        Interface,
+        InterfaceOptions,
+        createInterface,
+        cursorTo,
+        moveCursor,
+        clearLine,
+        clearScreenDown,
+        emitKeypressEvents,
+        promises,
+    };
+}
+`,
+        "dts/module/readline.promises.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+// Hand-written \`readline/promises\` module (no IDL unit:
+// fibjs/scripts/readline/promises.js).
+
+declare module 'readline/promises' {
+    import readline = require('readline');
+
+    /** The promise-flavoured options of the \`readline/promises\` interface. */
+    type InterfaceOptions = readline.InterfaceOptions;
+
+    /**
+     * @description The promise-flavoured line interface
+     *
+     *      Same as the callback Interface, except that question() returns a
+     *      Promise instead of taking a callback. It is a *sibling* declaration
+     *      rather than a subclass: the promise form returns \`Promise<string>\`
+     *      and takes no callback, so a subclass override would be incompatible
+     *      with the inherited member (TS2416). The rest of the surface is the
+     *      callback Interface's, so it is redeclared by extension.
+     */
+    interface Interface extends Omit<readline.Interface, 'question' | 'constructor'> {
+        /** Asks the user a question and resolves with the answer. */
+        question(query: string, options?: { signal?: Class_AbortSignal }): Promise<string>;
+    }
+
+    /** @description Creates a promise-flavoured line interface */
+    function createInterface(input: any, output?: any, completer?: any, terminal?: boolean): Interface;
+    function createInterface(options: InterfaceOptions): Interface;
+
+    /**
+     * @description A batch cursor writer bound to one writable stream
+     *
+     *      Not the line interface: this is Node's low-level \`Readline\` class
+     *      (\`require('readline/promises').Readline\`), which queues cursor moves
+     *      and writes them with commit(). It needs the stream up front, so
+     *      \`new Readline(stream)\`.
+     */
+    class Readline {
+        constructor(stream: any, options?: { autoCommit?: boolean });
+
+        /** Moves the cursor to the x/y coordinate of the stream. */
+        cursorTo(x: number, y?: number): this;
+
+        /** Moves the cursor relative to its current position. */
+        moveCursor(dx: number, dy: number): this;
+
+        /** Clears the current line of the stream. */
+        clearLine(dir?: -1 | 0 | 1): this;
+
+        /** Clears the whole screen of the stream. */
+        clearScreenDown(): this;
+
+        /** Writes the queued cursor moves to the stream; resolves when flushed. */
+        commit(): Promise<void>;
+
+        /** Discards the queued cursor moves. */
+        rollback(): this;
+    }
+
+    export { Interface, InterfaceOptions, createInterface, Readline };
+}
+`,
         "dts/module/registry.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -108446,6 +109166,8 @@ declare module 'rtc' {
      */
     const RTCPeerConnection: typeof Class_RTCPeerConnection;
 
+    type RTCPeerConnection = Class_RTCPeerConnection;
+
     /**
      * @description The WebRTC session description class, see RTCSessionDescription
      *
@@ -108454,6 +109176,8 @@ declare module 'rtc' {
      *
      */
     const RTCSessionDescription: typeof Class_RTCSessionDescription;
+
+    type RTCSessionDescription = Class_RTCSessionDescription;
 
     /**
      * @description The WebRTC ICE candidate class, see RTCIceCandidate
@@ -108464,6 +109188,8 @@ declare module 'rtc' {
      *
      */
     const RTCIceCandidate: typeof Class_RTCIceCandidate;
+
+    type RTCIceCandidate = Class_RTCIceCandidate;
 
     /**
      * @description binds a WebRTC listening service on the specified address and port
@@ -108817,6 +109543,8 @@ declare module 'sse' {
      */
     const EventSource: typeof Class_EventSource;
 
+    type EventSource = Class_EventSource;
+
     /**
      * @description Creates a handler that upgrades an HTTP request into an SSE sender
      *
@@ -108867,6 +109595,876 @@ declare module 'sse' {
 
 }
 
+`,
+        "dts/module/stream.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+// Hand-written \`stream\` module (no IDL unit: the whole family comes from the
+// pure-JS compatibility layer - fibjs/scripts/stream.js plus the vendored
+// _stream_*.js files).
+//
+// At runtime \`require('stream')\` is the base class itself (\`Stream\`), with the
+// family attached as static properties (\`Stream.Readable\`, \`Stream.pipeline\`,
+// ...). The prototype chain is \`Readable -> Stream -> EventEmitter\`, where that
+// \`Stream\` is the compatibility layer's JS base class - it is *not* the \`io\`
+// module's Class_Stream, which is the native async-stream base - so the
+// declarations below extend Class_EventEmitter and stay faithful to the
+// runtime.
+//
+// The shape - \`class Stream\` + two merged \`namespace Stream\` blocks + a
+// namespace member \`export { Stream }\` + \`export = Stream\` - is the one
+// @types/node uses for \`node:stream\`, and it is the only shape that makes all
+// of these work at once:
+//
+//   import stream = require('stream')   stream.Readable (value)
+//   import { Readable } from 'stream'   Readable as a type
+//   import stream from 'stream'         the default binding
+//   new stream.Stream()                 the base class as a value
+//   let s: stream.Stream                the base class as a type
+//
+// (The \`export { Stream }\` inside the namespace is what publishes the class
+// both as a value and as a type; without it the class value is a property while
+// the type is not exported - TS2694/TS2339.)
+//
+// Scope of this pass (plans/fibjs-upstream-gaps-remediation-2026-10-14.md §7
+// P2), beyond the import-resolving surface of the first one:
+//
+//   - the subclassing contract: \`_read\`/\`_write\`/\`_transform\`/\`_flush\`/
+//     \`_final\`/\`_destroy\`, and the option objects the constructors take
+//     (\`read(size)\`, \`write(chunk, encoding, callback)\`, \`transform\`, \`flush\`,
+//     \`objectMode\`, \`highWaterMark\`, \`signal\`, ...)
+//   - the async iteration protocol: \`for await (const chunk of readable)\`,
+//     \`iterator({ destroyOnReturn })\` and the operator helpers (\`map\`,
+//     \`filter\`, \`flatMap\`, \`drop\`, \`take\`, \`toArray\`, \`forEach\`, \`some\`,
+//     \`every\`, \`find\`, \`reduce\`). They are implemented in the compat layer
+//     (fibjs/scripts/internal/streams/{async_iterator,operators}.js) as of
+//     this pass, so these declarations describe the runtime, not a wish.
+//   - \`objectMode\` carries the chunk type: the classes take a type parameter
+//     that defaults to \`any\`, so Node-shaped code (\`new stream.Readable()\`)
+//     keeps working unchanged while \`new stream.Readable<string>()\` types the
+//     chunks.
+//
+// Not declared because the runtime does not have them (checked with
+// temp/p2-surface-2026-10-15.cjs): \`readableEnded\`, \`readableLength\`,
+// \`readableAborted\`, \`errored\`, \`closed\`, \`writableEnded\`, \`writableFinished\`,
+// \`writableLength\`, \`writableCorked\`, \`writableNeedDrain\`, \`compose\`,
+// \`isReadable\`/\`isWritable\`/\`isDisturbed\`/\`isErrored\`,
+// \`getDefaultHighWaterMark\` and \`toWeb\`. Declaring them would hand back
+// \`undefined\` at runtime.
+
+declare module 'stream' {
+    /**
+     * @description The options every stream constructor accepts
+     */
+    interface StreamOptions<T extends Stream = Stream> {
+        /** Whether destroy() emits 'close' (on by default). */
+        emitClose?: boolean;
+
+        /** The buffer size of one side, in chunks. */
+        highWaterMark?: number;
+
+        /** Whether the stream carries values rather than bytes. */
+        objectMode?: boolean;
+
+        /** Whether the stream destroys itself once both sides finished. */
+        autoDestroy?: boolean;
+
+        /** The AbortSignal that destroys the stream when aborted. */
+        signal?: Class_AbortSignal;
+
+        /** The teardown hook, called by destroy(). */
+        destroy?: (this: T, error: Error | null, callback: (error?: Error | null) => void) => void;
+    }
+
+    /**
+     * @description The options a Readable constructor accepts
+     */
+    interface ReadableOptions<T extends Stream.Readable = Stream.Readable> extends StreamOptions<T> {
+        /** The encoding setEncoding() starts with. */
+        encoding?: string;
+
+        /** The implementation of _read(size). */
+        read?: (this: T, size: number) => void;
+    }
+
+    /**
+     * @description The options a Writable constructor accepts
+     */
+    interface WritableOptions<T extends Stream.Writable = Stream.Writable> extends StreamOptions<T> {
+        /** Whether written strings are decoded to a Buffer first (on by default). */
+        decodeStrings?: boolean;
+
+        /** The encoding end() defaults to. */
+        defaultEncoding?: string;
+
+        /** The implementation of _write(chunk, encoding, callback). */
+        write?: (this: T, chunk: any, encoding: string, callback: (error?: Error | null) => void) => void;
+
+        /** The implementation of _writev(chunks, callback). */
+        writev?: (this: T, chunks: { chunk: any; encoding: string }[], callback: (error?: Error | null) => void) => void;
+
+        /** The implementation of _final(callback). */
+        final?: (this: T, callback: (error?: Error | null) => void) => void;
+    }
+
+    /**
+     * @description The options a Duplex constructor accepts
+     *
+     *      The readable and the writable side can be configured separately
+     *      (\`readableObjectMode\`, \`readableHighWaterMark\`, ...), which is what
+     *      the layer reads when one options object feeds both sides.
+     */
+    interface DuplexOptions<T extends Stream.Duplex = Stream.Duplex> extends ReadableOptions<T>, WritableOptions<T> {
+        /** Whether the writable side stays open when the readable side ends. */
+        allowHalfOpen?: boolean;
+
+        /** Whether the readable side carries values rather than bytes. */
+        readableObjectMode?: boolean;
+
+        /** Whether the writable side carries values rather than bytes. */
+        writableObjectMode?: boolean;
+
+        /** The buffer size of the readable side. */
+        readableHighWaterMark?: number;
+
+        /** The buffer size of the writable side. */
+        writableHighWaterMark?: number;
+    }
+
+    /** The callback a Transform implementation answers with. */
+    type TransformCallback = (error?: Error | null, data?: any) => void;
+
+    /**
+     * @description The options a Transform constructor accepts
+     */
+    interface TransformOptions<T extends Stream.Transform = Stream.Transform> extends DuplexOptions<T> {
+        /** The implementation of _transform(chunk, encoding, callback). */
+        transform?: (this: T, chunk: any, encoding: string, callback: TransformCallback) => void;
+
+        /** The implementation of _flush(callback). */
+        flush?: (this: T, callback: TransformCallback) => void;
+    }
+
+    /** The second argument the operator callbacks receive. */
+    interface OperatorOptions {
+        /** The signal of the operator options, when one was given. */
+        signal?: Class_AbortSignal;
+    }
+
+    /**
+     * @description The options \`readable.iterator()\` accepts
+     */
+    interface ReadableIteratorOptions {
+        /**
+         * Whether \`return()\` (a \`break\`, \`return\` or \`throw\` out of the
+         * \`for await\` loop) destroys the stream.
+         *
+         * @default true
+         */
+        destroyOnReturn?: boolean;
+    }
+
+    /**
+     * @description The options the readable operators accept
+     *
+     *      \`signal\` aborts the operation (the pending promise rejects with an
+     *      AbortError). Node's \`concurrency\` is not implemented - the operators
+     *      run one callback at a time, which is Node's default.
+     */
+    interface ReadableOperatorOptions {
+        signal?: Class_AbortSignal;
+    }
+
+    /**
+     * @description The async iterator of a Readable
+     *
+     *      What \`readable[Symbol.asyncIterator]()\` and \`readable.iterator()\`
+     *      return: an async iterable iterator carrying the stream it reads.
+     */
+    interface ReadableAsyncIterator<T = any> extends AsyncIterableIterator<T> {
+        /** The stream the iterator reads from. */
+        readonly stream: Stream.Readable<T>;
+
+        /** Advances the iterator; \`done\` marks the end of the stream. */
+        next(...args: [] | [undefined]): Promise<IteratorResult<T>>;
+
+        /**
+         * Ends the iteration early. With \`destroyOnReturn\` (the default) the
+         * stream is destroyed, without it the stream is left alone.
+         */
+        return(value?: any): Promise<IteratorResult<T>>;
+    }
+
+    /**
+     * @description The events a Readable emits
+     *
+     *      Used by the typed \`on\`/\`once\` overloads below, so that a listener
+     *      on 'data' sees the chunk type the class was parameterised with.
+     */
+    type ReadableEventMap<T = any> = {
+        'close': [];
+        'data': [chunk: T];
+        'end': [];
+        'error': [err: Error];
+        'pause': [];
+        'readable': [];
+        'resume': [];
+    };
+
+    /**
+     * @description The events a Writable emits
+     */
+    type WritableEventMap<T = any> = {
+        'close': [];
+        'drain': [];
+        'error': [err: Error];
+        'finish': [];
+        'pipe': [source: any];
+        'unpipe': [source: any];
+    };
+
+    /**
+     * @description The base class of the compatibility layer's stream family
+     *
+     *      Node's \`stream.Stream\`; the Readable/Writable/Duplex/Transform/
+     *      PassThrough classes below derive from it and it derives from
+     *      EventEmitter, so every listener method (\`on\`, \`once\`, \`off\`, ...) is
+     *      available on a stream.
+     */
+    class Stream extends Class_EventEmitter {
+        /** Sends the stream's data to the writable \`destination\`. */
+        pipe<D>(destination: D, options?: { end?: boolean }): D;
+
+        /** Removes a destination registered with pipe(). */
+        unpipe(destination?: any): this;
+
+        /** Whether the stream has been destroyed. */
+        readonly destroyed: boolean;
+
+        /**
+         * Destroys the stream, optionally reporting an error.
+         *
+         *      The callback runs when the teardown finished; the stream then
+         *      emits 'close' (and 'error' first, when one was given).
+         */
+        destroy(error?: Error | null, callback?: (error?: Error | null) => void): this;
+
+        /**
+         * Binds an AbortSignal to this stream (the method form of the module's
+         * \`addAbortSignal(signal, stream)\`); aborting destroys the stream.
+         */
+        addAbortSignal(signal: Class_AbortSignal): this;
+    }
+
+    namespace Stream {
+        export { Stream };
+
+        // The module publishes its types through the namespace: with
+        // \`export = Stream\` a named import (\`import { ReadableOptions } from
+        // 'stream'\`) resolves against the exported entity's members, so the
+        // shapes declared at module level above are re-exported here - the
+        // same way \`Stream\` itself is.
+        export {
+            StreamOptions,
+            ReadableOptions,
+            WritableOptions,
+            DuplexOptions,
+            TransformOptions,
+            TransformCallback,
+            OperatorOptions,
+            ReadableIteratorOptions,
+            ReadableOperatorOptions,
+            ReadableAsyncIterator,
+            ReadableEventMap,
+            WritableEventMap,
+        };
+    }
+
+    namespace Stream {
+        /** @description A stream data source (the Node Readable interface) */
+        class Readable<T = any> extends Stream {
+            constructor(options?: ReadableOptions<any>);
+
+            /** Whether the stream can still be read from. */
+            readable: boolean;
+
+            /** The configured buffer size of the readable side. */
+            readonly readableHighWaterMark: number;
+
+            /**
+             * Adds a chunk of data to the internal queue; \`null\` signals the end
+             * of the stream (after the chunks already buffered were handed out).
+             */
+            push(chunk: T | null, encoding?: string): boolean;
+
+            /** Puts a chunk back at the front of the internal queue. */
+            unshift(chunk: T, encoding?: string): void;
+
+            /**
+             * Pulls data out of the internal queue; \`null\` means "nothing is
+             * ready yet" - the stream emits 'readable' when it is.
+             */
+            read(size?: number): T | null;
+
+            /** Switches the stream to an encoding (\`'utf8'\`, \`'hex'\`, ...). */
+            setEncoding(encoding: string): this;
+
+            /** Resumes emitting 'data' events. */
+            resume(): this;
+
+            /** Stops emitting 'data' events. */
+            pause(): this;
+
+            /** Whether the stream stopped emitting 'data' events. */
+            isPaused(): boolean;
+
+            /** Wraps an old-style stream, forwarding its events. */
+            wrap(stream: any): this;
+
+            /**
+             * The implementation hook of a source: push() what was read, then
+             * \`push(null)\` at the end. Subclasses - or the \`read\` option -
+             * override it.
+             */
+            _read(size: number): void;
+
+            /** The teardown hook; override it to release what the stream holds. */
+            _destroy(error: Error | null, callback: (error?: Error | null) => void): void;
+
+            /**
+             * @description Iterates the chunks: \`for await (const chunk of r)\`
+             *
+             *      Leaving the loop early (break/return/throw) destroys the
+             *      stream unless \`iterator({ destroyOnReturn: false })\` was
+             *      used. An error rejects the pending iteration.
+             */
+            [Symbol.asyncIterator](): ReadableAsyncIterator<T>;
+
+            /** The same iterator, with its options exposed. */
+            iterator(options?: ReadableIteratorOptions): ReadableAsyncIterator<T>;
+
+            /** The listeners on the readable events, with the chunk typed. */
+            on<K extends keyof ReadableEventMap<T>>(event: K, listener: (...args: ReadableEventMap<T>[K]) => void): this;
+            on(ev: any, func: (...args: any[]) => void): FIBJS.GeneralObject;
+            on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+            /** The once form of the typed listeners. */
+            once<K extends keyof ReadableEventMap<T>>(event: K, listener: (...args: ReadableEventMap<T>[K]) => void): this;
+            once(ev: any, func: (...args: any[]) => void): FIBJS.GeneralObject;
+            once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+            /** @description The lazily mapped stream of the chunks */
+            map<U = any>(fn: (data: T, options?: OperatorOptions) => U | Promise<U>, options?: ReadableOperatorOptions): Readable<U>;
+
+            /** @description The chunks the predicate accepts */
+            filter(fn: (data: T, options?: OperatorOptions) => boolean | Promise<boolean>, options?: ReadableOperatorOptions): Readable<T>;
+
+            /** @description The flattened stream of the iterables the callback returns */
+            flatMap<U = any>(fn: (data: T, options?: OperatorOptions) => Iterable<U> | AsyncIterable<U>, options?: ReadableOperatorOptions): Readable<U>;
+
+            /** @description Skips the first \`n\` chunks */
+            drop(n: number, options?: ReadableOperatorOptions): Readable<T>;
+
+            /** @description Stops after the first \`n\` chunks */
+            take(n: number, options?: ReadableOperatorOptions): Readable<T>;
+
+            /** @description Collects every chunk (the promise of the array) */
+            toArray(options?: ReadableOperatorOptions): Promise<T[]>;
+
+            /** @description Runs the callback for every chunk */
+            forEach(fn: (data: T, options?: OperatorOptions) => void | Promise<void>, options?: ReadableOperatorOptions): Promise<void>;
+
+            /** @description Whether the predicate accepts any chunk */
+            some(fn: (data: T, options?: OperatorOptions) => boolean | Promise<boolean>, options?: ReadableOperatorOptions): Promise<boolean>;
+
+            /** @description Whether the predicate accepts every chunk */
+            every(fn: (data: T, options?: OperatorOptions) => boolean | Promise<boolean>, options?: ReadableOperatorOptions): Promise<boolean>;
+
+            /** @description The first chunk the predicate accepts */
+            find(fn: (data: T, options?: OperatorOptions) => boolean | Promise<boolean>, options?: ReadableOperatorOptions): Promise<T | undefined>;
+
+            /**
+             * @description Folds the chunks into one value
+             *
+             *      Without \`initial\` the first chunk is the initial value; an
+             *      empty stream then rejects with ERR_MISSING_ARGS, the way
+             *      Node's reduce does.
+             */
+            reduce(fn: (previous: any, data: T) => any, initial?: any): Promise<any>;
+
+            /**
+             * @description Creates a readable from an iterable or an async
+             *      iterable (\`Readable.from(async function* () { ... }())\`)
+             */
+            static from<T = any>(iterable: Iterable<T> | AsyncIterable<T>, options?: ReadableOptions<any>): Readable<T>;
+
+            /** @description Creates a readable from a Web ReadableStream */
+            static fromWeb<T = any>(readableStream: any, options?: ReadableOptions<any>): Readable<T>;
+        }
+
+        /** @description A stream data destination (the Node Writable interface) */
+        class Writable<T = any> extends Stream {
+            constructor(options?: WritableOptions<any>);
+
+            /** Whether the stream can still be written to. */
+            writable: boolean;
+
+            /** The configured buffer size of the writable side. */
+            readonly writableHighWaterMark: number;
+
+            /**
+             * Writes a chunk; the callback runs when the chunk is flushed. It
+             * returns false when the internal buffer is full - wait for 'drain'
+             * before writing more.
+             */
+            write(chunk: T, encoding?: string | ((error?: Error | null) => void), callback?: (error?: Error | null) => void): boolean;
+
+            /** Flushes the stream; the callback runs when 'finish' fires. */
+            end(chunk?: T, encoding?: string | (() => void), callback?: () => void): this;
+
+            /** Buffers every write until uncork(). */
+            cork(): void;
+
+            /** Flushes what cork() buffered. */
+            uncork(): void;
+
+            /** Sets the encoding end() defaults to. */
+            setDefaultEncoding(encoding: string): this;
+
+            /** The implementation hook of a destination. */
+            _write(chunk: T, encoding: string, callback: (error?: Error | null) => void): void;
+
+            /** The batch form of _write, used when one is installed. */
+            _writev?(chunks: { chunk: T; encoding: string }[], callback: (error?: Error | null) => void): void;
+
+            /** The hook called once before 'finish'. */
+            _final(callback: (error?: Error | null) => void): void;
+
+            /** The teardown hook; override it to release what the stream holds. */
+            _destroy(error: Error | null, callback: (error?: Error | null) => void): void;
+
+            /** The listeners on the writable events, with the chunk typed. */
+            on<K extends keyof WritableEventMap<T>>(event: K, listener: (...args: WritableEventMap<T>[K]) => void): this;
+            on(ev: any, func: (...args: any[]) => void): FIBJS.GeneralObject;
+            on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+            /** The once form of the typed listeners. */
+            once<K extends keyof WritableEventMap<T>>(event: K, listener: (...args: WritableEventMap<T>[K]) => void): this;
+            once(ev: any, func: (...args: any[]) => void): FIBJS.GeneralObject;
+            once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+        }
+
+        /** @description A stream that is both readable and writable */
+        class Duplex<T = any> extends Readable<T> {
+            constructor(options?: DuplexOptions<any>);
+
+            /** Whether the writable side stays open when the readable side ends. */
+            allowHalfOpen: boolean;
+
+            /** Whether the writable side can still be written to. */
+            writable: boolean;
+
+            /** The configured buffer size of the writable side. */
+            readonly writableHighWaterMark: number;
+
+            /** The listeners of both sides, with the chunk typed. */
+            on<K extends keyof (ReadableEventMap<T> & WritableEventMap<T>)>(event: K, listener: (...args: (ReadableEventMap<T> & WritableEventMap<T>)[K]) => void): this;
+            on(ev: any, func: (...args: any[]) => void): FIBJS.GeneralObject;
+            on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+            /** The once form of the typed listeners. */
+            once<K extends keyof (ReadableEventMap<T> & WritableEventMap<T>)>(event: K, listener: (...args: (ReadableEventMap<T> & WritableEventMap<T>)[K]) => void): this;
+            once(ev: any, func: (...args: any[]) => void): FIBJS.GeneralObject;
+            once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+            write(chunk: T, encoding?: string | ((error?: Error | null) => void), callback?: (error?: Error | null) => void): boolean;
+            end(chunk?: T, encoding?: string | (() => void), callback?: () => void): this;
+            cork(): void;
+            uncork(): void;
+            setDefaultEncoding(encoding: string): this;
+            _write(chunk: T, encoding: string, callback: (error?: Error | null) => void): void;
+            _writev?(chunks: { chunk: T; encoding: string }[], callback: (error?: Error | null) => void): void;
+            _final(callback: (error?: Error | null) => void): void;
+        }
+
+        /**
+         * @description A duplex stream that transforms what is written to it
+         *
+         *      Subclasses implement \`_transform(chunk, encoding, callback)\` and
+         *      optionally \`_flush(callback)\`; both can also be given to the
+         *      constructor (the \`transform\`/\`flush\` options).
+         */
+        class Transform<T = any> extends Duplex<T> {
+            constructor(options?: TransformOptions<any>);
+
+            /** Pushes a transformed chunk onto the readable side. */
+            push(chunk: T | null, encoding?: string): boolean;
+
+            /** The implementation hook: transform the chunk, then answer. */
+            _transform(chunk: T, encoding: string, callback: TransformCallback): void;
+
+            /** The hook called once before the readable side ends. */
+            _flush(callback: TransformCallback): void;
+        }
+
+        /** @description A Transform that passes the data through unchanged */
+        class PassThrough<T = any> extends Transform<T> {
+            constructor(options?: TransformOptions<any>);
+        }
+
+        /**
+         * @description Pipes a chain of streams
+         *
+         *      With a trailing callback it reports completion through it and
+         *      returns the first stream; without one it returns the Promise of
+         *      \`stream/promises\`'s pipeline.
+         */
+        function pipeline(...streams: any[]): Promise<void> | any;
+
+        /**
+         * @description Waits until a stream is finished
+         *
+         *      With a trailing callback it reports through it and returns a
+         *      cleanup function; without one it returns the Promise of
+         *      \`stream/promises\`'s finished.
+         */
+        function finished(stream: any, opts?: FIBJS.GeneralObject | ((error?: Error | null) => void), callback?: (error?: Error | null) => void): Promise<void> | (() => void);
+
+        /**
+         * @description Binds an AbortSignal to a stream
+         *
+         *      Node's \`stream.addAbortSignal(signal, stream)\`: aborting the
+         *      signal destroys the stream - immediately when it is already
+         *      aborted. Returns the stream, so the call chains. Available as the
+         *      method \`stream.addAbortSignal(signal)\` as well.
+         */
+        function addAbortSignal<T extends Readable | Writable>(signal: Class_AbortSignal, stream: T): T;
+
+        /** The promise-flavoured helpers: the same object as \`stream/promises\`. */
+        const promises: typeof import('stream/promises');
+
+        /** Internal, kept for compatibility with code probing the Node internals. */
+        const _isUint8Array: (obj: any) => boolean;
+        const _uint8ArrayToBuffer: (chunk: Uint8Array) => Class_Buffer;
+    }
+
+    export = Stream;
+}
+`,
+        "dts/module/stream.promises.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+// Hand-written \`stream/promises\` module (no IDL unit:
+// fibjs/scripts/stream/promises.js).
+
+declare module 'stream/promises' {
+    /**
+     * @description Waits until a stream is no longer readable, writable, or has
+     *      errored
+     *
+     *      Resolves when the stream finishes ('finish'/'end'), rejects on
+     *      'error' and on a premature 'close' of a destroyed stream. An
+     *      \`opts.signal\` aborts the wait.
+     */
+    function finished(stream: any, opts?: { signal?: Class_AbortSignal }): Promise<void>;
+
+    /**
+     * @description Pipes a chain of streams to completion
+     *
+     *      At least two streams are required; an error anywhere in the chain
+     *      destroys the rest and rejects. A trailing
+     *      \`{ signal: AbortSignal }\` option aborts the pipeline.
+     */
+    function pipeline(...streams: any[]): Promise<void>;
+
+    export { finished, pipeline };
+}
+`,
+        "dts/module/stream_web.d.ts": `// Hand-written \`stream/web\` module (no IDL unit: fibjs/scripts/stream/web.js
+// re-exports fibjs/scripts/internal/webstream.js, which also installs these on
+// globalThis).
+//
+// The classes are the WHATWG Streams Standard implementation; the declaration
+// below keeps that shape (Node's \`node:stream/web\` exports exactly this set).
+// It is hand-written rather than deferring to the DOM lib because the fibjs
+// checker runs an es-only default lib where these globals do not exist.
+
+declare module 'stream/web' {
+    /**
+     * @description The result of one reader read()
+     *
+     *      The discriminating union the standard defines: \`done: false\`
+     *      carries the chunk, \`done: true\` closes the iteration (and Node puts
+     *      no \`value\` there).
+     */
+    type ReadableStreamReadResult<T> = { done: false; value: T } | { done: true; value?: undefined };
+
+    /**
+     * @description The source callbacks a ReadableStream is built from
+     *
+     *      \`start\`/\`pull\`/\`cancel\` receive the controller, which is what
+     *      enqueues chunks - typing it is what makes
+     *      \`new ReadableStream({ start(c) { c.enqueue('x'); c.close(); } })\`
+     *      check the chunk type.
+     */
+    interface UnderlyingSource<R = any> {
+        /** The stream kind; 'bytes' installs the BYOB machinery. */
+        type?: 'bytes' | undefined;
+
+        /** How many bytes one BYOB request allocates at least. */
+        autoAllocateChunkSize?: number;
+
+        /** Runs once, when the stream is built. */
+        start?: (controller: ReadableStreamDefaultController<R>) => void | Promise<void>;
+
+        /** Runs when the internal queue needs more data. */
+        pull?: (controller: ReadableStreamDefaultController<R>) => void | Promise<void>;
+
+        /** Runs when the consumer cancels the stream. */
+        cancel?: (reason?: any) => void | Promise<void>;
+    }
+
+    /**
+     * @description The sink callbacks a WritableStream is built from
+     */
+    interface UnderlyingSink<W = any> {
+        /** Runs once, when the stream is built. */
+        start?: (controller: WritableStreamDefaultController) => void | Promise<void>;
+
+        /** Consumes one chunk. */
+        write?: (chunk: W, controller: WritableStreamDefaultController) => void | Promise<void>;
+
+        /** Runs when the stream is closed. */
+        close?: () => void | Promise<void>;
+
+        /** Runs when the consumer aborts the stream. */
+        abort?: (reason?: any) => void | Promise<void>;
+    }
+
+    /**
+     * @description The callbacks a TransformStream is built from
+     */
+    interface Transformer<I = any, O = any> {
+        /** Runs once, when the stream is built. */
+        start?: (controller: TransformStreamDefaultController<O>) => void | Promise<void>;
+
+        /** Turns one written chunk into zero or more readable chunks. */
+        transform?: (chunk: I, controller: TransformStreamDefaultController<O>) => void | Promise<void>;
+
+        /** Runs when the writable side closes, after the last transform. */
+        flush?: (controller: TransformStreamDefaultController<O>) => void | Promise<void>;
+
+        /** Runs when the readable side is cancelled. */
+        cancel?: (reason?: any) => void | Promise<void>;
+    }
+
+    /** @description A source of streaming data (the WHATWG ReadableStream) */
+    class ReadableStream<R = any> {
+        constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
+
+        /** Whether the stream already has a reader. */
+        readonly locked: boolean;
+
+        /** Cancels the stream. */
+        cancel(reason?: any): Promise<void>;
+
+        /** Takes the BYOB (byte-oriented) reader. */
+        getReader(options: { mode: 'byob' }): ReadableStreamBYOBReader;
+
+        /** Takes the default reader. */
+        getReader(options?: { mode?: undefined }): ReadableStreamDefaultReader<R>;
+
+        /** Passes the stream through a transform pair. */
+        pipeThrough<O = any>(transform: { readable: ReadableStream<O>; writable: WritableStream<R> }, options?: any): ReadableStream<O>;
+
+        /** Pipes the stream into a writable stream. */
+        pipeTo(destination: WritableStream<R>, options?: any): Promise<void>;
+
+        /** Splits the stream into two independent copies. */
+        tee(): [ReadableStream<R>, ReadableStream<R>];
+
+        /** The async iterator over the chunks. */
+        values(options?: any): AsyncIterableIterator<R>;
+
+        [Symbol.asyncIterator](): AsyncIterableIterator<R>;
+    }
+
+    /** @description Reads the chunks of a ReadableStream */
+    class ReadableStreamDefaultReader<R = any> {
+        constructor(stream: ReadableStream<R>);
+
+        /** Resolves when the stream closes. */
+        readonly closed: Promise<void>;
+
+        /** Takes the next chunk (\`{ value, done }\`). */
+        read(): Promise<ReadableStreamReadResult<R>>;
+
+        /** Releases the reader, so another one can take over. */
+        releaseLock(): void;
+
+        /** Cancels the stream. */
+        cancel(reason?: any): Promise<void>;
+    }
+
+    /** @description Controls a ReadableStream from the inside */
+    class ReadableStreamDefaultController<R = any> {
+        /** How much more the stream wants, or null when it does not. */
+        readonly desiredSize: number | null;
+
+        /** Closes the stream. */
+        close(): void;
+
+        /** Enqueues a chunk. */
+        enqueue(chunk?: R): void;
+
+        /** Errors the stream. */
+        error(reason?: any): void;
+    }
+
+    /** @description Reads a byte-oriented ReadableStream */
+    class ReadableStreamBYOBReader<R = any> {
+        constructor(stream: ReadableStream<R>);
+
+        /** Resolves when the stream closes. */
+        readonly closed: Promise<void>;
+
+        /** Reads into the given view. */
+        read(view: ArrayBufferView): Promise<ReadableStreamReadResult<ArrayBufferView>>;
+
+        /** Releases the reader. */
+        releaseLock(): void;
+
+        /** Cancels the stream. */
+        cancel(reason?: any): Promise<void>;
+    }
+
+    /** @description Controls a byte-oriented ReadableStream from the inside */
+    class ReadableByteStreamController {
+        /** The pending BYOB request, or null. */
+        readonly byobRequest: ReadableStreamBYOBRequest | null;
+
+        /** How much more the stream wants, or null when it does not. */
+        readonly desiredSize: number | null;
+
+        close(): void;
+        enqueue(chunk: ArrayBufferView): void;
+        error(reason?: any): void;
+    }
+
+    /** @description A pending read into a caller-supplied buffer */
+    class ReadableStreamBYOBRequest {
+        /** The view the caller supplied. */
+        readonly view: ArrayBufferView | null;
+
+        /** Answers the request with \`bytesWritten\`. */
+        respond(bytesWritten: number): void;
+
+        /** Answers the request with a different view. */
+        respondWithNewView(view: ArrayBufferView): void;
+    }
+
+    /** @description A destination for streaming data (the WHATWG WritableStream) */
+    class WritableStream<W = any> {
+        constructor(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>);
+
+        /** Whether the stream already has a writer. */
+        readonly locked: boolean;
+
+        /** Aborts the stream. */
+        abort(reason?: any): Promise<void>;
+
+        /** Closes the stream. */
+        close(): Promise<void>;
+
+        /** Takes a writer. */
+        getWriter(): WritableStreamDefaultWriter<W>;
+    }
+
+    /** @description Writes into a WritableStream */
+    class WritableStreamDefaultWriter<W = any> {
+        constructor(stream: WritableStream<W>);
+
+        /** Resolves when the stream closes. */
+        readonly closed: Promise<void>;
+
+        /** How much more the stream wants, or null when it does not. */
+        readonly desiredSize: number | null;
+
+        /** Resolves when the internal queue drains. */
+        readonly ready: Promise<void>;
+
+        abort(reason?: any): Promise<void>;
+        close(): Promise<void>;
+        releaseLock(): void;
+        write(chunk?: W): Promise<void>;
+    }
+
+    /** @description Controls a WritableStream from the inside */
+    class WritableStreamDefaultController {
+        /** The AbortSignal given to the sink's start(). */
+        readonly signal: Class_AbortSignal;
+
+        /** Errors the stream. */
+        error(reason?: any): void;
+    }
+
+    /** @description A pair of transform streams (the WHATWG TransformStream) */
+    class TransformStream<I = any, O = any> {
+        constructor(transformer?: Transformer<I, O>, writableStrategy?: QueuingStrategy<I>, readableStrategy?: QueuingStrategy<O>);
+
+        /** The output side. */
+        readonly readable: ReadableStream<O>;
+
+        /** The input side. */
+        readonly writable: WritableStream<I>;
+    }
+
+    /** @description Controls a TransformStream from the inside */
+    class TransformStreamDefaultController<O = any> {
+        /** How much more the readable side wants. */
+        readonly desiredSize: number | null;
+
+        enqueue(chunk?: O): void;
+        error(reason?: any): void;
+        terminate(): void;
+    }
+
+    /** @description The backpressure model of a stream */
+    interface QueuingStrategy<T = any> {
+        highWaterMark?: number;
+        size?: (chunk: T) => number;
+        [k: string]: any;
+    }
+
+    /** @description Counts the queued chunks as a backpressure measure */
+    class CountQueuingStrategy {
+        constructor(init: { highWaterMark: number });
+        size(chunk: any): number;
+    }
+
+    /** @description Measures the queued chunks in bytes for backpressure */
+    class ByteLengthQueuingStrategy {
+        constructor(init: { highWaterMark: number });
+        size(chunk: ArrayBufferView | ArrayBufferLike): number;
+    }
+
+    export {
+        ReadableStream,
+        ReadableStreamDefaultReader,
+        ReadableStreamDefaultController,
+        ReadableStreamBYOBReader,
+        ReadableByteStreamController,
+        ReadableStreamBYOBRequest,
+        WritableStream,
+        WritableStreamDefaultWriter,
+        WritableStreamDefaultController,
+        TransformStream,
+        TransformStreamDefaultController,
+        QueuingStrategy,
+        CountQueuingStrategy,
+        ByteLengthQueuingStrategy,
+        ReadableStreamReadResult,
+        UnderlyingSource,
+        UnderlyingSink,
+        Transformer,
+    };
+}
 `,
         "dts/module/string_decoder.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/StringDecoder.d.ts" />
@@ -108927,6 +110525,8 @@ declare module 'string_decoder' {
      *
      */
     const StringDecoder: typeof Class_StringDecoder;
+
+    type StringDecoder = Class_StringDecoder;
 
 }
 
@@ -110935,6 +112535,37 @@ declare module 'timers' {
 }
 
 `,
+        "dts/module/timers.promises.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+// Hand-written \`timers/promises\` module (no IDL unit:
+// fibjs/scripts/timers/promises.js).
+
+declare module 'timers/promises' {
+    /** The options both helpers accept: aborting the signal rejects with AbortError. */
+    interface TimerOptions {
+        signal?: Class_AbortSignal;
+        ref?: boolean;
+    }
+
+    /**
+     * @description Resolves with \`value\` after \`delay\` milliseconds (default 1)
+     *
+     *      An already-aborted \`options.signal\` rejects immediately; aborting it
+     *      later rejects the pending Promise with the signal's reason (an
+     *      AbortError by default).
+     */
+    function setTimeout<T = void>(delay?: number, value?: T, options?: TimerOptions): Promise<T>;
+
+    /**
+     * @description Resolves with \`value\` on the next iteration of the event loop
+     *
+     *      Same abort semantics as setTimeout. fibjs also uses it to yield to
+     *      the fiber scheduler, so \`await setImmediate()\` lets other fibers run.
+     */
+    function setImmediate<T = void>(value?: T, options?: TimerOptions): Promise<T>;
+
+    export { setTimeout, setImmediate, TimerOptions };
+}
+`,
         "dts/module/tls.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/TLSSocket.d.ts" />
 /// <reference path="../interface/TLSHandler.d.ts" />
@@ -111145,6 +112776,8 @@ declare module 'tls' {
      */
     const TLSSocket: typeof Class_TLSSocket;
 
+    type TLSSocket = Class_TLSSocket;
+
     /**
      * @description The TLSHandler class entry point, see TLSHandler
      *
@@ -111153,6 +112786,8 @@ declare module 'tls' {
      *
      */
     const Handler: typeof Class_TLSHandler;
+
+    type Handler = Class_TLSHandler;
 
     /**
      * @description The TLSServer class entry point, see TLSServer
@@ -111163,6 +112798,8 @@ declare module 'tls' {
      *
      */
     const Server: typeof Class_TLSServer;
+
+    type Server = Class_TLSServer;
 
     /**
      * @description Creates a TLS server from a secure context or the options used to create one
@@ -111857,6 +113494,8 @@ declare module 'tls/promises' {
      */
     const TLSSocket: typeof Class_TLSSocket;
 
+    type TLSSocket = Class_TLSSocketPromise;
+
     /**
      * @description The TLSHandler class entry point, see TLSHandler
      *
@@ -111865,6 +113504,8 @@ declare module 'tls/promises' {
      *
      */
     const Handler: typeof Class_TLSHandler;
+
+    type Handler = Class_TLSHandlerPromise;
 
     /**
      * @description The TLSServer class entry point, see TLSServer
@@ -111875,6 +113516,8 @@ declare module 'tls/promises' {
      *
      */
     const Server: typeof Class_TLSServer;
+
+    type Server = Class_TLSServerPromise;
 
     /**
      * @description Creates a TLS server from a secure context or the options used to create one
@@ -112659,6 +114302,8 @@ declare module 'tty' {
      */
     const ReadStream: typeof Class_TTYInputStream;
 
+    type ReadStream = Class_TTYInputStream;
+
     /**
      * @description The TTYOutputStream class, see TTYOutputStream
      *
@@ -112668,6 +114313,8 @@ declare module 'tty' {
      *
      */
     const WriteStream: typeof Class_TTYOutputStream;
+
+    type WriteStream = Class_TTYOutputStream;
 
     /**
      * @description Queries whether a descriptor is attached to a terminal
@@ -112825,7 +114472,7 @@ declare module 'tty' {
  *   \`require('util/types')\` alias.
  *
  */
-declare module 'types' {
+declare module 'util/types' {
     /**
      * @description Checks whether a value counts as empty
      *
@@ -113861,6 +115508,8 @@ declare module 'url' {
      */
     const URL: typeof Class_UrlObject;
 
+    type URL = Class_UrlObject;
+
     /**
      * @description The WHATWG URLSearchParams class, re-exported from the global scope
      *
@@ -113871,6 +115520,8 @@ declare module 'url' {
      *
      */
     const URLSearchParams: typeof Class_URLSearchParams;
+
+    type URLSearchParams = Class_URLSearchParams;
 
     /**
      * @description Converts a file URL into a platform-specific file path
@@ -114088,6 +115739,8 @@ declare module 'util' {
      */
     const TextDecoder: typeof Class_TextDecoder;
 
+    type TextDecoder = Class_TextDecoder;
+
     /**
      * @description The WHATWG TextEncoder class, re-exported for convenience
      *
@@ -114097,6 +115750,8 @@ declare module 'util' {
      */
     const TextEncoder: typeof Class_TextEncoder;
 
+    type TextEncoder = Class_TextEncoder;
+
     /**
      * @description Utility functions for built-in type checking, exposed as \`util.types\`
      *
@@ -114104,7 +115759,7 @@ declare module 'util' {
      *      Node.js, the module is not requirable by the name \`types\`; use \`util.types\`.
      *
      */
-    const types: typeof import ('types');
+    const types: typeof import ('util/types');
 
     /**
      * @description Color constants and capability information for console output
@@ -116593,6 +118248,8 @@ declare module 'vm' {
      */
     const SandBox: typeof Class_SandBox;
 
+    type SandBox = Class_SandBox;
+
     /**
      * @description The Script class object, see the Script class
      *
@@ -116601,6 +118258,8 @@ declare module 'vm' {
      *
      */
     const Script: typeof Class_Script;
+
+    type Script = Class_Script;
 
     /**
      * @description Prepares an object as a context and returns it
@@ -116895,6 +118554,8 @@ declare module 'webcrypto' {
      */
     const CryptoKey: typeof Class_CryptoKey;
 
+    type CryptoKey = Class_CryptoKey;
+
     /**
      * @description The SubtleCrypto entry point, see the subtle module
      *
@@ -117044,6 +118705,8 @@ declare module 'worker_threads' {
      */
     const Worker: typeof Class_Worker;
 
+    type Worker = Class_Worker;
+
     /**
      * @description One end of a message channel, see MessagePort
      *
@@ -117053,6 +118716,8 @@ declare module 'worker_threads' {
      */
     const MessagePort: typeof Class_MessagePort;
 
+    type MessagePort = Class_MessagePort;
+
     /**
      * @description A pair of connected MessagePort objects, see MessageChannel
      *
@@ -117061,6 +118726,8 @@ declare module 'worker_threads' {
      *
      */
     const MessageChannel: typeof Class_MessageChannel;
+
+    type MessageChannel = Class_MessageChannel;
 
     /**
      * @description Queries whether the current Worker is the main thread
@@ -117389,6 +119056,8 @@ declare module 'xml' {
      */
     const Document: typeof Class_XmlDocument;
 
+    type Document = Class_XmlDocument;
+
     /**
      * @description The DOMParser class object, used to parse a string into a DOM document
      *
@@ -117396,6 +119065,8 @@ declare module 'xml' {
      *
      */
     const DOMParser: typeof Class_DOMParser;
+
+    type DOMParser = Class_DOMParser;
 
     /**
      * @description Parses XML/HTML data and returns a new XmlDocument
@@ -118354,6 +120025,8 @@ declare module 'zlib' {
      */
     const Gzip: typeof Class_Gzip;
 
+    type Gzip = Class_Gzip;
+
     /**
      * @description The Gunzip codec class, see Gunzip
      *
@@ -118363,6 +120036,8 @@ declare module 'zlib' {
      *
      */
     const Gunzip: typeof Class_Gunzip;
+
+    type Gunzip = Class_Gunzip;
 
     /**
      * @description The Deflate codec class, see Deflate
@@ -118374,6 +120049,8 @@ declare module 'zlib' {
      */
     const Deflate: typeof Class_Deflate;
 
+    type Deflate = Class_Deflate;
+
     /**
      * @description The Inflate codec class, see Inflate
      *
@@ -118383,6 +120060,8 @@ declare module 'zlib' {
      *
      */
     const Inflate: typeof Class_Inflate;
+
+    type Inflate = Class_Inflate;
 
     /**
      * @description The DeflateRaw codec class, see DeflateRaw
@@ -118394,6 +120073,8 @@ declare module 'zlib' {
      */
     const DeflateRaw: typeof Class_DeflateRaw;
 
+    type DeflateRaw = Class_DeflateRaw;
+
     /**
      * @description The InflateRaw codec class, see InflateRaw
      *
@@ -118404,6 +120085,8 @@ declare module 'zlib' {
      */
     const InflateRaw: typeof Class_InflateRaw;
 
+    type InflateRaw = Class_InflateRaw;
+
     /**
      * @description The Unzip codec class, see Unzip
      *
@@ -118413,6 +120096,8 @@ declare module 'zlib' {
      *
      */
     const Unzip: typeof Class_Unzip;
+
+    type Unzip = Class_Unzip;
 
     /**
      * @description Creates a zlib-format compressor that writes into \`to\`
@@ -119976,6 +121661,8 @@ declare module 'zlib/promises' {
      */
     const Gzip: typeof Class_Gzip;
 
+    type Gzip = Class_Gzip;
+
     /**
      * @description The Gunzip codec class, see Gunzip
      *
@@ -119985,6 +121672,8 @@ declare module 'zlib/promises' {
      *
      */
     const Gunzip: typeof Class_Gunzip;
+
+    type Gunzip = Class_Gunzip;
 
     /**
      * @description The Deflate codec class, see Deflate
@@ -119996,6 +121685,8 @@ declare module 'zlib/promises' {
      */
     const Deflate: typeof Class_Deflate;
 
+    type Deflate = Class_Deflate;
+
     /**
      * @description The Inflate codec class, see Inflate
      *
@@ -120005,6 +121696,8 @@ declare module 'zlib/promises' {
      *
      */
     const Inflate: typeof Class_Inflate;
+
+    type Inflate = Class_Inflate;
 
     /**
      * @description The DeflateRaw codec class, see DeflateRaw
@@ -120016,6 +121709,8 @@ declare module 'zlib/promises' {
      */
     const DeflateRaw: typeof Class_DeflateRaw;
 
+    type DeflateRaw = Class_DeflateRaw;
+
     /**
      * @description The InflateRaw codec class, see InflateRaw
      *
@@ -120026,6 +121721,8 @@ declare module 'zlib/promises' {
      */
     const InflateRaw: typeof Class_InflateRaw;
 
+    type InflateRaw = Class_InflateRaw;
+
     /**
      * @description The Unzip codec class, see Unzip
      *
@@ -120035,6 +121732,8 @@ declare module 'zlib/promises' {
      *
      */
     const Unzip: typeof Class_Unzip;
+
+    type Unzip = Class_Unzip;
 
     /**
      * @description Creates a zlib-format compressor that writes into \`to\`
@@ -121958,6 +123657,8 @@ declare module "fibjs:base58" { export * from "base58"; }
 declare module "node:base58" { export * from "base58"; }
 declare module "fibjs:base64" { export * from "base64"; }
 declare module "node:base64" { export * from "base64"; }
+declare module "fibjs:buffer" { export * from "buffer"; }
+declare module "node:buffer" { export * from "buffer"; }
 declare module "fibjs:child_process" { export * from "child_process"; }
 declare module "node:child_process" { export * from "child_process"; }
 declare module "fibjs:child_process/promises" { export * from "child_process/promises"; }
@@ -121982,12 +123683,16 @@ declare module "fibjs:db/promises" { export * from "db/promises"; }
 declare module "node:db/promises" { export * from "db/promises"; }
 declare module "fibjs:dgram" { export * from "dgram"; }
 declare module "node:dgram" { export * from "dgram"; }
+declare module "fibjs:diagnostics_channel" { export * from "diagnostics_channel"; }
+declare module "node:diagnostics_channel" { export * from "diagnostics_channel"; }
 declare module "fibjs:dns" { export * from "dns"; }
 declare module "node:dns" { export * from "dns"; }
 declare module "fibjs:dns/promises" { export * from "dns/promises"; }
 declare module "node:dns/promises" { export * from "dns/promises"; }
 declare module "fibjs:encoding" { export * from "encoding"; }
 declare module "node:encoding" { export * from "encoding"; }
+declare module "fibjs:events" { export * from "events"; }
+declare module "node:events" { export * from "events"; }
 declare module "fibjs:fs" { export * from "fs"; }
 declare module "node:fs" { export * from "fs"; }
 declare module "fibjs:fs/promises" { export * from "fs/promises"; }
@@ -122006,6 +123711,8 @@ declare module "fibjs:http2" { export * from "http2"; }
 declare module "node:http2" { export * from "http2"; }
 declare module "fibjs:http2/promises" { export * from "http2/promises"; }
 declare module "node:http2/promises" { export * from "http2/promises"; }
+declare module "fibjs:https" { import https = require("https"); export = https; }
+declare module "node:https" { import https = require("https"); export = https; }
 declare module "fibjs:io" { export * from "io"; }
 declare module "node:io" { export * from "io"; }
 declare module "fibjs:io/promises" { export * from "io/promises"; }
@@ -122032,6 +123739,10 @@ declare module "fibjs:os" { export * from "os"; }
 declare module "node:os" { export * from "os"; }
 declare module "fibjs:path" { export * from "path"; }
 declare module "node:path" { export * from "path"; }
+declare module "fibjs:path/posix" { export * from "path/posix"; }
+declare module "node:path/posix" { export * from "path/posix"; }
+declare module "fibjs:path/win32" { export * from "path/win32"; }
+declare module "node:path/win32" { export * from "path/win32"; }
 declare module "fibjs:perf_hooks" { export * from "perf_hooks"; }
 declare module "node:perf_hooks" { export * from "perf_hooks"; }
 declare module "fibjs:process" { export * from "process"; }
@@ -122040,22 +123751,36 @@ declare module "fibjs:punycode" { export * from "punycode"; }
 declare module "node:punycode" { export * from "punycode"; }
 declare module "fibjs:querystring" { export * from "querystring"; }
 declare module "node:querystring" { export * from "querystring"; }
+declare module "fibjs:readline" { export * from "readline"; }
+declare module "node:readline" { export * from "readline"; }
+declare module "fibjs:readline/promises" { export * from "readline/promises"; }
+declare module "node:readline/promises" { export * from "readline/promises"; }
 declare module "fibjs:rtc" { export * from "rtc"; }
 declare module "node:rtc" { export * from "rtc"; }
 declare module "fibjs:sse" { export * from "sse"; }
 declare module "node:sse" { export * from "sse"; }
+declare module "fibjs:stream" { import stream = require("stream"); export = stream; }
+declare module "node:stream" { import stream = require("stream"); export = stream; }
+declare module "fibjs:stream/promises" { export * from "stream/promises"; }
+declare module "node:stream/promises" { export * from "stream/promises"; }
+declare module "fibjs:stream/web" { export * from "stream/web"; }
+declare module "node:stream/web" { export * from "stream/web"; }
 declare module "fibjs:string_decoder" { export * from "string_decoder"; }
 declare module "node:string_decoder" { export * from "string_decoder"; }
 declare module "fibjs:test" { import test = require("test"); export = test; }
 declare module "node:test" { import test = require("test"); export = test; }
 declare module "fibjs:timers" { export * from "timers"; }
 declare module "node:timers" { export * from "timers"; }
+declare module "fibjs:timers/promises" { export * from "timers/promises"; }
+declare module "node:timers/promises" { export * from "timers/promises"; }
 declare module "fibjs:tls" { export * from "tls"; }
 declare module "node:tls" { export * from "tls"; }
 declare module "fibjs:tls/promises" { export * from "tls/promises"; }
 declare module "node:tls/promises" { export * from "tls/promises"; }
 declare module "fibjs:tty" { export * from "tty"; }
 declare module "node:tty" { export * from "tty"; }
+declare module "fibjs:util/types" { export * from "util/types"; }
+declare module "node:util/types" { export * from "util/types"; }
 declare module "fibjs:url" { export * from "url"; }
 declare module "node:url" { export * from "url"; }
 declare module "fibjs:util" { export * from "util"; }

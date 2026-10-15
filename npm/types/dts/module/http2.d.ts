@@ -209,6 +209,8 @@ declare module 'http2' {
      */
     const Server: typeof Class_Http2Server;
 
+    type Server = Class_Http2Server;
+
     /**
      * @description creates an Http2Server from TLS options or a SecureContext
      *
@@ -494,6 +496,8 @@ declare module 'http2' {
      */
     const Http2Stream: typeof Class_Http2Stream;
 
+    type Http2Stream = Class_Http2Stream;
+
     /**
      * @description the Http2Session class, see Http2Session
      *
@@ -503,6 +507,8 @@ declare module 'http2' {
      *
      */
     const Http2Session: typeof Class_Http2Session;
+
+    type Http2Session = Class_Http2Session;
 
     /**
      * @description the nghttp2 constants of the http2 module, see http2_constants

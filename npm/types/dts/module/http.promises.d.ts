@@ -26,6 +26,8 @@ declare module 'http/promises' {
      */
     const Request: typeof Class_HttpRequest;
 
+    type Request = Class_HttpRequestPromise;
+
     /**
      * @description Compatibility alias, equivalent to HttpRequest
      *
@@ -34,6 +36,8 @@ declare module 'http/promises' {
      *
      */
     const IncomingMessage: typeof Class_HttpRequest;
+
+    type IncomingMessage = Class_HttpRequestPromise;
 
     /**
      * @description The HttpResponse class, used to create response objects
@@ -46,6 +50,8 @@ declare module 'http/promises' {
      */
     const Response: typeof Class_HttpResponse;
 
+    type Response = Class_HttpResponsePromise;
+
     /**
      * @description Compatibility alias, equivalent to HttpResponse
      *
@@ -54,6 +60,8 @@ declare module 'http/promises' {
      *
      */
     const ServerResponse: typeof Class_HttpResponse;
+
+    type ServerResponse = Class_HttpResponsePromise;
 
     /**
      * @description The Headers class, a case-insensitive name/value collection
@@ -66,6 +74,8 @@ declare module 'http/promises' {
      */
     const Headers: typeof Class_Headers;
 
+    type Headers = Class_Headers;
+
     /**
      * @description The HttpCookie class, used to create cookie objects
      *
@@ -75,6 +85,8 @@ declare module 'http/promises' {
      *
      */
     const Cookie: typeof Class_HttpCookie;
+
+    type Cookie = Class_HttpCookie;
 
     /**
      * @description The HttpServer class, used to create HTTP servers
@@ -87,6 +99,8 @@ declare module 'http/promises' {
      */
     const Server: typeof Class_HttpServer;
 
+    type Server = Class_HttpServerPromise;
+
     /**
      * @description The HttpClient class, used to create independent HTTP clients
      *
@@ -98,6 +112,8 @@ declare module 'http/promises' {
      */
     const Client: typeof Class_HttpClient;
 
+    type Client = Class_HttpClientPromise;
+
     /**
      * @description Compatibility alias, equivalent to HttpClient
      *
@@ -108,6 +124,8 @@ declare module 'http/promises' {
      */
     const Agent: typeof Class_HttpClient;
 
+    type Agent = Class_HttpClientPromise;
+
     /**
      * @description The HttpsServer class, used to create HTTPS servers
      *
@@ -116,6 +134,8 @@ declare module 'http/promises' {
      *
      */
     const HttpsServer: typeof Class_HttpsServer;
+
+    type HttpsServer = Class_HttpsServerPromise;
 
     /**
      * @description Creates an http server
@@ -182,6 +202,8 @@ declare module 'http/promises' {
      */
     const Handler: typeof Class_HttpHandler;
 
+    type Handler = Class_HttpHandlerPromise;
+
     /**
      * @description Creates an http request repeater object, see HttpRepeater
      *
@@ -190,6 +212,8 @@ declare module 'http/promises' {
      *
      */
     const Repeater: typeof Class_HttpRepeater;
+
+    type Repeater = Class_HttpRepeaterPromise;
 
     /**
      * @description Returns the collection of standard HTTP response status codes and their short descriptions

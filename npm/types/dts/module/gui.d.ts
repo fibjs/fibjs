@@ -120,6 +120,8 @@ declare module 'gui' {
      */
     const WebView: typeof Class_WebView;
 
+    type WebView = Class_WebView;
+
     /**
      * @description Opens a window and visits the specified url
      *

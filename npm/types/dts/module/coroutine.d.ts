@@ -186,6 +186,8 @@ declare module 'coroutine' {
      */
     const Lock: typeof Class_Lock;
 
+    type Lock = Class_Lock;
+
     /**
      * @description Reference to the Semaphore class
      *
@@ -195,6 +197,8 @@ declare module 'coroutine' {
      *
      */
     const Semaphore: typeof Class_Semaphore;
+
+    type Semaphore = Class_Semaphore;
 
     /**
      * @description Reference to the Condition class
@@ -206,6 +210,8 @@ declare module 'coroutine' {
      */
     const Condition: typeof Class_Condition;
 
+    type Condition = Class_Condition;
+
     /**
      * @description Reference to the Event class
      *
@@ -215,6 +221,8 @@ declare module 'coroutine' {
      *
      */
     const Event: typeof Class_Event;
+
+    type Event = Class_Event;
 
     /**
      * @description Starts a fiber and returns its Fiber object

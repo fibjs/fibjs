@@ -61,6 +61,8 @@ declare module 'perf_hooks' {
      */
     const PerformanceObserver: typeof Class_PerformanceObserver;
 
+    type PerformanceObserver = Class_PerformanceObserver;
+
     /**
      * @description The performance timeline object, identical to the global `performance`, see performance
      *

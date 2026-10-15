@@ -121,6 +121,8 @@ declare module 'worker_threads' {
      */
     const Worker: typeof Class_Worker;
 
+    type Worker = Class_Worker;
+
     /**
      * @description One end of a message channel, see MessagePort
      *
@@ -130,6 +132,8 @@ declare module 'worker_threads' {
      */
     const MessagePort: typeof Class_MessagePort;
 
+    type MessagePort = Class_MessagePort;
+
     /**
      * @description A pair of connected MessagePort objects, see MessageChannel
      *
@@ -138,6 +142,8 @@ declare module 'worker_threads' {
      *
      */
     const MessageChannel: typeof Class_MessageChannel;
+
+    type MessageChannel = Class_MessageChannel;
 
     /**
      * @description Queries whether the current Worker is the main thread

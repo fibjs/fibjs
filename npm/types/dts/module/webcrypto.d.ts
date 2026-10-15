@@ -160,6 +160,8 @@ declare module 'webcrypto' {
      */
     const CryptoKey: typeof Class_CryptoKey;
 
+    type CryptoKey = Class_CryptoKey;
+
     /**
      * @description The SubtleCrypto entry point, see the subtle module
      *

@@ -176,6 +176,8 @@ declare module 'fs' {
      */
     const Stats: typeof Class_Stat;
 
+    type Stats = Class_Stat;
+
     /**
      * @description The alias of the DirEntry class, see DirEntry
      *
@@ -185,6 +187,8 @@ declare module 'fs' {
      */
     const Dirent: typeof Class_DirEntry;
 
+    type Dirent = Class_DirEntry;
+
     /**
      * @description The alias of the Dir class, see Dir
      *
@@ -193,6 +197,8 @@ declare module 'fs' {
      *
      */
     const Dir: typeof Class_Dir;
+
+    type Dir = Class_Dir;
 
     /**
      * @description Checks whether the given file or directory exists

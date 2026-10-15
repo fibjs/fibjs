@@ -177,6 +177,8 @@ declare module 'sse' {
      */
     const EventSource: typeof Class_EventSource;
 
+    type EventSource = Class_EventSource;
+
     /**
      * @description Creates a handler that upgrades an HTTP request into an SSE sender
      *

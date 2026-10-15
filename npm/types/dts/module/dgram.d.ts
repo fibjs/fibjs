@@ -138,6 +138,8 @@ declare module 'dgram' {
      */
     const Socket: typeof Class_DgramSocket;
 
+    type Socket = Class_DgramSocket;
+
     /**
      * @description Creates a UDP socket of the given family
      *

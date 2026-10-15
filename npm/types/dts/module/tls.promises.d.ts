@@ -18,6 +18,8 @@ declare module 'tls/promises' {
      */
     const TLSSocket: typeof Class_TLSSocket;
 
+    type TLSSocket = Class_TLSSocketPromise;
+
     /**
      * @description The TLSHandler class entry point, see TLSHandler
      *
@@ -26,6 +28,8 @@ declare module 'tls/promises' {
      *
      */
     const Handler: typeof Class_TLSHandler;
+
+    type Handler = Class_TLSHandlerPromise;
 
     /**
      * @description The TLSServer class entry point, see TLSServer
@@ -36,6 +40,8 @@ declare module 'tls/promises' {
      *
      */
     const Server: typeof Class_TLSServer;
+
+    type Server = Class_TLSServerPromise;
 
     /**
      * @description Creates a TLS server from a secure context or the options used to create one

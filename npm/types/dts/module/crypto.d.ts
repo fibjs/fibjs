@@ -183,6 +183,8 @@ declare module 'crypto' {
      */
     const KeyObject: typeof Class_KeyObject;
 
+    type KeyObject = Class_KeyObject;
+
     /**
      * @description The X509Certificate class, see X509Certificate
      *
@@ -191,6 +193,8 @@ declare module 'crypto' {
      *      certificates that form a chain
      */
     const X509Certificate: typeof Class_X509Certificate;
+
+    type X509Certificate = Class_X509Certificate;
 
     /**
      * @description Lists the digest algorithm names accepted by createHash, createHmac, hash,

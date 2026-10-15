@@ -114,6 +114,8 @@ declare module 'tty' {
      */
     const ReadStream: typeof Class_TTYInputStream;
 
+    type ReadStream = Class_TTYInputStream;
+
     /**
      * @description The TTYOutputStream class, see TTYOutputStream
      *
@@ -123,6 +125,8 @@ declare module 'tty' {
      *
      */
     const WriteStream: typeof Class_TTYOutputStream;
+
+    type WriteStream = Class_TTYOutputStream;
 
     /**
      * @description Queries whether a descriptor is attached to a terminal

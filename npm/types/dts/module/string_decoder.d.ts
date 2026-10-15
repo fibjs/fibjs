@@ -58,5 +58,7 @@ declare module 'string_decoder' {
      */
     const StringDecoder: typeof Class_StringDecoder;
 
+    type StringDecoder = Class_StringDecoder;
+
 }
 

@@ -56,6 +56,8 @@ declare module 'zlib/promises' {
      */
     const Gzip: typeof Class_Gzip;
 
+    type Gzip = Class_Gzip;
+
     /**
      * @description The Gunzip codec class, see Gunzip
      *
@@ -65,6 +67,8 @@ declare module 'zlib/promises' {
      *
      */
     const Gunzip: typeof Class_Gunzip;
+
+    type Gunzip = Class_Gunzip;
 
     /**
      * @description The Deflate codec class, see Deflate
@@ -76,6 +80,8 @@ declare module 'zlib/promises' {
      */
     const Deflate: typeof Class_Deflate;
 
+    type Deflate = Class_Deflate;
+
     /**
      * @description The Inflate codec class, see Inflate
      *
@@ -85,6 +91,8 @@ declare module 'zlib/promises' {
      *
      */
     const Inflate: typeof Class_Inflate;
+
+    type Inflate = Class_Inflate;
 
     /**
      * @description The DeflateRaw codec class, see DeflateRaw
@@ -96,6 +104,8 @@ declare module 'zlib/promises' {
      */
     const DeflateRaw: typeof Class_DeflateRaw;
 
+    type DeflateRaw = Class_DeflateRaw;
+
     /**
      * @description The InflateRaw codec class, see InflateRaw
      *
@@ -106,6 +116,8 @@ declare module 'zlib/promises' {
      */
     const InflateRaw: typeof Class_InflateRaw;
 
+    type InflateRaw = Class_InflateRaw;
+
     /**
      * @description The Unzip codec class, see Unzip
      *
@@ -115,6 +127,8 @@ declare module 'zlib/promises' {
      *
      */
     const Unzip: typeof Class_Unzip;
+
+    type Unzip = Class_Unzip;
 
     /**
      * @description Creates a zlib-format compressor that writes into `to`

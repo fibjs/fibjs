@@ -89,6 +89,8 @@ declare module 'io' {
      */
     const MemoryStream: typeof Class_MemoryStream;
 
+    type MemoryStream = Class_MemoryStream;
+
     /**
      * @description Creates a buffered stream, see BufferedStream
      *
@@ -99,6 +101,8 @@ declare module 'io' {
      */
     const BufferedStream: typeof Class_BufferedStream;
 
+    type BufferedStream = Class_BufferedStream;
+
     /**
      * @description Creates a range stream, see RangeStream
      *
@@ -108,6 +112,8 @@ declare module 'io' {
      *
      */
     const RangeStream: typeof Class_RangeStream;
+
+    type RangeStream = Class_RangeStream;
 
     /**
      * @description Copies the data of a stream into a target stream

@@ -185,6 +185,8 @@ declare module 'rtc' {
      */
     const RTCPeerConnection: typeof Class_RTCPeerConnection;
 
+    type RTCPeerConnection = Class_RTCPeerConnection;
+
     /**
      * @description The WebRTC session description class, see RTCSessionDescription
      *
@@ -193,6 +195,8 @@ declare module 'rtc' {
      *
      */
     const RTCSessionDescription: typeof Class_RTCSessionDescription;
+
+    type RTCSessionDescription = Class_RTCSessionDescription;
 
     /**
      * @description The WebRTC ICE candidate class, see RTCIceCandidate
@@ -203,6 +207,8 @@ declare module 'rtc' {
      *
      */
     const RTCIceCandidate: typeof Class_RTCIceCandidate;
+
+    type RTCIceCandidate = Class_RTCIceCandidate;
 
     /**
      * @description binds a WebRTC listening service on the specified address and port

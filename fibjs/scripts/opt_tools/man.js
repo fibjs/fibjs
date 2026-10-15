@@ -285,6 +285,11 @@ function interfaceNames() {
         .sort();
 }
 
+// The exact-name half of findModule. Module names are lower-case by
+// convention, so the case-insensitive match has to come *after* the class and
+// the global lookups in resolve() - otherwise the `buffer` module would shadow
+// the `Buffer` class (and `--man Buffer` would render the buffer module page
+// instead of the class page).
 function hasModule(name) {
     return FILES[MODULE_PREFIX + name + '.d.ts'] !== undefined;
 }
@@ -357,10 +362,13 @@ function resolve(query) {
     const dot = q.indexOf('.');
 
     if (dot < 0) {
-        const mod = findModule(q);
-
-        if (mod)
-            return { kind: 'module', name: mod };
+        // An exact module name wins (that is how `fs`, `http`, ... resolve);
+        // the class and the global come next, and the case-insensitive module
+        // match is the fallback. `Buffer` is the reason for the order: there
+        // is both a `Buffer` class and a `buffer` module, and the class page
+        // is what a bare `--man Buffer` means.
+        if (hasModule(q))
+            return { kind: 'module', name: q };
 
         const cls = findClass(q);
 
@@ -371,6 +379,11 @@ function resolve(query) {
 
         if (global)
             return { kind: 'class', name: global, alias: q };
+
+        const mod = findModule(q);
+
+        if (mod)
+            return { kind: 'module', name: mod };
 
         return null;
     }

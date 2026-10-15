@@ -123,6 +123,8 @@ declare module 'os' {
      */
     const Service: typeof Class_Service;
 
+    type Service = Class_Service;
+
     /**
      * @description Queries the hostname of the current runtime environment
      *

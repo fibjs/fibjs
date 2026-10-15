@@ -17,6 +17,8 @@ declare module 'gui/promises' {
      */
     const WebView: typeof Class_WebView;
 
+    type WebView = Class_WebViewPromise;
+
     /**
      * @description Opens a window and visits the specified url
      *

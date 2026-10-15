@@ -226,6 +226,8 @@ declare module 'url' {
      */
     const URL: typeof Class_UrlObject;
 
+    type URL = Class_UrlObject;
+
     /**
      * @description The WHATWG URLSearchParams class, re-exported from the global scope
      *
@@ -236,6 +238,8 @@ declare module 'url' {
      *
      */
     const URLSearchParams: typeof Class_URLSearchParams;
+
+    type URLSearchParams = Class_URLSearchParams;
 
     /**
      * @description Converts a file URL into a platform-specific file path

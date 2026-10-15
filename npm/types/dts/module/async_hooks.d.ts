@@ -104,6 +104,8 @@ declare module 'async_hooks' {
      */
     const AsyncLocalStorage: typeof Class_AsyncLocalStorage;
 
+    type AsyncLocalStorage = Class_AsyncLocalStorage;
+
     /**
      * @description The AsyncResource class, see the AsyncResource definition
      *
@@ -130,6 +132,8 @@ declare module 'async_hooks' {
      *
      */
     const AsyncResource: typeof Class_AsyncResource;
+
+    type AsyncResource = Class_AsyncResource;
 
 }
 

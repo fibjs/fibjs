@@ -118,6 +118,8 @@ declare module 'util' {
      */
     const TextDecoder: typeof Class_TextDecoder;
 
+    type TextDecoder = Class_TextDecoder;
+
     /**
      * @description The WHATWG TextEncoder class, re-exported for convenience
      *
@@ -127,6 +129,8 @@ declare module 'util' {
      */
     const TextEncoder: typeof Class_TextEncoder;
 
+    type TextEncoder = Class_TextEncoder;
+
     /**
      * @description Utility functions for built-in type checking, exposed as `util.types`
      *
@@ -134,7 +138,7 @@ declare module 'util' {
      *      Node.js, the module is not requirable by the name `types`; use `util.types`.
      *
      */
-    const types: typeof import ('types');
+    const types: typeof import ('util/types');
 
     /**
      * @description Color constants and capability information for console output

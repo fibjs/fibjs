@@ -67,6 +67,16 @@
 /// <reference path="../module/os_constants_priority.d.ts" />
 /// <reference path="../module/os_constants_signals.d.ts" />
 /// <reference path="../module/sse.d.ts" />
+/// <reference path="../module/buffer.d.ts" />
+/// <reference path="../module/diagnostics_channel.d.ts" />
+/// <reference path="../module/events.d.ts" />
+/// <reference path="../module/https.d.ts" />
+/// <reference path="../module/readline.d.ts" />
+/// <reference path="../module/readline.promises.d.ts" />
+/// <reference path="../module/stream.d.ts" />
+/// <reference path="../module/stream.promises.d.ts" />
+/// <reference path="../module/stream_web.d.ts" />
+/// <reference path="../module/timers.promises.d.ts" />
 declare module '@fibjs/types/bridge' {
 }
 

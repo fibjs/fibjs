@@ -716,4 +716,245 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
         var r = runCheck(dir, ['--strict', 'init.ts']);
 
         assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
-    });});
+    });
+
+    it('types the node compatibility modules (events/buffer/stream/... and the subpaths)', () => {
+        // The modules below have no IDL definition: the runtime builds them in
+        // the pure-JS compatibility layer (fibjs/scripts/*.js) and their
+        // declarations are hand-written under tools/handwritten/module
+        // (plans/fibjs-upstream-gaps.md B1). Every one of them used to answer
+        // TS2591 "Cannot find name 'node:events'", which reads like a missing
+        // global while the module is really there.
+        //
+        // The subpath modules carry a second fix: the corpus used to declare
+        // them under their IDL unit name (`path_posix`, `types`), which is not
+        // a name the runtime answers to (B2). The declarations now use the
+        // runtime spelling, so the prefixed aliases (`node:path/posix`,
+        // `node:util/types`) resolve too.
+        var dir = path.join(scratch, 'node-compat');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'compat.ts'), [
+            "import { EventEmitter } from 'node:events';",
+            "import { Buffer as NBuffer, SlowBuffer, transcode } from 'node:buffer';",
+            "import * as stream from 'node:stream';",
+            "import { finished, pipeline } from 'node:stream/promises';",
+            "import { ReadableStream, TransformStream } from 'node:stream/web';",
+            "import * as https from 'node:https';",
+            "import * as readline from 'node:readline';",
+            "import * as readlinePromises from 'node:readline/promises';",
+            "import { setTimeout as delay, setImmediate as defer } from 'node:timers/promises';",
+            "import * as pPosix from 'node:path/posix';",
+            "import * as pWin32 from 'node:path/win32';",
+            "import * as dc from 'node:diagnostics_channel';",
+            "import * as util from 'node:util';",
+            // B5: the AddressInfo export of node:net
+            "import * as net from 'node:net';",
+            "import type { AddressInfo } from 'node:net';",
+            '',
+            // the class value is usable in the type position (the Node spelling)
+            'const emitter: EventEmitter = new EventEmitter();',
+            'const isEmitter: boolean = emitter instanceof EventEmitter;',
+            'const nb: Class_Buffer = NBuffer.from("x");',
+            'const sb: Class_Buffer = new SlowBuffer(4);',
+            'const tr: Class_Buffer = transcode(nb, "utf8", "latin1");',
+            'const readable: stream.Readable = new stream.Readable();',
+            'const writable: stream.Writable = new stream.Writable();',
+            'const base: stream.Stream = readable;',
+            'stream.addAbortSignal(new AbortController().signal, readable);',
+            'const piped: stream.Writable = readable.pipe(writable);',
+            'const pf: Promise<void> = finished(readable);',
+            'const pp: Promise<void> = pipeline(readable, writable);',
+            'const rs: ReadableStream<string> = new ReadableStream<string>();',
+            'const ts: TransformStream<string, number> = new TransformStream<string, number>();',
+            // https is the http module object at runtime
+            'const hs: https.Server = https.createServer(() => { });',
+            'const rl: readline.Interface = readline.createInterface({ input: readable });',
+            'const q: Promise<string> = readlinePromises.createInterface({ input: readable }).question("?");',
+            'const t1: Promise<number> = delay(1, 42);',
+            'const t2: Promise<string> = defer("x");',
+            'const joined: string = pPosix.join("a", "b");',
+            'const normalized: string = pWin32.normalize("C:\\\\a\\\\b");',
+            'const ch: dc.Channel = dc.channel("x");',
+            'const hasCh: boolean = dc.hasSubscribers("x") || ch.hasSubscribers;',
+            // util.types is the runtime name; `require("types")` fails
+            'const sameTypes: boolean = util.types === require("util/types");',
+            'const server = net.createServer(() => { });',
+            'const info: AddressInfo = server.address();',
+            'console.log(emitter, isEmitter, nb, sb, tr, readable, writable, base, piped,',
+            '    pf, pp, rs, ts, hs, rl, q, t1, t2, joined, normalized, hasCh, sameTypes, info);'
+        ].join('\n'));
+
+        var r = runCheck(dir, ['--strict', 'compat.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+    });
+
+    it('gives the module class aliases a type twin (http.Server as a type)', () => {
+        // `const Server: typeof Class_HttpServer` is a value only, so the Node
+        // spelling `let s: http.Server` answered TS2749 ("refers to a value,
+        // but is being used as a type here"). The module aliases now carry a
+        // same-named `type X = Class_Y` next to the const (B3).
+        var dir = path.join(scratch, 'type-twin');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'twin.ts'), [
+            "import * as http from 'node:http';",
+            "import * as net from 'node:net';",
+            "import * as fs from 'node:fs';",
+            'const server: http.Server = new http.Server(() => { });',
+            'const response: http.ServerResponse = new http.Response();',
+            'const request: http.Request = new http.Request();',
+            'const socket: net.Socket = new net.Socket();',
+            'const stats: fs.Stats = fs.statSync(".");',
+            'console.log(server, response, request, socket, stats);'
+        ].join('\n'));
+
+        var r = runCheck(dir, ['--strict', 'twin.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+    });
+
+    it('types the stream family depth (hooks, iteration, operators, generic chunks)', async () => {
+        // P2 of plans/fibjs-upstream-gaps-remediation-2026-10-14.md: the
+        // declarations must describe the subclassing contract (`_read`,
+        // `_write`, `_transform`, `_flush`, `_final`, `_destroy`), the option
+        // objects, the async iteration protocol with its operator helpers, and
+        // the chunk-type parameter. The runtime side is asserted in the same
+        // test - a declaration that promises what the runtime does not have is
+        // exactly the defect this suite exists for.
+        var dir = path.join(scratch, 'stream-depth');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'depth.ts'), [
+            "import { Readable, Writable, Duplex, Transform, PassThrough } from 'node:stream';",
+            "import type { ReadableOptions, ReadableAsyncIterator, ReadableEventMap } from 'node:stream';",
+            "import { ReadableStream, WritableStream } from 'node:stream/web';",
+            "import * as readline from 'node:readline';",
+            '',
+            'class Source extends Readable<number> {',
+            '    private i = 0;',
+            '    _read(size: number): void { this.push(this.i++ < 3 ? this.i : null); }',
+            '}',
+            '',
+            'class Sink extends Writable<string> {',
+            '    _write(chunk: string, encoding: string, callback: (error?: Error | null) => void): void {',
+            '        callback();',
+            '    }',
+            '    _final(callback: (error?: Error | null) => void): void { callback(); }',
+            '}',
+            '',
+            'class Upper extends Transform<string> {',
+            '    _transform(chunk: string, encoding: string, callback: (error?: Error | null, data?: any) => void): void {',
+            '        callback(null, chunk.toUpperCase());',
+            '    }',
+            '    _flush(callback: (error?: Error | null, data?: any) => void): void { callback(); }',
+            '}',
+            '',
+            'const options: ReadableOptions = { objectMode: true, highWaterMark: 4, read(size: number) { this.push(size); } };',
+            'const source = new Source();',
+            'const sink = new Sink();',
+            'const duplex = new Duplex<number>();',
+            'const upper = new Upper({ transform(chunk, encoding, callback) { callback(null, chunk); } });',
+            'const pass = new PassThrough<Buffer>();',
+            '',
+            '// the typed listeners carry the chunk type',
+            "source.on('data', (chunk: number) => { void chunk.toFixed(2); });",
+            "source.on('end', () => { });",
+            "sink.on('finish', () => { });",
+            "duplex.on('drain', () => { });",
+            'const map: ReadableEventMap<number> = { "data": [1], "end": [], "error": [new Error("x")], "readable": [], "close": [], "pause": [], "resume": [] };',
+            'void map;',
+            '',
+            'async function run(): Promise<void> {',
+            '    // the chunk type flows through the iteration protocol',
+            '    for await (const chunk of source) { const n: number = chunk; void n; }',
+            '    const iterator: ReadableAsyncIterator<number> = source.iterator({ destroyOnReturn: false });',
+            '    const first = await iterator.next();',
+            '    if (!first.done) { const v: number = first.value; void v; }',
+            '    const back: Readable<number> = iterator.stream;',
+            '    void back;',
+            '',
+            '    // the operators keep the type',
+            '    const doubled: Promise<number[]> = Readable.from([1, 2, 3]).map(n => n * 2).toArray();',
+            '    const even: Readable<number> = Readable.from([1, 2]).filter(n => n % 2 === 0);',
+            '    const letters: Readable<string> = Readable.from(["ab"]).flatMap((s: string) => s.split(""));',
+            '    const taken: Readable<number> = Readable.from([1, 2]).drop(0).take(1);',
+            '    const some: Promise<boolean> = Readable.from([1]).some(n => n > 0);',
+            '    const found: Promise<number | undefined> = Readable.from([1]).find(n => n === 1);',
+            '    const folded: Promise<number> = Readable.from([1, 2]).reduce((a: number, b: number) => a + b, 0);',
+            '    await Promise.all([doubled, some, found, folded]);',
+            '    void even; void letters; void taken;',
+            '',
+            '    // the web streams narrow their read result and keep the pipe types',
+            '    const web = new ReadableStream<string>({ start(controller) { controller.enqueue("a"); controller.close(); } });',
+            '    const read = await web.getReader().read();',
+            '    if (!read.done) { const value: string = read.value; void value; }',
+            '    const byteReader = new ReadableStream<Uint8Array>({ type: "bytes" }).getReader({ mode: "byob" });',
+            '    const bytes = await byteReader.read(new Uint8Array(4));',
+            '    if (!bytes.done) { const view: ArrayBufferView = bytes.value; void view.byteLength; }',
+            '    const piped: Promise<void> = web.pipeTo(new WritableStream<string>());',
+            '    void piped;',
+            '',
+            '    // readline answers the signal form of question()',
+            '    const rl: readline.Interface = readline.createInterface({ input: source, terminal: false });',
+            '    rl.on("line", (line: string) => { void line.length; });',
+            '    rl.question("q? ", { signal: new AbortController().signal }, (answer: string) => { void answer; });',
+            '}',
+            'void run; void options; void sink; void duplex; void upper; void pass;',
+        ].join('\n'));
+
+        var r = runCheck(dir, ['--strict', 'depth.ts']);
+        var text = r.stdout + r.stderr;
+
+        assert.equal(errors(text), 0, text);
+
+        // The runtime behind the declarations: the iteration protocol and the
+        // operator helpers are the compat layer's own (P2), so exercise them.
+        var stream = require('stream');
+        var iterable = new stream.Readable({ objectMode: true, read() { } });
+
+        assert.equal(typeof iterable[Symbol.asyncIterator], 'function',
+            'Readable must expose the async iterator');
+        ['iterator', 'map', 'filter', 'flatMap', 'drop', 'take', 'toArray', 'forEach', 'some', 'every', 'find', 'reduce']
+            .forEach(name => {
+                assert.equal(typeof iterable[name], 'function', 'Readable#' + name + ' is missing');
+            });
+
+        class Numbers extends stream.Readable {
+            constructor() { super({ objectMode: true }); this.i = 0; }
+            _read() { this.push(this.i++ < 3 ? this.i : null); }
+        }
+
+        var seen = [];
+        for await (var chunk of new Numbers())
+            seen.push(chunk);
+
+        assert.deepEqual(seen, [1, 2, 3], 'the async iterator must yield the pushed chunks');
+
+        var pipelineOut = await stream.Readable.from([1, 2, 3, 4])
+            .filter(n => n % 2 === 0)
+            .map(n => n * 10)
+            .toArray();
+
+        assert.deepEqual(pipelineOut, [20, 40], 'the operator helpers must compose');
+
+        // `destroy(err)` must reject the pending iteration, not lose the error
+        var cancelled = new stream.Readable({ read() { } });
+        var cancelError = null;
+        var pending = (async () => {
+            try {
+                for await (var value of cancelled)
+                    void value;
+            } catch (e) {
+                cancelError = e;
+            }
+        })();
+
+        cancelled.destroy(new Error('boom'));
+        await pending;
+
+        assert.ok(cancelError && cancelError.message === 'boom',
+            'destroy(err) must reject the iteration: ' + (cancelError && cancelError.message));
+    });
+});

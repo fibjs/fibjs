@@ -113,6 +113,8 @@ declare module 'vm' {
      */
     const SandBox: typeof Class_SandBox;
 
+    type SandBox = Class_SandBox;
+
     /**
      * @description The Script class object, see the Script class
      *
@@ -121,6 +123,8 @@ declare module 'vm' {
      *
      */
     const Script: typeof Class_Script;
+
+    type Script = Class_Script;
 
     /**
      * @description Prepares an object as a context and returns it
