@@ -251,13 +251,17 @@ result_t Http2Server::create(SecureContext_base* context, exlib::string addr,
     return result_t();
 }
 
-result_t Http2Server::start()
+result_t Http2Server::start(obj_ptr<TcpServer_base>& retVal)
 {
-    return m_server->start();
+    result_t hr = m_server->start(retVal);
+    retVal = this;
+    return hr;
 }
 
-result_t Http2Server::stop(AsyncHandle ac)
+result_t Http2Server::stop(obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
+    retVal = this;
+
     if (ac.isSync())
         return result_t::nosync();
 
@@ -272,7 +276,8 @@ result_t Http2Server::stop(AsyncHandle ac)
 
         ON_STATE(asyncStop, stop_server)
         {
-            return m_server->m_server->stop(next(destroy_sessions));
+            obj_ptr<TcpServer_base> r;
+            return m_server->m_server->stop(r, next(destroy_sessions));
         }
 
         // Destroy sessions AFTER the server has fully stopped,
@@ -292,14 +297,16 @@ result_t Http2Server::stop(AsyncHandle ac)
     return (new asyncStop(this, std::move(ac)))->post(result_t());
 }
 
-result_t Http2Server::close(AsyncHandle ac)
+result_t Http2Server::close(obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
-    return stop(std::move(ac));
+    return stop(retVal, std::move(ac));
 }
 
-result_t Http2Server::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncHandle ac)
+result_t Http2Server::listen(int32_t port, exlib::string addr, int32_t backlog, obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
-    return static_cast<TLSServer*>(m_server.get())->listen(port, addr, backlog, std::move(ac));
+    result_t hr = static_cast<TLSServer*>(m_server.get())->listen(port, addr, backlog, retVal, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
 result_t Http2Server::get_timeout(int32_t& retVal)

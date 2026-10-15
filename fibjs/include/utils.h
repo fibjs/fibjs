@@ -608,9 +608,9 @@ public:                                                                         
     {                                                                                         \
         return object_base::removeAllListeners(evs, retVal);                                  \
     }                                                                                         \
-    virtual result_t setMaxListeners(int32_t n)                                               \
+    virtual result_t setMaxListeners(int32_t n, obj_ptr<EventEmitter_base>& retVal)           \
     {                                                                                         \
-        return object_base::setMaxListeners(n);                                               \
+        return object_base::setMaxListeners(n, retVal);                                       \
     }                                                                                         \
     virtual result_t getMaxListeners(int32_t& retVal)                                         \
     {                                                                                         \

@@ -110,24 +110,33 @@ result_t HttpServer::create(exlib::string addr, int32_t port, Handler_base* hdlr
     return _server->create(addr, port, _handler);
 }
 
-result_t HttpServer::start()
+result_t HttpServer::start(obj_ptr<TcpServer_base>& retVal)
 {
-    return m_server->start();
+    result_t hr = m_server->start(retVal);
+    // the inner server wrote itself; the caller keeps the object it called on
+    retVal = this;
+    return hr;
 }
 
-result_t HttpServer::stop(AsyncHandle ac)
+result_t HttpServer::stop(obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
-    return m_server->stop(std::move(ac));
+    result_t hr = m_server->stop(retVal, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
-result_t HttpServer::close(AsyncHandle ac)
+result_t HttpServer::close(obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
-    return stop(std::move(ac));
+    result_t hr = stop(retVal, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
-result_t HttpServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncHandle ac)
+result_t HttpServer::listen(int32_t port, exlib::string addr, int32_t backlog, obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
-    return static_cast<TcpServer*>(m_server.get())->listen(port, addr, backlog, std::move(ac));
+    result_t hr = static_cast<TcpServer*>(m_server.get())->listen(port, addr, backlog, retVal, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
 result_t HttpServer::get_timeout(int32_t& retVal)

@@ -341,8 +341,9 @@ interface Socket : Stream
      socket must have a valid descriptor, otherwise an invalid-call error is thrown.
      @param enable specifies whether to enable the keep-alive mechanism, default is false
      @param initialDelay specifies the initial delay in seconds, default is 0
+     @return returns the current socket object
      */
-    setKeepAlive(Boolean enable = false, Integer initialDelay = 0);
+    Socket setKeepAlive(Boolean enable = false, Integer initialDelay = 0);
 
     /*! @brief Enables or disables the Nagle algorithm
 
@@ -350,8 +351,9 @@ interface Socket : Stream
      is what request/response protocols usually want; pass false to re-enable it. The default of
      the noDelay parameter is true. The socket must have a valid descriptor.
      @param noDelay specifies whether to disable the Nagle algorithm, default is true
+     @return returns the current socket object
      */
-    setNoDelay(Boolean noDelay = true);
+    Socket setNoDelay(Boolean noDelay = true);
 
     /*! @brief Checks whether the socket currently appears to be still usable
 

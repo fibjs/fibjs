@@ -171,8 +171,9 @@ interface DgramSocket : EventEmitter
      ```
      @param port the local port, 0 to let the operating system choose
      @param addr the local address, empty to bind every local address
+     @return returns the current socket object
      */
-    bind(Integer port = 0, String addr = "") async;
+    DgramSocket bind(Integer port = 0, String addr = "") async;
 
     /*! @brief Binds the socket with an options object; both `port` and `address` are required
 
@@ -189,8 +190,9 @@ interface DgramSocket : EventEmitter
      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      port/address form above.
      @param opts the binding options
+     @return returns the current socket object
      */
-    bind(Object opts) async;
+    DgramSocket bind(Object opts) async;
 
     /*! @brief Sends one datagram to the given destination and returns the number of bytes sent
 
@@ -269,8 +271,9 @@ interface DgramSocket : EventEmitter
      Do not use the socket after close:
      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      overload is equivalent to close() with a listener on the 'close' event.
+     @return returns the current socket object
      */
-    close();
+    DgramSocket close();
 
     /*! @brief Closes the socket and calls back when the handle has been released
 
@@ -291,8 +294,9 @@ interface DgramSocket : EventEmitter
      coroutine.sleep(50);
      ```
      @param callback the function called on the 'close' event
+     @return returns the current socket object
      */
-    close(Function() callback);
+    DgramSocket close(Function() callback);
 
     /*! @brief Returns the operating-system receive buffer size of the socket in bytes
 

@@ -519,7 +519,7 @@ result_t UVSocket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle
     return result_t::pending();
 }
 
-result_t UVSocket::setKeepAlive(bool enable, int32_t initialDelay)
+result_t UVSocket::setKeepAlive(bool enable, int32_t initialDelay, obj_ptr<Socket_base>& retVal)
 {
     if (m_family == net_base::C_AF_UNIX)
         return result_t::invalid_call();
@@ -528,10 +528,11 @@ result_t UVSocket::setKeepAlive(bool enable, int32_t initialDelay)
     if (hr < 0)
         return result_t::from_system(hr);
 
+    retVal = this;
     return result_t();
 }
 
-result_t UVSocket::setNoDelay(bool noDelay)
+result_t UVSocket::setNoDelay(bool noDelay, obj_ptr<Socket_base>& retVal)
 {
     if (m_family == net_base::C_AF_UNIX)
         return result_t::invalid_call();
@@ -540,6 +541,7 @@ result_t UVSocket::setNoDelay(bool noDelay)
     if (hr < 0)
         return result_t::from_system(hr);
 
+    retVal = this;
     return result_t();
 }
 

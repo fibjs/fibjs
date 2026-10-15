@@ -8959,11 +8959,12 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      \`\`\`
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bind(port?: number, addr?: string): void;
+    bind(port?: number, addr?: string): Class_DgramSocket;
 
-    bind(port?: number, addr?: string, callback: (err: Error | undefined | null)=>any): void;
+    bind(port?: number, addr?: string, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
 
     /**
      * @description Binds the socket to a local port and address and starts delivering received datagrams to the 'message' event
@@ -8994,9 +8995,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      \`\`\`
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bindSync(port?: number, addr?: string): void;
+    bindSync(port?: number, addr?: string): Class_DgramSocket;
 
     /**
      * @description Binds the socket to a local port and address and starts delivering received datagrams to the 'message' event
@@ -9027,9 +9029,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      \`\`\`
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bindAsync(port?: number, addr?: string): Promise<void>;
+    bindAsync(port?: number, addr?: string): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Binds the socket with an options object; both \`port\` and \`address\` are required
@@ -9047,31 +9050,12 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
+     *      @return returns the current socket object
      *
      */
-    bind(opts: FIBJS.GeneralObject): void;
+    bind(opts: FIBJS.GeneralObject): Class_DgramSocket;
 
-    bind(opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Binds the socket with an options object; both \`port\` and \`address\` are required
-     *
-     *      The options object accepts:
-     *      \`\`\`JavaScript
-     *      // fragment: options
-     *      ({
-     *          port: 0, // the local port, 0 to let the operating system choose
-     *          address: "127.0.0.1" // the local address to bind; required even when port is 0
-     *      })
-     *      \`\`\`
-     *
-     *      The exclusive, fd and remaining bind options are not read, and a missing
-     *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
-     *      port/address form above.
-     *      @param opts the binding options
-     *
-     */
-    bindSync(opts: FIBJS.GeneralObject): void;
+    bind(opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
 
     /**
      * @description Binds the socket with an options object; both \`port\` and \`address\` are required
@@ -9089,9 +9073,31 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
+     *      @return returns the current socket object
      *
      */
-    bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
+    bindSync(opts: FIBJS.GeneralObject): Class_DgramSocket;
+
+    /**
+     * @description Binds the socket with an options object; both \`port\` and \`address\` are required
+     *
+     *      The options object accepts:
+     *      \`\`\`JavaScript
+     *      // fragment: options
+     *      ({
+     *          port: 0, // the local port, 0 to let the operating system choose
+     *          address: "127.0.0.1" // the local address to bind; required even when port is 0
+     *      })
+     *      \`\`\`
+     *
+     *      The exclusive, fd and remaining bind options are not read, and a missing
+     *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
+     *      port/address form above.
+     *      @param opts the binding options
+     *      @return returns the current socket object
+     *
+     */
+    bindAsync(opts: FIBJS.GeneralObject): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -9315,9 +9321,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
+     *      @return returns the current socket object
      *
      */
-    close(): void;
+    close(): Class_DgramSocket;
 
     /**
      * @description Closes the socket and calls back when the handle has been released
@@ -9339,9 +9346,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      coroutine.sleep(50);
      *      \`\`\`
      *      @param callback the function called on the 'close' event
+     *      @return returns the current socket object
      *
      */
-    close(callback: ()=>void): void;
+    close(callback: ()=>void): Class_DgramSocket;
 
     /**
      * @description Returns the operating-system receive buffer size of the socket in bytes
@@ -9706,9 +9714,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      \`\`\`
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bind(port?: number, addr?: string): Promise<void>;
+    bind(port?: number, addr?: string): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Binds the socket to a local port and address and starts delivering received datagrams to the 'message' event
@@ -9739,9 +9748,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      \`\`\`
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bindSync(port?: number, addr?: string): void;
+    bindSync(port?: number, addr?: string): Class_DgramSocket;
 
     /**
      * @description Binds the socket to a local port and address and starts delivering received datagrams to the 'message' event
@@ -9772,9 +9782,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      \`\`\`
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bindAsync(port?: number, addr?: string): Promise<void>;
+    bindAsync(port?: number, addr?: string): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Binds the socket with an options object; both \`port\` and \`address\` are required
@@ -9792,9 +9803,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
+     *      @return returns the current socket object
      *
      */
-    bind(opts: FIBJS.GeneralObject): Promise<void>;
+    bind(opts: FIBJS.GeneralObject): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Binds the socket with an options object; both \`port\` and \`address\` are required
@@ -9812,9 +9824,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
+     *      @return returns the current socket object
      *
      */
-    bindSync(opts: FIBJS.GeneralObject): void;
+    bindSync(opts: FIBJS.GeneralObject): Class_DgramSocket;
 
     /**
      * @description Binds the socket with an options object; both \`port\` and \`address\` are required
@@ -9832,9 +9845,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
+     *      @return returns the current socket object
      *
      */
-    bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
+    bindAsync(opts: FIBJS.GeneralObject): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -10054,9 +10068,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
+     *      @return returns the current socket object
      *
      */
-    close(): void;
+    close(): Class_DgramSocket;
 
     /**
      * @description Closes the socket and calls back when the handle has been released
@@ -10078,9 +10093,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      coroutine.sleep(50);
      *      \`\`\`
      *      @param callback the function called on the 'close' event
+     *      @return returns the current socket object
      *
      */
-    close(callback: ()=>void): void;
+    close(callback: ()=>void): Class_DgramSocket;
 
     /**
      * @description Returns the operating-system receive buffer size of the socket in bytes
@@ -12267,9 +12283,10 @@ declare class Class_EventEmitter extends Class_object {
      *      negative value throws; 0 is accepted and stored as-is.
      *
      *      @param n the number of events
+     *      @return returns the current emitter object
      *
      */
-    setMaxListeners(n: number): void;
+    setMaxListeners(n: number): Class_EventEmitter;
 
     /**
      * @description Returns the listener limit of the emitter
@@ -46458,9 +46475,10 @@ declare class Class_Socket extends Class_Stream {
      *      socket must have a valid descriptor, otherwise an invalid-call error is thrown.
      *      @param enable specifies whether to enable the keep-alive mechanism, default is false
      *      @param initialDelay specifies the initial delay in seconds, default is 0
+     *      @return returns the current socket object
      *
      */
-    setKeepAlive(enable?: boolean, initialDelay?: number): void;
+    setKeepAlive(enable?: boolean, initialDelay?: number): Class_Socket;
 
     /**
      * @description Enables or disables the Nagle algorithm
@@ -46469,9 +46487,10 @@ declare class Class_Socket extends Class_Stream {
      *      is what request/response protocols usually want; pass false to re-enable it. The default of
      *      the noDelay parameter is true. The socket must have a valid descriptor.
      *      @param noDelay specifies whether to disable the Nagle algorithm, default is true
+     *      @return returns the current socket object
      *
      */
-    setNoDelay(noDelay?: boolean): void;
+    setNoDelay(noDelay?: boolean): Class_Socket;
 
     /**
      * @description Checks whether the socket currently appears to be still usable
@@ -47195,9 +47214,10 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      socket must have a valid descriptor, otherwise an invalid-call error is thrown.
      *      @param enable specifies whether to enable the keep-alive mechanism, default is false
      *      @param initialDelay specifies the initial delay in seconds, default is 0
+     *      @return returns the current socket object
      *
      */
-    setKeepAlive(enable?: boolean, initialDelay?: number): void;
+    setKeepAlive(enable?: boolean, initialDelay?: number): Class_Socket;
 
     /**
      * @description Enables or disables the Nagle algorithm
@@ -47206,9 +47226,10 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      is what request/response protocols usually want; pass false to re-enable it. The default of
      *      the noDelay parameter is true. The socket must have a valid descriptor.
      *      @param noDelay specifies whether to disable the Nagle algorithm, default is true
+     *      @return returns the current socket object
      *
      */
-    setNoDelay(noDelay?: boolean): void;
+    setNoDelay(noDelay?: boolean): Class_Socket;
 
     /**
      * @description Checks whether the socket currently appears to be still usable
@@ -55908,9 +55929,10 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      constructors with a port/address bind in the constructor while the handler-only form needs
      *      listen(). Calling start on an unbound server or a second time fails with an invalid-call
      *      error. Each accepted client is passed to the 'connection' listeners and then to the handler.
+     *      @return returns the current server object
      *
      */
-    start(): void;
+    start(): Class_TcpServer;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -55922,11 +55944,12 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listen(port: number, addr?: string, backlog?: number): void;
+    listen(port: number, addr?: string, backlog?: number): Class_TcpServer;
 
-    listen(port: number, addr?: string, backlog?: number, callback: (err: Error | undefined | null)=>any): void;
+    listen(port: number, addr?: string, backlog?: number, callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -55938,9 +55961,10 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listenSync(port: number, addr?: string, backlog?: number): void;
+    listenSync(port: number, addr?: string, backlog?: number): Class_TcpServer;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -55952,9 +55976,10 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listenAsync(port: number, addr?: string, backlog?: number): Promise<void>;
+    listenAsync(port: number, addr?: string, backlog?: number): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -55962,11 +55987,12 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stop(): void;
+    stop(): Class_TcpServer;
 
-    stop(callback: (err: Error | undefined | null)=>any): void;
+    stop(callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -55974,9 +56000,10 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stopSync(): void;
+    stopSync(): Class_TcpServer;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -55984,35 +56011,39 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stopAsync(): Promise<void>;
+    stopAsync(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
      *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
      *
      */
-    close(): void;
+    close(): Class_TcpServer;
 
-    close(callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Closes the socket and aborts the running server; an alias of stop()
-     *
-     *      Identical to stop(); both are awaitable.
-     *
-     */
-    closeSync(): void;
+    close(callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
 
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
      *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
      *
      */
-    closeAsync(): Promise<void>;
+    closeSync(): Class_TcpServer;
+
+    /**
+     * @description Closes the socket and aborts the running server; an alias of stop()
+     *
+     *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
+     *
+     */
+    closeAsync(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Returns an object containing the server bound address, address family and port. Used to look up the actual port when the OS assigns the address.
@@ -56348,9 +56379,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      constructors with a port/address bind in the constructor while the handler-only form needs
      *      listen(). Calling start on an unbound server or a second time fails with an invalid-call
      *      error. Each accepted client is passed to the 'connection' listeners and then to the handler.
+     *      @return returns the current server object
      *
      */
-    start(): void;
+    start(): Class_TcpServer;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -56362,9 +56394,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listen(port: number, addr?: string, backlog?: number): Promise<void>;
+    listen(port: number, addr?: string, backlog?: number): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -56376,9 +56409,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listenSync(port: number, addr?: string, backlog?: number): void;
+    listenSync(port: number, addr?: string, backlog?: number): Class_TcpServer;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -56390,9 +56424,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listenAsync(port: number, addr?: string, backlog?: number): Promise<void>;
+    listenAsync(port: number, addr?: string, backlog?: number): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -56400,9 +56435,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stop(): Promise<void>;
+    stop(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -56410,9 +56446,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stopSync(): void;
+    stopSync(): Class_TcpServer;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -56420,33 +56457,37 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stopAsync(): Promise<void>;
+    stopAsync(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
      *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
      *
      */
-    close(): Promise<void>;
+    close(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
      *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
      *
      */
-    closeSync(): void;
+    closeSync(): Class_TcpServer;
 
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
      *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
      *
      */
-    closeAsync(): Promise<void>;
+    closeAsync(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Returns an object containing the server bound address, address family and port. Used to look up the actual port when the OS assigns the address.
@@ -107518,7 +107559,7 @@ declare module 'process' {
 
     function removeAllListeners(evs?: any[]): FIBJS.GeneralObject;
 
-    function setMaxListeners(n: number): void;
+    function setMaxListeners(n: number): Class_EventEmitter;
 
     function getMaxListeners(): number;
 

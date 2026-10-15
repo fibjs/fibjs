@@ -41,10 +41,10 @@ public:
 
 public:
     // TcpServer_base
-    virtual result_t start();
-    virtual result_t stop(AsyncHandle ac);
-    virtual result_t close(AsyncHandle ac);
-    virtual result_t listen(int32_t port, exlib::string addr, int32_t backlog, AsyncHandle ac);
+    virtual result_t start(obj_ptr<TcpServer_base>& retVal);
+    virtual result_t stop(obj_ptr<TcpServer_base>& retVal, AsyncHandle ac);
+    virtual result_t close(obj_ptr<TcpServer_base>& retVal, AsyncHandle ac);
+    virtual result_t listen(int32_t port, exlib::string addr, int32_t backlog, obj_ptr<TcpServer_base>& retVal, AsyncHandle ac);
     virtual result_t address(obj_ptr<AddressType>& retVal);
     virtual result_t get_timeout(int32_t& retVal);
     virtual result_t set_timeout(int32_t newVal);

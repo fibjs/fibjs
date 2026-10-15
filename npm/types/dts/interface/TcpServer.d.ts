@@ -175,9 +175,10 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      constructors with a port/address bind in the constructor while the handler-only form needs
      *      listen(). Calling start on an unbound server or a second time fails with an invalid-call
      *      error. Each accepted client is passed to the 'connection' listeners and then to the handler.
+     *      @return returns the current server object
      *
      */
-    start(): void;
+    start(): Class_TcpServer;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -189,11 +190,12 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listen(port: number, addr?: string, backlog?: number): void;
+    listen(port: number, addr?: string, backlog?: number): Class_TcpServer;
 
-    listen(port: number, addr?: string, backlog?: number, callback: (err: Error | undefined | null)=>any): void;
+    listen(port: number, addr?: string, backlog?: number, callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -205,9 +207,10 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listenSync(port: number, addr?: string, backlog?: number): void;
+    listenSync(port: number, addr?: string, backlog?: number): Class_TcpServer;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -219,9 +222,10 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listenAsync(port: number, addr?: string, backlog?: number): Promise<void>;
+    listenAsync(port: number, addr?: string, backlog?: number): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -229,11 +233,12 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stop(): void;
+    stop(): Class_TcpServer;
 
-    stop(callback: (err: Error | undefined | null)=>any): void;
+    stop(callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -241,9 +246,10 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stopSync(): void;
+    stopSync(): Class_TcpServer;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -251,35 +257,39 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stopAsync(): Promise<void>;
+    stopAsync(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
      *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
      *
      */
-    close(): void;
+    close(): Class_TcpServer;
 
-    close(callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Closes the socket and aborts the running server; an alias of stop()
-     *
-     *      Identical to stop(); both are awaitable.
-     *
-     */
-    closeSync(): void;
+    close(callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
 
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
      *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
      *
      */
-    closeAsync(): Promise<void>;
+    closeSync(): Class_TcpServer;
+
+    /**
+     * @description Closes the socket and aborts the running server; an alias of stop()
+     *
+     *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
+     *
+     */
+    closeAsync(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Returns an object containing the server bound address, address family and port. Used to look up the actual port when the OS assigns the address.
@@ -615,9 +625,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      constructors with a port/address bind in the constructor while the handler-only form needs
      *      listen(). Calling start on an unbound server or a second time fails with an invalid-call
      *      error. Each accepted client is passed to the 'connection' listeners and then to the handler.
+     *      @return returns the current server object
      *
      */
-    start(): void;
+    start(): Class_TcpServer;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -629,9 +640,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listen(port: number, addr?: string, backlog?: number): Promise<void>;
+    listen(port: number, addr?: string, backlog?: number): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -643,9 +655,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listenSync(port: number, addr?: string, backlog?: number): void;
+    listenSync(port: number, addr?: string, backlog?: number): Class_TcpServer;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -657,9 +670,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+     *     @return returns the current server object
      *
      */
-    listenAsync(port: number, addr?: string, backlog?: number): Promise<void>;
+    listenAsync(port: number, addr?: string, backlog?: number): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -667,9 +681,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stop(): Promise<void>;
+    stop(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -677,9 +692,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stopSync(): void;
+    stopSync(): Class_TcpServer;
 
     /**
      * @description Closes the socket and aborts the running server
@@ -687,33 +703,37 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      *      that was never bound is a no-op.
+     *      @return returns the current server object
      *
      */
-    stopAsync(): Promise<void>;
+    stopAsync(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
      *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
      *
      */
-    close(): Promise<void>;
+    close(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
      *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
      *
      */
-    closeSync(): void;
+    closeSync(): Class_TcpServer;
 
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
      *      Identical to stop(); both are awaitable.
+     *      @return returns the current server object
      *
      */
-    closeAsync(): Promise<void>;
+    closeAsync(): Promise<Class_TcpServerPromise>;
 
     /**
      * @description Returns an object containing the server bound address, address family and port. Used to look up the actual port when the OS assigns the address.

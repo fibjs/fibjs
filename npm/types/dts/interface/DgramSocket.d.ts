@@ -176,11 +176,12 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      ```
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bind(port?: number, addr?: string): void;
+    bind(port?: number, addr?: string): Class_DgramSocket;
 
-    bind(port?: number, addr?: string, callback: (err: Error | undefined | null)=>any): void;
+    bind(port?: number, addr?: string, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
 
     /**
      * @description Binds the socket to a local port and address and starts delivering received datagrams to the 'message' event
@@ -211,9 +212,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      ```
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bindSync(port?: number, addr?: string): void;
+    bindSync(port?: number, addr?: string): Class_DgramSocket;
 
     /**
      * @description Binds the socket to a local port and address and starts delivering received datagrams to the 'message' event
@@ -244,9 +246,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      ```
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bindAsync(port?: number, addr?: string): Promise<void>;
+    bindAsync(port?: number, addr?: string): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Binds the socket with an options object; both `port` and `address` are required
@@ -264,31 +267,12 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
+     *      @return returns the current socket object
      *
      */
-    bind(opts: FIBJS.GeneralObject): void;
+    bind(opts: FIBJS.GeneralObject): Class_DgramSocket;
 
-    bind(opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Binds the socket with an options object; both `port` and `address` are required
-     *
-     *      The options object accepts:
-     *      ```JavaScript
-     *      // fragment: options
-     *      ({
-     *          port: 0, // the local port, 0 to let the operating system choose
-     *          address: "127.0.0.1" // the local address to bind; required even when port is 0
-     *      })
-     *      ```
-     *
-     *      The exclusive, fd and remaining bind options are not read, and a missing
-     *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
-     *      port/address form above.
-     *      @param opts the binding options
-     *
-     */
-    bindSync(opts: FIBJS.GeneralObject): void;
+    bind(opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
 
     /**
      * @description Binds the socket with an options object; both `port` and `address` are required
@@ -306,9 +290,31 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
+     *      @return returns the current socket object
      *
      */
-    bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
+    bindSync(opts: FIBJS.GeneralObject): Class_DgramSocket;
+
+    /**
+     * @description Binds the socket with an options object; both `port` and `address` are required
+     *
+     *      The options object accepts:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          port: 0, // the local port, 0 to let the operating system choose
+     *          address: "127.0.0.1" // the local address to bind; required even when port is 0
+     *      })
+     *      ```
+     *
+     *      The exclusive, fd and remaining bind options are not read, and a missing
+     *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
+     *      port/address form above.
+     *      @param opts the binding options
+     *      @return returns the current socket object
+     *
+     */
+    bindAsync(opts: FIBJS.GeneralObject): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -532,9 +538,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
+     *      @return returns the current socket object
      *
      */
-    close(): void;
+    close(): Class_DgramSocket;
 
     /**
      * @description Closes the socket and calls back when the handle has been released
@@ -556,9 +563,10 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      coroutine.sleep(50);
      *      ```
      *      @param callback the function called on the 'close' event
+     *      @return returns the current socket object
      *
      */
-    close(callback: ()=>void): void;
+    close(callback: ()=>void): Class_DgramSocket;
 
     /**
      * @description Returns the operating-system receive buffer size of the socket in bytes
@@ -923,9 +931,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      ```
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bind(port?: number, addr?: string): Promise<void>;
+    bind(port?: number, addr?: string): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Binds the socket to a local port and address and starts delivering received datagrams to the 'message' event
@@ -956,9 +965,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      ```
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bindSync(port?: number, addr?: string): void;
+    bindSync(port?: number, addr?: string): Class_DgramSocket;
 
     /**
      * @description Binds the socket to a local port and address and starts delivering received datagrams to the 'message' event
@@ -989,9 +999,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      ```
      *      @param port the local port, 0 to let the operating system choose
      *      @param addr the local address, empty to bind every local address
+     *      @return returns the current socket object
      *
      */
-    bindAsync(port?: number, addr?: string): Promise<void>;
+    bindAsync(port?: number, addr?: string): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Binds the socket with an options object; both `port` and `address` are required
@@ -1009,9 +1020,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
+     *      @return returns the current socket object
      *
      */
-    bind(opts: FIBJS.GeneralObject): Promise<void>;
+    bind(opts: FIBJS.GeneralObject): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Binds the socket with an options object; both `port` and `address` are required
@@ -1029,9 +1041,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
+     *      @return returns the current socket object
      *
      */
-    bindSync(opts: FIBJS.GeneralObject): void;
+    bindSync(opts: FIBJS.GeneralObject): Class_DgramSocket;
 
     /**
      * @description Binds the socket with an options object; both `port` and `address` are required
@@ -1049,9 +1062,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
+     *      @return returns the current socket object
      *
      */
-    bindAsync(opts: FIBJS.GeneralObject): Promise<void>;
+    bindAsync(opts: FIBJS.GeneralObject): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -1271,9 +1285,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
+     *      @return returns the current socket object
      *
      */
-    close(): void;
+    close(): Class_DgramSocket;
 
     /**
      * @description Closes the socket and calls back when the handle has been released
@@ -1295,9 +1310,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      coroutine.sleep(50);
      *      ```
      *      @param callback the function called on the 'close' event
+     *      @return returns the current socket object
      *
      */
-    close(callback: ()=>void): void;
+    close(callback: ()=>void): Class_DgramSocket;
 
     /**
      * @description Returns the operating-system receive buffer size of the socket in bytes

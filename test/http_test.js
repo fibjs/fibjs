@@ -1954,12 +1954,13 @@ describe("http", () => {
 
             var byOptions = http.createServer({}, hdlr);
             assert.strictEqual(byOptions.constructor.name, "HttpServer");
-            // closing a server that never listened is a no-op, like node
-            assert.strictEqual(byOptions.stop(), undefined);
+            // closing a server that never listened is a no-op, like node, and
+            // the lifecycle methods return the server (node returns this)
+            assert.strictEqual(byOptions.stop(), byOptions);
 
             var byContext = http.createServer(tls.createSecureContext({}), hdlr);
             assert.strictEqual(byContext.constructor.name, "HttpsServer");
-            byContext.stop();
+            assert.strictEqual(byContext.stop(), byContext);
         });
 
         it("should reject an invalid certificate", () => {

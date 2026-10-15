@@ -135,7 +135,7 @@ result_t TcpServer::create(exlib::string addr, int32_t port,
     return result_t();
 }
 
-result_t TcpServer::start()
+result_t TcpServer::start(obj_ptr<TcpServer_base>& retVal)
 {
     class asyncInvoke : public AsyncState {
     public:
@@ -193,8 +193,10 @@ result_t TcpServer::start()
         ON_STATE(asyncAccept, accept)
         {
             if (m_pThis->holder()->is_terminating()) {
-                if (m_pThis->m_running)
-                    return m_pThis->stop(next());
+                if (m_pThis->m_running) {
+                    obj_ptr<TcpServer_base> r;
+                    return m_pThis->stop(r, next());
+                }
                 m_pThis->isolate_unref();
                 return next();
             }
@@ -207,7 +209,8 @@ result_t TcpServer::start()
             if (m_pThis->holder()->is_terminating()) {
                 if (m_accept)
                     m_accept->cc_close();
-                return m_pThis->stop(next());
+                obj_ptr<TcpServer_base> r;
+                return m_pThis->stop(r, next());
             }
 
             if (m_accept) {
@@ -227,8 +230,10 @@ result_t TcpServer::start()
         virtual result_t error(result_t v)
         {
             if (m_pThis->holder()->is_terminating()) {
-                if (m_pThis->m_running)
-                    m_pThis->stop(NULL);
+                if (m_pThis->m_running) {
+                    obj_ptr<TcpServer_base> r;
+                    m_pThis->stop(r, NULL);
+                }
                 m_pThis->isolate_unref();
                 return next();
             }
@@ -276,11 +281,15 @@ result_t TcpServer::start()
     _emit("listening");
     if (m_eventDelegate)
         m_eventDelegate->_emit("listening");
+
+    retVal = this;
     return result_t();
 }
 
-result_t TcpServer::stop(AsyncHandle ac)
+result_t TcpServer::stop(obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
+    retVal = this;
+
     // a server that never listened has nothing to close; node treats close()
     // on a non-listening server as a no-op instead of failing
     if (!m_socket)
@@ -299,13 +308,15 @@ result_t TcpServer::stop(AsyncHandle ac)
     return m_socket->close(std::move(ac));
 }
 
-result_t TcpServer::close(AsyncHandle ac)
+result_t TcpServer::close(obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
-    return stop(std::move(ac));
+    return stop(retVal, std::move(ac));
 }
 
-result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncHandle ac)
+result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
+    retVal = this;
+
     if (m_running || m_socket) {
         // Node.js reports a second listen on the same server as
         // ERR_SERVER_ALREADY_LISTEN; align code and message.
@@ -324,7 +335,7 @@ result_t TcpServer::listen(int32_t port, exlib::string addr, int32_t backlog, As
         return hr;
     }
 
-    return start();
+    return start(retVal);
 }
 
 result_t TcpServer::get_timeout(int32_t& retVal)

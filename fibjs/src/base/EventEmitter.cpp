@@ -106,8 +106,12 @@ result_t object_base::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8:
     return JSTrigger(this).removeAllListeners(evs, retVal);
 }
 
-result_t object_base::setMaxListeners(int32_t n)
+result_t object_base::setMaxListeners(int32_t n, obj_ptr<EventEmitter_base>& retVal)
 {
+    // the IDL setter returns the emitter it was called on. Every object that
+    // reaches this method through EVENT_SUPPORT() is an EventEmitter, so the
+    // downcast is what getInstance() would do after its class check.
+    retVal = static_cast<EventEmitter_base*>(this);
     return JSTrigger(this).setMaxListeners(n);
 }
 
@@ -994,7 +998,11 @@ void JSTrigger::s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     JSTrigger(args).setMaxListeners(v0);
 
-    METHOD_VOID();
+    // the trigger table is what the JS surface of EventEmitter and of every
+    // native emitter is built from (events.cpp replaces the class method table),
+    // so the chaining return lives here: the emitter itself
+    CHECK_ARGUMENT();
+    args.GetReturnValue().Set(args.This());
 }
 
 void JSTrigger::s_getMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)

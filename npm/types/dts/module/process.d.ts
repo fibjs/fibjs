@@ -878,7 +878,7 @@ declare module 'process' {
 
     function removeAllListeners(evs?: any[]): FIBJS.GeneralObject;
 
-    function setMaxListeners(n: number): void;
+    function setMaxListeners(n: number): Class_EventEmitter;
 
     function getMaxListeners(): number;
 

@@ -688,9 +688,10 @@ declare class Class_Socket extends Class_Stream {
      *      socket must have a valid descriptor, otherwise an invalid-call error is thrown.
      *      @param enable specifies whether to enable the keep-alive mechanism, default is false
      *      @param initialDelay specifies the initial delay in seconds, default is 0
+     *      @return returns the current socket object
      *
      */
-    setKeepAlive(enable?: boolean, initialDelay?: number): void;
+    setKeepAlive(enable?: boolean, initialDelay?: number): Class_Socket;
 
     /**
      * @description Enables or disables the Nagle algorithm
@@ -699,9 +700,10 @@ declare class Class_Socket extends Class_Stream {
      *      is what request/response protocols usually want; pass false to re-enable it. The default of
      *      the noDelay parameter is true. The socket must have a valid descriptor.
      *      @param noDelay specifies whether to disable the Nagle algorithm, default is true
+     *      @return returns the current socket object
      *
      */
-    setNoDelay(noDelay?: boolean): void;
+    setNoDelay(noDelay?: boolean): Class_Socket;
 
     /**
      * @description Checks whether the socket currently appears to be still usable
@@ -1425,9 +1427,10 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      socket must have a valid descriptor, otherwise an invalid-call error is thrown.
      *      @param enable specifies whether to enable the keep-alive mechanism, default is false
      *      @param initialDelay specifies the initial delay in seconds, default is 0
+     *      @return returns the current socket object
      *
      */
-    setKeepAlive(enable?: boolean, initialDelay?: number): void;
+    setKeepAlive(enable?: boolean, initialDelay?: number): Class_Socket;
 
     /**
      * @description Enables or disables the Nagle algorithm
@@ -1436,9 +1439,10 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      is what request/response protocols usually want; pass false to re-enable it. The default of
      *      the noDelay parameter is true. The socket must have a valid descriptor.
      *      @param noDelay specifies whether to disable the Nagle algorithm, default is true
+     *      @return returns the current socket object
      *
      */
-    setNoDelay(noDelay?: boolean): void;
+    setNoDelay(noDelay?: boolean): Class_Socket;
 
     /**
      * @description Checks whether the socket currently appears to be still usable

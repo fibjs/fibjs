@@ -52,13 +52,13 @@ public:
 
 public:
     // DgramSocket_base
-    virtual result_t bind(int32_t port, exlib::string addr, AsyncHandle ac) = 0;
-    virtual result_t bind(v8::Local<v8::Object> opts, AsyncHandle ac) = 0;
+    virtual result_t bind(int32_t port, exlib::string addr, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t bind(v8::Local<v8::Object> opts, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t send(Union_send_msg msg, int32_t port, exlib::string address, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t send(Union_send_msg msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t address(obj_ptr<AddressType>& retVal) = 0;
-    virtual result_t close() = 0;
-    virtual result_t close(v8::Local<v8::Function> callback) = 0;
+    virtual result_t close(obj_ptr<DgramSocket_base>& retVal) = 0;
+    virtual result_t close(v8::Local<v8::Function> callback, obj_ptr<DgramSocket_base>& retVal) = 0;
     virtual result_t getRecvBufferSize(int32_t& retVal) = 0;
     virtual result_t getSendBufferSize(int32_t& retVal) = 0;
     virtual result_t addMembership(exlib::string multicastAddress, exlib::string multicastInterface) = 0;
@@ -106,8 +106,8 @@ public:
     static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBER2(DgramSocket_base, bind, int32_t, exlib::string);
-    ASYNC_MEMBER1(DgramSocket_base, bind, v8::Local<v8::Object>);
+    ASYNC_MEMBERVALUE3(DgramSocket_base, bind, int32_t, exlib::string, obj_ptr<DgramSocket_base>);
+    ASYNC_MEMBERVALUE2(DgramSocket_base, bind, v8::Local<v8::Object>, obj_ptr<DgramSocket_base>);
     ASYNC_MEMBERVALUE4(DgramSocket_base, send, Union_send_msg, int32_t, exlib::string, int32_t);
     ASYNC_MEMBERVALUE6(DgramSocket_base, send, Union_send_msg, int32_t, int32_t, int32_t, exlib::string, int32_t);
 };
@@ -155,6 +155,8 @@ inline ClassInfo& DgramSocket_base::class_info()
 
 inline void DgramSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<DgramSocket_base> vr;
+
     ASYNC_METHOD_INSTANCE(DgramSocket_base);
     ASYNC_METHOD_ENTER("DgramSocket.bind");
 
@@ -166,7 +168,7 @@ inline void DgramSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& 
     if (!cb.IsEmpty())
         hr = pInst->acb_bind(v0, v1, cb, args);
     else
-        hr = pInst->ac_bind(v0, v1);
+        hr = pInst->ac_bind(v0, v1, vr);
 
     METHOD_OVER(1, 1);
 
@@ -175,9 +177,9 @@ inline void DgramSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& 
     if (!cb.IsEmpty())
         hr = pInst->acb_bind(v0, cb, args);
     else
-        hr = pInst->ac_bind(v0);
+        hr = pInst->ac_bind(v0, vr);
 
-    ASYNC_METHOD_VOID();
+    ASYNC_METHOD_RETURN();
 }
 
 inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -230,20 +232,22 @@ inline void DgramSocket_base::s_address(const v8::FunctionCallbackInfo<v8::Value
 
 inline void DgramSocket_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<DgramSocket_base> vr;
+
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->close();
+    hr = pInst->close(vr);
 
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->close(v0);
+    hr = pInst->close(v0, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void DgramSocket_base::s_getRecvBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args)

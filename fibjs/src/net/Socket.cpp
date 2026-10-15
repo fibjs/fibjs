@@ -606,20 +606,22 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 extern void setKeepAlive(SOCKET sockfd, int32_t enable, int32_t initialDelay, int32_t keepInterval, int32_t keepCount);
 extern void setNoDelay(SOCKET sockfd, int32_t enable);
 
-result_t Socket::setKeepAlive(bool enable, int32_t initialDelay)
+result_t Socket::setKeepAlive(bool enable, int32_t initialDelay, obj_ptr<Socket_base>& retVal)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
         return result_t::invalid_call();
 
+    retVal = this;
     fibjs::setKeepAlive(m_aio.m_fd, enable ? 1 : 0, initialDelay, 0, 0);
     return result_t();
 }
 
-result_t Socket::setNoDelay(bool noDelay)
+result_t Socket::setNoDelay(bool noDelay, obj_ptr<Socket_base>& retVal)
 {
     if (m_aio.m_fd == INVALID_SOCKET)
         return result_t::invalid_call();
 
+    retVal = this;
     fibjs::setNoDelay(m_aio.m_fd, noDelay ? 1 : 0);
     return result_t();
 }

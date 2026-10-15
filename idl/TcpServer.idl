@@ -159,8 +159,9 @@ interface TcpServer : EventEmitter
      constructors with a port/address bind in the constructor while the handler-only form needs
      listen(). Calling start on an unbound server or a second time fails with an invalid-call
      error. Each accepted client is passed to the 'connection' listeners and then to the handler.
+     @return returns the current server object
     */
-    start();
+    TcpServer start();
 
     /*! @brief Binds the address and port and starts listening for connections
 
@@ -171,22 +172,25 @@ interface TcpServer : EventEmitter
     @param port specifies the TCP server listening port
     @param addr specifies the TCP server listening address; "" means listening on all local addresses
     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
+    @return returns the current server object
     */
-    listen(Integer port, String addr = "", Integer backlog = -1) async;
+    TcpServer listen(Integer port, String addr = "", Integer backlog = -1) async;
 
     /*! @brief Closes the socket and aborts the running server
 
      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      closed and keep running in their handler fibers (the handler owns them). Stopping a server
      that was never bound is a no-op.
+     @return returns the current server object
     */
-    stop() async;
+    TcpServer stop() async;
 
     /*! @brief Closes the socket and aborts the running server; an alias of stop()
 
      Identical to stop(); both are awaitable.
+     @return returns the current server object
     */
-    close() async;
+    TcpServer close() async;
 
     /*! @brief Returns an object containing the server bound address, address family and port. Used to look up the actual port when the OS assigns the address.
 

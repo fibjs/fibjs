@@ -159,8 +159,10 @@ void DgramSocket::stop_bind()
     isolate_unref();
 }
 
-result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncHandle ac)
+result_t DgramSocket::bind(int32_t port, exlib::string addr, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac)
 {
+    retVal = this;
+
     if (ac.isSync()) {
         m_holder = new ValueHolder(wrap());
         return result_t::nosync();
@@ -208,8 +210,10 @@ result_t DgramSocket::bind_core(int32_t port, exlib::string addr)
     });
 }
 
-result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncHandle ac)
+result_t DgramSocket::bind(v8::Local<v8::Object> opts, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac)
 {
+    retVal = this;
+
     if (ac.isSync()) {
         m_holder = new ValueHolder(wrap());
 
@@ -243,7 +247,7 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncHandle ac)
     exlib::string addr = ac.ctxv()[1].string();
 
     // "already bound" 检查在内层 bind(port, addr, ac) 的 async 相位完成
-    return bind(port, addr, std::move(ac));
+    return bind(port, addr, retVal, std::move(ac));
 }
 
 result_t DgramSocket::send(Union_send_msg msg, int32_t port, exlib::string address,
@@ -424,10 +428,12 @@ static void on_close(uv_handle_t* handle)
         pThis->stop_bind();
 }
 
-result_t DgramSocket::close()
+result_t DgramSocket::close(obj_ptr<DgramSocket_base>& retVal)
 {
     if (uv_is_closing(&m_handle))
         return result_t::make(CALL_E_INVALID_CALL).with_message("dgram: socket is already closing.");
+
+    retVal = this;
 
     // The uv_call lambda speaks the raw uv status (int32_t) by contract.
     return uv_call([&] {
@@ -436,11 +442,11 @@ result_t DgramSocket::close()
     });
 }
 
-result_t DgramSocket::close(v8::Local<v8::Function> callback)
+result_t DgramSocket::close(v8::Local<v8::Function> callback, obj_ptr<DgramSocket_base>& retVal)
 {
     v8::Local<v8::Object> r;
     on(holder()->NewString("close"), callback, r);
-    return close();
+    return close(retVal);
 }
 
 result_t DgramSocket::addMembership(exlib::string multicastAddress, exlib::string multicastInterface)

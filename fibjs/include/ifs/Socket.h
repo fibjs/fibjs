@@ -49,8 +49,8 @@ public:
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4) = 0;
     virtual result_t listen(int32_t backlog) = 0;
     virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncHandle ac) = 0;
-    virtual result_t setKeepAlive(bool enable, int32_t initialDelay) = 0;
-    virtual result_t setNoDelay(bool noDelay) = 0;
+    virtual result_t setKeepAlive(bool enable, int32_t initialDelay, obj_ptr<Socket_base>& retVal) = 0;
+    virtual result_t setNoDelay(bool noDelay, obj_ptr<Socket_base>& retVal) = 0;
     virtual result_t isAlive(bool& retVal) = 0;
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t send(Union_send_data data, int32_t& retVal, AsyncHandle ac) = 0;
@@ -433,6 +433,8 @@ inline void Socket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Socket_base::s_setKeepAlive(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<Socket_base> vr;
+
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 
@@ -441,13 +443,15 @@ inline void Socket_base::s_setKeepAlive(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(bool, 0, false);
     OPT_ARG(int32_t, 1, 0);
 
-    hr = pInst->setKeepAlive(v0, v1);
+    hr = pInst->setKeepAlive(v0, v1, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Socket_base::s_setNoDelay(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    obj_ptr<Socket_base> vr;
+
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 
@@ -455,9 +459,9 @@ inline void Socket_base::s_setNoDelay(const v8::FunctionCallbackInfo<v8::Value>&
 
     OPT_ARG(bool, 0, true);
 
-    hr = pInst->setNoDelay(v0);
+    hr = pInst->setNoDelay(v0, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void Socket_base::s_isAlive(const v8::FunctionCallbackInfo<v8::Value>& args)

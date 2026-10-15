@@ -462,8 +462,9 @@ interface EventEmitter : object
      negative value throws; 0 is accepted and stored as-is.
 
      @param n the number of events
+     @return returns the current emitter object
     */
-    setMaxListeners(Integer n);
+    EventEmitter setMaxListeners(Integer n);
 
     /*! @brief Returns the listener limit of the emitter
 

@@ -512,9 +512,10 @@ declare class Class_EventEmitter extends Class_object {
      *      negative value throws; 0 is accepted and stored as-is.
      *
      *      @param n the number of events
+     *      @return returns the current emitter object
      *
      */
-    setMaxListeners(n: number): void;
+    setMaxListeners(n: number): Class_EventEmitter;
 
     /**
      * @description Returns the listener limit of the emitter

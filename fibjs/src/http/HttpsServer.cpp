@@ -133,24 +133,32 @@ result_t HttpsServer::create(SecureContext_base* context, exlib::string addr, in
     return result_t();
 }
 
-result_t HttpsServer::start()
+result_t HttpsServer::start(obj_ptr<TcpServer_base>& retVal)
 {
-    return m_server->start();
+    result_t hr = m_server->start(retVal);
+    retVal = this;
+    return hr;
 }
 
-result_t HttpsServer::stop(AsyncHandle ac)
+result_t HttpsServer::stop(obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
-    return m_server->stop(std::move(ac));
+    result_t hr = m_server->stop(retVal, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
-result_t HttpsServer::close(AsyncHandle ac)
+result_t HttpsServer::close(obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
-    return stop(std::move(ac));
+    result_t hr = stop(retVal, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
-result_t HttpsServer::listen(int32_t port, exlib::string addr, int32_t backlog, AsyncHandle ac)
+result_t HttpsServer::listen(int32_t port, exlib::string addr, int32_t backlog, obj_ptr<TcpServer_base>& retVal, AsyncHandle ac)
 {
-    return static_cast<TLSServer*>(m_server.get())->listen(port, addr, backlog, std::move(ac));
+    result_t hr = static_cast<TLSServer*>(m_server.get())->listen(port, addr, backlog, retVal, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
 result_t HttpsServer::get_timeout(int32_t& retVal)
