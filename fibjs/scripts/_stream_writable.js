@@ -587,6 +587,10 @@ Writable.prototype.end = function (chunk, encoding, cb) {
   // ignore unnecessary end() calls.
   if (!state.ending && !state.finished)
     endWritable(this, state, cb);
+
+  // node: end() returns the stream, and the hand-written declaration of the
+  // compat layer (tools/handwritten/module/stream.d.ts) already says `this`
+  return this;
 };
 
 
