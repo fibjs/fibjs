@@ -112,9 +112,8 @@
  *
  *  - `readFile` returns a Buffer by default and a string when an encoding is given; a descriptor
  *    read with an options object defaults to utf8.
- *  - writeFile(fd) seeks to the beginning and truncates the file before writing, which differs from
- *    Node.js where a descriptor write starts at the current position.
- *  - The Node.js `bigint` option is accepted in the options of the stat and watch functions but is
+ *  - writeFile(fd) seeks to the beginning and truncates the file before writing.
+ *  - The `bigint` option is accepted in the options of the stat and watch functions but is
  *    not implemented: the `Ns` properties of Stat are always numbers holding the nanosecond part.
  *  - watch returns a watcher deriving from EventEmitter and watchFile returns a StatsWatcher
  *    deriving from EventEmitter; calling `fs.unwatchFile(target)` is equivalent to calling
@@ -170,8 +169,8 @@ declare module 'fs' {
     /**
      * @description The alias of the Stat class, see Stat
      *
-     *      Stat objects are returned by stat/lstat/fstat; Node.js exposes the same class as fs.Stats,
-     *      while readdir with `withFileTypes` returns DirEntry objects instead.
+     *      Stat objects are returned by stat/lstat/fstat; readdir with `withFileTypes` returns
+     *      DirEntry objects instead.
      *
      */
     const Stats: typeof Class_Stat;
@@ -182,7 +181,7 @@ declare module 'fs' {
      * @description The alias of the DirEntry class, see DirEntry
      *
      *      A directory entry pairs a file name with its type, as returned by readdir with the
-     *      `withFileTypes` option; Node.js exposes the same class as fs.Dirent.
+     *      `withFileTypes` option.
      *
      */
     const Dirent: typeof Class_DirEntry;
@@ -193,7 +192,7 @@ declare module 'fs' {
      * @description The alias of the Dir class, see Dir
      *
      *      The directory iterator returned by opendir; entries can be read one by one with
-     *      read/readSync or with `for await...of`. Node.js exposes the same class as fs.Dir.
+     *      read/readSync or with `for await...of`.
      *
      */
     const Dir: typeof Class_Dir;
@@ -235,7 +234,7 @@ declare module 'fs' {
     /**
      * @description Checks whether the given file exists
      *
-     *      The options parameter is kept for Node.js compatibility only and is ignored for now.
+     *      The options parameter is reserved and is ignored for now.
      *      @param path the path to check
      *      @param options the check options (ignored)
      *      @return true when the file exists
@@ -248,7 +247,7 @@ declare module 'fs' {
     /**
      * @description Checks whether the given file exists
      *
-     *      The options parameter is kept for Node.js compatibility only and is ignored for now.
+     *      The options parameter is reserved and is ignored for now.
      *      @param path the path to check
      *      @param options the check options (ignored)
      *      @return true when the file exists
@@ -259,7 +258,7 @@ declare module 'fs' {
     /**
      * @description Checks whether the given file exists
      *
-     *      The options parameter is kept for Node.js compatibility only and is ignored for now.
+     *      The options parameter is reserved and is ignored for now.
      *      @param path the path to check
      *      @param options the check options (ignored)
      *      @return true when the file exists
@@ -366,7 +365,7 @@ declare module 'fs' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'); an invalid mode throws.
      *
      *      The options object may contain:
      *      ```JavaScript
@@ -377,7 +376,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
+     *      When recursive is true, the path of the first created directory is returned; when the directory already exists, undefined is returned.
      *      @param path the directory to create
      *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
@@ -390,7 +389,7 @@ declare module 'fs' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'); an invalid mode throws.
      *
      *      The options object may contain:
      *      ```JavaScript
@@ -401,7 +400,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
+     *      When recursive is true, the path of the first created directory is returned; when the directory already exists, undefined is returned.
      *      @param path the directory to create
      *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
@@ -412,7 +411,7 @@ declare module 'fs' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'); an invalid mode throws.
      *
      *      The options object may contain:
      *      ```JavaScript
@@ -423,7 +422,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
+     *      When recursive is true, the path of the first created directory is returned; when the directory already exists, undefined is returned.
      *      @param path the directory to create
      *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
@@ -702,7 +701,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      Copying a directory with recursive set to false throws; an existing
      *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
@@ -728,7 +727,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      Copying a directory with recursive set to false throws; an existing
      *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
@@ -752,7 +751,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      Copying a directory with recursive set to false throws; an existing
      *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
@@ -764,7 +763,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -776,7 +775,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -786,7 +785,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -796,7 +795,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -808,7 +807,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -818,7 +817,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -828,8 +827,8 @@ declare module 'fs' {
     /**
      * @description Sets the owner of the given file; not supported on Windows
      *
-     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
-     *      convention as Node.js. Changing the owner usually requires elevated privileges.
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them. Changing
+     *      the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -842,8 +841,8 @@ declare module 'fs' {
     /**
      * @description Sets the owner of the given file; not supported on Windows
      *
-     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
-     *      convention as Node.js. Changing the owner usually requires elevated privileges.
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them. Changing
+     *      the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -854,8 +853,8 @@ declare module 'fs' {
     /**
      * @description Sets the owner of the given file; not supported on Windows
      *
-     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
-     *      convention as Node.js. Changing the owner usually requires elevated privileges.
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them. Changing
+     *      the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -904,7 +903,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the given file
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the file to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -917,7 +916,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the given file
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the file to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -928,7 +927,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the given file
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the file to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -939,7 +938,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the symbolic link itself, without following it
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the symbolic link to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -952,7 +951,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the symbolic link itself, without following it
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the symbolic link to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -963,7 +962,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the symbolic link itself, without following it
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the symbolic link to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -986,7 +985,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      `throwIfNoEntry` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *
      *      Example — inspect a text file created in a temporary directory:
@@ -1028,7 +1027,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      `throwIfNoEntry` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *
      *      Example — inspect a text file created in a temporary directory:
@@ -1068,7 +1067,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      `throwIfNoEntry` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *
      *      Example — inspect a text file created in a temporary directory:
@@ -1146,7 +1145,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      `throwIfNoEntry` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *      @param path the file to query
      *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and
@@ -1172,7 +1171,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      `throwIfNoEntry` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *      @param path the file to query
      *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and
@@ -1196,7 +1195,7 @@ declare module 'fs' {
      *      })
      *      ```
      *
-     *      `throwIfNoEntry` works like Node.js and only takes effect for synchronous (no callback)
+     *      `throwIfNoEntry` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *      @param path the file to query
      *      @return the basic information of the file, or undefined when `throwIfNoEntry` is false and
@@ -1247,7 +1246,7 @@ declare module 'fs' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
-     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
+     *      The options overload accepts an object; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -1260,7 +1259,7 @@ declare module 'fs' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
-     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
+     *      The options overload accepts an object; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -1271,7 +1270,7 @@ declare module 'fs' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
-     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
+     *      The options overload accepts an object; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -1281,7 +1280,7 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options currently has no effective option and is kept for Node.js compatibility only.
+     *      options currently has no effective option and is reserved for future use.
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
      *      @param fd the file descriptor
@@ -1296,7 +1295,7 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options currently has no effective option and is kept for Node.js compatibility only.
+     *      options currently has no effective option and is reserved for future use.
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
      *      @param fd the file descriptor
@@ -1309,7 +1308,7 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options currently has no effective option and is kept for Node.js compatibility only.
+     *      options currently has no effective option and is reserved for future use.
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
      *      @param fd the file descriptor
@@ -1422,7 +1421,7 @@ declare module 'fs' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      Unfolds `.` and `..` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      Unfolds `.` and `..` segments and resolves every symbolic link; throws ENOENT
      *      when the path does not exist.
      *
      *      The options overload accepts either an encoding string or:
@@ -1444,7 +1443,7 @@ declare module 'fs' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      Unfolds `.` and `..` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      Unfolds `.` and `..` segments and resolves every symbolic link; throws ENOENT
      *      when the path does not exist.
      *
      *      The options overload accepts either an encoding string or:
@@ -1464,7 +1463,7 @@ declare module 'fs' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      Unfolds `.` and `..` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      Unfolds `.` and `..` segments and resolves every symbolic link; throws ENOENT
      *      when the path does not exist.
      *
      *      The options overload accepts either an encoding string or:
@@ -1712,7 +1711,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *
      *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
      *      @param fd the file descriptor
@@ -1727,7 +1726,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *
      *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
      *      @param fd the file descriptor
@@ -1740,7 +1739,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *
      *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
      *      @param fd the file descriptor
@@ -1823,7 +1822,7 @@ declare module 'fs' {
     /**
      * @description Changes the size of a file by its file descriptor
      *
-     *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
+     *      A length of 0 empties the file, and negative values are treated as 0.
      *
      *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
      *      @param fd the file descriptor
@@ -1837,7 +1836,7 @@ declare module 'fs' {
     /**
      * @description Changes the size of a file by its file descriptor
      *
-     *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
+     *      A length of 0 empties the file, and negative values are treated as 0.
      *
      *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
      *      @param fd the file descriptor
@@ -1849,7 +1848,7 @@ declare module 'fs' {
     /**
      * @description Changes the size of a file by its file descriptor
      *
-     *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
+     *      A length of 0 empties the file, and negative values are treated as 0.
      *
      *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
      *      @param fd the file descriptor
@@ -1861,7 +1860,7 @@ declare module 'fs' {
     /**
      * @description Queries the information of the file system
      *
-     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields, consistent with Node.js.
+     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields.
      *      @param path the path to query
      *      @return the file system information object
      *
@@ -1889,7 +1888,7 @@ declare module 'fs' {
     /**
      * @description Queries the information of the file system
      *
-     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields, consistent with Node.js.
+     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields.
      *      @param path the path to query
      *      @return the file system information object
      *
@@ -1907,7 +1906,7 @@ declare module 'fs' {
     /**
      * @description Queries the information of the file system
      *
-     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields, consistent with Node.js.
+     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields.
      *      @param path the path to query
      *      @return the file system information object
      *
@@ -2005,8 +2004,8 @@ declare module 'fs' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
      *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
-     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
-     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      an array of Buffer objects, but it cannot be combined with
+     *      withFileTypes (an error is thrown).
      *      With recursive set to true the entries of subdirectories are included as paths relative to
      *      the queried directory.
      *
@@ -2052,8 +2051,8 @@ declare module 'fs' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
      *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
-     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
-     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      an array of Buffer objects, but it cannot be combined with
+     *      withFileTypes (an error is thrown).
      *      With recursive set to true the entries of subdirectories are included as paths relative to
      *      the queried directory.
      *
@@ -2097,8 +2096,8 @@ declare module 'fs' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
      *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
-     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
-     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      an array of Buffer objects, but it cannot be combined with
+     *      withFileTypes (an error is thrown).
      *      With recursive set to true the entries of subdirectories are included as paths relative to
      *      the queried directory.
      *
@@ -2453,7 +2452,7 @@ declare module 'fs' {
      *
      *      The same operation is available with a string-flags form taking an octal string mode and a
      *      string-flags form taking a numeric mode defaulting to 0666. `open` returns a FileHandle that
-     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      wraps the descriptor; use read, write, fstat and close on it. The
      *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
@@ -2470,7 +2469,7 @@ declare module 'fs' {
      *
      *      The same operation is available with a string-flags form taking an octal string mode and a
      *      string-flags form taking a numeric mode defaulting to 0666. `open` returns a FileHandle that
-     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      wraps the descriptor; use read, write, fstat and close on it. The
      *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
@@ -2485,7 +2484,7 @@ declare module 'fs' {
      *
      *      The same operation is available with a string-flags form taking an octal string mode and a
      *      string-flags form taking a numeric mode defaulting to 0666. `open` returns a FileHandle that
-     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      wraps the descriptor; use read, write, fstat and close on it. The
      *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
@@ -2498,7 +2497,7 @@ declare module 'fs' {
     /**
      * @description Opens a file
      *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'); an invalid mode throws.
      *      @param fname the file name
      *      @param flags the open mode
      *      @param mode the file permissions, a number or an octal string
@@ -2512,7 +2511,7 @@ declare module 'fs' {
     /**
      * @description Opens a file
      *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'); an invalid mode throws.
      *      @param fname the file name
      *      @param flags the open mode
      *      @param mode the file permissions, a number or an octal string
@@ -2524,7 +2523,7 @@ declare module 'fs' {
     /**
      * @description Opens a file
      *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'); an invalid mode throws.
      *      @param fname the file name
      *      @param flags the open mode
      *      @param mode the file permissions, a number or an octal string
@@ -2743,7 +2742,7 @@ declare module 'fs' {
      *      ```
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
-     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      when an encoding is given, the decoded string is returned. A file
      *      descriptor is not closed after reading, and reading starts at the current position of the
      *      descriptor and advances it.
      *
@@ -2786,7 +2785,7 @@ declare module 'fs' {
      *      ```
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
-     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      when an encoding is given, the decoded string is returned. A file
      *      descriptor is not closed after reading, and reading starts at the current position of the
      *      descriptor and advances it.
      *
@@ -2827,7 +2826,7 @@ declare module 'fs' {
      *      ```
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
-     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      when an encoding is given, the decoded string is returned. A file
      *      descriptor is not closed after reading, and reading starts at the current position of the
      *      descriptor and advances it.
      *
@@ -3012,8 +3011,7 @@ declare module 'fs' {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      ```
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
-     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      A file descriptor ignores the options object and encodes text data as utf8; the descriptor form seeks to the
      *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
@@ -3056,8 +3054,7 @@ declare module 'fs' {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      ```
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
-     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      A file descriptor ignores the options object and encodes text data as utf8; the descriptor form seeks to the
      *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
@@ -3098,8 +3095,7 @@ declare module 'fs' {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      ```
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
-     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      A file descriptor ignores the options object and encodes text data as utf8; the descriptor form seeks to the
      *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
@@ -3123,7 +3119,7 @@ declare module 'fs' {
      *          "flag": "a" // specify the open flag. Default: a
      *      })
      *      ```
-     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
+     *      `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -3148,7 +3144,7 @@ declare module 'fs' {
      *          "flag": "a" // specify the open flag. Default: a
      *      })
      *      ```
-     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
+     *      `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -3171,7 +3167,7 @@ declare module 'fs' {
      *          "flag": "a" // specify the open flag. Default: a
      *      })
      *      ```
-     *      Consistent with Node.js, `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
+     *      `flag` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -3300,7 +3296,7 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "persistent": true, // keep the process running while files are watched
-     *          "bigint": false, // accepted for Node.js compatibility, not implemented
+     *          "bigint": false, // accepted, not implemented
      *          "interval": 5007 // poll period in milliseconds. Default: 5007
      *      })
      *      ```

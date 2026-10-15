@@ -87,8 +87,8 @@
 
  Notes:
 
- - Node.js exposes the same rule set as require('path').win32; fibjs also provides the
-   require('path/win32') subpath form and documents the rule set as the path_win32 definition.
+ - The rule set is available as require('path').win32 and as the
+   require('path/win32') subpath form; it is documented as the path_win32 definition.
  - fullpath is implemented only on Windows builds; on other platforms it throws
    'not supported on none Win32 platform !'.
  */
@@ -215,7 +215,7 @@ module path_win32
 
     /*! @brief Converts a win32 path into an absolute path using the native Windows API
 
-     A fibjs extension, not part of Node.js, and implemented only on Windows: on other
+     An extension of the rule set, implemented only on Windows: on other
      platforms it throws 'not supported on none Win32 platform !'. On Windows the path is
      passed to GetFullPathNameW, which anchors a relative path to the current directory of the
      current drive and expands the result, keeping the win32 separators.

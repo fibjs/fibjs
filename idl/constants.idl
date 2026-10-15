@@ -1,8 +1,7 @@
 /*! @brief The legacy aggregate constants module: dynamic library flags, error codes, process
  priorities, signal numbers and the file system flags in one object
 
- The module predates the split of the constant surface into os_constants and fs_constants and
- mirrors the historical Node.js `constants` module. Its numbers are a frozen BSD/macOS set
+The module predates the split of the constant surface into os_constants and fs_constants. Its numbers are a frozen BSD/macOS set
  shared by every platform, so they are not the native values of the host: use
  `os.constants.errno`, `os.constants.signals`, `os.constants.priority` and
  `os.constants.dlopen` for the numbers the system APIs actually use, and fs_constants (or the

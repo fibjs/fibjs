@@ -5,7 +5,7 @@
  *
  *  Reached through `require('os').constants.dlopen`. The values are the flags of the host
  *  dynamic loader - on glibc RTLD_LAZY is 1, RTLD_NOW 2, RTLD_GLOBAL 256, RTLD_LOCAL 0 and
- *  RTLD_DEEPBIND 8 - and they match Node.js's os.constants.dlopen on Linux; process.dlopen
+ *  RTLD_DEEPBIND 8 - the glibc values; process.dlopen
  *  passes the number straight to dlopen, so take the flags from this table. The legacy
  *  constants module exposes the old libuv/macOS numbers (1/2/8/4) under the same names.
  *

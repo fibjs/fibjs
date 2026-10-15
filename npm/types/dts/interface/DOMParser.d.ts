@@ -2,7 +2,7 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlDocument.d.ts" />
 /**
- * @description DOMParser parses an HTML or XML source string into an XmlDocument; the class is a global and Node.js has no equivalent
+ * @description DOMParser parses an HTML or XML source string into an XmlDocument; the class is a global
  *
  *  `new DOMParser().parseFromString(source, mimeType)` returns a full XmlDocument that can be
  *  navigated with the xml DOM API (documentElement, getElementById, querySelector, childNodes...)
@@ -23,7 +23,7 @@
  *  - **Parse errors**: an XML syntax error throws Error [20024] with the parser location
  *    ("XmlParser: error on line N at column M: ..."), where browsers instead return a document
  *    containing a parsererror element. HTML parsing is tolerant and rarely fails.
- *  - **Parse limits**: the third options argument is a fibjs extension over the two-argument MDN
+ *  - **Parse limits**: the third options argument is an extension over the two-argument MDN
  *    signature; it accepts maxElementDepth (default 1000) and maxNodeCount (default 1000000),
  *    exactly like xml.parse. A value of 0, a negative value or Infinity disables the limit,
  *    exceeding one throws Error [20024], and a non-numeric option throws TypeError [20004].

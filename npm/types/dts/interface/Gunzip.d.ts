@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Gunzip is the Node.js compatible codec that decompresses gzip data
+ * @description Gunzip is the codec that decompresses gzip data
  *
  *  `new zlib.Gunzip(opts)` builds a synchronous codec; feed gzip chunks with `_processChunk`
  *  and the zlib flush flags and it returns the decoded bytes. It decodes the container

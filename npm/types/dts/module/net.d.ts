@@ -20,8 +20,8 @@
  *  - **IP detection**: `isIP`, `isIPv4` and `isIPv6` classify address literals without any lookup;
  *  - **Engine control**: `backend` reports the asynchronous engine in use and `use_uv_socket` switches
  *    the sockets created afterwards between the platform engine and libuv;
- *  - **Node.js compatibility**: `getDefaultAutoSelectFamily`, `setDefaultAutoSelectFamily` and the
- *    attempt-timeout pair exist so that Node.js style consumers can load unmodified, but they only
+ *  - **Compatibility accessors**: `getDefaultAutoSelectFamily`, `setDefaultAutoSelectFamily` and the
+ *    attempt-timeout pair exist so that existing consumers can load unmodified, but they only
  *    store values;
  *  - **Aliases**: `Socket`, `TcpServer`, `Smtp` and `Url` expose the classes of the module.
  *
@@ -60,11 +60,11 @@
  *  - **Unix sockets and pipes**: a path connection is available through `new net.Socket(net.AF_UNIX)`,
  *    the `unix:/path` URL form and the `pipe://./name` Windows form; `AF_UNIX` and `AF_PIPE` have the
  *    same value.
- *  - **Node.js differences**: there is no `net.Server` class and no `net.createConnection` alias, use
+ *  - **Names and limits**: there is no `net.Server` class and no `net.createConnection` alias, use
  *    `TcpServer` and `connect`; a URL string must carry a scheme (`tcp://host:port`, `ssl://host:port`,
  *    `unix:/path`, `pipe://...`) and a bare path throws a TypeError on the module entry while
  *    `Socket.connect(path)` accepts it; the options object of connect only reads `host`, `port` and
- *    `timeout` (Node.js supports many more keys); and the auto-select-family accessors only store
+ *    `timeout`; and the auto-select-family accessors only store
  *    values, connect never performs family autodetection.
  *
  *  Import:
@@ -155,7 +155,7 @@ declare module 'net' {
      *
      *      The flag is process-wide and is read when a Socket object is created, so it only affects later
      *      sockets and existing sockets keep the engine they were created with. Setting it to true routes
-     *      sockets through libuv (a single loop, the backend Node.js uses); leaving it false uses the
+     *      sockets through libuv (a single loop); leaving it false uses the
      *      platform engine reported by backend(). The backends differ in a few edge cases, for example a
      *      read on a socket closed by another fiber reports EBADF/EPERM on the platform engine but
      *      CALL_E_CLOSED_SOCKET on the libuv backend, and some timeouts use different error numbers.
@@ -168,8 +168,7 @@ declare module 'net' {
      *
      *      The result has one property per interface name holding an array of address entries with the
      *      same shape as os.networkInterfaces(): address, family ('IPv4' or 'IPv6'), mac, internal and
-     *      netmask. The call is synchronous and does not perform any lookup; Node.js exposes the same
-     *      data through os.networkInterfaces().
+     *      netmask. The call is synchronous and does not perform any lookup.
      *      @return returns the network interface information
      *
      */
@@ -180,8 +179,7 @@ declare module 'net' {
      *
      *      The lookup goes through the system resolver (getaddrinfo) and returns the first address that
      *      matches the requested family, so a name with both A and AAAA records returns its IPv4 address
-     *      by default. The result is always a single address; there is no all/hints equivalent of the
-     *      Node.js dns module. family must be net.AF_INET (default) or net.AF_INET6, any other value
+     *      by default. The result is always a single address. family must be net.AF_INET (default) or net.AF_INET6, any other value
      *      throws a TypeError. A name that cannot be resolved fails with an Error carrying syscall
      *      'getaddrinfo' and a resolver code such as ENOTFOUND, which distinguishes a missing host from a
      *      local resolver failure. The call yields the current fiber while the resolver works.
@@ -199,8 +197,7 @@ declare module 'net' {
      *
      *      The lookup goes through the system resolver (getaddrinfo) and returns the first address that
      *      matches the requested family, so a name with both A and AAAA records returns its IPv4 address
-     *      by default. The result is always a single address; there is no all/hints equivalent of the
-     *      Node.js dns module. family must be net.AF_INET (default) or net.AF_INET6, any other value
+     *      by default. The result is always a single address. family must be net.AF_INET (default) or net.AF_INET6, any other value
      *      throws a TypeError. A name that cannot be resolved fails with an Error carrying syscall
      *      'getaddrinfo' and a resolver code such as ENOTFOUND, which distinguishes a missing host from a
      *      local resolver failure. The call yields the current fiber while the resolver works.
@@ -216,8 +213,7 @@ declare module 'net' {
      *
      *      The lookup goes through the system resolver (getaddrinfo) and returns the first address that
      *      matches the requested family, so a name with both A and AAAA records returns its IPv4 address
-     *      by default. The result is always a single address; there is no all/hints equivalent of the
-     *      Node.js dns module. family must be net.AF_INET (default) or net.AF_INET6, any other value
+     *      by default. The result is always a single address. family must be net.AF_INET (default) or net.AF_INET6, any other value
      *      throws a TypeError. A name that cannot be resolved fails with an Error carrying syscall
      *      'getaddrinfo' and a resolver code such as ENOTFOUND, which distinguishes a missing host from a
      *      local resolver failure. The call yields the current fiber while the resolver works.
@@ -232,7 +228,7 @@ declare module 'net' {
      * @description Quickly queries the host IPv4 address, equivalent to resolve(name)
      *
      *      A convenience wrapper of resolve(name, AF_INET); see resolve for the resolver behavior and the
-     *      error shapes. Node.js has no equivalent directly under net, its lookup lives in the dns module.
+     *      error shapes.
      *      @param name specifies the host name
      *      @return returns the queried ip string
      *
@@ -245,7 +241,7 @@ declare module 'net' {
      * @description Quickly queries the host IPv4 address, equivalent to resolve(name)
      *
      *      A convenience wrapper of resolve(name, AF_INET); see resolve for the resolver behavior and the
-     *      error shapes. Node.js has no equivalent directly under net, its lookup lives in the dns module.
+     *      error shapes.
      *      @param name specifies the host name
      *      @return returns the queried ip string
      *
@@ -256,7 +252,7 @@ declare module 'net' {
      * @description Quickly queries the host IPv4 address, equivalent to resolve(name)
      *
      *      A convenience wrapper of resolve(name, AF_INET); see resolve for the resolver behavior and the
-     *      error shapes. Node.js has no equivalent directly under net, its lookup lives in the dns module.
+     *      error shapes.
      *      @param name specifies the host name
      *      @return returns the queried ip string
      *
@@ -304,7 +300,7 @@ declare module 'net' {
     /**
      * @description The Socket class entry point, creates TCP and unix socket objects, see Socket
      *
-     *      The same class as the global net.Socket and the Node.js net.Socket; net.connect(...) is the
+     *      The same class as `net.Socket`; `net.connect(...)` is the
      *      connected-instance factory and the accepted sockets of a TcpServer are Sockets too.
      *
      */
@@ -326,7 +322,7 @@ declare module 'net' {
      *      })
      *      ```
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
-     *      unroutable address, so pass an explicit value when the peer may be unreachable. Node.js option
+     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
      *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
      *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
      *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
@@ -354,7 +350,7 @@ declare module 'net' {
      *      })
      *      ```
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
-     *      unroutable address, so pass an explicit value when the peer may be unreachable. Node.js option
+     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
      *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
      *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
      *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
@@ -380,7 +376,7 @@ declare module 'net' {
      *      })
      *      ```
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
-     *      unroutable address, so pass an explicit value when the peer may be unreachable. Node.js option
+     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
      *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
      *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
      *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
@@ -452,7 +448,7 @@ declare module 'net' {
      *      The blocking port/host/timeout form. host may be an IPv4 or IPv6 literal or a name resolved as
      *      part of the connection, and timeout is the connect timeout in milliseconds (0 leaves the
      *      operating system default). The returned Socket is already connected and ready for send/recv;
-     *      see the options overload for the error behavior and the Node.js differences of the resolution
+     *      see the options overload for the error behavior of the resolution
      *      step. Equivalent to `new net.Socket().connect(port, host, timeout)`.
      *
      *      @param port specifies the remote port
@@ -471,7 +467,7 @@ declare module 'net' {
      *      The blocking port/host/timeout form. host may be an IPv4 or IPv6 literal or a name resolved as
      *      part of the connection, and timeout is the connect timeout in milliseconds (0 leaves the
      *      operating system default). The returned Socket is already connected and ready for send/recv;
-     *      see the options overload for the error behavior and the Node.js differences of the resolution
+     *      see the options overload for the error behavior of the resolution
      *      step. Equivalent to `new net.Socket().connect(port, host, timeout)`.
      *
      *      @param port specifies the remote port
@@ -488,7 +484,7 @@ declare module 'net' {
      *      The blocking port/host/timeout form. host may be an IPv4 or IPv6 literal or a name resolved as
      *      part of the connection, and timeout is the connect timeout in milliseconds (0 leaves the
      *      operating system default). The returned Socket is already connected and ready for send/recv;
-     *      see the options overload for the error behavior and the Node.js differences of the resolution
+     *      see the options overload for the error behavior of the resolution
      *      step. Equivalent to `new net.Socket().connect(port, host, timeout)`.
      *
      *      @param port specifies the remote port
@@ -688,7 +684,7 @@ declare module 'net' {
      * @description The Smtp class entry point, creates SMTP client objects, see Smtp
      *
      *      SMTP is an application protocol on top of a TCP/TLS connection; net.openSmtp(url, timeout) is
-     *      the connected-instance factory. Node.js has no built-in SMTP client.
+     *      the connected-instance factory.
      *
      */
     const Smtp: typeof Class_Smtp;
@@ -739,7 +735,7 @@ declare module 'net' {
     /**
      * @description The TcpServer class entry point, creates a TCP server, see TcpServer
      *
-     *      The fibjs counterpart of the Node.js net.Server; net.createServer(...) is the factory form and
+     *      The server class of the module; net.createServer(...) is the factory form and
      *      a TcpServer may also be created with new net.TcpServer(...).
      *
      */
@@ -773,8 +769,7 @@ declare module 'net' {
      *      With both properties the server binds address:port immediately and start() begins accepting;
      *      with address only it binds that address with an OS-assigned port (or a unix path when the
      *      address is not an IP literal); with neither it only stores the handler and listen() must be
-     *      called. These are bind options, not the socket options of Node.js net.createServer, and Node.js
-     *      always requires listen().
+     *      called. These are bind options; `listen()` is only needed when the constructor did not bind.
      *
      *      listener may be given in any of these forms:
      *      - a Handler object, invoked as it is;
@@ -797,8 +792,7 @@ declare module 'net' {
     /**
      * @description The alias of the UrlObject class, see UrlObject
      *
-     *      The URL parser used by the URL forms of connect. Node.js has no equivalent under net; its URL
-     *      helpers live in the url module.
+     *      The URL parser used by the URL forms of connect.
      *
      */
     const Url: typeof Class_UrlObject;
@@ -810,7 +804,7 @@ declare module 'net' {
      *
      *      The name is platform specific: 'IOCP' on win32, 'KQueue' on darwin/freebsd and 'EPoll' on
      *      linux/android. It reports the platform engine; sockets created while use_uv_socket is true use
-     *      libuv instead. Node.js always uses libuv and has no equivalent accessor.
+     *      libuv instead.
      *      @return returns the network engine name
      *
      */
@@ -822,7 +816,7 @@ declare module 'net' {
      *      IPv4 must be dot-decimal without leading zeroes ('127.000.000.001' returns 0). IPv6 accepts
      *      compressed and IPv4-mapped forms ('::ffff:127.0.0.1' returns 6). A value that is not a string
      *      is converted with toString first, so an object whose toString yields an address is classified
-     *      exactly like the Node.js behavior. No lookup is performed, a host name returns 0.
+     *      as an address. No lookup is performed, a host name returns 0.
      *      @param ip the value to detect; a non-string value is not an IP address
      *      @return returns 0 for an invalid IP address, 4 for IPv4 and 6 for IPv6
      *
@@ -852,9 +846,9 @@ declare module 'net' {
     function isIPv6(ip?: any): boolean;
 
     /**
-     * @description Queries whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13
+     * @description Queries whether net.connect enables automatic address selection by default
      *
-     *      Compatibility accessor: fibjs stores the value so Node.js consumers that read it at module load
+     *      Compatibility accessor: the value is stored so consumers that read it at module load
      *      (for example playwright-core) work unmodified, but connect never performs family
      *      autodetection. The companion timeout is getDefaultAutoSelectFamilyAttemptTimeout.
      *      @return returns the current default value, default is true
@@ -863,7 +857,7 @@ declare module 'net' {
     function getDefaultAutoSelectFamily(): boolean;
 
     /**
-     * @description Sets whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13
+     * @description Sets whether net.connect enables automatic address selection by default
      *
      *      Stores the value only; it does not change the behavior of connect, which always uses the family
      *      implied by the host name or the address family of the Socket. The setter returns nothing.
@@ -873,9 +867,9 @@ declare module 'net' {
     function setDefaultAutoSelectFamily(enabled: boolean): void;
 
     /**
-     * @description Queries the default automatic address family selection timeout, compatible with Node.js >= 18.13
+     * @description Queries the default automatic address selection timeout
      *
-     *      Compatibility accessor for Node.js consumers; see setDefaultAutoSelectFamily. It is only stored
+     *      Compatibility accessor; see setDefaultAutoSelectFamily. It is only stored
      *      and is never used by connect.
      *      @return returns the current default timeout in milliseconds, default is 250
      *
@@ -883,11 +877,10 @@ declare module 'net' {
     function getDefaultAutoSelectFamilyAttemptTimeout(): number;
 
     /**
-     * @description Sets the default automatic address family selection timeout, compatible with Node.js >= 18.13
+     * @description Sets the default automatic address selection timeout
      *
      *      Values below 10 are rejected with an out-of-range error whose message is
-     *      "setDefaultAutoSelectFamilyAttemptTimeout: milliseconds must be >= 10, got N.", matching the
-     *      Node.js validation. Like the family switch, the value is only stored and never used by connect.
+     *      "setDefaultAutoSelectFamilyAttemptTimeout: milliseconds must be >= 10, got N.". Like the family switch, the value is only stored and never used by connect.
      *      @param milliseconds specifies the default timeout in milliseconds, which must be an integer greater than or equal to 10
      *
      */

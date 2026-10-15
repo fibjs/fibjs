@@ -11,9 +11,8 @@
  *  collection and the body, plus the live HttpResponse it belongs to. The body API, the
  *  header API and the connection metadata come from HttpMessage and Message. In an
  *  http.Server handler the first argument is an HttpRequest and its response is the object
- *  to answer with. Node.js exposes the server side as http.IncomingMessage and the client
- *  side as http.ClientRequest; fibjs uses one class for both (http.IncomingMessage is an
- *  alias) and adds the parsed query, cookies, form and href members.
+ *  to answer with. One class serves both sides (http.IncomingMessage is an
+ *  alias), and it adds the parsed query, cookies, form and href members.
  *
  *  Concepts:
  *
@@ -200,8 +199,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *
      *      The value is stored verbatim: no uppercasing and no validation. The parser sets it
      *      from the request line and the constructors default it to GET. Routing, HEAD handling
-     *      and the WebSocket upgrade check compare it case-insensitively. Node.js exposes the
-     *      same value as IncomingMessage.method.
+     *      and the WebSocket upgrade check compare it case-insensitively.
      *
      */
     method: string;
@@ -212,7 +210,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      A parsed server request stores only the path (`/a/b`) here and routing maps match
      *      against it; the Fetch-style constructors store the whole URL instead because the
      *      client functions read the target from this property. Changing it does not touch
-     *      queryString. Node.js IncomingMessage.url contains path and query together.
+     *      queryString.
      *
      */
     address: string;
@@ -222,8 +220,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *
      *      Reading joins address and '?' + queryString when the query is not empty; assigning
      *      splits the value at the first '?' and a value without '?' clears the query string.
-     *      Nothing is normalized or encoded here. Node.js IncomingMessage.url has the same read
-     *      shape but is not assignable.
+     *      Nothing is normalized or encoded here.
      *
      */
     url: string;
@@ -257,8 +254,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *
      *      Stored without the leading '?', for example "a=1&b=2"; the parser fills it from the
      *      request line and the setters of url update it. Assigning it does not refresh an
-     *      already parsed query object. Node.js keeps the same text inside
-     *      IncomingMessage.url.
+     *      already parsed query object.
      *
      */
     queryString: string;
@@ -268,8 +264,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *
      *      Parsed from the Cookie header on first access and cached; get(name) and all(name)
      *      read the values while duplicate names keep every value. Changing the Cookie header
-     *      after the first access does not refresh the collection. Node.js does not parse
-     *      cookies on IncomingMessage.
+     *      after the first access does not refresh the collection.
      *
      */
     readonly cookies: Class_HttpCollection;
@@ -281,8 +276,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      and multipart/form-data (with a boundary) are accepted. A missing Content-Type
      *      throws "Content-Type is missing", another type throws "unknown form format" and an
      *      empty body gives an empty FormData (error 20024). The parse rewinds the seekable
-     *      body and does not set bodyUsed, so the body remains readable afterwards. Node.js has
-     *      no built-in form parsing.
+     *      body and does not set bodyUsed, so the body remains readable afterwards.
      *
      *      Example — read an urlencoded form posted to a server:
      *      ```JavaScript
@@ -306,7 +300,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      Built once from queryString on first access and cached; get, getAll, has and the
      *      iteration helpers read it, but changes made through the URLSearchParams object are
      *      not written back to the request. Change queryString or url before the first access to
-     *      affect it. Node.js exposes no parsed query on IncomingMessage.
+     *      affect it.
      *
      */
     readonly query: Class_URLSearchParams;
@@ -415,8 +409,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *
      *      The value is stored verbatim: no uppercasing and no validation. The parser sets it
      *      from the request line and the constructors default it to GET. Routing, HEAD handling
-     *      and the WebSocket upgrade check compare it case-insensitively. Node.js exposes the
-     *      same value as IncomingMessage.method.
+     *      and the WebSocket upgrade check compare it case-insensitively.
      *
      */
     method: string;
@@ -427,7 +420,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      A parsed server request stores only the path (`/a/b`) here and routing maps match
      *      against it; the Fetch-style constructors store the whole URL instead because the
      *      client functions read the target from this property. Changing it does not touch
-     *      queryString. Node.js IncomingMessage.url contains path and query together.
+     *      queryString.
      *
      */
     address: string;
@@ -437,8 +430,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *
      *      Reading joins address and '?' + queryString when the query is not empty; assigning
      *      splits the value at the first '?' and a value without '?' clears the query string.
-     *      Nothing is normalized or encoded here. Node.js IncomingMessage.url has the same read
-     *      shape but is not assignable.
+     *      Nothing is normalized or encoded here.
      *
      */
     url: string;
@@ -472,8 +464,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *
      *      Stored without the leading '?', for example "a=1&b=2"; the parser fills it from the
      *      request line and the setters of url update it. Assigning it does not refresh an
-     *      already parsed query object. Node.js keeps the same text inside
-     *      IncomingMessage.url.
+     *      already parsed query object.
      *
      */
     queryString: string;
@@ -483,8 +474,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *
      *      Parsed from the Cookie header on first access and cached; get(name) and all(name)
      *      read the values while duplicate names keep every value. Changing the Cookie header
-     *      after the first access does not refresh the collection. Node.js does not parse
-     *      cookies on IncomingMessage.
+     *      after the first access does not refresh the collection.
      *
      */
     readonly cookies: Class_HttpCollection;
@@ -496,8 +486,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      and multipart/form-data (with a boundary) are accepted. A missing Content-Type
      *      throws "Content-Type is missing", another type throws "unknown form format" and an
      *      empty body gives an empty FormData (error 20024). The parse rewinds the seekable
-     *      body and does not set bodyUsed, so the body remains readable afterwards. Node.js has
-     *      no built-in form parsing.
+     *      body and does not set bodyUsed, so the body remains readable afterwards.
      *
      *      Example — read an urlencoded form posted to a server:
      *      ```JavaScript
@@ -521,7 +510,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      Built once from queryString on first access and cached; get, getAll, has and the
      *      iteration helpers read it, but changes made through the URLSearchParams object are
      *      not written back to the request. Change queryString or url before the first access to
-     *      affect it. Node.js exposes no parsed query on IncomingMessage.
+     *      affect it.
      *
      */
     readonly query: Class_URLSearchParams;

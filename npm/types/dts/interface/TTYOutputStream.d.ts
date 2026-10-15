@@ -19,13 +19,13 @@
  *    resizes the window the process receives SIGWINCH and the stream emits `'resize'` with no
  *    arguments, after which the properties report the new size.
  *  - **Control sequences**: clearLine, clearScreenDown, cursorTo and moveCursor write ANSI CSI
- *    sequences to the terminal, which interprets them instead of displaying them. fibjs emits the
- *    same sequences as Node.js; the members return nothing and write straight to the terminal
+ *    sequences to the terminal, which interprets them instead of displaying them. The members emit the
+ *    same CSI sequences; the members return nothing and write straight to the terminal
  *    device, bypassing the JavaScript write override and the stream back pressure.
  *  - **Positions**: columns and the x arguments are 0-based; cursorTo(x) moves to column x of the
  *    current row, cursorTo(x, y) moves to the 0-based row y, and moveCursor(dx, dy) is relative.
  *    Each non-zero component is written as its own sequence.
- *  - **Color depth**: Node.js hasColors/getColorDepth are not implemented; use util.colors.hasColors
+ *  - **Color depth**: `hasColors`/`getColorDepth` are not implemented; use util.colors.hasColors
  *    to test whether the terminal supports color (see the colors module).
  *
  *  Obtained from:
@@ -101,7 +101,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *      checked, so a terminal descriptor opened for input can be wrapped as well.
      *
      *      opts is accepted for interface compatibility and ignored: it is not forwarded to the Stream
-     *      base. Node.js has no options parameter on tty.WriteStream at all.
+     *      base.
      *
      *      Example — construct a second write stream for the terminal of a pty child:
      *      ```JavaScript
@@ -143,7 +143,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      * @description The current number of columns of the terminal
      *
      *      The value is read from the terminal device on every access, so it follows a resize; it is the
-     *      first element of getWindowSize and matches Node.js. A pty created with `stdio: 'pty'` starts
+     *      first element of getWindowSize. A pty created with `stdio: 'pty'` starts
      *      at the cols option of child_process (80 by default).
      *
      */
@@ -153,7 +153,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      * @description The current number of rows of the terminal
      *
      *      The value is read from the terminal device on every access, so it follows a resize; it is the
-     *      second element of getWindowSize and matches Node.js. A pty created with `stdio: 'pty'` starts
+     *      second element of getWindowSize. A pty created with `stdio: 'pty'` starts
      *      at the rows option of child_process (24 by default).
      *
      */
@@ -165,7 +165,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *      dir selects the part of the line to clear: -1 clears from the cursor to the beginning of the
      *      line, 0 the whole line and 1 from the cursor to the end of the line (the default is 0). Each
      *      direction writes the corresponding CSI sequence: `\x1b[1K`, `\x1b[2K` or `\x1b[0K`. Any other
-     *      value throws [20004] ("clearLine: invalid direction"), where Node.js writes `\x1b[0K` instead.
+     *      value throws [20004] ("clearLine: invalid direction").
      *
      *      Example — the three directions produce three different sequences:
      *      ```JavaScript
@@ -193,8 +193,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
     /**
      * @description Clears the terminal from the cursor down to the end of the screen
      *
-     *      Writes the CSI sequence `\x1b[0J`; the cursor itself does not move. Node.js emits the same
-     *      sequence from its synchronous form.
+     *      Writes the CSI sequence `\x1b[0J`; the cursor itself does not move.
      *
      */
     clearScreenDown(): void;
@@ -204,13 +203,11 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes `\x1b[(x+1)G`; otherwise y is the 0-based row and the member writes
-     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes `\x1b[0G`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      ```JavaScript
@@ -242,13 +239,11 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes `\x1b[(x+1)G`; otherwise y is the 0-based row and the member writes
-     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes `\x1b[0G`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      ```JavaScript
@@ -278,13 +273,11 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes `\x1b[(x+1)G`; otherwise y is the 0-based row and the member writes
-     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes `\x1b[0G`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      ```JavaScript
@@ -314,8 +307,8 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits `\x1b[dxC` (right)
      *      and dx < 0 emits `\x1b[|dx|D` (left); dy > 0 emits `\x1b[dyB` (down) and dy < 0 emits
-     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      ```JavaScript
@@ -348,8 +341,8 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits `\x1b[dxC` (right)
      *      and dx < 0 emits `\x1b[|dx|D` (left); dy > 0 emits `\x1b[dyB` (down) and dy < 0 emits
-     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      ```JavaScript
@@ -380,8 +373,8 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits `\x1b[dxC` (right)
      *      and dx < 0 emits `\x1b[|dx|D` (left); dy > 0 emits `\x1b[dyB` (down) and dy < 0 emits
-     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      ```JavaScript
@@ -411,7 +404,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      * @description Returns the size of the terminal as [numColumns, numRows]
      *
      *      The pair is read from the terminal device on every call, so it follows a resize; it is
-     *      equivalent to reading columns and rows and has the same Number[] shape as Node.js (the members
+     *      equivalent to reading columns and rows, returned as a Number[] (the members
      *      are numbers, not integers).
      *
      *      @return returns the array [numColumns, numRows] of the terminal
@@ -424,8 +417,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      The event carries no arguments; read columns, rows or getWindowSize inside the listener to get
      *      the new size. It is emitted when the process receives SIGWINCH, which the terminal sends when
-     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size). Node.js emits
-     *      the same event under the same name.
+     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size).
      *
      *      Example — watch the size of a pty child while stty resizes it (Linux only):
      *      ```JavaScript
@@ -478,8 +470,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      The event carries no arguments; read columns, rows or getWindowSize inside the listener to get
      *      the new size. It is emitted when the process receives SIGWINCH, which the terminal sends when
-     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size). Node.js emits
-     *      the same event under the same name.
+     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size).
      *
      *      Example — watch the size of a pty child while stty resizes it (Linux only):
      *      ```JavaScript
@@ -621,7 +612,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *      checked, so a terminal descriptor opened for input can be wrapped as well.
      *
      *      opts is accepted for interface compatibility and ignored: it is not forwarded to the Stream
-     *      base. Node.js has no options parameter on tty.WriteStream at all.
+     *      base.
      *
      *      Example — construct a second write stream for the terminal of a pty child:
      *      ```JavaScript
@@ -663,7 +654,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      * @description The current number of columns of the terminal
      *
      *      The value is read from the terminal device on every access, so it follows a resize; it is the
-     *      first element of getWindowSize and matches Node.js. A pty created with `stdio: 'pty'` starts
+     *      first element of getWindowSize. A pty created with `stdio: 'pty'` starts
      *      at the cols option of child_process (80 by default).
      *
      */
@@ -673,7 +664,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      * @description The current number of rows of the terminal
      *
      *      The value is read from the terminal device on every access, so it follows a resize; it is the
-     *      second element of getWindowSize and matches Node.js. A pty created with `stdio: 'pty'` starts
+     *      second element of getWindowSize. A pty created with `stdio: 'pty'` starts
      *      at the rows option of child_process (24 by default).
      *
      */
@@ -685,7 +676,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *      dir selects the part of the line to clear: -1 clears from the cursor to the beginning of the
      *      line, 0 the whole line and 1 from the cursor to the end of the line (the default is 0). Each
      *      direction writes the corresponding CSI sequence: `\x1b[1K`, `\x1b[2K` or `\x1b[0K`. Any other
-     *      value throws [20004] ("clearLine: invalid direction"), where Node.js writes `\x1b[0K` instead.
+     *      value throws [20004] ("clearLine: invalid direction").
      *
      *      Example — the three directions produce three different sequences:
      *      ```JavaScript
@@ -713,8 +704,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
     /**
      * @description Clears the terminal from the cursor down to the end of the screen
      *
-     *      Writes the CSI sequence `\x1b[0J`; the cursor itself does not move. Node.js emits the same
-     *      sequence from its synchronous form.
+     *      Writes the CSI sequence `\x1b[0J`; the cursor itself does not move.
      *
      */
     clearScreenDown(): void;
@@ -724,13 +714,11 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes `\x1b[(x+1)G`; otherwise y is the 0-based row and the member writes
-     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes `\x1b[0G`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      ```JavaScript
@@ -760,13 +748,11 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes `\x1b[(x+1)G`; otherwise y is the 0-based row and the member writes
-     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes `\x1b[0G`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      ```JavaScript
@@ -796,13 +782,11 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes `\x1b[(x+1)G`; otherwise y is the 0-based row and the member writes
-     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes `\x1b[0G`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      `\x1b[(y+1);(x+1)H`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      ```JavaScript
@@ -832,8 +816,8 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits `\x1b[dxC` (right)
      *      and dx < 0 emits `\x1b[|dx|D` (left); dy > 0 emits `\x1b[dyB` (down) and dy < 0 emits
-     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      ```JavaScript
@@ -864,8 +848,8 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits `\x1b[dxC` (right)
      *      and dx < 0 emits `\x1b[|dx|D` (left); dy > 0 emits `\x1b[dyB` (down) and dy < 0 emits
-     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      ```JavaScript
@@ -896,8 +880,8 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits `\x1b[dxC` (right)
      *      and dx < 0 emits `\x1b[|dx|D` (left); dy > 0 emits `\x1b[dyB` (down) and dy < 0 emits
-     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      `\x1b[|dy|A` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      ```JavaScript
@@ -927,7 +911,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      * @description Returns the size of the terminal as [numColumns, numRows]
      *
      *      The pair is read from the terminal device on every call, so it follows a resize; it is
-     *      equivalent to reading columns and rows and has the same Number[] shape as Node.js (the members
+     *      equivalent to reading columns and rows, returned as a Number[] (the members
      *      are numbers, not integers).
      *
      *      @return returns the array [numColumns, numRows] of the terminal
@@ -940,8 +924,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      The event carries no arguments; read columns, rows or getWindowSize inside the listener to get
      *      the new size. It is emitted when the process receives SIGWINCH, which the terminal sends when
-     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size). Node.js emits
-     *      the same event under the same name.
+     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size).
      *
      *      Example — watch the size of a pty child while stty resizes it (Linux only):
      *      ```JavaScript

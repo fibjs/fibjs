@@ -2,11 +2,11 @@
 /// <reference path="../interface/AsyncLocalStorage.d.ts" />
 /// <reference path="../interface/AsyncResource.d.ts" />
 /**
- * @description The async_hooks module exposes the Node.js compatible classes for tracking asynchronous context: AsyncLocalStorage and AsyncResource
+ * @description The async_hooks module exposes the classes for tracking asynchronous context: AsyncLocalStorage and AsyncResource
  *
  *  The module is an export surface: it re-exports the two classes documented in
- *  the AsyncLocalStorage and AsyncResource definitions, so code written for
- *  Node.js can keep using `require('async_hooks')`. Both classes propagate their
+ *  the AsyncLocalStorage and AsyncResource definitions, so `require('async_hooks')`
+ *  resolves. Both classes propagate their
  *  context through timers, callbacks, promises and fibers created inside a
  *  tracked scope.
  *
@@ -23,13 +23,13 @@
  *  - **What is implemented**: the module exports exactly the two classes;
  *    `AsyncLocalStorage` and `AsyncResource` are the same constructors as the definitions of
  *    the same names, and the module is also reachable as `require('node:async_hooks')`.
- *  - **What is not implemented**: the Node.js `createHook` and its hook callbacks,
+ *  - **What is not implemented**: `createHook` and its hook callbacks,
  *    `executionAsyncId()`, the module-level `triggerAsyncId()`, `asyncWrapProviders` and
  *    `defaults` are missing, so code that instruments the asynchronous lifecycle itself
  *    must be adapted. There are no destroy hooks, so `emitDestroy` is a no-op and the
  *    `requireManualDestroy` option is ignored.
  *  - **Async ids**: `asyncId` and `triggerAsyncId` on resources are informational counters
- *    provided by the classes, not the ids of the Node.js async hooks subsystem; see the
+ *    provided by the classes, not ids of the async hooks subsystem; see the
  *    AsyncResource definition for the exact values.
  *  - **Context propagation**: AsyncLocalStorage stores attach to the asynchronous context of
  *    the current fiber, and every asynchronous operation created inside `run` inherits the
@@ -73,8 +73,8 @@
  *  - The two classes are only reachable through this module; they are not global
  *    variables and do not have their own module names, so
  *    `require('AsyncLocalStorage')` fails with error 20024.
- *  - The context-tracking API of both classes is complete; the differences from Node.js
- *    are limited to diagnostics (ids, missing hook callbacks, ignored options) and are
+ *  - The context-tracking API of both classes is complete; the remaining gaps are limited to
+ *    diagnostics (ids, missing hook callbacks, ignored options) and are
  *    documented in the class definitions.
  *
  */
@@ -98,7 +98,7 @@ declare module 'async_hooks' {
      *      console.log(als.getStore()); // A
      *      ```
      *
-     *      Node.js comparison: this is the same class; the `withScope` helper for `using`
+     *      The `withScope` helper for `using`
      *      declarations is not provided.
      *
      */
@@ -126,8 +126,8 @@ declare module 'async_hooks' {
      *      als.run({ id: 8 }, () => console.log(read())); // 7
      *      ```
      *
-     *      Node.js comparison: the constructor, runInAsyncScope, bind and the id accessors
-     *      match; `requireManualDestroy` is accepted but ignored because emitDestroy is a no-op.
+     *      The constructor, runInAsyncScope, bind and the id accessors are provided;
+     *      `requireManualDestroy` is accepted but ignored because emitDestroy is a no-op.
      *      See the AsyncResource definition for details.
      *
      */

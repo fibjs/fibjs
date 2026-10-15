@@ -8,8 +8,7 @@
  *  trailer collection and the body. A server handler writes the reply through
  *  request.response (the same object arrives as the handler's second argument); the client
  *  functions return an HttpResponse whose body is already readable. The header and body API
- *  is inherited from HttpMessage and Message. Node.js has http.ServerResponse on the server
- *  side and http.IncomingMessage for a received response; fibjs uses one class for both.
+ *  is inherited from HttpMessage and Message. One class serves both the reply and the received response.
  *
  *  Concepts:
  *
@@ -140,7 +139,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *
      *      Default 200; the value is written verbatim into the status line and drives ok and the
      *      computed reason phrase, while the parser sets it from a received status line.
-     *      statusCode is the Node.js name and status is an alias.
+     *      statusCode is the primary name and status is an alias.
      *
      */
     statusCode: number;
@@ -202,8 +201,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description Sets the status code and reason phrase and appends response headers
      *
      *      Same as the two-argument overload plus an explicit statusMessage; headers are
-     *      appended, not replaced, matching Node's writeHead(statusCode[, statusMessage[,
-     *      headers]]).
+     *      appended, not replaced.
      *      @param statusCode specifies the return status of the response message
      *      @param statusMessage specifies the return message of the response message
      *      @param headers specifies the response headers to add to the response message
@@ -216,8 +214,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *
      *      Parsed once from every Set-Cookie header and cached; addCookie() appends to the same
      *      list and the whole list is serialized when the response is sent. The objects are a
-     *      read view: mutating one does not rewrite the header. Node.js has no cookie
-     *      collection on ServerResponse.
+     *      read view: mutating one does not rewrite the header.
      *
      *      Example — collect the cookies of a response:
      *      ```JavaScript
@@ -238,7 +235,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      cookie may be an HttpCookie object or an options object accepted by the HttpCookie
      *      constructor (name, value, path, domain, expires, secure, httpOnly, ...). The cookie
      *      is appended as one more Set-Cookie header when the response is serialized, after the
-     *      values already present. Node.js uses setHeader('Set-Cookie', ...) manually.
+     *      values already present.
      *      @param cookie the cookie to add
      *
      */
@@ -417,7 +414,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *
      *      The returned response carries Content-Type: application/json, status 200 and the
      *      given options (status, statusText and headers), like the body constructor. The Web
-     *      standard Response.json() has the same name; Node's http module has no equivalent.
+     *      standard Response.json() has the same name.
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
      *      @return returns a new HttpResponse object
@@ -492,7 +489,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *
      *      Default 200; the value is written verbatim into the status line and drives ok and the
      *      computed reason phrase, while the parser sets it from a received status line.
-     *      statusCode is the Node.js name and status is an alias.
+     *      statusCode is the primary name and status is an alias.
      *
      */
     statusCode: number;
@@ -554,8 +551,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      * @description Sets the status code and reason phrase and appends response headers
      *
      *      Same as the two-argument overload plus an explicit statusMessage; headers are
-     *      appended, not replaced, matching Node's writeHead(statusCode[, statusMessage[,
-     *      headers]]).
+     *      appended, not replaced.
      *      @param statusCode specifies the return status of the response message
      *      @param statusMessage specifies the return message of the response message
      *      @param headers specifies the response headers to add to the response message
@@ -568,8 +564,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *
      *      Parsed once from every Set-Cookie header and cached; addCookie() appends to the same
      *      list and the whole list is serialized when the response is sent. The objects are a
-     *      read view: mutating one does not rewrite the header. Node.js has no cookie
-     *      collection on ServerResponse.
+     *      read view: mutating one does not rewrite the header.
      *
      *      Example — collect the cookies of a response:
      *      ```JavaScript
@@ -590,7 +585,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      cookie may be an HttpCookie object or an options object accepted by the HttpCookie
      *      constructor (name, value, path, domain, expires, secure, httpOnly, ...). The cookie
      *      is appended as one more Set-Cookie header when the response is serialized, after the
-     *      values already present. Node.js uses setHeader('Set-Cookie', ...) manually.
+     *      values already present.
      *      @param cookie the cookie to add
      *
      */
@@ -765,7 +760,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *
      *      The returned response carries Content-Type: application/json, status 200 and the
      *      given options (status, statusText and headers), like the body constructor. The Web
-     *      standard Response.json() has the same name; Node's http module has no equivalent.
+     *      standard Response.json() has the same name.
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
      *      @return returns a new HttpResponse object

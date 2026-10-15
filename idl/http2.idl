@@ -42,11 +42,11 @@
    fiber until they finish; `request` creates the stream and sends the request headers
    immediately. The event style is the `session`/`stream`/`headers`/`trailers` events;
    `ping` and `close` are async and can also be awaited.
- - **Node.js differences**: the secure form is the default (there is no
+ - **Limits**: the secure form is the default (there is no
    `createSecureServer` and no h2c server); there is no server push API and no
    `session.close`/`goaway`/`error` event (the declared `goaway`/`error` events are not
-   dispatched, watch `closed` instead); `ping()` returns 0 instead of reporting the
-   round-trip time; the handler passed to a server constructor is accepted but not
+   dispatched, watch `closed` instead); `ping()` returns 0 because the round-trip time is not
+   measured; the handler passed to a server constructor is accepted but not
    invoked, because requests arrive through the `session`/`stream` events; and a request
    body cannot be sent through the raw stream API (closing a client stream closes the
    whole stream), so use HttpClient for requests with a body.

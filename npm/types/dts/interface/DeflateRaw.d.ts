@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description DeflateRaw is the Node.js compatible codec that compresses data to raw deflate
+ * @description DeflateRaw is the codec that compresses data to raw deflate
  *
  *  `new zlib.DeflateRaw(opts)` builds a synchronous codec; `_processChunk` returns raw
  *  deflate data with no header and no checksum. Raw deflate is the payload of protocols

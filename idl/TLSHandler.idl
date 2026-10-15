@@ -30,9 +30,8 @@
    object or a path/address string, normalized exactly like the net.TcpServer listener. Routing
    is not supported at the TLS layer (isRouting() is false), because a raw stream has no message
    to route.
- - **Node.js differences**: Node.js has no standalone equivalent; it wraps connections manually
-   with `new tls.TLSSocket(socket, { isServer: true })` or uses tls.createServer()/https.Server.
-   The class is exported as tls.Handler (there is no tls.TLSHandler).
+ - **Notes**: the class is exported as tls.Handler and wraps an already accepted
+   connection (the handler a tls.Server invokes for each connection).
 
  Obtained from:
  - `tls.Handler` — the class alias of the tls module;

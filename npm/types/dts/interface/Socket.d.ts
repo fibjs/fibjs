@@ -28,8 +28,8 @@
  *    timeout argument is the connect timer, while the `timeout` property applies to every later
  *    operation.
  *  - **Timeouts**: an expired operation throws error number 20021 and the socket stays open, so the
- *    caller can retry with the same or another timeout. Node.js instead emits 'timeout' for an idle
- *    socket; in fibjs the callback passed to setTimeout is registered as a once 'timeout' listener
+ *    caller can retry with the same or another timeout; the callback passed to setTimeout is
+ *    registered as a once 'timeout' listener
  *    but the current implementation reports the timeout as an operation error and does not emit it.
  *  - **Closing**: the peer closing its side makes read/recv return null and emits 'end'; with the
  *    default auto-destroy the write side is finished and 'close' follows. close() shuts both
@@ -38,11 +38,10 @@
  *  - **Address information**: remoteAddress/remotePort describe the peer and localAddress/localPort
  *    the local endpoint. Before the socket is connected or bound they throw or return
  *    backend-specific placeholders, see the property descriptions.
- *  - **Node.js differences**: Node.js returns from connect immediately and never throws, accepts a
- *    path and many options in connect and has an idle 'timeout' event; fibjs blocks by default,
- *    accepts only host/port/timeout in the options object and reports timeouts as operation errors.
- *    Node.js also has no send/recv/isAlive/abort/family members; its address properties return
- *    undefined after a disconnect instead of throwing.
+ *  - **Connect and address**: `connect` blocks by default (it returns once the connection is
+ *    established and throws on failure), accepts only host/port/timeout in the options object and
+ *    reports timeouts as operation errors; a path may be given as the target. The class also
+ *    provides send/recv/isAlive/abort/family, and the address properties throw after a disconnect.
  *
  *  Obtained from:
  *  - `new net.Socket(family)` — an unconnected socket of the given family (AF_INET by default);
@@ -124,8 +123,7 @@ declare class Class_Socket extends Class_Stream {
      *      make it a listening socket. The family is fixed for the lifetime of the object: net.AF_INET
      *      and net.AF_INET6 select TCP over IPv4/IPv6 and net.AF_UNIX (the same value as net.AF_PIPE)
      *      selects a unix socket or Windows named pipe. An invalid family throws an invalid-argument
-     *      error. Node.js takes an options object here (fd, allowHalfOpen, noDelay, ...) and has no
-     *      family argument; use new net.Socket(net.AF_INET6) to build an IPv6 endpoint.
+     *      error. Use new net.Socket(net.AF_INET6) to build an IPv6 endpoint.
      *      @param family specifies the address family, default is AF_INET, ipv4
      *
      */
@@ -135,8 +133,7 @@ declare class Class_Socket extends Class_Stream {
      * @description Queries the address family of the current Socket object
      *
      *      One of net.AF_INET, net.AF_INET6 or net.AF_UNIX, as passed to the constructor. The property
-     *      throws when the socket has no valid descriptor, for example after close. Node.js exposes the
-     *      connection family as the strings remoteFamily/localFamily instead.
+     *      throws when the socket has no valid descriptor, for example after close.
      *
      */
     readonly family: number;
@@ -146,8 +143,7 @@ declare class Class_Socket extends Class_Stream {
      *
      *      For a TCP connection it is the peer IP address; for a unix socket or Windows pipe it is the
      *      peer path. The property throws with syscall 'getpeername' when the socket is not connected
-     *      and also after close, so guard accesses when the state is uncertain. Node.js returns the
-     *      peer address as a string and undefined after a disconnect instead of throwing.
+     *      and also after close, so guard accesses when the state is uncertain.
      *
      */
     readonly remoteAddress: string;
@@ -167,8 +163,7 @@ declare class Class_Socket extends Class_Stream {
      *      The local IP address of a TCP socket, or the bound path of a unix socket/pipe. On a socket
      *      that is not connected or bound the result is backend dependent: the platform engine returns
      *      a placeholder ('0.0.0.0' or '::') with localPort 0 while the libuv backend throws EBADF, see
-     *      net.use_uv_socket. Node.js reports the local address of a connection and undefined after a
-     *      disconnect.
+     *      net.use_uv_socket.
      *
      */
     readonly localAddress: string;
@@ -190,7 +185,6 @@ declare class Class_Socket extends Class_Stream {
      *      assignment; 0 (the default) disables the timer. An expired operation throws error number
      *      20021 but the socket stays open and usable, so a retry with another timeout is possible. A
      *      TcpServer copies its timeout to each accepted connection before invoking the handler.
-     *      Node.js uses an idle timeout that emits 'timeout' without failing the pending operation.
      *
      */
     timeout: number;
@@ -208,8 +202,8 @@ declare class Class_Socket extends Class_Stream {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      ```
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -234,8 +228,8 @@ declare class Class_Socket extends Class_Stream {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      ```
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -258,8 +252,8 @@ declare class Class_Socket extends Class_Stream {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      ```
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -638,8 +632,7 @@ declare class Class_Socket extends Class_Stream {
      *      The socket must be bound first with bind; listen on an invalid descriptor or an unbound socket
      *      fails with an invalid-call error. backlog is passed to the operating system as the queued
      *      connection limit; requests beyond it may be rejected. After listen, accept returns client
-     *      connections and localPort holds the port assigned to the socket. Node.js does not listen on a
-     *      Socket directly, it wraps one in net.Server.
+     *      connections and localPort holds the port assigned to the socket.
      *      @param backlog specifies the request queue length; requests beyond it will be rejected, default is 120
      *
      */
@@ -690,9 +683,8 @@ declare class Class_Socket extends Class_Stream {
      * @description Enables or disables the TCP keep-alive mechanism
      *
      *      Sets SO_KEEPALIVE and, on the platforms that support it, the idle delay before the first
-     *      probe (TCP_KEEPIDLE on Linux, SIO_KEEPALIVE_VALS on Windows). initialDelay is in seconds,
-     *      differing from Node.js whose keepAliveInitialDelay is in milliseconds; Node.js also accepts
-     *      the interval and probe-count parameters while fibjs uses the system defaults for those. The
+     *      probe (TCP_KEEPIDLE on Linux, SIO_KEEPALIVE_VALS on Windows). initialDelay is in seconds;
+     *      the interval and probe count use the system defaults. The
      *      socket must have a valid descriptor, otherwise an invalid-call error is thrown.
      *      @param enable specifies whether to enable the keep-alive mechanism, default is false
      *      @param initialDelay specifies the initial delay in seconds, default is 0
@@ -705,7 +697,7 @@ declare class Class_Socket extends Class_Stream {
      *
      *      Called without arguments it disables Nagle's algorithm, trading throughput for latency, which
      *      is what request/response protocols usually want; pass false to re-enable it. The default of
-     *      the noDelay parameter matches Node.js setNoDelay. The socket must have a valid descriptor.
+     *      the noDelay parameter is true. The socket must have a valid descriptor.
      *      @param noDelay specifies whether to disable the Nagle algorithm, default is true
      *
      */
@@ -718,8 +710,7 @@ declare class Class_Socket extends Class_Stream {
      *      Returning false means the socket is definitely unusable; returning true only means no closed
      *      state has been detected so far, a peer that just disconnected can still be reported as alive
      *      for a moment. It returns false before connect, after close, after destroy and after the end
-     *      of file has been observed. Node.js has no equivalent; its destroyed flag is related but is
-     *      not the same check.
+     *      of file has been observed.
      *
      *      Example — the flag follows the state of the peer connection:
      *      ```JavaScript
@@ -749,8 +740,7 @@ declare class Class_Socket extends Class_Stream {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -764,8 +754,7 @@ declare class Class_Socket extends Class_Stream {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -777,8 +766,7 @@ declare class Class_Socket extends Class_Stream {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -791,8 +779,7 @@ declare class Class_Socket extends Class_Stream {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -807,8 +794,7 @@ declare class Class_Socket extends Class_Stream {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -821,8 +807,7 @@ declare class Class_Socket extends Class_Stream {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -835,8 +820,7 @@ declare class Class_Socket extends Class_Stream {
      *      This method cancels all pending asynchronous operations (connect, accept, recv, send, ...) and
      *      the canceled operations fail with error number 20022; if no operation is pending the call has
      *      no effect. The socket itself is not closed and can continue to be used, so a later recv/send
-     *      starts a new operation. Use it to interrupt a blocking read from another fiber. Node.js has
-     *      no equivalent, its destroy() would also close the connection.
+     *      starts a new operation. Use it to interrupt a blocking read from another fiber.
      *
      */
     abort(): void;
@@ -859,8 +843,7 @@ declare class Class_Socket extends Class_Stream {
      *      Sets the timeout property and registers callback as a once 'timeout' listener. Note: the
      *      current net implementation reports an expired operation as error number 20021 from the
      *      pending call and does not emit the 'timeout' event, so the callback is registered but never
-     *      invoked; handle the timeout with try/catch around the operation. This differs from Node.js,
-     *      whose idle timeout emits 'timeout' and keeps the connection open.
+     *      invoked; handle the timeout with try/catch around the operation.
      *      @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
      *      @param callback the callback function, called once when the socket times out
      *      @return returns the current Socket object
@@ -885,8 +868,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      make it a listening socket. The family is fixed for the lifetime of the object: net.AF_INET
      *      and net.AF_INET6 select TCP over IPv4/IPv6 and net.AF_UNIX (the same value as net.AF_PIPE)
      *      selects a unix socket or Windows named pipe. An invalid family throws an invalid-argument
-     *      error. Node.js takes an options object here (fd, allowHalfOpen, noDelay, ...) and has no
-     *      family argument; use new net.Socket(net.AF_INET6) to build an IPv6 endpoint.
+     *      error. Use new net.Socket(net.AF_INET6) to build an IPv6 endpoint.
      *      @param family specifies the address family, default is AF_INET, ipv4
      *
      */
@@ -896,8 +878,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      * @description Queries the address family of the current Socket object
      *
      *      One of net.AF_INET, net.AF_INET6 or net.AF_UNIX, as passed to the constructor. The property
-     *      throws when the socket has no valid descriptor, for example after close. Node.js exposes the
-     *      connection family as the strings remoteFamily/localFamily instead.
+     *      throws when the socket has no valid descriptor, for example after close.
      *
      */
     readonly family: number;
@@ -907,8 +888,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      For a TCP connection it is the peer IP address; for a unix socket or Windows pipe it is the
      *      peer path. The property throws with syscall 'getpeername' when the socket is not connected
-     *      and also after close, so guard accesses when the state is uncertain. Node.js returns the
-     *      peer address as a string and undefined after a disconnect instead of throwing.
+     *      and also after close, so guard accesses when the state is uncertain.
      *
      */
     readonly remoteAddress: string;
@@ -928,8 +908,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      The local IP address of a TCP socket, or the bound path of a unix socket/pipe. On a socket
      *      that is not connected or bound the result is backend dependent: the platform engine returns
      *      a placeholder ('0.0.0.0' or '::') with localPort 0 while the libuv backend throws EBADF, see
-     *      net.use_uv_socket. Node.js reports the local address of a connection and undefined after a
-     *      disconnect.
+     *      net.use_uv_socket.
      *
      */
     readonly localAddress: string;
@@ -951,7 +930,6 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      assignment; 0 (the default) disables the timer. An expired operation throws error number
      *      20021 but the socket stays open and usable, so a retry with another timeout is possible. A
      *      TcpServer copies its timeout to each accepted connection before invoking the handler.
-     *      Node.js uses an idle timeout that emits 'timeout' without failing the pending operation.
      *
      */
     timeout: number;
@@ -969,8 +947,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      ```
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -993,8 +971,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      ```
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -1017,8 +995,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      ```
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -1393,8 +1371,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      The socket must be bound first with bind; listen on an invalid descriptor or an unbound socket
      *      fails with an invalid-call error. backlog is passed to the operating system as the queued
      *      connection limit; requests beyond it may be rejected. After listen, accept returns client
-     *      connections and localPort holds the port assigned to the socket. Node.js does not listen on a
-     *      Socket directly, it wraps one in net.Server.
+     *      connections and localPort holds the port assigned to the socket.
      *      @param backlog specifies the request queue length; requests beyond it will be rejected, default is 120
      *
      */
@@ -1443,9 +1420,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      * @description Enables or disables the TCP keep-alive mechanism
      *
      *      Sets SO_KEEPALIVE and, on the platforms that support it, the idle delay before the first
-     *      probe (TCP_KEEPIDLE on Linux, SIO_KEEPALIVE_VALS on Windows). initialDelay is in seconds,
-     *      differing from Node.js whose keepAliveInitialDelay is in milliseconds; Node.js also accepts
-     *      the interval and probe-count parameters while fibjs uses the system defaults for those. The
+     *      probe (TCP_KEEPIDLE on Linux, SIO_KEEPALIVE_VALS on Windows). initialDelay is in seconds;
+     *      the interval and probe count use the system defaults. The
      *      socket must have a valid descriptor, otherwise an invalid-call error is thrown.
      *      @param enable specifies whether to enable the keep-alive mechanism, default is false
      *      @param initialDelay specifies the initial delay in seconds, default is 0
@@ -1458,7 +1434,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      Called without arguments it disables Nagle's algorithm, trading throughput for latency, which
      *      is what request/response protocols usually want; pass false to re-enable it. The default of
-     *      the noDelay parameter matches Node.js setNoDelay. The socket must have a valid descriptor.
+     *      the noDelay parameter is true. The socket must have a valid descriptor.
      *      @param noDelay specifies whether to disable the Nagle algorithm, default is true
      *
      */
@@ -1471,8 +1447,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      Returning false means the socket is definitely unusable; returning true only means no closed
      *      state has been detected so far, a peer that just disconnected can still be reported as alive
      *      for a moment. It returns false before connect, after close, after destroy and after the end
-     *      of file has been observed. Node.js has no equivalent; its destroyed flag is related but is
-     *      not the same check.
+     *      of file has been observed.
      *
      *      Example — the flag follows the state of the peer connection:
      *      ```JavaScript
@@ -1502,8 +1477,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -1515,8 +1489,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -1528,8 +1501,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -1542,8 +1514,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -1556,8 +1527,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -1570,8 +1540,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -1584,8 +1553,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      This method cancels all pending asynchronous operations (connect, accept, recv, send, ...) and
      *      the canceled operations fail with error number 20022; if no operation is pending the call has
      *      no effect. The socket itself is not closed and can continue to be used, so a later recv/send
-     *      starts a new operation. Use it to interrupt a blocking read from another fiber. Node.js has
-     *      no equivalent, its destroy() would also close the connection.
+     *      starts a new operation. Use it to interrupt a blocking read from another fiber.
      *
      */
     abort(): void;
@@ -1608,8 +1576,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      Sets the timeout property and registers callback as a once 'timeout' listener. Note: the
      *      current net implementation reports an expired operation as error number 20021 from the
      *      pending call and does not emit the 'timeout' event, so the callback is registered but never
-     *      invoked; handle the timeout with try/catch around the operation. This differs from Node.js,
-     *      whose idle timeout emits 'timeout' and keeps the connection open.
+     *      invoked; handle the timeout with try/catch around the operation.
      *      @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
      *      @param callback the callback function, called once when the socket times out
      *      @return returns the current Socket object

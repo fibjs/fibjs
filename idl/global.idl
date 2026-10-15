@@ -1,7 +1,7 @@
 /*! @brief The global object, the base object that every script and module can access directly
 
  The global object is available under two names: `globalThis`, the standard
- JavaScript name, and `global`, a read-only alias kept for Node.js compatibility;
+ JavaScript name, and `global`, a read-only alias;
  both refer to the same object (`global === globalThis` is true).
 
  Main capabilities:
@@ -24,8 +24,8 @@
  - **One global scope per sandbox**: a script runs in a sandbox whose global
    object forwards property reads and writes to the sandbox. `globalThis.x = 1`
    makes `x` visible as an implicit global in every script of the sandbox, while
-   top-level `var` and `function` declarations stay in the module scope (like
-   Node.js CommonJS modules) and do not become globals.
+   top-level `var` and `function` declarations stay in the module scope and do
+   not become globals.
  - **Timers and process lifetime**: each pending timer keeps the process alive
    until it fires or is cleared, so a repeating timer that is never cleared
    prevents the process from exiting. Scheduling is fiber-based: the callback
@@ -37,18 +37,12 @@
    `setImmediate` callbacks, then timers.
  - **Error values**: `structuredClone` throws a `DOMException` (`DataCloneError`);
    `fetch` aborts with an `AbortError` and times out with a `TimeoutError`, both
-   plain `Error` subclasses. `btoa` and `atob` throw plain `Error` objects,
-   while Node.js throws a `DOMException` named `InvalidCharacterError`.
- - **Node.js compatibility**: most globals match the same-named Node.js global
-   objects, with these differences: `Request` and `Response` are `HttpRequest`
-   and `HttpResponse` instead of the WHATWG fetch classes; `EventTarget` is the
+   plain `Error` subclasses. `btoa` and `atob` throw plain `Error` objects.
+ - **Global class notes**: `Request` and `Response` are the `HttpRequest` and
+   `HttpResponse` classes; `EventTarget` is the
    `EventEmitter` class, so `addEventListener`/`removeEventListener` are aliases
    of `on`/`off` and `dispatchEvent` is not provided; `Worker` takes a script
-   path like `worker_threads.Worker` instead of a URL; `setHrInterval` and `run`
-   are fibjs extensions. Node.js globals that are not available include
-   `BroadcastChannel`, `CustomEvent`, `EventSource` (as a global), `navigator`,
-   `localStorage`, `sessionStorage`, `CompressionStream`, `DecompressionStream`,
-   `TextEncoderStream` and `TextDecoderStream`.
+   path; `setHrInterval` and `run` are extensions of the runtime.
 
  Import:
  ```JavaScript
@@ -176,7 +170,7 @@ module global
 {
     /*! @brief The binary data buffer class, see Buffer
 
-     The same class as `require('buffer').Buffer` and also a global in Node.js;
+     The same class as `require('buffer').Buffer`;
      it is installed when the sandbox is created, so binary data handling is
      available without requiring the buffer module. Most io APIs accept and
      return Buffer objects.
@@ -186,7 +180,7 @@ module global
     /*! @brief The URL query parameter collection class, see URLSearchParams
 
      The same class as the url module's URLSearchParams and aligned with the
-     WHATWG standard; Node.js also exposes it as a global. Values are
+     WHATWG standard. Values are
      percent-encoded when the collection is serialized.
      */
     static URLSearchParams;
@@ -194,33 +188,30 @@ module global
     /*! @brief The URL parser class, see UrlObject
 
      `new URL(input, base)` parses an absolute or relative URL according to the
-     WHATWG URL standard. Node.js exposes the WHATWG URL class under the same
-     name; fibjs maps the global to the url module's UrlObject, which implements
-     the standard URL API.
+     WHATWG URL standard; the global is the url module's UrlObject, which
+     implements the standard URL API.
      */
     static URL = UrlObject;
 
     /*! @brief The immutable binary data block class of the Web File API, see Blob
 
      `new Blob(parts, { type })` builds a blob from strings, buffers and other
-     blobs. Node.js also exposes Blob as a global (v18+); Blob objects are
+     blobs; Blob objects are
      accepted as fetch bodies and form values.
      */
     static Blob;
 
     /*! @brief The in-memory file class, a Blob with a name and modification time, see File
 
-     `new File(parts, name, { type, lastModified })` builds one. Node.js also
-     exposes File as a global (v20+); unlike a file system handle it represents
-     data in memory and never touches the disk.
+     `new File(parts, name, { type, lastModified })` builds one; unlike a file
+     system handle it represents data in memory and never touches the disk.
      */
     static File;
 
     /*! @brief The HTTP header collection class, see Headers
 
-     In fibjs it derives from HttpCollection and is shared by the fetch API and
-     the http module. Node.js exposes the equivalent WHATWG Headers class as a
-     global as well.
+     It derives from HttpCollection and is shared by the fetch API and
+     the http module.
      */
     static Headers;
 
@@ -235,8 +226,8 @@ module global
     /*! @brief The HTTP request class used as the fetch request source, see HttpRequest
 
      `new Request(url, options)` creates a request that can be passed to fetch.
-     This is the http module's HttpRequest class, not the WHATWG Request class
-     of Node.js, so the object exposes the fibjs request API (`method`,
+     This is the http module's HttpRequest class rather than the WHATWG Request
+     class, so the object exposes the request API (`method`,
      `headers`, `body`, `response` and so on).
      */
     static Request = HttpRequest;
@@ -244,25 +235,23 @@ module global
     /*! @brief The HTTP response class returned by fetch, see HttpResponse
 
      fetch resolves with an HttpResponse and `new Response(body, options)`
-     creates one for tests or synthetic replies. Node.js returns the WHATWG
-     Response class instead, so only the common members (`status`, `ok`,
-     `headers`, `text()`, `json()`) share the same names.
+     creates one for tests or synthetic replies. It is the HttpResponse class,
+     so beyond the common members (`status`, `ok`, `headers`, `text()`,
+     `json()`) the surface follows the http module.
      */
     static Response = HttpResponse;
 
     /*! @brief The text decoder class, see TextDecoder
 
      `new TextDecoder(codec, options)` decodes Buffer or ArrayBuffer bytes into a
-     string; the codec defaults to utf8. Node.js also exposes TextDecoder as a
-     global.
+     string; the codec defaults to utf8.
      */
     static TextDecoder;
 
     /*! @brief The text encoder class, see TextEncoder
 
      `new TextEncoder(codec, options)` encodes a string into UTF-8 bytes and
-     returns them as a Buffer; the codec defaults to utf8. Node.js also exposes
-     TextEncoder as a global.
+     returns them as a Buffer; the codec defaults to utf8.
      */
     static TextEncoder;
 
@@ -271,7 +260,7 @@ module global
      `new AbortController()` creates a controller with a fresh AbortSignal.
      `abort(reason)` fires the signal's `abort` event synchronously and rejects
      any fetch using that signal; when no reason is given it is the string
-     `"AbortError"` (Node.js uses a DOMException instead).
+     `"AbortError"`.
      */
     static AbortController;
 
@@ -288,15 +277,14 @@ module global
 
      `new Event(type, { bubbles, cancelable })` creates an event and `type` is
      required; DOMEvent exposes the standard members such as `type`, `bubbles`,
-     `target`, `defaultPrevented` and the prevent/stop methods. Node.js also
-     exposes an Event class as a global with the same constructor shape.
+     `target`, `defaultPrevented` and the prevent/stop methods.
      */
     static Event = DOMEvent;
 
     /*! @brief The event target class, implemented by EventEmitter, see EventEmitter
 
-     This global is the events module's EventEmitter, not the WHATWG EventTarget
-     class of Node.js: `addEventListener`/`removeEventListener` are aliases of
+     This global is the events module's EventEmitter rather than the WHATWG
+     EventTarget class: `addEventListener`/`removeEventListener` are aliases of
      `on`/`off` and take a plain listener, `dispatchEvent` is not provided, and
      events are listened to and dispatched with `on`/`once`/`emit`.
      */
@@ -304,9 +292,8 @@ module global
 
     /*! @brief The event object carrying a message delivered through MessagePort, see MessageEvent
 
-     `new MessageEvent(type, { data })` is accepted, but only the `data` payload
-     is exposed; Node.js additionally exposes `type`, `origin`, `lastEventId`,
-     `source` and `ports`.
+     `new MessageEvent(type, { data })` is accepted; only the `data` payload is
+     exposed.
      */
     static MessageEvent;
 
@@ -331,8 +318,7 @@ module global
 
      `new Worker(path, opts)` starts a worker from a script path with the same
      semantics as the worker_threads module's Worker; the global is installed
-     for convenience. Node.js also has a global Worker, but it follows the Web
-     Worker standard and takes a URL instead of a path.
+     for convenience.
 
      Example — run a worker script and terminate it:
      ```JavaScript
@@ -359,21 +345,21 @@ module global
     /*! @brief The Web Crypto key class, see CryptoKey
 
      Keys are created by `crypto.subtle.generateKey`/`importKey`; the class
-     cannot be constructed directly. Node.js also exposes CryptoKey as a global.
+     cannot be constructed directly.
      */
     static CryptoKey;
 
     /*! @brief The DOM parser class, see DOMParser
 
      `new DOMParser().parseFromString(source, mimeType)` parses HTML or XML into
-     an XmlDocument. Node.js has no built-in DOMParser global.
+     an XmlDocument.
      */
     static DOMParser;
 
     /*! @brief The inline CSS declaration block of an element, see CSSStyleDeclaration
 
      Not a constructor in fibjs: instances are obtained from the `style`
-     property of an element of a parsed document. Node.js has no counterpart.
+     property of an element of a parsed document.
      */
     static CSSStyleDeclaration;
 
@@ -387,7 +373,7 @@ module global
     /*! @brief The serializer that turns DOM nodes into XML strings, see XMLSerializer
 
      `new XMLSerializer().serializeToString(node)` serializes a document or
-     element. Node.js has no built-in counterpart.
+     element.
      */
     static XMLSerializer;
 
@@ -401,14 +387,14 @@ module global
     /*! @brief The WebSocket client and server class, see WebSocket
 
      `new WebSocket(url, protocols, origin)` connects as a client, while
-     `WebSocket.upgrade(options, handler)` accepts server connections. Node.js
-     exposes only the client through the global of the same name.
+     `WebSocket.upgrade(options, handler)` accepts server connections, so both
+     the client and the server side are available.
      */
     static WebSocket;
 
     /*! @brief The console output object, see console
 
-     The same object as `require('console')` and also a global in Node.js; it
+     The same object as `require('console')`; it
      provides log/info/warn/error and the other console methods.
      */
     static console;
@@ -416,23 +402,21 @@ module global
     /*! @brief The process object, see process
 
      The same object as `require('process')`, exposing argv, env, platform,
-     exit and the other process members; Node.js also exposes it as a global.
+     exit and the other process members.
      */
     static process;
 
     /*! @brief The performance measurement object, see performance
 
      The same object as `require('perf_hooks').performance`, providing `now()`,
-     `mark()`, `measure()` and the other measurements; Node.js also exposes it
-     as a global.
+     `mark()`, `measure()` and the other measurements.
      */
     static performance;
 
     /*! @brief The observer that receives performance entries, see PerformanceObserver
 
      `new PerformanceObserver(callback)` plus `observe({ entryTypes })`
-     subscribes to performance records; Node.js also exposes the class as a
-     global.
+     subscribes to performance records.
      */
     static PerformanceObserver;
 
@@ -440,8 +424,7 @@ module global
 
      This is not the hashing module: the global is the Web Crypto API object
      (`crypto.subtle`, `crypto.getRandomValues`, `crypto.randomUUID` and the
-     CryptoKey class), equivalent to `require('crypto').webcrypto`. Node.js
-     exposes the same object globally.
+     CryptoKey class), equivalent to `require('crypto').webcrypto`.
      */
     static crypto = webcrypto;
 
@@ -449,14 +432,14 @@ module global
 
      `global === globalThis` is true. The property is an accessor without a
      setter, so assigning to `global` throws a TypeError; use `globalThis` in
-     new code, as Node.js recommends.
+     new code.
      */
     static readonly Object global;
 
     /*! @brief The global object itself, exposed under the standard name
 
      In fibjs it is an ordinary writable data property, so `globalThis = value`
-     replaces the binding, as in Node.js. Property reads and writes through it
+     replaces the binding. Property reads and writes through it
      reach the sandbox global object, so `globalThis.x = 1` publishes `x` to
      every script of the sandbox.
      */
@@ -468,8 +451,7 @@ module global
      the caller, so a script that sets `globalThis.x` makes `x` visible after
      the call. Relative paths are resolved against the current working
      directory; a file that cannot be opened throws. The return value is
-     undefined. This is a fibjs extension; the closest Node.js equivalents are
-     `require` and `vm.runInThisContext`.
+     undefined. The member is an extension of the runtime.
 
      Example — run a script from a temporary directory:
      ```JavaScript
@@ -495,8 +477,8 @@ module global
 
      `require` loads internal modules and file modules. Internal modules are
      initialized when the sandbox is created and are referenced by id, for
-     example `require("net")`; the `node:` prefix is accepted for Node.js
-     compatibility, so `require("node:fs")` is the same as `require("fs")`.
+     example `require("net")`; the `node:` prefix is also
+     accepted, so `require("node:fs")` is the same as `require("fs")`.
 
      File modules are referenced by a path starting with ./ or ../, or by an
      absolute path; the .js, .jsc and .json extensions are supported, and a .js
@@ -508,8 +490,7 @@ module global
      module.
 
      The function object also exposes `require.resolve(id)`, `require.cache` and
-     `require.main`; `require.extensions` is not provided (Node.js still exposes
-     the deprecated property). In fibjs `require` is available both as a global
+     `require.main`; `require.extensions` is not provided. In fibjs `require` is available both as a global
      and in the module scope, and calling it from an ES module throws.
 
      The basic flow is as follows:
@@ -581,7 +562,7 @@ module global
     /*! @brief Calls a function after the given delay, like the same-named timers module function
 
      The delay defaults to 1 ms; values below 1 or above 2^31-1 are clamped to
-     1 ms, while Node.js also emits a TimeoutOverflowWarning. Extra arguments
+     1 ms. Extra arguments
      are passed to the callback. The returned Timer keeps the process alive
      until it fires or is cleared; call `clearTimeout(timer)`, or `timer.unref()`
      to let the process exit without cancelling it. Timers run after
@@ -650,7 +631,7 @@ module global
 
     /*! @brief Calls a function repeatedly with a high-precision timer that interrupts JavaScript
 
-     fibjs extension with no Node.js equivalent. Unlike setInterval, the timer
+     An extension of the runtime. Unlike setInterval, the timer
      fires by interrupting the isolate, so the callback can run while a busy loop
      is executing; keep the callback short and do not call async APIs or modify
      state that other modules may read, otherwise unpredictable results may
@@ -693,7 +674,7 @@ module global
      Extra arguments are passed to the callback and the returned Timer can be
      cleared with clearImmediate. Immediates run after promise jobs and
      `queueMicrotask`, but before setTimeout/setInterval callbacks (whose
-     smallest delay is 1 ms). Node.js names the same phase setImmediate.
+     smallest delay is 1 ms).
 
      @param callback the callback function
      @param args extra arguments passed to the callback, optional.
@@ -712,10 +693,9 @@ module global
 
     /*! @brief Encodes a value into a base64 string using the Latin1 range
 
-     The value is converted to its string form first, as the DOM and Node.js do:
+     The value is converted to its string form first, as the DOM does:
      `btoa(123)` encodes "123" and `btoa(null)` encodes "null". Characters above
-     U+00FF throw an `Error` (Node.js throws a `DOMException` named
-     `InvalidCharacterError`); use `Buffer.from(text).toString('base64')` for
+     U+00FF throw an `Error`; use `Buffer.from(text).toString('base64')` for
      general strings.
 
      Example — encode a value and decode it back:
@@ -731,10 +711,9 @@ module global
 
     /*! @brief Decodes a base64 string into a Latin1 string
 
-     The value is converted to its string form first, as the DOM and Node.js do:
+     The value is converted to its string form first, as the DOM does:
      `atob(123)` decodes "123". Whitespace is ignored and invalid characters
-     throw an `Error` (Node.js throws a `DOMException` named
-     `InvalidCharacterError`); the result contains one character per decoded
+     throw an `Error`; the result contains one character per decoded
      byte.
 
      Example — decode a base64 string:
@@ -752,12 +731,11 @@ module global
      Circular references, Map, Set, Date, RegExp, typed arrays, ArrayBuffer,
      SharedArrayBuffer and Error objects are supported. Functions and other
      values that cannot be cloned throw a `DOMException` (`DataCloneError`,
-     code 25), matching the Web standard and Node.js.
+     code 25), matching the Web standard.
 
      The `transfer` option lists ArrayBuffers to move instead of copy; a
      transferred buffer is detached and its `byteLength` becomes 0. Only
-     ArrayBuffer entries are accepted in fibjs (Node.js also transfers
-     MessagePort, ReadableStream and others), any other entry throws a
+     Only ArrayBuffer entries are accepted, any other entry throws a
      TypeError.
 
      options supports the following fields:
@@ -797,10 +775,10 @@ module global
      source instead of merging them.
 
      The returned promise resolves with an HttpResponse (not the WHATWG Response
-     class of Node.js). It rejects with an `AbortError` (code ABORT_ERR) when an
+     class). It rejects with an `AbortError` (code ABORT_ERR) when an
      AbortSignal passed in opts is aborted, including during the request, and
      with a `TimeoutError` when the signal comes from `AbortSignal.timeout`.
-     Unlike Node.js there is no global dispatcher; use the http module for
+     There is no global dispatcher; use the http module for
      proxies, agents and other client tuning.
 
      opts supports the following fields:
@@ -855,8 +833,7 @@ module global
      starts, in the same V8 micro-task queue as promise jobs and in FIFO order
      with them; `process.nextTick` callbacks run earlier and `setImmediate`
      callbacks later. A non-function argument throws a TypeError, and an
-     exception thrown by the callback is reported as an uncaught exception,
-     matching Node.js.
+     exception thrown by the callback is reported as an uncaught exception.
 
      Example — observe the micro-task order:
      ```JavaScript

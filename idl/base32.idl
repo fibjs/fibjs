@@ -50,7 +50,7 @@
 
  - The module has no options and no streaming interface; a non-string input to `decode`
    throws a type error, while any string is accepted by the lenient rules above.
- - Node.js has no base32 in its standard library; in fibjs the same payload is also
+ - The same payload is also
    reachable through `encoding.encode(data, 'base32')`.
  */
 module base32

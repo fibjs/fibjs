@@ -27,8 +27,7 @@
  the constructor is the map form of EventEmitter#on, a shortcut for registering them.
  - **Name**: `name` is the identifier registered with the SCM and may be changed at any
  time; the static methods take that name as a string instead of using an instance.
- - **Node.js**: there is no Node.js counterpart — system service management is outside
- the Node.js standard library.
+ - **Notes**: system service management is outside the standard library.
 
  Obtained from:
  - `new os.Service(name, worker, event = {})` — creates the service object (Windows only);

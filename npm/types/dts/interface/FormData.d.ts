@@ -29,8 +29,7 @@
  *    parsing constructors accept the matching forms, so encode() plus a constructor is a lossless
  *    round trip for names, values and file metadata.
  *  - **Not in the standard**: encode() is a fibjs extension (the Web FormData API has no
- *    serializer), as are the string and multipart constructors; Node.js only accepts the empty
- *    constructor and an iterable of pairs.
+ *    serializer), as are the string and multipart constructors.
  *
  *  Obtained from:
  *  - `new FormData()` — an empty collection;
@@ -135,8 +134,8 @@ declare class Class_FormData extends Class_HttpCollection {
      *        to a space, percent escapes are decoded, empty segments are skipped and repeated names
      *        keep every value. A leading `?` is NOT stripped, so "?a=1" stores the field "?a"
      *        (unlike the URLSearchParams constructor).
-     *      The string and object forms are fibjs extensions; the Web standard accepts only a form
-     *      element and Node.js only an iterable of pairs. A value that matches no form (a number,
+     *      The string and object forms are extensions; the Web standard accepts only a form
+     *      element. A value that matches no form (a number,
      *      null) throws TypeError 20005.
      *
      *      Example — initialize from a urlencoded string:

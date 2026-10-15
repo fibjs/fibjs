@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Deflate is the Node.js compatible codec that compresses data to the zlib format
+ * @description Deflate is the codec that compresses data to the zlib format
  *
  *  `new zlib.Deflate(opts)` builds a synchronous codec; feed chunks with `_processChunk`
  *  and the zlib flush flags. The zlib format starts with the 0x78 byte and ends with an

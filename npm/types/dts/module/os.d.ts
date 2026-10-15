@@ -25,8 +25,7 @@
  *  - **CPU and load shapes**: `cpus` returns one object per logical CPU, re-read on every
  *    call, with `model`, `speed` in MHz and `times` (`user`, `nice`, `sys`, `idle`, `irq`)
  *    in milliseconds since boot. `cpuNumbers` is the same count, cached after the first
- *    call, and is a fibjs extension; Node.js has `os.availableParallelism` and
- *    `os.cpus().length` for that. `loadavg` is the 1, 5 and 15 minute run-queue average,
+ *    call, and is an extension of the runtime. `loadavg` is the 1, 5 and 15 minute run-queue average,
  *    where a value of 1.0 means one runnable task on average.
  *  - **Memory units**: `totalmem` and `freemem` are bytes of physical memory, and `freemem`
  *    is the memory the operating system reports as available, so on Linux it includes
@@ -34,19 +33,19 @@
  *  - **Network interface shape**: `networkInterfaces` maps an interface name to an array of
  *    address records: `address`, `netmask`, `family` ('IPv4' or 'IPv6'), `mac` (lowercase
  *    hex, all zeros for the loopback interface), `internal` and, on IPv6 records,
- *    `scopeid`. The Node.js-only `cidr` field is not provided.
+ *    `scopeid`. A `cidr` field is not provided.
  *  - **User information and encodings**: `userInfo` returns `uid`, `gid`, `username`,
  *    `homedir` and `shell`; on Windows uid/gid are -1 and shell is null, and on systems
  *    without a passwd entry the call throws. `options.encoding` selects the text encoding of
  *    the string fields, with 'buffer' returning Buffer values and any other supported
- *    encoding (such as 'base64') encoding the strings, matching Node.js.
- *  - **fibjs extensions**: `time`, `dateAdd`, `timezone`, `cpuNumbers` and `Service` are not
- *    part of the Node.js os module. `time` parses a date string and `dateAdd` shifts a date
+ *    encoding (such as 'base64') encoding the strings.
+ *  - **Extensions**: `time`, `dateAdd`, `timezone`, `cpuNumbers` and `Service` are additions of
+ *    this module. `time` parses a date string and `dateAdd` shifts a date
  *    by a calendar part with month-end clamping: 2000-01-31 plus one month is 2000-02-29.
  *    `timezone` is the local UTC offset in hundredths of an hour (UTC+8 is 800), unlike
  *    Date#getTimezoneOffset, which counts minutes west of UTC.
- *  - **Node.js gaps**: `os.availableParallelism`, `os.machine`, `os.version`, `os.devNull`
- *    and `os.getPriority`/`setPriority` do not exist; use `cpus().length` when a parallelism
+ *  - **Not provided**: `availableParallelism`, `machine`, `version`, `devNull`
+ *    and `getPriority`/`setPriority` do not exist; use `cpus().length` when a parallelism
  *    hint is needed.
  *
  *  Import:
@@ -117,8 +116,7 @@ declare module 'os' {
      *
      *      The property holds the Service constructor itself, so `new os.Service(name, worker)`
      *      creates a service that can be installed and controlled by the platform service
-     *      manager; see the Service class. This is a fibjs extension; Node.js has no service
-     *      API.
+     *      manager; see the Service class.
      *
      */
     const Service: typeof Class_Service;
@@ -129,7 +127,6 @@ declare module 'os' {
      * @description Queries the hostname of the current runtime environment
      *
      *      The value comes from the operating system and is not fully qualified on most systems.
-     *      The Node.js method is identical.
      *      @return returns the hostname
      *
      */
@@ -139,7 +136,7 @@ declare module 'os' {
      * @description Queries the byte order of the current CPU
      *
      *      The result is 'LE' for little-endian architectures (x64, arm64) or 'BE' for
-     *      big-endian ones, matching Node.js; it describes the build target, not the memory of a
+     *      big-endian ones; it describes the build target, not the memory of a
      *      particular buffer.
      *      @return returns the byte order
      *
@@ -173,7 +170,7 @@ declare module 'os' {
      *
      *      The value follows $HOME on POSIX and USERPROFILE on Windows, falling back to the
      *      passwd entry; on iOS it is the application documents directory. The string does not
-     *      end with a path separator, matching Node.js.
+     *      end with a path separator.
      *      @return returns the directory string
      *
      */
@@ -194,8 +191,7 @@ declare module 'os' {
      * @description Queries the current time zone of the runtime environment
      *
      *      The value is the local offset from UTC in hundredths of an hour: UTC+8 reports 800
-     *      and UTC-5 reports -500. It is a fibjs extension: Node.js exposes nothing similar on
-     *      os, and Date#getTimezoneOffset reports minutes west of UTC instead (-480 for UTC+8).
+     *      and UTC-5 reports -500. It is an extension; Date#getTimezoneOffset reports minutes west of UTC instead (-480 for UTC+8).
      *
      */
     const timezone: number;
@@ -203,7 +199,7 @@ declare module 'os' {
     /**
      * @description Queries the line ending of the current runtime environment, posix:'\n'; windows:'\r\n'
      *
-     *      The value is '\n' on POSIX systems and '\r\n' on Windows, matching Node.js; use it for
+     *      The value is '\n' on POSIX systems and '\r\n' on Windows; use it for
      *      text files and protocols that require the platform separator.
      *
      */
@@ -214,7 +210,7 @@ declare module 'os' {
      *
      *      It groups the platform constants used by the low-level APIs: `errno` (error codes),
      *      `signals` (signal numbers), `priority` (process priorities) and `dlopen` (library
-     *      loading flags), plus libuv's `UV_UDP_REUSEADDR`. The sub-objects mirror Node.js, while
+     *      loading flags), plus libuv's `UV_UDP_REUSEADDR`. The sub-objects group the constants, while
      *      their entries follow the platform and the bundled libuv.
      *
      */
@@ -235,7 +231,7 @@ declare module 'os' {
      * @description Queries the total memory of the runtime environment, in bytes
      *
      *      The value is the physical memory installed in the machine, not a limit of the current
-     *      container or cgroup, matching Node.js; see `freemem` for the available part and
+     *      container or cgroup; see `freemem` for the available part and
      *      process.memoryUsage for this process.
      *      @return returns the memory value
      *
@@ -246,7 +242,7 @@ declare module 'os' {
      * @description Queries the available memory of the runtime environment, in bytes
      *
      *      The value is what the operating system reports as free (on Linux the MemAvailable
-     *      estimate), so it includes reclaimable cache; Node.js reports the same value.
+     *      estimate), so it includes reclaimable cache.
      *      @return returns the memory value
      *
      */
@@ -257,8 +253,7 @@ declare module 'os' {
      *
      *      One object per logical CPU is returned on every call, each with `model`, `speed` in
      *      MHz and `times`; the times are absolute counters in milliseconds since boot (`user`,
-     *      `nice`, `sys`, `idle`, `irq`), so sample the array twice to compute a usage ratio. The
-     *      shape matches Node.js os.cpus().
+     *      `nice`, `sys`, `idle`, `irq`), so sample the array twice to compute a usage ratio.
      *
      *      Example — summarize the first logical CPU:
      *      ```JavaScript
@@ -277,8 +272,7 @@ declare module 'os' {
      * @description Queries the number of CPUs in the current runtime environment
      *
      *      The number of logical CPUs is counted once and then cached for the lifetime of the
-     *      process. This is a fibjs extension; Node.js code uses os.cpus().length or
-     *      os.availableParallelism() instead.
+     *      process. Use `cpus().length` when a parallelism hint is needed.
      *      @return returns the number of CPUs
      *
      */
@@ -303,7 +297,7 @@ declare module 'os' {
      *      strings; on Windows uid/gid are -1 and shell is null, and on systems without a passwd
      *      entry the call throws. `encoding` selects the text encoding of the string fields:
      *      'buffer' returns Buffer values and any other supported encoding (such as 'base64')
-     *      encodes them, as in Node.js.
+     *      encodes them, as in the encoding options below.
      *
      *      Example — print the effective user:
      *      ```JavaScript
@@ -324,8 +318,8 @@ declare module 'os' {
      *
      *      The result maps every interface name to its address records; see the module Concepts
      *      for the fields. Interfaces with several addresses (IPv4 and IPv6, or several aliases)
-     *      contribute one record each, grouped in the order the kernel reports them. The
-     *      Node.js-only `cidr` field is not provided.
+     *      contribute one record each, grouped in the order the kernel reports them.
+     *      A `cidr` field is not provided.
      *
      *      Example — list the addresses of every interface:
      *      ```JavaScript
@@ -345,8 +339,7 @@ declare module 'os' {
      * @description Queries the current platform name
      *
      *      Possible results are 'linux', 'win32', 'darwin', 'freebsd', 'android' and 'ios'; the
-     *      value is fixed at build time and matches `process.platform`. Node.js uses the same
-     *      names for these platforms.
+     *      value is fixed at build time and matches `process.platform`.
      *      @return returns the platform name
      *
      */

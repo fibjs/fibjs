@@ -44,12 +44,12 @@ drives the `fibjs --test` command line runner
    the end as a numbered list with the source location and stack, after the `N tests
    completed` line and the passed/failed/todo/skipped counters. Any counted failure sets the
    process exit code to 1, except a failure coming only from an `afterEach` hook, which
-   appears in the summary but leaves the exit code at 0 (Node.js exits 1).
+   appears in the summary but leaves the exit code at 0.
  - **Leaked resources**: `FIBJS_TEST_WATCHDOG_MS` (default 10000) arms a watchdog after the
    run; if the process is still alive then, a fibers/memory report is printed and the process
    exits with code 124, so cases must release handles, timers and servers.
- - **CLI**: `fibjs --test [files|dirs|globs]` discovers test files with the Node.js
-   test-file conventions (files named `*.test.js`, `*-test.js`, `*_test.js`, `test-*.js` or
+ - **CLI**: `fibjs --test [files|dirs|globs]` discovers test files by the usual
+   conventions (files named `*.test.js`, `*-test.js`, `*_test.js`, `test-*.js` or
    `test.js`, and any `.js`/`.mjs`/`.cjs` under a directory named `test`) and loads them
    sequentially in one process. `--test-name-pattern=<regex>` keeps the cases whose name, or
    an ancestor suite's name, matches; `--test-concurrency` and `--test-isolation` are
@@ -59,7 +59,7 @@ drives the `fibjs --test` command line runner
  Import:
  ```JavaScript
  const test = require('test');
- // the same builtin is reachable under the Node.js id and can be destructured:
+ // the same builtin is reachable as `node:test` and can be destructured:
  const { describe, it, suite, before, after, beforeEach, afterEach } = require('node:test');
  ```
 
@@ -123,12 +123,11 @@ drives the `fibjs --test` command line runner
 
  - `require('test')` and `require('node:test')` return the same object; the `node:` prefixed id
    is the builtin, not a user-installed package.
- - Node.js extras are not provided: there is no `run()`, `mock`, `snapshot`, subtests, test
-   context, reporters, watch mode or coverage; the case options only honor
-   `skip`/`todo`/`only`, and `timeout` is ignored where Node.js fails the case.
- - In Node.js a todo case body runs and its failure is silenced, while in fibjs it does not
-   run at all; a todo suite in fibjs is counted as planned but its cases still run and can
-   fail the run.
+ - Not provided: `run()`, `mock`, `snapshot`, subtests, test
+   context, reporters, watch mode and coverage; the case options only honor
+   `skip`/`todo`/`only`, and `timeout` is ignored.
+ - A todo case body does not run at all; a todo suite is counted as planned but its cases
+   still run and can fail the run.
  - `mustCall` must be used inside a running case (error 20009 outside), and a wrapped function
    that is never called leaves the run waiting forever: the watchdog is armed only after the
    run finishes.
@@ -161,7 +160,7 @@ module test
      `todo` and `only`, and each of them only takes effect when it is the literal `true`
 
      The options form is shared by the callable module and by `it`, `skip`, `only` and `todo`.
-     `timeout` and other Node.js options are accepted but ignored; see the two-argument form
+     `timeout` and the other options are accepted but ignored; see the two-argument form
      for the body execution model. `skip: true` wins over `todo: true`.
 
      @param name the case title shown in the report
@@ -171,7 +170,7 @@ module test
     static operator(String name, Object options, Function() block);
 
     /*! @brief The test module itself, so `test.test` is the callable module and can be
-     destructured like the Node.js export
+     destructured like the module export
 
      It exists because `it` is an alias of `test`: `test.test`, `test.it` and the module
      returned by `require('test')` are the same callable object. Use it when a reference to
@@ -183,7 +182,7 @@ module test
      block)`, `it.skip`, `it.only` and `it.todo` behave exactly like the module-level
      functions
 
-     `it` and `test` are the same callable object, which matches the Node.js `node:test`
+     `it` and `test` are the same callable object, matching the `node:test`
      aliases; `it.it` is therefore `it` again.
      */
     static it = test;
@@ -192,15 +191,15 @@ module test
      block)` defines a suite, and `suite.skip`/`suite.only`/`suite.todo` are the marked
      variants
 
-     See the test_suite module for the suite semantics; `describe` is the same object under
-     its Node.js name.
+     See the test_suite module for the suite semantics; `describe` is another name for the
+     same object.
      */
     static suite = test_suite;
 
     /*! @brief The describe alias of suite; `describe(name, block)` defines a suite that can
      be nested, and `describe.skip`/`describe.only`/`describe.todo` are the marked variants
 
-     `describe` and `suite` are the same object, which matches the Node.js `node:test`
+     `describe` and `suite` are the same object, matching the `node:test`
      aliases. See the test_suite module for the suite semantics.
      */
     static describe = test_suite;
@@ -216,8 +215,7 @@ module test
     /*! @brief Defines a skipped suite; equivalent to `suite.skip(name, block)`, so the whole
      subtree is pruned and its cases are neither executed nor counted
 
-     In Node.js the equivalent is `describe.skip`; fibjs keeps `xdescribe` as the legacy
-     alias next to `suite.skip`.
+     `xdescribe` is the legacy alias next to `suite.skip`.
 
      @param name the suite title shown in the report
      @param block the suite body that declares the nested cases
@@ -227,7 +225,7 @@ module test
     /*! @brief Defines a suite selected by `only`; equivalent to `suite.only(name, block)`,
      so the other direct children of the enclosing suite are skipped
 
-     In Node.js the equivalent is `describe.only`; the options form `{ only: true }` has the
+     The options form `{ only: true }` has the
      same effect. See the `only` member of the test module for the selection scope.
 
      @param name the suite title shown in the report
@@ -238,7 +236,7 @@ module test
     /*! @brief Defines a skipped case; equivalent to `skip(name, block)`, the case is counted
      in the skipped total and its body is not executed
 
-     In Node.js the equivalent is `it.skip`; fibjs keeps `xit` as the legacy alias. A body is
+     `xit` is the legacy alias of `it.skip`. A body is
      required here, exactly as for `skip`.
 
      @param name the case title shown in the report
@@ -300,7 +298,7 @@ module test
     static only(String name, Function() block);
 
     /*! @brief Defines a planned case; it is counted in the todo total and its body is not
-     executed, which differs from Node.js where a todo body runs and its failure is silenced
+     executed
 
      The one-argument form declares a planned case without a body. `skip: true` takes
      precedence over the todo level in the options form.
@@ -380,7 +378,7 @@ module test
 
      Hooks run inner suite first. A failing `afterEach` hook turns the current case into a
      failure; when that is the only failure, the summary reports it but the process exit
-     code stays 0 (Node.js exits 1 in this situation).
+     code stays 0.
 
      @param func the hook function
      */

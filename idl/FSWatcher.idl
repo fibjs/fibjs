@@ -11,9 +11,9 @@
    content modification and 'rename' for a create, delete or rename. The callback passed to
    fs.watch is bound to this event only; `on('change', ...)` yields the same stream.
  - `'changeonly'` (eventType, filename) — emitted together with 'change' when only the
-   content changed; eventType is always 'change'. fibjs extension, Node.js has no such event.
+   content changed; eventType is always 'change'. This is an extension.
  - `'renameonly'` (eventType, filename) — emitted together with 'change' when only the name
-   changed; eventType is always 'rename'. fibjs extension.
+   changed; eventType is always 'rename'. This is an extension.
  - `'close'` — emitted once when close() releases the watcher.
  - `'error'` — emitted when the platform watch cannot start or fails later. When fs.watch
    cannot watch the target at all (for example a missing path) the event is emitted before
@@ -105,7 +105,7 @@ interface FSWatcher : EventEmitter
     /*! @brief Binds the "changeonly" event, equivalent to on("changeonly", func)
 
      Emitted in addition to 'change' when the content was modified and the name did not
-     change; eventType is always 'change'. fibjs extension, Node.js has no such event.
+     change; eventType is always 'change'. This is an extension.
      @param eventType the event type, always 'change'
      @param filename the changed file name; a Buffer when the 'buffer' encoding was set
      */
@@ -114,7 +114,7 @@ interface FSWatcher : EventEmitter
     /*! @brief Binds the "renameonly" event, equivalent to on("renameonly", func)
 
      Emitted in addition to 'change' when the name changed and the content did not;
-     eventType is always 'rename'. fibjs extension, Node.js has no such event.
+     eventType is always 'rename'. This is an extension.
      @param eventType the event type, always 'rename'
      @param filename the renamed file name; a Buffer when the 'buffer' encoding was set
      */
@@ -138,7 +138,7 @@ interface FSWatcher : EventEmitter
     /*! @brief Closes the watcher and releases the platform handle
 
      Stops the file change events and emits a single 'close' event; the watcher cannot be
-     started again. Calling close() twice is a no-op (Node.js behaves the same). A watcher
+     started again. Calling close() twice is a no-op. A watcher
      created with the default persistent option also keeps the process alive until close().
 
      Example — close once and observe a single 'close' event:
@@ -163,8 +163,7 @@ interface FSWatcher : EventEmitter
     /*! @brief Increments the reference count so the process stays alive
 
      A watcher created with the default persistent option refs itself; ref() adds another
-     reference and returns the watcher so the call can be chained. Node.js behaves the same
-     way.
+     reference and returns the watcher so the call can be chained.
      @return returns the FSWatcher itself
      */
     FSWatcher ref();

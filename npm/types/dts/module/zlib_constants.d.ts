@@ -7,8 +7,8 @@
  *  The module is not requireable on its own; load it through the `constants` property of the
  *  zlib module. The values describe the zlib C library version 1.3.1 linked into this build
  *  and are accepted by the `flush`, `level`, `windowBits`, `memLevel` and `strategy`
- *  parameters of the compression classes; the codec type ids (`DEFLATE`, `GZIP`, ...) mirror
- *  Node.js's zlib.constants.
+ * parameters of the compression classes; the codec type ids (`DEFLATE`, `GZIP`, ...) are
+ * also exported.
  *
  *  Concepts:
  *
@@ -28,8 +28,7 @@
  *    suits ordinary data, Z_FILTERED favors data produced by a filter, Z_HUFFMAN_ONLY and
  *    Z_RLE restrict LZ matching, and Z_FIXED disables dynamic Huffman codes.
  *  - **Bounds**: Z_MIN_WINDOWBITS through Z_MAX_WINDOWBITS and Z_MIN_MEMLEVEL through
- *    Z_MAX_MEMLEVEL bound the codec options; Z_MIN_CHUNK, Z_MAX_CHUNK (-1 means unlimited in
- *    fibjs, Node.js reports Infinity) and Z_DEFAULT_CHUNK describe chunk sizes.
+ *    Z_MAX_MEMLEVEL bound the codec options; Z_MIN_CHUNK, Z_MAX_CHUNK (-1 means unlimited) and Z_DEFAULT_CHUNK describe chunk sizes.
  *  - **Where options apply**: the codec classes (`new zlib.Deflate(...)`, `new zlib.Gzip(...)`
  *    and the rest) read level, windowBits, memLevel and strategy; the one-shot functions only
  *    read level, so pass the other options to a codec instance.
@@ -287,7 +286,7 @@ declare module 'zlib_constants' {
     export const Z_MIN_CHUNK: 64;
 
     /**
-     * @description Maximum chunk size; -1 means unlimited (Node reports Infinity)
+     * @description Maximum chunk size; -1 means unlimited
      */
     export const Z_MAX_CHUNK: -1;
 

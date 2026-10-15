@@ -30,7 +30,6 @@
  *    `afterEach` from the test module attach to the suite that is being collected.
  *  - **`todo` suites**: a todo suite is counted in the todo total, but its body is still
  *    executed and its cases still run and can fail the run; a skip suite is pruned entirely.
- *    This differs from Node.js, where a todo suite silences its subtree.
  *
  *  Import:
  *  ```JavaScript
@@ -64,7 +63,7 @@
  *
  *  Notes:
  *
- *  - `describe`/`suite` return undefined; unlike Node.js they do not return a promise,
+ *  - `describe`/`suite` return undefined (not a promise),
  *    because the suite body is collected during the run rather than awaited at the call site.
  *  - A suite marked `todo` with a body is counted in the todo total while its cases still run;
  *    prefer `it.todo`/`todo(name)` for planned cases that must not run.
@@ -153,8 +152,7 @@ declare module 'test_suite' {
 
         /**
          * @description Defines a planned suite; it is counted in the todo total, but the body is still
-         *      executed and its cases still run, which differs from Node.js where a todo suite
-         *      silences its subtree
+         *      executed and its cases still run
          *
          *      `suite.todo(name, block)` and `describe.todo(name, block)` are the same call; prefer
          *      `it.todo`/`todo(name)` for planned cases that must not run.

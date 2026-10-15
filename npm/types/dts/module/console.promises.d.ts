@@ -234,8 +234,7 @@ declare module 'console/promises' {
      *
      *      The lowest standard level, useful when `loglevel` is raised to DEBUG to trace
      *      execution. The record goes to stdout and accepts the same printf-like
-     *      template as `log`. Level DEBUG(7). Node.js treats console.debug as an alias
-     *      of console.log, while fibjs keeps a separate level that can be filtered.
+     *      template as `log`. Level DEBUG(7).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -247,8 +246,7 @@ declare module 'console/promises' {
     /**
      * @description Writes a record at INFO level, same as log
      *
-     *      Records a general message and writes it to stdout. Identical to `log`; the
-     *      name follows the Node.js console surface. Level INFO(6).
+     *      Records a general message and writes it to stdout. Identical to `log`. Level INFO(6).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -262,7 +260,7 @@ declare module 'console/promises' {
      *
      *      Records a normal but significant message; less severe than WARN and more
      *      important than INFO. Written to stdout and filtered by `loglevel`. Level
-     *      NOTICE(5); this is a fibjs extension, Node.js has no console.notice.
+     *      NOTICE(5); this is an extension of the console object.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -275,7 +273,7 @@ declare module 'console/promises' {
      * @description Writes a record at WARN level
      *
      *      Records a warning and writes it to stderr, because WARN(4) is one of the
-     *      error levels. Level WARN(4); Node.js console.warn also writes to stderr.
+     *      error levels. Level WARN(4).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -288,8 +286,7 @@ declare module 'console/promises' {
      * @description Writes a record at WARN level, same as warn
      *
      *      Records a warning and writes it to stderr. Identical to `warn`, kept as a
-     *      separate name for code that reads better with the long form; Node.js has no
-     *      console.warning.
+     *      separate name for code that reads better with the long form.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -329,7 +326,7 @@ declare module 'console/promises' {
      * @description Writes a record at CRIT level
      *
      *      Records a critical condition and writes it to stderr; identical to `crit`.
-     *      Level CRIT(2); Node.js has no console.critical.
+     *      Level CRIT(2).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -343,7 +340,6 @@ declare module 'console/promises' {
      *
      *      Records the most severe condition at ALERT(1) and writes it to stderr; it is
      *      the highest severity level, meant for conditions that need immediate action.
-     *      Node.js has no console.alert.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -382,8 +378,8 @@ declare module 'console/promises' {
      *      emitted when the terminal supports color), `depth` (default 2, null means
      *      unlimited), `table` (render an array of records as a table), `fields`,
      *      `encode_string`, `maxArrayLength` (default 100) and `maxStringLength`
-     *      (default 10000). Unknown options are ignored. Node.js console.dir uses its
-     *      own renderer, while fibjs delegates to util.inspect, so keys and strings are
+     *      (default 10000). Unknown options are ignored. The rendering delegates to
+     *      util.inspect, so keys and strings are
      *      quoted and the layout follows it.
      *
      *      Example:
@@ -597,8 +593,8 @@ declare module 'console/promises' {
      *
      *      Stores the current time under `label` in a process-wide map shared by all
      *      isolates; starting an existing label silently restarts it and no warning is
-     *      printed, unlike Node.js which warns about duplicates. The default label is
-     *      `"time"` while Node.js uses `"default"`. `timeElapse` samples the timer and
+     *      printed. The default label is
+     *      `"time"`. `timeElapse` samples the timer and
      *      `timeEnd` stops it; both print `label: <elapsed>ms` at INFO level.
      *
      *      Example:
@@ -620,8 +616,7 @@ declare module 'console/promises' {
      *      Outputs `label: <elapsed>ms` at INFO level on stdout, with up to 10
      *      significant digits; the timer keeps running, so it can be sampled repeatedly
      *      before timeEnd. A label that was never started is treated as zero, so the
-     *      printed value is huge instead of an error or warning (Node.js has no such
-     *      member).
+     *      printed value is huge instead of an error or warning.
      *
      *      Example:
      *      ```JavaScript
@@ -640,8 +635,7 @@ declare module 'console/promises' {
      *
      *      Outputs `label: <elapsed>ms` at INFO level on stdout and removes the label,
      *      so `time` can start it again afterwards. Stopping a label that was never
-     *      started measures from zero and prints a huge value; no warning is emitted,
-     *      while Node.js warns about the missing label.
+     *      started measures from zero and prints a huge value; no warning is emitted.
      *
      *      Example:
      *      ```JavaScript
@@ -662,9 +656,7 @@ declare module 'console/promises' {
      *      `console.assert` is the assert module itself: `console.assert ===
      *      require('assert')` is true. Calling it with a falsy first argument throws an
      *      AssertionError whose message is the second argument, while a truthy value
-     *      returns undefined. Node.js instead logs `Assertion failed: <message>` and
-     *      never throws, so code ported from Node.js must not rely on that behavior.
-     *      Use `assert.ok`, `assert.equal` and friends for richer checks.
+     *      returns undefined. Use `assert.ok`, `assert.equal` and friends for richer checks.
      *
      *      Example:
      *      ```JavaScript

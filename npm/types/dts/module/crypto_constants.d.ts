@@ -6,9 +6,7 @@
  *  Load it through the `constants` property of the crypto module. The padding constants select
  *  the scheme of `publicEncrypt`/`privateDecrypt` and `privateEncrypt`/`publicDecrypt` (the
  *  `padding` option) and of RSA signing and verification (see Sign and Verify); the PSS salt
- *  length constants select the `saltLength` option used with RSA_PKCS1_PSS_PADDING. The values
- *  match Node.js's crypto.constants, but fibjs exports only these eight RSA entries, not
- *  Node's DH, ENGINE, POINT_CONVERSION, SSL_OP and TLS version groups.
+ *  length constants select the `saltLength` option used with RSA_PKCS1_PSS_PADDING. The values cover these eight RSA entries; the DH, ENGINE, POINT_CONVERSION, SSL_OP and TLS version groups are not exported.
  *
  *  Concepts:
  *

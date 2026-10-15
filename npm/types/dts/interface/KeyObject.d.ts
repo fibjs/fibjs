@@ -103,8 +103,7 @@ declare class Class_KeyObject extends Class_object {
      *      - RSA-PSS: additionally `hashAlgorithm`, `mgf1HashAlgorithm` and `saltLength`;
      *      - DSA: `modulusLength` and `divisorLength` (the size of q in bits);
      *      - EC and SM2: `namedCurve`, the OpenSSL curve name ('prime256v1', ...).
-     *      Node.js reports the same fields and an empty object for Ed25519 where fibjs
-     *      returns undefined; none of the values can be used to recover the key.
+     *      For Ed25519 the object is undefined; none of the values can be used to recover the key.
      *
      *      The returned result contains the following:
      *      ```JavaScript
@@ -150,7 +149,7 @@ declare class Class_KeyObject extends Class_object {
      *
      *      Only secret keys have a byte-string length: a key built with
      *      `crypto.createSecretKey('0123456789abcdef')` reports 16. Asymmetric keys have no
-     *      defined length and report undefined, as in Node.js. Read-only.
+     *      defined length and report undefined. Read-only.
      *
      *      @return returns the key size in bytes
      *
@@ -162,7 +161,7 @@ declare class Class_KeyObject extends Class_object {
      *
      *      Secret keys are symmetric byte strings used by ciphers and HMAC; public and
      *      private keys are the two halves of an asymmetric pair, where the public half can
-     *      be derived from the private half. Node.js uses the same three values. Read-only.
+     *      be derived from the private half. Read-only.
      *
      *      @return returns the key type
      *
@@ -201,10 +200,8 @@ declare class Class_KeyObject extends Class_object {
      *      DER form; PKCS#1 and SEC1 support encryption only when PEM is used. For maximum
      *      compatibility use PKCS#8 for encrypted private keys, because PKCS#8 defines its
      *      own encryption mechanism (RFC 5208; RFC 1421 covers PKCS#1 and SEC1). PEM
-     *      returns a string, DER and raw return a Buffer, JWK returns an object. fibjs
-     *      applies the classic Node defaults (spki/pkcs8) and also accepts `export()` with
-     *      no arguments; Node.js v25 requires an explicit type for asymmetric PEM/DER
-     *      export.
+     *      returns a string, DER and raw return a Buffer, JWK returns an object. The default
+     *      type is spki/pkcs8, and `export()` with no arguments is accepted.
      *
      *      Example: three representations of the same RSA public key:
      *      ```JavaScript
@@ -234,7 +231,7 @@ declare class Class_KeyObject extends Class_object {
      *      Two secret keys are equal when their bytes match; two asymmetric keys are equal
      *      when their type and key material match, so a public key equals the public key
      *      derived from the matching private key. The comparison is not constant time.
-     *      Calling it with a non-KeyObject throws a TypeError, as in Node.js.
+     *      Calling it with a non-KeyObject throws a TypeError.
      *
      *      Example: a public key equals the one derived from its private key:
      *      ```JavaScript

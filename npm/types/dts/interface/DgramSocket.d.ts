@@ -20,7 +20,7 @@
  *    split or merged; delivery, ordering and duplication are not guaranteed.
  *  - **Binding**: the socket is created unbound; bind assigns the local address and emits
  *    'listening' during the call, so the synchronous form returns after the event has been handled
- *    (Node.js emits it on a later tick). send on an unbound socket binds it first to a random port
+ *    (the event is emitted on a later tick). send on an unbound socket binds it first to a random port
  *    on 0.0.0.0 or ::.
  *  - **Call forms**: bind and send follow the asynchronous conventions of the module — without a
  *    callback they block the calling fiber and return the result, with a trailing callback they run
@@ -32,7 +32,7 @@
  *  - **Lifetime**: close releases the handle and emits 'close'; the address and buffer-size getters
  *    then fail with EBADF, so do not reuse the socket. A bound socket keeps the process alive until
  *    close or unref; ref restores the keep-alive.
- *  - **Node.js differences**: create instances with dgram.createSocket only (new dgram.Socket() is
+ *  - **Creation and limits**: create instances with dgram.createSocket only (new dgram.Socket() is
  *    not constructible); there is no recv method; bind(opts) reads only the required port and
  *    address keys; errors are thrown rather than emitted through 'error'; and there are no
  *    setTTL/setMulticastLoopback/setMulticastInterface, source-specific membership or connect
@@ -156,9 +156,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -192,9 +191,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -226,9 +224,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -263,7 +260,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      })
      *      ```
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -285,7 +282,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      })
      *      ```
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -305,7 +302,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      })
      *      ```
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -318,7 +315,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -369,7 +366,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -418,7 +415,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -516,8 +513,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Returns the local address the socket is bound to, as an object with the family, address and port
      *
      *      family is 'IPv4' or 'IPv6'. A bound socket is required: before bind (and after close) the
-     *      underlying handle is not available and the call throws EBADF, comparable to the
-     *      ERR_SOCKET_DGRAM_NOT_RUNNING error of Node.js. A socket bound implicitly by send can be
+     *      underlying handle is not available and the call throws EBADF. A socket bound implicitly by send can be
      *      queried too.
      *      @return the bound address information
      *
@@ -532,8 +528,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Closes the socket and releases the underlying handle
      *
      *      The 'close' event is emitted when the handle has been released; no further 'message' events
-     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.'),
-     *      whereas Node.js throws ERR_SOCKET_DGRAM_NOT_RUNNING. Do not use the socket after close:
+     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.').
+     *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
      *
@@ -593,8 +589,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      its address; when it is empty the operating system picks one, and addMembership can be
      *      called once per interface to join on several of them. Membership is released by
      *      dropMembership or automatically when the socket is closed or the process exits, so most
-     *      programs never call dropMembership explicitly. An invalid address throws EINVAL. Node.js
-     *      additionally offers source-specific membership and interface/TTL helpers, fibjs does not.
+     *      programs never call dropMembership explicitly. An invalid address throws EINVAL.
      *
      *      Example — join a group and receive a datagram sent to it (needs a multicast-capable
      *      interface):
@@ -649,7 +644,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      ttl is 0 to 255 and defaults to 1, so a multicast datagram stays on the local network; a
      *      value outside the range throws EINVAL. The option affects multicast destinations only, not
-     *      the unicast time-to-live, and Node.js exposes the same setter.
+     *      the unicast time-to-live.
      *      @param ttl the multicast hop limit, 0 to 255
      *
      */
@@ -683,7 +678,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      Broadcast is disabled by default, and a send to an address such as 255.255.255.255 then
      *      throws EACCES; call setBroadcast(true) first. When the host has no route for the broadcast
      *      address the send fails with EHOSTUNREACH or ENETUNREACH instead. Receiving broadcast
-     *      traffic needs no option, and Node.js exposes the same setter.
+     *      traffic needs no option.
      *      @param flag true to allow broadcast sends
      *
      */
@@ -727,7 +722,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description EventEmitter error event; the current implementation throws instead of emitting it
      *
      *      bind and send report failures by throwing (or through the callback), so DgramSocket itself
-     *      never emits 'error'. As in Node.js, emitting 'error' without a listener throws.
+     *      never emits 'error'. Emitting 'error' without a listener throws.
      *
      */
     on(event: "error", listener: ()=>void): this;
@@ -752,7 +747,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description EventEmitter error event; the current implementation throws instead of emitting it
      *
      *      bind and send report failures by throwing (or through the callback), so DgramSocket itself
-     *      never emits 'error'. As in Node.js, emitting 'error' without a listener throws.
+     *      never emits 'error'. Emitting 'error' without a listener throws.
      *
      */
     onerror: (()=>void) | null;
@@ -761,8 +756,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Emitted when bind completes and the socket can receive datagrams
      *
      *      The event is emitted during bind, so in the synchronous form it has already been delivered
-     *      when bind returns; binding implicitly inside send emits it too. Node.js emits 'listening' on
-     *      a later tick.
+     *      when bind returns; binding implicitly inside send emits it too.
      *
      */
     on(event: "listening", listener: ()=>void): this;
@@ -787,8 +781,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Emitted when bind completes and the socket can receive datagrams
      *
      *      The event is emitted during bind, so in the synchronous form it has already been delivered
-     *      when bind returns; binding implicitly inside send emits it too. Node.js emits 'listening' on
-     *      a later tick.
+     *      when bind returns; binding implicitly inside send emits it too.
      *
      */
     onlistening: (()=>void) | null;
@@ -839,7 +832,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Keeps the fibjs process alive while the socket is bound (the default)
      *
      *      A bound socket holds a reference that prevents the process from exiting; ref restores that
-     *      reference after unref. Node.js has the same pair.
+     *      reference after unref.
      *      @return the socket itself
      *
      */
@@ -850,7 +843,6 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      unref removes the keep-alive reference, so a program whose only remaining work is receiving
      *      datagrams can exit; processing continues while other references keep the loop alive.
-     *      Node.js has the same method.
      *      @return the socket itself
      *
      */
@@ -911,9 +903,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -945,9 +936,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -979,9 +969,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -1016,7 +1005,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      })
      *      ```
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -1036,7 +1025,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      })
      *      ```
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -1056,7 +1045,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      })
      *      ```
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -1069,7 +1058,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -1118,7 +1107,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -1167,7 +1156,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -1263,8 +1252,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description Returns the local address the socket is bound to, as an object with the family, address and port
      *
      *      family is 'IPv4' or 'IPv6'. A bound socket is required: before bind (and after close) the
-     *      underlying handle is not available and the call throws EBADF, comparable to the
-     *      ERR_SOCKET_DGRAM_NOT_RUNNING error of Node.js. A socket bound implicitly by send can be
+     *      underlying handle is not available and the call throws EBADF. A socket bound implicitly by send can be
      *      queried too.
      *      @return the bound address information
      *
@@ -1279,8 +1267,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description Closes the socket and releases the underlying handle
      *
      *      The 'close' event is emitted when the handle has been released; no further 'message' events
-     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.'),
-     *      whereas Node.js throws ERR_SOCKET_DGRAM_NOT_RUNNING. Do not use the socket after close:
+     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.').
+     *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
      *
@@ -1340,8 +1328,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      its address; when it is empty the operating system picks one, and addMembership can be
      *      called once per interface to join on several of them. Membership is released by
      *      dropMembership or automatically when the socket is closed or the process exits, so most
-     *      programs never call dropMembership explicitly. An invalid address throws EINVAL. Node.js
-     *      additionally offers source-specific membership and interface/TTL helpers, fibjs does not.
+     *      programs never call dropMembership explicitly. An invalid address throws EINVAL.
      *
      *      Example — join a group and receive a datagram sent to it (needs a multicast-capable
      *      interface):
@@ -1396,7 +1383,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      ttl is 0 to 255 and defaults to 1, so a multicast datagram stays on the local network; a
      *      value outside the range throws EINVAL. The option affects multicast destinations only, not
-     *      the unicast time-to-live, and Node.js exposes the same setter.
+     *      the unicast time-to-live.
      *      @param ttl the multicast hop limit, 0 to 255
      *
      */
@@ -1430,7 +1417,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      Broadcast is disabled by default, and a send to an address such as 255.255.255.255 then
      *      throws EACCES; call setBroadcast(true) first. When the host has no route for the broadcast
      *      address the send fails with EHOSTUNREACH or ENETUNREACH instead. Receiving broadcast
-     *      traffic needs no option, and Node.js exposes the same setter.
+     *      traffic needs no option.
      *      @param flag true to allow broadcast sends
      *
      */
@@ -1449,7 +1436,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description EventEmitter error event; the current implementation throws instead of emitting it
      *
      *      bind and send report failures by throwing (or through the callback), so DgramSocket itself
-     *      never emits 'error'. As in Node.js, emitting 'error' without a listener throws.
+     *      never emits 'error'. Emitting 'error' without a listener throws.
      *
      */
     onerror: (()=>void) | null;
@@ -1458,8 +1445,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description Emitted when bind completes and the socket can receive datagrams
      *
      *      The event is emitted during bind, so in the synchronous form it has already been delivered
-     *      when bind returns; binding implicitly inside send emits it too. Node.js emits 'listening' on
-     *      a later tick.
+     *      when bind returns; binding implicitly inside send emits it too.
      *
      */
     onlistening: (()=>void) | null;
@@ -1481,7 +1467,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description Keeps the fibjs process alive while the socket is bound (the default)
      *
      *      A bound socket holds a reference that prevents the process from exiting; ref restores that
-     *      reference after unref. Node.js has the same pair.
+     *      reference after unref.
      *      @return the socket itself
      *
      */
@@ -1492,7 +1478,6 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      unref removes the keep-alive reference, so a program whose only remaining work is receiving
      *      datagrams can exit; processing continues while other references keep the loop alive.
-     *      Node.js has the same method.
      *      @return the socket itself
      *
      */

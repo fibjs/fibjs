@@ -103,8 +103,7 @@ declare class Class_TTYInputStream extends Class_Stream {
      *      checked, so a terminal descriptor opened for output can be wrapped as well.
      *
      *      opts is accepted for interface compatibility and ignored: it is not forwarded to the Stream
-     *      base. Node.js passes its options to net.Socket instead and fails only when the terminal
-     *      cannot be initialized at all.
+     *      base.
      *
      *      Example — wrap descriptor 0 inside a pty child:
      *      ```JavaScript
@@ -142,7 +141,7 @@ declare class Class_TTYInputStream extends Class_Stream {
     /**
      * @description Always true: the stream is readable
      *
-     *      The property is fixed to true by the class, matching Node.js. The stream also reports writable
+     *      The property is fixed to true by the class. The stream also reports writable
      *      true, because it wraps the terminal device itself; the inherited read, readAll and close
      *      members operate on that device, while interactive input is normally consumed through `'data'`
      *      events (see the class description).
@@ -155,8 +154,7 @@ declare class Class_TTYInputStream extends Class_Stream {
      *
      *      It starts false on every new stream object, even when the terminal device is already in raw
      *      mode because another stream set it, and it follows the last setRawMode call made on the same
-     *      object. Node.js has the same per-object semantics and additionally exposes the resulting mode
-     *      as `rawMode`.
+     *      object.
      *
      */
     readonly isRaw: boolean;
@@ -168,8 +166,7 @@ declare class Class_TTYInputStream extends Class_Stream {
      *      characters such as Ctrl+C are no longer turned into signals; the default mode restores line
      *      editing, echo and signal handling. The argument is coerced with ToBoolean, so 0 and an empty
      *      string mean false and any other value means true; isRaw is set to the coerced value and the
-     *      stream itself is returned, which allows chained calls. Node.js also accepts the string modes
-     *      'raw' and 'io' and tracks them in `rawMode`; fibjs supports only the boolean raw/normal pair.
+     *      stream itself is returned, which allows chained calls. Only the boolean raw/normal pair is supported.
      *
      *      Example — chain the call and read the flag back in a pty child:
      *      ```JavaScript
@@ -213,8 +210,7 @@ declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
      *      checked, so a terminal descriptor opened for output can be wrapped as well.
      *
      *      opts is accepted for interface compatibility and ignored: it is not forwarded to the Stream
-     *      base. Node.js passes its options to net.Socket instead and fails only when the terminal
-     *      cannot be initialized at all.
+     *      base.
      *
      *      Example — wrap descriptor 0 inside a pty child:
      *      ```JavaScript
@@ -252,7 +248,7 @@ declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
     /**
      * @description Always true: the stream is readable
      *
-     *      The property is fixed to true by the class, matching Node.js. The stream also reports writable
+     *      The property is fixed to true by the class. The stream also reports writable
      *      true, because it wraps the terminal device itself; the inherited read, readAll and close
      *      members operate on that device, while interactive input is normally consumed through `'data'`
      *      events (see the class description).
@@ -265,8 +261,7 @@ declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
      *
      *      It starts false on every new stream object, even when the terminal device is already in raw
      *      mode because another stream set it, and it follows the last setRawMode call made on the same
-     *      object. Node.js has the same per-object semantics and additionally exposes the resulting mode
-     *      as `rawMode`.
+     *      object.
      *
      */
     readonly isRaw: boolean;
@@ -278,8 +273,7 @@ declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
      *      characters such as Ctrl+C are no longer turned into signals; the default mode restores line
      *      editing, echo and signal handling. The argument is coerced with ToBoolean, so 0 and an empty
      *      string mean false and any other value means true; isRaw is set to the coerced value and the
-     *      stream itself is returned, which allows chained calls. Node.js also accepts the string modes
-     *      'raw' and 'io' and tracks them in `rawMode`; fibjs supports only the boolean raw/normal pair.
+     *      stream itself is returned, which allows chained calls. Only the boolean raw/normal pair is supported.
      *
      *      Example — chain the call and read the flag back in a pty child:
      *      ```JavaScript

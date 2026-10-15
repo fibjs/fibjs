@@ -29,8 +29,8 @@
  *    X509Certificate; verify it with the issuer public key to confirm the signature.
  *  - **PEM only**: createCertificateRequest parses PEM text and PEM bytes; a DER request is
  *    rejected with ERR_OSSL_NO_START_LINE, like the X509Certificate constructor.
- *  - **Node.js difference**: Node.js has no certificate request API; this class and
- *    crypto.createCertificateRequest are fibjs extensions.
+ *  - **Notes**: this class and
+ *    crypto.createCertificateRequest are extensions.
  *
  *  Obtained from:
  *  - `crypto.createCertificateRequest({ key, subject, hashAlgorithm })` — create a request

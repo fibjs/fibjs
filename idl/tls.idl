@@ -34,9 +34,8 @@
  - **Verification options**: `requestCert` (default true) asks the peer for a certificate,
    `rejectUnauthorized` (default true on the client, false on the server) additionally requires
    one, and `rejectUnverified` (default true) fails the handshake when the presented certificate
-   does not verify. Setting `rejectUnverified` to false accepts any certificate, which is the
-   fibjs equivalent of Node.js `rejectUnauthorized: false`; the `rejectUnauthorized` option
-   alone does not disable client-side certificate verification in fibjs.
+   does not verify. Setting `rejectUnverified` to false accepts any certificate; the `rejectUnauthorized` option
+   alone does not disable client-side certificate verification.
  - **SNI**: a client sends the target host name as the server name indication and verifies the
    server certificate against it; a name mismatch reports `HOSTNAME_MISMATCH` and an IP literal
    without a matching IP SAN reports `IP_ADDRESS_MISMATCH`. A server resolves the name through
@@ -52,11 +51,11 @@
  - **Calling forms**: every async method may be called synchronously (the call blocks the fiber
    and throws on failure), with a callback, or through the promise namespace; `connectSync`,
    `connectAsync` and `tls.promises.connect` are the generated variants of `connect`.
- - **Node.js differences**: the classes are exported as `tls.Server` and `tls.Handler`;
-   `createServer` requires a listener; `connect` blocks and throws without one while Node.js
-   always returns immediately and uses the `'secureConnect'` event; the URL form requires an
+ - **Names and limits**: the classes are exported as `tls.Server` and `tls.Handler`;
+   `createServer` requires a listener; `connect` blocks and throws without one (there is no
+   `'secureConnect'` event); the URL form requires an
    `ssl:` scheme; sessions are not exposed; and `checkServerIdentity`, `rootCertificates`,
-   `getCiphers`, `DEFAULT_MIN_VERSION` and the other Node.js constants do not exist.
+   `getCiphers`, `DEFAULT_MIN_VERSION` and the other constants do not exist.
 
  Import:
  ```JavaScript
@@ -208,8 +207,7 @@ module tls
     /*! @brief The TLSServer class entry point, see TLSServer
 
      The class of the servers created by createServer; it combines net.TcpServer with TLSHandler
-     and can also be created with new tls.Server(context, listener). Node.js names its class
-     tls.Server as well; neither environment exports tls.TLSServer.
+     and can also be created with new tls.Server(context, listener).
      */
     static Server = TLSServer;
 
@@ -227,9 +225,7 @@ module tls
      - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
      - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
-     Node.js tls.createServer() accepts a missing listener and reports connections through the
-     'secureConnection' event, while fibjs requires the listener and hands each TLSSocket to it
-     directly; a missing listener throws a parameter-not-optional error.
+     The listener is required: it receives each TLSSocket directly, and a missing listener throws a parameter-not-optional error.
      @param options the secure context or the options used to create one
      @param listener the connection handler
      @return returns a TLSServer object with no port bound, which needs listen() to start
@@ -278,8 +274,7 @@ module tls
      rejectUnauthorized control the verification described in the module concepts. minVersion
      and maxVersion cannot be combined with a legacy secureProtocol value that already fixes a
      version. sessionTimeout only affects a server context. The SNI options configure the
-     server-side cache used by getSNIContext and are ignored on a client context. Node.js
-     accepts many more keys (ciphers, ecdhCurve, honorCipherOrder, ...), which fibjs ignores.
+     server-side cache used by getSNIContext and are ignored on a client context.
 
      @param options the options for creating the secure context
      @param isServer whether it is in server mode, default is false
@@ -302,8 +297,7 @@ module tls
 
      Used when connect, new TLSSocket() or createSecureContext() is called without an explicit
      context. It is a client context, so the Mozilla roots are trusted; the same object is
-     exposed here for inspection or reuse. Node.js has no equivalent property, it exposes
-     rootCertificates and the DEFAULT_* constants instead.
+     exposed here for inspection or reuse.
      */
     static readonly SecureContext secureContext;
 
@@ -315,8 +309,8 @@ module tls
      `secureContext`, ...). host is also the server name sent as SNI and verified against the
      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
      declared Stream type is its base interface) and throws an Error with a verification code on
-     failure. Node.js tls.connect() instead returns immediately and reports readiness through
-     the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
+     failure. Use the listener or promise form for a
+     non-blocking style.
      @param options specifies the connection options
      @return returns the tls/ssl connection object
      */
@@ -391,7 +385,7 @@ module tls
      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
      the TCP target, the SNI name and the verified name. The default context supplies the trust
      store, so pass a SecureContext or an options object when the server certificate is not
-     signed by a well-known CA. Node.js has no URL string form.
+     signed by a well-known CA.
      @param url specifies the URL to connect
      @param timeout specifies the connection timeout, default is 0
      @return returns the tls/ssl connection object

@@ -31,9 +31,8 @@
  example to limit concurrency; use the Condition class to wait for a state change
  instead of polling; the Event class is a one-shot broadcast gate and provides no
  mutual exclusion.
- - **Node.js**: Node.js has no fiber-level lock. The closest concepts are `Atomics` in
- workers and the browser Web Locks API, neither of which is available in fibjs on the
- same objects.
+ - **Notes**: the closest concepts elsewhere are `Atomics` in
+ workers and the browser Web Locks API, neither of which applies to fibers.
 
  Obtained from:
  - `new coroutine.Lock()` — creates a lock owned by no fiber.

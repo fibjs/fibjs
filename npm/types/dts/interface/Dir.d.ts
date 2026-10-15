@@ -21,14 +21,13 @@
  *  - **End of iteration**: read() returns null when there are no more entries and after
  *    close(); the iterator protocol reports `done`. call close() when the Dir is no longer
  *    needed to drop the cached entries early (it does not release a system handle).
- *  - **close is idempotent**: unlike Node.js, where read() and close() on a closed Dir throw
- *    ERR_DIR_CLOSED, fibjs makes close() a no-op the second time and lets read() return null
+ *  - **close is idempotent**: close() is a no-op the second time and read() returns null
  *    (plans/compat-differences.md 2.16).
  *
  *  Obtained from:
- *  - `fs.opendir(path)` — the factory used in Node.js-compatible code;
- *  - `new fs.Dir(path)` — fibjs extension; the class is exposed as `fs.Dir` (there is no
- *    global `Dir`) and is not constructible in Node.js user code.
+ *  - `fs.opendir(path)` — the factory form;
+ *  - `new fs.Dir(path)` — extension; the class is exposed as `fs.Dir` (there is no
+ *    global `Dir`).
  *
  *  Example 1 — read the entries one by one and stop at the end:
  *  ```JavaScript
@@ -183,7 +182,7 @@ declare class Class_Dir extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:
@@ -210,7 +209,7 @@ declare class Class_Dir extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:
@@ -235,7 +234,7 @@ declare class Class_Dir extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:
@@ -377,7 +376,7 @@ declare class Class_DirPromise extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:
@@ -402,7 +401,7 @@ declare class Class_DirPromise extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:
@@ -427,7 +426,7 @@ declare class Class_DirPromise extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:

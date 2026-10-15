@@ -18,11 +18,10 @@
  - **Filtering**: the global `console.loglevel` applies to every instance. For a
    debug logger the section must additionally be listed in NODE_DEBUG for INFO
    and DEBUG records; WARN and above are written even when the section is
-   disabled, while Node.js drops every level of a disabled debug logger.
- - **Node.js differences**: there is no `print`, `assert`, `count`, `countReset`,
+   disabled, while disabled levels are dropped.
+ - **Members that do not exist**: there is no `print`, `assert`, `count`, `countReset`,
    `timeLog`, `group`, `groupEnd` or `dirxml` on this object; `operator(...)`
-   makes the object callable as a debug logger, which Node.js provides for
-   util.debuglog but not for console.Console.
+   makes the object callable as a debug logger.
 
  Obtained from:
 
@@ -121,7 +120,7 @@ interface ConsoleObject : object
      Calling the object itself, `logger('message')` or `logger('%s', value)`, is
      equivalent to `debug(...)`: the record is written at DEBUG(7) and filtered
      by the global loglevel. `util.debuglog(section)` returns such a callable
-     logger, which is how Node.js code normally uses it.
+     logger.
 
      Example:
      ```JavaScript
@@ -164,8 +163,7 @@ interface ConsoleObject : object
      comma-separated entry of NODE_DEBUG; the value is re-checked for every
      record and is always true for a stream console with an empty section. When
      the section is disabled INFO and DEBUG records are dropped while WARN and
-     above are still written; Node.js drops every level of a disabled debug
-     logger.
+     above are still written.
 
      Example:
      ```JavaScript
@@ -216,7 +214,7 @@ interface ConsoleObject : object
 
     /*! @brief Writes an INFO record to the stdout object, same as log
 
-     Identical to `log`; the name follows the Node.js console surface. Level
+     Identical to `log`. Level
      INFO(6).
 
      @param args optional argument list
@@ -228,8 +226,7 @@ interface ConsoleObject : object
     /*! @brief Writes a NOTICE record to the stdout object
 
      Records a normal but significant message; less severe than WARN and more
-     important than INFO. Level NOTICE(5); this is a fibjs extension, Node.js has
-     no console.notice.
+     important than INFO. Level NOTICE(5); this is an extension.
 
      @param args optional argument list
      When the first argument is a string it is used as the format template, see
@@ -241,8 +238,7 @@ interface ConsoleObject : object
 
      Warning messages go to the stderr writable object because WARN(4) is one of
      the error levels; for a debug logger the section prefix is added. Accepts
-     the printf-like template of `log`. Node.js console.warn also writes to
-     stderr.
+     the printf-like template of `log`.
 
      Example:
      ```JavaScript
@@ -266,7 +262,7 @@ interface ConsoleObject : object
     /*! @brief Writes a WARN record to the stderr object, same as warn
 
      Identical to `warn`; kept as a separate name for code that reads better
-     with the long form. Node.js has no console.warning.
+     with the long form.
 
      @param args optional argument list
      When the first argument is a string it is used as the format template, see
@@ -277,8 +273,7 @@ interface ConsoleObject : object
     /*! @brief Writes an ERROR record to the stderr object
 
      Records an error and writes it to the stderr object; for a debug logger the
-     section prefix is added. Level ERROR(3). Node.js console.error also writes
-     to stderr.
+     section prefix is added. Level ERROR(3).
 
      @param args optional argument list
      When the first argument is a string it is used as the format template, see
@@ -300,7 +295,7 @@ interface ConsoleObject : object
     /*! @brief Writes a CRIT record to the stderr object
 
      Records a critical condition and writes it to the stderr object; identical
-     to `crit`. Level CRIT(2); Node.js has no console.critical.
+     to `crit`. Level CRIT(2).
 
      @param args optional argument list
      When the first argument is a string it is used as the format template, see
@@ -311,8 +306,7 @@ interface ConsoleObject : object
     /*! @brief Writes an ALERT record to the stderr object
 
      Records the most severe condition at ALERT(1); it is the highest severity
-     level, meant for conditions that need immediate action. Node.js has no
-     console.alert.
+     level, meant for conditions that need immediate action.
 
      @param args optional argument list
      When the first argument is a string it is used as the format template, see

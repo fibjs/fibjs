@@ -78,7 +78,7 @@ declare class Class_MessageChannel extends Class_object {
      * @description MessageChannel constructor. Creates a new channel with two connected ports.
      *
      *      The constructor takes no arguments and links the two ports immediately; there is no way to
-     *      create an unconnected MessagePort. MDN and Node.js expose the same constructor.
+     *      create an unconnected MessagePort.
      *
      */
     constructor();

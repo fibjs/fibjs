@@ -137,7 +137,7 @@ module sse
      `onerror` and `onclose`. The readyState values are read from the module as
      `sse.CONNECTING`, `sse.OPEN` and `sse.CLOSED`.
 
-     Node.js and MDN expose EventSource as a global and reconnect automatically; this
+     MDN exposes EventSource as a global that reconnects automatically; this
      implementation must be created from the module and never retries. See the EventSource
      definition for the constructor options, events and error semantics.
 

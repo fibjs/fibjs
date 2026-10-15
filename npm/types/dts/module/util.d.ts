@@ -41,10 +41,10 @@
  *   regular expressions are compared by content and fibjs native objects through their
  *   own `equals`. NaN compares unequal, 0 and -0 compare equal and prototypes are not
  *   part of the comparison.
- * - Node.js differences: `parseArgs` is a command-line tokenizer rather than Node's
- *   option parser; `sync`, `compile`, `buildInfo`, `getStringWidth`, `isEmpty`, `clone`,
- *   `deepFreeze` and the collection helpers are fibjs extensions; `deprecate` is a
- *   no-op and `promisify.custom` is not supported.
+ * - Surface notes: `parseArgs` is a command-line tokenizer; `sync`, `compile`,
+ *   `buildInfo`, `getStringWidth`, `isEmpty`, `clone`, `deepFreeze` and the collection
+ *   helpers are module extensions; `deprecate` is a no-op and `promisify.custom` is not
+ *   supported.
  *
  * Import:
  * ```JavaScript
@@ -103,7 +103,8 @@
  * Notes:
  * - The module examples above cover the type checks, inheritance, inspection and
  *   formatting paths; the async wrappers have runnable examples on their members.
- * - `parseArgs` tokenizes a command line string; it is not Node.js's option parser.
+ * - `parseArgs` tokenizes a command line string; it does not understand options,
+ *   defaults or positionals.
  * - `util.types` and `util.colors` are exposed through this module only, not as
  *   top-level `require('types')` / `require('colors')`.
  *
@@ -134,8 +135,8 @@ declare module 'util' {
     /**
      * @description Utility functions for built-in type checking, exposed as `util.types`
      *
-     *      The same functions are also available directly as `util.is*` members. Unlike
-     *      Node.js, the module is not requirable by the name `types`; use `util.types`.
+     *      The same functions are also available directly as `util.is*` members. The module is not
+     *      requirable by the name `types`; use `util.types`.
      *
      */
     const types: typeof import ('util/types');
@@ -203,7 +204,7 @@ declare module 'util' {
      *      `superConstructor.prototype` and stores the superclass in
      *      `constructor.super_`. Throws a TypeError (20004) when either argument is not
      *      an object or the superclass has no prototype. Prefer the `class`/`extends`
-     *      syntax in new code; this helper matches the Node.js legacy API.
+     *      syntax in new code.
      *
      *      Example:
      *      ```JavaScript
@@ -277,7 +278,7 @@ declare module 'util' {
      *      `[Uint8Array]`, maps and sets with their markers, functions as
      *      `[Function name]` and errors as their stack plus own properties; repeated
      *      objects become `[Circular]`. Unknown options are ignored. Note that `colors`
-     *      defaults to true here while Node.js defaults to false.
+     *      defaults to true here.
      *
      *      Example:
      *      ```JavaScript
@@ -302,8 +303,7 @@ declare module 'util' {
      *      `format` is either a single name or an array of names; array entries are
      *      applied left to right, so the first name becomes the outermost wrapper. When
      *      the terminal does not support colors (non-TTY with NO_COLOR, or no TTY at
-     *      all) the text is returned unchanged. Unknown names are ignored, unlike
-     *      Node.js which throws for them.
+     *      all) the text is returned unchanged. Unknown names are ignored.
      *
      *      Supported formats: bold, italic, underline, strikethrough, hidden,
      *      black, red, green, yellow, blue, magenta, cyan, white,
@@ -345,7 +345,7 @@ declare module 'util' {
      *      The returned ConsoleObject writes to stderr only when `NODE_DEBUG` contains
      *      the section name, prefixing each line with `SECTION pid:`. Matching is
      *      case-insensitive and `NODE_DEBUG` is a comma separated list; wildcards are
-     *      not supported (Node.js accepts `foo*`). `enabled` reports the current state
+     *      not supported. `enabled` reports the current state
      *      and follows later changes of the environment variable.
      *
      *      @param section the debug section to use
@@ -394,7 +394,7 @@ declare module 'util' {
     function debug(section: string, fn: (log: Class_ConsoleObject)=>void): Class_ConsoleObject;
 
     /**
-     * @description Returns the function unchanged; kept for Node.js API compatibility
+     * @description Returns the function unchanged; kept for API compatibility
      *
      *      The current implementation is a no-op wrapper: the returned value is the
      *      same function, calling it never emits a deprecation warning and `msg` and
@@ -412,8 +412,7 @@ declare module 'util' {
      * @description Checks whether the given variable contains no value (no enumerable properties)
      *
      *      True for null, undefined, empty strings, empty arrays, objects without own
-     *      property names, and primitive numbers or booleans. Node.js has no equivalent
-     *      helper.
+     *      property names, and primitive numbers or booleans.
      *
      *      @param v the variable to check
      *      @return returns True if empty
@@ -712,8 +711,7 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a Buffer object
      *
-     *      True only for fibjs Buffer values; Node.js has no util.types.isBuffer and
-     *      uses Buffer.isBuffer instead.
+     *      True only for Buffer values.
      *
      *      @param v the variable to check
      *      @return returns True if it is a Buffer object
@@ -852,8 +850,7 @@ declare module 'util' {
      *      Deep equality with component-wise loose comparison: dates and regular
      *      expressions are compared by content, fibjs native objects through their own
      *      equals, and other values with JavaScript `==` semantics (for example '1'
-     *      equals 1). NaN never equals NaN. This is a fibjs extension; Node.js only
-     *      provides isDeepStrictEqual.
+     *      equals 1). NaN never equals NaN.
      *
      *      @param actual the value to test
      *      @param expected the expected value
@@ -867,8 +864,8 @@ declare module 'util' {
      *
      *      Deep equality with component-wise strict comparison. Dates and regular
      *      expressions are compared by content, fibjs native objects through their own
-     *      equals, and functions are equal only when identical. Unlike Node.js, NaN is
-     *      not equal to NaN, 0 equals -0 and constructors are not part of the
+     *      equals, and functions are equal only when identical. NaN is not equal to NaN, 0 equals
+     *      -0 and constructors are not part of the
      *      comparison.
      *
      *      Example:
@@ -893,7 +890,7 @@ declare module 'util' {
      *      Checks own properties only (Object.prototype.hasOwnProperty semantics),
      *      including non-enumerable ones; null and undefined return false while other
      *      non-objects throw TypeError 20004. A shadowed hasOwnProperty does not affect
-     *      the check. Node.js has no util.has.
+     *      the check.
      *
      *      @param v the object to query
      *      @param key the key to query
@@ -906,8 +903,8 @@ declare module 'util' {
      * @description Queries the array of all keys of the specified object
      *
      *      Returns the enumerable property names, own and inherited, with array indices
-     *      converted to strings; non-objects return an empty array. Node.js has no
-     *      util.keys (Object.keys covers own properties only).
+     *      converted to strings; non-objects return an empty array. Inherited property names
+     *      are included, unlike `Object.keys`.
      *
      *      @param v the object to query
      *      @return returns the array of enumerable property names
@@ -933,8 +930,7 @@ declare module 'util' {
      *      Shallow copy: the result is a new object or array whose top-level properties
      *      reference the same values, so nested objects are shared. Date, RegExp and
      *      wrapper objects are recreated, functions and arguments objects are returned
-     *      as-is, and fibjs native objects (Buffer, Map, ...) are returned unchanged.
-     *      Node.js has no util.clone; structuredClone is a global instead.
+     *      as-is, and native objects (Buffer, Map, ...) are returned unchanged.
      *
      *      Example:
      *      ```JavaScript
@@ -971,8 +967,7 @@ declare module 'util' {
      *      Copies the enumerable properties (own and inherited) of each source into the
      *      first argument and returns it, with later sources winning. null and
      *      undefined sources are skipped, a null/undefined target is returned
-     *      unchanged, and other non-objects throw TypeError 20004. `_extend` is the
-     *      Node.js-compatible alias.
+     *      unchanged, and other non-objects throw TypeError 20004.
      *
      *      @param v the object to extend
      *      @param objs one or more objects used for extension
@@ -984,7 +979,7 @@ declare module 'util' {
     /**
      * @description Extends an object with the key-values of one or more objects (alias)
      *
-     *      Alias of extend, matching the deprecated Node.js util._extend.
+     *      Alias of extend, kept for the deprecated underscore-prefixed spelling.
      *
      *      @param v the object to extend
      *      @param objs one or more objects used for extension
@@ -1209,8 +1204,7 @@ declare module 'util' {
     /**
      * @description Splits a command line string into an argument array
      *
-     *      Honours double quotes and backslash escapes, and splits on whitespace. This
-     *      is a tokenizer, not Node.js's `parseArgs({ options })` parser: it does not
+     *      Honours double quotes and backslash escapes, and splits on whitespace. It does not
      *      understand options, defaults or positionals.
      *
      *      Example:
@@ -1235,7 +1229,7 @@ declare module 'util' {
      *      the code as a module, mode 1 as a script and mode 2 as a worker; a leading
      *      shebang is neutralised. Syntax errors throw SyntaxError, and compiled code
      *      cannot be recovered as source, so programs relying on Function.toString
-     *      break. Node.js has no util.compile; this is a fibjs extension.
+     *      break.
      *
      *      Example:
      *      ```JavaScript
@@ -1304,7 +1298,7 @@ declare module 'util' {
      *      `func` must take an error-first callback as its last argument; the returned
      *      function resolves with the callback's second argument and rejects with its
      *      first. An invocation without a value resolves with undefined. Wrapped
-     *      functions are cached and shared with sync and callbackify. Node.js's
+     *      functions are cached and shared with sync and callbackify. The
      *      `promisify.custom` symbol is not supported.
      *
      *      Example:
@@ -1332,8 +1326,7 @@ declare module 'util' {
      *      The returned function calls back with (null, value) when the promise
      *      resolves and (reason, null) when it rejects. A function that returns a
      *      non-promise value does not invoke the callback at all, and a rejection with
-     *      a falsy reason is passed through as-is (Node.js wraps it in an Error with a
-     *      `reason` field). Wrapped functions are cached and shared with sync and
+     *      a falsy reason is passed through as-is. Wrapped functions are cached and shared with sync and
      *      promisify.
      *
      *      Example:
@@ -1362,8 +1355,7 @@ declare module 'util' {
      *      `platform`, `arch`, the compiler key (`clang`, `gcc` or `msvc`), `date`,
      *      `modules` and a `vender` object with the versions of the bundled libraries
      *      (`v8`, `uv`, `openssl`, `sqlite`, `zlib`, ...). `builtins` lists the
-     *      registered module names. This is a fibjs extension; Node.js exposes
-     *      `process.versions` instead.
+     *      registered module names.
      *
      *      Example:
      *      ```JavaScript
@@ -1439,7 +1431,7 @@ declare module 'util' {
      *
      *      Removes CSI sequences (colors, cursor movement), OSC sequences terminated by
      *      BEL or ST, and two-byte ESC sequences; other characters are copied
-     *      unchanged. Node.js exposes the same function.
+     *      unchanged.
      *
      *      Example:
      *      ```JavaScript

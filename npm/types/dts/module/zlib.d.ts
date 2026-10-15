@@ -26,7 +26,7 @@
  *    `createInflateRaw`, `createGunzip` and `createUnzip` decompress into another stream and
  *    accept an output size limit;
  *  - **Codec objects**: `Gzip`, `Gunzip`, `Deflate`, `Inflate`, `DeflateRaw`, `InflateRaw`
- *    and `Unzip` are synchronous, Node.js compatible codec classes with explicit flush
+ *    and `Unzip` are synchronous codec classes with explicit flush
  *    control, kept for packages such as minizlib and tar;
  *  - **Constants**: `NO_COMPRESSION`, `BEST_SPEED`, `BEST_COMPRESSION` and
  *    `DEFAULT_COMPRESSION`, plus the `constants` object with the flush flags, strategies,
@@ -43,7 +43,7 @@
  *  - **`zip` and `unzip`**: kept for compatibility with older fibjs code. In this build
  *    `zip` produces the same zlib-format stream as `deflate`, and `unzip` auto-detects gzip
  *    (first bytes 1f 8b, needs at least the 10-byte header) or zlib (first byte 0x78) and
- *    rejects raw deflate, matching Node.js. Format detection looks at the first bytes of the
+ *    rejects raw deflate. Format detection looks at the first bytes of the
  *    input, which matters for the streaming forms.
  *  - **Compression level**: accepted as an integer or as `{ level }`. `DEFAULT_COMPRESSION`
  *    (-1) balances speed and ratio, 0 stores without compressing, 1 is the fastest and 9
@@ -63,11 +63,11 @@
  *    (gzip 31, zlib 15, raw -15, unzip 47 by default; an explicit value also selects the
  *    container, so `new zlib.Gzip({ windowBits: 15 })` writes zlib format), `memLevel`
  *    (1 to 9, default 8) and `strategy` (`Z_DEFAULT_STRATEGY` 0, `Z_FILTERED` 1,
- *    `Z_HUFFMAN_ONLY` 2, `Z_RLE` 3, `Z_FIXED` 4). The Node.js options `dictionary`,
- *    `chunkSize`, `flush` and `finishFlush` have no equivalent in fibjs.
+ *    `Z_HUFFMAN_ONLY` 2, `Z_RLE` 3, `Z_FIXED` 4). The options `dictionary`,
+ *    `chunkSize`, `flush` and `finishFlush` are not supported.
  *  - **Results and errors**: decompressing to zero bytes returns null instead of an empty
  *    Buffer, and input that ends early is decoded up to its last complete output without an
- *    error, where Node.js raises Z_BUF_ERROR. Wrong-format or corrupt data throws an Error
+ *    error. Wrong-format or corrupt data throws an Error
  *    with `code` `Z_DATA_ERROR` (number 20024, message "data error"); a closed codec throws
  *    ERR_ZLIB_BINDING_CLOSED; exceeding maxSize/maxOutputLength throws a RangeError
  *    (number 20013).
@@ -156,12 +156,11 @@
  *  console.log(zlib.zip(text).equals(deflated)); // true
  *  ```
  *
- *  Notes: Node.js `zlib.createGzip()` returns a Transform stream, while fibjs
- *  `zlib.createGzip(to)` wraps an existing destination stream and the returned object is
- *  write-only (reading from it throws [20009]). Node.js also accepts TypedArrays and
- *  DataViews in the one-shot functions, while fibjs accepts Buffer and string (utf8); the
- *  options `dictionary`, `chunkSize`, `info`, `flush` and `finishFlush` are not supported.
- *  In return fibjs adds `zip`/`unzip`, the blocking and Sync/Async call forms and the
+ *  Notes: `zlib.createGzip(to)` wraps an existing destination stream and the returned object is
+ *  write-only (reading from it throws [20009]); the one-shot functions accept Buffer and
+ *  string (utf8). The options `dictionary`, `chunkSize`, `info`, `flush` and
+ *  `finishFlush` are not supported.
+ *  The module adds `zip`/`unzip`, the blocking and Sync/Async call forms and the
  *  `zlib.promises` namespace.
  *
  */
@@ -290,8 +289,7 @@ declare module 'zlib' {
      *      the pending output with Z_SYNC_FLUSH and `close` finishes the stream with Z_FINISH.
      *      `read`/`readBuffer` and the `fd` property throw the invalid-call error [20009], and
      *      the compression level is the default, so use `createZip(to, level)` or the `Deflate`
-     *      codec class to select one. There is no Node.js counterpart: `zlib.createDeflate()`
-     *      returns a Transform stream and takes no destination.
+     *      codec class to select one.
      *
      *      @param to the destination stream that receives the compressed data
      *      @return the write-only compressor stream
@@ -382,8 +380,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION (-1) and values outside the -1..9 range are clamped. The result
      *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
      *      `inflate` or `unzip` decode it. Other options are ignored, and secrets are not
-     *      hidden: deflate is a compression algorithm, not an encryption one. Node.js accepts
-     *      TypedArrays and DataViews here, while fibjs accepts Buffer and string. Like every
+     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
+     *      (utf8) are accepted. Like every
      *      async member it has blocking, callback, Sync/Async and `zlib.promises` forms.
      *
      *      Example — a fixed input produces a deterministic zlib stream:
@@ -417,8 +415,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION (-1) and values outside the -1..9 range are clamped. The result
      *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
      *      `inflate` or `unzip` decode it. Other options are ignored, and secrets are not
-     *      hidden: deflate is a compression algorithm, not an encryption one. Node.js accepts
-     *      TypedArrays and DataViews here, while fibjs accepts Buffer and string. Like every
+     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
+     *      (utf8) are accepted. Like every
      *      async member it has blocking, callback, Sync/Async and `zlib.promises` forms.
      *
      *      Example — a fixed input produces a deterministic zlib stream:
@@ -450,8 +448,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION (-1) and values outside the -1..9 range are clamped. The result
      *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
      *      `inflate` or `unzip` decode it. Other options are ignored, and secrets are not
-     *      hidden: deflate is a compression algorithm, not an encryption one. Node.js accepts
-     *      TypedArrays and DataViews here, while fibjs accepts Buffer and string. Like every
+     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
+     *      (utf8) are accepted. Like every
      *      async member it has blocking, callback, Sync/Async and `zlib.promises` forms.
      *
      *      Example — a fixed input produces a deterministic zlib stream:
@@ -570,8 +568,7 @@ declare module 'zlib' {
      *      accepted: gzip or raw deflate data fails with `Z_DATA_ERROR` (use `gunzip` or
      *      `inflateRaw`). Corrupt data fails with `Z_DATA_ERROR`; truncated input is decoded up
      *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer. Node.js raises Z_BUF_ERROR for truncated input and
-     *      returns an empty Buffer for an empty result.
+     *      instead of an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      ```JavaScript
@@ -606,8 +603,7 @@ declare module 'zlib' {
      *      accepted: gzip or raw deflate data fails with `Z_DATA_ERROR` (use `gunzip` or
      *      `inflateRaw`). Corrupt data fails with `Z_DATA_ERROR`; truncated input is decoded up
      *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer. Node.js raises Z_BUF_ERROR for truncated input and
-     *      returns an empty Buffer for an empty result.
+     *      instead of an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      ```JavaScript
@@ -640,8 +636,7 @@ declare module 'zlib' {
      *      accepted: gzip or raw deflate data fails with `Z_DATA_ERROR` (use `gunzip` or
      *      `inflateRaw`). Corrupt data fails with `Z_DATA_ERROR`; truncated input is decoded up
      *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer. Node.js raises Z_BUF_ERROR for truncated input and
-     *      returns an empty Buffer for an empty result.
+     *      instead of an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      ```JavaScript
@@ -762,8 +757,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION and the value is clamped to -1..9. The result is a gzip container
      *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
      *      same input and level produce the same bytes in this build. Decode it with `gunzip` or
-     *      `unzip`; `inflate` rejects it. Node.js takes the options object in the same position
-     *      and additionally supports a `dictionary`, which fibjs ignores.
+     *      `unzip`; `inflate` rejects it. The second argument is the options object; a `dictionary`
+     *      key is ignored.
      *
      *      Example — level differences and round trip:
      *      ```JavaScript
@@ -795,8 +790,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION and the value is clamped to -1..9. The result is a gzip container
      *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
      *      same input and level produce the same bytes in this build. Decode it with `gunzip` or
-     *      `unzip`; `inflate` rejects it. Node.js takes the options object in the same position
-     *      and additionally supports a `dictionary`, which fibjs ignores.
+     *      `unzip`; `inflate` rejects it. The second argument is the options object; a `dictionary`
+     *      key is ignored.
      *
      *      Example — level differences and round trip:
      *      ```JavaScript
@@ -826,8 +821,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION and the value is clamped to -1..9. The result is a gzip container
      *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
      *      same input and level produce the same bytes in this build. Decode it with `gunzip` or
-     *      `unzip`; `inflate` rejects it. Node.js takes the options object in the same position
-     *      and additionally supports a `dictionary`, which fibjs ignores.
+     *      `unzip`; `inflate` rejects it. The second argument is the options object; a `dictionary`
+     *      key is ignored.
      *
      *      Example — level differences and round trip:
      *      ```JavaScript
@@ -905,8 +900,7 @@ declare module 'zlib' {
      *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
      *      members are decoded as a single output; bytes after the last member that are not
      *      another valid member fail with `Z_DATA_ERROR`. Truncated input is decoded up to its
-     *      last complete output without an error, and a zero-byte result is null. Node.js raises
-     *      Z_BUF_ERROR for truncated input and returns an empty Buffer for an empty result.
+     *      last complete output without an error, and a zero-byte result is null.
      *
      *      Example — concatenated members form one output:
      *      ```JavaScript
@@ -940,8 +934,7 @@ declare module 'zlib' {
      *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
      *      members are decoded as a single output; bytes after the last member that are not
      *      another valid member fail with `Z_DATA_ERROR`. Truncated input is decoded up to its
-     *      last complete output without an error, and a zero-byte result is null. Node.js raises
-     *      Z_BUF_ERROR for truncated input and returns an empty Buffer for an empty result.
+     *      last complete output without an error, and a zero-byte result is null.
      *
      *      Example — concatenated members form one output:
      *      ```JavaScript
@@ -973,8 +966,7 @@ declare module 'zlib' {
      *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
      *      members are decoded as a single output; bytes after the last member that are not
      *      another valid member fail with `Z_DATA_ERROR`. Truncated input is decoded up to its
-     *      last complete output without an error, and a zero-byte result is null. Node.js raises
-     *      Z_BUF_ERROR for truncated input and returns an empty Buffer for an empty result.
+     *      last complete output without an error, and a zero-byte result is null.
      *
      *      Example — concatenated members form one output:
      *      ```JavaScript
@@ -1278,9 +1270,7 @@ declare module 'zlib' {
      *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
      *      zlib-format data fails with `Z_DATA_ERROR` here (use `inflate`), gzip data with
      *      `gunzip`. Truncated input is decoded up to its last complete output without an error
-     *      and corrupt data fails with `Z_DATA_ERROR`; a zero-byte result is null instead of the
-     *      empty Buffer Node.js returns, and Node.js also raises Z_BUF_ERROR when the stream is
-     *      truncated.
+     *      and corrupt data fails with `Z_DATA_ERROR`; a zero-byte result is null.
      *
      *      Example — decode raw data and reject the wrapped formats:
      *      ```JavaScript
@@ -1313,9 +1303,7 @@ declare module 'zlib' {
      *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
      *      zlib-format data fails with `Z_DATA_ERROR` here (use `inflate`), gzip data with
      *      `gunzip`. Truncated input is decoded up to its last complete output without an error
-     *      and corrupt data fails with `Z_DATA_ERROR`; a zero-byte result is null instead of the
-     *      empty Buffer Node.js returns, and Node.js also raises Z_BUF_ERROR when the stream is
-     *      truncated.
+     *      and corrupt data fails with `Z_DATA_ERROR`; a zero-byte result is null.
      *
      *      Example — decode raw data and reject the wrapped formats:
      *      ```JavaScript
@@ -1346,9 +1334,7 @@ declare module 'zlib' {
      *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
      *      zlib-format data fails with `Z_DATA_ERROR` here (use `inflate`), gzip data with
      *      `gunzip`. Truncated input is decoded up to its last complete output without an error
-     *      and corrupt data fails with `Z_DATA_ERROR`; a zero-byte result is null instead of the
-     *      empty Buffer Node.js returns, and Node.js also raises Z_BUF_ERROR when the stream is
-     *      truncated.
+     *      and corrupt data fails with `Z_DATA_ERROR`; a zero-byte result is null.
      *
      *      Example — decode raw data and reject the wrapped formats:
      *      ```JavaScript
@@ -1638,7 +1624,7 @@ declare module 'zlib' {
      *
      *      `unzip` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
      *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
-     *      formats fail with `Z_DATA_ERROR`, matching Node.js `unzip`. The result is identical
+     *      formats fail with `Z_DATA_ERROR`. The result is identical
      *      to `gunzip` for gzip data and to `inflate` for zlib data. The size limit is an
      *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
      *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
@@ -1673,7 +1659,7 @@ declare module 'zlib' {
      *
      *      `unzip` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
      *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
-     *      formats fail with `Z_DATA_ERROR`, matching Node.js `unzip`. The result is identical
+     *      formats fail with `Z_DATA_ERROR`. The result is identical
      *      to `gunzip` for gzip data and to `inflate` for zlib data. The size limit is an
      *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
      *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
@@ -1706,7 +1692,7 @@ declare module 'zlib' {
      *
      *      `unzip` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
      *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
-     *      formats fail with `Z_DATA_ERROR`, matching Node.js `unzip`. The result is identical
+     *      formats fail with `Z_DATA_ERROR`. The result is identical
      *      to `gunzip` for gzip data and to `inflate` for zlib data. The size limit is an
      *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
      *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and

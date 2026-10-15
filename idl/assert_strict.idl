@@ -4,7 +4,7 @@ every member that compares values uses strict equality
  It is the strict counterpart of the assert module: `equal`/`notEqual` compare with
  `===`/`!==` and `deepEqual`/`notDeepEqual` compare deeply with strict leaf values, while
  every other member (`ok`, `throws`, `rejects`, `property`, ...) behaves exactly like its
- assert counterpart. Prefer this module for new code, as Node.js does.
+ assert counterpart. Prefer this module for new code.
 
  Main capabilities:
 
@@ -95,8 +95,8 @@ every member that compares values uses strict equality
  - `strict.ok` is the loose assert module object itself (`strict.ok === require('assert')`),
    because the alias points at that module; calling it behaves like assert ok.
  - `strict.strict` does not exist; require the loose module directly to mix both modes.
- - Node.js exposes the same `assert/strict` entry point with the same mapping, and fibjs also
-   registers the aliases `fibjs:assert/strict` and `node:assert/strict`.
+ - The module also registers the aliases `fibjs:assert/strict` and
+   `node:assert/strict`.
  - Besides `strictEqual`-style checks, every other member shares the implementation of
    assert, including the crash of `property` on a string receiver and the leniency of the
    `throws` property filter.
@@ -134,7 +134,7 @@ module assert_strict
     /*! @brief Tests that the value is falsy; the assertion fails if it is true
 
      The exact negation of `ok`, shared with the loose assert module; the failure carries
-     the operator 'notOk'. Node.js has no notOk, the equivalent is
+     the operator 'notOk'; the equivalent is
      `assert.ok(!value)`.
 
      @param actual the value to test
@@ -146,8 +146,7 @@ module assert_strict
 
      In this module `equal` is an alias of `strictEqual`: it uses `===`, so `equal(1,
      '1')` fails, and the failure carries the operator 'strictEqual' (not '==', which the
-     loose module uses). `strict.equal` and `strict.strictEqual` are the same behavior;
-     Node.js applies the same alias.
+     loose module uses). `strict.equal` and `strict.strictEqual` are the same behavior.
 
      @param actual the value to test
      @param expected the expected value
@@ -234,7 +233,7 @@ module assert_strict
 
      Shared with the loose module: leaf values are compared with `===` and the rules for
      Dates, RegExps, arrays and Buffers are the same as `deepEqual`; prototypes and
-     symbol-keyed properties are still not compared, which differs from Node.js. A custom
+     symbol-keyed properties are not compared. A custom
      message is prepended to the generated diff; the failure carries the operator
      'deepStrictEqual'.
 
@@ -261,7 +260,7 @@ module assert_strict
      Shared with the loose module: the actual value is declared String, so a String
      object, a Date (its ISO form), a Buffer (its utf8 bytes) and an object with its own
      toString are converted, while values without a string form fail with a TypeError
-     [20005]; Node.js requires a real string. The failure carries the operator 'match'.
+     [20005]. The failure carries the operator 'match'.
 
      @param actual the string to test
      @param expected the expected regular expression
@@ -285,7 +284,7 @@ module assert_strict
 
      Shared with the loose module: the check is `Math.abs(actual - expected) <= delta`
      with the bound inclusive, and a value that converts to NaN throws a TypeError [20004]
-     instead of failing the assertion. Node.js has no closeTo.
+     instead of failing the assertion.
 
      @param actual the value to test
      @param expected the expected value
@@ -311,7 +310,6 @@ module assert_strict
      Shared with the loose module: numeric when either side is a number (or a numeric
      string next to a number), lexicographic UTF-8 when both sides are non-numeric
      strings, and a TypeError [20004] for values that cannot be converted to a number.
-     Node.js has no lessThan.
 
      @param actual the value to test
      @param expected the expected value
@@ -334,7 +332,7 @@ module assert_strict
 
      The mirror of `lessThan` (actual > expected), shared with the loose module; the
      generated failure message and operator field reuse the notLessThan wording ('to be
-     at least'). Node.js has no greaterThan.
+     at least').
 
      @param actual the value to test
      @param expected the expected value
@@ -356,7 +354,7 @@ module assert_strict
     /*! @brief Tests that the variable exists
 
      Shared with the loose module: a value exists when it is neither null nor undefined,
-     so false, 0, '' and NaN exist. Node.js has no exist.
+     so false, 0, '' and NaN exist.
 
      @param actual the value to test
      @param msg the message when the assertion fails
@@ -376,7 +374,7 @@ module assert_strict
     /*! @brief Tests that the value is boolean true
 
      Shared with the loose module and strict by nature: 1, 'true' and new Boolean(true)
-     all fail. Node.js has no isTrue.
+     all fail.
 
      @param actual the value to test
      @param msg the message when the assertion fails
@@ -396,7 +394,7 @@ module assert_strict
     /*! @brief Tests that the value is boolean false
 
      Shared with the loose module: only the false primitive passes, so 0, '' and
-     new Boolean(false) fail. Node.js has no isFalse.
+     new Boolean(false) fail.
 
      @param actual the value to test
      @param msg the message when the assertion fails
@@ -416,7 +414,7 @@ module assert_strict
     /*! @brief Tests that the value is Null
 
      Shared with the loose module: only the null primitive passes; undefined is not null
-     and fails this check, use `isUndefined` for it. Node.js has no isNull.
+     and fails this check, use `isUndefined` for it.
 
      @param actual the value to test
      @param msg the message when the assertion fails
@@ -436,7 +434,7 @@ module assert_strict
     /*! @brief Tests that the value is undefined
 
      Shared with the loose module: only the undefined primitive passes; null is defined
-     for this check and fails it, use `isNull` for null. Node.js has no isUndefined.
+     for this check and fails it, use `isNull` for null.
 
      @param actual the value to test
      @param msg the message when the assertion fails
@@ -446,7 +444,7 @@ module assert_strict
     /*! @brief Tests that the value is not undefined
 
      The exact negation of `isUndefined`, shared with the loose module: null and every
-     other value pass. Node.js has no isDefined.
+     other value pass.
 
      @param actual the value to test
      @param msg the message when the assertion fails
@@ -456,7 +454,7 @@ module assert_strict
     /*! @brief Tests that the value is a function
 
      Shared with the loose module: classes, async functions and generator functions are
-     functions too. Node.js has no isFunction.
+     functions too.
 
      @param actual the value to test
      @param msg the message when the assertion fails
@@ -477,7 +475,7 @@ module assert_strict
 
      Shared with the loose module: arrays and functions count as objects, boxed
      primitives count too, while null, undefined, primitives and symbols do not.
-     `typeOf(value, 'object')` delegates to this check. Node.js has no isObject.
+     `typeOf(value, 'object')` delegates to this check.
 
      @param actual the value to test
      @param msg the message when the assertion fails
@@ -497,7 +495,7 @@ module assert_strict
     /*! @brief Tests that the value is an array
 
      Shared with the loose module: an Array subclass passes, while typed arrays and
-     Buffer do not. Node.js has no isArray; the equivalent is
+     Buffer do not; the equivalent is
      `assert.ok(Array.isArray(value))`.
 
      @param actual the value to test
@@ -518,7 +516,7 @@ module assert_strict
     /*! @brief Tests that the value is a string
 
      Shared with the loose module: both a string primitive and a String object pass,
-     while a Buffer does not (it is a Uint8Array). Node.js has no isString.
+     while a Buffer does not (it is a Uint8Array).
 
      @param actual the value to test
      @param msg the message when the assertion fails
@@ -537,8 +535,7 @@ module assert_strict
 
     /*! @brief Tests that the value is a number
 
-     Shared with the loose module: NaN passes and a Number object does not. Node.js has
-     no isNumber.
+     Shared with the loose module: NaN passes and a Number object does not.
 
      @param actual the value to test
      @param msg the message when the assertion fails
@@ -558,7 +555,7 @@ module assert_strict
     /*! @brief Tests that the value is a boolean
 
      Shared with the loose module: only the true and false primitives pass, a Boolean
-     object does not. Node.js has no isBoolean.
+     object does not.
 
      @param actual the value to test
      @param msg the message when the assertion fails
@@ -579,8 +576,7 @@ module assert_strict
 
      Shared with the loose module: the accepted names are 'array', 'function', 'string',
      'object', 'number', 'boolean', 'null' and 'undefined', where 'object' also matches
-     arrays and functions; any other name throws a TypeError [20004]. Node.js has no
-     typeOf.
+     arrays and functions; any other name throws a TypeError [20004].
 
      @param actual the value to test
      @param type the specified type
@@ -604,7 +600,7 @@ module assert_strict
      Shared with the loose module: the lookup includes inherited properties, the receiver
      must be an object and the property name a string, and other values throw a TypeError
      [20004]. A primitive string receiver passes the type check but crashes the process
-     in this version, so pass objects only. Node.js has no property.
+     in this version, so pass objects only.
 
      @param object the object to test
      @param prop the property to test
@@ -628,8 +624,7 @@ module assert_strict
 
      Shared with the loose module: the path is split on '.', so 'a.b.0' reaches array
      elements and a property name containing a dot cannot be addressed; a missing
-     intermediate value fails the assertion instead of throwing. Node.js has no
-     deepProperty.
+     intermediate value fails the assertion instead of throwing.
 
      @param object the object to test
      @param prop the property to test, separated by "."
@@ -652,7 +647,7 @@ module assert_strict
 
      Shared with the loose module and already strict there: the value is compared with
      `===`, so `propertyVal(obj, 'a', 1)` fails when the property holds '1' and a missing
-     property yields undefined and fails. Node.js has no propertyVal.
+     property yields undefined and fails.
 
      @param object the object to test
      @param prop the property to test
@@ -709,8 +704,7 @@ module assert_strict
 
      An error thrown inside a validation function is propagated as-is. The failure
      carries the operator 'throws'; a custom message is used when a filter was supplied
-     and did not match. Node.js accepts the same forms but also treats normal functions
-     as validators and appends a 'Caught error' excerpt.
+     and did not match.
 
      Example — a class and an arrow validation function:
      ```JavaScript
@@ -762,8 +756,6 @@ module assert_strict
      When the awaited promise resolves the assertion fails with 'Missing expected
      rejection'. The returned promise resolves to undefined when the rejection matched
      and rejects with the generated AssertionError otherwise; the operator is 'rejects'.
-     Node.js returns a promise with the same shape but rejects with
-     ERR_INVALID_RETURN_VALUE for a non-promise result.
 
      Example — await a function and a promise rejection:
      ```JavaScript
@@ -798,7 +790,7 @@ module assert_strict
      by the error argument as in the function overload, while a resolution fails the
      assertion with 'Missing expected rejection'. The returned promise resolves to
      undefined when the rejection matched and rejects with the generated AssertionError
-     otherwise; Node.js has the same form.
+     otherwise.
 
      @param result the code to test, given as a Promise
      @param error the expected error as a RegExp, error class, arrow validator or filter object
@@ -821,8 +813,7 @@ module assert_strict
 
      Shared with the loose module: the value is rethrown as-is, not wrapped, which makes
      it the standard trailing callback helper (`if (err) throw err`). Falsy values -
-     undefined, null, false, 0, '' and NaN - pass. Node.js wraps the value in an
-     AssertionError instead, so a caught value that is not an Error differs.
+     undefined, null, false, 0, '' and NaN - pass.
 
      @param object the argument
      */

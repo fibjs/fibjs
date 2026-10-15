@@ -144,8 +144,7 @@ declare class Class_Fiber extends Class_object {
      *      For the calling fiber it measures the stack consumed so far; for another fiber it
      *      measures the stack from its entry point to the point where it is blocked, and it is 0
      *      when that information is not available. The value is a diagnostic and is not
-     *      meaningful after the fiber has finished. This is a fibjs extension with no Node.js
-     *      counterpart.
+     *      meaningful after the fiber has finished. This is an extension.
      *
      */
     readonly stack_usage: number;

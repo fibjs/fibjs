@@ -18,7 +18,7 @@
  - **Key material**: sign() accepts a KeyObject, a PEM/DER string or Buffer, or an
    options object carrying the key plus the scheme options {key, format, type,
    passphrase, dsaEncoding, padding, saltLength}. Anything that is not a KeyObject
-   is passed to crypto.createPrivateKey, exactly as in Node.js.
+   is passed to crypto.createPrivateKey.
  - **One signature per object**: sign() is terminal, because the object already
    finalized its digest. Do not reuse it; create a new Sign for each signature. With
    RSA PKCS#1 the signature is deterministic, so the same key, data and algorithm
@@ -91,7 +91,7 @@ interface Sign : object
      ignores codec. Returns the Sign object, so calls can be chained, and it may be
      called any number of times before sign(). An unknown codec throws "encoding:
      Unknown charset". Calling update() after sign() is not supported; discard the
-     object and create a new Sign instead, as Node.js requires.
+     object and create a new Sign instead.
 
      @param data the data to update with
      @param codec the encoding of a string data, default "utf8"
@@ -118,7 +118,7 @@ interface Sign : object
        RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
 
      The call finalizes the object: a second sign() fails with an OpenSSL error
-     (Node.js throws ERR_CRYPTO_INVALID_STATE). A secret key or a key without private
+     (the OpenSSL error is propagated). A secret key or a key without private
      material throws "Sign: invalid key type, expected a private key"; an
      Ed25519/Ed448 key throws "One-shot signature algorithms do not support sign".
      With encoding "buffer" (default) a Buffer is returned, otherwise a string; an

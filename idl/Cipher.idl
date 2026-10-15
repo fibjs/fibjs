@@ -17,7 +17,7 @@
    so it cannot be chained; `setAAD`, `setAuthTag` and `setAutoPadding` return the
    Cipher and can be chained. `final` produces the last block. The object does not
    track its state strictly: after `final` the behavior is unspecified, so drop the
-   instance instead of reusing it, as Node.js does.
+   instance instead of reusing it.
  - **Padding**: block modes require the plaintext to be a multiple of the block
    size. fibjs pads the last block automatically (PKCS#7) and removes the padding
    when decrypting; call `setAutoPadding(false)` when the data is already aligned or
@@ -109,8 +109,7 @@ interface Cipher : object
      with encoding (default "utf8"). The tag length must match the authTagLength
      option given to crypto.createDecipheriv (16 by default for GCM and
      chacha20-poly1305). Calling it on an encrypting Cipher, twice, or with a wrong
-     length throws "Invalid setAuthTag"/"Invalid authTagLength"; Node.js enforces the
-     same rules with its own error codes.
+     length throws "Invalid setAuthTag"/"Invalid authTagLength".
 
      Example: the tag and AAD together authenticate the ciphertext:
      ```JavaScript
@@ -157,7 +156,7 @@ interface Cipher : object
      decoded with options.encoding (default "utf8"); the buffer form takes the bytes
      as they are. In CCM mode setAAD() requires options.plaintextLength, the byte
      length of the plaintext, on both sides. Calling it on a non-AEAD Cipher or too
-     late throws "Invalid setAAD" (Node.js reports ERR_CRYPTO_INVALID_STATE).
+     late throws "Invalid setAAD".
 
      options supports the following options:
      ```JavaScript
@@ -180,8 +179,7 @@ interface Cipher : object
      the block size; call setAutoPadding(false) when the protocol defines its own
      padding and pass whole blocks. With padding disabled, final() throws when the
      accumulated length is not a multiple of the block size. It must be called before
-     final() and works on both encrypting and decrypting Ciphers; Node.js provides
-     the same switch.
+     final() and works on both encrypting and decrypting Ciphers.
 
      Example: aligned data with padding disabled round-trips exactly:
      ```JavaScript
@@ -216,7 +214,7 @@ interface Cipher : object
      same encoding, otherwise "Inconsistent encoding" is thrown. In CCM mode the
      message length is bounded by the mode (about 2^24-1 bytes); the bound depends on
      the IV length. Calling update() after final() is not supported and may throw an
-     OpenSSL error; Node.js raises ERR_CRYPTO_INVALID_STATE instead.
+     OpenSSL error.
 
      @param data the data to update
      @param inputEncoding the encoding of the input data, default "utf8"
@@ -234,8 +232,7 @@ interface Cipher : object
      message comes from OpenSSL). For CCM decryption the authentication result is
      reported here even when update() already returned the plaintext. outputEncoding
      must match any string encoding used by update() before; with "buffer" a Buffer
-     is returned. After final() the instance must not be reused; Node.js throws
-     ERR_CRYPTO_INVALID_STATE on reuse.
+     is returned. After final() the instance must not be reused.
 
      @param outputEncoding the encoding of the output data
      @return returns the updated data

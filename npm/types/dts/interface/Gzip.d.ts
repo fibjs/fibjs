@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Gzip is the Node.js compatible codec that compresses data to the gzip container
+ * @description Gzip is the codec that compresses data to the gzip container
  *
  *  `new zlib.Gzip(opts)` builds a synchronous codec; feed chunks with `_processChunk` and
  *  the zlib flush flags. The gzip container is what `zlib.gzip` writes and `zlib.gunzip`

@@ -19,8 +19,7 @@
  *   the extension without a leading dot; an extension registered as `.foo` only matches an
  *   argument whose extension is literally `.foo`.
  * - **Fallback**: an unknown extension returns `application/octet-stream` and an empty file
- *   name returns an empty string. Node.js has no core MIME module; userland packages provide
- *   the same mapping.
+ *   name returns an empty string.
  *
  * Import:
  * ```JavaScript

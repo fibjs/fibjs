@@ -23,8 +23,7 @@
  * - **Replacement API**: the same information is available today through FormData;
  *   `http.Request#form` returns the parsed parts, `FormData#get`/`all` return the File/Blob
  *   values, `Blob#type`/`Blob#size` replace contentType and the length of body, and File#name
- *   replaces fileName. Node.js has no equivalent object either; it exposes the raw bytes and
- *   leaves multipart parsing to userland.
+ *   replaces fileName.
  *
  * Example 1 — the multipart part layout this interface describes:
  * ```JavaScript

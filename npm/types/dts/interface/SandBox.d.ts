@@ -41,10 +41,9 @@
  *    release it freezes only the internal context global, so writes made through the standalone
  *    global object are still accepted and scripts observe `Object.isFrozen(globalThis) === false`.
  *    Do not use freeze as an immutability or security boundary.
- *  - **Comparison with Node.js vm**: Node's vm creates a context and evaluates code with vm.Script
- *    or vm.runInContext; it has no module registry. SandBox is a module loader with an optional
- *    standalone global and no compile/eval API. Both are explicit about not being security
- *    boundaries; unlike a Node vm context, a default SandBox shares the host global object.
+ *  - **Notes**: SandBox is a module loader with an optional
+ *    standalone global and no compile/eval API. It is not a security boundary, and a default SandBox
+ *    shares the host global object.
  *
  *  Obtained from:
  *  - `new vm.SandBox(mods)`;

@@ -46,11 +46,11 @@
  *    Node-compatible `status`, `stdout`, `stderr` and `output` fields. A child killed by a signal
  *    reports the negative signal number (-15 for SIGTERM, -9 for SIGKILL). Spawn failures throw
  *    (spawn/exec/execFile/fork) or set `error` (spawnSync) with `code`/`errno`/`syscall`/`path`.
- *  - **Node.js differences**: fibjs adds `run`, `sh`, `ssh`, the `input` option (write to the
+ *  - **Extensions and limits**: the module adds `run`, `sh`, `ssh`, the `input` option (write to the
  *    child's stdin), the `encoding` option accepting `'buffer'`, the four-argument callback with
- *    exitCode and pty stdio. It has no `options.shell` (only exec uses a shell) and no
+ *    exitCode and pty stdio. There is no `options.shell` (only exec uses a shell) and no
  *    `options.maxBuffer`; `spawn` throws on failure instead of emitting an 'error' event, and a
- *    signal death is reported as a negative exit code instead of Node's `signalCode`.
+ *    signal death is reported as a negative exit code (there is no `signalCode`).
  *
  *  Import:
  *  ```JavaScript

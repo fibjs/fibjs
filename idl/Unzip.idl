@@ -1,4 +1,4 @@
-/*! @brief Unzip is the Node.js compatible codec that decompresses gzip or zlib data by
+/*! @brief Unzip is the codec that decompresses gzip or zlib data by
  detecting the format
 
  `new zlib.Unzip(opts)` builds a synchronous codec that inspects the first bytes of the

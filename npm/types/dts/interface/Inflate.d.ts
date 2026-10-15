@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Inflate is the Node.js compatible codec that decompresses zlib-format data
+ * @description Inflate is the codec that decompresses zlib-format data
  *
  *  `new zlib.Inflate(opts)` builds a synchronous codec; feed zlib-format chunks with
  *  `_processChunk` and the zlib flush flags and it returns the decoded bytes. The zlib

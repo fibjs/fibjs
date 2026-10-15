@@ -72,8 +72,8 @@
 
  Notes:
 
- - Node.js and MDN allow a MessagePort to be transferred (as workerData or in the transfer list);
-   fibjs ignores a port in a transfer list and throws `could not be cloned` for workerData, so ports
+ - A MessagePort cannot be transferred: a port in a transfer list is ignored and workerData
+   throws `could not be cloned`, so ports
    cannot be exchanged. A Worker and its parent can only use the implicit `parentPort` channel.
  - `messageerror` exists for API compatibility but is never emitted, because a value produced by
    the V8 serializer can always be deserialized again.
@@ -96,7 +96,7 @@ interface MessagePort : EventEmitter
 
      Each `ArrayBuffer` in `transfer` is detached on the sender before the message is queued (its
      `byteLength` becomes 0) and the receiver gets the same memory. fibjs ignores non-ArrayBuffer
-     entries, including MessagePort, which Node.js and MDN allow to be transferred; passing a port
+     entries, including MessagePort; passing a port
      does not error and does not move it.
 
      Example — detach an ArrayBuffer on send:
@@ -168,7 +168,7 @@ interface MessagePort : EventEmitter
 
      A started port that can still receive messages holds a keep-alive reference; `ref()` restores
      that reference after an `unref()`. The call is idempotent and returns undefined. Ports that
-     were never started do not hold the process (matching Node.js), and the main-thread side of a
+     were never started do not hold the process, and the main-thread side of a
      Worker's parent port leaves the keep-alive to the Worker object.
      */
     ref();

@@ -26,9 +26,9 @@
  - **Related primitives**: Condition waits for an arbitrary state, Event releases a
  group of fibers at once without a lock, Semaphore counts permits; all of them park
  only the calling fiber.
- - **Node.js**: there is no condition variable in Node.js. The usual substitute is a
- promise that the state change resolves, which cannot release a lock atomically because
- Node.js has no fiber-level locks.
+- **Notes**: there is no condition variable in the runtime. The usual substitute is a
+   promise that the state change resolves, which cannot release a lock atomically without
+   fiber-level locks.
 
  Obtained from:
  - `new coroutine.Condition()` — creates the condition with its own internal lock;

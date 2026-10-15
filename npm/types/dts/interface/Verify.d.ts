@@ -20,12 +20,11 @@
  *    is named privateKey for historical reasons.
  *  - **Signatures**: a Buffer or a string decoded with encoding. The default encoding
  *    "buffer" is not a character set, so a string signature must pass an explicit
- *    encoding ('hex', 'base64', 'utf8'); Node.js decodes a string as utf8 when no
- *    encoding is given. Ed25519/Ed448 are one-shot algorithms and are rejected by this
+ *    encoding ('hex', 'base64', 'utf8'). Ed25519/Ed448 are one-shot algorithms and are rejected by this
  *    class; use crypto.verify(null, data, key, signature) for them.
  *  - **Result**: verify() returns true or false and finalizes the object; a malformed
  *    signature normally returns false, while an invalid key or an unsupported algorithm
- *    throws. Create a new Verify for each check, as Node.js requires.
+ *    throws. Create a new Verify for each check.
  *
  *  Obtained from:
  *  - `crypto.createVerify(algorithm)` — the streaming factory; its optional options are
@@ -112,8 +111,7 @@ declare class Class_Verify extends Class_object {
      *      derived. Signing and verification must use the same dsaEncoding and RSA padding.
      *
      *      signature may be a Buffer or a string decoded with encoding; passing a string
-     *      without an explicit encoding throws "encoding: Unknown charset: 'buffer'", which
-     *      differs from Node.js (utf8), so decode the string yourself or pass 'hex',
+     *      without an explicit encoding throws "encoding: Unknown charset: 'buffer'", so decode the string yourself or pass 'hex',
      *      'base64' or 'utf8'. The call finalizes the object and returns true when the
      *      signature is valid, false for a wrong signature; an invalid key or an
      *      unsupported algorithm throws.

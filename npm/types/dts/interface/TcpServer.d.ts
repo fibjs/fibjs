@@ -5,8 +5,7 @@
 /**
  * @description A fiber-per-connection TCP server: it binds an address and hands every accepted connection to a handler, one Socket and one fiber per client
  *
- *  TcpServer is the server side of the net module and the fibjs counterpart of the Node.js
- *  net.Server. A handler is a function (or Handler object) called with each accepted Socket; it runs
+ *  TcpServer is the server side of the net module. A handler is a function (or Handler object) called with each accepted Socket; it runs
  *  in its own fiber, so it can read, process and answer the client sequentially while other
  *  connections are served in parallel. The typical shapes are:
  *
@@ -33,16 +32,13 @@
  *    runs.
  *  - **Address information**: address() returns { address, family, port }; with listen(0) it reports
  *    the OS-assigned port. For a unix socket the address is the path while family/port are
- *    placeholders (see address). address() throws before the server is bound; Node.js returns null
- *    instead and returns the path string for pipe servers.
+ *    placeholders (see address). address() throws before the server is bound.
  *  - **Events**: 'listening' after start()/listen(), 'connection' with the accepted Socket before
  *    the handler is invoked, 'error' with a plain message string for accept errors and 'close' on
- *    stop()/close(). Node.js passes an Error to 'error' and delays 'close' until all connections
- *    have ended, while fibjs emits 'close' immediately.
- *  - **Node.js differences**: there is no net.Server class (net.createServer returns a TcpServer);
- *    the fibjs constructor can bind while Node.js always requires listen(); the options object of
- *    the constructor is a bind specification ({address, port}), not the socket options of Node.js;
- *    and fibjs has no maxConnections/getConnections/ref/unref.
+ *    stop()/close(); 'close' is emitted immediately, even when connections are still open.
+ *  - **Limits**: there is no net.Server class (net.createServer returns a TcpServer); the
+ *    constructor can bind the port itself; the options object of the constructor is a bind
+ *    specification ({address, port}); and there is no maxConnections/getConnections/ref/unref.
  *
  *  Obtained from:
  *  - `net.createServer(options, listener)` / `net.createServer(listener)` — the factory form;
@@ -151,8 +147,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      ```
      *      With both properties the server binds address:port immediately; with address only it binds
      *      that address with an OS-assigned port (or a unix path when the address is not an IP literal);
-     *      with neither it only stores the handler and listen() must be called. These are bind options,
-     *      not the socket options of Node.js net.createServer. The listener forms are described on the
+     *      with neither it only stores the handler and listen() must be called. These are bind options. The listener forms are described on the
      *      port-only overload.
      *      @param options server options
      *      @param listener the connection handler
@@ -166,7 +161,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     addr is the path to bind, for example '/tmp/app.sock' or '\\.\pipe\app' (watch the string
      *     escapes). An all-digit string is treated as a TCP port instead, so
      *     new net.TcpServer('8080', handler) listens on port 8080. The path is bound during construction
-     *     and start() begins accepting. Node.js uses server.listen(path) for the same purpose.
+     *     and start() begins accepting.
      *     @param addr specifies the unix socket or Windows pipe server listening address
      *     @param listener the connection handler
      *
@@ -190,7 +185,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -206,7 +201,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -220,7 +215,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -233,8 +228,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stop(): void;
@@ -246,8 +240,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stopSync(): void;
@@ -257,8 +250,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stopAsync(): Promise<void>;
@@ -266,7 +258,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     close(): void;
@@ -276,7 +268,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     closeSync(): void;
@@ -284,7 +276,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     closeAsync(): Promise<void>;
@@ -295,8 +287,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      The result has the shape { address, family, port }, where family is 'IPv4' or 'IPv6' and port
      *      is the real port after listen(0). For a unix socket or Windows pipe the address is the bound
      *      path while family/port are placeholders ('IPv4'/0). The method throws before the server is
-     *      bound (number 20009); Node.js returns null instead and returns the path string for pipe
-     *      servers.
+     *      bound (number 20009).
      *
      *      Example — discovering the port assigned to listen(0):
      *      ```JavaScript
@@ -325,7 +316,6 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      The underlying listening Socket exposes the bound family/localAddress/localPort; it is useful
      *      for diagnostics, but do not call accept on it because the server owns the accept loop. It
      *      throws when the server was created by the handler-only constructor and is not bound yet.
-     *      Node.js hides the listening handle.
      *
      */
     readonly socket: Class_Socket;
@@ -355,8 +345,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted after start() is called and binding completes
      *
      *      Emitted synchronously by start()/listen(), after the socket is listening and before the first
-     *      accept; observe it with on('listening') or the onlistening shorthand. Node.js emits
-     *      'listening' asynchronously once the bind completes.
+     *      accept; observe it with on('listening') or the onlistening shorthand.
      *
      */
     on(event: "listening", listener: ()=>void): this;
@@ -381,8 +370,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted after start() is called and binding completes
      *
      *      Emitted synchronously by start()/listen(), after the socket is listening and before the first
-     *      accept; observe it with on('listening') or the onlistening shorthand. Node.js emits
-     *      'listening' asynchronously once the bind completes.
+     *      accept; observe it with on('listening') or the onlistening shorthand.
      *
      */
     onlistening: (()=>void) | null;
@@ -391,8 +379,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted when a new TCP connection is established
      *
      *      Emitted before the handler is invoked for the same Socket, on the accepting fiber; a long
-     *      listener delays further accepts, so offload work to the handler or to a new fiber. Node.js
-     *      emits 'connection' with its socket in the same way.
+     *      listener delays further accepts, so offload work to the handler or to a new fiber.
      *      @param socket the newly established Socket connection object
      *
      */
@@ -418,8 +405,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted when a new TCP connection is established
      *
      *      Emitted before the handler is invoked for the same Socket, on the accepting fiber; a long
-     *      listener delays further accepts, so offload work to the handler or to a new fiber. Node.js
-     *      emits 'connection' with its socket in the same way.
+     *      listener delays further accepts, so offload work to the handler or to a new fiber.
      *      @param socket the newly established Socket connection object
      *
      */
@@ -428,8 +414,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description Emitted when an error occurs
      *
-     *      Emitted for accept-loop failures with a plain message string, not with an Error object as in
-     *      Node.js. An exception thrown by the handler does not emit this event: it is logged and the
+     *      Emitted for accept-loop failures with a plain message string, not with an Error object. An exception thrown by the handler does not emit this event: it is logged and the
      *      connection is closed.
      *      @param msg the error message
      *
@@ -455,8 +440,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description Emitted when an error occurs
      *
-     *      Emitted for accept-loop failures with a plain message string, not with an Error object as in
-     *      Node.js. An exception thrown by the handler does not emit this event: it is logged and the
+     *      Emitted for accept-loop failures with a plain message string, not with an Error object. An exception thrown by the handler does not emit this event: it is logged and the
      *      connection is closed.
      *      @param msg the error message
      *
@@ -467,8 +451,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted after the server is closed
      *
      *      Emitted by stop()/close() immediately after the listening socket is closed, even when
-     *      connections are still open. Node.js emits 'close' only after the server has stopped
-     *      accepting and all connections have ended.
+     *      connections are still open.
      *
      */
     on(event: "close", listener: ()=>void): this;
@@ -493,8 +476,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted after the server is closed
      *
      *      Emitted by stop()/close() immediately after the listening socket is closed, even when
-     *      connections are still open. Node.js emits 'close' only after the server has stopped
-     *      accepting and all connections have ended.
+     *      connections are still open.
      *
      */
     onclose: (()=>void) | null;
@@ -605,8 +587,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      ```
      *      With both properties the server binds address:port immediately; with address only it binds
      *      that address with an OS-assigned port (or a unix path when the address is not an IP literal);
-     *      with neither it only stores the handler and listen() must be called. These are bind options,
-     *      not the socket options of Node.js net.createServer. The listener forms are described on the
+     *      with neither it only stores the handler and listen() must be called. These are bind options. The listener forms are described on the
      *      port-only overload.
      *      @param options server options
      *      @param listener the connection handler
@@ -620,7 +601,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     addr is the path to bind, for example '/tmp/app.sock' or '\\.\pipe\app' (watch the string
      *     escapes). An all-digit string is treated as a TCP port instead, so
      *     new net.TcpServer('8080', handler) listens on port 8080. The path is bound during construction
-     *     and start() begins accepting. Node.js uses server.listen(path) for the same purpose.
+     *     and start() begins accepting.
      *     @param addr specifies the unix socket or Windows pipe server listening address
      *     @param listener the connection handler
      *
@@ -644,7 +625,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -658,7 +639,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -672,7 +653,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -685,8 +666,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stop(): Promise<void>;
@@ -696,8 +676,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stopSync(): void;
@@ -707,8 +686,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stopAsync(): Promise<void>;
@@ -716,7 +694,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     close(): Promise<void>;
@@ -724,7 +702,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     closeSync(): void;
@@ -732,7 +710,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     closeAsync(): Promise<void>;
@@ -743,8 +721,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      The result has the shape { address, family, port }, where family is 'IPv4' or 'IPv6' and port
      *      is the real port after listen(0). For a unix socket or Windows pipe the address is the bound
      *      path while family/port are placeholders ('IPv4'/0). The method throws before the server is
-     *      bound (number 20009); Node.js returns null instead and returns the path string for pipe
-     *      servers.
+     *      bound (number 20009).
      *
      *      Example — discovering the port assigned to listen(0):
      *      ```JavaScript
@@ -773,7 +750,6 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      The underlying listening Socket exposes the bound family/localAddress/localPort; it is useful
      *      for diagnostics, but do not call accept on it because the server owns the accept loop. It
      *      throws when the server was created by the handler-only constructor and is not bound yet.
-     *      Node.js hides the listening handle.
      *
      */
     readonly socket: Class_SocketPromise;
@@ -803,8 +779,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      * @description Emitted after start() is called and binding completes
      *
      *      Emitted synchronously by start()/listen(), after the socket is listening and before the first
-     *      accept; observe it with on('listening') or the onlistening shorthand. Node.js emits
-     *      'listening' asynchronously once the bind completes.
+     *      accept; observe it with on('listening') or the onlistening shorthand.
      *
      */
     onlistening: (()=>void) | null;
@@ -813,8 +788,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      * @description Emitted when a new TCP connection is established
      *
      *      Emitted before the handler is invoked for the same Socket, on the accepting fiber; a long
-     *      listener delays further accepts, so offload work to the handler or to a new fiber. Node.js
-     *      emits 'connection' with its socket in the same way.
+     *      listener delays further accepts, so offload work to the handler or to a new fiber.
      *      @param socket the newly established Socket connection object
      *
      */
@@ -823,8 +797,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     /**
      * @description Emitted when an error occurs
      *
-     *      Emitted for accept-loop failures with a plain message string, not with an Error object as in
-     *      Node.js. An exception thrown by the handler does not emit this event: it is logged and the
+     *      Emitted for accept-loop failures with a plain message string, not with an Error object. An exception thrown by the handler does not emit this event: it is logged and the
      *      connection is closed.
      *      @param msg the error message
      *
@@ -835,8 +808,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      * @description Emitted after the server is closed
      *
      *      Emitted by stop()/close() immediately after the listening socket is closed, even when
-     *      connections are still open. Node.js emits 'close' only after the server has stopped
-     *      accepting and all connections have ended.
+     *      connections are still open.
      *
      */
     onclose: (()=>void) | null;

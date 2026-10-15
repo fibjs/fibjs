@@ -42,10 +42,9 @@
  *  - **Limits and compression**: maxHeadersCount, maxHeaderSize and maxBodySize bound the
  *    parsed request (a request over a limit is answered with 400); enableEncoding
  *    compresses eligible text replies transparently when the client accepts gzip or
- *    deflate. Node.js has no body limit and no automatic compression.
- *  - **Node.js differences**: Node passes `(req, res)` to a createServer listener and emits
- *    request/upgrade/clientError events; fibjs accepts the handler forms above, adds
- *    `req.response`, and forwards the TcpServer events.
+ *    deflate.
+ *  - **Handler forms**: the handler receives a single request object (see above), the response is
+ *    reached through `req.response`, and the TcpServer events are forwarded.
  *
  *  Obtained from:
  *  - `new http.Server(port, hdlr)` / `new http.Server(addr, port, hdlr)` — bound, ready for
@@ -183,8 +182,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      Access-Control-Allow-Credentials: true and Access-Control-Allow-Origin echoing the
      *      origin, and an OPTIONS preflight is answered directly (200) with
      *      Access-Control-Allow-Methods: *, Access-Control-Allow-Headers set to allowHeaders
-     *      and Access-Control-Max-Age: 1728000, without invoking the handler. Node.js has no
-     *      built-in CORS support.
+     *      and Access-Control-Max-Age: 1728000, without invoking the handler.
      *
      *      Example — answer a preflight:
      *      ```JavaScript
@@ -214,7 +212,6 @@ declare class Class_HttpServer extends Class_TcpServer {
      *
      *      Applied when each request is parsed; a request with more header lines is answered
      *      with 400 and the connection is closed. A negative value throws a RangeError (20006).
-     *      Node.js has http.Server.maxHeadersCount for the same purpose.
      *
      */
     maxHeadersCount: number;
@@ -223,8 +220,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      * @description Queries and sets the maximum length of one header line in bytes, default 8192
      *
      *      A longer line makes the parser fail and the request is answered with 400; a negative
-     *      value throws a RangeError (20006). Node.js uses the process-wide
-     *      --max-http-header-size option instead.
+     *      value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -233,8 +229,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      * @description Queries and sets the maximum request body size in MB, default 64
      *
      *      A Content-Length or chunked body larger than this is rejected while parsing and the
-     *      request is answered with 400; -1 disables the limit and 0 refuses every body. Node.js
-     *      has no built-in body limit.
+     *      request is answered with 400; -1 disables the limit and 0 refuses every body.
      *
      */
     maxBodySize: number;
@@ -246,7 +241,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      gzip or deflate when the client sent a matching Accept-Encoding and the
      *      Content-Type is text/* or a known compressible type; the handler adds
      *      Content-Encoding and replaces the body with the compressed one. An existing
-     *      Content-Encoding disables it. Node.js has no automatic compression.
+     *      Content-Encoding disables it.
      *
      */
     enableEncoding: boolean;
@@ -255,7 +250,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      * @description Queries and sets the automatic Server header, default fibjs/<version>
      *
      *      Written when the handler did not set a Server header itself; an empty value writes
-     *      an empty header. Node.js does not add a Server header.
+     *      an empty header.
      *
      *      Example — replace the default server name:
      *      ```JavaScript
@@ -347,8 +342,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      Access-Control-Allow-Credentials: true and Access-Control-Allow-Origin echoing the
      *      origin, and an OPTIONS preflight is answered directly (200) with
      *      Access-Control-Allow-Methods: *, Access-Control-Allow-Headers set to allowHeaders
-     *      and Access-Control-Max-Age: 1728000, without invoking the handler. Node.js has no
-     *      built-in CORS support.
+     *      and Access-Control-Max-Age: 1728000, without invoking the handler.
      *
      *      Example — answer a preflight:
      *      ```JavaScript
@@ -378,7 +372,6 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *
      *      Applied when each request is parsed; a request with more header lines is answered
      *      with 400 and the connection is closed. A negative value throws a RangeError (20006).
-     *      Node.js has http.Server.maxHeadersCount for the same purpose.
      *
      */
     maxHeadersCount: number;
@@ -387,8 +380,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      * @description Queries and sets the maximum length of one header line in bytes, default 8192
      *
      *      A longer line makes the parser fail and the request is answered with 400; a negative
-     *      value throws a RangeError (20006). Node.js uses the process-wide
-     *      --max-http-header-size option instead.
+     *      value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -397,8 +389,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      * @description Queries and sets the maximum request body size in MB, default 64
      *
      *      A Content-Length or chunked body larger than this is rejected while parsing and the
-     *      request is answered with 400; -1 disables the limit and 0 refuses every body. Node.js
-     *      has no built-in body limit.
+     *      request is answered with 400; -1 disables the limit and 0 refuses every body.
      *
      */
     maxBodySize: number;
@@ -410,7 +401,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      gzip or deflate when the client sent a matching Accept-Encoding and the
      *      Content-Type is text/* or a known compressible type; the handler adds
      *      Content-Encoding and replaces the body with the compressed one. An existing
-     *      Content-Encoding disables it. Node.js has no automatic compression.
+     *      Content-Encoding disables it.
      *
      */
     enableEncoding: boolean;
@@ -419,7 +410,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      * @description Queries and sets the automatic Server header, default fibjs/<version>
      *
      *      Written when the handler did not set a Server header itself; an empty value writes
-     *      an empty header. Node.js does not add a Server header.
+     *      an empty header.
      *
      *      Example — replace the default server name:
      *      ```JavaScript

@@ -31,16 +31,14 @@
  *    timers run, while a callback that blocks the CPU blocks all JavaScript until it returns.
  *  - **Delay clamping**: the delay is a number of milliseconds; values less than 1 or greater than
  *    2^31-1 are clamped to 1, and a fractional delay is truncated. `setTimeout` defaults a missing
- *    delay to 1ms, while `setInterval` requires it. `NaN` and non-numeric strings throw a TypeError
- *    (Node.js converts them to 1 and prints a warning).
+ *    delay to 1ms, while `setInterval` requires it. `NaN` and non-numeric strings throw a TypeError.
  *  - **High-resolution interval**: `setHrInterval` uses a VM interrupt and can call back at any time,
  *    including while JavaScript is running; its callback must not modify state used by other code nor
- *    call asynchronous APIs. It is a fibjs extension with no Node.js equivalent.
+ *    call asynchronous APIs. It is an extension of the module.
  *  - **Scheduling order**: after the current task, `process.nextTick` callbacks run first, then V8
  *    micro-tasks, then `setImmediate`, then timers; an immediate therefore runs before a
  *    `setTimeout(callback, 0)` timer. See the global object for the fiber and event loop model.
- *  - **Node.js comparison**: Node.js returns `Timeout` and `Immediate` objects with `refresh`,
- *    `hasRef` and `Symbol.dispose`; fibjs returns one Timer class with `ref`, `unref`, `clear` and
+ *  - **Timer objects**: one Timer class with `ref`, `unref`, `clear` and
  *    `stopped`. All four clear functions accept any Timer object, so they are interchangeable.
  *
  *  Import:
@@ -109,11 +107,9 @@
  *
  *  Notes:
  *
- *  - `setHrInterval` and `call` are fibjs extensions; Node.js has no equivalent member, and Node.js
- *    `Timeout#refresh`/`hasRef` do not exist on the fibjs Timer.
+ *  - `setHrInterval` and `call` are extensions of the module.
  *  - `timers/promises` exists with `setTimeout` and `setImmediate` but has no `setInterval` iterator.
- *  - A callback that is not a function throws a TypeError with number 20005; Node.js throws
- *    `ERR_INVALID_ARG_TYPE`.
+ *  - A callback that is not a function throws a TypeError with number 20005.
  *
  */
 declare module 'timers' {
@@ -128,8 +124,8 @@ declare module 'timers' {
      *      the returned Timer object. The timer keeps the process alive until it fires or is cleared; call
      *      `Timer#unref` on the returned object to let the process exit while the timer is pending.
      *
-     *      Unlike Node.js there is no `refresh`/`hasRef` on the returned object, and a `NaN` delay is
-     *      rejected instead of being treated as 1ms.
+     *      There is no `refresh`/`hasRef` on the returned object, and a `NaN` delay is
+     *      rejected.
      *
      *      Example — the callback receives the extra argument and the timer as `this`:
      *      ```JavaScript
@@ -156,8 +152,7 @@ declare module 'timers' {
      *      same timer repeatedly does not raise an error, and a timer that already fired is simply left
      *      stopped.
      *
-     *      The four clear functions are interchangeable because they all accept any Timer; Node.js instead
-     *      routes `clearTimeout` to `Timeout` objects only.
+     *      The four clear functions are interchangeable because they all accept any Timer.
      *
      *      Example — clearing an interval through clearTimeout and ignoring invalid values:
      *      ```JavaScript
@@ -180,8 +175,8 @@ declare module 'timers' {
     /**
      * @description Executes the callback function periodically at a fixed interval
      *
-     *      The delay is required and is clamped like setTimeout; unlike Node.js there is no 1ms default,
-     *      and omitting it throws a TypeError (parameter not optional). The next run is scheduled timeout
+     *      The delay is required and is clamped like setTimeout; omitting it throws a TypeError
+     *      (parameter not optional). The next run is scheduled timeout
      *      milliseconds after the previous callback returns, so a slow callback reduces the frequency.
      *
      *      The timer keeps running until `clearInterval` or `Timer#clear` is called, or it clears itself
@@ -265,7 +260,7 @@ declare module 'timers' {
      *      Timer is only useful to cancel it or to release its keep-alive hold with `Timer#unref`.
      *
      *      The arguments in args are passed to the callback unchanged and `this` is the returned Timer
-     *      object. Node.js returns an `Immediate` object without a `stopped` property.
+     *      object.
      *
      *      Example — immediates run after the current task and before 1ms timers:
      *      ```JavaScript
@@ -310,8 +305,8 @@ declare module 'timers' {
      *      execution continues normally after the call. An error thrown by func itself is propagated
      *      unchanged.
      *
-     *      This is a fibjs extension: Node.js has no equivalent member, only the promise-based timeouts of
-     *      `timers/promises`, which do not interrupt running code.
+     *      This is an extension of the module; the promise-based timeouts of
+     *      `timers/promises` do not interrupt running code.
      *
      *      Example — normal return and interruption:
      *      ```JavaScript

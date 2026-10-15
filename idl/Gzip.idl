@@ -1,4 +1,4 @@
-/*! @brief Gzip is the Node.js compatible codec that compresses data to the gzip container
+/*! @brief Gzip is the codec that compresses data to the gzip container
 
  `new zlib.Gzip(opts)` builds a synchronous codec; feed chunks with `_processChunk` and
  the zlib flush flags. The gzip container is what `zlib.gzip` writes and `zlib.gunzip`

@@ -27,10 +27,8 @@
  *    clearSNIContexts all of them. These methods are server-side only.
  *  - **Sessions**: sessionTimeout is the server-side session lifetime in seconds (default 7200).
  *    fibjs keeps no session object, so no session can be inspected or reused by hand.
- *  - **Node.js differences**: Node.js documents SecureContext only as the value returned by
- *    tls.createSecureContext with a `context` property, while fibjs exposes the effective ca, key,
- *    cert and flag getters plus the SNI table methods; Node.js configures SNI through
- *    server.addContext()/SNICallback instead, and its sessionTimeout default is 300.
+ *  - **Shape**: the context exposes the effective ca, key, cert and flag getters plus the SNI
+ *    table methods (setSNIContext); sessionTimeout defaults to 300.
  *
  *  Obtained from:
  *  - `tls.createSecureContext(options[, isServer])` — the normal way;
@@ -122,8 +120,7 @@ declare class Class_SecureContext extends Class_object {
      *
      *      An X509Certificate chain whose head is the configured ca (a PEM string may hold several
      *      certificates); a client context without an explicit ca reports the bundled Mozilla root
-     *      store, while a server context without ca reports undefined. Node.js does not document an
-     *      equivalent getter.
+     *      store, while a server context without ca reports undefined.
      *
      */
     readonly ca: Class_X509Certificate;
@@ -171,7 +168,7 @@ declare class Class_SecureContext extends Class_object {
      *      Normally 'TLS_method'; 'TLS_client_method' or 'TLS_server_method' when a legacy
      *      secureProtocol selected one. A legacy method that also fixes a version (for example
      *      'TLSv1_2_method') still reports TLS_method here while minVersion/maxVersion report the fixed
-     *      version. Not part of the documented Node.js SecureContext surface.
+     *      version.
      *
      */
     readonly secureProtocol: string;
@@ -189,9 +186,8 @@ declare class Class_SecureContext extends Class_object {
     /**
      * @description Whether the context rejects a peer certificate that fails verification
      *
-     *      Default true. When false, the OpenSSL verify callback accepts every certificate, which is
-     *      the fibjs way to disable certificate verification (Node.js uses rejectUnauthorized: false
-     *      for that purpose).
+     *      Default true. When false, the OpenSSL verify callback accepts every certificate, which
+     *      disables certificate verification.
      *
      */
     readonly rejectUnverified: boolean;
@@ -201,8 +197,7 @@ declare class Class_SecureContext extends Class_object {
      *
      *      Default true on a client context and false on a server context. On a server, false means a
      *      client without a certificate is still accepted; on a client this flag does not disable
-     *      verification of the server certificate. Node.js uses rejectUnauthorized to disable
-     *      verification, so the semantics differ.
+     *      verification of the server certificate, so the flags are not interchangeable.
      *
      */
     readonly rejectUnauthorized: boolean;
@@ -212,7 +207,7 @@ declare class Class_SecureContext extends Class_object {
      *
      *      Default 7200. Only meaningful for a server context: it is the OpenSSL session timeout used
      *      when a session is resumed. fibjs exposes no session object, so the value can only be read
-     *      back. Node.js documents a default of 300 for the same option.
+     *      back. The default is 300.
      *
      */
     readonly sessionTimeout: number;
@@ -457,8 +452,7 @@ declare class Class_SecureContextPromise extends Class_object {
      *
      *      An X509Certificate chain whose head is the configured ca (a PEM string may hold several
      *      certificates); a client context without an explicit ca reports the bundled Mozilla root
-     *      store, while a server context without ca reports undefined. Node.js does not document an
-     *      equivalent getter.
+     *      store, while a server context without ca reports undefined.
      *
      */
     readonly ca: Class_X509Certificate;
@@ -506,7 +500,7 @@ declare class Class_SecureContextPromise extends Class_object {
      *      Normally 'TLS_method'; 'TLS_client_method' or 'TLS_server_method' when a legacy
      *      secureProtocol selected one. A legacy method that also fixes a version (for example
      *      'TLSv1_2_method') still reports TLS_method here while minVersion/maxVersion report the fixed
-     *      version. Not part of the documented Node.js SecureContext surface.
+     *      version.
      *
      */
     readonly secureProtocol: string;
@@ -524,9 +518,8 @@ declare class Class_SecureContextPromise extends Class_object {
     /**
      * @description Whether the context rejects a peer certificate that fails verification
      *
-     *      Default true. When false, the OpenSSL verify callback accepts every certificate, which is
-     *      the fibjs way to disable certificate verification (Node.js uses rejectUnauthorized: false
-     *      for that purpose).
+     *      Default true. When false, the OpenSSL verify callback accepts every certificate, which
+     *      disables certificate verification.
      *
      */
     readonly rejectUnverified: boolean;
@@ -536,8 +529,7 @@ declare class Class_SecureContextPromise extends Class_object {
      *
      *      Default true on a client context and false on a server context. On a server, false means a
      *      client without a certificate is still accepted; on a client this flag does not disable
-     *      verification of the server certificate. Node.js uses rejectUnauthorized to disable
-     *      verification, so the semantics differ.
+     *      verification of the server certificate, so the flags are not interchangeable.
      *
      */
     readonly rejectUnauthorized: boolean;
@@ -547,7 +539,7 @@ declare class Class_SecureContextPromise extends Class_object {
      *
      *      Default 7200. Only meaningful for a server context: it is the OpenSSL session timeout used
      *      when a session is resumed. fibjs exposes no session object, so the value can only be read
-     *      back. Node.js documents a default of 300 for the same option.
+     *      back. The default is 300.
      *
      */
     readonly sessionTimeout: number;

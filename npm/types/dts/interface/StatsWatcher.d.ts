@@ -4,14 +4,13 @@
  * @description File Stats watcher object
  *
  *  A StatsWatcher polls the status of one file on a timer, detects changes and
- *  reports them as `(curStat, prevStat)` pairs, the same model as Node.js
- *  fs.watchFile. It is obtained from `fs.watchFile(target[, options], listener)`
+ *  reports them as `(curStat, prevStat)` pairs. It is obtained from `fs.watchFile(target[, options], listener)`
  *  and stops with close()/stop() or `fs.unwatchFile(target)`.
  *
  *  Concepts:
  *
  *  - **Polling**: the watcher calls stat on the target every `interval`
- *    milliseconds (default 5007, the Node.js default; values below 20 fall back
+ *    milliseconds (default 5007; values below 20 fall back
  *    to that default) and claims the process as long as it is active. It does not
  *    use inotify-style events, so a fast change can be missed between polls and a
  *    slow file system delays the report.
@@ -94,7 +93,7 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
      * @description Queries and binds the "file change" event, equivalent to on("change", func);
      *
      *      The listener receives the current Stat and the previous Stat, in that
-     *      order, matching the Node.js fs.watchFile callback. The first invocation
+     *      order, the same shape fs.watchFile passes. The first invocation
      *      always happens (with a zero previous Stat) on the first poll; later ones
      *      only when mtime changed. Attaching with `on('change', fn)` behaves exactly
      *      like passing the listener to fs.watchFile.
@@ -150,7 +149,7 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
      * @description Queries and binds the "file change" event, equivalent to on("change", func);
      *
      *      The listener receives the current Stat and the previous Stat, in that
-     *      order, matching the Node.js fs.watchFile callback. The first invocation
+     *      order, the same shape fs.watchFile passes. The first invocation
      *      always happens (with a zero previous Stat) on the first poll; later ones
      *      only when mtime changed. Attaching with `on('change', fn)` behaves exactly
      *      like passing the listener to fs.watchFile.
@@ -218,7 +217,7 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
     /**
      * @description Stops watching the target file path and clears the reference count (no longer holds the process); equivalent to close()
      *
-     *      An alias with the Node.js-style name; the behavior is exactly close().
+     *      An alias of close(); the behavior is exactly the same.
      *
      *      Example — stop with the alias:
      *      ```JavaScript
@@ -277,7 +276,7 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
      * @description Decrements the reference count
      *
      *      Drops one hold on the process; once no hold is left fibjs may exit even
-     *      while the watcher is active, which is the Node.js `unref()` semantics. The
+     *      while the watcher is active, which is the `unref()` semantics. The
      *      timer keeps running until close() when the process stays alive. Returns
      *      the watcher itself.
      *

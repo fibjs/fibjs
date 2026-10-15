@@ -35,8 +35,7 @@
  *    with `new`.
  *  - The static convertKey helper lives on the ECDH class object. The crypto module
  *    does not publish that object (`crypto.ECDH` is undefined), so reach it through an
- *    instance: `crypto.createECDH('secp256k1').constructor.convertKey(...)`; Node.js
- *    exposes it as `crypto.ECDH.convertKey`.
+ *    instance: `crypto.createECDH('secp256k1').constructor.convertKey(...)`.
  *
  *  Example 1 — two parties agree on the same secret:
  *  ```JavaScript
@@ -92,8 +91,7 @@ declare class Class_ECDH extends Class_object {
      *      requested point format encoded with outputEncoding; both encodings accept
      *      'buffer', 'hex', 'base64' and 'base58'. format is 'uncompressed' (default),
      *      'compressed' or 'hybrid'. The key must be a valid point on the curve, otherwise
-     *      an Error is thrown. Node.js exposes this helper as `crypto.ECDH.convertKey`;
-     *      fibjs leaves the class object unpublished, so call it through an instance
+     *      an Error is thrown. The class object is not published, so call the helper through an instance
      *      constructor, as in the example. See the class documentation for the point
      *      formats.
      *
@@ -134,7 +132,7 @@ declare class Class_ECDH extends Class_object {
      *      "Private key not set", after setPublicKey on the same instance it throws
      *      "Invalid key pair", and an off-curve peer key throws "Public key is not valid
      *      for specified curve". Treat the peer key as untrusted input and handle the
-     *      error. Node.js requires a Buffer when inputEncoding is omitted.
+     *      error.
      *
      *      Example: both sides derive the same secret:
      *      ```JavaScript
@@ -227,7 +225,7 @@ declare class Class_ECDH extends Class_object {
      *      for specified curve" is thrown, and it must belong to the curve of this
      *      instance. The matching public key is computed and stored, and any public key
      *      previously imported with setPublicKey is cleared, so computeSecret works after
-     *      this call. Node.js derives the public key the same way.
+     *      this call.
      *
      *      @param privateKey the private key data
      *      @param encoding the encoding of privateKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
@@ -244,7 +242,7 @@ declare class Class_ECDH extends Class_object {
      *      for specified curve" otherwise). This is for inspecting or converting a point;
      *      after calling it, computeSecret on the same instance reports "Invalid key pair"
      *      because the object then holds a private key and an unrelated public key.
-     *      Deprecated in Node.js for the same reason.
+     *      Deprecated for that reason.
      *
      *      @param publicKey the public key data
      *      @param encoding the encoding of publicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'

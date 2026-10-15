@@ -1,4 +1,4 @@
-/*! @brief DeflateRaw is the Node.js compatible codec that compresses data to raw deflate
+/*! @brief DeflateRaw is the codec that compresses data to raw deflate
 
  `new zlib.DeflateRaw(opts)` builds a synchronous codec; `_processChunk` returns raw
  deflate data with no header and no checksum. Raw deflate is the payload of protocols

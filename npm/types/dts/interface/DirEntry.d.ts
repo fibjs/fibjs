@@ -68,8 +68,7 @@
  *  fs.rmSync(dir, { recursive: true, force: true });
  *  ```
  *
- *  Same object type as Node.js fs.Dirent; Node also has the deprecated `path` property, fibjs
- *  provides parentPath only.
+ *  The `parentPath` property is provided; there is no `path` alias.
  *
  */
 declare class Class_DirEntry extends Class_object {
@@ -78,7 +77,7 @@ declare class Class_DirEntry extends Class_object {
      *
      *      The last path component, without the directory part: 'report.txt' for an entry of
      *      '/data/report.txt'. It is a name inside the directory, not a path; combine it with
-     *      parentPath to build the full path. Same property as Node.js Dirent#name.
+     *      parentPath to build the full path.
      *
      */
     readonly name: string;
@@ -89,7 +88,7 @@ declare class Class_DirEntry extends Class_object {
      *      The directory path that was scanned, spelled as it was requested: fs.readdir('.')
      *      reports '.', a relative Dir reports its relative path, and fs.glob with
      *      `withFileTypes` reports the absolute directory of each match (even for a relative
-     *      pattern). Node.js Dirent also exposes this property; the older Node `path` alias is not
+     *      pattern). The older `path` alias is not
      *      provided.
      *
      */

@@ -5,7 +5,7 @@
  fibjs has no DOM tree and no event dispatch pipeline: EventTarget is the EventEmitter class
  (on/off/emit, without dispatchEvent), so a DOMEvent is a stand-alone object that you create,
  pass to listeners yourself and read; the runtime never produces one. The class exists for
- Node.js and Web compatibility, where `new Event(type, init)` creates synthetic event objects.
+ Web compatibility, where `new Event(type, init)` creates synthetic event objects.
 
  Concepts:
 

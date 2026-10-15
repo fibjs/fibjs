@@ -1,4 +1,4 @@
-/*! @brief InflateRaw is the Node.js compatible codec that decompresses raw deflate data
+/*! @brief InflateRaw is the codec that decompresses raw deflate data
 
  `new zlib.InflateRaw(opts)` builds a synchronous codec; feed raw deflate chunks (no
  header, no checksum) with `_processChunk` and it returns the decoded bytes. It is the

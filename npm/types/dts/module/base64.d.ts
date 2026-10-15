@@ -55,8 +55,7 @@
  *
  *  - `decode` never reports malformed input: an empty or fully invalid string returns an
  *    empty Buffer; use a stricter parser when the text must be validated.
- *  - Node.js exposes base64 through Buffer encodings rather than a module; fibjs also
- *    accepts the alias `encoding.encode(data, 'base64url')` for the URL-safe form.
+ *  - The alias `encoding.encode(data, 'base64url')` selects the URL-safe form.
  *
  */
 declare module 'base64' {

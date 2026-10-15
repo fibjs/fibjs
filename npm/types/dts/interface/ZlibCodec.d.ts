@@ -2,7 +2,7 @@
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description ZlibCodec is the base class of the Node.js compatible zlib codec classes; build
+ * @description ZlibCodec is the base class of the zlib codec classes; build
  *  one through Gzip, Gunzip, Deflate, Inflate, DeflateRaw, InflateRaw or Unzip
  *
  *  The codec classes are synchronous state machines kept for the npm ecosystem (minizlib and
@@ -28,7 +28,7 @@
  *    no-op. The `_handle` property is a compatibility shim whose `close()` method does
  *    nothing.
  *  - **No events**: the class inherits EventEmitter for API compatibility, but no codec
- *    emits events. Unlike the Node.js zlib streams there are no 'data'/'end'/'error' events,
+ *    emits events: there are no 'data'/'end'/'error' events,
  *    no pipe and no readable side.
  *
  *  Obtained from:
@@ -90,8 +90,7 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
      *      resets the codec, which can then process a new message. Both arguments are required.
      *      Corrupt input, or an out-of-range flush flag on a deflating codec, throws an Error
      *      with `code` `Z_DATA_ERROR` or `Z_STREAM_ERROR`; after `close` the error is
-     *      ERR_ZLIB_BINDING_CLOSED. The Node.js codec streams also accept a callback, which
-     *      fibjs does not.
+     *      ERR_ZLIB_BINDING_CLOSED. No callback form is provided.
      *
      *      Example — two writes and a finish through a Gzip codec:
      *      ```JavaScript
@@ -118,8 +117,8 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
      *
      *      `close` is idempotent. Afterwards `_processChunk` and `params` throw
      *      ERR_ZLIB_BINDING_CLOSED ("zlib binding closed") and `reset` does nothing. A codec
-     *      that was left closed by an invalid constructor option can still be closed. Node.js
-     *      accepts a callback here and emits a 'close' event; fibjs does neither.
+     *      that was left closed by an invalid constructor option can still be closed. No callback
+     *      is accepted and no 'close' event is emitted.
      *
      *      Example — the codec rejects work after close:
      *      ```JavaScript
@@ -166,7 +165,7 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
     /**
      * @description A compatibility handle object
      *
-     *      In Node.js `_handle` exposes the native zlib binding. fibjs returns a plain object
+     *      `_handle` returns a plain object
      *      that only carries a no-op `close()` method, and the property can be read or
      *      overwritten without affecting the codec; it exists so packages that probe
      *      `_handle.close` keep working.
@@ -183,8 +182,7 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
      *      to zlib's deflateParams, which can only apply them between blocks and does not
      *      recover output that was pending, so call `params` before feeding data or between
      *      messages. The return value of the underlying call is ignored: an invalid level or
-     *      strategy is silently discarded. Node.js has the same method on its zlib streams, but
-     *      takes a callback.
+     *      strategy is silently discarded.
      *
      *      Example — switching a Gzip codec to level 1 changes the next message:
      *      ```JavaScript

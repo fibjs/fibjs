@@ -28,8 +28,8 @@
  *    event.
  *  - **Escape sequences**: the clearing and cursor members write ANSI CSI sequences to the terminal
  *    (for example `\x1b[2K` clears a line); the terminal interprets them instead of displaying them,
- *    and fibjs emits the same sequences as Node.js.
- *  - **Color depth**: Node.js exposes `hasColors`/`getColorDepth` on its write stream, fibjs does not;
+ *    and the same CSI sequences are emitted.
+ *  - **Color depth**: `hasColors`/`getColorDepth` are not implemented;
  *    use `util.colors.hasColors` to test whether the terminal supports color (see the colors module).
  *
  *  Import:
@@ -91,13 +91,12 @@
  *  Notes:
  *
  *  - `process.stdout.isTTY` is true on a terminal and undefined on a pipe or a redirected file,
- *    exactly like Node.js; process.stdin and process.stderr behave the same way.
+ *    process.stdin and process.stderr behave the same way.
  *  - Constructing tty.ReadStream or tty.WriteStream requires a descriptor that is already a terminal:
- *    any other descriptor throws `TypeError: fd N is not a TTY.` ([20004]), where Node.js fails only
- *    when the terminal cannot be initialized at all.
- *  - tty.isatty is stricter than the Node.js function: a negative descriptor throws [20009], a missing
+ *    any other descriptor throws `TypeError: fd N is not a TTY.` ([20004]).
+ *  - tty.isatty validates its argument: a negative descriptor throws [20009], a missing
  *    argument throws [20002], an out-of-range value throws [20006] and a value that cannot be coerced
- *    to an integer throws [20005], where Node.js returns false. fibjs also accepts an open FileHandle
+ *    to an integer throws [20005]. An open FileHandle is accepted
  *    (extension).
  *  - The two stream classes derive from the Stream class and share its read, write and close
  *    interface; see the io module and the Stream documentation for the stream model.
@@ -108,8 +107,7 @@ declare module 'tty' {
      * @description The TTYInputStream class, see TTYInputStream
      *
      *      `new tty.ReadStream(fd[, opts])` wraps a terminal descriptor; the class is also the
-     *      constructor of process.stdin when stdin is a terminal. Node.js exposes the same class
-     *      under the same name.
+     *      constructor of process.stdin when stdin is a terminal.
      *
      */
     const ReadStream: typeof Class_TTYInputStream;
@@ -120,8 +118,7 @@ declare module 'tty' {
      * @description The TTYOutputStream class, see TTYOutputStream
      *
      *      `new tty.WriteStream(fd[, opts])` wraps a terminal descriptor; the class is also the
-     *      constructor of process.stdout and process.stderr when they are terminals. Node.js
-     *      exposes the same class under the same name.
+     *      constructor of process.stdout and process.stderr when they are terminals.
      *
      */
     const WriteStream: typeof Class_TTYOutputStream;
@@ -136,8 +133,7 @@ declare module 'tty' {
      *      `stdio: 'pty'` the standard descriptors are terminals, and when a standard stream is piped or
      *      redirected it is not, which makes this function the check behind process.stdout.isTTY.
      *
-     *      Unlike Node.js, which returns false whenever fd is not a non-negative integer, fibjs throws for
-     *      some invalid inputs: a negative descriptor throws [20009], a missing argument throws [20002]
+     *      Invalid inputs throw instead of returning false: a negative descriptor throws [20009], a missing argument throws [20002]
      *      and a value that overflows Integer throws [20006]. Other values are coerced to an integer
      *      descriptor first, so 1.5, '1' and even null mean descriptors 1, 1 and 0; a value that cannot
      *      be coerced at all throws [20005].

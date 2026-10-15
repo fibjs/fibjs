@@ -37,11 +37,11 @@ Concepts:
   objects. `isBoolean`, `isNumber`, `isString` and `isBigInt` accept both the primitive and the
   boxed form, `isSymbol` accepts only the primitive, and the `is*Object` family matches only boxed
   values; `isBoxedPrimitive` is the union of the five boxed classes.
-- Node.js comparison: 43 of the 57 members exist in Node.js `util.types` with the same internal-slot
-  semantics; fibjs adds `isEmpty`, `isArray`, `isBoolean`, `isNull`, `isNullOrUndefined`,
+- Semantics: the predicates check internal slots; the module adds `isEmpty`, `isArray`,
+  `isBoolean`, `isNull`, `isNullOrUndefined`,
   `isNumber`, `isBigInt`, `isString`, `isUndefined`, `isObject`, `isPrimitive`, `isSymbol`,
-  `isFunction` and `isBuffer`. Unlike Node.js, where a missing value simply returns false, every
-  member here requires exactly one argument and throws TypeError otherwise.
+  `isFunction` and `isBuffer`. Every
+  member requires exactly one argument and throws TypeError otherwise.
 
 Import:
 ```JavaScript
@@ -108,8 +108,7 @@ Notes:
   callable Proxy.
 - Buffer values satisfy `isTypedArray` and `isUint8Array`; `isBuffer` is the Buffer-specific tag and
   `Buffer.prototype` is false.
-- `isExternal` is always false for values created from JavaScript and exists for Node.js
-  compatibility.
+- `isExternal` is always false for values created from JavaScript.
 - The namespace is not a global and `require('types')` cannot resolve it; use `util.types` or the
   `require('util/types')` alias.
 */
@@ -122,7 +121,7 @@ module types
      non-enumerable own properties are ignored, so dates, maps, sets and plain functions are empty,
      while any object with an enumerable own property is not. On a Proxy the check can run its
      `ownKeys` trap, whose error is propagated. Numbers, booleans, symbols and bigints are always
-     empty. This member is a fibjs extension; Node.js `util.types` has no equivalent.
+     empty. This member is an extension of the module.
 
      Example — values that isEmpty treats as empty:
      ```JavaScript
@@ -144,8 +143,8 @@ module types
      The internal array type is tested, not the prototype chain: subclass instances are true, while
      `Object.create(Array.prototype)`, array-like objects and a Proxy whose target is an array are
      false. `Array.isArray` returns true for that last case because it looks through the
-     Proxy; prefer `Array.isArray` when proxies may be involved. This member is a fibjs
-     extension, Node.js only provides `Array.isArray`.
+     Proxy; prefer `Array.isArray` when proxies may be involved. This member is an
+     extension of the module.
 
      @param v the variable to check
      @return returns True if v is an array
@@ -186,8 +185,8 @@ module types
     /*! @brief Checks whether a value is a number or a Number object
 
      NaN and Infinity are numbers and match, numeric strings are not. The boxed form `new Number(1)`
-     is accepted as well; use `isNumberObject` when only the boxed form must match. This member is a
-     fibjs extension, Node.js only provides `isNumberObject`.
+     is accepted as well; use `isNumberObject` when only the boxed form must match. This member is an
+     extension of the module.
 
      @param v the variable to check
      @return returns True if v is a number or a Number object
@@ -197,8 +196,8 @@ module types
     /*! @brief Checks whether a value is a bigint or a BigInt object
 
      Strings such as '1' and other numeric values are false. The boxed form `Object(1n)` is
-     accepted; use `isBigIntObject` when only the boxed form must match. This member is a fibjs
-     extension, Node.js only provides `isBigIntObject`.
+     accepted; use `isBigIntObject` when only the boxed form must match. This member is an
+     extension of the module.
 
      @param v the variable to check
      @return returns True if v is a bigint or a BigInt object
@@ -208,8 +207,7 @@ module types
     /*! @brief Checks whether a value is a string or a String object
 
      Both forms are accepted, so the predicate matches literals and `new String('text')` alike; use
-     `isStringObject` when only the boxed form must match. This member is a fibjs extension, Node.js
-     only provides `isStringObject`.
+     `isStringObject` when only the boxed form must match. This member is an extension of the module.
 
      @param v the variable to check
      @return returns True if v is a string or a String object
@@ -339,7 +337,7 @@ module types
     /*! @brief Checks whether a value is a V8 external value
 
      External values carry native pointers and cannot be created from JavaScript, so this
-     predicate is always false for user values; it is kept for Node.js compatibility.
+     predicate is always false for user values.
 
      @param v the variable to check
      @return returns True if v is an external value
@@ -532,8 +530,8 @@ module types
      Matches Buffer instances created by `Buffer.alloc`/`Buffer.from`, `fs.readFile` and the
      other Buffer producers; `Buffer.prototype`, plain Uint8Array values and the other typed
      arrays are false. Buffer is a Uint8Array subclass, so `isTypedArray` and `isUint8Array` are
-     true for it as well. This member is a fibjs extension, the Node.js equivalent is
-     `Buffer.isBuffer`.
+     true for it as well. This member is an extension of the module; `Buffer.isBuffer` is the
+     equivalent.
 
      Example — Buffer against other binary values:
      ```JavaScript
@@ -662,8 +660,7 @@ module types
 
     /*! @brief Checks whether a value is a Float16Array
 
-     Only Float16Array instances match; the half-precision array is also available in Node.js, while
-     Float32Array, Float64Array and the integer arrays are false.
+     Only Float16Array instances match; Float32Array, Float64Array and the integer arrays are false.
 
      @param v the variable to check
      @return returns True if v is a Float16Array
@@ -777,7 +774,7 @@ module types
      True for CryptoKey instances created by `crypto.subtle.generateKey`, `importKey` and
      `deriveKey`; KeyObject values are false, use `isKeyObject` for them.
 
-     Example — WebCrypto and Node.js style keys:
+     Example — WebCrypto style keys:
      ```JavaScript
      const crypto = require('crypto');
      const types = require('util').types;

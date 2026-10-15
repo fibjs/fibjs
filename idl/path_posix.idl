@@ -75,9 +75,9 @@
 
  Notes:
 
- - Node.js exposes the same rule set as require('path').posix; fibjs also provides the
-   require('path/posix') subpath form and documents the rule set as the path_posix definition.
- - fibjs adds fullpath to the rule set; see the path module for the differences from Node.js.
+ - The rule set is available as require('path').posix and as the
+   require('path/posix') subpath form; it is documented as the path_posix definition.
+ - The rule set adds fullpath; see the path module for the shared behaviour.
  */
 module path_posix
 {
@@ -198,7 +198,7 @@ module path_posix
 
     /*! @brief Converts a posix path into an absolute path anchored at the working directory
 
-     A fibjs extension, not part of Node.js. An absolute input is normalized; a relative input
+     An extension of the rule set. An absolute input is normalized; a relative input
      is prefixed with process.cwd() and then normalized with the posix rule set. The function
      is a pure string operation, does not touch the file system and never checks existence.
      Unlike resolve, an empty string becomes the working directory plus a trailing separator.

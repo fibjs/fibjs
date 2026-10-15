@@ -209,7 +209,7 @@ module subtle
        point, the 32-byte Ed25519 public key or the HMAC secret; the algorithm's namedCurve
        is required for EC keys and must match the data;
      - `pkcs8` - a DER private key; `spki` - a DER public key;
-     - `jwk` - the object exported by exportKey (or a compatible one from Node.js); `kty` is
+     - `jwk` - the object exported by exportKey (or a compatible one); `kty` is
        required.
 
      The algorithm must match the material: an EC key on a different curve is rejected.

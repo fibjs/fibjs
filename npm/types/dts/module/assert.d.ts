@@ -101,12 +101,11 @@
  *  - `assert` and `assert.ok` are the same callable object; both are aliases of the `operator`
  *    member, so `assert(value, message)` is the truthiness check.
  *  - A comparison whose internal conversion throws (for example an object with a throwing
- *    valueOf) is reported as a failed AssertionError, while Node.js propagates the conversion
- *    error.
+ *    valueOf) is reported as a failed AssertionError.
  *  - `throws` treats a function whose `prototype.constructor` is itself as an error class,
  *    not as a validation function; pass an arrow function to validate an error.
- *  - Node.js `doesNotReject` and `partialDeepStrictEqual` are not provided; `fail` takes
- *    only a message in both implementations.
+ *  - `doesNotReject` and `partialDeepStrictEqual` are not provided; `fail` takes
+ *    only a message.
  *  - See the assert_strict module for the strict comparison mode and the differences it maps.
  *
  */
@@ -144,8 +143,8 @@ declare module 'assert' {
          *      ```
          *
          *      `generatedMessage` is false when a message was given, and `toString()` renders as
-         *      `AssertionError [ERR_ASSERTION]: <message>`. Node.js exposes the same constructor and
-         *      fields; the strict module re-exports the same class.
+         *      `AssertionError [ERR_ASSERTION]: <message>`. The strict module re-exports the same
+         *      class.
          *
          */
         const AssertionError: (...args: any[])=>any;
@@ -187,9 +186,8 @@ declare module 'assert' {
          * @description Fails unconditionally and throws a generated AssertionError
          *
          *      The error carries the operator 'fail' and no actual/expected values; without a
-         *      message the generated message is 'Failed'. The signature matches the current
-         *      Node.js `assert.fail(message)`; the legacy four-argument form of older releases is
-         *      not supported.
+         *      message the generated message is 'Failed'. The legacy four-argument form of older
+         *      releases is not supported.
          *
          *      @param msg the message when the assertion fails
          *
@@ -200,8 +198,8 @@ declare module 'assert' {
          * @description Tests that the value is falsy; the assertion fails if it is true
          *
          *      Falsy values are false, 0, '', null, undefined and NaN; the check is the exact
-         *      negation of `ok` and the failure carries the operator 'notOk'. Node.js has no notOk,
-         *      the equivalent is `assert.ok(!value)`.
+         *      negation of `ok` and the failure carries the operator 'notOk'; the equivalent is
+         *      `assert.ok(!value)`.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -215,8 +213,8 @@ declare module 'assert' {
          *      Uses the JavaScript `==` operator: `1`, `'1'` and `new Number(1)` are equal, null
          *      equals undefined, and objects are equal only when they are the same reference. NaN
          *      is never equal to anything, including itself. For type-safe comparison use
-         *      `strictEqual`, and see `deepEqual` for nested values. Node.js marks assert.equal as
-         *      legacy; the failure carries the operator '=='.
+         *      `strictEqual`, and see `deepEqual` for nested values. The failure carries the
+         *      operator '=='.
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -229,7 +227,7 @@ declare module 'assert' {
          * @description Tests that the value does not loosely equal the expected value
          *
          *      The exact negation of `equal`: two references to the same object are equal, so
-         *      `notEqual(obj, obj)` fails. The failure carries the operator '!=' and, like Node.js,
+         *      `notEqual(obj, obj)` fails. The failure carries the operator '!=' and
          *      the default message renders as `Expected X != Y`.
          *
          *      @param actual the value to test
@@ -244,8 +242,8 @@ declare module 'assert' {
          *
          *      Uses the JavaScript `===` operator: `1` and `'1'` are not equal, NaN is not equal to
          *      NaN, +0 and -0 are equal, and objects must be the same reference. On failure a diff
-         *      between actual and expected is generated and a custom message is prepended to it,
-         *      matching Node.js. The failure carries the operator 'strictEqual'.
+         *      between actual and expected is generated and a custom message is prepended to it.
+         *      The failure carries the operator 'strictEqual'.
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -277,8 +275,8 @@ declare module 'assert' {
          *      inherited ones - where both objects must have the same names and loosely equal
          *      values. Prototypes are not compared, symbol-keyed properties are ignored, cyclic
          *      structures are supported and functions are compared by reference. So
-         *      `deepEqual({ a: 1 }, { a: '1' })` passes while `deepStrictEqual` fails. Node.js marks
-         *      deepEqual as legacy. The failure carries the operator 'deepEqual' and a custom
+         *      `deepEqual({ a: 1 }, { a: '1' })` passes while `deepStrictEqual` fails. The failure
+         *      carries the operator 'deepEqual' and a custom
          *      message replaces the generated diff.
          *
          *      Example — loose deep comparison of nested values, Dates and Buffers:
@@ -316,9 +314,8 @@ declare module 'assert' {
          * @description Tests that the value strictly deeply equals the expected value
          *
          *      Like `deepEqual`, but leaf values are compared with `===`, so
-         *      `deepStrictEqual({ a: 1 }, { a: '1' })` fails. Prototypes are still not compared and
-         *      symbol-keyed properties are still ignored, which differs from Node.js where
-         *      deepStrictEqual also compares prototypes and symbols. A custom message is prepended
+         *      `deepStrictEqual({ a: 1 }, { a: '1' })` fails. Prototypes are not compared and
+         *      symbol-keyed properties are ignored, at every depth. A custom message is prepended
          *      to the generated diff; the failure carries the operator 'deepStrictEqual'.
          *
          *      @param actual the value to test
@@ -348,7 +345,7 @@ declare module 'assert' {
          *      The actual value is declared String, so a String object, a Date (its ISO form), a
          *      Buffer (its utf8 bytes) and an object with its own toString are converted; values
          *      without a string form (numbers, arrays, plain objects, null, undefined) fail with a
-         *      TypeError [20005]. Node.js requires a real string and throws ERR_INVALID_ARG_TYPE.
+         *      TypeError [20005].
          *      The failure carries the operator 'match', with the actual string and the RegExp in the
          *      respective fields.
          *
@@ -391,7 +388,7 @@ declare module 'assert' {
          *      The check is `Math.abs(actual - expected) <= delta`, so the bound is inclusive; both
          *      values and the delta are converted with Number(), and a value that converts to NaN
          *      (including a non-numeric string) throws a TypeError [20004] instead of failing the
-         *      assertion. Node.js has no closeTo.
+         *      assertion.
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -422,7 +419,7 @@ declare module 'assert' {
          *      a number) the comparison is numeric; when both sides are non-numeric strings it is a
          *      lexicographic UTF-8 comparison; a value that cannot be converted to a number (an
          *      object or an invalid numeric string against a number) throws a TypeError [20004].
-         *      Node.js has no lessThan; with Node.js `assert.ok(a < b)` is the equivalent.
+         *      The equivalent is `assert.ok(a < b)`.
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -450,7 +447,7 @@ declare module 'assert' {
          *      The mirror of `lessThan` (actual > expected) with the same numeric/lexicographic
          *      conversion rules and TypeError [20004] for values that cannot be compared. The
          *      generated failure message and operator field reuse the notLessThan wording ('to be
-         *      at least'). Node.js has no greaterThan.
+         *      at least').
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -476,7 +473,7 @@ declare module 'assert' {
          * @description Tests that the variable exists
          *
          *      A value exists when it is neither null nor undefined; false, 0, '' and NaN exist.
-         *      Node.js has no exist; the equivalent is `assert.ok(value !== null && value !==
+         *      The equivalent is `assert.ok(value !== null && value !==
          *      undefined)`.
          *
          *      @param actual the value to test
@@ -500,8 +497,8 @@ declare module 'assert' {
         /**
          * @description Tests that the value is boolean true
          *
-         *      The check is strict: 1, 'true' and new Boolean(true) all fail. Node.js has no isTrue;
-         *      the equivalent is `assert.strictEqual(value, true)`.
+         *      The check is strict: 1, 'true' and new Boolean(true) all fail; the equivalent is
+         *      `assert.strictEqual(value, true)`.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -524,8 +521,8 @@ declare module 'assert' {
         /**
          * @description Tests that the value is boolean false
          *
-         *      The check is strict: 0, '' and new Boolean(false) all fail. Node.js has no isFalse;
-         *      the equivalent is `assert.strictEqual(value, false)`.
+         *      The check is strict: 0, '' and new Boolean(false) all fail; the equivalent is
+         *      `assert.strictEqual(value, false)`.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -549,7 +546,7 @@ declare module 'assert' {
          * @description Tests that the value is Null
          *
          *      Only the null primitive passes; undefined is not null and fails this check, use
-         *      `isUndefined` for it. Node.js has no isNull.
+         *      `isUndefined` for it.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -573,7 +570,7 @@ declare module 'assert' {
          * @description Tests that the value is undefined
          *
          *      Only the undefined primitive passes; null is defined for this check and fails it,
-         *      use `isNull` for null. Node.js has no isUndefined.
+         *      use `isNull` for null.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -584,8 +581,7 @@ declare module 'assert' {
         /**
          * @description Tests that the value is not undefined
          *
-         *      The exact negation of `isUndefined`; null and every other value pass. Node.js has no
-         *      isDefined.
+         *      The exact negation of `isUndefined`; null and every other value pass.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -596,8 +592,8 @@ declare module 'assert' {
         /**
          * @description Tests that the value is a function
          *
-         *      Classes, async functions and generator functions are functions too. Node.js has no
-         *      isFunction; the equivalent is `assert.strictEqual(typeof value, 'function')`.
+         *      Classes, async functions and generator functions are functions too;
+         *      the equivalent is `assert.strictEqual(typeof value, 'function')`.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -622,7 +618,7 @@ declare module 'assert' {
          *
          *      Arrays and functions count as objects, and boxed primitives (new Number(1)) count
          *      too; null, undefined, primitives and symbols do not. `typeOf(value, 'object')`
-         *      delegates to this check, so the same widening applies. Node.js has no isObject.
+         *      delegates to this check, so the same widening applies.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -646,7 +642,7 @@ declare module 'assert' {
          * @description Tests that the value is an array
          *
          *      Uses Array.isArray semantics: an Array subclass passes, while typed arrays and
-         *      Buffer do not. Node.js has no isArray; the equivalent is
+         *      Buffer do not; the equivalent is
          *      `assert.ok(Array.isArray(value))`.
          *
          *      @param actual the value to test
@@ -671,7 +667,7 @@ declare module 'assert' {
          * @description Tests that the value is a string
          *
          *      Both a string primitive and a String object pass; a Buffer does not (it is a
-         *      Uint8Array). Node.js has no isString.
+         *      Uint8Array).
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -695,7 +691,7 @@ declare module 'assert' {
          * @description Tests that the value is a number
          *
          *      The check is on the primitive type: NaN passes, while a Number object does not.
-         *      Node.js has no isNumber; the equivalent is `assert.strictEqual(typeof value,
+         *      The equivalent is `assert.strictEqual(typeof value,
          *      'number')`.
          *
          *      @param actual the value to test
@@ -719,8 +715,8 @@ declare module 'assert' {
         /**
          * @description Tests that the value is a boolean
          *
-         *      Only the true and false primitives pass; a Boolean object does not. Node.js has no
-         *      isBoolean; the equivalent is `assert.strictEqual(typeof value, 'boolean')`.
+         *      Only the true and false primitives pass; a Boolean object does not;
+         *      the equivalent is `assert.strictEqual(typeof value, 'boolean')`.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -746,7 +742,7 @@ declare module 'assert' {
          *      The accepted type names are 'array', 'function', 'string', 'object', 'number',
          *      'boolean', 'null' and 'undefined'; 'object' matches arrays and functions as well
          *      because it delegates to `isObject`. Any other name throws a TypeError [20004]
-         *      instead of failing the assertion. Node.js has no typeOf.
+         *      instead of failing the assertion.
          *
          *      @param actual the value to test
          *      @param type the specified type
@@ -776,7 +772,7 @@ declare module 'assert' {
          *      count as well. The receiver must be an object and the property name must be a
          *      string; other values throw a TypeError [20004]. A primitive string receiver passes
          *      the type check but crashes the process in this version, so pass objects only. The
-         *      failure carries the operator 'property'; Node.js has no property.
+         *      failure carries the operator 'property'.
          *
          *      Example — own, inherited and nested properties:
          *      ```JavaScript
@@ -818,7 +814,7 @@ declare module 'assert' {
          *      'a.b.0' reaches array elements, while a property name containing a dot cannot be
          *      addressed. A missing intermediate value fails the assertion (it does not throw); the
          *      receiver must be an object and the path a string, otherwise a TypeError [20004] is
-         *      thrown. Node.js has no deepProperty.
+         *      thrown.
          *
          *      @param object the object to test
          *      @param prop the property to test, separated by "."
@@ -845,7 +841,7 @@ declare module 'assert' {
          *
          *      The value is compared with strict equality even though the module is loose, so
          *      `propertyVal(obj, 'a', 1)` fails when the property holds '1'; a missing property
-         *      yields undefined and therefore fails. Node.js has no propertyVal.
+         *      yields undefined and therefore fails.
          *
          *      @param object the object to test
          *      @param prop the property to test
@@ -911,16 +907,15 @@ declare module 'assert' {
          *        TypeError - passes when the thrown value is an instance of it;
          *      - any other function is a validation function: it is called with the thrown value and
          *        must return exactly true; use an arrow function for this form, because a normal
-         *        function is treated as a class (Node.js accepts normal functions as validators);
+         *        function is treated as a class;
          *      - an object is a property filter: each own property of the filter is compared with
          *        the same property of the thrown value, RegExp values match the string form, other
          *        values use deepStrictEqual, and a property whose actual value is undefined is
-         *        skipped (Node.js compares it).
+         *        skipped.
          *
          *      An error thrown inside a validation function is propagated as-is. The failure carries
          *      the operator 'throws' with the filter in expected and the thrown value in actual; a
-         *      custom message is used when a filter was supplied and did not match. Node.js has the
-         *      same filter forms but also appends a 'Caught error' excerpt.
+         *      custom message is used when a filter was supplied and did not match.
          *
          *      Example — class, RegExp and validation function filters:
          *      ```JavaScript
@@ -948,9 +943,7 @@ declare module 'assert' {
          *      Equivalent to calling the three-argument overload with an undefined error filter.
          *      The message is ignored when nothing is thrown, because that failure always reports
          *      the generated 'Missing expected exception' text; use a filter to have the message
-         *      rendered. Node.js treats `assert.throws(block, 'message')` as a message, while fibjs
-         *      binds the second argument to the error filter, so prefer passing the filter
-         *      explicitly.
+         *      rendered, since the second argument is the error filter rather than a message.
          *      @param block the code to test, given as a function
          *      @param msg the message when the assertion fails
          *
@@ -964,7 +957,7 @@ declare module 'assert' {
          *      assertion; there is no error filter, so to allow some errors and reject others use
          *      `throws` with a validation function. The caught value is kept in the actual field,
          *      the failure carries the operator 'doesNotThrow' and a custom message replaces the
-         *      default 'Got unwanted exception'. Node.js has the same shape.
+         *      default 'Got unwanted exception'.
          *
          *      @param block the code to test, given as a function
          *      @param msg the message when the assertion fails
@@ -983,9 +976,7 @@ declare module 'assert' {
          *      error class, arrow validator or property filter object).
          *
          *      The returned promise resolves to undefined when the rejection matched and rejects
-         *      with the generated AssertionError otherwise; the operator is 'rejects'. Node.js
-         *      returns a promise with the same shape but rejects with ERR_INVALID_RETURN_VALUE for
-         *      a non-promise result.
+         *      with the generated AssertionError otherwise; the operator is 'rejects'.
          *
          *      Example — await a function and a promise rejection with different filters:
          *      ```JavaScript
@@ -1027,7 +1018,7 @@ declare module 'assert' {
          *      The promise is awaited; a rejection is filtered by the error argument as in the
          *      function overload, and a resolution fails the assertion with 'Missing expected
          *      rejection'. The returned promise resolves to undefined when the rejection matched
-         *      and rejects with the generated AssertionError otherwise. Node.js has the same form.
+         *      and rejects with the generated AssertionError otherwise.
          *
          *      @param result the code to test, given as a Promise
          *      @param error the expected error as a RegExp, error class, arrow validator or filter object
@@ -1054,8 +1045,7 @@ declare module 'assert' {
          *
          *      The value is rethrown as-is, not wrapped, which makes it the standard trailing
          *      callback helper (`if (err) throw err`). Falsy values - undefined, null, false, 0, ''
-         *      and NaN - pass. Node.js wraps the value in an AssertionError, so a caught value that
-         *      is not an Error differs between the two implementations.
+         *      and NaN - pass.
          *
          *      Example — pass a falsy value and rethrow an error:
          *      ```JavaScript

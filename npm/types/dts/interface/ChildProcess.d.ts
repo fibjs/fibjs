@@ -13,8 +13,7 @@
  *  - **Lifecycle**: `pid` is available immediately; `exitCode` is null while the process runs and
  *    `killed` records whether kill was called (or a timeout or abort signal fired). After the exit
  *    `exitCode` holds 0-255 for a normal exit, or the negative signal number (-15 for SIGTERM, -9
- *    for SIGKILL) when the process died from a signal. Node.js reports null in that case and
- *    exposes the signal separately through `signalCode`.
+ *    for SIGKILL) when the process died from a signal.
  *  - **Waiting**: `join()` blocks the current fiber until the process exits and returns the same
  *    value as `exitCode`; wait before reading state or letting the parent finish. `ref` and `unref`
  *    control whether a running child keeps the fibjs process alive.
@@ -26,13 +25,12 @@
  *  - **IPC**: a fork child, or a spawn with an 'ipc' stdio entry, gets a message channel;
  *    `connected`, `send` and `disconnect` operate on it and incoming messages are delivered to the
  *    'message' event. Only one 'ipc' entry is allowed per child (ERR_IPC_ONE_PIPE).
- *  - **Events**: the implementation emits `exit` and the Node-style `close` event (emitted after
+ *  - **Events**: the implementation emits `exit` and the `close` event (emitted after
  *    the stdio streams close, not declared above) with `(code, signal)`; code is null on a signal
  *    death and signal is null on a normal exit. `spawn` fires after a successful spawn and
  *    `disconnect` fires when the IPC channel closes.
- *  - **Node.js comparison**: fibjs adds `join()` and `usage()`; Node has `signalCode`, `kill`
- *    returns a boolean, `send` accepts a callback and a signal death is not encoded as a negative
- *    exit code.
+ *  - **Extensions**: `join()` and `usage()` are additions; `kill`
+ *    returns a boolean and `send` accepts a callback.
  *
  *  Obtained from:
  *  - `child_process.spawn(...)` and `child_process.fork(...)` — always return a ChildProcess;
@@ -107,8 +105,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals `exitCode` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       ```JavaScript
@@ -131,8 +128,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals `exitCode` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       ```JavaScript
@@ -153,8 +149,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals `exitCode` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       ```JavaScript
@@ -269,8 +264,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      * @description Queries whether the process this object refers to has already been killed
      *
      *       True once kill has been called, or a timeout or AbortSignal has terminated the process;
-     *       false for a process that ended on its own. Node.js sets killed only when a signal was
-     *       successfully delivered, so the flag has slightly different semantics there.
+     *       false for a process that ended on its own.
      *
      */
     readonly killed: boolean;
@@ -280,7 +274,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *       null while the process is still running (see join). After the exit it holds 0-255 for a
      *       normal exit or the negative signal number for a signal death (-15 for SIGTERM, -9 for
-     *       SIGKILL); Node.js reports null in the signal case and uses signalCode instead.
+     *       SIGKILL).
      *
      */
     readonly exitCode: number;
@@ -340,7 +334,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *      The handler receives (code, signal): code is the exit status 0-255 for a normal exit and
      *      null when the process was killed by a signal; signal is the signal name for a signal death
-     *      and null on a normal exit. The implementation also emits the Node-style 'close' event with
+     *      and null on a normal exit. The implementation also emits the 'close' event with
      *      the same arguments after the stdio streams have closed.
      *
      *      @param code the exit code, null when the process was killed by a signal
@@ -370,7 +364,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *      The handler receives (code, signal): code is the exit status 0-255 for a normal exit and
      *      null when the process was killed by a signal; signal is the signal name for a signal death
-     *      and null on a normal exit. The implementation also emits the Node-style 'close' event with
+     *      and null on a normal exit. The implementation also emits the 'close' event with
      *      the same arguments after the stdio streams have closed.
      *
      *      @param code the exit code, null when the process was killed by a signal
@@ -581,8 +575,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals `exitCode` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       ```JavaScript
@@ -603,8 +596,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals `exitCode` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       ```JavaScript
@@ -625,8 +617,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals `exitCode` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       ```JavaScript
@@ -741,8 +732,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      * @description Queries whether the process this object refers to has already been killed
      *
      *       True once kill has been called, or a timeout or AbortSignal has terminated the process;
-     *       false for a process that ended on its own. Node.js sets killed only when a signal was
-     *       successfully delivered, so the flag has slightly different semantics there.
+     *       false for a process that ended on its own.
      *
      */
     readonly killed: boolean;
@@ -752,7 +742,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *       null while the process is still running (see join). After the exit it holds 0-255 for a
      *       normal exit or the negative signal number for a signal death (-15 for SIGTERM, -9 for
-     *       SIGKILL); Node.js reports null in the signal case and uses signalCode instead.
+     *       SIGKILL).
      *
      */
     readonly exitCode: number;
@@ -812,7 +802,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *      The handler receives (code, signal): code is the exit status 0-255 for a normal exit and
      *      null when the process was killed by a signal; signal is the signal name for a signal death
-     *      and null on a normal exit. The implementation also emits the Node-style 'close' event with
+     *      and null on a normal exit. The implementation also emits the 'close' event with
      *      the same arguments after the stdio streams have closed.
      *
      *      @param code the exit code, null when the process was killed by a signal

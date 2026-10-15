@@ -2,7 +2,7 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description XMLSerializer serializes a DOM node into XML text; the class is a global and Node.js has no equivalent
+ * @description XMLSerializer serializes a DOM node into XML text; the class is a global
  *
  *  `new XMLSerializer().serializeToString(node)` accepts any XmlNode — a document, element, text
  *  node, comment, CDATA section or processing instruction — and returns the XML serialization of

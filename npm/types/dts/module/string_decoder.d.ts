@@ -1,9 +1,9 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/StringDecoder.d.ts" />
 /**
- * @description Node.js-compatible alias module whose single export is the StringDecoder class
+ * @description Alias module whose single export is the StringDecoder class
  *
- *  The module exists so that Node.js code doing `require('string_decoder')` keeps working:
+ *  The module exists so that `require('string_decoder')` resolves:
  *  it exports the same class as the StringDecoder interface, reachable as
  *  `require('string_decoder').StringDecoder` and also as
  *  `require('node:string_decoder').StringDecoder`. There is no global `StringDecoder`, and
@@ -15,8 +15,7 @@
  *  - **Streaming decode**: StringDecoder converts a byte stream into text incrementally,
  *    holding the incomplete tail of a multibyte character until the next chunk; see the
  *    StringDecoder interface for the chunk-boundary model and the per-encoding state.
- *  - **Node compatibility**: the module name, the export name and the chunk semantics
- *    match Node.js; the error types and the behavior of calling `end` twice differ, see the
+ *  - **Notes**: the error types and the behavior of calling `end` twice are documented in the
  *    StringDecoder interface notes.
  *
  *  Import:

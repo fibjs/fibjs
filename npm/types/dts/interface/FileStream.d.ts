@@ -22,10 +22,10 @@
  *  - **name vs stat().name**: `name` is the path the file was opened with
  *    (normalized, still relative when a relative path was given), while
  *    stat().name is only the base name (see Stat).
- *  - **Node comparison**: Node.js has no FileStream class: fs.open returns a
- *    FileHandle (not a stream) and fs.createReadStream returns a Readable without
- *    seek/tell/size/truncate. fibjs createReadStream takes an inclusive
- *    start/end range and returns a positioned stream instead.
+ *  - **Notes**: `fs.open` returns a FileHandle rather than a stream, and
+ *    createReadStream takes an inclusive
+ *    start/end range and returns a positioned stream with
+ *    seek/tell/size/truncate.
  *
  *  Obtained from:
  *  - `fs.openFile(path[, flags])` — the binary file stream, positioned at 0;
@@ -77,7 +77,7 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      The path passed to the open function, with platform separators normalized
      *      but not resolved against the current directory: opening 'data.txt' keeps
      *      'data.txt', an absolute path stays absolute. Reading it after close()
-     *      throws [20009]. Node.js read streams expose the same idea as `.path`.
+     *      throws [20009].
      *
      *      Example — inspect the name before and after close:
      *      ```JavaScript
@@ -110,8 +110,7 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript
@@ -145,8 +144,7 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript
@@ -178,8 +176,7 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript
@@ -220,7 +217,7 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      The path passed to the open function, with platform separators normalized
      *      but not resolved against the current directory: opening 'data.txt' keeps
      *      'data.txt', an absolute path stays absolute. Reading it after close()
-     *      throws [20009]. Node.js read streams expose the same idea as `.path`.
+     *      throws [20009].
      *
      *      Example — inspect the name before and after close:
      *      ```JavaScript
@@ -253,8 +250,7 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript
@@ -286,8 +282,7 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript
@@ -319,8 +314,7 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript

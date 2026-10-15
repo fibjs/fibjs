@@ -73,8 +73,7 @@
  *  Notes:
  *
  *  - The format itself is interoperable; only the JavaScript mapping above, in particular
- *    the BigInt and Map-key handling, is fibjs-specific. Node.js has no msgpack in its
- *    standard library.
+ *    the BigInt and Map-key handling, is specific to this implementation.
  *  - `decode` returns undefined for a valid value with trailing bytes; slice the input to one
  *    value when the data comes from a stream.
  *

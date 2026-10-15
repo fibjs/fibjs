@@ -1,14 +1,14 @@
 /*! @brief The url module parses, formats and resolves URLs; it provides the WHATWG URL and URLSearchParams classes together with the legacy UrlObject API, file path conversion and internationalized domain name conversion
 
 The WHATWG classes are aliases of the global `URL` and `URLSearchParams`, and the legacy
-functions (parse, format and resolve) are kept for Node.js compatibility.
+functions (parse, format and resolve) are kept for compatibility.
 
 Concepts:
 
 - **Two APIs**: `URL` implements the WHATWG URL standard and is the recommended API;
   `parse` returns the legacy UrlObject with the fields protocol, slashes, auth, host, port,
-  hostname, hash, search, query, pathname, path and href. Node.js deprecates the legacy
-  functions (DEP0169) because their parsing is not standardized.
+  hostname, hash, search, query, pathname, path and href. The legacy parsing is not
+  standardized, so prefer the WHATWG classes in new code.
 - **Encoding rules**: the WHATWG parser percent-encodes characters that are invalid in the
   current component and normalizes the host (lower case, internationalized names to ASCII);
   the query serializer writes a space as `+`. The legacy formatter applies the same
@@ -93,8 +93,8 @@ module url
        but protocol is missing, `http:` is assumed, so http.request-style options can be
        formatted directly; user names and passwords are percent-encoded.
      - format(urlObject, options) serializes a UrlObject, a URL string or a components
-       object; `options` is accepted for Node.js compatibility (fragment, unicode, auth)
-       but is currently ignored and the full href is returned.
+       object; `options` (fragment, unicode, auth)
+       is accepted but is currently ignored and the full href is returned.
      - format(href) parses href with the WHATWG parser and returns the normalized href; a
        relative string is normalized as an absolute path (`not a url` becomes
        `/not%20a%20url`) while an invalid absolute URL throws a type error.
@@ -125,7 +125,7 @@ module url
      fields the UrlObject constructor accepts).
 
      @param urlObject URL to format
-     @param options Node.js formatting options; accepted but currently ignored
+     @param options formatting options; accepted but currently ignored
      @return the formatted URL string
      */
     static String format(UrlObject|String|Object urlObject, Object options = {});
@@ -143,14 +143,13 @@ module url
 
     /*! @brief Parses a URL string into a legacy UrlObject
 
-     The returned object follows the Node.js legacy API with the fields protocol, slashes,
+     The returned object follows the legacy API with the fields protocol, slashes,
      auth, host, port, hostname, hash, search, query, pathname, path and href. By default
      query is the raw query text without the leading `?`; with parseQueryString it is a
      URLSearchParams built from the query. The slashesDenoteHost argument is accepted for
      compatibility but ignored, so a protocol-relative reference such as `//host/path` is
      parsed with `host` as the host. Invalid percent-encoding throws `url: URI malformed`
-     and an unparsable URL throws `url: Invalid URL '<input>'.` (20024). Node.js returns a
-     plain object when parseQueryString is true and deprecates the function (DEP0169).
+     and an unparsable URL throws `url: Invalid URL '<input>'.` (20024).
 
      Example — legacy parse with and without query parsing:
      ```JavaScript
@@ -165,7 +164,7 @@ module url
 
      @param url URL string to parse
      @param parseQueryString parse the query into a URLSearchParams, default false
-     @param slashesDenoteHost accepted for Node.js compatibility; ignored by fibjs
+     @param slashesDenoteHost accepted but ignored
      @return the parsed UrlObject
      */
     static UrlObject parse(String url, Boolean parseQueryString = false, Boolean slashesDenoteHost = false);
@@ -175,8 +174,7 @@ module url
      The two arguments are `from` (the base URL) and `to` (the reference); the result is
      normalized with the WHATWG algorithm. An empty base resolves the reference on its own,
      so a rooted path stays a path and a relative path is returned as a relative path. An
-     unparsable input throws `url: Invalid URL '<input>'.` (20024). Node.js deprecates this
-     function (DEP0169).
+     unparsable input throws `url: Invalid URL '<input>'.` (20024).
 
      Example — resolve against a file base:
      ```JavaScript
@@ -270,8 +268,7 @@ module url
 
      The conversion applies the UTS #46 mapping of the URL parser and adds the `xn--`
      prefix to non-ASCII labels; an ASCII name is returned unchanged. Unsupported input is
-     returned unchanged instead of raising an error, while Node.js returns an empty string
-     for a domain that fails the conversion. Use punycode.toASCII for the raw RFC 3492
+     returned unchanged instead of raising an error. Use punycode.toASCII for the raw RFC 3492
      conversion of a single label.
 
      Example — convert a Unicode domain:
@@ -290,7 +287,7 @@ module url
 
      Only labels that carry the `xn--` prefix are converted; all other labels are copied
      unchanged. The prefix test is case-sensitive: an upper-case `XN--` label is returned
-     as is, while Node.js converts it. Invalid encoded labels are returned unchanged.
+     as is. Invalid encoded labels are returned unchanged.
 
      Example — convert an ACE domain:
      ```JavaScript

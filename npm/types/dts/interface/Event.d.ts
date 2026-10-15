@@ -27,8 +27,8 @@
  *    returns the flag value; acquire() waits like wait(). Because release() leaves the event set,
  *    an Event does not provide mutual exclusion — use coroutine.Lock or coroutine.Semaphore for
  *    that.
- *  - **Node.js / MDN**: Node.js has no direct equivalent (the closest shapes are an inverted
- *    Semaphore or Atomics.wait); the global DOM-style `Event` class of fibjs is DOMEvent and is
+ *  - **Notes**: the closest shapes elsewhere are an inverted
+ *    Semaphore or Atomics.wait; the global DOM-style `Event` class is DOMEvent and is
  *    unrelated to this class.
  *
  *  Obtained from:

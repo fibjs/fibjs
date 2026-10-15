@@ -102,12 +102,13 @@
  *
  *  Notes:
  *
- *  - Node.js offers the same API. fibjs adds `fullpath`; `path.win32.fullpath` is implemented
+ *  - In addition to the rule-set functions, the module adds `fullpath`;
+ *    `path.win32.fullpath` is implemented
  *    only on Windows and throws elsewhere.
- *  - `toNamespacedPath` is more tolerant than Node.js: a non-string value is returned unchanged
- *    and `null` becomes `undefined`.
+ *  - `toNamespacedPath` returns a non-string value unchanged and converts `null` to
+ *    `undefined`.
  *  - `path/posix` and `path/win32` are the runtime entry points of the posix and win32 rule
- *    sets, matching the Node.js subpath requires; `path_posix` / `path_win32` are only the names
+ *    sets; `path_posix` / `path_win32` are only the names
  *    of their manual pages.
  *
  */
@@ -146,7 +147,6 @@ declare module 'path' {
      *      a dot: basename('/a/b.txt', 'txt') returns 'b.'. When ext does not match, the name is
      *      returned unchanged. The separator rules follow the module rule set: in the posix rule set a
      *      backslash is an ordinary character, while the win32 rule set treats it as a separator.
-     *      Same name in Node.js.
      *
      *      @param path the path to query
      *      @param ext the extension to remove when the file name matches
@@ -162,7 +162,7 @@ declare module 'path' {
      *      extname('.env.local') is '.local'. extname('index.') is '.', and the result is '' for '..'
      *      and for paths that end with a separator. A dot in a parent directory name is ignored. In
      *      the posix rule set a backslash is an ordinary character, in the win32 rule set it
-     *      separates segments. Same name in Node.js.
+     *      separates segments.
      *
      *      @param path the path to query
      *      @return the extension
@@ -177,7 +177,7 @@ declare module 'path' {
      *      name and ext. Base wins over name + ext when both are present, and dir wins over root
      *      unless dir is empty. When dir equals root no separator is inserted between them; otherwise
      *      the rule set separator joins dir and base. A dir-only object produces a trailing separator
-     *      ('/a' becomes '/a/') and an empty object produces ''. Same name in Node.js.
+     *      ('/a' becomes '/a/') and an empty object produces ''.
      *
      *      pathObject supports the following properties:
      *      ```JavaScript
@@ -218,8 +218,7 @@ declare module 'path' {
      *      dot starts a dotfile ('.bashrc' has base and name '.bashrc' and no extension), while
      *      'index.' has ext '.'. The win32 rule set additionally recognises drive letters ('C:'),
      *      drive-absolute paths ('C:\'), UNC shares ('\\server\share\') and '\\?\' device paths,
-     *      accepting both separators. An empty string produces five empty fields. Same name in
-     *      Node.js.
+     *      accepting both separators. An empty string produces five empty fields.
      *
      *      Example — inspect a parsed path:
      *      ```JavaScript
@@ -250,7 +249,7 @@ declare module 'path' {
      *      Trailing separators are ignored: dirname('/foo/bar/') is '/foo', dirname('/foo') is '/',
      *      dirname('foo') is '.', dirname('') is '.' and dirname('/') is '/'. In the win32 rule set
      *      the root is kept for drive-absolute paths ('C:\foo' becomes 'C:\') and UNC shares, while
-     *      a drive-relative path keeps its drive ('c:foo' becomes 'c:'). Same name in Node.js.
+     *      a drive-relative path keeps its drive ('c:foo' becomes 'c:').
      *
      *      @param path the path to query
      *      @return the directory name
@@ -261,7 +260,7 @@ declare module 'path' {
     /**
      * @description Converts a path into an absolute path anchored at the current working directory
      *
-     *      A fibjs extension, not part of Node.js. An absolute input is normalized; a relative input
+     *      A module extension. An absolute input is normalized; a relative input
      *      is prefixed with process.cwd() and then normalized. The function is a pure string operation
      *      and does not touch the file system: it does not resolve symbolic links or check existence,
      *      and it keeps the separators of the rule set. Unlike resolve, an empty string becomes the
@@ -292,8 +291,7 @@ declare module 'path' {
      *      matchesGlob('.gitignore', '*') is false. In the posix rule set a backslash in the pattern
      *      escapes the next character while a backslash in the tested path is an ordinary character;
      *      in the win32 rule set both separators are accepted, drive letters are compared
-     *      case-insensitively and paths on different drives never match. Node.js exposes the same
-     *      function since v22.5.
+     *      case-insensitively and paths on different drives never match.
      *
      *      Example — select source files with a pattern:
      *      ```JavaScript
@@ -321,7 +319,7 @@ declare module 'path' {
      *      accepts a leading '\' or '/', UNC paths such as '\\server\share' and a drive letter
      *      followed by a separator ('C:\' or 'C:/'), but reports false for a drive-relative path such
      *      as 'C:temp'. The empty string is never absolute, and the check is purely textual: the path
-     *      does not need to exist. Same name in Node.js.
+     *      does not need to exist.
      *
      *      @param path the path to check
      *      @return true when the path is absolute
@@ -336,7 +334,7 @@ declare module 'path' {
      *      segments do not reset the accumulated path the way resolve does: join('a', '/b') is 'a/b'.
      *      A '..' segment cancels a preceding segment when possible, but a leading '..' survives. In
      *      the win32 rule set a leading '//' or '\\' pair can form a UNC share and a drive letter is
-     *      kept: join('c:', 'file') is 'c:\file'. Same name in Node.js.
+     *      kept: join('c:', 'file') is 'c:\file'.
      *
      *      Example — join segments with embedded '..':
      *      ```JavaScript
@@ -362,7 +360,6 @@ declare module 'path' {
      *      and never ends with a separator. With no arguments, or with only empty segments, the
      *      current working directory is returned. In the win32 rule set the drive of the working
      *      directory is kept for relative segments, while a later drive-absolute segment replaces it.
-     *      Same name in Node.js.
      *
      *      Example — resolve relative, absolute and empty segments:
      *      ```JavaScript
@@ -387,7 +384,7 @@ declare module 'path' {
      *      describe the same location; otherwise the result is the shortest path from the first to
      *      the second, using '..' segments as needed and no trailing separator. In the win32 rule set
      *      paths are compared case-insensitively, and a target on another drive is returned unchanged
-     *      because no relative path can cross drives. Same name in Node.js.
+     *      because no relative path can cross drives.
      *
      *      Example — compute relative paths:
      *      ```JavaScript
@@ -412,7 +409,7 @@ declare module 'path' {
      *      becomes '\\?\C:\tmp') and a UNC path becomes '\\?\UNC\...', with forward slashes
      *      converted to backslashes. An existing '\\?\' prefix is not duplicated. The function is a
      *      pure string operation and works on every platform, although the prefix is only meaningful
-     *      on Windows. Node.js returns null unchanged for a null argument, fibjs converts it to
+     *      on Windows; a null argument is converted to
      *      undefined.
      *      See https://msdn.microsoft.com/library/windows/desktop/aa365247(v=vs.85).aspx#namespaces
      *

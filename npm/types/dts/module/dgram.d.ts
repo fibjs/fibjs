@@ -39,11 +39,12 @@
  *  - **Broadcast and multicast**: receiving broadcast traffic needs no option, but sending to a
  *    broadcast address requires `setBroadcast(true)`; multicast requires joining a group with
  *    `addMembership`, and `setMulticastTTL` limits how far multicast datagrams travel.
- *  - **Node.js differences**: `dgram.Socket` is a class reference and is not constructible —
+ *  - **Limits**: `dgram.Socket` is a class reference and is not constructible —
  *    create instances with `createSocket` only; `send` accepts a missing address (defaulting to
  *    loopback) and has no AddressInfo destination form; there is no `socket.connect`, no `setTTL`,
- *    `setMulticastLoopback` or `setMulticastInterface` and no source-specific multicast methods;
- *    accepting a family string directly in `createSocket` is a fibjs extension.
+ *    `setMulticastLoopback` or `setMulticastInterface` and no source-specific
+ *    multicast methods; accepting a family string directly in `createSocket` is a module extension
+ *    (the `type` key is not required).
  *
  *  Import:
  *  ```JavaScript
@@ -132,7 +133,7 @@ declare module 'dgram' {
     /**
      * @description The alias of the DgramSocket class, see DgramSocket
      *
-     *      It is a class reference, useful for `instanceof` checks; unlike Node.js it is not a
+     *      It is a class reference, useful for `instanceof` checks; it is not a
      *      constructor, so a socket is always created with createSocket.
      *
      */

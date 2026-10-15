@@ -71,8 +71,7 @@ declare class Class_PerformanceEntry extends Class_object {
      * @description The type of the entry
      *
      *      The kind of timeline record: `mark` for a PerformanceMark and `measure` for a
-     *      PerformanceMeasure. Node.js offers further types such as `resource`, `function` and `gc`;
-     *      fibjs produces only these two.
+     *      PerformanceMeasure; no other types are produced.
      *
      */
     readonly entryType: string;

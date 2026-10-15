@@ -29,7 +29,7 @@
  *    http2_constants; the peer's read() then throws, while a stream killed by a session
  *    destroy() reads null. The remote error payload of a reset is not populated in the
  *    current implementation (the thrown error is `[0] Success`).
- *  - **Node.js differences**: there is no `pushStream()`, no writable `end` overload set
+ *  - **Limits**: there is no `pushStream()`, no writable `end` overload set
  *    with callbacks and no `headersSent`/`sentHeaders` properties; the request-body
  *    limitation described in Http2Session.request applies to client streams.
  *

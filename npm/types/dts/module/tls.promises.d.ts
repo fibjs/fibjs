@@ -35,8 +35,7 @@ declare module 'tls/promises' {
      * @description The TLSServer class entry point, see TLSServer
      *
      *      The class of the servers created by createServer; it combines net.TcpServer with TLSHandler
-     *      and can also be created with new tls.Server(context, listener). Node.js names its class
-     *      tls.Server as well; neither environment exports tls.TLSServer.
+     *      and can also be created with new tls.Server(context, listener).
      *
      */
     const Server: typeof Class_TLSServer;
@@ -58,9 +57,7 @@ declare module 'tls/promises' {
      *      - a handler function `(socket) => any`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
      *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
      *      - a path/address string: a directory or an `http(s)://` address, converted through the Handler constructor.
-     *      Node.js tls.createServer() accepts a missing listener and reports connections through the
-     *      'secureConnection' event, while fibjs requires the listener and hands each TLSSocket to it
-     *      directly; a missing listener throws a parameter-not-optional error.
+     *      The listener is required: it receives each TLSSocket directly, and a missing listener throws a parameter-not-optional error.
      *      @param options the secure context or the options used to create one
      *      @param listener the connection handler
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
@@ -111,8 +108,7 @@ declare module 'tls/promises' {
      *      rejectUnauthorized control the verification described in the module concepts. minVersion
      *      and maxVersion cannot be combined with a legacy secureProtocol value that already fixes a
      *      version. sessionTimeout only affects a server context. The SNI options configure the
-     *      server-side cache used by getSNIContext and are ignored on a client context. Node.js
-     *      accepts many more keys (ciphers, ecdhCurve, honorCipherOrder, ...), which fibjs ignores.
+     *      server-side cache used by getSNIContext and are ignored on a client context.
      *
      *      @param options the options for creating the secure context
      *      @param isServer whether it is in server mode, default is false
@@ -139,8 +135,7 @@ declare module 'tls/promises' {
      *
      *      Used when connect, new TLSSocket() or createSecureContext() is called without an explicit
      *      context. It is a client context, so the Mozilla roots are trusted; the same object is
-     *      exposed here for inspection or reuse. Node.js has no equivalent property, it exposes
-     *      rootCertificates and the DEFAULT_* constants instead.
+     *      exposed here for inspection or reuse.
      *
      */
     const secureContext: Class_SecureContextPromise;
@@ -154,8 +149,8 @@ declare module 'tls/promises' {
      *      `secureContext`, ...). host is also the server name sent as SNI and verified against the
      *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
      *      declared Stream type is its base interface) and throws an Error with a verification code on
-     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
-     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
+     *      failure. Use the listener or promise form for a
+     *      non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -171,8 +166,8 @@ declare module 'tls/promises' {
      *      `secureContext`, ...). host is also the server name sent as SNI and verified against the
      *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
      *      declared Stream type is its base interface) and throws an Error with a verification code on
-     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
-     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
+     *      failure. Use the listener or promise form for a
+     *      non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -188,8 +183,8 @@ declare module 'tls/promises' {
      *      `secureContext`, ...). host is also the server name sent as SNI and verified against the
      *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
      *      declared Stream type is its base interface) and throws an Error with a verification code on
-     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
-     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
+     *      failure. Use the listener or promise form for a
+     *      non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -542,7 +537,7 @@ declare module 'tls/promises' {
      *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
      *      the TCP target, the SNI name and the verified name. The default context supplies the trust
      *      store, so pass a SecureContext or an options object when the server certificate is not
-     *      signed by a well-known CA. Node.js has no URL string form.
+     *      signed by a well-known CA.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object
@@ -557,7 +552,7 @@ declare module 'tls/promises' {
      *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
      *      the TCP target, the SNI name and the verified name. The default context supplies the trust
      *      store, so pass a SecureContext or an options object when the server certificate is not
-     *      signed by a well-known CA. Node.js has no URL string form.
+     *      signed by a well-known CA.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object
@@ -572,7 +567,7 @@ declare module 'tls/promises' {
      *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
      *      the TCP target, the SNI name and the verified name. The default context supplies the trust
      *      store, so pass a SecureContext or an options object when the server certificate is not
-     *      signed by a well-known CA. Node.js has no URL string form.
+     *      signed by a well-known CA.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object

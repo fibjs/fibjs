@@ -22,8 +22,7 @@ Concepts:
   keeps the header bytes unchanged as required by RFC 6265 for Set-Cookie values.
 - **Limits**: the object models only name, value, domain, path, expires, secure and httpOnly.
   SameSite and Max-Age are not supported: parse ignores them and toString never writes them.
-  Node.js has no Cookie class; the same fields appear in the Set-Cookie header and in
-  userland cookie packages.
+  The same fields appear in the Set-Cookie header, and cookie packages parse it from there.
 
 Obtained from:
 - `new http.Cookie(name, value, options)` — build a cookie from scratch;

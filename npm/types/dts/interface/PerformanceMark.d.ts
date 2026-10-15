@@ -13,7 +13,7 @@
  *  - **startTime**: the recorded timestamp in milliseconds on the monotonic clock returned by
  *    performance.now(); it can be overridden with the `startTime` option of performance.mark.
  *  - **detail**: an arbitrary value attached at creation; it is `undefined` when the mark was created
- *    without one (Node.js uses `null`).
+ *    without one.
  *
  *  Obtained from:
  *  - `performance.getEntries()`, `performance.getEntriesByType('mark')` and
@@ -54,7 +54,7 @@ declare class Class_PerformanceMark extends Class_PerformanceEntry {
      *
      *      Holds whatever was passed as `detail` to performance.mark: any type can be used, including
      *      objects and functions, and the value is returned by reference rather than copied. When the
-     *      option was omitted the property is `undefined` (Node.js uses `null`).
+     *      option was omitted the property is `undefined`.
      *
      */
     readonly detail: any;

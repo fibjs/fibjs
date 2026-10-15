@@ -18,7 +18,7 @@
  * - **Runtime sampling**: `start` appends the call stacks of all fibers to a file at a
  *   fixed interval; this is the sampler behind the `--prof` command line option;
  * - **Serialization**: `serialize` and `deserialize` convert values to and from the V8
- *   binary format, which is compatible with Node.js;
+ *   binary format, which is interoperable with other V8-based runtimes;
  * - **Graph constants**: the `Node_*` and `Edge_*` constants classify the nodes and
  *   edges of a heap snapshot.
  *
@@ -32,7 +32,7 @@
  * - **Garbage collection**: memory is reclaimed automatically, therefore
  *   `used_heap_size` includes objects that are unreachable but not collected yet. This
  *   build exposes no `gc()` call, and V8 command line flags cannot be changed at run
- *   time (Node.js has `setFlagsFromString`). The snapshot functions issue a V8
+ *   time. The snapshot functions issue a V8
  *   low-memory notification (a full collection) before capturing the graph, which is
  *   part of why they are expensive.
  * - **Serialization vs heap snapshots**: `serialize`/`deserialize` transfer a value
@@ -52,14 +52,11 @@
  *   suspects: find the retaining path by walking edges from the root. For CPU hotspots
  *   use the `--prof` sampler described in the profiler guide of the documentation; for
  *   lightweight timing use the performance module.
- * - **Node.js differences**: Node.js exposes `setFlagsFromString`, `gc`,
- *   `writeHeapSnapshot`/`getHeapSnapshot`, `cachedDataVersionTag`, `queryObjects`,
- *   `Serializer`/`Deserializer`, promise hooks, coverage APIs and `GCProfiler`, none of
- *   which exist here. Conversely this module adds a snapshot object model
- *   (`takeSnapshot`, `loadSnapshot`, `HeapSnapshot.diff`) and the fiber sampler
- *   (`start`). `getHeapStatistics` omits the Node.js fields `does_zap_garbage`,
- *   `total_global_handles_size`, `used_global_handles_size` and `total_allocated_bytes`,
- *   and `getHeapCodeStatistics` omits `cpu_profiler_metadata_size`.
+ * - **Surface**: the module provides the snapshot object model (`takeSnapshot`, `loadSnapshot`,
+ *   `HeapSnapshot.diff`) and the fiber sampler
+ *   (`start`). `getHeapStatistics` omits the optional profiler fields
+ *   (`total_global_handles_size`, `used_global_handles_size`, `total_allocated_bytes`), and
+ *   `getHeapCodeStatistics` returns only the fields documented below.
  *
  * Import:
  * ```JavaScript
@@ -249,8 +246,7 @@ declare module 'v8' {
      *      - `bytecode_and_metadata_size`: bytecode and its metadata;
      *      - `external_script_source_size`: externally loaded script sources.
      *
-     *      Node.js also reports `cpu_profiler_metadata_size`, which this implementation does
-     *      not provide.
+     *      The `cpu_profiler_metadata_size` field is not provided.
      *      @return returns the statistics of the metadata
      *
      */
@@ -286,7 +282,7 @@ declare module 'v8' {
      *      call does not trigger a garbage collection, `used_heap_size` includes unreachable
      *      objects that have not been collected yet.
      *
-     *      Compared with Node.js the returned object omits `does_zap_garbage`,
+     *      Compared with the common heap-statistics layouts, the returned object omits `does_zap_garbage`,
      *      `total_global_handles_size`, `used_global_handles_size` and
      *      `total_allocated_bytes`.
      *      @return returns statistics of heap memory usage
@@ -345,8 +341,7 @@ declare module 'v8' {
      *      of a trivial process already contains tens of thousands of nodes, and V8 keeps
      *      the snapshot data until the returned object is garbage collected, so avoid
      *      calling it in a loop. Keep the snapshot referenced while its nodes and edges are
-     *      in use. Node.js has no equivalent object model; its `writeHeapSnapshot` returns
-     *      the path of a serialized snapshot instead.
+     *      in use.
      *
      *      Example — capture the heap and look up the root node:
      *      ```JavaScript
@@ -447,9 +442,7 @@ declare module 'v8' {
      *      Circular and shared references, BigInt, Map, Set, Date, RegExp, Error, Buffer,
      *      ArrayBuffer and typed arrays are preserved. Functions, Symbol, WeakMap and WeakSet
      *      cannot be serialized: the call throws an Error whose message ends with
-     *      "could not be cloned." (no errno). The format is the same as the Node.js
-     *      `v8.serialize`, and the produced Buffer can be deserialized by Node.js and vice
-     *      versa.
+     *      "could not be cloned." (no errno). The format is the V8 serialization format, and the produced Buffer is interoperable with other V8-based runtimes.
      *
      *      Example — serialize a value with a Set and a BigInt:
      *      ```JavaScript
@@ -475,7 +468,7 @@ declare module 'v8' {
      *      serialized bytes form valid utf8, so prefer a Buffer. The data must contain a
      *      complete serialization: a truncated or corrupted buffer throws an Error with the
      *      message "Unable to deserialize cloned data due to invalid or unsupported
-     *      version." (no errno). Buffers produced by the Node.js `v8.serialize` are accepted.
+     *      version." (no errno). Buffers produced by other V8-based runtimes are accepted.
      *
      *      Example — deserialize from a Buffer and from a Uint8Array:
      *      ```JavaScript

@@ -25,9 +25,8 @@
  *    becomes true on close(), on a sent/received GOAWAY or when the transport ends;
  *    `destroyed` is true after destroy() or a transport failure.
  *  - **Request dispatch**: on a server session, `stream` is emitted for every request with
- *    the request headers; on a client session, use `request()` to create streams. In
- *    Node.js this event is emitted on the server object instead.
- *  - **Node.js differences**: there is no `session.close` event and the declared `goaway`
+ *    the request headers; on a client session, use `request()` to create streams.
+ *  - **Limits**: there is no `session.close` event and the declared `goaway`
  *    and `error` events are not dispatched by the current implementation - check `closed`
  *    instead; `ping()` returns 0 and takes no callback (the round-trip time is not
  *    measured); `request()` supports only the `endStream` option; there is no settings
@@ -296,8 +295,7 @@ declare class Class_Http2Session extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently
@@ -311,8 +309,7 @@ declare class Class_Http2Session extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently
@@ -324,8 +321,7 @@ declare class Class_Http2Session extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently
@@ -812,8 +808,7 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently
@@ -825,8 +820,7 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently
@@ -838,8 +832,7 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js `ping(callback)` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently

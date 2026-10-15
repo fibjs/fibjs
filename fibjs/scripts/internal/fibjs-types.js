@@ -38,7 +38,7 @@ module.exports = {
  * @description The controller object that owns an AbortSignal and cancels the operations listening to it
  *
  *   A controller is the write side of the cancellation pair defined by the WHATWG DOM
- *   standard, available as a global; Node.js also exposes AbortController globally. It owns
+ *   standard, available as a global. It owns
  *   exactly one AbortSignal, returned by its \`signal\` property, and can abort that signal
  *   once. Pass the signal to a cancellable API and call \`abort()\` when the operation is no
  *   longer needed: every consumer holding the signal observes the same cancellation. The
@@ -53,7 +53,7 @@ module.exports = {
  *  - **Abort reason**: \`abort(reason)\` stores a reason on the signal, readable as
  *    \`AbortSignal.reason\`. When the argument is omitted, \`undefined\` or \`null\`, the reason
  *    is the string \`"AbortError"\`; a string is stored as text and any other value is stored
- *    as-is. Node.js stores a DOMException by default instead. The first \`abort()\` wins: a
+ *    as-is. The first \`abort()\` wins: a
  *    later call changes nothing and does not emit the event again.
  *  - **Event dispatch**: aborting emits the \`abort\` event on the signal synchronously.
  *    Handlers registered with \`addEventListener\`, \`on\`, \`once\` and the \`onabort\` property
@@ -128,8 +128,7 @@ declare class Class_AbortController extends Class_object {
     /**
      * @description Creates a controller with a fresh, not yet aborted AbortSignal
      *
-     *      Takes no arguments; passing any argument throws a TypeError (20001), while Node.js
-     *      ignores extra arguments. The new signal is available immediately through \`signal\`
+     *      Takes no arguments; passing any argument throws a TypeError (20001). The new signal is available immediately through \`signal\`
      *      and starts with \`aborted\` false and \`reason\` undefined.
      *
      */
@@ -139,8 +138,7 @@ declare class Class_AbortController extends Class_object {
      * @description The AbortSignal owned by this controller, the read-only view given to consumers
      *
      *      The same object is returned on every access and all consumers share its state. The
-     *      property is read-only: assigning to it is silently ignored (Node.js throws in strict
-     *      mode). Only aborting the controller changes the signal, and a signal never leaves the
+     *      property is read-only: assigning to it is silently ignored. Only aborting the controller changes the signal, and a signal never leaves the
      *      aborted state.
      *
      *      Example — hand the same signal to several consumers:
@@ -173,8 +171,7 @@ declare class Class_AbortController extends Class_object {
      *      AbortSignal abort event.
      *
      *      Handlers run before the call returns. An exception thrown by a handler is rethrown to
-     *      the caller after the remaining handlers ran, and the signal stays aborted (Node.js
-     *      reports handler exceptions as uncaught exceptions instead). Passing more than one
+     *      the caller after the remaining handlers ran, and the signal stays aborted. Passing more than one
      *      argument throws a TypeError.
      *
      *      Example — the first abort wins and both listeners see it:
@@ -205,7 +202,7 @@ declare class Class_AbortController extends Class_object {
  *   An AbortSignal is the read-only half of the AbortController pair and the object handed
  *   to APIs that support cancellation. It carries a one-shot aborted state and an abort
  *   reason; when the state flips the \`abort\` event fires and every consumer reacts. The
- *   class is a global, Node.js exposes the same class globally, and it derives from
+ *   class is a global, and it derives from
  *   EventEmitter, so listeners can be registered with \`on\`/\`once\`/\`addEventListener\`.
  *
  *   Signals cannot be constructed directly: \`new AbortSignal()\` throws a TypeError. Obtain
@@ -220,8 +217,7 @@ declare class Class_AbortController extends Class_object {
  *    owner (or a static factory) can.
  *  - **Abort reasons**: \`reason\` is \`undefined\` while the signal is active and afterwards
  *    holds the value stored by the aborting side. The default is the string \`"AbortError"\`;
- *    \`AbortSignal.timeout()\` stores \`"TimeoutError"\`; other values are preserved as-is.
- *    Node.js stores a DOMException by default and \`abort(null)\` stores null. throwIfAborted
+ *    \`AbortSignal.timeout()\` stores \`"TimeoutError"\`; other values are preserved as-is. throwIfAborted
  *    throws an AbortError or TimeoutError for the two default reasons, but does not rethrow
  *    a custom value as-is.
  *  - **Listener registration**: AbortSignal is an EventEmitter (see EventEmitter). The
@@ -237,7 +233,7 @@ declare class Class_AbortController extends Class_object {
  *    \`events.addAbortListener(signal, handler)\`. A fetch cancelled by a controller rejects
  *    with an AbortError (code \`ABORT_ERR\`); one cancelled through \`AbortSignal.timeout\`
  *    rejects with a TimeoutError (code \`TIMEOUT_ERR\`). The pending timer of a timeout
- *    signal keeps the process alive until it fires (Node.js lets the process exit), so a
+ *    signal keeps the process alive until it fires, so a
  *    long timeout can delay shutdown.
  *
  *  Obtained from:
@@ -332,9 +328,9 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      elapsed, so a fetch cancelled by it rejects with a TimeoutError (code \`TIMEOUT_ERR\`).
      *      ms is coerced to a number, so numeric strings are accepted; values below 1 are clamped
      *      to 1 ms and values above the internal maximum to that maximum. NaN and a missing
-     *      argument throw a TypeError (Node.js throws a RangeError for NaN and negative values).
+     *      argument throw a TypeError.
      *      The timer cannot be cancelled, because the signal has no abort method, and the pending
-     *      timer keeps the process alive until it fires (Node.js lets the process exit).
+     *      timer keeps the process alive until it fires.
      *
      *      Example — register a disposable handler for a timeout:
      *      \`\`\`JavaScript
@@ -355,7 +351,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      * @description Creates an AbortSignal that aborts when any of the given signals aborts
      *
      *      The argument must be an Array of AbortSignal objects; a non-array value or an element
-     *      of another type throws a TypeError (Node.js accepts any iterable). The returned signal
+     *      of another type throws a TypeError. The returned signal
      *      stays active while every input is active; when an input aborts, the composite aborts
      *      with that input's reason, and inputs that abort later do not change it again. Only the
      *      order in time matters, not the order in the array. If an input is already aborted, the
@@ -390,8 +386,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      \`AbortError\`, code \`ABORT_ERR\`, message "The operation was aborted.") or a TimeoutError
      *      (name \`TimeoutError\`, code \`TIMEOUT_ERR\`, message "The operation timed out."); a custom
      *      string reason is not preserved and also throws the generic AbortError, and any other
-     *      reason value throws a generic Error (20024) instead of the value itself. Node.js throws
-     *      the reason exactly as stored in every case, so read \`AbortSignal.reason\` when the
+     *      reason value throws a generic Error (20024) instead of the value itself; read \`AbortSignal.reason\` when the
      *      original value matters.
      *
      *      Example — a no-op while active, an AbortError after the abort:
@@ -429,8 +424,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      call, with the string \`"AbortError"\` as the default and \`"TimeoutError"\` for
      *      \`AbortSignal.timeout()\`. Strings, numbers, objects and Errors are all preserved as-is
      *      (only \`undefined\` and \`null\` select the default), assigning to the property is
-     *      silently ignored, and the value never changes after the first abort. Node.js stores a
-     *      DOMException by default and preserves \`null\` as a reason.
+     *      silently ignored, and the value never changes after the first abort.
      *
      */
     readonly reason: any;
@@ -444,7 +438,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      are never called. The event object is a plain object with \`type\` \`"abort"\` and \`target\`
      *      set to the signal; it carries \`reason\` only when the reason is a non-empty string,
      *      because a value reason is exposed solely through \`AbortSignal.reason\`. It is not a
-     *      DOMEvent instance (Node.js passes an Event object). A handler that throws is rethrown
+     *      DOMEvent instance. A handler that throws is rethrown
      *      by the aborting call after the remaining handlers ran. Do not emit this event manually:
      *      emitting \`"abort"\` marks the signal aborted without storing a reason.
      *
@@ -478,7 +472,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      are never called. The event object is a plain object with \`type\` \`"abort"\` and \`target\`
      *      set to the signal; it carries \`reason\` only when the reason is a non-empty string,
      *      because a value reason is exposed solely through \`AbortSignal.reason\`. It is not a
-     *      DOMEvent instance (Node.js passes an Event object). A handler that throws is rethrown
+     *      DOMEvent instance. A handler that throws is rethrown
      *      by the aborting call after the remaining handlers ran. Do not emit this event manually:
      *      emitting \`"abort"\` marks the signal aborted without storing a reason.
      *
@@ -557,9 +551,9 @@ declare class Class_AbortSignal extends Class_EventEmitter {
  *  - **Captured scopes**: \`AsyncLocalStorage.snapshot()\` and \`AsyncLocalStorage.bind(fn)\` capture the
  *    context at call time and run a function inside it later; they are the recommended way to keep
  *    the correct store in event callbacks that outlive the context.
- *  - **Node.js comparison**: the API matches Node.js \`async_hooks.AsyncLocalStorage\`, including the
- *    static \`bind\`/\`snapshot\` methods and the \`name\` property; the Node.js \`withScope\` helper for
- *    \`using\` declarations is not provided, use \`run\` or \`exit\` instead.
+ *  - **API**: the static \`bind\`/\`snapshot\` methods and the \`name\` property are provided; the
+ *    \`withScope\` helper for
+ *    \`using\` declarations is not, use \`run\` or \`exit\` instead.
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -672,8 +666,7 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      with the arguments and \`this\` it receives, and returns the result; the caller's context is
      *      active again after the call. This is useful for event callbacks that may run long after the
      *      context was entered. The capture happens when bind is called, not when the bound function runs,
-     *      so it must be called while the context to preserve is active. Node.js provides the same static
-     *      method.
+     *      so it must be called while the context to preserve is active.
      *
      *      Example — bind inside one run and call the function inside another:
      *      \`\`\`JavaScript
@@ -698,7 +691,6 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      asynchronous operations created from now on. The instance becomes usable again after \`run\` or
      *      \`enterWith\` is called, both of which clear the disabled state.
      *
-     *      Node.js provides the same member and also requires it before the instance can be collected.
      *
      *      Example — disable, then re-enable with run:
      *      \`\`\`JavaScript
@@ -826,8 +818,8 @@ declare class Class_AsyncLocalStorage extends Class_object {
  *  AsyncLocalStorage store of the request that scheduled it, even when the callback runs in a
  *  different fiber or after an await.
  *
- *  The class records a diagnostic \`(asyncId, triggerAsyncId)\` pair and the captured context; fibjs
- *  does not expose the Node.js async_hooks hook callbacks, so the ids are informational and
+ *  The class records a diagnostic \`(asyncId, triggerAsyncId)\` pair and the captured context; the
+ *  async_hooks hook callbacks are not exposed, so the ids are informational and
  *  \`emitDestroy\` is a no-op.
  *
  *  Concepts:
@@ -839,10 +831,10 @@ declare class Class_AsyncLocalStorage extends Class_object {
  *    context to code that fibjs cannot instrument by itself (a third-party event source, a poll
  *    loop, a queue); bind the completion path once, and all AsyncLocalStorage instances propagate
  *    with it.
- *  - **Node.js comparison**: \`new AsyncResource(type, options)\`, \`runInAsyncScope\`, \`bind\`, the
- *    static \`bind\`, \`asyncId\` and \`triggerAsyncId\` match Node.js; \`requireManualDestroy\` is accepted
- *    but ignored because there are no destroy hooks, and without an explicit triggerAsyncId fibjs
- *    records 0 while Node.js records the current executionAsyncId.
+ *  - **Constructor and ids**: \`new AsyncResource(type, options)\`, \`runInAsyncScope\`, \`bind\`, the
+ *    static \`bind\`, \`asyncId\` and \`triggerAsyncId\` are provided; \`requireManualDestroy\` is accepted
+ *    but ignored because there are no destroy hooks, and without an explicit triggerAsyncId the
+ *    value recorded is 0.
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -918,7 +910,7 @@ declare class Class_AsyncResource extends Class_object {
      *      // fragment: options
      *      ({
      *          "triggerAsyncId": 0,          // id of the triggering resource, informational
-     *          "requireManualDestroy": false // accepted for Node.js compatibility, ignored by fibjs
+     *          "requireManualDestroy": false // accepted, ignored
      *      })
      *      \`\`\`
      *
@@ -938,8 +930,7 @@ declare class Class_AsyncResource extends Class_object {
      * @description Gets the unique async id assigned to this resource
      *
      *      Ids come from a process-wide counter and are unique within the process; the first resource
-     *      created gets 1. In Node.js the id is the async id allocated by the async hooks subsystem, so
-     *      the values differ, but they are used in the same informational way.
+     *      created gets 1. The ids are informational.
      *
      *      @return returns the numeric async id
      *
@@ -950,8 +941,8 @@ declare class Class_AsyncResource extends Class_object {
      * @description Gets the trigger async id of this resource
      *
      *      The value is the second constructor argument, or the triggerAsyncId option inside it. It
-     *      records what created the resource for diagnostics; fibjs defaults to 0 when the argument is
-     *      omitted, while Node.js defaults to the current executionAsyncId().
+     *      records what created the resource for diagnostics; it defaults to 0 when the argument is
+     *      omitted.
      *
      *      @return returns the numeric trigger async id
      *
@@ -990,9 +981,8 @@ declare class Class_AsyncResource extends Class_object {
     /**
      * @description Marks this resource as destroyed
      *
-     *      In fibjs this is a no-op kept for Node.js compatibility: fibjs does not run async_hooks
-     *      destroy hooks, and calling it more than once does not raise an error. It returns the resource
-     *      itself so calls can be chained.
+     *      This is a no-op: destroy hooks are not run, and calling it more than once does not raise an
+     *      error. It returns the resource itself so calls can be chained.
      *
      *      @return returns a reference to this AsyncResource
      *
@@ -4036,8 +4026,7 @@ declare namespace Class_Chain {
  *  - **Lifecycle**: \`pid\` is available immediately; \`exitCode\` is null while the process runs and
  *    \`killed\` records whether kill was called (or a timeout or abort signal fired). After the exit
  *    \`exitCode\` holds 0-255 for a normal exit, or the negative signal number (-15 for SIGTERM, -9
- *    for SIGKILL) when the process died from a signal. Node.js reports null in that case and
- *    exposes the signal separately through \`signalCode\`.
+ *    for SIGKILL) when the process died from a signal.
  *  - **Waiting**: \`join()\` blocks the current fiber until the process exits and returns the same
  *    value as \`exitCode\`; wait before reading state or letting the parent finish. \`ref\` and \`unref\`
  *    control whether a running child keeps the fibjs process alive.
@@ -4049,13 +4038,12 @@ declare namespace Class_Chain {
  *  - **IPC**: a fork child, or a spawn with an 'ipc' stdio entry, gets a message channel;
  *    \`connected\`, \`send\` and \`disconnect\` operate on it and incoming messages are delivered to the
  *    'message' event. Only one 'ipc' entry is allowed per child (ERR_IPC_ONE_PIPE).
- *  - **Events**: the implementation emits \`exit\` and the Node-style \`close\` event (emitted after
+ *  - **Events**: the implementation emits \`exit\` and the \`close\` event (emitted after
  *    the stdio streams close, not declared above) with \`(code, signal)\`; code is null on a signal
  *    death and signal is null on a normal exit. \`spawn\` fires after a successful spawn and
  *    \`disconnect\` fires when the IPC channel closes.
- *  - **Node.js comparison**: fibjs adds \`join()\` and \`usage()\`; Node has \`signalCode\`, \`kill\`
- *    returns a boolean, \`send\` accepts a callback and a signal death is not encoded as a negative
- *    exit code.
+ *  - **Extensions**: \`join()\` and \`usage()\` are additions; \`kill\`
+ *    returns a boolean and \`send\` accepts a callback.
  *
  *  Obtained from:
  *  - \`child_process.spawn(...)\` and \`child_process.fork(...)\` — always return a ChildProcess;
@@ -4130,8 +4118,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals \`exitCode\` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       \`\`\`JavaScript
@@ -4154,8 +4141,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals \`exitCode\` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       \`\`\`JavaScript
@@ -4176,8 +4162,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals \`exitCode\` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       \`\`\`JavaScript
@@ -4292,8 +4277,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      * @description Queries whether the process this object refers to has already been killed
      *
      *       True once kill has been called, or a timeout or AbortSignal has terminated the process;
-     *       false for a process that ended on its own. Node.js sets killed only when a signal was
-     *       successfully delivered, so the flag has slightly different semantics there.
+     *       false for a process that ended on its own.
      *
      */
     readonly killed: boolean;
@@ -4303,7 +4287,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *       null while the process is still running (see join). After the exit it holds 0-255 for a
      *       normal exit or the negative signal number for a signal death (-15 for SIGTERM, -9 for
-     *       SIGKILL); Node.js reports null in the signal case and uses signalCode instead.
+     *       SIGKILL).
      *
      */
     readonly exitCode: number;
@@ -4363,7 +4347,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *      The handler receives (code, signal): code is the exit status 0-255 for a normal exit and
      *      null when the process was killed by a signal; signal is the signal name for a signal death
-     *      and null on a normal exit. The implementation also emits the Node-style 'close' event with
+     *      and null on a normal exit. The implementation also emits the 'close' event with
      *      the same arguments after the stdio streams have closed.
      *
      *      @param code the exit code, null when the process was killed by a signal
@@ -4393,7 +4377,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *      The handler receives (code, signal): code is the exit status 0-255 for a normal exit and
      *      null when the process was killed by a signal; signal is the signal name for a signal death
-     *      and null on a normal exit. The implementation also emits the Node-style 'close' event with
+     *      and null on a normal exit. The implementation also emits the 'close' event with
      *      the same arguments after the stdio streams have closed.
      *
      *      @param code the exit code, null when the process was killed by a signal
@@ -4604,8 +4588,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals \`exitCode\` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       \`\`\`JavaScript
@@ -4626,8 +4609,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals \`exitCode\` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       \`\`\`JavaScript
@@ -4648,8 +4630,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *       Blocks the current fiber until the process exits; the return value equals \`exitCode\` at
      *       that moment: 0-255 for a normal exit or the negative signal number for a signal death.
-     *       Calling join after the exit returns the stored code. This is a fibjs extension; in Node.js
-     *       wait for the 'exit' event or use the promise form of exec instead.
+     *       Calling join after the exit returns the stored code. This is an extension.
      *
      *       Example:
      *       \`\`\`JavaScript
@@ -4764,8 +4745,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      * @description Queries whether the process this object refers to has already been killed
      *
      *       True once kill has been called, or a timeout or AbortSignal has terminated the process;
-     *       false for a process that ended on its own. Node.js sets killed only when a signal was
-     *       successfully delivered, so the flag has slightly different semantics there.
+     *       false for a process that ended on its own.
      *
      */
     readonly killed: boolean;
@@ -4775,7 +4755,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *       null while the process is still running (see join). After the exit it holds 0-255 for a
      *       normal exit or the negative signal number for a signal death (-15 for SIGTERM, -9 for
-     *       SIGKILL); Node.js reports null in the signal case and uses signalCode instead.
+     *       SIGKILL).
      *
      */
     readonly exitCode: number;
@@ -4835,7 +4815,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *      The handler receives (code, signal): code is the exit status 0-255 for a normal exit and
      *      null when the process was killed by a signal; signal is the signal name for a signal death
-     *      and null on a normal exit. The implementation also emits the Node-style 'close' event with
+     *      and null on a normal exit. The implementation also emits the 'close' event with
      *      the same arguments after the stdio streams have closed.
      *
      *      @param code the exit code, null when the process was killed by a signal
@@ -4930,7 +4910,7 @@ declare namespace Class_ChildProcess {
  *    so it cannot be chained; \`setAAD\`, \`setAuthTag\` and \`setAutoPadding\` return the
  *    Cipher and can be chained. \`final\` produces the last block. The object does not
  *    track its state strictly: after \`final\` the behavior is unspecified, so drop the
- *    instance instead of reusing it, as Node.js does.
+ *    instance instead of reusing it.
  *  - **Padding**: block modes require the plaintext to be a multiple of the block
  *    size. fibjs pads the last block automatically (PKCS#7) and removes the padding
  *    when decrypting; call \`setAutoPadding(false)\` when the data is already aligned or
@@ -5023,8 +5003,7 @@ declare class Class_Cipher extends Class_object {
      *      with encoding (default "utf8"). The tag length must match the authTagLength
      *      option given to crypto.createDecipheriv (16 by default for GCM and
      *      chacha20-poly1305). Calling it on an encrypting Cipher, twice, or with a wrong
-     *      length throws "Invalid setAuthTag"/"Invalid authTagLength"; Node.js enforces the
-     *      same rules with its own error codes.
+     *      length throws "Invalid setAuthTag"/"Invalid authTagLength".
      *
      *      Example: the tag and AAD together authenticate the ciphertext:
      *      \`\`\`JavaScript
@@ -5075,7 +5054,7 @@ declare class Class_Cipher extends Class_object {
      *      decoded with options.encoding (default "utf8"); the buffer form takes the bytes
      *      as they are. In CCM mode setAAD() requires options.plaintextLength, the byte
      *      length of the plaintext, on both sides. Calling it on a non-AEAD Cipher or too
-     *      late throws "Invalid setAAD" (Node.js reports ERR_CRYPTO_INVALID_STATE).
+     *      late throws "Invalid setAAD".
      *
      *      options supports the following options:
      *      \`\`\`JavaScript
@@ -5100,8 +5079,7 @@ declare class Class_Cipher extends Class_object {
      *      the block size; call setAutoPadding(false) when the protocol defines its own
      *      padding and pass whole blocks. With padding disabled, final() throws when the
      *      accumulated length is not a multiple of the block size. It must be called before
-     *      final() and works on both encrypting and decrypting Ciphers; Node.js provides
-     *      the same switch.
+     *      final() and works on both encrypting and decrypting Ciphers.
      *
      *      Example: aligned data with padding disabled round-trips exactly:
      *      \`\`\`JavaScript
@@ -5138,7 +5116,7 @@ declare class Class_Cipher extends Class_object {
      *      same encoding, otherwise "Inconsistent encoding" is thrown. In CCM mode the
      *      message length is bounded by the mode (about 2^24-1 bytes); the bound depends on
      *      the IV length. Calling update() after final() is not supported and may throw an
-     *      OpenSSL error; Node.js raises ERR_CRYPTO_INVALID_STATE instead.
+     *      OpenSSL error.
      *
      *      @param data the data to update
      *      @param inputEncoding the encoding of the input data, default "utf8"
@@ -5158,8 +5136,7 @@ declare class Class_Cipher extends Class_object {
      *      message comes from OpenSSL). For CCM decryption the authentication result is
      *      reported here even when update() already returned the plaintext. outputEncoding
      *      must match any string encoding used by update() before; with "buffer" a Buffer
-     *      is returned. After final() the instance must not be reused; Node.js throws
-     *      ERR_CRYPTO_INVALID_STATE on reuse.
+     *      is returned. After final() the instance must not be reused.
      *
      *      @param outputEncoding the encoding of the output data
      *      @return returns the updated data
@@ -5201,9 +5178,9 @@ declare class Class_Cipher extends Class_object {
  *  - **Related primitives**: Condition waits for an arbitrary state, Event releases a
  *  group of fibers at once without a lock, Semaphore counts permits; all of them park
  *  only the calling fiber.
- *  - **Node.js**: there is no condition variable in Node.js. The usual substitute is a
- *  promise that the state change resolves, which cannot release a lock atomically because
- *  Node.js has no fiber-level locks.
+ * - **Notes**: there is no condition variable in the runtime. The usual substitute is a
+ *    promise that the state change resolves, which cannot release a lock atomically without
+ *    fiber-level locks.
  *
  *  Obtained from:
  *  - \`new coroutine.Condition()\` — creates the condition with its own internal lock;
@@ -5662,11 +5639,10 @@ declare namespace Class_Condition {
  *  - **Filtering**: the global \`console.loglevel\` applies to every instance. For a
  *    debug logger the section must additionally be listed in NODE_DEBUG for INFO
  *    and DEBUG records; WARN and above are written even when the section is
- *    disabled, while Node.js drops every level of a disabled debug logger.
- *  - **Node.js differences**: there is no \`print\`, \`assert\`, \`count\`, \`countReset\`,
+ *    disabled, while disabled levels are dropped.
+ *  - **Members that do not exist**: there is no \`print\`, \`assert\`, \`count\`, \`countReset\`,
  *    \`timeLog\`, \`group\`, \`groupEnd\` or \`dirxml\` on this object; \`operator(...)\`
- *    makes the object callable as a debug logger, which Node.js provides for
- *    util.debuglog but not for console.Console.
+ *    makes the object callable as a debug logger.
  *
  *  Obtained from:
  *
@@ -5790,8 +5766,7 @@ declare class Class_ConsoleObject extends Class_object {
      *      comma-separated entry of NODE_DEBUG; the value is re-checked for every
      *      record and is always true for a stream console with an empty section. When
      *      the section is disabled INFO and DEBUG records are dropped while WARN and
-     *      above are still written; Node.js drops every level of a disabled debug
-     *      logger.
+     *      above are still written.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -5848,7 +5823,7 @@ declare class Class_ConsoleObject extends Class_object {
     /**
      * @description Writes an INFO record to the stdout object, same as log
      *
-     *      Identical to \`log\`; the name follows the Node.js console surface. Level
+     *      Identical to \`log\`. Level
      *      INFO(6).
      *
      *      @param args optional argument list
@@ -5862,8 +5837,7 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Writes a NOTICE record to the stdout object
      *
      *      Records a normal but significant message; less severe than WARN and more
-     *      important than INFO. Level NOTICE(5); this is a fibjs extension, Node.js has
-     *      no console.notice.
+     *      important than INFO. Level NOTICE(5); this is an extension.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -5877,8 +5851,7 @@ declare class Class_ConsoleObject extends Class_object {
      *
      *      Warning messages go to the stderr writable object because WARN(4) is one of
      *      the error levels; for a debug logger the section prefix is added. Accepts
-     *      the printf-like template of \`log\`. Node.js console.warn also writes to
-     *      stderr.
+     *      the printf-like template of \`log\`.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -5904,7 +5877,7 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Writes a WARN record to the stderr object, same as warn
      *
      *      Identical to \`warn\`; kept as a separate name for code that reads better
-     *      with the long form. Node.js has no console.warning.
+     *      with the long form.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -5917,8 +5890,7 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Writes an ERROR record to the stderr object
      *
      *      Records an error and writes it to the stderr object; for a debug logger the
-     *      section prefix is added. Level ERROR(3). Node.js console.error also writes
-     *      to stderr.
+     *      section prefix is added. Level ERROR(3).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -5944,7 +5916,7 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Writes a CRIT record to the stderr object
      *
      *      Records a critical condition and writes it to the stderr object; identical
-     *      to \`crit\`. Level CRIT(2); Node.js has no console.critical.
+     *      to \`crit\`. Level CRIT(2).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -5957,8 +5929,7 @@ declare class Class_ConsoleObject extends Class_object {
      * @description Writes an ALERT record to the stderr object
      *
      *      Records the most severe condition at ALERT(1); it is the highest severity
-     *      level, meant for conditions that need immediate action. Node.js has no
-     *      console.alert.
+     *      level, meant for conditions that need immediate action.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -6093,7 +6064,7 @@ declare interface Class_ConsoleObject {
      *      Calling the object itself, \`logger('message')\` or \`logger('%s', value)\`, is
      *      equivalent to \`debug(...)\`: the record is written at DEBUG(7) and filtered
      *      by the global loglevel. \`util.debuglog(section)\` returns such a callable
-     *      logger, which is how Node.js code normally uses it.
+     *      logger.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -6288,7 +6259,7 @@ declare class Class_CryptoKey extends Class_object {
  *  fibjs has no DOM tree and no event dispatch pipeline: EventTarget is the EventEmitter class
  *  (on/off/emit, without dispatchEvent), so a DOMEvent is a stand-alone object that you create,
  *  pass to listeners yourself and read; the runtime never produces one. The class exists for
- *  Node.js and Web compatibility, where \`new Event(type, init)\` creates synthetic event objects.
+ *  Web compatibility, where \`new Event(type, init)\` creates synthetic event objects.
  *
  *  Concepts:
  *
@@ -6485,7 +6456,7 @@ declare class Class_DOMEvent extends Class_object {
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlDocument.d.ts" />
 /**
- * @description DOMParser parses an HTML or XML source string into an XmlDocument; the class is a global and Node.js has no equivalent
+ * @description DOMParser parses an HTML or XML source string into an XmlDocument; the class is a global
  *
  *  \`new DOMParser().parseFromString(source, mimeType)\` returns a full XmlDocument that can be
  *  navigated with the xml DOM API (documentElement, getElementById, querySelector, childNodes...)
@@ -6506,7 +6477,7 @@ declare class Class_DOMEvent extends Class_object {
  *  - **Parse errors**: an XML syntax error throws Error [20024] with the parser location
  *    ("XmlParser: error on line N at column M: ..."), where browsers instead return a document
  *    containing a parsererror element. HTML parsing is tolerant and rarely fails.
- *  - **Parse limits**: the third options argument is a fibjs extension over the two-argument MDN
+ *  - **Parse limits**: the third options argument is an extension over the two-argument MDN
  *    signature; it accepts maxElementDepth (default 1000) and maxNodeCount (default 1000000),
  *    exactly like xml.parse. A value of 0, a negative value or Infinity disables the limit,
  *    exceeding one throws Error [20024], and a non-numeric option throws TypeError [20004].
@@ -8683,7 +8654,7 @@ declare namespace Class_DbConnection {
         "dts/interface/Deflate.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Deflate is the Node.js compatible codec that compresses data to the zlib format
+ * @description Deflate is the codec that compresses data to the zlib format
  *
  *  \`new zlib.Deflate(opts)\` builds a synchronous codec; feed chunks with \`_processChunk\`
  *  and the zlib flush flags. The zlib format starts with the 0x78 byte and ends with an
@@ -8747,7 +8718,7 @@ declare class Class_Deflate extends Class_ZlibCodec {
         "dts/interface/DeflateRaw.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description DeflateRaw is the Node.js compatible codec that compresses data to raw deflate
+ * @description DeflateRaw is the codec that compresses data to raw deflate
  *
  *  \`new zlib.DeflateRaw(opts)\` builds a synchronous codec; \`_processChunk\` returns raw
  *  deflate data with no header and no checksum. Raw deflate is the payload of protocols
@@ -8832,7 +8803,7 @@ declare class Class_DeflateRaw extends Class_ZlibCodec {
  *    split or merged; delivery, ordering and duplication are not guaranteed.
  *  - **Binding**: the socket is created unbound; bind assigns the local address and emits
  *    'listening' during the call, so the synchronous form returns after the event has been handled
- *    (Node.js emits it on a later tick). send on an unbound socket binds it first to a random port
+ *    (the event is emitted on a later tick). send on an unbound socket binds it first to a random port
  *    on 0.0.0.0 or ::.
  *  - **Call forms**: bind and send follow the asynchronous conventions of the module — without a
  *    callback they block the calling fiber and return the result, with a trailing callback they run
@@ -8844,7 +8815,7 @@ declare class Class_DeflateRaw extends Class_ZlibCodec {
  *  - **Lifetime**: close releases the handle and emits 'close'; the address and buffer-size getters
  *    then fail with EBADF, so do not reuse the socket. A bound socket keeps the process alive until
  *    close or unref; ref restores the keep-alive.
- *  - **Node.js differences**: create instances with dgram.createSocket only (new dgram.Socket() is
+ *  - **Creation and limits**: create instances with dgram.createSocket only (new dgram.Socket() is
  *    not constructible); there is no recv method; bind(opts) reads only the required port and
  *    address keys; errors are thrown rather than emitted through 'error'; and there are no
  *    setTTL/setMulticastLoopback/setMulticastInterface, source-specific membership or connect
@@ -8968,9 +8939,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -9004,9 +8974,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -9038,9 +9007,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -9075,7 +9043,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      })
      *      \`\`\`
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -9097,7 +9065,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      })
      *      \`\`\`
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -9117,7 +9085,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      })
      *      \`\`\`
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -9130,7 +9098,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -9181,7 +9149,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -9230,7 +9198,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -9328,8 +9296,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Returns the local address the socket is bound to, as an object with the family, address and port
      *
      *      family is 'IPv4' or 'IPv6'. A bound socket is required: before bind (and after close) the
-     *      underlying handle is not available and the call throws EBADF, comparable to the
-     *      ERR_SOCKET_DGRAM_NOT_RUNNING error of Node.js. A socket bound implicitly by send can be
+     *      underlying handle is not available and the call throws EBADF. A socket bound implicitly by send can be
      *      queried too.
      *      @return the bound address information
      *
@@ -9344,8 +9311,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Closes the socket and releases the underlying handle
      *
      *      The 'close' event is emitted when the handle has been released; no further 'message' events
-     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.'),
-     *      whereas Node.js throws ERR_SOCKET_DGRAM_NOT_RUNNING. Do not use the socket after close:
+     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.').
+     *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
      *
@@ -9405,8 +9372,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      its address; when it is empty the operating system picks one, and addMembership can be
      *      called once per interface to join on several of them. Membership is released by
      *      dropMembership or automatically when the socket is closed or the process exits, so most
-     *      programs never call dropMembership explicitly. An invalid address throws EINVAL. Node.js
-     *      additionally offers source-specific membership and interface/TTL helpers, fibjs does not.
+     *      programs never call dropMembership explicitly. An invalid address throws EINVAL.
      *
      *      Example — join a group and receive a datagram sent to it (needs a multicast-capable
      *      interface):
@@ -9461,7 +9427,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      ttl is 0 to 255 and defaults to 1, so a multicast datagram stays on the local network; a
      *      value outside the range throws EINVAL. The option affects multicast destinations only, not
-     *      the unicast time-to-live, and Node.js exposes the same setter.
+     *      the unicast time-to-live.
      *      @param ttl the multicast hop limit, 0 to 255
      *
      */
@@ -9495,7 +9461,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      Broadcast is disabled by default, and a send to an address such as 255.255.255.255 then
      *      throws EACCES; call setBroadcast(true) first. When the host has no route for the broadcast
      *      address the send fails with EHOSTUNREACH or ENETUNREACH instead. Receiving broadcast
-     *      traffic needs no option, and Node.js exposes the same setter.
+     *      traffic needs no option.
      *      @param flag true to allow broadcast sends
      *
      */
@@ -9539,7 +9505,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description EventEmitter error event; the current implementation throws instead of emitting it
      *
      *      bind and send report failures by throwing (or through the callback), so DgramSocket itself
-     *      never emits 'error'. As in Node.js, emitting 'error' without a listener throws.
+     *      never emits 'error'. Emitting 'error' without a listener throws.
      *
      */
     on(event: "error", listener: ()=>void): this;
@@ -9564,7 +9530,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description EventEmitter error event; the current implementation throws instead of emitting it
      *
      *      bind and send report failures by throwing (or through the callback), so DgramSocket itself
-     *      never emits 'error'. As in Node.js, emitting 'error' without a listener throws.
+     *      never emits 'error'. Emitting 'error' without a listener throws.
      *
      */
     onerror: (()=>void) | null;
@@ -9573,8 +9539,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Emitted when bind completes and the socket can receive datagrams
      *
      *      The event is emitted during bind, so in the synchronous form it has already been delivered
-     *      when bind returns; binding implicitly inside send emits it too. Node.js emits 'listening' on
-     *      a later tick.
+     *      when bind returns; binding implicitly inside send emits it too.
      *
      */
     on(event: "listening", listener: ()=>void): this;
@@ -9599,8 +9564,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Emitted when bind completes and the socket can receive datagrams
      *
      *      The event is emitted during bind, so in the synchronous form it has already been delivered
-     *      when bind returns; binding implicitly inside send emits it too. Node.js emits 'listening' on
-     *      a later tick.
+     *      when bind returns; binding implicitly inside send emits it too.
      *
      */
     onlistening: (()=>void) | null;
@@ -9651,7 +9615,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Keeps the fibjs process alive while the socket is bound (the default)
      *
      *      A bound socket holds a reference that prevents the process from exiting; ref restores that
-     *      reference after unref. Node.js has the same pair.
+     *      reference after unref.
      *      @return the socket itself
      *
      */
@@ -9662,7 +9626,6 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      unref removes the keep-alive reference, so a program whose only remaining work is receiving
      *      datagrams can exit; processing continues while other references keep the loop alive.
-     *      Node.js has the same method.
      *      @return the socket itself
      *
      */
@@ -9723,9 +9686,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -9757,9 +9719,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -9791,9 +9752,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      here. The same operation is also available as bind(opts) with an options object.
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
-     *      handled when the call returns — while Node.js emits it on a later tick. Binding a socket
+     *      handled when the call returns. Binding a socket
      *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
-     *      Node.js additionally accepts exclusive/fd options; fibjs does not.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -9828,7 +9788,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      })
      *      \`\`\`
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -9848,7 +9808,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      })
      *      \`\`\`
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -9868,7 +9828,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      })
      *      \`\`\`
      *
-     *      Unlike Node.js, exclusive, fd and the remaining bind options are not read, and a missing
+     *      The exclusive, fd and remaining bind options are not read, and a missing
      *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
      *      port/address form above.
      *      @param opts the binding options
@@ -9881,7 +9841,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -9930,7 +9890,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -9979,7 +9939,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
      *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6), unlike Node.js which requires it; a host name is accepted and resolved
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
      *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
      *
      *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
@@ -10075,8 +10035,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description Returns the local address the socket is bound to, as an object with the family, address and port
      *
      *      family is 'IPv4' or 'IPv6'. A bound socket is required: before bind (and after close) the
-     *      underlying handle is not available and the call throws EBADF, comparable to the
-     *      ERR_SOCKET_DGRAM_NOT_RUNNING error of Node.js. A socket bound implicitly by send can be
+     *      underlying handle is not available and the call throws EBADF. A socket bound implicitly by send can be
      *      queried too.
      *      @return the bound address information
      *
@@ -10091,8 +10050,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description Closes the socket and releases the underlying handle
      *
      *      The 'close' event is emitted when the handle has been released; no further 'message' events
-     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.'),
-     *      whereas Node.js throws ERR_SOCKET_DGRAM_NOT_RUNNING. Do not use the socket after close:
+     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.').
+     *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
      *
@@ -10152,8 +10111,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      its address; when it is empty the operating system picks one, and addMembership can be
      *      called once per interface to join on several of them. Membership is released by
      *      dropMembership or automatically when the socket is closed or the process exits, so most
-     *      programs never call dropMembership explicitly. An invalid address throws EINVAL. Node.js
-     *      additionally offers source-specific membership and interface/TTL helpers, fibjs does not.
+     *      programs never call dropMembership explicitly. An invalid address throws EINVAL.
      *
      *      Example — join a group and receive a datagram sent to it (needs a multicast-capable
      *      interface):
@@ -10208,7 +10166,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      ttl is 0 to 255 and defaults to 1, so a multicast datagram stays on the local network; a
      *      value outside the range throws EINVAL. The option affects multicast destinations only, not
-     *      the unicast time-to-live, and Node.js exposes the same setter.
+     *      the unicast time-to-live.
      *      @param ttl the multicast hop limit, 0 to 255
      *
      */
@@ -10242,7 +10200,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      Broadcast is disabled by default, and a send to an address such as 255.255.255.255 then
      *      throws EACCES; call setBroadcast(true) first. When the host has no route for the broadcast
      *      address the send fails with EHOSTUNREACH or ENETUNREACH instead. Receiving broadcast
-     *      traffic needs no option, and Node.js exposes the same setter.
+     *      traffic needs no option.
      *      @param flag true to allow broadcast sends
      *
      */
@@ -10261,7 +10219,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description EventEmitter error event; the current implementation throws instead of emitting it
      *
      *      bind and send report failures by throwing (or through the callback), so DgramSocket itself
-     *      never emits 'error'. As in Node.js, emitting 'error' without a listener throws.
+     *      never emits 'error'. Emitting 'error' without a listener throws.
      *
      */
     onerror: (()=>void) | null;
@@ -10270,8 +10228,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description Emitted when bind completes and the socket can receive datagrams
      *
      *      The event is emitted during bind, so in the synchronous form it has already been delivered
-     *      when bind returns; binding implicitly inside send emits it too. Node.js emits 'listening' on
-     *      a later tick.
+     *      when bind returns; binding implicitly inside send emits it too.
      *
      */
     onlistening: (()=>void) | null;
@@ -10293,7 +10250,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description Keeps the fibjs process alive while the socket is bound (the default)
      *
      *      A bound socket holds a reference that prevents the process from exiting; ref restores that
-     *      reference after unref. Node.js has the same pair.
+     *      reference after unref.
      *      @return the socket itself
      *
      */
@@ -10304,7 +10261,6 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      unref removes the keep-alive reference, so a program whose only remaining work is receiving
      *      datagrams can exit; processing continues while other references keep the loop alive.
-     *      Node.js has the same method.
      *      @return the socket itself
      *
      */
@@ -10333,12 +10289,11 @@ declare namespace Class_DgramSocket {
  *    finish with digest(). update() returns the object, so calls can be chained;
  *    digest() is a terminal operation that returns the fingerprint.
  *  - **One-shot rule**: after digest() the object is finalized. Any further update(),
- *    digest() or size access throws "digest has been called" (Node.js throws
- *    ERR_CRYPTO_HASH_FINALIZED). Create a new object to compute another value.
+ *    digest() or size access throws "digest has been called". Create a new object to compute another value.
  *  - **Encodings**: update() decodes string data with its codec argument; digest()
  *    encodes the result with the requested codec. Next to the Buffer encodings ('hex',
  *    'base64', 'utf8', ...) fibjs accepts 'base32', 'base58' and the iconv character
- *    sets; Node.js returns a Buffer for an encoding it does not know.
+ *    sets.
  *  - **Algorithms and size**: names come from crypto.getHashes and are matched
  *    case-insensitively ('sha256', 'SHA-256' and 'sha-256' all work). \`size\` reports
  *    the output length in bytes, including the default length of XOF algorithms such
@@ -10425,7 +10380,7 @@ declare class Class_Digest extends Class_object {
      *      be called only once: a second digest(), a later update() or a size access throws
      *      "digest has been called", so create a fresh object to hash more data. For HMAC
      *      digests the result is the authentication tag, which should be compared with
-     *      crypto.timingSafeEqual. Node.js follows the same one-shot rule.
+     *      crypto.timingSafeEqual.
      *
      *      Example: the same digest in three encodings:
      *      \`\`\`JavaScript
@@ -10482,14 +10437,13 @@ declare class Class_Digest extends Class_object {
  *  - **End of iteration**: read() returns null when there are no more entries and after
  *    close(); the iterator protocol reports \`done\`. call close() when the Dir is no longer
  *    needed to drop the cached entries early (it does not release a system handle).
- *  - **close is idempotent**: unlike Node.js, where read() and close() on a closed Dir throw
- *    ERR_DIR_CLOSED, fibjs makes close() a no-op the second time and lets read() return null
+ *  - **close is idempotent**: close() is a no-op the second time and read() returns null
  *    (plans/compat-differences.md 2.16).
  *
  *  Obtained from:
- *  - \`fs.opendir(path)\` — the factory used in Node.js-compatible code;
- *  - \`new fs.Dir(path)\` — fibjs extension; the class is exposed as \`fs.Dir\` (there is no
- *    global \`Dir\`) and is not constructible in Node.js user code.
+ *  - \`fs.opendir(path)\` — the factory form;
+ *  - \`new fs.Dir(path)\` — extension; the class is exposed as \`fs.Dir\` (there is no
+ *    global \`Dir\`).
  *
  *  Example 1 — read the entries one by one and stop at the end:
  *  \`\`\`JavaScript
@@ -10644,7 +10598,7 @@ declare class Class_Dir extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:
@@ -10671,7 +10625,7 @@ declare class Class_Dir extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:
@@ -10696,7 +10650,7 @@ declare class Class_Dir extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:
@@ -10838,7 +10792,7 @@ declare class Class_DirPromise extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:
@@ -10863,7 +10817,7 @@ declare class Class_DirPromise extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:
@@ -10888,7 +10842,7 @@ declare class Class_DirPromise extends Class_Iterator {
      * @description Closes the iterator and discards the cached entries
      *
      *      Safe to call before any read and safe to call repeatedly; after close() read() returns
-     *      null instead of throwing (Node.js throws ERR_DIR_CLOSED, see
+     *      null instead of throwing (see
      *      plans/compat-differences.md 2.16). The directory itself is not modified.
      *
      *      Example — close twice and read after close:
@@ -10986,8 +10940,7 @@ declare namespace Class_Dir {
  *  fs.rmSync(dir, { recursive: true, force: true });
  *  \`\`\`
  *
- *  Same object type as Node.js fs.Dirent; Node also has the deprecated \`path\` property, fibjs
- *  provides parentPath only.
+ *  The \`parentPath\` property is provided; there is no \`path\` alias.
  *
  */
 declare class Class_DirEntry extends Class_object {
@@ -10996,7 +10949,7 @@ declare class Class_DirEntry extends Class_object {
      *
      *      The last path component, without the directory part: 'report.txt' for an entry of
      *      '/data/report.txt'. It is a name inside the directory, not a path; combine it with
-     *      parentPath to build the full path. Same property as Node.js Dirent#name.
+     *      parentPath to build the full path.
      *
      */
     readonly name: string;
@@ -11007,7 +10960,7 @@ declare class Class_DirEntry extends Class_object {
      *      The directory path that was scanned, spelled as it was requested: fs.readdir('.')
      *      reports '.', a relative Dir reports its relative path, and fs.glob with
      *      \`withFileTypes\` reports the absolute directory of each match (even for a relative
-     *      pattern). Node.js Dirent also exposes this property; the older Node \`path\` alias is not
+     *      pattern). The older \`path\` alias is not
      *      provided.
      *
      */
@@ -11140,8 +11093,7 @@ declare class Class_DirEntry extends Class_object {
  *    with \`new\`.
  *  - The static convertKey helper lives on the ECDH class object. The crypto module
  *    does not publish that object (\`crypto.ECDH\` is undefined), so reach it through an
- *    instance: \`crypto.createECDH('secp256k1').constructor.convertKey(...)\`; Node.js
- *    exposes it as \`crypto.ECDH.convertKey\`.
+ *    instance: \`crypto.createECDH('secp256k1').constructor.convertKey(...)\`.
  *
  *  Example 1 — two parties agree on the same secret:
  *  \`\`\`JavaScript
@@ -11197,8 +11149,7 @@ declare class Class_ECDH extends Class_object {
      *      requested point format encoded with outputEncoding; both encodings accept
      *      'buffer', 'hex', 'base64' and 'base58'. format is 'uncompressed' (default),
      *      'compressed' or 'hybrid'. The key must be a valid point on the curve, otherwise
-     *      an Error is thrown. Node.js exposes this helper as \`crypto.ECDH.convertKey\`;
-     *      fibjs leaves the class object unpublished, so call it through an instance
+     *      an Error is thrown. The class object is not published, so call the helper through an instance
      *      constructor, as in the example. See the class documentation for the point
      *      formats.
      *
@@ -11239,7 +11190,7 @@ declare class Class_ECDH extends Class_object {
      *      "Private key not set", after setPublicKey on the same instance it throws
      *      "Invalid key pair", and an off-curve peer key throws "Public key is not valid
      *      for specified curve". Treat the peer key as untrusted input and handle the
-     *      error. Node.js requires a Buffer when inputEncoding is omitted.
+     *      error.
      *
      *      Example: both sides derive the same secret:
      *      \`\`\`JavaScript
@@ -11332,7 +11283,7 @@ declare class Class_ECDH extends Class_object {
      *      for specified curve" is thrown, and it must belong to the curve of this
      *      instance. The matching public key is computed and stored, and any public key
      *      previously imported with setPublicKey is cleared, so computeSecret works after
-     *      this call. Node.js derives the public key the same way.
+     *      this call.
      *
      *      @param privateKey the private key data
      *      @param encoding the encoding of privateKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
@@ -11349,7 +11300,7 @@ declare class Class_ECDH extends Class_object {
      *      for specified curve" otherwise). This is for inspecting or converting a point;
      *      after calling it, computeSecret on the same instance reports "Invalid key pair"
      *      because the object then holds a private key and an unrelated public key.
-     *      Deprecated in Node.js for the same reason.
+     *      Deprecated for that reason.
      *
      *      @param publicKey the public key data
      *      @param encoding the encoding of publicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
@@ -11389,8 +11340,8 @@ declare class Class_ECDH extends Class_object {
  *    returns the flag value; acquire() waits like wait(). Because release() leaves the event set,
  *    an Event does not provide mutual exclusion — use coroutine.Lock or coroutine.Semaphore for
  *    that.
- *  - **Node.js / MDN**: Node.js has no direct equivalent (the closest shapes are an inverted
- *    Semaphore or Atomics.wait); the global DOM-style \`Event\` class of fibjs is DOMEvent and is
+ *  - **Notes**: the closest shapes elsewhere are an inverted
+ *    Semaphore or Atomics.wait; the global DOM-style \`Event\` class is DOMEvent and is
  *    unrelated to this class.
  *
  *  Obtained from:
@@ -11821,7 +11772,7 @@ declare namespace Class_Event {
  *    holds the original), and \`off(ev, fn)\` matches either form.
  *  - **Dispatch model**: emitting invokes the first listener synchronously on the emitting fiber;
  *    the remaining listeners each run in a separate fiber in parallel, and \`emit\` returns only after
- *    all of them finish (Node.js calls every listener synchronously in sequence). \`emit\` returns
+ *    all of them finish. \`emit\` returns
  *    true when a listener was called and false when the event has none.
  *  - **Arguments**: there is no event object; the arguments of \`emit\` are forwarded to the listener
  *    as-is and \`this\` is the emitter. fibjs also exposes a global DOM-style event class (see
@@ -11831,16 +11782,16 @@ declare namespace Class_Event {
  *  - **error event**: emitting \`error\` with no listener throws from \`emit\`; an Error argument is
  *    thrown as-is and any other value is wrapped in \`Error("Unhandled error. (...)")\`.
  *  - **Listener limit**: \`defaultMaxListeners\` (10) and \`setMaxListeners\`/\`getMaxListeners\` are kept
- *    for Node.js compatibility; fibjs never warns when the limit is exceeded.
- *  - **Node.js surface**: \`events.errorMonitor\`, \`events.captureRejectionSymbol\`,
+ *    for compatibility; the limit never produces a warning.
+ *  - **Not provided**: \`events.errorMonitor\`, \`events.captureRejectionSymbol\`,
  *    \`events.getEventListeners\` and the static broadcast forms of \`setMaxListeners\` and
- *    \`getMaxListeners\` are not provided; the \`captureRejections\` option is accepted but ignored;
+ *    \`getMaxListeners\`; the \`captureRejections\` option is accepted but ignored;
  *    symbol events are omitted from \`eventNames()\` and are not removed by \`removeAllListeners()\`
  *    without arguments.
  *
  *  Obtained from:
- *  - \`new EventEmitter(options = {})\` — creates an emitter; the options object is accepted for
- *    Node.js compatibility and ignored;
+ *  - \`new EventEmitter(options = {})\` — creates an emitter; the options object is accepted and
+ *    ignored;
  *  - \`require('events')\` — the module itself is this class, so it doubles as the constructor:
  *    \`require('events').EventEmitter === require('events')\`;
  *  - the global \`EventTarget\` alias — it points to this class, not to the WHATWG EventTarget class:
@@ -11940,13 +11891,12 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Creates an event emitter
      *
-     *      The options object exists for Node.js compatibility: Node.js reads \`captureRejections\` from
-     *      it to capture rejected promises returned by listeners, while fibjs ignores the object and
-     *      returns a plain emitter. Every call creates an independent listener store. Always construct
+     *      The options object is accepted and ignored: the emitter does not read \`captureRejections\`
+     *      and returns a plain emitter. Every call creates an independent listener store. Always construct
      *      with \`new\`; calling without \`new\` attaches the event methods to the global object instead
      *      (see the class documentation).
      *
-     *      @param options options object, accepted for Node.js compatibility and ignored
+     *      @param options options object, accepted and ignored
      *
      */
     constructor(options?: FIBJS.GeneralObject);
@@ -11954,7 +11904,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description The EventEmitter class itself
      *
-     *      \`require('events')\` returns this class, so the self reference keeps Node.js-style
+     *      \`require('events')\` returns this class, so the self reference keeps
      *      \`events.EventEmitter\` code working: \`require('events').EventEmitter === require('events')\`.
      *      It is a constructor, not an emitter instance.
      *
@@ -12017,7 +11967,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Appends an event handler to the emitter
      *
-     *      Alias of on(ev, func), provided for Node.js compatibility.
+     *      Alias of on(ev, func).
      *
      *      @param ev the event name to bind
      *      @param func the event handler function
@@ -12029,7 +11979,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Appends several event handlers to the emitter
      *
-     *      Alias of on(map), provided for Node.js compatibility.
+     *      Alias of on(map).
      *
      *      @param map the event mapping; object property names are used as event names
      *      and property values as event handler functions
@@ -12222,7 +12172,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Removes an event handler from the emitter
      *
-     *      Alias of off(ev, func), provided for Node.js compatibility.
+     *      Alias of off(ev, func).
      *
      *      @param ev the event name to unbind
      *      @param func the event handler function
@@ -12234,7 +12184,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Removes all event handlers of one event
      *
-     *      Alias of off(ev), provided for Node.js compatibility.
+     *      Alias of off(ev).
      *
      *      @param ev the event name to unbind
      *      @return returns the event object itself for chaining
@@ -12245,7 +12195,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Removes several event handlers from the emitter
      *
-     *      Alias of off(map), provided for Node.js compatibility.
+     *      Alias of off(map).
      *
      *      @param map the event mapping; object property names are used as event names
      *      and property values as event handler functions
@@ -12284,8 +12234,7 @@ declare class Class_EventEmitter extends Class_object {
      * @description Removes all listeners of the given events, or of the whole emitter
      *
      *      An empty array — including the no-argument call, because the parameter defaults to [] —
-     *      clears every string-keyed event; symbol-keyed listeners are left in place, unlike Node.js
-     *      which removes them too. A non-empty array clears each named event as
+     *      clears every string-keyed event; symbol-keyed listeners are left in place. A non-empty array clears each named event as
      *      removeAllListeners(ev) does.
      *
      *      Example — clearing selected events and the whole emitter:
@@ -12314,8 +12263,8 @@ declare class Class_EventEmitter extends Class_object {
      * @description Stores a per-emitter listener limit
      *
      *      The value is reported by getMaxListeners() and is otherwise informational: fibjs never warns
-     *      when the number of listeners exceeds it. This member exists for Node.js compatibility. A
-     *      negative value throws; 0 is accepted and stored as-is, while Node.js treats 0 as unlimited.
+     *      when the number of listeners exceeds it. A
+     *      negative value throws; 0 is accepted and stored as-is.
      *
      *      @param n the number of events
      *
@@ -12412,7 +12361,7 @@ declare class Class_EventEmitter extends Class_object {
      * @description Returns the names of the events with at least one listener
      *
      *      Only string-keyed events are reported; symbol-keyed events are omitted and numeric event
-     *      names are returned as numbers (Node.js also reports symbol events).
+     *      names are returned as numbers.
      *
      *      @return returns the array of event names
      *
@@ -13512,9 +13461,9 @@ declare namespace Class_EventSource {
  *    content modification and 'rename' for a create, delete or rename. The callback passed to
  *    fs.watch is bound to this event only; \`on('change', ...)\` yields the same stream.
  *  - \`'changeonly'\` (eventType, filename) — emitted together with 'change' when only the
- *    content changed; eventType is always 'change'. fibjs extension, Node.js has no such event.
+ *    content changed; eventType is always 'change'. This is an extension.
  *  - \`'renameonly'\` (eventType, filename) — emitted together with 'change' when only the name
- *    changed; eventType is always 'rename'. fibjs extension.
+ *    changed; eventType is always 'rename'. This is an extension.
  *  - \`'close'\` — emitted once when close() releases the watcher.
  *  - \`'error'\` — emitted when the platform watch cannot start or fails later. When fs.watch
  *    cannot watch the target at all (for example a missing path) the event is emitted before
@@ -13637,7 +13586,7 @@ declare class Class_FSWatcher extends Class_EventEmitter {
      * @description Binds the "changeonly" event, equivalent to on("changeonly", func)
      *
      *      Emitted in addition to 'change' when the content was modified and the name did not
-     *      change; eventType is always 'change'. fibjs extension, Node.js has no such event.
+     *      change; eventType is always 'change'. This is an extension.
      *      @param eventType the event type, always 'change'
      *      @param filename the changed file name; a Buffer when the 'buffer' encoding was set
      *
@@ -13664,7 +13613,7 @@ declare class Class_FSWatcher extends Class_EventEmitter {
      * @description Binds the "changeonly" event, equivalent to on("changeonly", func)
      *
      *      Emitted in addition to 'change' when the content was modified and the name did not
-     *      change; eventType is always 'change'. fibjs extension, Node.js has no such event.
+     *      change; eventType is always 'change'. This is an extension.
      *      @param eventType the event type, always 'change'
      *      @param filename the changed file name; a Buffer when the 'buffer' encoding was set
      *
@@ -13675,7 +13624,7 @@ declare class Class_FSWatcher extends Class_EventEmitter {
      * @description Binds the "renameonly" event, equivalent to on("renameonly", func)
      *
      *      Emitted in addition to 'change' when the name changed and the content did not;
-     *      eventType is always 'rename'. fibjs extension, Node.js has no such event.
+     *      eventType is always 'rename'. This is an extension.
      *      @param eventType the event type, always 'rename'
      *      @param filename the renamed file name; a Buffer when the 'buffer' encoding was set
      *
@@ -13702,7 +13651,7 @@ declare class Class_FSWatcher extends Class_EventEmitter {
      * @description Binds the "renameonly" event, equivalent to on("renameonly", func)
      *
      *      Emitted in addition to 'change' when the name changed and the content did not;
-     *      eventType is always 'rename'. fibjs extension, Node.js has no such event.
+     *      eventType is always 'rename'. This is an extension.
      *      @param eventType the event type, always 'rename'
      *      @param filename the renamed file name; a Buffer when the 'buffer' encoding was set
      *
@@ -13783,7 +13732,7 @@ declare class Class_FSWatcher extends Class_EventEmitter {
      * @description Closes the watcher and releases the platform handle
      *
      *      Stops the file change events and emits a single 'close' event; the watcher cannot be
-     *      started again. Calling close() twice is a no-op (Node.js behaves the same). A watcher
+     *      started again. Calling close() twice is a no-op. A watcher
      *      created with the default persistent option also keeps the process alive until close().
      *
      *      Example — close once and observe a single 'close' event:
@@ -13810,8 +13759,7 @@ declare class Class_FSWatcher extends Class_EventEmitter {
      * @description Increments the reference count so the process stays alive
      *
      *      A watcher created with the default persistent option refs itself; ref() adds another
-     *      reference and returns the watcher so the call can be chained. Node.js behaves the same
-     *      way.
+     *      reference and returns the watcher so the call can be chained.
      *      @return returns the FSWatcher itself
      *
      */
@@ -14027,8 +13975,7 @@ declare class Class_Fiber extends Class_object {
      *      For the calling fiber it measures the stack consumed so far; for another fiber it
      *      measures the stack from its entry point to the point where it is blocked, and it is 0
      *      when that information is not available. The value is a diagnostic and is not
-     *      meaningful after the fiber has finished. This is a fibjs extension with no Node.js
-     *      counterpart.
+     *      meaningful after the fiber has finished. This is an extension.
      *
      */
     readonly stack_usage: number;
@@ -14058,10 +14005,9 @@ declare class Class_Fiber extends Class_object {
  *    lastModified are read-only afterwards.
  *  - **Options**: \`type\` is lowercased and defaults to an empty string; \`lastModified\` is a
  *    number of milliseconds since the Unix epoch and defaults to the current time. A Date is
- *    rejected, unlike Node.js, where it is converted (plans/compat-differences.md 2.17).
- *  - **Not in Node.js**: the single-object constructor \`new File({ data, name, ... })\` is a
- *    fibjs extension; Node.js also exports the class as \`buffer.File\`, which fibjs does not
- *    provide.
+ *    rejected (plans/compat-differences.md 2.17).
+ *  - **Extensions**: the single-object constructor \`new File({ data, name, ... })\` is an
+ *    extension; the class is not exported as \`buffer.File\`.
  *
  *  Obtained from:
  *  - \`new File(blobParts, name[, options])\` — an array of parts;
@@ -14146,8 +14092,7 @@ declare class Class_File extends Class_Blob {
      *
      *      \`data\` is required and is treated as one Buffer|String part; \`name\` is optional and
      *      defaults to an empty string, unlike the positional forms. The remaining properties are
-     *      the same options as in the parts form. This form is not part of the Web File API or
-     *      Node.js.
+     *      the same options as in the parts form. This form is not part of the Web File API.
      *      @param options optional parameter object
      *
      */
@@ -14158,7 +14103,7 @@ declare class Class_File extends Class_Blob {
      *
      *      Identifies the file in display, upload and download flows. It is a name, not a path, and
      *      it is never resolved against the file system. Read-only: an assignment throws in strict
-     *      mode. Same property as the Web File API and Node.js \`buffer.File\`.
+     *      mode. Same property as the Web File API.
      *
      */
     readonly name: string;
@@ -14167,7 +14112,7 @@ declare class Class_File extends Class_Blob {
      * @description Last modification time in milliseconds since the Unix epoch
      *
      *      Set from the \`lastModified\` option at construction and defaulted to the current time.
-     *      Only a number is accepted; Node.js also converts a Date (plans/compat-differences.md
+     *      Only a number is accepted (plans/compat-differences.md
      *      2.17). Read-only.
      *
      */
@@ -14229,8 +14174,7 @@ declare class Class_FilePromise extends Class_BlobPromise {
      *
      *      \`data\` is required and is treated as one Buffer|String part; \`name\` is optional and
      *      defaults to an empty string, unlike the positional forms. The remaining properties are
-     *      the same options as in the parts form. This form is not part of the Web File API or
-     *      Node.js.
+     *      the same options as in the parts form. This form is not part of the Web File API.
      *      @param options optional parameter object
      *
      */
@@ -14241,7 +14185,7 @@ declare class Class_FilePromise extends Class_BlobPromise {
      *
      *      Identifies the file in display, upload and download flows. It is a name, not a path, and
      *      it is never resolved against the file system. Read-only: an assignment throws in strict
-     *      mode. Same property as the Web File API and Node.js \`buffer.File\`.
+     *      mode. Same property as the Web File API.
      *
      */
     readonly name: string;
@@ -14250,7 +14194,7 @@ declare class Class_FilePromise extends Class_BlobPromise {
      * @description Last modification time in milliseconds since the Unix epoch
      *
      *      Set from the \`lastModified\` option at construction and defaulted to the current time.
-     *      Only a number is accepted; Node.js also converts a Date (plans/compat-differences.md
+     *      Only a number is accepted (plans/compat-differences.md
      *      2.17). Read-only.
      *
      */
@@ -14282,18 +14226,17 @@ declare namespace Class_File {
  *  - **Descriptor and position**: the handle owns one descriptor with one file position.
  *    read/write without a position continue at the current position; an explicit position
  *    (greater than -1) seeks the descriptor first, so a positioned call also moves the position
- *    for the next sequential call. In Node.js a positioned call leaves the position untouched
- *    (plans/compat-differences.md 2.14).
+ *    for the next sequential call (plans/compat-differences.md 2.14).
  *  - **Lifetime**: the descriptor stays open until close() is called, even when the handle
  *    becomes unreachable, so an unclosed handle keeps a file busy. No other member closes it.
  *    After close() the fd property is -1 and the members report an invalid handle; closing an
- *    already closed handle throws in fibjs while Node.js resolves (2.16).
+ *    already closed handle throws (2.16).
  *  - **Call forms**: every member marked async works synchronously (the fiber blocks), with a
  *    trailing callback, or through fs.promises.open. read and write return a result object with
  *    bytesRead/bytesWritten and buffer in all three forms.
  *  - **writeFile replaces, appendFile does not seek**: writeFile seeks to 0 and truncates before
  *    writing, appendFile writes at the current position; open with the 'a' flag when appendFile
- *    must always append. Node.js writeFile writes in place instead (2.15).
+ *    must always append. writeFile rewrites the file in place (2.15).
  *
  *  Obtained from:
  *  - \`fs.open(path[, flags[, mode]])\` — synchronous/callback entry point, flags default to 'r';
@@ -14385,7 +14328,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -14397,7 +14340,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -14407,7 +14350,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -14417,8 +14360,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -14430,8 +14372,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -14441,8 +14382,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -14459,9 +14399,8 @@ declare class Class_FileHandle extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      \`\`\`JavaScript
@@ -14524,9 +14463,8 @@ declare class Class_FileHandle extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      \`\`\`JavaScript
@@ -14584,9 +14522,8 @@ declare class Class_FileHandle extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      \`\`\`JavaScript
@@ -14689,7 +14626,7 @@ declare class Class_FileHandle extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -14738,7 +14675,7 @@ declare class Class_FileHandle extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -14782,7 +14719,7 @@ declare class Class_FileHandle extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -15007,8 +14944,7 @@ declare class Class_FileHandle extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -15056,8 +14992,7 @@ declare class Class_FileHandle extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -15103,8 +15038,7 @@ declare class Class_FileHandle extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -15180,7 +15114,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -15193,7 +15127,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -15204,7 +15138,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -15244,7 +15178,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasync(): void;
@@ -15255,7 +15189,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasyncSync(): void;
@@ -15264,7 +15198,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasyncAsync(): Promise<void>;
@@ -15404,7 +15338,7 @@ declare class Class_FileHandle extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     close(): void;
@@ -15416,7 +15350,7 @@ declare class Class_FileHandle extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     closeSync(): void;
@@ -15426,7 +15360,7 @@ declare class Class_FileHandle extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     closeAsync(): Promise<void>;
@@ -15468,7 +15402,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -15478,7 +15412,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -15488,7 +15422,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -15498,8 +15432,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -15509,8 +15442,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -15520,8 +15452,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -15538,9 +15469,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      \`\`\`JavaScript
@@ -15598,9 +15528,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      \`\`\`JavaScript
@@ -15658,9 +15587,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      \`\`\`JavaScript
@@ -15758,7 +15686,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -15802,7 +15730,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -15846,7 +15774,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -16064,8 +15992,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -16111,8 +16038,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -16158,8 +16084,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -16233,7 +16158,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -16244,7 +16169,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -16255,7 +16180,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -16293,7 +16218,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasync(): Promise<void>;
@@ -16302,7 +16227,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasyncSync(): void;
@@ -16311,7 +16236,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasyncAsync(): Promise<void>;
@@ -16447,7 +16372,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     close(): Promise<void>;
@@ -16457,7 +16382,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     closeSync(): void;
@@ -16467,7 +16392,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     closeAsync(): Promise<void>;
@@ -16503,10 +16428,10 @@ declare namespace Class_FileHandle {
  *  - **name vs stat().name**: \`name\` is the path the file was opened with
  *    (normalized, still relative when a relative path was given), while
  *    stat().name is only the base name (see Stat).
- *  - **Node comparison**: Node.js has no FileStream class: fs.open returns a
- *    FileHandle (not a stream) and fs.createReadStream returns a Readable without
- *    seek/tell/size/truncate. fibjs createReadStream takes an inclusive
- *    start/end range and returns a positioned stream instead.
+ *  - **Notes**: \`fs.open\` returns a FileHandle rather than a stream, and
+ *    createReadStream takes an inclusive
+ *    start/end range and returns a positioned stream with
+ *    seek/tell/size/truncate.
  *
  *  Obtained from:
  *  - \`fs.openFile(path[, flags])\` — the binary file stream, positioned at 0;
@@ -16558,7 +16483,7 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      The path passed to the open function, with platform separators normalized
      *      but not resolved against the current directory: opening 'data.txt' keeps
      *      'data.txt', an absolute path stays absolute. Reading it after close()
-     *      throws [20009]. Node.js read streams expose the same idea as \`.path\`.
+     *      throws [20009].
      *
      *      Example — inspect the name before and after close:
      *      \`\`\`JavaScript
@@ -16591,8 +16516,7 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -16626,8 +16550,7 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -16659,8 +16582,7 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -16701,7 +16623,7 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      The path passed to the open function, with platform separators normalized
      *      but not resolved against the current directory: opening 'data.txt' keeps
      *      'data.txt', an absolute path stays absolute. Reading it after close()
-     *      throws [20009]. Node.js read streams expose the same idea as \`.path\`.
+     *      throws [20009].
      *
      *      Example — inspect the name before and after close:
      *      \`\`\`JavaScript
@@ -16734,8 +16656,7 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -16767,8 +16688,7 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -16800,8 +16720,7 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009]. Node.js offers the same operation as
-     *      filehandle.chmod.
+     *      the call fails with [20009].
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -16865,8 +16784,7 @@ declare namespace Class_FileStream {
  *    parsing constructors accept the matching forms, so encode() plus a constructor is a lossless
  *    round trip for names, values and file metadata.
  *  - **Not in the standard**: encode() is a fibjs extension (the Web FormData API has no
- *    serializer), as are the string and multipart constructors; Node.js only accepts the empty
- *    constructor and an iterable of pairs.
+ *    serializer), as are the string and multipart constructors.
  *
  *  Obtained from:
  *  - \`new FormData()\` — an empty collection;
@@ -16971,8 +16889,8 @@ declare class Class_FormData extends Class_HttpCollection {
      *        to a space, percent escapes are decoded, empty segments are skipped and repeated names
      *        keep every value. A leading \`?\` is NOT stripped, so "?a=1" stores the field "?a"
      *        (unlike the URLSearchParams constructor).
-     *      The string and object forms are fibjs extensions; the Web standard accepts only a form
-     *      element and Node.js only an iterable of pairs. A value that matches no form (a number,
+     *      The string and object forms are extensions; the Web standard accepts only a form
+     *      element. A value that matches no form (a number,
      *      null) throws TypeError 20005.
      *
      *      Example — initialize from a urlencoded string:
@@ -17096,7 +17014,7 @@ declare class Class_FormData extends Class_HttpCollection {
         "dts/interface/Gunzip.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Gunzip is the Node.js compatible codec that decompresses gzip data
+ * @description Gunzip is the codec that decompresses gzip data
  *
  *  \`new zlib.Gunzip(opts)\` builds a synchronous codec; feed gzip chunks with \`_processChunk\`
  *  and the zlib flush flags and it returns the decoded bytes. It decodes the container
@@ -17161,7 +17079,7 @@ declare class Class_Gunzip extends Class_ZlibCodec {
         "dts/interface/Gzip.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Gzip is the Node.js compatible codec that compresses data to the gzip container
+ * @description Gzip is the codec that compresses data to the gzip container
  *
  *  \`new zlib.Gzip(opts)\` builds a synchronous codec; feed chunks with \`_processChunk\` and
  *  the zlib flush flags. The gzip container is what \`zlib.gzip\` writes and \`zlib.gunzip\`
@@ -18034,8 +17952,7 @@ declare class Class_HeapGraphEdge extends Class_object {
  * - **description**: a convenience string \`name[Type]\` (for example
  *   \`HeapMarker[Object]\`); it is also the grouping key used by the \`details\` of
  *   \`HeapSnapshot.diff\`.
- * - **childs**: the outgoing edges, named \`childs\` rather than the \`children\`/\`edges\`
- *   of Node.js heap tools. Each access re-wraps the edges, so cache the array when
+ * - **childs**: the outgoing edges, named \`childs\`; each access re-wraps the edges, so cache the array when
  *   iterating.
  *
  * Obtained from:
@@ -18222,10 +18139,9 @@ declare class Class_HeapGraphNode extends Class_object {
  *   whole heap; reading \`nodes\` rebuilds the array and re-wraps every node, and each
  *   node or edge accessed afterwards crosses into the isolate that owns the snapshot.
  *   Cache the arrays and filter early.
- * - **Node.js differences**: Node.js exposes the heap as a JSON stream through
- *   \`getHeapSnapshot\`/\`writeHeapSnapshot\` without an object model; this class and
- *   \`loadSnapshot\`/\`diff\` are fibjs additions. The property names also differ from the
- *   JSON fields (\`shallowSize\` against \`self_size\`, \`childs\` against \`children\`).
+ * - **Notes**: this class, with \`loadSnapshot\`/\`diff\`, is the object-model form of the heap data:
+ *    the property names follow the snapshot model (\`shallowSize\`, \`childs\`), which the
+ *    accessors below document.
  *
  * Obtained from:
  *  - \`v8.takeSnapshot()\` — capture the live heap;
@@ -18730,8 +18646,8 @@ declare namespace Class_HeapSnapshot {
  *  - **ALPN and certificates**: the SecureContext must be a TLS server context and should
  *    advertise the \`h2\` protocol (\`alpnProtocols: ['h2']\`). Clients created by http2.connect
  *    always offer \`h2\`; without it the TLS handshake negotiates no protocol (a fibjs client
- *    still speaks HTTP/2, a Node.js client refuses the connection).
- *  - **Node.js differences**: Http2Server always uses TLS - there is no h2c server, no
+ *    still speaks HTTP/2, a client that requires h2 refuses the connection).
+ *  - **Notes**: Http2Server always uses TLS - there is no h2c server, no
  *    separate Http2SecureServer and no \`allowHTTP1\` fallback; requests are handled through
  *    the session/stream events instead of a server-level \`stream\` event; and server push is
  *    not implemented.
@@ -19180,9 +19096,8 @@ declare namespace Class_Http2Server {
  *    becomes true on close(), on a sent/received GOAWAY or when the transport ends;
  *    \`destroyed\` is true after destroy() or a transport failure.
  *  - **Request dispatch**: on a server session, \`stream\` is emitted for every request with
- *    the request headers; on a client session, use \`request()\` to create streams. In
- *    Node.js this event is emitted on the server object instead.
- *  - **Node.js differences**: there is no \`session.close\` event and the declared \`goaway\`
+ *    the request headers; on a client session, use \`request()\` to create streams.
+ *  - **Limits**: there is no \`session.close\` event and the declared \`goaway\`
  *    and \`error\` events are not dispatched by the current implementation - check \`closed\`
  *    instead; \`ping()\` returns 0 and takes no callback (the round-trip time is not
  *    measured); \`request()\` supports only the \`endStream\` option; there is no settings
@@ -19451,8 +19366,7 @@ declare class Class_Http2Session extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js \`ping(callback)\` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently
@@ -19466,8 +19380,7 @@ declare class Class_Http2Session extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js \`ping(callback)\` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently
@@ -19479,8 +19392,7 @@ declare class Class_Http2Session extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js \`ping(callback)\` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently
@@ -19967,8 +19879,7 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js \`ping(callback)\` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently
@@ -19980,8 +19891,7 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js \`ping(callback)\` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently
@@ -19993,8 +19903,7 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
      * @description sends a PING frame to the peer
      *
      *      The PING is submitted and written, and the call returns 0; it does not wait for the
-     *      PING ACK and the current implementation does not measure the round-trip time (the
-     *      Node.js \`ping(callback)\` reports the RTT through the callback instead). Throws when
+     *      PING ACK and the current implementation does not measure the round-trip time. Throws when
      *      the session is destroyed; a broken transport fails with EPIPE.
      *
      *      @return returns 0; the round-trip time is not measured currently
@@ -20214,7 +20123,7 @@ declare namespace Class_Http2Session {
  *    http2_constants; the peer's read() then throws, while a stream killed by a session
  *    destroy() reads null. The remote error payload of a reset is not populated in the
  *    current implementation (the thrown error is \`[0] Success\`).
- *  - **Node.js differences**: there is no \`pushStream()\`, no writable \`end\` overload set
+ *  - **Limits**: there is no \`pushStream()\`, no writable \`end\` overload set
  *    with callbacks and no \`headersSent\`/\`sentHeaders\` properties; the request-body
  *    limitation described in Http2Session.request applies to client streams.
  *
@@ -20978,7 +20887,7 @@ declare namespace Class_Http2Stream {
  *
  *  Obtained from:
  *  - \`new http.Client(options)\` — the class is exported as \`http.Client\`; \`http.Agent\` is the
- *    same object, provided for Node.js compatibility;
+ *    same object, kept as an alias;
  *  - \`new http.Client(secureContext)\` — creates the client directly from a tls.SecureContext;
  *  - \`new http.Client({ ...tls options, keepAlive, timeout, ... })\` — the TLS options build the
  *    secure context and the remaining properties set the client defaults.
@@ -20988,9 +20897,9 @@ declare namespace Class_Http2Stream {
  *  - **Connection pool**: an HttpClient pools finished keep-alive connections in one idle list and
  *    reuses them for later requests to the same host. \`poolTimeout\` (default 10000 ms) expires an
  *    idle connection and \`maxFreeSockets\` (default 256) caps the number of idle connections kept
- *    by the client as a whole, not per host as in Node.js. \`maxSockets\` and \`maxTotalSockets\` are
- *    accepted for Node.js compatibility but are not enforced. \`freeSockets\`, \`sockets\` and
- *    \`totalSocketCount\` are compatibility accessors: fibjs returns an empty object or 0 instead of
+ *    by the client as a whole, not per host. \`maxSockets\` and \`maxTotalSockets\` are
+ *    accepted but are not enforced. \`freeSockets\`, \`sockets\` and
+ *    \`totalSocketCount\` are compatibility accessors: they return an empty object or 0 instead of
  *    exposing the pool contents, and \`destroy()\` releases the pooled connections.
  *  - **Cookies**: the client keeps its own cookie jar (\`cookies\`). With \`enableCookie\` enabled
  *    (the default) the Set-Cookie headers of every response are stored and matching cookies are
@@ -21011,10 +20920,9 @@ declare namespace Class_Http2Stream {
  *  - **HTTP/2**: with \`enableH2\` enabled (the default) HTTPS connections negotiate HTTP/2 through
  *    ALPN. HTTP/2 sessions are cached process-wide by origin, proxy, SNI and TLS identity, so
  *    clients with the same identity share them; \`destroy()\` clears that cache for every client.
- *  - **Node.js differences**: Node.js splits this role between \`Agent\` and \`globalAgent\` and has no
- *    cookie jar, no automatic decompression and no automatic redirects; fibjs has \`getName\`
- *    returning \`protocol//host:port[:localAddress]\` (Node returns \`host:port:localAddress\`), and
- *    \`defaultPort\`/\`protocol\` only affect \`getName()\`.
+ *  - **Client identity**: \`getName\` returns \`protocol//host:port[:localAddress]\`, and
+ *    \`defaultPort\`/\`protocol\` only affect \`getName()\`. The client keeps a cookie jar and follows
+ *    redirects and decompresses bodies automatically.
  *
  *  Example 1 — a client with its own defaults:
  *  \`\`\`JavaScript
@@ -21206,7 +21114,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      When enabled, 301, 302, 303, 307 and 308 responses are followed automatically; 303 switches
      *      the request to GET and drops the body. There is no redirect count limit, but a URL visited
      *      twice raises a cyclic redirect error. When disabled, the redirect response itself is
-     *      returned. Node.js never follows redirects automatically.
+     *      returned.
      *
      */
     autoRedirect: boolean;
@@ -21236,7 +21144,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      * @description Queries and sets the maximum number of request headers, default 128
      *
      *      Applies to the messages parsed and generated by this client; a message can override it
-     *      through its own \`maxHeadersCount\` property. Node.js defaults to 1000.
+     *      through its own \`maxHeadersCount\` property.
      *
      */
     maxHeadersCount: number;
@@ -21244,7 +21152,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
     /**
      * @description Queries and sets the maximum request header size in bytes, default 8192
      *
-     *      A response whose headers exceed the limit is rejected. Node.js defaults to 16384 bytes.
+     *      A response whose headers exceed the limit is rejected.
      *
      */
     maxHeaderSize: number;
@@ -21253,7 +21161,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      * @description Queries and sets the maximum chunk size in MB, default 2
      *
      *      Limits one chunk of a chunked request or response body; a chunk larger than the limit is
-     *      rejected. Not a Node.js option.
+     *      rejected.
      *
      */
     maxChunkSize: number;
@@ -21262,7 +21170,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      * @description Queries and sets the maximum body size in MB, default -1, no size limit
      *
      *      A response whose body exceeds the limit fails with error number 20024; 0 rejects every
-     *      body. A HEAD response is exempt because it has no body. Not a Node.js option.
+     *      body. A HEAD response is exempt because it has no body.
      *
      */
     maxBodySize: number;
@@ -21271,7 +21179,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      * @description Queries and sets the browser identifier in http requests
      *
      *      Default 'curl/8.14.1'. Sent as the User-Agent header when the request does not set one;
-     *      assign an empty string to omit the header. Node.js sends no User-Agent by default.
+     *      assign an empty string to omit the header.
      *
      */
     userAgent: string;
@@ -21300,8 +21208,8 @@ declare class Class_HttpClient extends Class_EventEmitter {
     /**
      * @description Queries and sets the maximum number of connections per host, default unlimited
      *
-     *      Accepted and stored for Node.js compatibility, but fibjs does not enforce it: concurrent
-     *      requests are not queued when the limit is reached. Node.js queues the excess requests.
+     *      Accepted and stored but not enforced: concurrent
+     *      requests are not queued when the limit is reached.
      *
      */
     maxSockets: number;
@@ -21309,7 +21217,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
     /**
      * @description Queries and sets the maximum total number of connections, default unlimited
      *
-     *      Accepted and stored for Node.js compatibility, but fibjs does not enforce it; only the
+     *      Accepted and stored but not enforced; only the
      *      number of idle pooled connections (\`maxFreeSockets\`) is limited.
      *
      */
@@ -21319,7 +21227,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      * @description Queries and sets the maximum number of idle connections, default 256
      *
      *      This client keeps one idle list for all hosts and drops the oldest entries beyond this
-     *      number; Node.js applies maxFreeSockets per host instead. Ignored when \`keepAlive\` is false.
+     *      number. Ignored when \`keepAlive\` is false.
      *
      */
     maxFreeSockets: number;
@@ -21345,7 +21253,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
     /**
      * @description Returns the map of idle connections keyed by host:port
      *
-     *      Node.js compatibility accessor: fibjs always returns an empty object because the internal
+     *      Compatibility accessor: always returns an empty object because the internal
      *      pool is not exposed. Use \`destroy()\` to release the real pooled connections.
      *
      */
@@ -21354,7 +21262,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
     /**
      * @description Returns the map of connections in use keyed by host:port
      *
-     *      Node.js compatibility accessor: fibjs always returns an empty object because the internal
+     *      Compatibility accessor: always returns an empty object because the internal
      *      pool is not exposed.
      *
      */
@@ -21363,7 +21271,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
     /**
      * @description Returns the total number of connections in use across all hosts
      *
-     *      Node.js compatibility accessor: fibjs always returns 0 because the internal pool is not
+     *      Compatibility accessor: always returns 0 because the internal pool is not
      *      exposed.
      *
      */
@@ -21374,8 +21282,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *
      *      Reads \`host\` (default empty), \`port\` (default \`defaultPort\`) and \`localAddress\` from options
      *      and returns \`protocol//host:port\`, with \`:localAddress\` appended when one is given; the
-     *      default result is therefore \`http://:80\`. This differs from Node.js, which returns
-     *      \`host:port:localAddress\` without the protocol.
+     *      default result is therefore \`http://:80\`.
      *
      *      Example — the pool key of a host:
      *      \`\`\`JavaScript
@@ -22526,7 +22433,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      When enabled, 301, 302, 303, 307 and 308 responses are followed automatically; 303 switches
      *      the request to GET and drops the body. There is no redirect count limit, but a URL visited
      *      twice raises a cyclic redirect error. When disabled, the redirect response itself is
-     *      returned. Node.js never follows redirects automatically.
+     *      returned.
      *
      */
     autoRedirect: boolean;
@@ -22556,7 +22463,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      * @description Queries and sets the maximum number of request headers, default 128
      *
      *      Applies to the messages parsed and generated by this client; a message can override it
-     *      through its own \`maxHeadersCount\` property. Node.js defaults to 1000.
+     *      through its own \`maxHeadersCount\` property.
      *
      */
     maxHeadersCount: number;
@@ -22564,7 +22471,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     /**
      * @description Queries and sets the maximum request header size in bytes, default 8192
      *
-     *      A response whose headers exceed the limit is rejected. Node.js defaults to 16384 bytes.
+     *      A response whose headers exceed the limit is rejected.
      *
      */
     maxHeaderSize: number;
@@ -22573,7 +22480,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      * @description Queries and sets the maximum chunk size in MB, default 2
      *
      *      Limits one chunk of a chunked request or response body; a chunk larger than the limit is
-     *      rejected. Not a Node.js option.
+     *      rejected.
      *
      */
     maxChunkSize: number;
@@ -22582,7 +22489,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      * @description Queries and sets the maximum body size in MB, default -1, no size limit
      *
      *      A response whose body exceeds the limit fails with error number 20024; 0 rejects every
-     *      body. A HEAD response is exempt because it has no body. Not a Node.js option.
+     *      body. A HEAD response is exempt because it has no body.
      *
      */
     maxBodySize: number;
@@ -22591,7 +22498,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      * @description Queries and sets the browser identifier in http requests
      *
      *      Default 'curl/8.14.1'. Sent as the User-Agent header when the request does not set one;
-     *      assign an empty string to omit the header. Node.js sends no User-Agent by default.
+     *      assign an empty string to omit the header.
      *
      */
     userAgent: string;
@@ -22620,8 +22527,8 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     /**
      * @description Queries and sets the maximum number of connections per host, default unlimited
      *
-     *      Accepted and stored for Node.js compatibility, but fibjs does not enforce it: concurrent
-     *      requests are not queued when the limit is reached. Node.js queues the excess requests.
+     *      Accepted and stored but not enforced: concurrent
+     *      requests are not queued when the limit is reached.
      *
      */
     maxSockets: number;
@@ -22629,7 +22536,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     /**
      * @description Queries and sets the maximum total number of connections, default unlimited
      *
-     *      Accepted and stored for Node.js compatibility, but fibjs does not enforce it; only the
+     *      Accepted and stored but not enforced; only the
      *      number of idle pooled connections (\`maxFreeSockets\`) is limited.
      *
      */
@@ -22639,7 +22546,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      * @description Queries and sets the maximum number of idle connections, default 256
      *
      *      This client keeps one idle list for all hosts and drops the oldest entries beyond this
-     *      number; Node.js applies maxFreeSockets per host instead. Ignored when \`keepAlive\` is false.
+     *      number. Ignored when \`keepAlive\` is false.
      *
      */
     maxFreeSockets: number;
@@ -22665,7 +22572,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     /**
      * @description Returns the map of idle connections keyed by host:port
      *
-     *      Node.js compatibility accessor: fibjs always returns an empty object because the internal
+     *      Compatibility accessor: always returns an empty object because the internal
      *      pool is not exposed. Use \`destroy()\` to release the real pooled connections.
      *
      */
@@ -22674,7 +22581,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     /**
      * @description Returns the map of connections in use keyed by host:port
      *
-     *      Node.js compatibility accessor: fibjs always returns an empty object because the internal
+     *      Compatibility accessor: always returns an empty object because the internal
      *      pool is not exposed.
      *
      */
@@ -22683,7 +22590,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     /**
      * @description Returns the total number of connections in use across all hosts
      *
-     *      Node.js compatibility accessor: fibjs always returns 0 because the internal pool is not
+     *      Compatibility accessor: always returns 0 because the internal pool is not
      *      exposed.
      *
      */
@@ -22694,8 +22601,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *
      *      Reads \`host\` (default empty), \`port\` (default \`defaultPort\`) and \`localAddress\` from options
      *      and returns \`protocol//host:port\`, with \`:localAddress\` appended when one is given; the
-     *      default result is therefore \`http://:80\`. This differs from Node.js, which returns
-     *      \`host:port:localAddress\` without the protocol.
+     *      default result is therefore \`http://:80\`.
      *
      *      Example — the pool key of a host:
      *      \`\`\`JavaScript
@@ -24198,8 +24104,7 @@ declare class Class_HttpCollection extends Class_object {
  *   keeps the header bytes unchanged as required by RFC 6265 for Set-Cookie values.
  * - **Limits**: the object models only name, value, domain, path, expires, secure and httpOnly.
  *   SameSite and Max-Age are not supported: parse ignores them and toString never writes them.
- *   Node.js has no Cookie class; the same fields appear in the Set-Cookie header and in
- *   userland cookie packages.
+ *   The same fields appear in the Set-Cookie header, and cookie packages parse it from there.
  *
  * Obtained from:
  * - \`new http.Cookie(name, value, options)\` — build a cookie from scratch;
@@ -25113,7 +25018,7 @@ declare namespace Class_HttpHandler {
  *  - **Headers**: every HTTP message carries a case-insensitive Headers collection exposed as
  *    \`headers\`. Multi-value keys such as Set-Cookie keep their values in order; hasHeader,
  *    firstHeader, allHeader, appendHeader, setHeader, removeHeader, getHeader and getHeaders are
- *    the member forms of the same collection and follow the Node.js names. appendHeader adds
+ *    the member forms of the same collection. appendHeader adds
  *    values, setHeader replaces every value of a key (an object argument only touches the keys it
  *    contains, a Headers argument replaces the whole set), removeHeader deletes the key.
  *  - **Protocol and persistence**: \`protocol\` is the HTTP version string; setting a version above
@@ -25135,10 +25040,10 @@ declare namespace Class_HttpHandler {
  *  - **formData**: parses the body according to Content-Type; only multipart/form-data (with a
  *    boundary) and application/x-www-form-urlencoded are accepted, any other type raises a
  *    TypeError, matching the Fetch Body mixin (MDN).
- *  - **Node.js differences**: Node has no shared base class exporting these members;
- *    http.IncomingMessage carries headers/method/url and http.ServerResponse carries
- *    headersSent/setHeader/getHeaders/addTrailers. Node headers are plain objects with array
- *    values, while fibjs exposes the WHATWG-style Headers collection plus the firstHeader and
+ *  - **Shared base class**: the class is the common base of requests and responses, so the
+ *    request members (headers/method/url) and the response members
+ *    (headersSent/setHeader/getHeaders/addTrailers) live on one type. Headers are exposed as a
+ *    WHATWG-style Headers collection plus the firstHeader and
  *    allHeader helpers.
  *
  *  Obtained from:
@@ -25220,8 +25125,7 @@ declare class Class_HttpMessage extends Class_Message {
      *
      *      Default HTTP/1.1. The setter validates the form and throws error 20024 for anything else;
      *      a version above 1.0 enables keepAlive and 1.0 disables it. A parsed message sets the
-     *      version from its start line. Node.js exposes the same value as httpVersion on
-     *      IncomingMessage and ServerResponse.
+     *      version from its start line.
      *
      *      Example — the version drives keep-alive:
      *      \`\`\`JavaScript
@@ -25246,7 +25150,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      The live Headers collection of the message: the property itself cannot be replaced, but
      *      the collection can be modified with its own methods (set, append, delete, ...) and the
      *      change is reflected in the wire output. Parsed messages store keys lowercase, lookup is
-     *      case-insensitive either way. Node.js uses a plain object plus rawHeaders instead.
+     *      case-insensitive either way.
      *
      */
     readonly headers: Class_Headers;
@@ -25256,8 +25160,7 @@ declare class Class_HttpMessage extends Class_Message {
      *
      *      Default true. Setting protocol above 1.0 turns it on and 1.0 turns it off, and appending
      *      or parsing a Connection header updates it ('close' clears, 'keep-alive' and 'upgrade' set).
-     *      On output the value selects the Connection header written by sendTo. Node's IncomingMessage
-     *      has no such property, persistence belongs to the Agent.
+     *      On output the value selects the Connection header written by sendTo.
      *
      */
     keepAlive: boolean;
@@ -25266,7 +25169,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets whether the protocol is upgraded
      *
      *      Default false. Set when a Connection: Upgrade header is appended or parsed; the WebSocket
-     *      handshake relies on it. Node.js reports the same condition through the 'upgrade' event.
+     *      handshake relies on it.
      *
      */
     upgrade: boolean;
@@ -25275,8 +25178,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets the maximum number of request headers, default is 128
      *
      *      The parser fails with error 20024 when a message carries more header lines than this; it
-     *      is used when reading requests. A negative value throws a RangeError (20006). Node.js has
-     *      an http.Server.maxHeadersCount property instead of a per-message one.
+     *      is used when reading requests. A negative value throws a RangeError (20006).
      *
      */
     maxHeadersCount: number;
@@ -25285,8 +25187,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets the maximum request header length, default is 8192
      *
      *      The maximum size in bytes of one header line accepted by the parser; a longer line fails
-     *      with error 20024. A negative value throws a RangeError (20006). Node.js supports the
-     *      process-wide --max-http-header-size setting instead.
+     *      with error 20024. A negative value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -25295,8 +25196,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets the maximum chunk size in MB, default is 2
      *
      *      Bounds a single chunk of a chunked body while it is parsed: a larger chunk fails with
-     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted. Node.js has no equivalent
-     *      per-message setting.
+     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted.
      *
      */
     maxChunkSize: number;
@@ -25306,7 +25206,7 @@ declare class Class_HttpMessage extends Class_Message {
      *
      *      While parsing, a Content-Length or chunked body larger than this fails with error 20024
      *      ("HttpMessage: body is too huge."); -1 disables the limit and 0 reads no body at all. Set
-     *      it before readFrom. Node.js has no per-message body limit.
+     *      it before readFrom.
      *
      */
     maxBodySize: number;
@@ -25316,7 +25216,7 @@ declare class Class_HttpMessage extends Class_Message {
      *
      *      The underlying device stream the message was read from; null when the message was built in
      *      memory and reset by clear(). It differs from stream (inherited from Message), the buffered
-     *      wrapper the parser consumed. Node.js exposes socket on IncomingMessage only.
+     *      wrapper the parser consumed.
      *
      */
     readonly socket: Class_Stream;
@@ -25336,7 +25236,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries the first header of the specified key
      *
      *      Returns the first value when the key was appended more than once; a missing key returns
-     *      null (not undefined). Use getHeader for the Node.js-style undefined result and allHeader
+     *      null (not undefined). Use getHeader for the undefined result and allHeader
      *      for every value.
      *      @param name specifies the key to query
      *      @return returns the value corresponding to the key, or null if it does not exist
@@ -25481,8 +25381,7 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description deletes all headers of the specified key
      *
-     *      Case-insensitive; a missing key is ignored. Returns no data, like Node's
-     *      response.removeHeader.
+     *      Case-insensitive; a missing key is ignored. Returns no data.
      *      @param name specifies the key to delete
      *
      */
@@ -25491,8 +25390,8 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description queries the first header of the specified key
      *
-     *      Returns the first value as a string, or undefined when the key does not exist
-     *      (Node.js-style). firstHeader returns null instead and allHeader returns every value.
+     *      Returns the first value as a string, or undefined when the key does not exist.
+     *      firstHeader returns null instead and allHeader returns every value.
      *      @param name specifies the key to query
      *      @return returns the value corresponding to the key, or undefined if it does not exist
      *
@@ -25503,8 +25402,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries all headers
      *
      *      Returns one object with every header: a key with one value maps to the string, a key with
-     *      several values maps to an array; the same shape as allHeader(""). Node's
-     *      response.getHeaders() returns arrays for every key instead.
+     *      several values maps to an array; the same shape as allHeader("").
      *      @return returns the key-value pairs of all headers
      *
      */
@@ -25515,7 +25413,7 @@ declare class Class_HttpMessage extends Class_Message {
      *
      *      False for a message built in memory; sendTo and send set it to true when the start line
      *      and headers were written to a stream. On a server response it is true once the reply left
-     *      the handler pipeline. Node's ServerResponse.headersSent has the same meaning.
+     *      the handler pipeline.
      *
      */
     readonly headersSent: boolean;
@@ -25534,7 +25432,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description adds trailer headers, which will be sent after the body
      *
      *      Appends (not replaces) the entries of the object to the trailers collection; the trailer
-     *      section is written after a chunked body. Node's response.addTrailers has the same shape.
+     *      section is written after a chunked body.
      *
      *      Example — queue a trailer and read it back:
      *      \`\`\`JavaScript
@@ -25651,8 +25549,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *
      *      Default HTTP/1.1. The setter validates the form and throws error 20024 for anything else;
      *      a version above 1.0 enables keepAlive and 1.0 disables it. A parsed message sets the
-     *      version from its start line. Node.js exposes the same value as httpVersion on
-     *      IncomingMessage and ServerResponse.
+     *      version from its start line.
      *
      *      Example — the version drives keep-alive:
      *      \`\`\`JavaScript
@@ -25677,7 +25574,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      The live Headers collection of the message: the property itself cannot be replaced, but
      *      the collection can be modified with its own methods (set, append, delete, ...) and the
      *      change is reflected in the wire output. Parsed messages store keys lowercase, lookup is
-     *      case-insensitive either way. Node.js uses a plain object plus rawHeaders instead.
+     *      case-insensitive either way.
      *
      */
     readonly headers: Class_Headers;
@@ -25687,8 +25584,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *
      *      Default true. Setting protocol above 1.0 turns it on and 1.0 turns it off, and appending
      *      or parsing a Connection header updates it ('close' clears, 'keep-alive' and 'upgrade' set).
-     *      On output the value selects the Connection header written by sendTo. Node's IncomingMessage
-     *      has no such property, persistence belongs to the Agent.
+     *      On output the value selects the Connection header written by sendTo.
      *
      */
     keepAlive: boolean;
@@ -25697,7 +25593,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets whether the protocol is upgraded
      *
      *      Default false. Set when a Connection: Upgrade header is appended or parsed; the WebSocket
-     *      handshake relies on it. Node.js reports the same condition through the 'upgrade' event.
+     *      handshake relies on it.
      *
      */
     upgrade: boolean;
@@ -25706,8 +25602,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets the maximum number of request headers, default is 128
      *
      *      The parser fails with error 20024 when a message carries more header lines than this; it
-     *      is used when reading requests. A negative value throws a RangeError (20006). Node.js has
-     *      an http.Server.maxHeadersCount property instead of a per-message one.
+     *      is used when reading requests. A negative value throws a RangeError (20006).
      *
      */
     maxHeadersCount: number;
@@ -25716,8 +25611,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets the maximum request header length, default is 8192
      *
      *      The maximum size in bytes of one header line accepted by the parser; a longer line fails
-     *      with error 20024. A negative value throws a RangeError (20006). Node.js supports the
-     *      process-wide --max-http-header-size setting instead.
+     *      with error 20024. A negative value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -25726,8 +25620,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets the maximum chunk size in MB, default is 2
      *
      *      Bounds a single chunk of a chunked body while it is parsed: a larger chunk fails with
-     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted. Node.js has no equivalent
-     *      per-message setting.
+     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted.
      *
      */
     maxChunkSize: number;
@@ -25737,7 +25630,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *
      *      While parsing, a Content-Length or chunked body larger than this fails with error 20024
      *      ("HttpMessage: body is too huge."); -1 disables the limit and 0 reads no body at all. Set
-     *      it before readFrom. Node.js has no per-message body limit.
+     *      it before readFrom.
      *
      */
     maxBodySize: number;
@@ -25747,7 +25640,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *
      *      The underlying device stream the message was read from; null when the message was built in
      *      memory and reset by clear(). It differs from stream (inherited from Message), the buffered
-     *      wrapper the parser consumed. Node.js exposes socket on IncomingMessage only.
+     *      wrapper the parser consumed.
      *
      */
     readonly socket: Class_StreamPromise;
@@ -25767,7 +25660,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries the first header of the specified key
      *
      *      Returns the first value when the key was appended more than once; a missing key returns
-     *      null (not undefined). Use getHeader for the Node.js-style undefined result and allHeader
+     *      null (not undefined). Use getHeader for the undefined result and allHeader
      *      for every value.
      *      @param name specifies the key to query
      *      @return returns the value corresponding to the key, or null if it does not exist
@@ -25912,8 +25805,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
     /**
      * @description deletes all headers of the specified key
      *
-     *      Case-insensitive; a missing key is ignored. Returns no data, like Node's
-     *      response.removeHeader.
+     *      Case-insensitive; a missing key is ignored. Returns no data.
      *      @param name specifies the key to delete
      *
      */
@@ -25922,8 +25814,8 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
     /**
      * @description queries the first header of the specified key
      *
-     *      Returns the first value as a string, or undefined when the key does not exist
-     *      (Node.js-style). firstHeader returns null instead and allHeader returns every value.
+     *      Returns the first value as a string, or undefined when the key does not exist.
+     *      firstHeader returns null instead and allHeader returns every value.
      *      @param name specifies the key to query
      *      @return returns the value corresponding to the key, or undefined if it does not exist
      *
@@ -25934,8 +25826,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries all headers
      *
      *      Returns one object with every header: a key with one value maps to the string, a key with
-     *      several values maps to an array; the same shape as allHeader(""). Node's
-     *      response.getHeaders() returns arrays for every key instead.
+     *      several values maps to an array; the same shape as allHeader("").
      *      @return returns the key-value pairs of all headers
      *
      */
@@ -25946,7 +25837,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *
      *      False for a message built in memory; sendTo and send set it to true when the start line
      *      and headers were written to a stream. On a server response it is true once the reply left
-     *      the handler pipeline. Node's ServerResponse.headersSent has the same meaning.
+     *      the handler pipeline.
      *
      */
     readonly headersSent: boolean;
@@ -25965,7 +25856,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description adds trailer headers, which will be sent after the body
      *
      *      Appends (not replaces) the entries of the object to the trailers collection; the trailer
-     *      section is written after a chunked body. Node's response.addTrailers has the same shape.
+     *      section is written after a chunked body.
      *
      *      Example — queue a trailer and read it back:
      *      \`\`\`JavaScript
@@ -26422,9 +26313,8 @@ declare namespace Class_HttpRepeater {
  *  collection and the body, plus the live HttpResponse it belongs to. The body API, the
  *  header API and the connection metadata come from HttpMessage and Message. In an
  *  http.Server handler the first argument is an HttpRequest and its response is the object
- *  to answer with. Node.js exposes the server side as http.IncomingMessage and the client
- *  side as http.ClientRequest; fibjs uses one class for both (http.IncomingMessage is an
- *  alias) and adds the parsed query, cookies, form and href members.
+ *  to answer with. One class serves both sides (http.IncomingMessage is an
+ *  alias), and it adds the parsed query, cookies, form and href members.
  *
  *  Concepts:
  *
@@ -26611,8 +26501,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *
      *      The value is stored verbatim: no uppercasing and no validation. The parser sets it
      *      from the request line and the constructors default it to GET. Routing, HEAD handling
-     *      and the WebSocket upgrade check compare it case-insensitively. Node.js exposes the
-     *      same value as IncomingMessage.method.
+     *      and the WebSocket upgrade check compare it case-insensitively.
      *
      */
     method: string;
@@ -26623,7 +26512,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      A parsed server request stores only the path (\`/a/b\`) here and routing maps match
      *      against it; the Fetch-style constructors store the whole URL instead because the
      *      client functions read the target from this property. Changing it does not touch
-     *      queryString. Node.js IncomingMessage.url contains path and query together.
+     *      queryString.
      *
      */
     address: string;
@@ -26633,8 +26522,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *
      *      Reading joins address and '?' + queryString when the query is not empty; assigning
      *      splits the value at the first '?' and a value without '?' clears the query string.
-     *      Nothing is normalized or encoded here. Node.js IncomingMessage.url has the same read
-     *      shape but is not assignable.
+     *      Nothing is normalized or encoded here.
      *
      */
     url: string;
@@ -26668,8 +26556,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *
      *      Stored without the leading '?', for example "a=1&b=2"; the parser fills it from the
      *      request line and the setters of url update it. Assigning it does not refresh an
-     *      already parsed query object. Node.js keeps the same text inside
-     *      IncomingMessage.url.
+     *      already parsed query object.
      *
      */
     queryString: string;
@@ -26679,8 +26566,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *
      *      Parsed from the Cookie header on first access and cached; get(name) and all(name)
      *      read the values while duplicate names keep every value. Changing the Cookie header
-     *      after the first access does not refresh the collection. Node.js does not parse
-     *      cookies on IncomingMessage.
+     *      after the first access does not refresh the collection.
      *
      */
     readonly cookies: Class_HttpCollection;
@@ -26692,8 +26578,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      and multipart/form-data (with a boundary) are accepted. A missing Content-Type
      *      throws "Content-Type is missing", another type throws "unknown form format" and an
      *      empty body gives an empty FormData (error 20024). The parse rewinds the seekable
-     *      body and does not set bodyUsed, so the body remains readable afterwards. Node.js has
-     *      no built-in form parsing.
+     *      body and does not set bodyUsed, so the body remains readable afterwards.
      *
      *      Example — read an urlencoded form posted to a server:
      *      \`\`\`JavaScript
@@ -26717,7 +26602,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      Built once from queryString on first access and cached; get, getAll, has and the
      *      iteration helpers read it, but changes made through the URLSearchParams object are
      *      not written back to the request. Change queryString or url before the first access to
-     *      affect it. Node.js exposes no parsed query on IncomingMessage.
+     *      affect it.
      *
      */
     readonly query: Class_URLSearchParams;
@@ -26826,8 +26711,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *
      *      The value is stored verbatim: no uppercasing and no validation. The parser sets it
      *      from the request line and the constructors default it to GET. Routing, HEAD handling
-     *      and the WebSocket upgrade check compare it case-insensitively. Node.js exposes the
-     *      same value as IncomingMessage.method.
+     *      and the WebSocket upgrade check compare it case-insensitively.
      *
      */
     method: string;
@@ -26838,7 +26722,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      A parsed server request stores only the path (\`/a/b\`) here and routing maps match
      *      against it; the Fetch-style constructors store the whole URL instead because the
      *      client functions read the target from this property. Changing it does not touch
-     *      queryString. Node.js IncomingMessage.url contains path and query together.
+     *      queryString.
      *
      */
     address: string;
@@ -26848,8 +26732,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *
      *      Reading joins address and '?' + queryString when the query is not empty; assigning
      *      splits the value at the first '?' and a value without '?' clears the query string.
-     *      Nothing is normalized or encoded here. Node.js IncomingMessage.url has the same read
-     *      shape but is not assignable.
+     *      Nothing is normalized or encoded here.
      *
      */
     url: string;
@@ -26883,8 +26766,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *
      *      Stored without the leading '?', for example "a=1&b=2"; the parser fills it from the
      *      request line and the setters of url update it. Assigning it does not refresh an
-     *      already parsed query object. Node.js keeps the same text inside
-     *      IncomingMessage.url.
+     *      already parsed query object.
      *
      */
     queryString: string;
@@ -26894,8 +26776,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *
      *      Parsed from the Cookie header on first access and cached; get(name) and all(name)
      *      read the values while duplicate names keep every value. Changing the Cookie header
-     *      after the first access does not refresh the collection. Node.js does not parse
-     *      cookies on IncomingMessage.
+     *      after the first access does not refresh the collection.
      *
      */
     readonly cookies: Class_HttpCollection;
@@ -26907,8 +26788,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      and multipart/form-data (with a boundary) are accepted. A missing Content-Type
      *      throws "Content-Type is missing", another type throws "unknown form format" and an
      *      empty body gives an empty FormData (error 20024). The parse rewinds the seekable
-     *      body and does not set bodyUsed, so the body remains readable afterwards. Node.js has
-     *      no built-in form parsing.
+     *      body and does not set bodyUsed, so the body remains readable afterwards.
      *
      *      Example — read an urlencoded form posted to a server:
      *      \`\`\`JavaScript
@@ -26932,7 +26812,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      Built once from queryString on first access and cached; get, getAll, has and the
      *      iteration helpers read it, but changes made through the URLSearchParams object are
      *      not written back to the request. Change queryString or url before the first access to
-     *      affect it. Node.js exposes no parsed query on IncomingMessage.
+     *      affect it.
      *
      */
     readonly query: Class_URLSearchParams;
@@ -26965,8 +26845,7 @@ declare namespace Class_HttpRequest {
  *  trailer collection and the body. A server handler writes the reply through
  *  request.response (the same object arrives as the handler's second argument); the client
  *  functions return an HttpResponse whose body is already readable. The header and body API
- *  is inherited from HttpMessage and Message. Node.js has http.ServerResponse on the server
- *  side and http.IncomingMessage for a received response; fibjs uses one class for both.
+ *  is inherited from HttpMessage and Message. One class serves both the reply and the received response.
  *
  *  Concepts:
  *
@@ -27097,7 +26976,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *
      *      Default 200; the value is written verbatim into the status line and drives ok and the
      *      computed reason phrase, while the parser sets it from a received status line.
-     *      statusCode is the Node.js name and status is an alias.
+     *      statusCode is the primary name and status is an alias.
      *
      */
     statusCode: number;
@@ -27159,8 +27038,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description Sets the status code and reason phrase and appends response headers
      *
      *      Same as the two-argument overload plus an explicit statusMessage; headers are
-     *      appended, not replaced, matching Node's writeHead(statusCode[, statusMessage[,
-     *      headers]]).
+     *      appended, not replaced.
      *      @param statusCode specifies the return status of the response message
      *      @param statusMessage specifies the return message of the response message
      *      @param headers specifies the response headers to add to the response message
@@ -27173,8 +27051,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *
      *      Parsed once from every Set-Cookie header and cached; addCookie() appends to the same
      *      list and the whole list is serialized when the response is sent. The objects are a
-     *      read view: mutating one does not rewrite the header. Node.js has no cookie
-     *      collection on ServerResponse.
+     *      read view: mutating one does not rewrite the header.
      *
      *      Example — collect the cookies of a response:
      *      \`\`\`JavaScript
@@ -27195,7 +27072,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      cookie may be an HttpCookie object or an options object accepted by the HttpCookie
      *      constructor (name, value, path, domain, expires, secure, httpOnly, ...). The cookie
      *      is appended as one more Set-Cookie header when the response is serialized, after the
-     *      values already present. Node.js uses setHeader('Set-Cookie', ...) manually.
+     *      values already present.
      *      @param cookie the cookie to add
      *
      */
@@ -27374,7 +27251,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *
      *      The returned response carries Content-Type: application/json, status 200 and the
      *      given options (status, statusText and headers), like the body constructor. The Web
-     *      standard Response.json() has the same name; Node's http module has no equivalent.
+     *      standard Response.json() has the same name.
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
      *      @return returns a new HttpResponse object
@@ -27449,7 +27326,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *
      *      Default 200; the value is written verbatim into the status line and drives ok and the
      *      computed reason phrase, while the parser sets it from a received status line.
-     *      statusCode is the Node.js name and status is an alias.
+     *      statusCode is the primary name and status is an alias.
      *
      */
     statusCode: number;
@@ -27511,8 +27388,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      * @description Sets the status code and reason phrase and appends response headers
      *
      *      Same as the two-argument overload plus an explicit statusMessage; headers are
-     *      appended, not replaced, matching Node's writeHead(statusCode[, statusMessage[,
-     *      headers]]).
+     *      appended, not replaced.
      *      @param statusCode specifies the return status of the response message
      *      @param statusMessage specifies the return message of the response message
      *      @param headers specifies the response headers to add to the response message
@@ -27525,8 +27401,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *
      *      Parsed once from every Set-Cookie header and cached; addCookie() appends to the same
      *      list and the whole list is serialized when the response is sent. The objects are a
-     *      read view: mutating one does not rewrite the header. Node.js has no cookie
-     *      collection on ServerResponse.
+     *      read view: mutating one does not rewrite the header.
      *
      *      Example — collect the cookies of a response:
      *      \`\`\`JavaScript
@@ -27547,7 +27422,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      cookie may be an HttpCookie object or an options object accepted by the HttpCookie
      *      constructor (name, value, path, domain, expires, secure, httpOnly, ...). The cookie
      *      is appended as one more Set-Cookie header when the response is serialized, after the
-     *      values already present. Node.js uses setHeader('Set-Cookie', ...) manually.
+     *      values already present.
      *      @param cookie the cookie to add
      *
      */
@@ -27722,7 +27597,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *
      *      The returned response carries Content-Type: application/json, status 200 and the
      *      given options (status, statusText and headers), like the body constructor. The Web
-     *      standard Response.json() has the same name; Node's http module has no equivalent.
+     *      standard Response.json() has the same name.
      *      @param data the data to serialize to JSON
      *      @param options the options object, supporting status, statusText and headers
      *      @return returns a new HttpResponse object
@@ -27810,10 +27685,9 @@ declare namespace Class_HttpResponse {
  *  - **Limits and compression**: maxHeadersCount, maxHeaderSize and maxBodySize bound the
  *    parsed request (a request over a limit is answered with 400); enableEncoding
  *    compresses eligible text replies transparently when the client accepts gzip or
- *    deflate. Node.js has no body limit and no automatic compression.
- *  - **Node.js differences**: Node passes \`(req, res)\` to a createServer listener and emits
- *    request/upgrade/clientError events; fibjs accepts the handler forms above, adds
- *    \`req.response\`, and forwards the TcpServer events.
+ *    deflate.
+ *  - **Handler forms**: the handler receives a single request object (see above), the response is
+ *    reached through \`req.response\`, and the TcpServer events are forwarded.
  *
  *  Obtained from:
  *  - \`new http.Server(port, hdlr)\` / \`new http.Server(addr, port, hdlr)\` — bound, ready for
@@ -27951,8 +27825,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      Access-Control-Allow-Credentials: true and Access-Control-Allow-Origin echoing the
      *      origin, and an OPTIONS preflight is answered directly (200) with
      *      Access-Control-Allow-Methods: *, Access-Control-Allow-Headers set to allowHeaders
-     *      and Access-Control-Max-Age: 1728000, without invoking the handler. Node.js has no
-     *      built-in CORS support.
+     *      and Access-Control-Max-Age: 1728000, without invoking the handler.
      *
      *      Example — answer a preflight:
      *      \`\`\`JavaScript
@@ -27982,7 +27855,6 @@ declare class Class_HttpServer extends Class_TcpServer {
      *
      *      Applied when each request is parsed; a request with more header lines is answered
      *      with 400 and the connection is closed. A negative value throws a RangeError (20006).
-     *      Node.js has http.Server.maxHeadersCount for the same purpose.
      *
      */
     maxHeadersCount: number;
@@ -27991,8 +27863,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      * @description Queries and sets the maximum length of one header line in bytes, default 8192
      *
      *      A longer line makes the parser fail and the request is answered with 400; a negative
-     *      value throws a RangeError (20006). Node.js uses the process-wide
-     *      --max-http-header-size option instead.
+     *      value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -28001,8 +27872,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      * @description Queries and sets the maximum request body size in MB, default 64
      *
      *      A Content-Length or chunked body larger than this is rejected while parsing and the
-     *      request is answered with 400; -1 disables the limit and 0 refuses every body. Node.js
-     *      has no built-in body limit.
+     *      request is answered with 400; -1 disables the limit and 0 refuses every body.
      *
      */
     maxBodySize: number;
@@ -28014,7 +27884,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      gzip or deflate when the client sent a matching Accept-Encoding and the
      *      Content-Type is text/* or a known compressible type; the handler adds
      *      Content-Encoding and replaces the body with the compressed one. An existing
-     *      Content-Encoding disables it. Node.js has no automatic compression.
+     *      Content-Encoding disables it.
      *
      */
     enableEncoding: boolean;
@@ -28023,7 +27893,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      * @description Queries and sets the automatic Server header, default fibjs/<version>
      *
      *      Written when the handler did not set a Server header itself; an empty value writes
-     *      an empty header. Node.js does not add a Server header.
+     *      an empty header.
      *
      *      Example — replace the default server name:
      *      \`\`\`JavaScript
@@ -28115,8 +27985,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      Access-Control-Allow-Credentials: true and Access-Control-Allow-Origin echoing the
      *      origin, and an OPTIONS preflight is answered directly (200) with
      *      Access-Control-Allow-Methods: *, Access-Control-Allow-Headers set to allowHeaders
-     *      and Access-Control-Max-Age: 1728000, without invoking the handler. Node.js has no
-     *      built-in CORS support.
+     *      and Access-Control-Max-Age: 1728000, without invoking the handler.
      *
      *      Example — answer a preflight:
      *      \`\`\`JavaScript
@@ -28146,7 +28015,6 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *
      *      Applied when each request is parsed; a request with more header lines is answered
      *      with 400 and the connection is closed. A negative value throws a RangeError (20006).
-     *      Node.js has http.Server.maxHeadersCount for the same purpose.
      *
      */
     maxHeadersCount: number;
@@ -28155,8 +28023,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      * @description Queries and sets the maximum length of one header line in bytes, default 8192
      *
      *      A longer line makes the parser fail and the request is answered with 400; a negative
-     *      value throws a RangeError (20006). Node.js uses the process-wide
-     *      --max-http-header-size option instead.
+     *      value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -28165,8 +28032,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      * @description Queries and sets the maximum request body size in MB, default 64
      *
      *      A Content-Length or chunked body larger than this is rejected while parsing and the
-     *      request is answered with 400; -1 disables the limit and 0 refuses every body. Node.js
-     *      has no built-in body limit.
+     *      request is answered with 400; -1 disables the limit and 0 refuses every body.
      *
      */
     maxBodySize: number;
@@ -28178,7 +28044,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      gzip or deflate when the client sent a matching Accept-Encoding and the
      *      Content-Type is text/* or a known compressible type; the handler adds
      *      Content-Encoding and replaces the body with the compressed one. An existing
-     *      Content-Encoding disables it. Node.js has no automatic compression.
+     *      Content-Encoding disables it.
      *
      */
     enableEncoding: boolean;
@@ -28187,7 +28053,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      * @description Queries and sets the automatic Server header, default fibjs/<version>
      *
      *      Written when the handler did not set a Server header itself; an empty value writes
-     *      an empty header. Node.js does not add a Server header.
+     *      an empty header.
      *
      *      Example — replace the default server name:
      *      \`\`\`JavaScript
@@ -28239,8 +28105,7 @@ declare namespace Class_HttpServer {
  * - **Replacement API**: the same information is available today through FormData;
  *   \`http.Request#form\` returns the parsed parts, \`FormData#get\`/\`all\` return the File/Blob
  *   values, \`Blob#type\`/\`Blob#size\` replace contentType and the length of body, and File#name
- *   replaces fileName. Node.js has no equivalent object either; it exposes the raw bytes and
- *   leaves multipart parsing to userland.
+ *   replaces fileName.
  *
  * Example 1 — the multipart part layout this interface describes:
  * \`\`\`JavaScript
@@ -28358,11 +28223,10 @@ declare class Class_HttpUploadData extends Class_object {
  *    Mozilla store, so the client must trust it explicitly with \`new http.Client({ ca })\`
  *    or a SecureContext. The module-level http functions do not accept TLS keys, so a \`ca\`
  *    in their options is ignored (Node's https.get does accept it).
- *  - **Node.js differences**: https.Server extends tls.Server and is created by
- *    https.createServer(options, listener); fibjs HttpsServer extends HttpServer, and
- *    \`http.createServer\` returns one when the first argument is a SecureContext or contains
- *    TLS material, while \`createServer({}, hdlr)\` returns a plain HttpServer. ALPN, SNI and
- *    session resumption come from the SecureContext (see tls).
+ *  - **Creation**: \`https.createServer(options, listener)\` creates it; the class extends
+ *    HttpServer, and \`http.createServer\` returns one when the first argument is a SecureContext or
+ *    contains TLS material, while \`createServer({}, hdlr)\` returns a plain HttpServer.
+ *    ALPN, SNI and session resumption come from the SecureContext (see tls).
  *
  *  Obtained from:
  *  - \`new http.HttpsServer(options, hdlr)\` / \`new http.HttpsServer(context, port, hdlr)\` —
@@ -28737,7 +28601,7 @@ declare namespace Class_HttpsServer {
         "dts/interface/Inflate.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Inflate is the Node.js compatible codec that decompresses zlib-format data
+ * @description Inflate is the codec that decompresses zlib-format data
  *
  *  \`new zlib.Inflate(opts)\` builds a synchronous codec; feed zlib-format chunks with
  *  \`_processChunk\` and the zlib flush flags and it returns the decoded bytes. The zlib
@@ -28798,7 +28662,7 @@ declare class Class_Inflate extends Class_ZlibCodec {
         "dts/interface/InflateRaw.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description InflateRaw is the Node.js compatible codec that decompresses raw deflate data
+ * @description InflateRaw is the codec that decompresses raw deflate data
  *
  *  \`new zlib.InflateRaw(opts)\` builds a synchronous codec; feed raw deflate chunks (no
  *  header, no checksum) with \`_processChunk\` and it returns the decoded bytes. It is the
@@ -28963,8 +28827,7 @@ declare class Class_KeyObject extends Class_object {
      *      - RSA-PSS: additionally \`hashAlgorithm\`, \`mgf1HashAlgorithm\` and \`saltLength\`;
      *      - DSA: \`modulusLength\` and \`divisorLength\` (the size of q in bits);
      *      - EC and SM2: \`namedCurve\`, the OpenSSL curve name ('prime256v1', ...).
-     *      Node.js reports the same fields and an empty object for Ed25519 where fibjs
-     *      returns undefined; none of the values can be used to recover the key.
+     *      For Ed25519 the object is undefined; none of the values can be used to recover the key.
      *
      *      The returned result contains the following:
      *      \`\`\`JavaScript
@@ -29010,7 +28873,7 @@ declare class Class_KeyObject extends Class_object {
      *
      *      Only secret keys have a byte-string length: a key built with
      *      \`crypto.createSecretKey('0123456789abcdef')\` reports 16. Asymmetric keys have no
-     *      defined length and report undefined, as in Node.js. Read-only.
+     *      defined length and report undefined. Read-only.
      *
      *      @return returns the key size in bytes
      *
@@ -29022,7 +28885,7 @@ declare class Class_KeyObject extends Class_object {
      *
      *      Secret keys are symmetric byte strings used by ciphers and HMAC; public and
      *      private keys are the two halves of an asymmetric pair, where the public half can
-     *      be derived from the private half. Node.js uses the same three values. Read-only.
+     *      be derived from the private half. Read-only.
      *
      *      @return returns the key type
      *
@@ -29061,10 +28924,8 @@ declare class Class_KeyObject extends Class_object {
      *      DER form; PKCS#1 and SEC1 support encryption only when PEM is used. For maximum
      *      compatibility use PKCS#8 for encrypted private keys, because PKCS#8 defines its
      *      own encryption mechanism (RFC 5208; RFC 1421 covers PKCS#1 and SEC1). PEM
-     *      returns a string, DER and raw return a Buffer, JWK returns an object. fibjs
-     *      applies the classic Node defaults (spki/pkcs8) and also accepts \`export()\` with
-     *      no arguments; Node.js v25 requires an explicit type for asymmetric PEM/DER
-     *      export.
+     *      returns a string, DER and raw return a Buffer, JWK returns an object. The default
+     *      type is spki/pkcs8, and \`export()\` with no arguments is accepted.
      *
      *      Example: three representations of the same RSA public key:
      *      \`\`\`JavaScript
@@ -29094,7 +28955,7 @@ declare class Class_KeyObject extends Class_object {
      *      Two secret keys are equal when their bytes match; two asymmetric keys are equal
      *      when their type and key material match, so a public key equals the public key
      *      derived from the matching private key. The comparison is not constant time.
-     *      Calling it with a non-KeyObject throws a TypeError, as in Node.js.
+     *      Calling it with a non-KeyObject throws a TypeError.
      *
      *      Example: a public key equals the one derived from its private key:
      *      \`\`\`JavaScript
@@ -30313,9 +30174,8 @@ declare namespace Class_LevelDB {
  *  example to limit concurrency; use the Condition class to wait for a state change
  *  instead of polling; the Event class is a one-shot broadcast gate and provides no
  *  mutual exclusion.
- *  - **Node.js**: Node.js has no fiber-level lock. The closest concepts are \`Atomics\` in
- *  workers and the browser Web Locks API, neither of which is available in fibjs on the
- *  same objects.
+ *  - **Notes**: the closest concepts elsewhere are \`Atomics\` in
+ *  workers and the browser Web Locks API, neither of which applies to fibers.
  *
  *  Obtained from:
  *  - \`new coroutine.Lock()\` — creates a lock owned by no fiber.
@@ -31457,8 +31317,7 @@ declare class Class_MenuItem extends Class_EventEmitter {
  *    Content-Type header.
  *  - **Encoding**: \`setEncoding\` hands the encoding to the body stream, so the \`data\` event
  *    delivers strings instead of Buffers; for the built-in memory-backed bodies \`read\` keeps
- *    returning a Buffer. Node's IncomingMessage.setEncoding applies the encoding to the readable
- *    itself, so its read() returns strings.
+ *    returning a Buffer.
  *  - **Wire format**: \`sendTo\` and \`readFrom\` serialize and parse a complete message on a stream.
  *    The base Message does not implement them (they throw 20009); HttpRequest, HttpResponse and
  *    WebSocketMessage override both. \`stream\` is the buffered stream a message was read from.
@@ -31524,8 +31383,6 @@ declare class Class_MenuItem extends Class_EventEmitter {
  *    only implemented by the concrete subclasses and throw 20009 here; use HttpRequest,
  *    HttpResponse or WebSocketMessage when a serializable message is needed. The constructor is
  *    reachable as \`mq.Message\` (the class is not a global).
- *  - Node.js has no single message base class: http.IncomingMessage, http.ServerResponse and
- *    stream.Readable play separate roles, and mq has no counterpart at all.
  *
  */
 declare class Class_Message extends Class_EventEmitter {
@@ -31562,8 +31419,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Whether the current message has been sent
      *
      *      The base Message and WebSocketMessage always report false; HttpMessage reports the real
-     *      flag, which sendTo and send set when the message was written to a stream. Node.js has no
-     *      equivalent property on IncomingMessage.
+     *      flag, which sendTo and send set when the message was written to a stream.
      *
      */
     readonly sent: boolean;
@@ -31699,8 +31555,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Sets the encoding of the message body; this method is an alias of the corresponding body method
      *
      *      The encoding is handed to the body stream, so the \`data\` event then delivers strings
-     *      instead of Buffers; for the built-in memory-backed bodies \`read\` still returns a Buffer,
-     *      unlike Node's IncomingMessage.setEncoding, which makes read() return strings. Passing null
+     *      instead of Buffers; for the built-in memory-backed bodies \`read\` still returns a Buffer. Passing null
      *      or an unsupported encoding throws a TypeError.
      *
      *      Example — the data event decodes after setEncoding:
@@ -31735,7 +31590,7 @@ declare class Class_Message extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      \`\`\`JavaScript
@@ -31764,7 +31619,7 @@ declare class Class_Message extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      \`\`\`JavaScript
@@ -31791,7 +31646,7 @@ declare class Class_Message extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      \`\`\`JavaScript
@@ -32147,7 +32002,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      The size in bytes of the buffered body, 0 when the message has no body. It is also 0 for a
      *      streaming body (a response body received from a client), whose size is unknown until it is
-     *      read; Node.js exposes the size through the Content-Length header instead of a property.
+     *      read.
      *
      */
     readonly length: number;
@@ -32527,7 +32382,7 @@ declare class Class_Message extends Class_EventEmitter {
     /**
      * @description Pauses the automatic reading mode of the message body stream
      *
-     *      Kept for Node.js compatibility; like Stream.pause it currently has no effect. The method
+     *      Like Stream.pause it currently has no effect. The method
      *      still returns the message so chainable code keeps working.
      *      @return returns the message object
      *
@@ -32540,8 +32395,7 @@ declare class Class_Message extends Class_EventEmitter {
      *      Data is forwarded through the \`data\` events of the body, so a streaming body flows
      *      automatically while a buffered body is copied from its current position (rewind it first
      *      when it was just written). The options are handed to the underlying pipe helper; end:
-     *      false leaves the destination open when the body ends. Returns the destination, like Node's
-     *      readable.pipe.
+     *      false leaves the destination open when the body ends. Returns the destination.
      *
      *      Example — copy a buffered body into another stream:
      *      \`\`\`JavaScript
@@ -32573,7 +32427,7 @@ declare class Class_Message extends Class_EventEmitter {
     /**
      * @description Removes all pipe destinations of the message body stream
      *
-     *      Kept for Node.js compatibility; like Stream.unpipe it currently has no effect on the pipes
+     *      Like Stream.unpipe it currently has no effect on the pipes
      *      already established.
      *      @param destination a specific writable destination to unpipe
      *
@@ -32769,8 +32623,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Whether the current message has been sent
      *
      *      The base Message and WebSocketMessage always report false; HttpMessage reports the real
-     *      flag, which sendTo and send set when the message was written to a stream. Node.js has no
-     *      equivalent property on IncomingMessage.
+     *      flag, which sendTo and send set when the message was written to a stream.
      *
      */
     readonly sent: boolean;
@@ -32902,8 +32755,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Sets the encoding of the message body; this method is an alias of the corresponding body method
      *
      *      The encoding is handed to the body stream, so the \`data\` event then delivers strings
-     *      instead of Buffers; for the built-in memory-backed bodies \`read\` still returns a Buffer,
-     *      unlike Node's IncomingMessage.setEncoding, which makes read() return strings. Passing null
+     *      instead of Buffers; for the built-in memory-backed bodies \`read\` still returns a Buffer. Passing null
      *      or an unsupported encoding throws a TypeError.
      *
      *      Example — the data event decodes after setEncoding:
@@ -32938,7 +32790,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      \`\`\`JavaScript
@@ -32965,7 +32817,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      \`\`\`JavaScript
@@ -32992,7 +32844,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      \`\`\`JavaScript
@@ -33330,7 +33182,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      The size in bytes of the buffered body, 0 when the message has no body. It is also 0 for a
      *      streaming body (a response body received from a client), whose size is unknown until it is
-     *      read; Node.js exposes the size through the Content-Length header instead of a property.
+     *      read.
      *
      */
     readonly length: number;
@@ -33698,7 +33550,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
     /**
      * @description Pauses the automatic reading mode of the message body stream
      *
-     *      Kept for Node.js compatibility; like Stream.pause it currently has no effect. The method
+     *      Like Stream.pause it currently has no effect. The method
      *      still returns the message so chainable code keeps working.
      *      @return returns the message object
      *
@@ -33711,8 +33563,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      Data is forwarded through the \`data\` events of the body, so a streaming body flows
      *      automatically while a buffered body is copied from its current position (rewind it first
      *      when it was just written). The options are handed to the underlying pipe helper; end:
-     *      false leaves the destination open when the body ends. Returns the destination, like Node's
-     *      readable.pipe.
+     *      false leaves the destination open when the body ends. Returns the destination.
      *
      *      Example — copy a buffered body into another stream:
      *      \`\`\`JavaScript
@@ -33744,7 +33595,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
     /**
      * @description Removes all pipe destinations of the message body stream
      *
-     *      Kept for Node.js compatibility; like Stream.unpipe it currently has no effect on the pipes
+     *      Like Stream.unpipe it currently has no effect on the pipes
      *      already established.
      *      @param destination a specific writable destination to unpipe
      *
@@ -33868,7 +33719,7 @@ declare class Class_MessageChannel extends Class_object {
      * @description MessageChannel constructor. Creates a new channel with two connected ports.
      *
      *      The constructor takes no arguments and links the two ports immediately; there is no way to
-     *      create an unconnected MessagePort. MDN and Node.js expose the same constructor.
+     *      create an unconnected MessagePort.
      *
      */
     constructor();
@@ -33950,8 +33801,8 @@ declare class Class_MessageChannel extends Class_object {
  *
  *  - The constructor \`type\` argument is required; \`new MessageEvent()\` throws
  *    \`TypeError [20002] Parameter not optional.\` The type itself is not stored.
- *  - Node.js and MDN additionally expose \`ports\` for transferred MessagePorts, which fibjs does not
- *    support, so a received message never has attached ports.
+ *  - \`ports\` for transferred MessagePorts is not supported, so a received message never has
+ *    attached ports.
  *
  */
 declare class Class_MessageEvent extends Class_object {
@@ -33961,8 +33812,8 @@ declare class Class_MessageEvent extends Class_object {
      *      \`type\` is mandatory, but fibjs stores only \`eventInitDict.data\` (default \`undefined\`) and
      *      exposes no \`type\` property, matching the global MessageEvent. The payload is kept by
      *      reference, not cloned; structured cloning only happens when a value travels through a
-     *      MessagePort. Node.js and MDN expose the full event properties and a \`ports\` list of
-     *      transferred MessagePorts, which fibjs does not support.
+     *      MessagePort. The full event properties and a \`ports\` list of
+     *      transferred MessagePorts are not supported.
      *      @param type The type of the event
      *      @param eventInitDict Optional event initialization dictionary containing data property
      *
@@ -34065,8 +33916,8 @@ declare class Class_MessageEvent extends Class_object {
  *
  *  Notes:
  *
- *  - Node.js and MDN allow a MessagePort to be transferred (as workerData or in the transfer list);
- *    fibjs ignores a port in a transfer list and throws \`could not be cloned\` for workerData, so ports
+ *  - A MessagePort cannot be transferred: a port in a transfer list is ignored and workerData
+ *    throws \`could not be cloned\`, so ports
  *    cannot be exchanged. A Worker and its parent can only use the implicit \`parentPort\` channel.
  *  - \`messageerror\` exists for API compatibility but is never emitted, because a value produced by
  *    the V8 serializer can always be deserialized again.
@@ -34092,7 +33943,7 @@ declare class Class_MessagePort extends Class_EventEmitter {
      *
      *      Each \`ArrayBuffer\` in \`transfer\` is detached on the sender before the message is queued (its
      *      \`byteLength\` becomes 0) and the receiver gets the same memory. fibjs ignores non-ArrayBuffer
-     *      entries, including MessagePort, which Node.js and MDN allow to be transferred; passing a port
+     *      entries, including MessagePort; passing a port
      *      does not error and does not move it.
      *
      *      Example — detach an ArrayBuffer on send:
@@ -34170,7 +34021,7 @@ declare class Class_MessagePort extends Class_EventEmitter {
      *
      *      A started port that can still receive messages holds a keep-alive reference; \`ref()\` restores
      *      that reference after an \`unref()\`. The call is idempotent and returns undefined. Ports that
-     *      were never started do not hold the process (matching Node.js), and the main-thread side of a
+     *      were never started do not hold the process, and the main-thread side of a
      *      Worker's parent port leaves the keep-alive to the Worker object.
      *
      */
@@ -34547,8 +34398,7 @@ declare class Class_PerformanceEntry extends Class_object {
      * @description The type of the entry
      *
      *      The kind of timeline record: \`mark\` for a PerformanceMark and \`measure\` for a
-     *      PerformanceMeasure. Node.js offers further types such as \`resource\`, \`function\` and \`gc\`;
-     *      fibjs produces only these two.
+     *      PerformanceMeasure; no other types are produced.
      *
      */
     readonly entryType: string;
@@ -34591,7 +34441,7 @@ declare class Class_PerformanceEntry extends Class_object {
  *  - **startTime**: the recorded timestamp in milliseconds on the monotonic clock returned by
  *    performance.now(); it can be overridden with the \`startTime\` option of performance.mark.
  *  - **detail**: an arbitrary value attached at creation; it is \`undefined\` when the mark was created
- *    without one (Node.js uses \`null\`).
+ *    without one.
  *
  *  Obtained from:
  *  - \`performance.getEntries()\`, \`performance.getEntriesByType('mark')\` and
@@ -34632,7 +34482,7 @@ declare class Class_PerformanceMark extends Class_PerformanceEntry {
      *
      *      Holds whatever was passed as \`detail\` to performance.mark: any type can be used, including
      *      objects and functions, and the value is returned by reference rather than copied. When the
-     *      option was omitted the property is \`undefined\` (Node.js uses \`null\`).
+     *      option was omitted the property is \`undefined\`.
      *
      */
     readonly detail: any;
@@ -34653,11 +34503,11 @@ declare class Class_PerformanceMark extends Class_PerformanceEntry {
  *
  *  - **Not retained**: fibjs does not store measures in the timeline, so they never appear in
  *    performance.getEntries/getEntriesByType/getEntriesByName and cannot be re-read after the
- *    callback; capture them from a PerformanceObserver instead (Node.js retains them).
+ *    callback; capture them from a PerformanceObserver instead.
  *  - **startTime and duration**: startTime comes from the start mark, from an explicit number, or is
  *    0 when absent; duration comes from end - start or from the \`duration\` option.
  *  - **detail**: an arbitrary value attached at creation; it is \`undefined\` when the options object
- *    had no \`detail\` (Node.js uses \`null\`).
+ *    had no \`detail\`.
  *
  *  Obtained from:
  *  - the PerformanceObserverEntryList of an observer registered for \`measure\`;
@@ -34703,7 +34553,7 @@ declare class Class_PerformanceMeasure extends Class_PerformanceEntry {
      *
      *      Holds whatever was passed as \`detail\` in the options form of performance.measure; the value is
      *      returned by reference rather than copied. The measure(name, startMark, endMark) form cannot
-     *      attach one, so there the property is \`undefined\` (Node.js uses \`null\`).
+     *      attach one, so there the property is \`undefined\`.
      *
      */
     readonly detail: any;
@@ -34718,7 +34568,7 @@ declare class Class_PerformanceMeasure extends Class_PerformanceEntry {
 /**
  * @description Observes performance entries and delivers them to a callback
  *
- *  PerformanceObserver corresponds to the MDN and Node.js PerformanceObserver interface. Create one
+ *  PerformanceObserver corresponds to the MDN PerformanceObserver interface. Create one
  *  with \`new PerformanceObserver(callback)\`, register the interesting entry types with \`observe\`,
  *  and the callback receives a PerformanceObserverEntryList each time records are delivered. fibjs
  *  produces only \`mark\` and \`measure\` entries.
@@ -41761,10 +41611,9 @@ declare namespace Class_SQLite {
  *    release it freezes only the internal context global, so writes made through the standalone
  *    global object are still accepted and scripts observe \`Object.isFrozen(globalThis) === false\`.
  *    Do not use freeze as an immutability or security boundary.
- *  - **Comparison with Node.js vm**: Node's vm creates a context and evaluates code with vm.Script
- *    or vm.runInContext; it has no module registry. SandBox is a module loader with an optional
- *    standalone global and no compile/eval API. Both are explicit about not being security
- *    boundaries; unlike a Node vm context, a default SandBox shares the host global object.
+ *  - **Notes**: SandBox is a module loader with an optional
+ *    standalone global and no compile/eval API. It is not a security boundary, and a default SandBox
+ *    shares the host global object.
  *
  *  Obtained from:
  *  - \`new vm.SandBox(mods)\`;
@@ -42126,26 +41975,24 @@ declare class Class_SandBox extends Class_object {
  *  - **Module scripts**: \`type: 'module'\` is a fibjs extension that compiles the code as an
  *    ECMAScript module, so import and export are accepted. A module script cannot be executed: the
  *    run methods return undefined (after validating the syntax at compile time), and
- *    createCachedData throws Error 20009. Node.js compiles modules with vm.SourceTextModule
- *    instead.
+ *    createCachedData throws Error 20009.
  *  - **Code cache**: createCachedData returns the V8 code cache as a Buffer; pass it back through
  *    the cachedData option to skip recompilation. V8 validates the buffer against the source, and
  *    an invalid or mismatched cache is ignored silently (the script is recompiled). The cache
  *    carries no execution state.
  *  - **Run options**: every run method accepts timeout (milliseconds, 0 disables it); the compile
  *    options are fixed at construction. A run that exceeds the timeout fails with Error 20021
- *    ("The maximum amount of time for a script to execute was exceeded."). Node.js reports the
- *    same condition as an ERR_SCRIPT_EXECUTION_TIMEOUT error.
+ *    ("The maximum amount of time for a script to execute was exceeded.").
  *  - **Errors**: a syntax error is thrown by the constructor as a SyntaxError with the V8 message
  *    and no error number. A runtime error is an ordinary JavaScript error whose stack names the
  *    script file and the offset-adjusted position.
  *  - **Dynamic import**: vm installs no import callback for compiled scripts, so a script that
  *    calls \`import()\` aborts the process in this release; load modules with require instead.
- *  - **Node.js comparison**: the class matches Node's vm.Script for the constructor options
+ *  - **Surface**: the constructor options
  *    filename, lineOffset, columnOffset and cachedData, the three run methods and
- *    createCachedData. fibjs adds type: 'module' and omits the Node.js constructor option
+ *    createCachedData are provided; \`type: 'module'\` is an extension, and the constructor option
  *    importModuleDynamically, the run options displayErrors and breakOnSigint, the
- *    cachedDataRejected and sourceMapURL properties, and the vm.createScript alias.
+ *    cachedDataRejected and sourceMapURL properties, and the vm.createScript alias are omitted.
  *
  *  Obtained from:
  *  - \`new vm.Script(code, opts)\` — compiles the source text and returns the script;
@@ -42215,8 +42062,7 @@ declare class Class_Script extends Class_object {
      *
      *      \`type: "module"\` compiles the code as an ECMAScript module (import and export are
      *      accepted). A module script cannot be executed: the run methods return undefined and
-     *      createCachedData throws Error 20009. Node.js compiles modules with vm.SourceTextModule
-     *      instead of a Script option.
+     *      createCachedData throws Error 20009.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -42372,10 +42218,8 @@ declare class Class_Script extends Class_object {
  *    clearSNIContexts all of them. These methods are server-side only.
  *  - **Sessions**: sessionTimeout is the server-side session lifetime in seconds (default 7200).
  *    fibjs keeps no session object, so no session can be inspected or reused by hand.
- *  - **Node.js differences**: Node.js documents SecureContext only as the value returned by
- *    tls.createSecureContext with a \`context\` property, while fibjs exposes the effective ca, key,
- *    cert and flag getters plus the SNI table methods; Node.js configures SNI through
- *    server.addContext()/SNICallback instead, and its sessionTimeout default is 300.
+ *  - **Shape**: the context exposes the effective ca, key, cert and flag getters plus the SNI
+ *    table methods (setSNIContext); sessionTimeout defaults to 300.
  *
  *  Obtained from:
  *  - \`tls.createSecureContext(options[, isServer])\` — the normal way;
@@ -42467,8 +42311,7 @@ declare class Class_SecureContext extends Class_object {
      *
      *      An X509Certificate chain whose head is the configured ca (a PEM string may hold several
      *      certificates); a client context without an explicit ca reports the bundled Mozilla root
-     *      store, while a server context without ca reports undefined. Node.js does not document an
-     *      equivalent getter.
+     *      store, while a server context without ca reports undefined.
      *
      */
     readonly ca: Class_X509Certificate;
@@ -42516,7 +42359,7 @@ declare class Class_SecureContext extends Class_object {
      *      Normally 'TLS_method'; 'TLS_client_method' or 'TLS_server_method' when a legacy
      *      secureProtocol selected one. A legacy method that also fixes a version (for example
      *      'TLSv1_2_method') still reports TLS_method here while minVersion/maxVersion report the fixed
-     *      version. Not part of the documented Node.js SecureContext surface.
+     *      version.
      *
      */
     readonly secureProtocol: string;
@@ -42534,9 +42377,8 @@ declare class Class_SecureContext extends Class_object {
     /**
      * @description Whether the context rejects a peer certificate that fails verification
      *
-     *      Default true. When false, the OpenSSL verify callback accepts every certificate, which is
-     *      the fibjs way to disable certificate verification (Node.js uses rejectUnauthorized: false
-     *      for that purpose).
+     *      Default true. When false, the OpenSSL verify callback accepts every certificate, which
+     *      disables certificate verification.
      *
      */
     readonly rejectUnverified: boolean;
@@ -42546,8 +42388,7 @@ declare class Class_SecureContext extends Class_object {
      *
      *      Default true on a client context and false on a server context. On a server, false means a
      *      client without a certificate is still accepted; on a client this flag does not disable
-     *      verification of the server certificate. Node.js uses rejectUnauthorized to disable
-     *      verification, so the semantics differ.
+     *      verification of the server certificate, so the flags are not interchangeable.
      *
      */
     readonly rejectUnauthorized: boolean;
@@ -42557,7 +42398,7 @@ declare class Class_SecureContext extends Class_object {
      *
      *      Default 7200. Only meaningful for a server context: it is the OpenSSL session timeout used
      *      when a session is resumed. fibjs exposes no session object, so the value can only be read
-     *      back. Node.js documents a default of 300 for the same option.
+     *      back. The default is 300.
      *
      */
     readonly sessionTimeout: number;
@@ -42802,8 +42643,7 @@ declare class Class_SecureContextPromise extends Class_object {
      *
      *      An X509Certificate chain whose head is the configured ca (a PEM string may hold several
      *      certificates); a client context without an explicit ca reports the bundled Mozilla root
-     *      store, while a server context without ca reports undefined. Node.js does not document an
-     *      equivalent getter.
+     *      store, while a server context without ca reports undefined.
      *
      */
     readonly ca: Class_X509Certificate;
@@ -42851,7 +42691,7 @@ declare class Class_SecureContextPromise extends Class_object {
      *      Normally 'TLS_method'; 'TLS_client_method' or 'TLS_server_method' when a legacy
      *      secureProtocol selected one. A legacy method that also fixes a version (for example
      *      'TLSv1_2_method') still reports TLS_method here while minVersion/maxVersion report the fixed
-     *      version. Not part of the documented Node.js SecureContext surface.
+     *      version.
      *
      */
     readonly secureProtocol: string;
@@ -42869,9 +42709,8 @@ declare class Class_SecureContextPromise extends Class_object {
     /**
      * @description Whether the context rejects a peer certificate that fails verification
      *
-     *      Default true. When false, the OpenSSL verify callback accepts every certificate, which is
-     *      the fibjs way to disable certificate verification (Node.js uses rejectUnauthorized: false
-     *      for that purpose).
+     *      Default true. When false, the OpenSSL verify callback accepts every certificate, which
+     *      disables certificate verification.
      *
      */
     readonly rejectUnverified: boolean;
@@ -42881,8 +42720,7 @@ declare class Class_SecureContextPromise extends Class_object {
      *
      *      Default true on a client context and false on a server context. On a server, false means a
      *      client without a certificate is still accepted; on a client this flag does not disable
-     *      verification of the server certificate. Node.js uses rejectUnauthorized to disable
-     *      verification, so the semantics differ.
+     *      verification of the server certificate, so the flags are not interchangeable.
      *
      */
     readonly rejectUnauthorized: boolean;
@@ -42892,7 +42730,7 @@ declare class Class_SecureContextPromise extends Class_object {
      *
      *      Default 7200. Only meaningful for a server context: it is the OpenSSL session timeout used
      *      when a session is resumed. fibjs exposes no session object, so the value can only be read
-     *      back. Node.js documents a default of 300 for the same option.
+     *      back. The default is 300.
      *
      */
     readonly sessionTimeout: number;
@@ -43812,7 +43650,7 @@ declare namespace Class_SeekableStream {
  *  wake a parked waiter.
  *  - **Related primitives**: Lock gives mutual exclusion, Condition waits for a state,
  *  Event releases a group of fibers at once, and only Semaphore counts permits.
- *  - **Node.js**: there is no semaphore in Node.js. The closest shapes are
+ *  - **Notes**: the closest shapes elsewhere are
  *  \`Atomics.wait\`/\`Atomics.notify\` between workers and the browser Web Locks API, both
  *  unrelated to fibers.
  *
@@ -44223,8 +44061,7 @@ declare namespace Class_Semaphore {
  *  the constructor is the map form of EventEmitter#on, a shortcut for registering them.
  *  - **Name**: \`name\` is the identifier registered with the SCM and may be changed at any
  *  time; the static methods take that name as a string instead of using an instance.
- *  - **Node.js**: there is no Node.js counterpart — system service management is outside
- *  the Node.js standard library.
+ *  - **Notes**: system service management is outside the standard library.
  *
  *  Obtained from:
  *  - \`new os.Service(name, worker, event = {})\` — creates the service object (Windows only);
@@ -44819,7 +44656,7 @@ declare namespace Class_Service {
  *  - **Key material**: sign() accepts a KeyObject, a PEM/DER string or Buffer, or an
  *    options object carrying the key plus the scheme options {key, format, type,
  *    passphrase, dsaEncoding, padding, saltLength}. Anything that is not a KeyObject
- *    is passed to crypto.createPrivateKey, exactly as in Node.js.
+ *    is passed to crypto.createPrivateKey.
  *  - **One signature per object**: sign() is terminal, because the object already
  *    finalized its digest. Do not reuse it; create a new Sign for each signature. With
  *    RSA PKCS#1 the signature is deterministic, so the same key, data and algorithm
@@ -44893,7 +44730,7 @@ declare class Class_Sign extends Class_object {
      *      ignores codec. Returns the Sign object, so calls can be chained, and it may be
      *      called any number of times before sign(). An unknown codec throws "encoding:
      *      Unknown charset". Calling update() after sign() is not supported; discard the
-     *      object and create a new Sign instead, as Node.js requires.
+     *      object and create a new Sign instead.
      *
      *      @param data the data to update with
      *      @param codec the encoding of a string data, default "utf8"
@@ -44922,7 +44759,7 @@ declare class Class_Sign extends Class_object {
      *        RSA_PSS_SALTLEN_MAX_SIGN (default) sets it to the maximum allowed value
      *
      *      The call finalizes the object: a second sign() fails with an OpenSSL error
-     *      (Node.js throws ERR_CRYPTO_INVALID_STATE). A secret key or a key without private
+     *      (the OpenSSL error is propagated). A secret key or a key without private
      *      material throws "Sign: invalid key type, expected a private key"; an
      *      Ed25519/Ed448 key throws "One-shot signature algorithms do not support sign".
      *      With encoding "buffer" (default) a Buffer is returned, otherwise a string; an
@@ -45941,8 +45778,8 @@ declare namespace Class_Smtp {
  *    timeout argument is the connect timer, while the \`timeout\` property applies to every later
  *    operation.
  *  - **Timeouts**: an expired operation throws error number 20021 and the socket stays open, so the
- *    caller can retry with the same or another timeout. Node.js instead emits 'timeout' for an idle
- *    socket; in fibjs the callback passed to setTimeout is registered as a once 'timeout' listener
+ *    caller can retry with the same or another timeout; the callback passed to setTimeout is
+ *    registered as a once 'timeout' listener
  *    but the current implementation reports the timeout as an operation error and does not emit it.
  *  - **Closing**: the peer closing its side makes read/recv return null and emits 'end'; with the
  *    default auto-destroy the write side is finished and 'close' follows. close() shuts both
@@ -45951,11 +45788,10 @@ declare namespace Class_Smtp {
  *  - **Address information**: remoteAddress/remotePort describe the peer and localAddress/localPort
  *    the local endpoint. Before the socket is connected or bound they throw or return
  *    backend-specific placeholders, see the property descriptions.
- *  - **Node.js differences**: Node.js returns from connect immediately and never throws, accepts a
- *    path and many options in connect and has an idle 'timeout' event; fibjs blocks by default,
- *    accepts only host/port/timeout in the options object and reports timeouts as operation errors.
- *    Node.js also has no send/recv/isAlive/abort/family members; its address properties return
- *    undefined after a disconnect instead of throwing.
+ *  - **Connect and address**: \`connect\` blocks by default (it returns once the connection is
+ *    established and throws on failure), accepts only host/port/timeout in the options object and
+ *    reports timeouts as operation errors; a path may be given as the target. The class also
+ *    provides send/recv/isAlive/abort/family, and the address properties throw after a disconnect.
  *
  *  Obtained from:
  *  - \`new net.Socket(family)\` — an unconnected socket of the given family (AF_INET by default);
@@ -46037,8 +45873,7 @@ declare class Class_Socket extends Class_Stream {
      *      make it a listening socket. The family is fixed for the lifetime of the object: net.AF_INET
      *      and net.AF_INET6 select TCP over IPv4/IPv6 and net.AF_UNIX (the same value as net.AF_PIPE)
      *      selects a unix socket or Windows named pipe. An invalid family throws an invalid-argument
-     *      error. Node.js takes an options object here (fd, allowHalfOpen, noDelay, ...) and has no
-     *      family argument; use new net.Socket(net.AF_INET6) to build an IPv6 endpoint.
+     *      error. Use new net.Socket(net.AF_INET6) to build an IPv6 endpoint.
      *      @param family specifies the address family, default is AF_INET, ipv4
      *
      */
@@ -46048,8 +45883,7 @@ declare class Class_Socket extends Class_Stream {
      * @description Queries the address family of the current Socket object
      *
      *      One of net.AF_INET, net.AF_INET6 or net.AF_UNIX, as passed to the constructor. The property
-     *      throws when the socket has no valid descriptor, for example after close. Node.js exposes the
-     *      connection family as the strings remoteFamily/localFamily instead.
+     *      throws when the socket has no valid descriptor, for example after close.
      *
      */
     readonly family: number;
@@ -46059,8 +45893,7 @@ declare class Class_Socket extends Class_Stream {
      *
      *      For a TCP connection it is the peer IP address; for a unix socket or Windows pipe it is the
      *      peer path. The property throws with syscall 'getpeername' when the socket is not connected
-     *      and also after close, so guard accesses when the state is uncertain. Node.js returns the
-     *      peer address as a string and undefined after a disconnect instead of throwing.
+     *      and also after close, so guard accesses when the state is uncertain.
      *
      */
     readonly remoteAddress: string;
@@ -46080,8 +45913,7 @@ declare class Class_Socket extends Class_Stream {
      *      The local IP address of a TCP socket, or the bound path of a unix socket/pipe. On a socket
      *      that is not connected or bound the result is backend dependent: the platform engine returns
      *      a placeholder ('0.0.0.0' or '::') with localPort 0 while the libuv backend throws EBADF, see
-     *      net.use_uv_socket. Node.js reports the local address of a connection and undefined after a
-     *      disconnect.
+     *      net.use_uv_socket.
      *
      */
     readonly localAddress: string;
@@ -46103,7 +45935,6 @@ declare class Class_Socket extends Class_Stream {
      *      assignment; 0 (the default) disables the timer. An expired operation throws error number
      *      20021 but the socket stays open and usable, so a retry with another timeout is possible. A
      *      TcpServer copies its timeout to each accepted connection before invoking the handler.
-     *      Node.js uses an idle timeout that emits 'timeout' without failing the pending operation.
      *
      */
     timeout: number;
@@ -46121,8 +45952,8 @@ declare class Class_Socket extends Class_Stream {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      \`\`\`
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -46147,8 +45978,8 @@ declare class Class_Socket extends Class_Stream {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      \`\`\`
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -46171,8 +46002,8 @@ declare class Class_Socket extends Class_Stream {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      \`\`\`
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -46551,8 +46382,7 @@ declare class Class_Socket extends Class_Stream {
      *      The socket must be bound first with bind; listen on an invalid descriptor or an unbound socket
      *      fails with an invalid-call error. backlog is passed to the operating system as the queued
      *      connection limit; requests beyond it may be rejected. After listen, accept returns client
-     *      connections and localPort holds the port assigned to the socket. Node.js does not listen on a
-     *      Socket directly, it wraps one in net.Server.
+     *      connections and localPort holds the port assigned to the socket.
      *      @param backlog specifies the request queue length; requests beyond it will be rejected, default is 120
      *
      */
@@ -46603,9 +46433,8 @@ declare class Class_Socket extends Class_Stream {
      * @description Enables or disables the TCP keep-alive mechanism
      *
      *      Sets SO_KEEPALIVE and, on the platforms that support it, the idle delay before the first
-     *      probe (TCP_KEEPIDLE on Linux, SIO_KEEPALIVE_VALS on Windows). initialDelay is in seconds,
-     *      differing from Node.js whose keepAliveInitialDelay is in milliseconds; Node.js also accepts
-     *      the interval and probe-count parameters while fibjs uses the system defaults for those. The
+     *      probe (TCP_KEEPIDLE on Linux, SIO_KEEPALIVE_VALS on Windows). initialDelay is in seconds;
+     *      the interval and probe count use the system defaults. The
      *      socket must have a valid descriptor, otherwise an invalid-call error is thrown.
      *      @param enable specifies whether to enable the keep-alive mechanism, default is false
      *      @param initialDelay specifies the initial delay in seconds, default is 0
@@ -46618,7 +46447,7 @@ declare class Class_Socket extends Class_Stream {
      *
      *      Called without arguments it disables Nagle's algorithm, trading throughput for latency, which
      *      is what request/response protocols usually want; pass false to re-enable it. The default of
-     *      the noDelay parameter matches Node.js setNoDelay. The socket must have a valid descriptor.
+     *      the noDelay parameter is true. The socket must have a valid descriptor.
      *      @param noDelay specifies whether to disable the Nagle algorithm, default is true
      *
      */
@@ -46631,8 +46460,7 @@ declare class Class_Socket extends Class_Stream {
      *      Returning false means the socket is definitely unusable; returning true only means no closed
      *      state has been detected so far, a peer that just disconnected can still be reported as alive
      *      for a moment. It returns false before connect, after close, after destroy and after the end
-     *      of file has been observed. Node.js has no equivalent; its destroyed flag is related but is
-     *      not the same check.
+     *      of file has been observed.
      *
      *      Example — the flag follows the state of the peer connection:
      *      \`\`\`JavaScript
@@ -46662,8 +46490,7 @@ declare class Class_Socket extends Class_Stream {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -46677,8 +46504,7 @@ declare class Class_Socket extends Class_Stream {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -46690,8 +46516,7 @@ declare class Class_Socket extends Class_Stream {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -46704,8 +46529,7 @@ declare class Class_Socket extends Class_Stream {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -46720,8 +46544,7 @@ declare class Class_Socket extends Class_Stream {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -46734,8 +46557,7 @@ declare class Class_Socket extends Class_Stream {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -46748,8 +46570,7 @@ declare class Class_Socket extends Class_Stream {
      *      This method cancels all pending asynchronous operations (connect, accept, recv, send, ...) and
      *      the canceled operations fail with error number 20022; if no operation is pending the call has
      *      no effect. The socket itself is not closed and can continue to be used, so a later recv/send
-     *      starts a new operation. Use it to interrupt a blocking read from another fiber. Node.js has
-     *      no equivalent, its destroy() would also close the connection.
+     *      starts a new operation. Use it to interrupt a blocking read from another fiber.
      *
      */
     abort(): void;
@@ -46772,8 +46593,7 @@ declare class Class_Socket extends Class_Stream {
      *      Sets the timeout property and registers callback as a once 'timeout' listener. Note: the
      *      current net implementation reports an expired operation as error number 20021 from the
      *      pending call and does not emit the 'timeout' event, so the callback is registered but never
-     *      invoked; handle the timeout with try/catch around the operation. This differs from Node.js,
-     *      whose idle timeout emits 'timeout' and keeps the connection open.
+     *      invoked; handle the timeout with try/catch around the operation.
      *      @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
      *      @param callback the callback function, called once when the socket times out
      *      @return returns the current Socket object
@@ -46798,8 +46618,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      make it a listening socket. The family is fixed for the lifetime of the object: net.AF_INET
      *      and net.AF_INET6 select TCP over IPv4/IPv6 and net.AF_UNIX (the same value as net.AF_PIPE)
      *      selects a unix socket or Windows named pipe. An invalid family throws an invalid-argument
-     *      error. Node.js takes an options object here (fd, allowHalfOpen, noDelay, ...) and has no
-     *      family argument; use new net.Socket(net.AF_INET6) to build an IPv6 endpoint.
+     *      error. Use new net.Socket(net.AF_INET6) to build an IPv6 endpoint.
      *      @param family specifies the address family, default is AF_INET, ipv4
      *
      */
@@ -46809,8 +46628,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      * @description Queries the address family of the current Socket object
      *
      *      One of net.AF_INET, net.AF_INET6 or net.AF_UNIX, as passed to the constructor. The property
-     *      throws when the socket has no valid descriptor, for example after close. Node.js exposes the
-     *      connection family as the strings remoteFamily/localFamily instead.
+     *      throws when the socket has no valid descriptor, for example after close.
      *
      */
     readonly family: number;
@@ -46820,8 +46638,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      For a TCP connection it is the peer IP address; for a unix socket or Windows pipe it is the
      *      peer path. The property throws with syscall 'getpeername' when the socket is not connected
-     *      and also after close, so guard accesses when the state is uncertain. Node.js returns the
-     *      peer address as a string and undefined after a disconnect instead of throwing.
+     *      and also after close, so guard accesses when the state is uncertain.
      *
      */
     readonly remoteAddress: string;
@@ -46841,8 +46658,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      The local IP address of a TCP socket, or the bound path of a unix socket/pipe. On a socket
      *      that is not connected or bound the result is backend dependent: the platform engine returns
      *      a placeholder ('0.0.0.0' or '::') with localPort 0 while the libuv backend throws EBADF, see
-     *      net.use_uv_socket. Node.js reports the local address of a connection and undefined after a
-     *      disconnect.
+     *      net.use_uv_socket.
      *
      */
     readonly localAddress: string;
@@ -46864,7 +46680,6 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      assignment; 0 (the default) disables the timer. An expired operation throws error number
      *      20021 but the socket stays open and usable, so a retry with another timeout is possible. A
      *      TcpServer copies its timeout to each accepted connection before invoking the handler.
-     *      Node.js uses an idle timeout that emits 'timeout' without failing the pending operation.
      *
      */
     timeout: number;
@@ -46882,8 +46697,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      \`\`\`
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -46906,8 +46721,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      \`\`\`
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -46930,8 +46745,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
      *      })
      *      \`\`\`
-     *      Only these three keys are read; the Node.js option keys (path, family, lookup, localAddress,
-     *      localPort, signal, noDelay, keepAlive, ...) are not supported, pass a path to the path
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
      *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
      *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
      *      expired timer throws error number 20021.
@@ -47306,8 +47121,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      The socket must be bound first with bind; listen on an invalid descriptor or an unbound socket
      *      fails with an invalid-call error. backlog is passed to the operating system as the queued
      *      connection limit; requests beyond it may be rejected. After listen, accept returns client
-     *      connections and localPort holds the port assigned to the socket. Node.js does not listen on a
-     *      Socket directly, it wraps one in net.Server.
+     *      connections and localPort holds the port assigned to the socket.
      *      @param backlog specifies the request queue length; requests beyond it will be rejected, default is 120
      *
      */
@@ -47356,9 +47170,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      * @description Enables or disables the TCP keep-alive mechanism
      *
      *      Sets SO_KEEPALIVE and, on the platforms that support it, the idle delay before the first
-     *      probe (TCP_KEEPIDLE on Linux, SIO_KEEPALIVE_VALS on Windows). initialDelay is in seconds,
-     *      differing from Node.js whose keepAliveInitialDelay is in milliseconds; Node.js also accepts
-     *      the interval and probe-count parameters while fibjs uses the system defaults for those. The
+     *      probe (TCP_KEEPIDLE on Linux, SIO_KEEPALIVE_VALS on Windows). initialDelay is in seconds;
+     *      the interval and probe count use the system defaults. The
      *      socket must have a valid descriptor, otherwise an invalid-call error is thrown.
      *      @param enable specifies whether to enable the keep-alive mechanism, default is false
      *      @param initialDelay specifies the initial delay in seconds, default is 0
@@ -47371,7 +47184,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      Called without arguments it disables Nagle's algorithm, trading throughput for latency, which
      *      is what request/response protocols usually want; pass false to re-enable it. The default of
-     *      the noDelay parameter matches Node.js setNoDelay. The socket must have a valid descriptor.
+     *      the noDelay parameter is true. The socket must have a valid descriptor.
      *      @param noDelay specifies whether to disable the Nagle algorithm, default is true
      *
      */
@@ -47384,8 +47197,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      Returning false means the socket is definitely unusable; returning true only means no closed
      *      state has been detected so far, a peer that just disconnected can still be reported as alive
      *      for a moment. It returns false before connect, after close, after destroy and after the end
-     *      of file has been observed. Node.js has no equivalent; its destroyed flag is related but is
-     *      not the same check.
+     *      of file has been observed.
      *
      *      Example — the flag follows the state of the peer connection:
      *      \`\`\`JavaScript
@@ -47415,8 +47227,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -47428,8 +47239,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -47441,8 +47251,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      Returns as soon as at least one byte is available, with at most bytes bytes (the default -1
      *      means no limit), and returns null once the peer has closed and all buffered data has been
-     *      consumed. The timeout property applies while waiting. This is the fibjs-native counterpart of
-     *      a stream read; Node.js only has read()/stream events and no recv.
+     *      consumed. The timeout property applies while waiting. This is the native read of the socket.
      *      @param bytes specifies the amount of data to read; by default any size of data is read
      *      @return returns the data read from the connection
      *
@@ -47455,8 +47264,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -47469,8 +47277,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -47483,8 +47290,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      data may be a Buffer or a string; a string is encoded as utf8. The method queues the whole
      *      buffer and returns its byte length (the utf8 length for strings), unlike write which reports
      *      whether the stream accepted the data with a boolean. It waits when the peer does not read and
-     *      throws the timeout error (20021) or a closed-socket error when it cannot complete. Node.js
-     *      has no send; its write() returns a boolean and never reports a byte count.
+     *      throws the timeout error (20021) or a closed-socket error when it cannot complete.
      *      @param data the data to send
      *      @return returns the number of bytes actually written
      *
@@ -47497,8 +47303,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      This method cancels all pending asynchronous operations (connect, accept, recv, send, ...) and
      *      the canceled operations fail with error number 20022; if no operation is pending the call has
      *      no effect. The socket itself is not closed and can continue to be used, so a later recv/send
-     *      starts a new operation. Use it to interrupt a blocking read from another fiber. Node.js has
-     *      no equivalent, its destroy() would also close the connection.
+     *      starts a new operation. Use it to interrupt a blocking read from another fiber.
      *
      */
     abort(): void;
@@ -47521,8 +47326,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      Sets the timeout property and registers callback as a once 'timeout' listener. Note: the
      *      current net implementation reports an expired operation as error number 20021 from the
      *      pending call and does not emit the 'timeout' event, so the callback is registered but never
-     *      invoked; handle the timeout with try/catch around the operation. This differs from Node.js,
-     *      whose idle timeout emits 'timeout' and keeps the connection open.
+     *      invoked; handle the timeout with try/catch around the operation.
      *      @param timeout the timeout in milliseconds. Setting it to 0 disables the timeout.
      *      @param callback the callback function, called once when the socket times out
      *      @return returns the current Socket object
@@ -47554,12 +47358,12 @@ declare namespace Class_Socket {
  *  - **Timestamps**: mtime is the last modification time, atime the last access time, ctime the
  *    last status (inode) change time and birthtime the creation time. Each timestamp is exposed as
  *    a Date, as milliseconds since the Unix epoch (mtimeMs) and as the nanosecond part of the
- *    timestamp (mtimeNs, 0-999999999). The Node.js \`bigint\` option is not implemented, so the Ns
+ *    timestamp (mtimeNs, 0-999999999). The \`bigint\` option is not implemented, so the Ns
  *    properties are always numbers and no epoch-nanosecond values are produced.
- *  - **name**: the base name of the queried path (a fibjs extension, Node.js Stats has no name);
+ *  - **name**: the base name of the queried path (an extension);
  *    it is empty for objects that are not bound to a path.
  *  - **Permissions**: isReadable/isWritable/isExecutable test the owner permission bits of mode,
- *    not the effective access of the current user. isHidden/isMemory/isSocket are fibjs extensions;
+ *    not the effective access of the current user. isHidden/isMemory/isSocket are extensions;
  *    isMemory is true for entries served by the zip VFS, whose mode-based type predicates are not
  *    populated.
  *
@@ -47632,7 +47436,7 @@ declare class Class_Stat extends Class_object {
      * @description File name
      *
      *      The base name of the queried path, for example 'report.txt' for '/data/report.txt'; empty
-     *      when the object was not created from a path. Not provided by Node.js Stats (fibjs extension).
+     *      when the object was not created from a path (an extension).
      *
      */
     readonly name: string;
@@ -47758,8 +47562,8 @@ declare class Class_Stat extends Class_object {
     /**
      * @description Nanosecond part of the last modification time
      *
-     *      Holds the sub-second nanosecond part (0-999999999) of the timestamp. Unlike Node.js this
-     *      property is always available; the bigint option that would produce epoch-nanosecond values
+     *      Holds the sub-second nanosecond part (0-999999999) of the timestamp; it is always
+     *      available, and the bigint option that would produce epoch-nanosecond values
      *      is not implemented.
      *
      */
@@ -47846,8 +47650,7 @@ declare class Class_Stat extends Class_object {
     /**
      * @description Queries whether the file is writable
      *
-     *      Tests the owner write bit (S_IWUSR) of mode, not the effective access of the current user;
-     *      Node.js Stats has no such method.
+     *      Tests the owner write bit (S_IWUSR) of mode, not the effective access of the current user.
      *      @return true if it is writable
      *
      */
@@ -47856,8 +47659,7 @@ declare class Class_Stat extends Class_object {
     /**
      * @description Queries whether the file is readable
      *
-     *      Tests the owner read bit (S_IRUSR) of mode, not the effective access of the current user;
-     *      Node.js Stats has no such method.
+     *      Tests the owner read bit (S_IRUSR) of mode, not the effective access of the current user.
      *      @return true if it is readable
      *
      */
@@ -47867,7 +47669,7 @@ declare class Class_Stat extends Class_object {
      * @description Queries whether the file is executable
      *
      *      Tests the owner execute/search bit (S_IXUSR) of mode, not the effective access of the
-     *      current user; Node.js Stats has no such method.
+     *      current user.
      *      @return true if it is executable
      *
      */
@@ -47876,8 +47678,7 @@ declare class Class_Stat extends Class_object {
     /**
      * @description Queries whether the file is hidden
      *
-     *      Hidden-file flag; on POSIX the flag is not populated, so dotfiles report false. fibjs
-     *      extension, Node.js Stats has no such method.
+     *      Hidden-file flag; on POSIX the flag is not populated, so dotfiles report false.
      *      @return true if it is hidden
      *
      */
@@ -47978,7 +47779,7 @@ declare class Class_Stat extends Class_object {
      *
      *      True when the entry is served by the zip virtual file system (fs.setZipFS) instead of the
      *      real file system; such entries have no populated type bits, so the other predicates report
-     *      false. fibjs extension, Node.js Stats has no such method.
+     *      false. This is an extension.
      *      @return true if it is a memory file
      *
      */
@@ -49063,14 +48864,13 @@ declare namespace Class_Statement {
  * @description File Stats watcher object
  *
  *  A StatsWatcher polls the status of one file on a timer, detects changes and
- *  reports them as \`(curStat, prevStat)\` pairs, the same model as Node.js
- *  fs.watchFile. It is obtained from \`fs.watchFile(target[, options], listener)\`
+ *  reports them as \`(curStat, prevStat)\` pairs. It is obtained from \`fs.watchFile(target[, options], listener)\`
  *  and stops with close()/stop() or \`fs.unwatchFile(target)\`.
  *
  *  Concepts:
  *
  *  - **Polling**: the watcher calls stat on the target every \`interval\`
- *    milliseconds (default 5007, the Node.js default; values below 20 fall back
+ *    milliseconds (default 5007; values below 20 fall back
  *    to that default) and claims the process as long as it is active. It does not
  *    use inotify-style events, so a fast change can be missed between polls and a
  *    slow file system delays the report.
@@ -49153,7 +48953,7 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
      * @description Queries and binds the "file change" event, equivalent to on("change", func);
      *
      *      The listener receives the current Stat and the previous Stat, in that
-     *      order, matching the Node.js fs.watchFile callback. The first invocation
+     *      order, the same shape fs.watchFile passes. The first invocation
      *      always happens (with a zero previous Stat) on the first poll; later ones
      *      only when mtime changed. Attaching with \`on('change', fn)\` behaves exactly
      *      like passing the listener to fs.watchFile.
@@ -49209,7 +49009,7 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
      * @description Queries and binds the "file change" event, equivalent to on("change", func);
      *
      *      The listener receives the current Stat and the previous Stat, in that
-     *      order, matching the Node.js fs.watchFile callback. The first invocation
+     *      order, the same shape fs.watchFile passes. The first invocation
      *      always happens (with a zero previous Stat) on the first poll; later ones
      *      only when mtime changed. Attaching with \`on('change', fn)\` behaves exactly
      *      like passing the listener to fs.watchFile.
@@ -49277,7 +49077,7 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
     /**
      * @description Stops watching the target file path and clears the reference count (no longer holds the process); equivalent to close()
      *
-     *      An alias with the Node.js-style name; the behavior is exactly close().
+     *      An alias of close(); the behavior is exactly the same.
      *
      *      Example — stop with the alias:
      *      \`\`\`JavaScript
@@ -49336,7 +49136,7 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
      * @description Decrements the reference count
      *
      *      Drops one hold on the process; once no hold is left fibjs may exit even
-     *      while the watcher is active, which is the Node.js \`unref()\` semantics. The
+     *      while the watcher is active, which is the \`unref()\` semantics. The
      *      timer keeps running until close() when the process stays alive. Returns
      *      the watcher itself.
      *
@@ -49531,8 +49331,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      and fs.createWriteStream) reports the file descriptor, net.Socket and
      *      TLSSocket the socket descriptor and the process standard streams 0/1/2.
      *      Streams without a handle (MemoryStream, RangeStream, BufferedStream) throw
-     *      [20009] when the property is read. Node.js exposes \`fd\` on file streams
-     *      only and returns undefined elsewhere.
+     *      [20009] when the property is read.
      *
      */
     readonly fd: number;
@@ -49540,7 +49339,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Queries whether the stream is writable
      *
-     *      Kept for Node compatibility: this reports whether the stream has not
+     *      This reports whether the stream has not
      *      ended, not whether the device accepts writes. It stays true after end()
      *      and close() and turns false only when the flowing read loop reaches the
      *      end of the stream or destroy() is called. Test the results of write()
@@ -49552,7 +49351,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Queries whether the stream is readable
      *
-     *      Node-compatible flag with the same caveats as \`writable\`: true until the
+     *      Compatibility flag with the same caveats as \`writable\`: true until the
      *      flowing read loop reaches the end of the stream or destroy() is called.
      *      It does not track pause(), close(), or pull-mode reads that reached the
      *      end of the stream.
@@ -49563,10 +49362,9 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Queries the readable state object of the stream
      *
-     *      A minimal Node-compatible view: an object with one \`ended\` property that
+     *      A minimal compatibility view: an object with one \`ended\` property that
      *      mirrors the internal ended flag, which becomes true when the flowing read
-     *      loop finishes or the stream is destroyed. It is not a full Node
-     *      ReadableState, and the other Node fields are absent.
+     *      loop finishes or the stream is destroyed.
      *
      */
     readonly _readableState: FIBJS.GeneralObject;
@@ -49574,8 +49372,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Queries the writable state object of the stream
      *
-     *      Compatibility stub: fibjs returns an empty object and keeps no Node
-     *      WritableState. Use the return value of write() and the \`drain\` event for
+     *      Compatibility stub: it returns an empty object. Use the return value of write() and the \`drain\` event for
      *      back pressure instead.
      *
      */
@@ -49830,8 +49627,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      decoder understands the text labels 'utf8', 'ascii', 'latin1' and
      *      'utf16le' (and their aliases); other names, including 'hex', 'base64' and
      *      'ucs2', are accepted here but decode to empty strings, and null or a
-     *      non-string throws [20005]. Node.js rejects an unknown name with
-     *      ERR_UNKNOWN_ENCODING. Returns the stream itself for chaining.
+     *      non-string throws [20005]. Returns the stream itself for chaining.
      *
      *      Example — switch to text reads, then back to binary:
      *      \`\`\`JavaScript
@@ -49937,7 +49733,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -49972,7 +49768,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -50005,7 +49801,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -50038,7 +49834,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -50054,7 +49850,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -50068,7 +49864,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -50145,7 +49941,6 @@ declare class Class_Stream extends Class_EventEmitter {
      *      \`readable\` events are delivered until resume(). Data already buffered is
      *      kept. It has no effect in pull mode (before resume or a data/readable
      *      listener) and does not undo flowing mode. Returns the stream itself.
-     *      Node.js pauses in the same way but exposes the state through isPaused().
      *
      *      @return returns the current stream object
      *
@@ -50161,8 +49956,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      the destination is ended (unless options.end is false); a source error is
      *      re-emitted on the destination, and a source close that is not an end
      *      destroys the destination. The destination receives a \`pipe\` event with the
-     *      source as its argument. Only the \`end\` option is read; the other Node.js
-     *      pipe options are ignored. Returns the destination for chaining, while the
+     *      source as its argument. Only the \`end\` option is read; the other pipe options are ignored. Returns the destination for chaining, while the
      *      copy itself continues in the background — wait for the destination
      *      \`finish\`/\`close\` before reading its result. See copyTo for a bounded
      *      synchronous copy.
@@ -50205,7 +49999,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      Compatibility no-op in fibjs: a piped copy stops by itself when the source
      *      ends/errors/closes or the destination closes, and there is no way to
      *      detach one destination from an active pipe. The argument is accepted and
-     *      ignored; Node.js also emits an \`unpipe\` event, which fibjs does not.
+     *      ignored, and no \`unpipe\` event is emitted.
      *
      *      @param destination the specific writable destination to unpipe
      *
@@ -50363,7 +50157,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -50378,7 +50172,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -50391,7 +50185,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -50532,8 +50326,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when \`bytes\` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      \`\`\`JavaScript
@@ -50566,8 +50359,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when \`bytes\` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      \`\`\`JavaScript
@@ -50598,8 +50390,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when \`bytes\` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      \`\`\`JavaScript
@@ -50629,8 +50420,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      listener switches the stream to that mode. The payload is a Buffer, or a
      *      string when setEncoding was called (the parameter is declared as Buffer for
      *      the binary case). A \`readable\` workflow consumes the same data through
-     *      read() and emits no data events. Node.js has the same flowing-mode
-     *      semantics.
+     *      read() and emits no data events.
      *
      *      @param data the data read
      *
@@ -50660,8 +50450,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      listener switches the stream to that mode. The payload is a Buffer, or a
      *      string when setEncoding was called (the parameter is declared as Buffer for
      *      the binary case). A \`readable\` workflow consumes the same data through
-     *      read() and emits no data events. Node.js has the same flowing-mode
-     *      semantics.
+     *      read() and emits no data events.
      *
      *      @param data the data read
      *
@@ -50674,7 +50463,6 @@ declare class Class_Stream extends Class_EventEmitter {
      *      Emitted once after the stream has been closed: at the end of a flowing
      *      read (auto destroy), after destroy(), or when the runtime closes the
      *      stream. A plain close() call releases the handle without emitting it.
-     *      Node.js emits close for the same destroy/autoDestroy cases.
      *
      */
     on(event: "close", listener: ()=>void): this;
@@ -50701,7 +50489,6 @@ declare class Class_Stream extends Class_EventEmitter {
      *      Emitted once after the stream has been closed: at the end of a flowing
      *      read (auto destroy), after destroy(), or when the runtime closes the
      *      stream. A plain close() call releases the handle without emitting it.
-     *      Node.js emits close for the same destroy/autoDestroy cases.
      *
      */
     onclose: (()=>void) | null;
@@ -50712,8 +50499,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      Emitted when a read or write fails and by destroy(err). The payload is the
      *      error value, usually an Error object with \`number\` and \`description\`; the
      *      declared Integer parameter name is historical (destroy(err) emits exactly
-     *      the value it was given, even a non-Error one). Node.js also emits Error
-     *      objects.
+     *      the value it was given, even a non-Error one).
      *
      *      @param code the error value, usually an Error object
      *
@@ -50742,8 +50528,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      Emitted when a read or write fails and by destroy(err). The payload is the
      *      error value, usually an Error object with \`number\` and \`description\`; the
      *      declared Integer parameter name is historical (destroy(err) emits exactly
-     *      the value it was given, even a non-Error one). Node.js also emits Error
-     *      objects.
+     *      the value it was given, even a non-Error one).
      *
      *      @param code the error value, usually an Error object
      *
@@ -50953,8 +50738,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      and fs.createWriteStream) reports the file descriptor, net.Socket and
      *      TLSSocket the socket descriptor and the process standard streams 0/1/2.
      *      Streams without a handle (MemoryStream, RangeStream, BufferedStream) throw
-     *      [20009] when the property is read. Node.js exposes \`fd\` on file streams
-     *      only and returns undefined elsewhere.
+     *      [20009] when the property is read.
      *
      */
     readonly fd: number;
@@ -50962,7 +50746,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Queries whether the stream is writable
      *
-     *      Kept for Node compatibility: this reports whether the stream has not
+     *      This reports whether the stream has not
      *      ended, not whether the device accepts writes. It stays true after end()
      *      and close() and turns false only when the flowing read loop reaches the
      *      end of the stream or destroy() is called. Test the results of write()
@@ -50974,7 +50758,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Queries whether the stream is readable
      *
-     *      Node-compatible flag with the same caveats as \`writable\`: true until the
+     *      Compatibility flag with the same caveats as \`writable\`: true until the
      *      flowing read loop reaches the end of the stream or destroy() is called.
      *      It does not track pause(), close(), or pull-mode reads that reached the
      *      end of the stream.
@@ -50985,10 +50769,9 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Queries the readable state object of the stream
      *
-     *      A minimal Node-compatible view: an object with one \`ended\` property that
+     *      A minimal compatibility view: an object with one \`ended\` property that
      *      mirrors the internal ended flag, which becomes true when the flowing read
-     *      loop finishes or the stream is destroyed. It is not a full Node
-     *      ReadableState, and the other Node fields are absent.
+     *      loop finishes or the stream is destroyed.
      *
      */
     readonly _readableState: FIBJS.GeneralObject;
@@ -50996,8 +50779,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Queries the writable state object of the stream
      *
-     *      Compatibility stub: fibjs returns an empty object and keeps no Node
-     *      WritableState. Use the return value of write() and the \`drain\` event for
+     *      Compatibility stub: it returns an empty object. Use the return value of write() and the \`drain\` event for
      *      back pressure instead.
      *
      */
@@ -51246,8 +51028,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      decoder understands the text labels 'utf8', 'ascii', 'latin1' and
      *      'utf16le' (and their aliases); other names, including 'hex', 'base64' and
      *      'ucs2', are accepted here but decode to empty strings, and null or a
-     *      non-string throws [20005]. Node.js rejects an unknown name with
-     *      ERR_UNKNOWN_ENCODING. Returns the stream itself for chaining.
+     *      non-string throws [20005]. Returns the stream itself for chaining.
      *
      *      Example — switch to text reads, then back to binary:
      *      \`\`\`JavaScript
@@ -51347,7 +51128,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -51380,7 +51161,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -51413,7 +51194,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -51446,7 +51227,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -51460,7 +51241,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -51474,7 +51255,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -51549,7 +51330,6 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      \`readable\` events are delivered until resume(). Data already buffered is
      *      kept. It has no effect in pull mode (before resume or a data/readable
      *      listener) and does not undo flowing mode. Returns the stream itself.
-     *      Node.js pauses in the same way but exposes the state through isPaused().
      *
      *      @return returns the current stream object
      *
@@ -51565,8 +51345,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      the destination is ended (unless options.end is false); a source error is
      *      re-emitted on the destination, and a source close that is not an end
      *      destroys the destination. The destination receives a \`pipe\` event with the
-     *      source as its argument. Only the \`end\` option is read; the other Node.js
-     *      pipe options are ignored. Returns the destination for chaining, while the
+     *      source as its argument. Only the \`end\` option is read; the other pipe options are ignored. Returns the destination for chaining, while the
      *      copy itself continues in the background — wait for the destination
      *      \`finish\`/\`close\` before reading its result. See copyTo for a bounded
      *      synchronous copy.
@@ -51609,7 +51388,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      Compatibility no-op in fibjs: a piped copy stops by itself when the source
      *      ends/errors/closes or the destination closes, and there is no way to
      *      detach one destination from an active pipe. The argument is accepted and
-     *      ignored; Node.js also emits an \`unpipe\` event, which fibjs does not.
+     *      ignored, and no \`unpipe\` event is emitted.
      *
      *      @param destination the specific writable destination to unpipe
      *
@@ -51763,7 +51542,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -51776,7 +51555,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -51789,7 +51568,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -51924,8 +51703,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when \`bytes\` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      \`\`\`JavaScript
@@ -51956,8 +51734,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when \`bytes\` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      \`\`\`JavaScript
@@ -51988,8 +51765,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when \`bytes\` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      \`\`\`JavaScript
@@ -52019,8 +51795,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      listener switches the stream to that mode. The payload is a Buffer, or a
      *      string when setEncoding was called (the parameter is declared as Buffer for
      *      the binary case). A \`readable\` workflow consumes the same data through
-     *      read() and emits no data events. Node.js has the same flowing-mode
-     *      semantics.
+     *      read() and emits no data events.
      *
      *      @param data the data read
      *
@@ -52033,7 +51808,6 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      Emitted once after the stream has been closed: at the end of a flowing
      *      read (auto destroy), after destroy(), or when the runtime closes the
      *      stream. A plain close() call releases the handle without emitting it.
-     *      Node.js emits close for the same destroy/autoDestroy cases.
      *
      */
     onclose: (()=>void) | null;
@@ -52044,8 +51818,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      Emitted when a read or write fails and by destroy(err). The payload is the
      *      error value, usually an Error object with \`number\` and \`description\`; the
      *      declared Integer parameter name is historical (destroy(err) emits exactly
-     *      the value it was given, even a non-Error one). Node.js also emits Error
-     *      objects.
+     *      the value it was given, even a non-Error one).
      *
      *      @param code the error value, usually an Error object
      *
@@ -52796,7 +52569,7 @@ declare namespace Class_StreamReader {
  *
  *  Notes:
  *
- *  - The class follows Node.js's \`string_decoder.StringDecoder\` for the supported encodings and the chunk semantics. The errors differ: fibjs throws an Error with number 20024 for an unknown encoding where Node throws a TypeError, and \`end\` does not clear the pending state, so calling it twice returns the flush text twice while Node returns '' the second time.
+ *  - The class follows the \`string_decoder.StringDecoder\` semantics for the supported encodings and the chunk semantics. An unknown encoding throws an Error with number 20024, and \`end\` does not clear the pending state, so calling it twice returns the flush text twice.
  *  - \`base32\`, \`base58\` and \`base64url\` are rejected by the constructor even though \`encoding.isEncoding\` accepts them: they have no incremental decoder here.
  *
  */
@@ -52856,7 +52629,7 @@ declare class Class_StringDecoder extends Class_object {
     /**
      * @description Decodes a chunk starting at the given offset; this is the internal per-chunk routine
      *
-     *      The write method uses it after consuming the bytes held from the previous chunk; offset selects where the still-undecoded part of buf starts. It reads and updates the same state as write (\`lastNeed\`, \`lastTotal\`, \`lastChar\`), so calling it by hand on a decoder that is also being written leaves the state inconsistent. It is exposed for compatibility with code that mirrors the Node.js internals; use write instead.
+     *      The write method uses it after consuming the bytes held from the previous chunk; offset selects where the still-undecoded part of buf starts. It reads and updates the same state as write (\`lastNeed\`, \`lastTotal\`, \`lastChar\`), so calling it by hand on a decoder that is also being written leaves the state inconsistent. It is exposed for compatibility with code that mirrors the internals; use write instead.
      *      @param buf the chunk to decode
      *      @param offset the index in buf where decoding starts
      *      @return the decoded part of the chunk, '' while a character is incomplete
@@ -52877,7 +52650,7 @@ declare class Class_StringDecoder extends Class_object {
     /**
      * @description Number of bytes still needed to complete the character held from the previous chunk
      *
-     *      Zero when no partial character is pending, otherwise 1-3 for utf8, 1-2 for base64 and 1-2 for utf16le. The value is maintained by write and exposed for compatibility with the Node.js internals; it is not cleared by end, and changing it by hand breaks the decoder.
+     *      Zero when no partial character is pending, otherwise 1-3 for utf8, 1-2 for base64 and 1-2 for utf16le. The value is maintained by write and exposed for compatibility with the internals; it is not cleared by end, and changing it by hand breaks the decoder.
      *
      */
     lastNeed: number;
@@ -52946,9 +52719,8 @@ declare class Class_StringDecoder extends Class_object {
  *    object or a path/address string, normalized exactly like the net.TcpServer listener. Routing
  *    is not supported at the TLS layer (isRouting() is false), because a raw stream has no message
  *    to route.
- *  - **Node.js differences**: Node.js has no standalone equivalent; it wraps connections manually
- *    with \`new tls.TLSSocket(socket, { isServer: true })\` or uses tls.createServer()/https.Server.
- *    The class is exported as tls.Handler (there is no tls.TLSHandler).
+ *  - **Notes**: the class is exported as tls.Handler and wraps an already accepted
+ *    connection (the handler a tls.Server invokes for each connection).
  *
  *  Obtained from:
  *  - \`tls.Handler\` — the class alias of the tls module;
@@ -53292,9 +53064,8 @@ declare namespace Class_TLSHandler {
  *    connections continue to be served.
  *  - **Events**: inherited from net.TcpServer - 'listening' after start()/listen(), 'connection'
  *    with the raw accepted Socket before the handshake, 'error' with a message string and 'close'
- *    on stop(). Node.js tls.Server reports the established session through 'secureConnection'
- *    instead and passes an Error to 'error'.
- *  - **Node.js differences**: the class is exported as tls.Server (not tls.TLSServer), the
+ *    on stop().
+ *  - **Notes**: the class is exported as tls.Server, the
  *    constructor may bind the port, SNI is configured on the context (setSNIContext) instead of
  *    server.addContext(), and there is no getTicketKeys/setTicketKeys, maxConnections or unref.
  *
@@ -53682,11 +53453,10 @@ declare namespace Class_TLSServer {
  *    the underlying socket; they throw an invalid-call error before the handshake and after close.
  *  - **Sessions**: there is no session object and no isSessionReused(); every TLSSocket performs a
  *    full handshake.
- *  - **Node.js differences**: the class extends Stream rather than net.Socket, so send/recv, family
- *    and bind/listen do not exist; getX509Certificate()/getPeerX509Certificate() correspond to
- *    Node.js getCertificate()/getPeerCertificate(); alpnProtocol is undefined instead of false; and
- *    getProtocol() already reports the context default before the handshake, where Node.js returns
- *    null.
+ *  - **Shape**: the class extends Stream rather than net.Socket, so send/recv, family
+ *    and bind/listen do not exist; getX509Certificate()/getPeerX509Certificate() return the
+ *    peer certificates; alpnProtocol is undefined before the protocol is negotiated; and
+ *    getProtocol() already reports the context default before the handshake.
  *
  *  Obtained from:
  *  - \`new tls.TLSSocket()\` / \`new tls.TLSSocket(context)\` / \`new tls.TLSSocket(options, isServer)\` —
@@ -53801,8 +53571,7 @@ declare class Class_TLSSocket extends Class_Stream {
      *      (rejectUnauthorized false, SNI callback installed) and does not perform any handshake:
      *      connect() or accept() still has to run. new tls.TLSSocket({key, cert}) is a client socket
      *      that presents a client certificate, while new tls.TLSSocket({key, cert}, true) is a server
-     *      socket that can accept(). Node.js takes an options object here and uses it for the socket
-     *      itself as well; fibjs only reads the TLS keys.
+     *      socket that can accept(). Only the TLS keys of the options object are read.
      *      @param options the options needed to create a secure context with tls.createSecureContext
      *      @param isServer whether it is in server mode
      *
@@ -54098,8 +53867,7 @@ declare class Class_TLSSocket extends Class_Stream {
      * @description The TLS version in use on this connection
      *
      *      The value is a string such as 'TLSv1.3' or 'TLSv1.2'. Before the handshake it reports the
-     *      version of the underlying context (the default), while Node.js returns null until the
-     *      handshake completed.
+     *      version of the underlying context (the default).
      *      @return returns the tls/ssl protocol version
      *
      */
@@ -54109,8 +53877,7 @@ declare class Class_TLSSocket extends Class_Stream {
      * @description The local certificate presented by this connection
      *
      *      Returns undefined when the socket has no local certificate, which is the usual client case;
-     *      a server socket returns its configured leaf certificate. Node.js names the equivalent
-     *      method getCertificate().
+     *      a server socket returns its configured leaf certificate.
      *      @return returns the local certificate
      *
      */
@@ -54121,7 +53888,7 @@ declare class Class_TLSSocket extends Class_Stream {
      *
      *      Returns undefined before the handshake or when the peer sent no certificate (for example a
      *      client that did not present one). The X509Certificate exposes subject, issuer, validFrom
-     *      and validTo. Node.js names the equivalent method getPeerCertificate().
+     *      and validTo.
      *
      *      Example — reading the subject of the certificate served by a local server:
      *      \`\`\`JavaScript
@@ -54212,8 +53979,7 @@ declare class Class_TLSSocket extends Class_Stream {
     /**
      * @description The ALPN protocol negotiated by the handshake
      *
-     *      undefined when ALPN was not used or no offered protocol matched (Node.js reports false in
-     *      that case). The offered list comes from the alpnProtocols option of tls.createSecureContext.
+     *      undefined when ALPN was not used or no offered protocol matched. The offered list comes from the alpnProtocols option of tls.createSecureContext.
      *
      */
     readonly alpnProtocol: string;
@@ -54258,8 +54024,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      *      (rejectUnauthorized false, SNI callback installed) and does not perform any handshake:
      *      connect() or accept() still has to run. new tls.TLSSocket({key, cert}) is a client socket
      *      that presents a client certificate, while new tls.TLSSocket({key, cert}, true) is a server
-     *      socket that can accept(). Node.js takes an options object here and uses it for the socket
-     *      itself as well; fibjs only reads the TLS keys.
+     *      socket that can accept(). Only the TLS keys of the options object are read.
      *      @param options the options needed to create a secure context with tls.createSecureContext
      *      @param isServer whether it is in server mode
      *
@@ -54551,8 +54316,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      * @description The TLS version in use on this connection
      *
      *      The value is a string such as 'TLSv1.3' or 'TLSv1.2'. Before the handshake it reports the
-     *      version of the underlying context (the default), while Node.js returns null until the
-     *      handshake completed.
+     *      version of the underlying context (the default).
      *      @return returns the tls/ssl protocol version
      *
      */
@@ -54562,8 +54326,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      * @description The local certificate presented by this connection
      *
      *      Returns undefined when the socket has no local certificate, which is the usual client case;
-     *      a server socket returns its configured leaf certificate. Node.js names the equivalent
-     *      method getCertificate().
+     *      a server socket returns its configured leaf certificate.
      *      @return returns the local certificate
      *
      */
@@ -54574,7 +54337,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      *
      *      Returns undefined before the handshake or when the peer sent no certificate (for example a
      *      client that did not present one). The X509Certificate exposes subject, issuer, validFrom
-     *      and validTo. Node.js names the equivalent method getPeerCertificate().
+     *      and validTo.
      *
      *      Example — reading the subject of the certificate served by a local server:
      *      \`\`\`JavaScript
@@ -54665,8 +54428,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
     /**
      * @description The ALPN protocol negotiated by the handshake
      *
-     *      undefined when ALPN was not used or no offered protocol matched (Node.js reports false in
-     *      that case). The offered list comes from the alpnProtocols option of tls.createSecureContext.
+     *      undefined when ALPN was not used or no offered protocol matched. The offered list comes from the alpnProtocols option of tls.createSecureContext.
      *
      */
     readonly alpnProtocol: string;
@@ -54783,8 +54545,7 @@ declare class Class_TTYInputStream extends Class_Stream {
      *      checked, so a terminal descriptor opened for output can be wrapped as well.
      *
      *      opts is accepted for interface compatibility and ignored: it is not forwarded to the Stream
-     *      base. Node.js passes its options to net.Socket instead and fails only when the terminal
-     *      cannot be initialized at all.
+     *      base.
      *
      *      Example — wrap descriptor 0 inside a pty child:
      *      \`\`\`JavaScript
@@ -54822,7 +54583,7 @@ declare class Class_TTYInputStream extends Class_Stream {
     /**
      * @description Always true: the stream is readable
      *
-     *      The property is fixed to true by the class, matching Node.js. The stream also reports writable
+     *      The property is fixed to true by the class. The stream also reports writable
      *      true, because it wraps the terminal device itself; the inherited read, readAll and close
      *      members operate on that device, while interactive input is normally consumed through \`'data'\`
      *      events (see the class description).
@@ -54835,8 +54596,7 @@ declare class Class_TTYInputStream extends Class_Stream {
      *
      *      It starts false on every new stream object, even when the terminal device is already in raw
      *      mode because another stream set it, and it follows the last setRawMode call made on the same
-     *      object. Node.js has the same per-object semantics and additionally exposes the resulting mode
-     *      as \`rawMode\`.
+     *      object.
      *
      */
     readonly isRaw: boolean;
@@ -54848,8 +54608,7 @@ declare class Class_TTYInputStream extends Class_Stream {
      *      characters such as Ctrl+C are no longer turned into signals; the default mode restores line
      *      editing, echo and signal handling. The argument is coerced with ToBoolean, so 0 and an empty
      *      string mean false and any other value means true; isRaw is set to the coerced value and the
-     *      stream itself is returned, which allows chained calls. Node.js also accepts the string modes
-     *      'raw' and 'io' and tracks them in \`rawMode\`; fibjs supports only the boolean raw/normal pair.
+     *      stream itself is returned, which allows chained calls. Only the boolean raw/normal pair is supported.
      *
      *      Example — chain the call and read the flag back in a pty child:
      *      \`\`\`JavaScript
@@ -54893,8 +54652,7 @@ declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
      *      checked, so a terminal descriptor opened for output can be wrapped as well.
      *
      *      opts is accepted for interface compatibility and ignored: it is not forwarded to the Stream
-     *      base. Node.js passes its options to net.Socket instead and fails only when the terminal
-     *      cannot be initialized at all.
+     *      base.
      *
      *      Example — wrap descriptor 0 inside a pty child:
      *      \`\`\`JavaScript
@@ -54932,7 +54690,7 @@ declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
     /**
      * @description Always true: the stream is readable
      *
-     *      The property is fixed to true by the class, matching Node.js. The stream also reports writable
+     *      The property is fixed to true by the class. The stream also reports writable
      *      true, because it wraps the terminal device itself; the inherited read, readAll and close
      *      members operate on that device, while interactive input is normally consumed through \`'data'\`
      *      events (see the class description).
@@ -54945,8 +54703,7 @@ declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
      *
      *      It starts false on every new stream object, even when the terminal device is already in raw
      *      mode because another stream set it, and it follows the last setRawMode call made on the same
-     *      object. Node.js has the same per-object semantics and additionally exposes the resulting mode
-     *      as \`rawMode\`.
+     *      object.
      *
      */
     readonly isRaw: boolean;
@@ -54958,8 +54715,7 @@ declare class Class_TTYInputStreamPromise extends Class_StreamPromise {
      *      characters such as Ctrl+C are no longer turned into signals; the default mode restores line
      *      editing, echo and signal handling. The argument is coerced with ToBoolean, so 0 and an empty
      *      string mean false and any other value means true; isRaw is set to the coerced value and the
-     *      stream itself is returned, which allows chained calls. Node.js also accepts the string modes
-     *      'raw' and 'io' and tracks them in \`rawMode\`; fibjs supports only the boolean raw/normal pair.
+     *      stream itself is returned, which allows chained calls. Only the boolean raw/normal pair is supported.
      *
      *      Example — chain the call and read the flag back in a pty child:
      *      \`\`\`JavaScript
@@ -55011,13 +54767,13 @@ declare namespace Class_TTYInputStream {
  *    resizes the window the process receives SIGWINCH and the stream emits \`'resize'\` with no
  *    arguments, after which the properties report the new size.
  *  - **Control sequences**: clearLine, clearScreenDown, cursorTo and moveCursor write ANSI CSI
- *    sequences to the terminal, which interprets them instead of displaying them. fibjs emits the
- *    same sequences as Node.js; the members return nothing and write straight to the terminal
+ *    sequences to the terminal, which interprets them instead of displaying them. The members emit the
+ *    same CSI sequences; the members return nothing and write straight to the terminal
  *    device, bypassing the JavaScript write override and the stream back pressure.
  *  - **Positions**: columns and the x arguments are 0-based; cursorTo(x) moves to column x of the
  *    current row, cursorTo(x, y) moves to the 0-based row y, and moveCursor(dx, dy) is relative.
  *    Each non-zero component is written as its own sequence.
- *  - **Color depth**: Node.js hasColors/getColorDepth are not implemented; use util.colors.hasColors
+ *  - **Color depth**: \`hasColors\`/\`getColorDepth\` are not implemented; use util.colors.hasColors
  *    to test whether the terminal supports color (see the colors module).
  *
  *  Obtained from:
@@ -55093,7 +54849,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *      checked, so a terminal descriptor opened for input can be wrapped as well.
      *
      *      opts is accepted for interface compatibility and ignored: it is not forwarded to the Stream
-     *      base. Node.js has no options parameter on tty.WriteStream at all.
+     *      base.
      *
      *      Example — construct a second write stream for the terminal of a pty child:
      *      \`\`\`JavaScript
@@ -55135,7 +54891,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      * @description The current number of columns of the terminal
      *
      *      The value is read from the terminal device on every access, so it follows a resize; it is the
-     *      first element of getWindowSize and matches Node.js. A pty created with \`stdio: 'pty'\` starts
+     *      first element of getWindowSize. A pty created with \`stdio: 'pty'\` starts
      *      at the cols option of child_process (80 by default).
      *
      */
@@ -55145,7 +54901,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      * @description The current number of rows of the terminal
      *
      *      The value is read from the terminal device on every access, so it follows a resize; it is the
-     *      second element of getWindowSize and matches Node.js. A pty created with \`stdio: 'pty'\` starts
+     *      second element of getWindowSize. A pty created with \`stdio: 'pty'\` starts
      *      at the rows option of child_process (24 by default).
      *
      */
@@ -55157,7 +54913,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *      dir selects the part of the line to clear: -1 clears from the cursor to the beginning of the
      *      line, 0 the whole line and 1 from the cursor to the end of the line (the default is 0). Each
      *      direction writes the corresponding CSI sequence: \`\\x1b[1K\`, \`\\x1b[2K\` or \`\\x1b[0K\`. Any other
-     *      value throws [20004] ("clearLine: invalid direction"), where Node.js writes \`\\x1b[0K\` instead.
+     *      value throws [20004] ("clearLine: invalid direction").
      *
      *      Example — the three directions produce three different sequences:
      *      \`\`\`JavaScript
@@ -55185,8 +54941,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
     /**
      * @description Clears the terminal from the cursor down to the end of the screen
      *
-     *      Writes the CSI sequence \`\\x1b[0J\`; the cursor itself does not move. Node.js emits the same
-     *      sequence from its synchronous form.
+     *      Writes the CSI sequence \`\\x1b[0J\`; the cursor itself does not move.
      *
      */
     clearScreenDown(): void;
@@ -55196,13 +54951,11 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes \`\\x1b[(x+1)G\`; otherwise y is the 0-based row and the member writes
-     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes \`\\x1b[0G\`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      \`\`\`JavaScript
@@ -55234,13 +54987,11 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes \`\\x1b[(x+1)G\`; otherwise y is the 0-based row and the member writes
-     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes \`\\x1b[0G\`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      \`\`\`JavaScript
@@ -55270,13 +55021,11 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes \`\\x1b[(x+1)G\`; otherwise y is the 0-based row and the member writes
-     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes \`\\x1b[0G\`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      \`\`\`JavaScript
@@ -55306,8 +55055,8 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits \`\\x1b[dxC\` (right)
      *      and dx < 0 emits \`\\x1b[|dx|D\` (left); dy > 0 emits \`\\x1b[dyB\` (down) and dy < 0 emits
-     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      \`\`\`JavaScript
@@ -55340,8 +55089,8 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits \`\\x1b[dxC\` (right)
      *      and dx < 0 emits \`\\x1b[|dx|D\` (left); dy > 0 emits \`\\x1b[dyB\` (down) and dy < 0 emits
-     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      \`\`\`JavaScript
@@ -55372,8 +55121,8 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits \`\\x1b[dxC\` (right)
      *      and dx < 0 emits \`\\x1b[|dx|D\` (left); dy > 0 emits \`\\x1b[dyB\` (down) and dy < 0 emits
-     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      \`\`\`JavaScript
@@ -55403,7 +55152,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      * @description Returns the size of the terminal as [numColumns, numRows]
      *
      *      The pair is read from the terminal device on every call, so it follows a resize; it is
-     *      equivalent to reading columns and rows and has the same Number[] shape as Node.js (the members
+     *      equivalent to reading columns and rows, returned as a Number[] (the members
      *      are numbers, not integers).
      *
      *      @return returns the array [numColumns, numRows] of the terminal
@@ -55416,8 +55165,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      The event carries no arguments; read columns, rows or getWindowSize inside the listener to get
      *      the new size. It is emitted when the process receives SIGWINCH, which the terminal sends when
-     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size). Node.js emits
-     *      the same event under the same name.
+     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size).
      *
      *      Example — watch the size of a pty child while stty resizes it (Linux only):
      *      \`\`\`JavaScript
@@ -55470,8 +55218,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *
      *      The event carries no arguments; read columns, rows or getWindowSize inside the listener to get
      *      the new size. It is emitted when the process receives SIGWINCH, which the terminal sends when
-     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size). Node.js emits
-     *      the same event under the same name.
+     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size).
      *
      *      Example — watch the size of a pty child while stty resizes it (Linux only):
      *      \`\`\`JavaScript
@@ -55613,7 +55360,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *      checked, so a terminal descriptor opened for input can be wrapped as well.
      *
      *      opts is accepted for interface compatibility and ignored: it is not forwarded to the Stream
-     *      base. Node.js has no options parameter on tty.WriteStream at all.
+     *      base.
      *
      *      Example — construct a second write stream for the terminal of a pty child:
      *      \`\`\`JavaScript
@@ -55655,7 +55402,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      * @description The current number of columns of the terminal
      *
      *      The value is read from the terminal device on every access, so it follows a resize; it is the
-     *      first element of getWindowSize and matches Node.js. A pty created with \`stdio: 'pty'\` starts
+     *      first element of getWindowSize. A pty created with \`stdio: 'pty'\` starts
      *      at the cols option of child_process (80 by default).
      *
      */
@@ -55665,7 +55412,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      * @description The current number of rows of the terminal
      *
      *      The value is read from the terminal device on every access, so it follows a resize; it is the
-     *      second element of getWindowSize and matches Node.js. A pty created with \`stdio: 'pty'\` starts
+     *      second element of getWindowSize. A pty created with \`stdio: 'pty'\` starts
      *      at the rows option of child_process (24 by default).
      *
      */
@@ -55677,7 +55424,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *      dir selects the part of the line to clear: -1 clears from the cursor to the beginning of the
      *      line, 0 the whole line and 1 from the cursor to the end of the line (the default is 0). Each
      *      direction writes the corresponding CSI sequence: \`\\x1b[1K\`, \`\\x1b[2K\` or \`\\x1b[0K\`. Any other
-     *      value throws [20004] ("clearLine: invalid direction"), where Node.js writes \`\\x1b[0K\` instead.
+     *      value throws [20004] ("clearLine: invalid direction").
      *
      *      Example — the three directions produce three different sequences:
      *      \`\`\`JavaScript
@@ -55705,8 +55452,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
     /**
      * @description Clears the terminal from the cursor down to the end of the screen
      *
-     *      Writes the CSI sequence \`\\x1b[0J\`; the cursor itself does not move. Node.js emits the same
-     *      sequence from its synchronous form.
+     *      Writes the CSI sequence \`\\x1b[0J\`; the cursor itself does not move.
      *
      */
     clearScreenDown(): void;
@@ -55716,13 +55462,11 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes \`\\x1b[(x+1)G\`; otherwise y is the 0-based row and the member writes
-     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes \`\\x1b[0G\`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      \`\`\`JavaScript
@@ -55752,13 +55496,11 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes \`\\x1b[(x+1)G\`; otherwise y is the 0-based row and the member writes
-     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes \`\\x1b[0G\`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      \`\`\`JavaScript
@@ -55788,13 +55530,11 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      x is the 0-based column to move to. When y is omitted or negative the row is left unchanged
      *      and the member writes \`\\x1b[(x+1)G\`; otherwise y is the 0-based row and the member writes
-     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative") where
-     *      Node.js writes \`\\x1b[0G\`, and a negative y means "do not change the row" where Node.js emits
-     *      a negative row number.
+     *      \`\\x1b[(y+1);(x+1)H\`. A negative x throws [20004] ("cursorTo: x must be non-negative"),
+     *      and a negative y means "do not change the row".
      *
      *      The member is declared async, so it also has a callback form and the cursorToSync/cursorToAsync
-     *      aliases; all of them write the sequence when they run. Node.js emits the same bytes from its
-     *      synchronous form.
+     *      aliases; all of them write the sequence when they run.
      *
      *      Example — absolute row/column addressing:
      *      \`\`\`JavaScript
@@ -55824,8 +55564,8 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits \`\\x1b[dxC\` (right)
      *      and dx < 0 emits \`\\x1b[|dx|D\` (left); dy > 0 emits \`\\x1b[dyB\` (down) and dy < 0 emits
-     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      \`\`\`JavaScript
@@ -55856,8 +55596,8 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits \`\\x1b[dxC\` (right)
      *      and dx < 0 emits \`\\x1b[|dx|D\` (left); dy > 0 emits \`\\x1b[dyB\` (down) and dy < 0 emits
-     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      \`\`\`JavaScript
@@ -55888,8 +55628,8 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      Each non-zero component is written as its own CSI sequence: dx > 0 emits \`\\x1b[dxC\` (right)
      *      and dx < 0 emits \`\\x1b[|dx|D\` (left); dy > 0 emits \`\\x1b[dyB\` (down) and dy < 0 emits
-     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing. Node.js emits the same sequences from its
-     *      synchronous form; the explicit moveCursorSync/moveCursorAsync aliases are fibjs extensions.
+     *      \`\\x1b[|dy|A\` (up). moveCursor(0, 0) writes nothing; the explicit moveCursorSync/moveCursorAsync
+     *      aliases are extensions of the class.
      *
      *      Example — relative moves in all four directions:
      *      \`\`\`JavaScript
@@ -55919,7 +55659,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      * @description Returns the size of the terminal as [numColumns, numRows]
      *
      *      The pair is read from the terminal device on every call, so it follows a resize; it is
-     *      equivalent to reading columns and rows and has the same Number[] shape as Node.js (the members
+     *      equivalent to reading columns and rows, returned as a Number[] (the members
      *      are numbers, not integers).
      *
      *      @return returns the array [numColumns, numRows] of the terminal
@@ -55932,8 +55672,7 @@ declare class Class_TTYOutputStreamPromise extends Class_StreamPromise {
      *
      *      The event carries no arguments; read columns, rows or getWindowSize inside the listener to get
      *      the new size. It is emitted when the process receives SIGWINCH, which the terminal sends when
-     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size). Node.js emits
-     *      the same event under the same name.
+     *      its size changes (on a pseudo terminal, when stty or an ioctl changes the size).
      *
      *      Example — watch the size of a pty child while stty resizes it (Linux only):
      *      \`\`\`JavaScript
@@ -55979,8 +55718,7 @@ declare namespace Class_TTYOutputStream {
 /**
  * @description A fiber-per-connection TCP server: it binds an address and hands every accepted connection to a handler, one Socket and one fiber per client
  *
- *  TcpServer is the server side of the net module and the fibjs counterpart of the Node.js
- *  net.Server. A handler is a function (or Handler object) called with each accepted Socket; it runs
+ *  TcpServer is the server side of the net module. A handler is a function (or Handler object) called with each accepted Socket; it runs
  *  in its own fiber, so it can read, process and answer the client sequentially while other
  *  connections are served in parallel. The typical shapes are:
  *
@@ -56007,16 +55745,13 @@ declare namespace Class_TTYOutputStream {
  *    runs.
  *  - **Address information**: address() returns { address, family, port }; with listen(0) it reports
  *    the OS-assigned port. For a unix socket the address is the path while family/port are
- *    placeholders (see address). address() throws before the server is bound; Node.js returns null
- *    instead and returns the path string for pipe servers.
+ *    placeholders (see address). address() throws before the server is bound.
  *  - **Events**: 'listening' after start()/listen(), 'connection' with the accepted Socket before
  *    the handler is invoked, 'error' with a plain message string for accept errors and 'close' on
- *    stop()/close(). Node.js passes an Error to 'error' and delays 'close' until all connections
- *    have ended, while fibjs emits 'close' immediately.
- *  - **Node.js differences**: there is no net.Server class (net.createServer returns a TcpServer);
- *    the fibjs constructor can bind while Node.js always requires listen(); the options object of
- *    the constructor is a bind specification ({address, port}), not the socket options of Node.js;
- *    and fibjs has no maxConnections/getConnections/ref/unref.
+ *    stop()/close(); 'close' is emitted immediately, even when connections are still open.
+ *  - **Limits**: there is no net.Server class (net.createServer returns a TcpServer); the
+ *    constructor can bind the port itself; the options object of the constructor is a bind
+ *    specification ({address, port}); and there is no maxConnections/getConnections/ref/unref.
  *
  *  Obtained from:
  *  - \`net.createServer(options, listener)\` / \`net.createServer(listener)\` — the factory form;
@@ -56125,8 +55860,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      \`\`\`
      *      With both properties the server binds address:port immediately; with address only it binds
      *      that address with an OS-assigned port (or a unix path when the address is not an IP literal);
-     *      with neither it only stores the handler and listen() must be called. These are bind options,
-     *      not the socket options of Node.js net.createServer. The listener forms are described on the
+     *      with neither it only stores the handler and listen() must be called. These are bind options. The listener forms are described on the
      *      port-only overload.
      *      @param options server options
      *      @param listener the connection handler
@@ -56140,7 +55874,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     addr is the path to bind, for example '/tmp/app.sock' or '\\\\.\\pipe\\app' (watch the string
      *     escapes). An all-digit string is treated as a TCP port instead, so
      *     new net.TcpServer('8080', handler) listens on port 8080. The path is bound during construction
-     *     and start() begins accepting. Node.js uses server.listen(path) for the same purpose.
+     *     and start() begins accepting.
      *     @param addr specifies the unix socket or Windows pipe server listening address
      *     @param listener the connection handler
      *
@@ -56164,7 +55898,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -56180,7 +55914,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -56194,7 +55928,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -56207,8 +55941,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stop(): void;
@@ -56220,8 +55953,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stopSync(): void;
@@ -56231,8 +55963,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stopAsync(): Promise<void>;
@@ -56240,7 +55971,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     close(): void;
@@ -56250,7 +55981,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     closeSync(): void;
@@ -56258,7 +55989,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     closeAsync(): Promise<void>;
@@ -56269,8 +56000,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      The result has the shape { address, family, port }, where family is 'IPv4' or 'IPv6' and port
      *      is the real port after listen(0). For a unix socket or Windows pipe the address is the bound
      *      path while family/port are placeholders ('IPv4'/0). The method throws before the server is
-     *      bound (number 20009); Node.js returns null instead and returns the path string for pipe
-     *      servers.
+     *      bound (number 20009).
      *
      *      Example — discovering the port assigned to listen(0):
      *      \`\`\`JavaScript
@@ -56299,7 +56029,6 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      The underlying listening Socket exposes the bound family/localAddress/localPort; it is useful
      *      for diagnostics, but do not call accept on it because the server owns the accept loop. It
      *      throws when the server was created by the handler-only constructor and is not bound yet.
-     *      Node.js hides the listening handle.
      *
      */
     readonly socket: Class_Socket;
@@ -56329,8 +56058,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted after start() is called and binding completes
      *
      *      Emitted synchronously by start()/listen(), after the socket is listening and before the first
-     *      accept; observe it with on('listening') or the onlistening shorthand. Node.js emits
-     *      'listening' asynchronously once the bind completes.
+     *      accept; observe it with on('listening') or the onlistening shorthand.
      *
      */
     on(event: "listening", listener: ()=>void): this;
@@ -56355,8 +56083,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted after start() is called and binding completes
      *
      *      Emitted synchronously by start()/listen(), after the socket is listening and before the first
-     *      accept; observe it with on('listening') or the onlistening shorthand. Node.js emits
-     *      'listening' asynchronously once the bind completes.
+     *      accept; observe it with on('listening') or the onlistening shorthand.
      *
      */
     onlistening: (()=>void) | null;
@@ -56365,8 +56092,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted when a new TCP connection is established
      *
      *      Emitted before the handler is invoked for the same Socket, on the accepting fiber; a long
-     *      listener delays further accepts, so offload work to the handler or to a new fiber. Node.js
-     *      emits 'connection' with its socket in the same way.
+     *      listener delays further accepts, so offload work to the handler or to a new fiber.
      *      @param socket the newly established Socket connection object
      *
      */
@@ -56392,8 +56118,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted when a new TCP connection is established
      *
      *      Emitted before the handler is invoked for the same Socket, on the accepting fiber; a long
-     *      listener delays further accepts, so offload work to the handler or to a new fiber. Node.js
-     *      emits 'connection' with its socket in the same way.
+     *      listener delays further accepts, so offload work to the handler or to a new fiber.
      *      @param socket the newly established Socket connection object
      *
      */
@@ -56402,8 +56127,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description Emitted when an error occurs
      *
-     *      Emitted for accept-loop failures with a plain message string, not with an Error object as in
-     *      Node.js. An exception thrown by the handler does not emit this event: it is logged and the
+     *      Emitted for accept-loop failures with a plain message string, not with an Error object. An exception thrown by the handler does not emit this event: it is logged and the
      *      connection is closed.
      *      @param msg the error message
      *
@@ -56429,8 +56153,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     /**
      * @description Emitted when an error occurs
      *
-     *      Emitted for accept-loop failures with a plain message string, not with an Error object as in
-     *      Node.js. An exception thrown by the handler does not emit this event: it is logged and the
+     *      Emitted for accept-loop failures with a plain message string, not with an Error object. An exception thrown by the handler does not emit this event: it is logged and the
      *      connection is closed.
      *      @param msg the error message
      *
@@ -56441,8 +56164,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted after the server is closed
      *
      *      Emitted by stop()/close() immediately after the listening socket is closed, even when
-     *      connections are still open. Node.js emits 'close' only after the server has stopped
-     *      accepting and all connections have ended.
+     *      connections are still open.
      *
      */
     on(event: "close", listener: ()=>void): this;
@@ -56467,8 +56189,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      * @description Emitted after the server is closed
      *
      *      Emitted by stop()/close() immediately after the listening socket is closed, even when
-     *      connections are still open. Node.js emits 'close' only after the server has stopped
-     *      accepting and all connections have ended.
+     *      connections are still open.
      *
      */
     onclose: (()=>void) | null;
@@ -56579,8 +56300,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      \`\`\`
      *      With both properties the server binds address:port immediately; with address only it binds
      *      that address with an OS-assigned port (or a unix path when the address is not an IP literal);
-     *      with neither it only stores the handler and listen() must be called. These are bind options,
-     *      not the socket options of Node.js net.createServer. The listener forms are described on the
+     *      with neither it only stores the handler and listen() must be called. These are bind options. The listener forms are described on the
      *      port-only overload.
      *      @param options server options
      *      @param listener the connection handler
@@ -56594,7 +56314,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     addr is the path to bind, for example '/tmp/app.sock' or '\\\\.\\pipe\\app' (watch the string
      *     escapes). An all-digit string is treated as a TCP port instead, so
      *     new net.TcpServer('8080', handler) listens on port 8080. The path is bound during construction
-     *     and start() begins accepting. Node.js uses server.listen(path) for the same purpose.
+     *     and start() begins accepting.
      *     @param addr specifies the unix socket or Windows pipe server listening address
      *     @param listener the connection handler
      *
@@ -56618,7 +56338,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -56632,7 +56352,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -56646,7 +56366,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      Binds and starts the accept loop in one call, emitting 'listening'. Port 0 asks the operating
      *      system for an ephemeral port, read it from address(). backlog -1 passes the system default to
      *      the operating system. A second listen on the same server throws ERR_SERVER_ALREADY_LISTEN,
-     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen' like Node.js.
+     *      and a failed bind (for example EADDRINUSE) carries syscall 'listen'.
      *     @param port specifies the TCP server listening port
      *     @param addr specifies the TCP server listening address; "" means listening on all local addresses
      *     @param backlog specifies the maximum length of the connection queue, -1 means using the system default
@@ -56659,8 +56379,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stop(): Promise<void>;
@@ -56670,8 +56389,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stopSync(): void;
@@ -56681,8 +56399,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *
      *      Closes the listening socket and emits 'close' immediately; the accepted connections are not
      *      closed and keep running in their handler fibers (the handler owns them). Stopping a server
-     *      that was never bound is a no-op. Node.js server.close() instead waits for the active
-     *      connections to end before emitting 'close'.
+     *      that was never bound is a no-op.
      *
      */
     stopAsync(): Promise<void>;
@@ -56690,7 +56407,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     close(): Promise<void>;
@@ -56698,7 +56415,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     closeSync(): void;
@@ -56706,7 +56423,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     /**
      * @description Closes the socket and aborts the running server; an alias of stop()
      *
-     *      Identical to stop(), provided for the Node.js naming; both are awaitable.
+     *      Identical to stop(); both are awaitable.
      *
      */
     closeAsync(): Promise<void>;
@@ -56717,8 +56434,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      The result has the shape { address, family, port }, where family is 'IPv4' or 'IPv6' and port
      *      is the real port after listen(0). For a unix socket or Windows pipe the address is the bound
      *      path while family/port are placeholders ('IPv4'/0). The method throws before the server is
-     *      bound (number 20009); Node.js returns null instead and returns the path string for pipe
-     *      servers.
+     *      bound (number 20009).
      *
      *      Example — discovering the port assigned to listen(0):
      *      \`\`\`JavaScript
@@ -56747,7 +56463,6 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      The underlying listening Socket exposes the bound family/localAddress/localPort; it is useful
      *      for diagnostics, but do not call accept on it because the server owns the accept loop. It
      *      throws when the server was created by the handler-only constructor and is not bound yet.
-     *      Node.js hides the listening handle.
      *
      */
     readonly socket: Class_SocketPromise;
@@ -56777,8 +56492,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      * @description Emitted after start() is called and binding completes
      *
      *      Emitted synchronously by start()/listen(), after the socket is listening and before the first
-     *      accept; observe it with on('listening') or the onlistening shorthand. Node.js emits
-     *      'listening' asynchronously once the bind completes.
+     *      accept; observe it with on('listening') or the onlistening shorthand.
      *
      */
     onlistening: (()=>void) | null;
@@ -56787,8 +56501,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      * @description Emitted when a new TCP connection is established
      *
      *      Emitted before the handler is invoked for the same Socket, on the accepting fiber; a long
-     *      listener delays further accepts, so offload work to the handler or to a new fiber. Node.js
-     *      emits 'connection' with its socket in the same way.
+     *      listener delays further accepts, so offload work to the handler or to a new fiber.
      *      @param socket the newly established Socket connection object
      *
      */
@@ -56797,8 +56510,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     /**
      * @description Emitted when an error occurs
      *
-     *      Emitted for accept-loop failures with a plain message string, not with an Error object as in
-     *      Node.js. An exception thrown by the handler does not emit this event: it is logged and the
+     *      Emitted for accept-loop failures with a plain message string, not with an Error object. An exception thrown by the handler does not emit this event: it is logged and the
      *      connection is closed.
      *      @param msg the error message
      *
@@ -56809,8 +56521,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      * @description Emitted after the server is closed
      *
      *      Emitted by stop()/close() immediately after the listening socket is closed, even when
-     *      connections are still open. Node.js emits 'close' only after the server has stopped
-     *      accepting and all connections have ended.
+     *      connections are still open.
      *
      */
     onclose: (()=>void) | null;
@@ -57030,8 +56741,8 @@ declare class Class_TextDecoder extends Class_object {
  *  converted with a direct copy of the internal utf-8 string.
  *
  *  fibjs extension: the constructor also accepts other charset labels (gbk, big5, euc-jp,
- *  utf-16le, windows-125x, ...) and produces bytes in that encoding, while the Web standard and
- *  Node.js ignore the label and always encode utf-8. An unknown label raises \`RangeError [20004]
+ *  utf-16le, windows-125x, ...) and produces bytes in that encoding, while the Web standard
+ *  ignores the label and always encodes utf-8. An unknown label raises \`RangeError [20004]
  *  ERR_ENCODING_NOT_SUPPORTED\`.
  *
  *  Concepts:
@@ -57040,7 +56751,7 @@ declare class Class_TextDecoder extends Class_object {
  *    UTF-8 become utf-8, latin1 becomes windows-1252) with an ICU lookup as fallback for
  *    charsets outside the WHATWG list. The resolved name is exposed by the encoding property.
  *  - **Output type**: encode() returns a Buffer, a Uint8Array subclass, so the result can be
- *    used anywhere a BufferSource is expected; Node.js returns a plain Uint8Array.
+ *    used anywhere a BufferSource is expected.
  *  - **Partial writes**: encodeInto() writes into a caller-provided buffer and reports how much
  *    of the source (in UTF-16 code units) and how many bytes were written. A character is never
  *    split, so a small destination stops at the last complete character.
@@ -57238,7 +56949,7 @@ declare class Class_Timer extends Class_object {
      *      A timer keeps the process alive by default, so ref is normally needed only after an \`unref\`
      *      call to restore the default behavior; repeated calls have no additional effect. The method
      *      returns the timer itself, which makes it chainable with the scheduling function (for example
-     *      \`setTimeout(...).unref()\`). Node.js \`Timeout#ref\` behaves the same way.
+     *      \`setTimeout(...).unref()\`).
      *
      *      @return returns the timer object
      *
@@ -57294,7 +57005,6 @@ declare class Class_Timer extends Class_object {
      *      The value is false while the timer is pending. It becomes true after the timer is cleared or,
      *      for a one-time timer, after the callback returns; inside the callback itself it is still false
      *      for a one-time timer and can be set to true by \`clear\` while a repeating callback is running.
-     *      Node.js exposes no equivalent property on \`Timeout\`/\`Immediate\`.
      *
      */
     readonly stopped: boolean;
@@ -57757,7 +57467,7 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
         "dts/interface/Unzip.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Unzip is the Node.js compatible codec that decompresses gzip or zlib data by
+ * @description Unzip is the codec that decompresses gzip or zlib data by
  *  detecting the format
  *
  *  \`new zlib.Unzip(opts)\` builds a synchronous codec that inspects the first bytes of the
@@ -57869,9 +57579,8 @@ declare class Class_Unzip extends Class_ZlibCodec {
  *   ignore a value the parser rejects (an out-of-range port, a bad host, a scheme
  *   switch between a special and a non-special protocol); \`searchParams\` is a
  *   live view, so mutating it rewrites the URL on the next serialization.
- * - **Comparison with Node.js**: Node keeps its WHATWG \`URL\` class and the legacy
- *   \`url.parse\` object separate and rejects a relative input without a base; fibjs
- *   merges both into \`UrlObject\` and accepts such an input as a rooted path, so
+ * - **Two models in one class**: the WHATWG URL API and the legacy \`url.parse\` fields are
+ *   merged into \`UrlObject\`, and a relative input without a base is accepted as a rooted path, so
  *   the legacy fields exist on every instance.
  *
  * Obtained from:
@@ -57932,8 +57641,7 @@ declare class Class_UrlObject extends Class_object {
     /**
      * @description Constructs a URL object from a components object
      *
-     *      A fibjs extension; Node.js stringifies the object instead and throws on a
-     *      plain one. The accepted fields are protocol, slashes, auth (or
+     *      An extension of the runtime. The accepted fields are protocol, slashes, auth (or
      *      username/password), host (or hostname plus port), path (or pathname),
      *      query, search and hash, combined by the legacy serializer: a hostname
      *      without protocol implies \`http:\`, user names and passwords are
@@ -57952,11 +57660,10 @@ declare class Class_UrlObject extends Class_object {
      * @description Constructs a URL object from a URL string
      *
      *      Parses url with the WHATWG URL parser. base may be a string, a UrlObject
-     *      or a components object and is used to resolve a relative url (Node.js
-     *      accepts a string or URL only). Without base, a relative string is not
+     *      or a components object and is used to resolve a relative url. Without base, a relative string is not
      *      rejected: it is normalized as a rooted path, so \`new URL('a/b').href\` is
      *      \`/a/b\`, and a typo such as \`ht tp://h/\` silently becomes the path
-     *      \`/ht%20tp://h/\`, where Node.js throws ERR_INVALID_URL. A malformed
+     *      \`/ht%20tp://h/\`. A malformed
      *      absolute input (\`http://\`, an out-of-range port, an invalid IPv6 host)
      *      throws \`url: Invalid URL '<input>'.\` ([20024]); null and undefined yield
      *      an empty URL, while other non-string values throw a type error ([20005]).
@@ -57978,12 +57685,10 @@ declare class Class_UrlObject extends Class_object {
     /**
      * @description Parses a URL string and returns a URL object
      *
-     *      Aliases the string constructor for the Node.js \`URL.parse\` static (Node
-     *      22+) and accepts base as a URL string. Node.js returns \`null\` when the
-     *      input is invalid; fibjs throws \`url: Invalid URL '<input>'.\` ([20024])
-     *      instead, and accepts a relative string without a base as a rooted path.
-     *      \`URL.parse('')\` returns an object whose href is \`''\` (Node.js returns
-     *      null), and a non-string value throws a type error ([20005]).
+     *      Aliases the string constructor and accepts base as a URL string. An invalid input throws
+     *      \`url: Invalid URL '<input>'.\` ([20024]), while \`URL.parse('')\` returns an object whose
+     *      href is \`''\`; a relative string without a base is accepted as a rooted path, and a
+     *      non-string value throws a type error ([20005]).
      *
      *      Example — success and failure:
      *      \`\`\`JavaScript
@@ -58008,10 +57713,9 @@ declare class Class_UrlObject extends Class_object {
      * @description Checks whether a URL string can be parsed
      *
      *      Returns true when the matching constructor or static parse call would
-     *      succeed. fibjs is more permissive than Node.js: a relative string without
-     *      base (\`/p\`), an empty string and a string with spaces that cannot form an
-     *      absolute URL are treated as relative and return true, while Node.js
-     *      returns false without a base. A malformed absolute input (\`http://\`, a bad
+     *      succeed. A relative string without base (\`/p\`), an empty string and a string with spaces
+     *      that cannot form an absolute URL are treated as relative and return true.
+     *      A malformed absolute input (\`http://\`, a bad
      *      port, an invalid IPv6 host) returns false, and an unusable base makes the
      *      result false as well.
      *
@@ -58037,9 +57741,7 @@ declare class Class_UrlObject extends Class_object {
      *      WHATWG algorithm and returned as a new UrlObject. An empty url returns a
      *      copy of the receiver, an absolute url replaces it and a reference such as
      *      \`../c\` walks the base path. An unparsable url throws
-     *      \`url: Invalid URL '<input>'.\` ([20024]). Node.js has no method form on its
-     *      URL class and the deprecated module-level \`url.resolve(from, to)\` returns
-     *      a string instead.
+     *      \`url: Invalid URL '<input>'.\` ([20024]).
      *
      *      Example — resolve against a base with a path:
      *      \`\`\`JavaScript
@@ -58090,8 +57792,7 @@ declare class Class_UrlObject extends Class_object {
      *      special scheme (\`http:\`, \`https:\`, \`ws:\` ...) and a non-special one are
      *      ignored, keeping the current protocol instead of throwing. Assigning the
      *      protocol re-applies the default-port rule, so \`http://example.com:443/\`
-     *      becomes \`https://example.com/\` after switching to \`https:\`. Node.js and
-     *      MDN define the same behavior.
+     *      becomes \`https://example.com/\` after switching to \`https:\`.
      *
      */
     protocol: string;
@@ -58099,8 +57800,7 @@ declare class Class_UrlObject extends Class_object {
     /**
      * @description Whether the URL is serialized with a double slash after the scheme
      *
-     *      A legacy field, not part of the WHATWG URL interface; Node.js exposes it
-     *      on url.parse objects only. Every object built with \`new URL(...)\` reports
+     *      A legacy field, not part of the WHATWG URL interface. Every object built with \`new URL(...)\` reports
      *      true, even for \`mailto:\` or \`data:\`, while a legacy object from
      *      \`url.parse\` reports false for a non-hierarchical scheme (\`mailto:\`) and
      *      true when the input carried \`//\`. Assigning false is a rendering switch:
@@ -58116,8 +57816,7 @@ declare class Class_UrlObject extends Class_object {
      *      Read-only; assigning is silently ignored. Special schemes report the
      *      tuple serialization with the default port dropped; \`blob:\` inherits the
      *      origin of its inner URL; \`file:\` and other non-special schemes report the
-     *      literal string \`'null'\` (not null). Node.js and MDN report the same
-     *      values.
+     *      literal string \`'null'\` (not null).
      *
      */
     readonly origin: string;
@@ -58130,8 +57829,7 @@ declare class Class_UrlObject extends Class_object {
      *      null when the serialized URL carries no \`@\`; an object from \`url.parse\`
      *      returns the decoded text taken from the original input and null when the
      *      input had no \`@\` at all, so \`http://@h/\` reads back as \`''\` and
-     *      \`http://:@h/\` as \`':'\`. Node.js exposes the decoded property on legacy
-     *      parse objects only.
+     *      \`http://:@h/\` as \`':'\`.
      *
      */
     readonly auth: string;
@@ -58144,8 +57842,7 @@ declare class Class_UrlObject extends Class_object {
      *      \`%20\`) and assigning \`''\` removes the name while keeping the password. A
      *      WHATWG instance returns the encoded text; a legacy object from
      *      \`url.parse\` returns the decoded text and its setter encodes the value, so
-     *      a read after a write returns the decoded form again. Node.js keeps the
-     *      same split between its URL class and the legacy object.
+     *      a read after a write returns the decoded form again.
      *
      *      Example — what each model stores:
      *      \`\`\`JavaScript
@@ -58205,8 +57902,7 @@ declare class Class_UrlObject extends Class_object {
      *      Read/write; \`''\` means the scheme default. The parser drops a port that
      *      equals the default (\`http:80\`, \`https:443\`), and the setter ignores an
      *      invalid value (out of the 0-65535 range or non-numeric), keeping the
-     *      current port instead of throwing. Legacy parse objects use \`''\` where
-     *      Node.js uses \`null\`; Node.js and MDN define the same setter rules.
+     *      current port instead of throwing. An unset port reads back as \`''\`.
      *
      *      Example — the default-port rule and an ignored value:
      *      \`\`\`JavaScript
@@ -58226,10 +57922,8 @@ declare class Class_UrlObject extends Class_object {
     /**
      * @description The path and query of the URL, \`pathname + search\`
      *
-     *      Read-only; assigning is silently ignored. Legacy field kept for Node.js
-     *      compatibility: \`new URL('http://h/p?a=1#f')\` reports \`/p?a=1\`, the
-     *      fragment is not included (read href for the complete string). The WHATWG
-     *      URL class of Node.js has no such property; its legacy parse objects do.
+     *      Read-only; assigning is silently ignored. Legacy field: \`new URL('http://h/p?a=1#f')\` reports \`/p?a=1\`, the
+     *      fragment is not included (read href for the complete string).
      *
      */
     readonly path: string;
@@ -58242,8 +57936,7 @@ declare class Class_UrlObject extends Class_object {
      *      and keeps repeated slashes; the setter also resolves dot segments and
      *      percent-encodes the text, so \`'/a/../b c'\` becomes \`/b%20c\`. A
      *      non-hierarchical scheme stores everything after the colon, so
-     *      \`data:text/plain,ab\` reads back as \`text/plain,ab\`. Node.js and MDN define
-     *      the same behavior.
+     *      \`data:text/plain,ab\` reads back as \`text/plain,ab\`.
      *
      */
     pathname: string;
@@ -58287,7 +57980,7 @@ declare class Class_UrlObject extends Class_object {
      *      Read/write; \`''\` when there is no fragment. The setter accepts text with
      *      or without the leading \`#\` and percent-encodes it; assigning \`'#'\` alone
      *      clears the fragment (it reads back as \`''\`) while the serialized URL keeps
-     *      the trailing \`#\`, matching the WHATWG and Node.js behavior.
+     *      the trailing \`#\`, as the WHATWG standard requires.
      *
      */
     hash: string;
@@ -58341,12 +58034,11 @@ declare class Class_UrlObject extends Class_object {
  *    is named privateKey for historical reasons.
  *  - **Signatures**: a Buffer or a string decoded with encoding. The default encoding
  *    "buffer" is not a character set, so a string signature must pass an explicit
- *    encoding ('hex', 'base64', 'utf8'); Node.js decodes a string as utf8 when no
- *    encoding is given. Ed25519/Ed448 are one-shot algorithms and are rejected by this
+ *    encoding ('hex', 'base64', 'utf8'). Ed25519/Ed448 are one-shot algorithms and are rejected by this
  *    class; use crypto.verify(null, data, key, signature) for them.
  *  - **Result**: verify() returns true or false and finalizes the object; a malformed
  *    signature normally returns false, while an invalid key or an unsupported algorithm
- *    throws. Create a new Verify for each check, as Node.js requires.
+ *    throws. Create a new Verify for each check.
  *
  *  Obtained from:
  *  - \`crypto.createVerify(algorithm)\` — the streaming factory; its optional options are
@@ -58433,8 +58125,7 @@ declare class Class_Verify extends Class_object {
      *      derived. Signing and verification must use the same dsaEncoding and RSA padding.
      *
      *      signature may be a Buffer or a string decoded with encoding; passing a string
-     *      without an explicit encoding throws "encoding: Unknown charset: 'buffer'", which
-     *      differs from Node.js (utf8), so decode the string yourself or pass 'hex',
+     *      without an explicit encoding throws "encoding: Unknown charset: 'buffer'", so decode the string yourself or pass 'hex',
      *      'base64' or 'utf8'. The call finalizes the object and returns true when the
      *      signature is valid, false for a wrong signature; an invalid key or an
      *      unsupported algorithm throws.
@@ -58519,8 +58210,8 @@ declare class Class_Verify extends Class_object {
  *    client aborts the handshake.
  *  - Server-side sockets have empty \`url\` and \`origin\`; the handshake request
  *    received by the accept callback carries the original header values.
- *  - Node.js and the DOM expose only the client role, so the
- *    \`WebSocket.upgrade\` handler is a fibjs extension. The \`message\` event
+ *  - The client role follows the DOM API; the
+ *    \`WebSocket.upgrade\` handler is an extension. The \`message\` event
  *    delivers the WebSocketMessage object itself rather than a DOM
  *    MessageEvent, and binary payloads are Buffers rather than ArrayBuffers.
  *
@@ -62999,12 +62690,12 @@ declare namespace Class_WebView {
  *
  *  Notes:
  *
- *  - Node.js members that fibjs does not provide: \`worker.exitCode\`, \`worker.stdin\`, \`worker.stdout\`
+ *  - Not provided: \`worker.exitCode\`, \`worker.stdin\`, \`worker.stdout\`
  *    and \`worker.stderr\`.
- *  - fibjs implements the constructor options \`eval\` and \`workerData\`, plus the fibjs-only
- *    \`file_system\` and \`safe_buffer\`; the remaining Node.js options (\`argv\`, \`env\`, \`execArgv\`,
- *    \`resourceLimits\`, \`trackUnmanagedFds\`, \`signal\`) are not read.
- *  - The \`on<event>\` properties (\`ononline\`, \`onmessage\`, \`onerror\`, \`onexit\`) are a fibjs
+ *  - The constructor options \`eval\` and \`workerData\` are implemented, plus the module-only
+ *    \`file_system\` and \`safe_buffer\`; the options \`argv\`, \`env\`, \`execArgv\`,
+ *    \`resourceLimits\`, \`trackUnmanagedFds\` and \`signal\` are not read.
+ *  - The \`on<event>\` properties (\`ononline\`, \`onmessage\`, \`onerror\`, \`onexit\`) are a
  *    convenience provided by EventEmitter; they carry the same payloads as \`on('<event>')\`.
  *
  */
@@ -63016,7 +62707,7 @@ declare class Class_Worker extends Class_EventEmitter {
      *
      *    - a script path: absolute, starting with \`./\` or \`../\` (resolved against the current working
      *      directory), or a \`file://\` URL; a bare relative path such as \`'worker.js'\` throws \`TypeError\`
-     *      with code \`ERR_WORKER_PATH\`, as in Node.js;
+     *      with code \`ERR_WORKER_PATH\`;
      *    - JavaScript source when \`opts.eval\` is true; the source runs with the filename
      *      \`[worker eval].js\`.
      *
@@ -63085,7 +62776,7 @@ declare class Class_Worker extends Class_EventEmitter {
      *      Every \`ArrayBuffer\` in \`transfer\` is detached on the sender before the message is queued (its
      *      \`byteLength\` becomes 0) and arrives usable in the worker; the message and the buffers are
      *      delivered together. fibjs only detaches ArrayBuffer entries: any other value, including a
-     *      MessagePort that Node.js can transfer, is silently ignored and stays usable on the sender.
+     *      MessagePort, is silently ignored and stays usable on the sender.
      *
      *      Example — transfer an ArrayBuffer to the worker:
      *      \`\`\`JavaScript
@@ -63116,8 +62807,7 @@ declare class Class_Worker extends Class_EventEmitter {
      *    The termination starts synchronously and the returned promise resolves when the worker emits
      *    \`exit\`, with the same code. A worker that has already exited resolves immediately with its
      *    recorded code, and calling terminate() twice is safe. A worker stopped by terminate() reports
-     *    exit code 1, including a worker that was terminated before it went online (Node.js reports 0
-     *    for that case); no \`error\` event is emitted for the interruption and the worker's pending
+     *    exit code 1, including a worker that was terminated before it went online; no \`error\` event is emitted for the interruption and the worker's pending
      *    \`beforeExit\`/\`exit\` handlers do not run.
      *
      *    Example — stop a worker that would otherwise run forever:
@@ -63140,8 +62830,7 @@ declare class Class_Worker extends Class_EventEmitter {
      *    The termination starts synchronously and the returned promise resolves when the worker emits
      *    \`exit\`, with the same code. A worker that has already exited resolves immediately with its
      *    recorded code, and calling terminate() twice is safe. A worker stopped by terminate() reports
-     *    exit code 1, including a worker that was terminated before it went online (Node.js reports 0
-     *    for that case); no \`error\` event is emitted for the interruption and the worker's pending
+     *    exit code 1, including a worker that was terminated before it went online; no \`error\` event is emitted for the interruption and the worker's pending
      *    \`beforeExit\`/\`exit\` handlers do not run.
      *
      *    Example — stop a worker that would otherwise run forever:
@@ -63164,8 +62853,7 @@ declare class Class_Worker extends Class_EventEmitter {
      *    The termination starts synchronously and the returned promise resolves when the worker emits
      *    \`exit\`, with the same code. A worker that has already exited resolves immediately with its
      *    recorded code, and calling terminate() twice is safe. A worker stopped by terminate() reports
-     *    exit code 1, including a worker that was terminated before it went online (Node.js reports 0
-     *    for that case); no \`error\` event is emitted for the interruption and the worker's pending
+     *    exit code 1, including a worker that was terminated before it went online; no \`error\` event is emitted for the interruption and the worker's pending
      *    \`beforeExit\`/\`exit\` handlers do not run.
      *
      *    Example — stop a worker that would otherwise run forever:
@@ -63408,7 +63096,7 @@ declare class Class_WorkerPromise extends Class_EventEmitter {
      *
      *    - a script path: absolute, starting with \`./\` or \`../\` (resolved against the current working
      *      directory), or a \`file://\` URL; a bare relative path such as \`'worker.js'\` throws \`TypeError\`
-     *      with code \`ERR_WORKER_PATH\`, as in Node.js;
+     *      with code \`ERR_WORKER_PATH\`;
      *    - JavaScript source when \`opts.eval\` is true; the source runs with the filename
      *      \`[worker eval].js\`.
      *
@@ -63477,7 +63165,7 @@ declare class Class_WorkerPromise extends Class_EventEmitter {
      *      Every \`ArrayBuffer\` in \`transfer\` is detached on the sender before the message is queued (its
      *      \`byteLength\` becomes 0) and arrives usable in the worker; the message and the buffers are
      *      delivered together. fibjs only detaches ArrayBuffer entries: any other value, including a
-     *      MessagePort that Node.js can transfer, is silently ignored and stays usable on the sender.
+     *      MessagePort, is silently ignored and stays usable on the sender.
      *
      *      Example — transfer an ArrayBuffer to the worker:
      *      \`\`\`JavaScript
@@ -63508,8 +63196,7 @@ declare class Class_WorkerPromise extends Class_EventEmitter {
      *    The termination starts synchronously and the returned promise resolves when the worker emits
      *    \`exit\`, with the same code. A worker that has already exited resolves immediately with its
      *    recorded code, and calling terminate() twice is safe. A worker stopped by terminate() reports
-     *    exit code 1, including a worker that was terminated before it went online (Node.js reports 0
-     *    for that case); no \`error\` event is emitted for the interruption and the worker's pending
+     *    exit code 1, including a worker that was terminated before it went online; no \`error\` event is emitted for the interruption and the worker's pending
      *    \`beforeExit\`/\`exit\` handlers do not run.
      *
      *    Example — stop a worker that would otherwise run forever:
@@ -63532,8 +63219,7 @@ declare class Class_WorkerPromise extends Class_EventEmitter {
      *    The termination starts synchronously and the returned promise resolves when the worker emits
      *    \`exit\`, with the same code. A worker that has already exited resolves immediately with its
      *    recorded code, and calling terminate() twice is safe. A worker stopped by terminate() reports
-     *    exit code 1, including a worker that was terminated before it went online (Node.js reports 0
-     *    for that case); no \`error\` event is emitted for the interruption and the worker's pending
+     *    exit code 1, including a worker that was terminated before it went online; no \`error\` event is emitted for the interruption and the worker's pending
      *    \`beforeExit\`/\`exit\` handlers do not run.
      *
      *    Example — stop a worker that would otherwise run forever:
@@ -63556,8 +63242,7 @@ declare class Class_WorkerPromise extends Class_EventEmitter {
      *    The termination starts synchronously and the returned promise resolves when the worker emits
      *    \`exit\`, with the same code. A worker that has already exited resolves immediately with its
      *    recorded code, and calling terminate() twice is safe. A worker stopped by terminate() reports
-     *    exit code 1, including a worker that was terminated before it went online (Node.js reports 0
-     *    for that case); no \`error\` event is emitted for the interruption and the worker's pending
+     *    exit code 1, including a worker that was terminated before it went online; no \`error\` event is emitted for the interruption and the worker's pending
      *    \`beforeExit\`/\`exit\` handlers do not run.
      *
      *    Example — stop a worker that would otherwise run forever:
@@ -63778,10 +63463,10 @@ declare namespace Class_Worker {
  *  console.log(cert.checkEmail('admin@example.com'));                  // admin@example.com
  *  \`\`\`
  *
- *  Compared with Node.js, fibjs parses PEM only (Node.js accepts PEM or DER as well), adds
- *  the pem member, next(), the Netscape type and pathlen, and accepts PEM text or a PEM
- *  Buffer in checkIssued instead of requiring an X509Certificate. Node.js members that fibjs
- *  does not provide: issuerCertificate, validFromDate, validToDate, signatureAlgorithm,
+ *   Only PEM input is parsed. The class adds the pem member, next(), the Netscape type and
+ *  pathlen, and checkIssued accepts PEM text or a PEM
+ *  Buffer instead of requiring an X509Certificate. Members that are
+ *  not provided: issuerCertificate, validFromDate, validToDate, signatureAlgorithm,
  *  signatureAlgorithmOid and toLegacyObject; use validFrom/validTo with \`new Date(...)\` and
  *  pem instead.
  *
@@ -63818,8 +63503,7 @@ declare class Class_X509Certificate extends Class_object {
      *
      *      One RDN per line in RFC 2253 form with short attribute names, in the order they appear
      *      in the certificate, for example \`C=US\\nO=Example\\nCN=example.com\`. Reading an empty
-     *      subject throws error 20024 instead of returning an empty string. Node.js prints the
-     *      same format.
+     *      subject throws error 20024 instead of returning an empty string.
      *
      */
     readonly subject: string;
@@ -63864,8 +63548,7 @@ declare class Class_X509Certificate extends Class_object {
      *      Each line is \`<method> - <location>\`, for example
      *      \`OCSP - URI:http://ocsp.example.com/\` or
      *      \`CA Issuers - URI:http://ca.example.com/ca.cert\`; several entries are separated by
-     *      newlines. Returns undefined when the extension is absent. Node.js exposes the same
-     *      text under the same member name.
+     *      newlines. Returns undefined when the extension is absent.
      *
      */
     readonly infoAccess: string;
@@ -63920,8 +63603,8 @@ declare class Class_X509Certificate extends Class_object {
      *
      *      The legacy Netscape type list, in bit order: 'client', 'server', 'email', 'objsign',
      *      'reserved', 'sslCA', 'emailCA' and 'objCA'. Returns undefined when the extension is
-     *      absent; set it with the type option of X509CertificateRequest.issue. This member is a
-     *      fibjs extension: Node.js only exposes the raw fields through toLegacyObject.
+     *      absent; set it with the type option of X509CertificateRequest.issue. This member is an
+     *      extension of the class.
      *
      */
     readonly type: string[];
@@ -63963,8 +63646,7 @@ declare class Class_X509Certificate extends Class_object {
      *      For a certificate built from one PEM block this is that block; for a chain (array input
      *      or several concatenated PEM blocks) all certificates are re-encoded and concatenated in
      *      order, so the value can be passed back to the constructor. toString() and toJSON()
-     *      return the same text. Node.js has no pem member: its toString() and toJSON() print a
-     *      single certificate.
+     *      return the same text.
      *
      */
     readonly pem: string;
@@ -63983,7 +63665,7 @@ declare class Class_X509Certificate extends Class_object {
      * @description The SHA-256 fingerprint of the DER encoding
      *
      *      Uppercase hexadecimal bytes separated by colons, 95 characters long. This is the
-     *      fingerprint to pin or compare in new code; Node.js reports it in the same form.
+     *      fingerprint to pin or compare in new code.
      *
      */
     readonly fingerprint256: string;
@@ -63991,8 +63673,7 @@ declare class Class_X509Certificate extends Class_object {
     /**
      * @description The SHA-512 fingerprint of the DER encoding
      *
-     *      Uppercase hexadecimal bytes separated by colons, 191 characters long. Node.js exposes
-     *      the same member, added in v17.2.0 and v16.14.0, with the same format.
+     *      Uppercase hexadecimal bytes separated by colons, 191 characters long.
      *
      */
     readonly fingerprint512: string;
@@ -64002,8 +63683,7 @@ declare class Class_X509Certificate extends Class_object {
      *
      *      Chains come from the array constructor or from several concatenated PEM blocks, in the
      *      parsed order. Returns undefined at the end of the chain and for a single certificate.
-     *      This member is a fibjs extension: Node.js has no next(), and its pem/toString output
-     *      covers only the certificate it parsed.
+     *      This member is an extension of the class.
      *      @return returns the next certificate, or undefined at the end of the chain
      *
      */
@@ -64018,8 +63698,7 @@ declare class Class_X509Certificate extends Class_object {
      *      subject as well, and 'never' disables the subject fallback (SAN entries are still
      *      matched). A non-matching address, even one that is not a valid mailbox, simply returns
      *      undefined; only an address holding an embedded NUL byte throws \`Invalid email
-     *      address\`. An unknown options.subject value throws error 20024. Node.js matches the
-     *      same way.
+     *      address\`. An unknown options.subject value throws error 20024.
      *
      *      options supports the following properties:
      *      - subject: 'default', 'always' or 'never'. Default: 'default'.
@@ -64059,8 +63738,8 @@ declare class Class_X509Certificate extends Class_object {
      *      - subject: 'default', 'always' or 'never'. Default: 'default'.
      *      - wildcards: allow wildcard patterns. Default: true.
      *      - partialWildcards: allow partial patterns such as \`foo*\`. Default: true.
-     *      - multiLabelWildcards: accepted for Node.js compatibility, but it does not enable
-     *        multi-label matching: \`*.example.com\` never matches \`a.b.example.com\` in fibjs.
+     *      - multiLabelWildcards: accepted, but it does not enable
+     *        multi-label matching: \`*.example.com\` never matches \`a.b.example.com\`.
      *        Default: false.
      *      - singleLabelSubdomains: restrict wildcards to one label, which is already the
      *        effective behavior. Default: false.
@@ -64104,7 +63783,7 @@ declare class Class_X509Certificate extends Class_object {
      *      never consulted, so a certificate that only carries a CN does not match any address and
      *      address checking always requires a certificate built with IP SAN entries. IPv4 and IPv6
      *      accept their usual text forms ('127.0.0.1', '::1'). Returns ip on a match and undefined
-     *      otherwise; a malformed address throws error 20024. Node.js behaves the same way.
+     *      otherwise; a malformed address throws error 20024.
      *      @param ip the IPv4 or IPv6 address to match
      *      @return returns ip on a match, undefined otherwise
      *
@@ -64119,8 +63798,7 @@ declare class Class_X509Certificate extends Class_object {
      *      usage extension asserts no certificate signing, but the signature, the validity
      *      window and the chain are not verified, so a certificate that carries the same issuer
      *      name but was signed by another key still passes. Use verify with the issuer public key
-     *      to check the signature. A Buffer is parsed as PEM, so DER bytes are rejected; Node.js
-     *      accepts only an X509Certificate object here.
+     *      to check the signature. A Buffer is parsed as PEM, so DER bytes are rejected.
      *
      *      Example: the issuer name matches even when the signature does not:
      *      \`\`\`JavaScript
@@ -64209,8 +63887,8 @@ declare class Class_X509Certificate extends Class_object {
  *    X509Certificate; verify it with the issuer public key to confirm the signature.
  *  - **PEM only**: createCertificateRequest parses PEM text and PEM bytes; a DER request is
  *    rejected with ERR_OSSL_NO_START_LINE, like the X509Certificate constructor.
- *  - **Node.js difference**: Node.js has no certificate request API; this class and
- *    crypto.createCertificateRequest are fibjs extensions.
+ *  - **Notes**: this class and
+ *    crypto.createCertificateRequest are extensions.
  *
  *  Obtained from:
  *  - \`crypto.createCertificateRequest({ key, subject, hashAlgorithm })\` — create a request
@@ -64417,7 +64095,7 @@ declare class Class_X509CertificateRequest extends Class_object {
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description XMLSerializer serializes a DOM node into XML text; the class is a global and Node.js has no equivalent
+ * @description XMLSerializer serializes a DOM node into XML text; the class is a global
  *
  *  \`new XMLSerializer().serializeToString(node)\` accepts any XmlNode — a document, element, text
  *  node, comment, CDATA section or processing instruction — and returns the XML serialization of
@@ -70903,7 +70581,7 @@ declare namespace Class_ZipFile {
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description ZlibCodec is the base class of the Node.js compatible zlib codec classes; build
+ * @description ZlibCodec is the base class of the zlib codec classes; build
  *  one through Gzip, Gunzip, Deflate, Inflate, DeflateRaw, InflateRaw or Unzip
  *
  *  The codec classes are synchronous state machines kept for the npm ecosystem (minizlib and
@@ -70929,7 +70607,7 @@ declare namespace Class_ZipFile {
  *    no-op. The \`_handle\` property is a compatibility shim whose \`close()\` method does
  *    nothing.
  *  - **No events**: the class inherits EventEmitter for API compatibility, but no codec
- *    emits events. Unlike the Node.js zlib streams there are no 'data'/'end'/'error' events,
+ *    emits events: there are no 'data'/'end'/'error' events,
  *    no pipe and no readable side.
  *
  *  Obtained from:
@@ -70991,8 +70669,7 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
      *      resets the codec, which can then process a new message. Both arguments are required.
      *      Corrupt input, or an out-of-range flush flag on a deflating codec, throws an Error
      *      with \`code\` \`Z_DATA_ERROR\` or \`Z_STREAM_ERROR\`; after \`close\` the error is
-     *      ERR_ZLIB_BINDING_CLOSED. The Node.js codec streams also accept a callback, which
-     *      fibjs does not.
+     *      ERR_ZLIB_BINDING_CLOSED. No callback form is provided.
      *
      *      Example — two writes and a finish through a Gzip codec:
      *      \`\`\`JavaScript
@@ -71019,8 +70696,8 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
      *
      *      \`close\` is idempotent. Afterwards \`_processChunk\` and \`params\` throw
      *      ERR_ZLIB_BINDING_CLOSED ("zlib binding closed") and \`reset\` does nothing. A codec
-     *      that was left closed by an invalid constructor option can still be closed. Node.js
-     *      accepts a callback here and emits a 'close' event; fibjs does neither.
+     *      that was left closed by an invalid constructor option can still be closed. No callback
+     *      is accepted and no 'close' event is emitted.
      *
      *      Example — the codec rejects work after close:
      *      \`\`\`JavaScript
@@ -71067,7 +70744,7 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
     /**
      * @description A compatibility handle object
      *
-     *      In Node.js \`_handle\` exposes the native zlib binding. fibjs returns a plain object
+     *      \`_handle\` returns a plain object
      *      that only carries a no-op \`close()\` method, and the property can be read or
      *      overwritten without affecting the codec; it exists so packages that probe
      *      \`_handle.close\` keep working.
@@ -71084,8 +70761,7 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
      *      to zlib's deflateParams, which can only apply them between blocks and does not
      *      recover output that was pending, so call \`params\` before feeding data or between
      *      messages. The return value of the underlying call is ignored: an invalid level or
-     *      strategy is silently discarded. Node.js has the same method on its zlib streams, but
-     *      takes a callback.
+     *      strategy is silently discarded.
      *
      *      Example — switching a Gzip codec to level 1 changes the next message:
      *      \`\`\`JavaScript
@@ -71337,12 +71013,11 @@ declare class Class_object {
  *  - \`assert\` and \`assert.ok\` are the same callable object; both are aliases of the \`operator\`
  *    member, so \`assert(value, message)\` is the truthiness check.
  *  - A comparison whose internal conversion throws (for example an object with a throwing
- *    valueOf) is reported as a failed AssertionError, while Node.js propagates the conversion
- *    error.
+ *    valueOf) is reported as a failed AssertionError.
  *  - \`throws\` treats a function whose \`prototype.constructor\` is itself as an error class,
  *    not as a validation function; pass an arrow function to validate an error.
- *  - Node.js \`doesNotReject\` and \`partialDeepStrictEqual\` are not provided; \`fail\` takes
- *    only a message in both implementations.
+ *  - \`doesNotReject\` and \`partialDeepStrictEqual\` are not provided; \`fail\` takes
+ *    only a message.
  *  - See the assert_strict module for the strict comparison mode and the differences it maps.
  *
  */
@@ -71380,8 +71055,8 @@ declare module 'assert' {
          *      \`\`\`
          *
          *      \`generatedMessage\` is false when a message was given, and \`toString()\` renders as
-         *      \`AssertionError [ERR_ASSERTION]: <message>\`. Node.js exposes the same constructor and
-         *      fields; the strict module re-exports the same class.
+         *      \`AssertionError [ERR_ASSERTION]: <message>\`. The strict module re-exports the same
+         *      class.
          *
          */
         const AssertionError: (...args: any[])=>any;
@@ -71423,9 +71098,8 @@ declare module 'assert' {
          * @description Fails unconditionally and throws a generated AssertionError
          *
          *      The error carries the operator 'fail' and no actual/expected values; without a
-         *      message the generated message is 'Failed'. The signature matches the current
-         *      Node.js \`assert.fail(message)\`; the legacy four-argument form of older releases is
-         *      not supported.
+         *      message the generated message is 'Failed'. The legacy four-argument form of older
+         *      releases is not supported.
          *
          *      @param msg the message when the assertion fails
          *
@@ -71436,8 +71110,8 @@ declare module 'assert' {
          * @description Tests that the value is falsy; the assertion fails if it is true
          *
          *      Falsy values are false, 0, '', null, undefined and NaN; the check is the exact
-         *      negation of \`ok\` and the failure carries the operator 'notOk'. Node.js has no notOk,
-         *      the equivalent is \`assert.ok(!value)\`.
+         *      negation of \`ok\` and the failure carries the operator 'notOk'; the equivalent is
+         *      \`assert.ok(!value)\`.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -71451,8 +71125,8 @@ declare module 'assert' {
          *      Uses the JavaScript \`==\` operator: \`1\`, \`'1'\` and \`new Number(1)\` are equal, null
          *      equals undefined, and objects are equal only when they are the same reference. NaN
          *      is never equal to anything, including itself. For type-safe comparison use
-         *      \`strictEqual\`, and see \`deepEqual\` for nested values. Node.js marks assert.equal as
-         *      legacy; the failure carries the operator '=='.
+         *      \`strictEqual\`, and see \`deepEqual\` for nested values. The failure carries the
+         *      operator '=='.
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -71465,7 +71139,7 @@ declare module 'assert' {
          * @description Tests that the value does not loosely equal the expected value
          *
          *      The exact negation of \`equal\`: two references to the same object are equal, so
-         *      \`notEqual(obj, obj)\` fails. The failure carries the operator '!=' and, like Node.js,
+         *      \`notEqual(obj, obj)\` fails. The failure carries the operator '!=' and
          *      the default message renders as \`Expected X != Y\`.
          *
          *      @param actual the value to test
@@ -71480,8 +71154,8 @@ declare module 'assert' {
          *
          *      Uses the JavaScript \`===\` operator: \`1\` and \`'1'\` are not equal, NaN is not equal to
          *      NaN, +0 and -0 are equal, and objects must be the same reference. On failure a diff
-         *      between actual and expected is generated and a custom message is prepended to it,
-         *      matching Node.js. The failure carries the operator 'strictEqual'.
+         *      between actual and expected is generated and a custom message is prepended to it.
+         *      The failure carries the operator 'strictEqual'.
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -71513,8 +71187,8 @@ declare module 'assert' {
          *      inherited ones - where both objects must have the same names and loosely equal
          *      values. Prototypes are not compared, symbol-keyed properties are ignored, cyclic
          *      structures are supported and functions are compared by reference. So
-         *      \`deepEqual({ a: 1 }, { a: '1' })\` passes while \`deepStrictEqual\` fails. Node.js marks
-         *      deepEqual as legacy. The failure carries the operator 'deepEqual' and a custom
+         *      \`deepEqual({ a: 1 }, { a: '1' })\` passes while \`deepStrictEqual\` fails. The failure
+         *      carries the operator 'deepEqual' and a custom
          *      message replaces the generated diff.
          *
          *      Example — loose deep comparison of nested values, Dates and Buffers:
@@ -71552,9 +71226,8 @@ declare module 'assert' {
          * @description Tests that the value strictly deeply equals the expected value
          *
          *      Like \`deepEqual\`, but leaf values are compared with \`===\`, so
-         *      \`deepStrictEqual({ a: 1 }, { a: '1' })\` fails. Prototypes are still not compared and
-         *      symbol-keyed properties are still ignored, which differs from Node.js where
-         *      deepStrictEqual also compares prototypes and symbols. A custom message is prepended
+         *      \`deepStrictEqual({ a: 1 }, { a: '1' })\` fails. Prototypes are not compared and
+         *      symbol-keyed properties are ignored, at every depth. A custom message is prepended
          *      to the generated diff; the failure carries the operator 'deepStrictEqual'.
          *
          *      @param actual the value to test
@@ -71584,7 +71257,7 @@ declare module 'assert' {
          *      The actual value is declared String, so a String object, a Date (its ISO form), a
          *      Buffer (its utf8 bytes) and an object with its own toString are converted; values
          *      without a string form (numbers, arrays, plain objects, null, undefined) fail with a
-         *      TypeError [20005]. Node.js requires a real string and throws ERR_INVALID_ARG_TYPE.
+         *      TypeError [20005].
          *      The failure carries the operator 'match', with the actual string and the RegExp in the
          *      respective fields.
          *
@@ -71627,7 +71300,7 @@ declare module 'assert' {
          *      The check is \`Math.abs(actual - expected) <= delta\`, so the bound is inclusive; both
          *      values and the delta are converted with Number(), and a value that converts to NaN
          *      (including a non-numeric string) throws a TypeError [20004] instead of failing the
-         *      assertion. Node.js has no closeTo.
+         *      assertion.
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -71658,7 +71331,7 @@ declare module 'assert' {
          *      a number) the comparison is numeric; when both sides are non-numeric strings it is a
          *      lexicographic UTF-8 comparison; a value that cannot be converted to a number (an
          *      object or an invalid numeric string against a number) throws a TypeError [20004].
-         *      Node.js has no lessThan; with Node.js \`assert.ok(a < b)\` is the equivalent.
+         *      The equivalent is \`assert.ok(a < b)\`.
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -71686,7 +71359,7 @@ declare module 'assert' {
          *      The mirror of \`lessThan\` (actual > expected) with the same numeric/lexicographic
          *      conversion rules and TypeError [20004] for values that cannot be compared. The
          *      generated failure message and operator field reuse the notLessThan wording ('to be
-         *      at least'). Node.js has no greaterThan.
+         *      at least').
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -71712,7 +71385,7 @@ declare module 'assert' {
          * @description Tests that the variable exists
          *
          *      A value exists when it is neither null nor undefined; false, 0, '' and NaN exist.
-         *      Node.js has no exist; the equivalent is \`assert.ok(value !== null && value !==
+         *      The equivalent is \`assert.ok(value !== null && value !==
          *      undefined)\`.
          *
          *      @param actual the value to test
@@ -71736,8 +71409,8 @@ declare module 'assert' {
         /**
          * @description Tests that the value is boolean true
          *
-         *      The check is strict: 1, 'true' and new Boolean(true) all fail. Node.js has no isTrue;
-         *      the equivalent is \`assert.strictEqual(value, true)\`.
+         *      The check is strict: 1, 'true' and new Boolean(true) all fail; the equivalent is
+         *      \`assert.strictEqual(value, true)\`.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -71760,8 +71433,8 @@ declare module 'assert' {
         /**
          * @description Tests that the value is boolean false
          *
-         *      The check is strict: 0, '' and new Boolean(false) all fail. Node.js has no isFalse;
-         *      the equivalent is \`assert.strictEqual(value, false)\`.
+         *      The check is strict: 0, '' and new Boolean(false) all fail; the equivalent is
+         *      \`assert.strictEqual(value, false)\`.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -71785,7 +71458,7 @@ declare module 'assert' {
          * @description Tests that the value is Null
          *
          *      Only the null primitive passes; undefined is not null and fails this check, use
-         *      \`isUndefined\` for it. Node.js has no isNull.
+         *      \`isUndefined\` for it.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -71809,7 +71482,7 @@ declare module 'assert' {
          * @description Tests that the value is undefined
          *
          *      Only the undefined primitive passes; null is defined for this check and fails it,
-         *      use \`isNull\` for null. Node.js has no isUndefined.
+         *      use \`isNull\` for null.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -71820,8 +71493,7 @@ declare module 'assert' {
         /**
          * @description Tests that the value is not undefined
          *
-         *      The exact negation of \`isUndefined\`; null and every other value pass. Node.js has no
-         *      isDefined.
+         *      The exact negation of \`isUndefined\`; null and every other value pass.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -71832,8 +71504,8 @@ declare module 'assert' {
         /**
          * @description Tests that the value is a function
          *
-         *      Classes, async functions and generator functions are functions too. Node.js has no
-         *      isFunction; the equivalent is \`assert.strictEqual(typeof value, 'function')\`.
+         *      Classes, async functions and generator functions are functions too;
+         *      the equivalent is \`assert.strictEqual(typeof value, 'function')\`.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -71858,7 +71530,7 @@ declare module 'assert' {
          *
          *      Arrays and functions count as objects, and boxed primitives (new Number(1)) count
          *      too; null, undefined, primitives and symbols do not. \`typeOf(value, 'object')\`
-         *      delegates to this check, so the same widening applies. Node.js has no isObject.
+         *      delegates to this check, so the same widening applies.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -71882,7 +71554,7 @@ declare module 'assert' {
          * @description Tests that the value is an array
          *
          *      Uses Array.isArray semantics: an Array subclass passes, while typed arrays and
-         *      Buffer do not. Node.js has no isArray; the equivalent is
+         *      Buffer do not; the equivalent is
          *      \`assert.ok(Array.isArray(value))\`.
          *
          *      @param actual the value to test
@@ -71907,7 +71579,7 @@ declare module 'assert' {
          * @description Tests that the value is a string
          *
          *      Both a string primitive and a String object pass; a Buffer does not (it is a
-         *      Uint8Array). Node.js has no isString.
+         *      Uint8Array).
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -71931,7 +71603,7 @@ declare module 'assert' {
          * @description Tests that the value is a number
          *
          *      The check is on the primitive type: NaN passes, while a Number object does not.
-         *      Node.js has no isNumber; the equivalent is \`assert.strictEqual(typeof value,
+         *      The equivalent is \`assert.strictEqual(typeof value,
          *      'number')\`.
          *
          *      @param actual the value to test
@@ -71955,8 +71627,8 @@ declare module 'assert' {
         /**
          * @description Tests that the value is a boolean
          *
-         *      Only the true and false primitives pass; a Boolean object does not. Node.js has no
-         *      isBoolean; the equivalent is \`assert.strictEqual(typeof value, 'boolean')\`.
+         *      Only the true and false primitives pass; a Boolean object does not;
+         *      the equivalent is \`assert.strictEqual(typeof value, 'boolean')\`.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -71982,7 +71654,7 @@ declare module 'assert' {
          *      The accepted type names are 'array', 'function', 'string', 'object', 'number',
          *      'boolean', 'null' and 'undefined'; 'object' matches arrays and functions as well
          *      because it delegates to \`isObject\`. Any other name throws a TypeError [20004]
-         *      instead of failing the assertion. Node.js has no typeOf.
+         *      instead of failing the assertion.
          *
          *      @param actual the value to test
          *      @param type the specified type
@@ -72012,7 +71684,7 @@ declare module 'assert' {
          *      count as well. The receiver must be an object and the property name must be a
          *      string; other values throw a TypeError [20004]. A primitive string receiver passes
          *      the type check but crashes the process in this version, so pass objects only. The
-         *      failure carries the operator 'property'; Node.js has no property.
+         *      failure carries the operator 'property'.
          *
          *      Example — own, inherited and nested properties:
          *      \`\`\`JavaScript
@@ -72054,7 +71726,7 @@ declare module 'assert' {
          *      'a.b.0' reaches array elements, while a property name containing a dot cannot be
          *      addressed. A missing intermediate value fails the assertion (it does not throw); the
          *      receiver must be an object and the path a string, otherwise a TypeError [20004] is
-         *      thrown. Node.js has no deepProperty.
+         *      thrown.
          *
          *      @param object the object to test
          *      @param prop the property to test, separated by "."
@@ -72081,7 +71753,7 @@ declare module 'assert' {
          *
          *      The value is compared with strict equality even though the module is loose, so
          *      \`propertyVal(obj, 'a', 1)\` fails when the property holds '1'; a missing property
-         *      yields undefined and therefore fails. Node.js has no propertyVal.
+         *      yields undefined and therefore fails.
          *
          *      @param object the object to test
          *      @param prop the property to test
@@ -72147,16 +71819,15 @@ declare module 'assert' {
          *        TypeError - passes when the thrown value is an instance of it;
          *      - any other function is a validation function: it is called with the thrown value and
          *        must return exactly true; use an arrow function for this form, because a normal
-         *        function is treated as a class (Node.js accepts normal functions as validators);
+         *        function is treated as a class;
          *      - an object is a property filter: each own property of the filter is compared with
          *        the same property of the thrown value, RegExp values match the string form, other
          *        values use deepStrictEqual, and a property whose actual value is undefined is
-         *        skipped (Node.js compares it).
+         *        skipped.
          *
          *      An error thrown inside a validation function is propagated as-is. The failure carries
          *      the operator 'throws' with the filter in expected and the thrown value in actual; a
-         *      custom message is used when a filter was supplied and did not match. Node.js has the
-         *      same filter forms but also appends a 'Caught error' excerpt.
+         *      custom message is used when a filter was supplied and did not match.
          *
          *      Example — class, RegExp and validation function filters:
          *      \`\`\`JavaScript
@@ -72184,9 +71855,7 @@ declare module 'assert' {
          *      Equivalent to calling the three-argument overload with an undefined error filter.
          *      The message is ignored when nothing is thrown, because that failure always reports
          *      the generated 'Missing expected exception' text; use a filter to have the message
-         *      rendered. Node.js treats \`assert.throws(block, 'message')\` as a message, while fibjs
-         *      binds the second argument to the error filter, so prefer passing the filter
-         *      explicitly.
+         *      rendered, since the second argument is the error filter rather than a message.
          *      @param block the code to test, given as a function
          *      @param msg the message when the assertion fails
          *
@@ -72200,7 +71869,7 @@ declare module 'assert' {
          *      assertion; there is no error filter, so to allow some errors and reject others use
          *      \`throws\` with a validation function. The caught value is kept in the actual field,
          *      the failure carries the operator 'doesNotThrow' and a custom message replaces the
-         *      default 'Got unwanted exception'. Node.js has the same shape.
+         *      default 'Got unwanted exception'.
          *
          *      @param block the code to test, given as a function
          *      @param msg the message when the assertion fails
@@ -72219,9 +71888,7 @@ declare module 'assert' {
          *      error class, arrow validator or property filter object).
          *
          *      The returned promise resolves to undefined when the rejection matched and rejects
-         *      with the generated AssertionError otherwise; the operator is 'rejects'. Node.js
-         *      returns a promise with the same shape but rejects with ERR_INVALID_RETURN_VALUE for
-         *      a non-promise result.
+         *      with the generated AssertionError otherwise; the operator is 'rejects'.
          *
          *      Example — await a function and a promise rejection with different filters:
          *      \`\`\`JavaScript
@@ -72263,7 +71930,7 @@ declare module 'assert' {
          *      The promise is awaited; a rejection is filtered by the error argument as in the
          *      function overload, and a resolution fails the assertion with 'Missing expected
          *      rejection'. The returned promise resolves to undefined when the rejection matched
-         *      and rejects with the generated AssertionError otherwise. Node.js has the same form.
+         *      and rejects with the generated AssertionError otherwise.
          *
          *      @param result the code to test, given as a Promise
          *      @param error the expected error as a RegExp, error class, arrow validator or filter object
@@ -72290,8 +71957,7 @@ declare module 'assert' {
          *
          *      The value is rethrown as-is, not wrapped, which makes it the standard trailing
          *      callback helper (\`if (err) throw err\`). Falsy values - undefined, null, false, 0, ''
-         *      and NaN - pass. Node.js wraps the value in an AssertionError, so a caught value that
-         *      is not an Error differs between the two implementations.
+         *      and NaN - pass.
          *
          *      Example — pass a falsy value and rethrow an error:
          *      \`\`\`JavaScript
@@ -72325,7 +71991,7 @@ declare module 'assert' {
  *  It is the strict counterpart of the assert module: \`equal\`/\`notEqual\` compare with
  *  \`===\`/\`!==\` and \`deepEqual\`/\`notDeepEqual\` compare deeply with strict leaf values, while
  *  every other member (\`ok\`, \`throws\`, \`rejects\`, \`property\`, ...) behaves exactly like its
- *  assert counterpart. Prefer this module for new code, as Node.js does.
+ *  assert counterpart. Prefer this module for new code.
  *
  *  Main capabilities:
  *
@@ -72416,8 +72082,8 @@ declare module 'assert' {
  *  - \`strict.ok\` is the loose assert module object itself (\`strict.ok === require('assert')\`),
  *    because the alias points at that module; calling it behaves like assert ok.
  *  - \`strict.strict\` does not exist; require the loose module directly to mix both modes.
- *  - Node.js exposes the same \`assert/strict\` entry point with the same mapping, and fibjs also
- *    registers the aliases \`fibjs:assert/strict\` and \`node:assert/strict\`.
+ *  - The module also registers the aliases \`fibjs:assert/strict\` and
+ *    \`node:assert/strict\`.
  *  - Besides \`strictEqual\`-style checks, every other member shares the implementation of
  *    assert, including the crash of \`property\` on a string receiver and the leniency of the
  *    \`throws\` property filter.
@@ -72463,7 +72129,7 @@ declare module 'assert/strict' {
          * @description Tests that the value is falsy; the assertion fails if it is true
          *
          *      The exact negation of \`ok\`, shared with the loose assert module; the failure carries
-         *      the operator 'notOk'. Node.js has no notOk, the equivalent is
+         *      the operator 'notOk'; the equivalent is
          *      \`assert.ok(!value)\`.
          *
          *      @param actual the value to test
@@ -72477,8 +72143,7 @@ declare module 'assert/strict' {
          *
          *      In this module \`equal\` is an alias of \`strictEqual\`: it uses \`===\`, so \`equal(1,
          *      '1')\` fails, and the failure carries the operator 'strictEqual' (not '==', which the
-         *      loose module uses). \`strict.equal\` and \`strict.strictEqual\` are the same behavior;
-         *      Node.js applies the same alias.
+         *      loose module uses). \`strict.equal\` and \`strict.strictEqual\` are the same behavior.
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -72577,7 +72242,7 @@ declare module 'assert/strict' {
          *
          *      Shared with the loose module: leaf values are compared with \`===\` and the rules for
          *      Dates, RegExps, arrays and Buffers are the same as \`deepEqual\`; prototypes and
-         *      symbol-keyed properties are still not compared, which differs from Node.js. A custom
+         *      symbol-keyed properties are not compared. A custom
          *      message is prepended to the generated diff; the failure carries the operator
          *      'deepStrictEqual'.
          *
@@ -72608,7 +72273,7 @@ declare module 'assert/strict' {
          *      Shared with the loose module: the actual value is declared String, so a String
          *      object, a Date (its ISO form), a Buffer (its utf8 bytes) and an object with its own
          *      toString are converted, while values without a string form fail with a TypeError
-         *      [20005]; Node.js requires a real string. The failure carries the operator 'match'.
+         *      [20005]. The failure carries the operator 'match'.
          *
          *      @param actual the string to test
          *      @param expected the expected regular expression
@@ -72636,7 +72301,7 @@ declare module 'assert/strict' {
          *
          *      Shared with the loose module: the check is \`Math.abs(actual - expected) <= delta\`
          *      with the bound inclusive, and a value that converts to NaN throws a TypeError [20004]
-         *      instead of failing the assertion. Node.js has no closeTo.
+         *      instead of failing the assertion.
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -72666,7 +72331,6 @@ declare module 'assert/strict' {
          *      Shared with the loose module: numeric when either side is a number (or a numeric
          *      string next to a number), lexicographic UTF-8 when both sides are non-numeric
          *      strings, and a TypeError [20004] for values that cannot be converted to a number.
-         *      Node.js has no lessThan.
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -72693,7 +72357,7 @@ declare module 'assert/strict' {
          *
          *      The mirror of \`lessThan\` (actual > expected), shared with the loose module; the
          *      generated failure message and operator field reuse the notLessThan wording ('to be
-         *      at least'). Node.js has no greaterThan.
+         *      at least').
          *
          *      @param actual the value to test
          *      @param expected the expected value
@@ -72719,7 +72383,7 @@ declare module 'assert/strict' {
          * @description Tests that the variable exists
          *
          *      Shared with the loose module: a value exists when it is neither null nor undefined,
-         *      so false, 0, '' and NaN exist. Node.js has no exist.
+         *      so false, 0, '' and NaN exist.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -72743,7 +72407,7 @@ declare module 'assert/strict' {
          * @description Tests that the value is boolean true
          *
          *      Shared with the loose module and strict by nature: 1, 'true' and new Boolean(true)
-         *      all fail. Node.js has no isTrue.
+         *      all fail.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -72767,7 +72431,7 @@ declare module 'assert/strict' {
          * @description Tests that the value is boolean false
          *
          *      Shared with the loose module: only the false primitive passes, so 0, '' and
-         *      new Boolean(false) fail. Node.js has no isFalse.
+         *      new Boolean(false) fail.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -72791,7 +72455,7 @@ declare module 'assert/strict' {
          * @description Tests that the value is Null
          *
          *      Shared with the loose module: only the null primitive passes; undefined is not null
-         *      and fails this check, use \`isUndefined\` for it. Node.js has no isNull.
+         *      and fails this check, use \`isUndefined\` for it.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -72815,7 +72479,7 @@ declare module 'assert/strict' {
          * @description Tests that the value is undefined
          *
          *      Shared with the loose module: only the undefined primitive passes; null is defined
-         *      for this check and fails it, use \`isNull\` for null. Node.js has no isUndefined.
+         *      for this check and fails it, use \`isNull\` for null.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -72827,7 +72491,7 @@ declare module 'assert/strict' {
          * @description Tests that the value is not undefined
          *
          *      The exact negation of \`isUndefined\`, shared with the loose module: null and every
-         *      other value pass. Node.js has no isDefined.
+         *      other value pass.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -72839,7 +72503,7 @@ declare module 'assert/strict' {
          * @description Tests that the value is a function
          *
          *      Shared with the loose module: classes, async functions and generator functions are
-         *      functions too. Node.js has no isFunction.
+         *      functions too.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -72864,7 +72528,7 @@ declare module 'assert/strict' {
          *
          *      Shared with the loose module: arrays and functions count as objects, boxed
          *      primitives count too, while null, undefined, primitives and symbols do not.
-         *      \`typeOf(value, 'object')\` delegates to this check. Node.js has no isObject.
+         *      \`typeOf(value, 'object')\` delegates to this check.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -72888,7 +72552,7 @@ declare module 'assert/strict' {
          * @description Tests that the value is an array
          *
          *      Shared with the loose module: an Array subclass passes, while typed arrays and
-         *      Buffer do not. Node.js has no isArray; the equivalent is
+         *      Buffer do not; the equivalent is
          *      \`assert.ok(Array.isArray(value))\`.
          *
          *      @param actual the value to test
@@ -72913,7 +72577,7 @@ declare module 'assert/strict' {
          * @description Tests that the value is a string
          *
          *      Shared with the loose module: both a string primitive and a String object pass,
-         *      while a Buffer does not (it is a Uint8Array). Node.js has no isString.
+         *      while a Buffer does not (it is a Uint8Array).
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -72936,8 +72600,7 @@ declare module 'assert/strict' {
         /**
          * @description Tests that the value is a number
          *
-         *      Shared with the loose module: NaN passes and a Number object does not. Node.js has
-         *      no isNumber.
+         *      Shared with the loose module: NaN passes and a Number object does not.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -72961,7 +72624,7 @@ declare module 'assert/strict' {
          * @description Tests that the value is a boolean
          *
          *      Shared with the loose module: only the true and false primitives pass, a Boolean
-         *      object does not. Node.js has no isBoolean.
+         *      object does not.
          *
          *      @param actual the value to test
          *      @param msg the message when the assertion fails
@@ -72986,8 +72649,7 @@ declare module 'assert/strict' {
          *
          *      Shared with the loose module: the accepted names are 'array', 'function', 'string',
          *      'object', 'number', 'boolean', 'null' and 'undefined', where 'object' also matches
-         *      arrays and functions; any other name throws a TypeError [20004]. Node.js has no
-         *      typeOf.
+         *      arrays and functions; any other name throws a TypeError [20004].
          *
          *      @param actual the value to test
          *      @param type the specified type
@@ -73015,7 +72677,7 @@ declare module 'assert/strict' {
          *      Shared with the loose module: the lookup includes inherited properties, the receiver
          *      must be an object and the property name a string, and other values throw a TypeError
          *      [20004]. A primitive string receiver passes the type check but crashes the process
-         *      in this version, so pass objects only. Node.js has no property.
+         *      in this version, so pass objects only.
          *
          *      @param object the object to test
          *      @param prop the property to test
@@ -73043,8 +72705,7 @@ declare module 'assert/strict' {
          *
          *      Shared with the loose module: the path is split on '.', so 'a.b.0' reaches array
          *      elements and a property name containing a dot cannot be addressed; a missing
-         *      intermediate value fails the assertion instead of throwing. Node.js has no
-         *      deepProperty.
+         *      intermediate value fails the assertion instead of throwing.
          *
          *      @param object the object to test
          *      @param prop the property to test, separated by "."
@@ -73071,7 +72732,7 @@ declare module 'assert/strict' {
          *
          *      Shared with the loose module and already strict there: the value is compared with
          *      \`===\`, so \`propertyVal(obj, 'a', 1)\` fails when the property holds '1' and a missing
-         *      property yields undefined and fails. Node.js has no propertyVal.
+         *      property yields undefined and fails.
          *
          *      @param object the object to test
          *      @param prop the property to test
@@ -73136,8 +72797,7 @@ declare module 'assert/strict' {
          *
          *      An error thrown inside a validation function is propagated as-is. The failure
          *      carries the operator 'throws'; a custom message is used when a filter was supplied
-         *      and did not match. Node.js accepts the same forms but also treats normal functions
-         *      as validators and appends a 'Caught error' excerpt.
+         *      and did not match.
          *
          *      Example — a class and an arrow validation function:
          *      \`\`\`JavaScript
@@ -73195,8 +72855,6 @@ declare module 'assert/strict' {
          *      When the awaited promise resolves the assertion fails with 'Missing expected
          *      rejection'. The returned promise resolves to undefined when the rejection matched
          *      and rejects with the generated AssertionError otherwise; the operator is 'rejects'.
-         *      Node.js returns a promise with the same shape but rejects with
-         *      ERR_INVALID_RETURN_VALUE for a non-promise result.
          *
          *      Example — await a function and a promise rejection:
          *      \`\`\`JavaScript
@@ -73235,7 +72893,7 @@ declare module 'assert/strict' {
          *      by the error argument as in the function overload, while a resolution fails the
          *      assertion with 'Missing expected rejection'. The returned promise resolves to
          *      undefined when the rejection matched and rejects with the generated AssertionError
-         *      otherwise; Node.js has the same form.
+         *      otherwise.
          *
          *      @param result the code to test, given as a Promise
          *      @param error the expected error as a RegExp, error class, arrow validator or filter object
@@ -73262,8 +72920,7 @@ declare module 'assert/strict' {
          *
          *      Shared with the loose module: the value is rethrown as-is, not wrapped, which makes
          *      it the standard trailing callback helper (\`if (err) throw err\`). Falsy values -
-         *      undefined, null, false, 0, '' and NaN - pass. Node.js wraps the value in an
-         *      AssertionError instead, so a caught value that is not an Error differs.
+         *      undefined, null, false, 0, '' and NaN - pass.
          *
          *      @param object the argument
          *
@@ -73281,11 +72938,11 @@ declare module 'assert/strict' {
 /// <reference path="../interface/AsyncLocalStorage.d.ts" />
 /// <reference path="../interface/AsyncResource.d.ts" />
 /**
- * @description The async_hooks module exposes the Node.js compatible classes for tracking asynchronous context: AsyncLocalStorage and AsyncResource
+ * @description The async_hooks module exposes the classes for tracking asynchronous context: AsyncLocalStorage and AsyncResource
  *
  *  The module is an export surface: it re-exports the two classes documented in
- *  the AsyncLocalStorage and AsyncResource definitions, so code written for
- *  Node.js can keep using \`require('async_hooks')\`. Both classes propagate their
+ *  the AsyncLocalStorage and AsyncResource definitions, so \`require('async_hooks')\`
+ *  resolves. Both classes propagate their
  *  context through timers, callbacks, promises and fibers created inside a
  *  tracked scope.
  *
@@ -73302,13 +72959,13 @@ declare module 'assert/strict' {
  *  - **What is implemented**: the module exports exactly the two classes;
  *    \`AsyncLocalStorage\` and \`AsyncResource\` are the same constructors as the definitions of
  *    the same names, and the module is also reachable as \`require('node:async_hooks')\`.
- *  - **What is not implemented**: the Node.js \`createHook\` and its hook callbacks,
+ *  - **What is not implemented**: \`createHook\` and its hook callbacks,
  *    \`executionAsyncId()\`, the module-level \`triggerAsyncId()\`, \`asyncWrapProviders\` and
  *    \`defaults\` are missing, so code that instruments the asynchronous lifecycle itself
  *    must be adapted. There are no destroy hooks, so \`emitDestroy\` is a no-op and the
  *    \`requireManualDestroy\` option is ignored.
  *  - **Async ids**: \`asyncId\` and \`triggerAsyncId\` on resources are informational counters
- *    provided by the classes, not the ids of the Node.js async hooks subsystem; see the
+ *    provided by the classes, not ids of the async hooks subsystem; see the
  *    AsyncResource definition for the exact values.
  *  - **Context propagation**: AsyncLocalStorage stores attach to the asynchronous context of
  *    the current fiber, and every asynchronous operation created inside \`run\` inherits the
@@ -73352,8 +73009,8 @@ declare module 'assert/strict' {
  *  - The two classes are only reachable through this module; they are not global
  *    variables and do not have their own module names, so
  *    \`require('AsyncLocalStorage')\` fails with error 20024.
- *  - The context-tracking API of both classes is complete; the differences from Node.js
- *    are limited to diagnostics (ids, missing hook callbacks, ignored options) and are
+ *  - The context-tracking API of both classes is complete; the remaining gaps are limited to
+ *    diagnostics (ids, missing hook callbacks, ignored options) and are
  *    documented in the class definitions.
  *
  */
@@ -73377,7 +73034,7 @@ declare module 'async_hooks' {
      *      console.log(als.getStore()); // A
      *      \`\`\`
      *
-     *      Node.js comparison: this is the same class; the \`withScope\` helper for \`using\`
+     *      The \`withScope\` helper for \`using\`
      *      declarations is not provided.
      *
      */
@@ -73405,8 +73062,8 @@ declare module 'async_hooks' {
      *      als.run({ id: 8 }, () => console.log(read())); // 7
      *      \`\`\`
      *
-     *      Node.js comparison: the constructor, runInAsyncScope, bind and the id accessors
-     *      match; \`requireManualDestroy\` is accepted but ignored because emitDestroy is a no-op.
+     *      The constructor, runInAsyncScope, bind and the id accessors are provided;
+     *      \`requireManualDestroy\` is accepted but ignored because emitDestroy is a no-op.
      *      See the AsyncResource definition for details.
      *
      */
@@ -73472,7 +73129,7 @@ declare module 'async_hooks' {
  *
  *  - The module has no options and no streaming interface; a non-string input to \`decode\`
  *    throws a type error, while any string is accepted by the lenient rules above.
- *  - Node.js has no base32 in its standard library; in fibjs the same payload is also
+ *  - The same payload is also
  *    reachable through \`encoding.encode(data, 'base32')\`.
  *
  */
@@ -73589,7 +73246,7 @@ declare module 'base32' {
  *
  *  - Base58 is case-sensitive and has no fixed length; do not compare encoded values by
  *    length or pad them by hand.
- *  - Node.js has no base58 in its standard library; in fibjs the bare payload is also
+ *  - The bare payload is also
  *    reachable through \`encoding.encode(data, 'base58')\`.
  *
  */
@@ -73740,8 +73397,7 @@ declare module 'base58' {
  *
  *  - \`decode\` never reports malformed input: an empty or fully invalid string returns an
  *    empty Buffer; use a stricter parser when the text must be validated.
- *  - Node.js exposes base64 through Buffer encodings rather than a module; fibjs also
- *    accepts the alias \`encoding.encode(data, 'base64url')\` for the URL-safe form.
+ *  - The alias \`encoding.encode(data, 'base64url')\` selects the URL-safe form.
  *
  */
 declare module 'base64' {
@@ -73921,11 +73577,11 @@ declare module 'buffer' {
  *    Node-compatible \`status\`, \`stdout\`, \`stderr\` and \`output\` fields. A child killed by a signal
  *    reports the negative signal number (-15 for SIGTERM, -9 for SIGKILL). Spawn failures throw
  *    (spawn/exec/execFile/fork) or set \`error\` (spawnSync) with \`code\`/\`errno\`/\`syscall\`/\`path\`.
- *  - **Node.js differences**: fibjs adds \`run\`, \`sh\`, \`ssh\`, the \`input\` option (write to the
+ *  - **Extensions and limits**: the module adds \`run\`, \`sh\`, \`ssh\`, the \`input\` option (write to the
  *    child's stdin), the \`encoding\` option accepting \`'buffer'\`, the four-argument callback with
- *    exitCode and pty stdio. It has no \`options.shell\` (only exec uses a shell) and no
+ *    exitCode and pty stdio. There is no \`options.shell\` (only exec uses a shell) and no
  *    \`options.maxBuffer\`; \`spawn\` throws on failure instead of emitting an 'error' event, and a
- *    signal death is reported as a negative exit code instead of Node's \`signalCode\`.
+ *    signal death is reported as a negative exit code (there is no \`signalCode\`).
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -75733,12 +75389,11 @@ declare module 'colors' {
  *    calling fiber until a line is read; readLineSync is an alias of the same
  *    function, readLineAsync takes a callback and \`console.promises.readLine\`
  *    returns a promise. See the readLine member for the terminal details.
- *  - **Node.js differences**: \`console.assert\` is the assert module and throws
- *    instead of logging "Assertion failed"; count, countReset, timeLog, group,
+ *  - **Behaviour notes**: \`console.assert\` is the assert module and throws when the value is
+ *    falsy instead of logging an "Assertion failed" message; count, countReset, timeLog, group,
  *    groupEnd, groupCollapsed, profile and context do not exist; the default timer
- *    label is \`time\` instead of Node's \`default\`, and timeEnd on an unknown label
- *    measures from zero instead of warning. \`print\` and \`loglevel\` are fibjs
- *    extensions.
+ *    label is \`time\`, and timeEnd on an unknown label
+ *    measures from zero instead of warning. \`print\` and \`loglevel\` are module extensions.
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -76032,8 +75687,7 @@ declare module 'console' {
      *
      *      The lowest standard level, useful when \`loglevel\` is raised to DEBUG to trace
      *      execution. The record goes to stdout and accepts the same printf-like
-     *      template as \`log\`. Level DEBUG(7). Node.js treats console.debug as an alias
-     *      of console.log, while fibjs keeps a separate level that can be filtered.
+     *      template as \`log\`. Level DEBUG(7).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76045,8 +75699,7 @@ declare module 'console' {
     /**
      * @description Writes a record at INFO level, same as log
      *
-     *      Records a general message and writes it to stdout. Identical to \`log\`; the
-     *      name follows the Node.js console surface. Level INFO(6).
+     *      Records a general message and writes it to stdout. Identical to \`log\`. Level INFO(6).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76060,7 +75713,7 @@ declare module 'console' {
      *
      *      Records a normal but significant message; less severe than WARN and more
      *      important than INFO. Written to stdout and filtered by \`loglevel\`. Level
-     *      NOTICE(5); this is a fibjs extension, Node.js has no console.notice.
+     *      NOTICE(5); this is an extension of the console object.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76073,7 +75726,7 @@ declare module 'console' {
      * @description Writes a record at WARN level
      *
      *      Records a warning and writes it to stderr, because WARN(4) is one of the
-     *      error levels. Level WARN(4); Node.js console.warn also writes to stderr.
+     *      error levels. Level WARN(4).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76086,8 +75739,7 @@ declare module 'console' {
      * @description Writes a record at WARN level, same as warn
      *
      *      Records a warning and writes it to stderr. Identical to \`warn\`, kept as a
-     *      separate name for code that reads better with the long form; Node.js has no
-     *      console.warning.
+     *      separate name for code that reads better with the long form.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76127,7 +75779,7 @@ declare module 'console' {
      * @description Writes a record at CRIT level
      *
      *      Records a critical condition and writes it to stderr; identical to \`crit\`.
-     *      Level CRIT(2); Node.js has no console.critical.
+     *      Level CRIT(2).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76141,7 +75793,6 @@ declare module 'console' {
      *
      *      Records the most severe condition at ALERT(1) and writes it to stderr; it is
      *      the highest severity level, meant for conditions that need immediate action.
-     *      Node.js has no console.alert.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76180,8 +75831,8 @@ declare module 'console' {
      *      emitted when the terminal supports color), \`depth\` (default 2, null means
      *      unlimited), \`table\` (render an array of records as a table), \`fields\`,
      *      \`encode_string\`, \`maxArrayLength\` (default 100) and \`maxStringLength\`
-     *      (default 10000). Unknown options are ignored. Node.js console.dir uses its
-     *      own renderer, while fibjs delegates to util.inspect, so keys and strings are
+     *      (default 10000). Unknown options are ignored. The rendering delegates to
+     *      util.inspect, so keys and strings are
      *      quoted and the layout follows it.
      *
      *      Example:
@@ -76399,8 +76050,8 @@ declare module 'console' {
      *
      *      Stores the current time under \`label\` in a process-wide map shared by all
      *      isolates; starting an existing label silently restarts it and no warning is
-     *      printed, unlike Node.js which warns about duplicates. The default label is
-     *      \`"time"\` while Node.js uses \`"default"\`. \`timeElapse\` samples the timer and
+     *      printed. The default label is
+     *      \`"time"\`. \`timeElapse\` samples the timer and
      *      \`timeEnd\` stops it; both print \`label: <elapsed>ms\` at INFO level.
      *
      *      Example:
@@ -76422,8 +76073,7 @@ declare module 'console' {
      *      Outputs \`label: <elapsed>ms\` at INFO level on stdout, with up to 10
      *      significant digits; the timer keeps running, so it can be sampled repeatedly
      *      before timeEnd. A label that was never started is treated as zero, so the
-     *      printed value is huge instead of an error or warning (Node.js has no such
-     *      member).
+     *      printed value is huge instead of an error or warning.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -76442,8 +76092,7 @@ declare module 'console' {
      *
      *      Outputs \`label: <elapsed>ms\` at INFO level on stdout and removes the label,
      *      so \`time\` can start it again afterwards. Stopping a label that was never
-     *      started measures from zero and prints a huge value; no warning is emitted,
-     *      while Node.js warns about the missing label.
+     *      started measures from zero and prints a huge value; no warning is emitted.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -76464,9 +76113,7 @@ declare module 'console' {
      *      \`console.assert\` is the assert module itself: \`console.assert ===
      *      require('assert')\` is true. Calling it with a falsy first argument throws an
      *      AssertionError whose message is the second argument, while a truthy value
-     *      returns undefined. Node.js instead logs \`Assertion failed: <message>\` and
-     *      never throws, so code ported from Node.js must not rely on that behavior.
-     *      Use \`assert.ok\`, \`assert.equal\` and friends for richer checks.
+     *      returns undefined. Use \`assert.ok\`, \`assert.equal\` and friends for richer checks.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -76744,8 +76391,7 @@ declare module 'console/promises' {
      *
      *      The lowest standard level, useful when \`loglevel\` is raised to DEBUG to trace
      *      execution. The record goes to stdout and accepts the same printf-like
-     *      template as \`log\`. Level DEBUG(7). Node.js treats console.debug as an alias
-     *      of console.log, while fibjs keeps a separate level that can be filtered.
+     *      template as \`log\`. Level DEBUG(7).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76757,8 +76403,7 @@ declare module 'console/promises' {
     /**
      * @description Writes a record at INFO level, same as log
      *
-     *      Records a general message and writes it to stdout. Identical to \`log\`; the
-     *      name follows the Node.js console surface. Level INFO(6).
+     *      Records a general message and writes it to stdout. Identical to \`log\`. Level INFO(6).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76772,7 +76417,7 @@ declare module 'console/promises' {
      *
      *      Records a normal but significant message; less severe than WARN and more
      *      important than INFO. Written to stdout and filtered by \`loglevel\`. Level
-     *      NOTICE(5); this is a fibjs extension, Node.js has no console.notice.
+     *      NOTICE(5); this is an extension of the console object.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76785,7 +76430,7 @@ declare module 'console/promises' {
      * @description Writes a record at WARN level
      *
      *      Records a warning and writes it to stderr, because WARN(4) is one of the
-     *      error levels. Level WARN(4); Node.js console.warn also writes to stderr.
+     *      error levels. Level WARN(4).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76798,8 +76443,7 @@ declare module 'console/promises' {
      * @description Writes a record at WARN level, same as warn
      *
      *      Records a warning and writes it to stderr. Identical to \`warn\`, kept as a
-     *      separate name for code that reads better with the long form; Node.js has no
-     *      console.warning.
+     *      separate name for code that reads better with the long form.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76839,7 +76483,7 @@ declare module 'console/promises' {
      * @description Writes a record at CRIT level
      *
      *      Records a critical condition and writes it to stderr; identical to \`crit\`.
-     *      Level CRIT(2); Node.js has no console.critical.
+     *      Level CRIT(2).
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76853,7 +76497,6 @@ declare module 'console/promises' {
      *
      *      Records the most severe condition at ALERT(1) and writes it to stderr; it is
      *      the highest severity level, meant for conditions that need immediate action.
-     *      Node.js has no console.alert.
      *
      *      @param args optional argument list
      *      When the first argument is a string it is used as the format template, see
@@ -76892,8 +76535,8 @@ declare module 'console/promises' {
      *      emitted when the terminal supports color), \`depth\` (default 2, null means
      *      unlimited), \`table\` (render an array of records as a table), \`fields\`,
      *      \`encode_string\`, \`maxArrayLength\` (default 100) and \`maxStringLength\`
-     *      (default 10000). Unknown options are ignored. Node.js console.dir uses its
-     *      own renderer, while fibjs delegates to util.inspect, so keys and strings are
+     *      (default 10000). Unknown options are ignored. The rendering delegates to
+     *      util.inspect, so keys and strings are
      *      quoted and the layout follows it.
      *
      *      Example:
@@ -77107,8 +76750,8 @@ declare module 'console/promises' {
      *
      *      Stores the current time under \`label\` in a process-wide map shared by all
      *      isolates; starting an existing label silently restarts it and no warning is
-     *      printed, unlike Node.js which warns about duplicates. The default label is
-     *      \`"time"\` while Node.js uses \`"default"\`. \`timeElapse\` samples the timer and
+     *      printed. The default label is
+     *      \`"time"\`. \`timeElapse\` samples the timer and
      *      \`timeEnd\` stops it; both print \`label: <elapsed>ms\` at INFO level.
      *
      *      Example:
@@ -77130,8 +76773,7 @@ declare module 'console/promises' {
      *      Outputs \`label: <elapsed>ms\` at INFO level on stdout, with up to 10
      *      significant digits; the timer keeps running, so it can be sampled repeatedly
      *      before timeEnd. A label that was never started is treated as zero, so the
-     *      printed value is huge instead of an error or warning (Node.js has no such
-     *      member).
+     *      printed value is huge instead of an error or warning.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -77150,8 +76792,7 @@ declare module 'console/promises' {
      *
      *      Outputs \`label: <elapsed>ms\` at INFO level on stdout and removes the label,
      *      so \`time\` can start it again afterwards. Stopping a label that was never
-     *      started measures from zero and prints a huge value; no warning is emitted,
-     *      while Node.js warns about the missing label.
+     *      started measures from zero and prints a huge value; no warning is emitted.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -77172,9 +76813,7 @@ declare module 'console/promises' {
      *      \`console.assert\` is the assert module itself: \`console.assert ===
      *      require('assert')\` is true. Calling it with a falsy first argument throws an
      *      AssertionError whose message is the second argument, while a truthy value
-     *      returns undefined. Node.js instead logs \`Assertion failed: <message>\` and
-     *      never throws, so code ported from Node.js must not rely on that behavior.
-     *      Use \`assert.ok\`, \`assert.equal\` and friends for richer checks.
+     *      returns undefined. Use \`assert.ok\`, \`assert.equal\` and friends for richer checks.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -77225,8 +76864,7 @@ declare module "console" {
  * @description The legacy aggregate constants module: dynamic library flags, error codes, process
  *  priorities, signal numbers and the file system flags in one object
  *
- *  The module predates the split of the constant surface into os_constants and fs_constants and
- *  mirrors the historical Node.js \`constants\` module. Its numbers are a frozen BSD/macOS set
+ * The module predates the split of the constant surface into os_constants and fs_constants. Its numbers are a frozen BSD/macOS set
  *  shared by every platform, so they are not the native values of the host: use
  *  \`os.constants.errno\`, \`os.constants.signals\`, \`os.constants.priority\` and
  *  \`os.constants.dlopen\` for the numbers the system APIs actually use, and fs_constants (or the
@@ -78257,7 +77895,7 @@ declare module 'constants' {
  *  more room.
  *  - **Process lifetime**: a queued or suspended fiber keeps the process alive, so a fiber blocked
  *  on a lock, a condition or an Event that is never set prevents the script from exiting.
- *  - **Node.js comparison**: Node.js has no fibers. The closest equivalents are the event loop with
+ *  - **Model**: the closest equivalents elsewhere are the event loop with
  *  promises (one logical thread per isolate, but every suspension point must be written as a
  *  callback or an \`await\`) and \`worker_threads\` (real threads with message passing). \`Atomics.wait\`
  *  blocks an OS thread, while \`sleep\` blocks a single fiber.
@@ -78734,8 +78372,7 @@ declare module 'coroutine' {
      *      of creating an OS-level fiber each time. A larger pool absorbs bursts of short jobs, such as
      *      server request handlers, at the cost of idle stacks; a smaller pool lowers the memory watermark
      *      but makes new jobs allocate a fiber. The value is a process-wide setting (each isolate applies
-     *      it to its own pool) and is not validated, so keep it non-negative. It is a fibjs extension
-     *      with no Node.js equivalent.
+     *      it to its own pool) and is not validated, so keep it non-negative. It is an extension.
      *
      */
     var spareFibers: number;
@@ -79118,8 +78755,7 @@ declare module 'coroutine/promises' {
      *      of creating an OS-level fiber each time. A larger pool absorbs bursts of short jobs, such as
      *      server request handlers, at the cost of idle stacks; a smaller pool lowers the memory watermark
      *      but makes new jobs allocate a fiber. The value is a process-wide setting (each isolate applies
-     *      it to its own pool) and is not validated, so keep it non-negative. It is a fibjs extension
-     *      with no Node.js equivalent.
+     *      it to its own pool) and is not validated, so keep it non-negative. It is an extension.
      *
      */
     var spareFibers: number;
@@ -79298,10 +78934,9 @@ declare module "coroutine" {
  *  \`\`\`
  *
  *  Notes: there is no global \`webcrypto\` or \`subtle\`; reach the Web Crypto API through
- *  \`crypto.webcrypto\` and \`crypto.subtle\`. Node.js APIs without a fibjs counterpart
- *  include the \`getDiffieHellman\`/\`createDiffieHellman\` family, \`checkPrime\` and
- *  \`generatePrime\`, and the callback form of \`randomBytes\`; \`getRandomValues\` also
- *  accepts floating-point TypedArrays instead of rejecting them. In return, fibjs adds
+ * \`crypto.webcrypto\` and \`crypto.subtle\`. Not provided: the \`getDiffieHellman\`/\`createDiffieHellman\` family, \`checkPrime\` and
+ * \`generatePrime\`, and the callback form of \`randomBytes\`. \`getRandomValues\` also
+ * accepts floating-point TypedArrays. The module adds
  *  the blocking and Sync/Async call forms, the \`crypto.promises\` namespace, SM2 and
  *  Bls12381 key types, BBS signatures and \`createCertificateRequest\`.
  *
@@ -79591,7 +79226,7 @@ declare module 'crypto' {
      *
      *      The matching public key can be derived with createPublicKey and the key exported
      *      again with \`KeyObject.export\`. fibjs also accepts \`toX25519\` to convert an
-     *      Ed25519/Ed448 key to its X25519 form (an extension over Node.js).
+     *      Ed25519/Ed448 key to its X25519 form (an extension).
      *      @param key the private key material or its options
      *      @return returns the private key object
      *
@@ -79603,7 +79238,7 @@ declare module 'crypto' {
      *
      *      Accepts a public key in PEM/DER form (string or Buffer), another KeyObject, or
      *      an options object with the same entries as createPrivateKey (plus \`toX25519\`,
-     *      an extension over Node.js). A private KeyObject is accepted as well: the
+     *      an extension). A private KeyObject is accepted as well: the
      *      matching public key is derived from it.
      *      @param key the public or private key material, or its options
      *      @return returns the public key object
@@ -79698,7 +79333,7 @@ declare module 'crypto' {
      *      When \`csr\` is a PEM/DER string or Buffer, the request is parsed instead of
      *      created. The result exposes \`subject\`, \`publicKey\`, \`subjectAltName\`,
      *      \`infoAccess\`, \`raw\` and \`pem\`, and \`checkPrivateKey\` proves that a private key
-     *      matches the request. This member has no Node.js counterpart.
+     *      matches the request. This member is an extension of the module.
      *
      *      Example: build a CSR and confirm its public key:
      *      \`\`\`JavaScript
@@ -79776,7 +79411,7 @@ declare module 'crypto' {
      *      The bytes come from the CSPRNG of the operating system (OpenSSL RAND_bytes), so
      *      they are suitable for keys, IVs, salts and tokens; never use Math.random() for
      *      those. The default size is 16 and the value must be at least 1; an out-of-range
-     *      size throws RangeError. Unlike Node.js there is no callback form - call
+     *      size throws RangeError. There is no callback form - call
      *      randomFillAsync (or randomFill with a callback) when a promise is preferred.
      *
      *      Example:
@@ -79801,8 +79436,8 @@ declare module 'crypto' {
      *
      *      Writes \`size\` bytes starting at \`offset\`; by default the whole range from
      *      \`offset\` to the end of the buffer is filled. A negative \`size\` also means "to the
-     *      end". The buffer is modified in place; note that fibjs returns a Buffer object
-     *      distinct from the argument (Node.js returns the same object). A string argument
+     *      end". The buffer is modified in place; note that a Buffer object is returned
+     *      distinct from the argument. A string argument
      *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
      *      buffer or \`offset + size\` beyond its length throws RangeError. This member
      *      follows the async call forms (bare, callback, \`randomFillSync\`,
@@ -79822,8 +79457,8 @@ declare module 'crypto' {
      *
      *      Writes \`size\` bytes starting at \`offset\`; by default the whole range from
      *      \`offset\` to the end of the buffer is filled. A negative \`size\` also means "to the
-     *      end". The buffer is modified in place; note that fibjs returns a Buffer object
-     *      distinct from the argument (Node.js returns the same object). A string argument
+     *      end". The buffer is modified in place; note that a Buffer object is returned
+     *      distinct from the argument. A string argument
      *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
      *      buffer or \`offset + size\` beyond its length throws RangeError. This member
      *      follows the async call forms (bare, callback, \`randomFillSync\`,
@@ -79841,8 +79476,8 @@ declare module 'crypto' {
      *
      *      Writes \`size\` bytes starting at \`offset\`; by default the whole range from
      *      \`offset\` to the end of the buffer is filled. A negative \`size\` also means "to the
-     *      end". The buffer is modified in place; note that fibjs returns a Buffer object
-     *      distinct from the argument (Node.js returns the same object). A string argument
+     *      end". The buffer is modified in place; note that a Buffer object is returned
+     *      distinct from the argument. A string argument
      *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
      *      buffer or \`offset + size\` beyond its length throws RangeError. This member
      *      follows the async call forms (bare, callback, \`randomFillSync\`,
@@ -79861,9 +79496,9 @@ declare module 'crypto' {
      *      The whole array is filled byte-wise and the same array is returned (the array is
      *      modified in place). At most 65536 bytes may be requested in one call; a larger
      *      array throws RangeError. This is the Web Crypto entry point, also available as
-     *      \`crypto.webcrypto.getRandomValues\`. Unlike Node.js, fibjs also accepts
-     *      floating-point TypedArrays (they still receive random bytes) and rejects a
-     *      DataView with a type error.
+     *      \`crypto.webcrypto.getRandomValues\`. Floating-point
+     *      TypedArrays are also accepted (they still receive random bytes); a DataView is
+     *      rejected with a type error.
      *      @param data the TypedArray to fill
      *      @return returns the filled TypedArray
      *
@@ -79876,7 +79511,7 @@ declare module 'crypto' {
      *      The value is built from 16 random bytes with the version and variant bits set,
      *      so it matches 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx' with y in [89ab]. The same
      *      function is available as \`crypto.webcrypto.randomUUID\`. \`options\` is accepted
-     *      for Node.js compatibility but ignored, including \`disableEntropyCache\`.
+     *      for compatibility but ignored, including \`disableEntropyCache\` on this member.
      *      @param options reserved; not used
      *      @return returns the UUID string
      *
@@ -80600,7 +80235,7 @@ declare module 'crypto' {
      *      key must be a Bls12381G2 private key; the options object carries \`suite\`, either
      *      'Bls12381Sha256' (default) or 'Bls12381Shake256', and an optional \`header\` bound
      *      into the signature. The signer and the verifier must use the same suite and
-     *      header. Follows the async call forms; this member has no Node.js counterpart.
+     *      header. Follows the async call forms; this member is an extension of the module.
      *      @param messages the messages to sign
      *      @param privateKey the private key and options
      *      @return returns the signature
@@ -80619,7 +80254,7 @@ declare module 'crypto' {
      *      key must be a Bls12381G2 private key; the options object carries \`suite\`, either
      *      'Bls12381Sha256' (default) or 'Bls12381Shake256', and an optional \`header\` bound
      *      into the signature. The signer and the verifier must use the same suite and
-     *      header. Follows the async call forms; this member has no Node.js counterpart.
+     *      header. Follows the async call forms; this member is an extension of the module.
      *      @param messages the messages to sign
      *      @param privateKey the private key and options
      *      @return returns the signature
@@ -80636,7 +80271,7 @@ declare module 'crypto' {
      *      key must be a Bls12381G2 private key; the options object carries \`suite\`, either
      *      'Bls12381Sha256' (default) or 'Bls12381Shake256', and an optional \`header\` bound
      *      into the signature. The signer and the verifier must use the same suite and
-     *      header. Follows the async call forms; this member has no Node.js counterpart.
+     *      header. Follows the async call forms; this member is an extension of the module.
      *      @param messages the messages to sign
      *      @param privateKey the private key and options
      *      @return returns the signature
@@ -81112,7 +80747,7 @@ declare module 'crypto/promises' {
      *
      *      The matching public key can be derived with createPublicKey and the key exported
      *      again with \`KeyObject.export\`. fibjs also accepts \`toX25519\` to convert an
-     *      Ed25519/Ed448 key to its X25519 form (an extension over Node.js).
+     *      Ed25519/Ed448 key to its X25519 form (an extension).
      *      @param key the private key material or its options
      *      @return returns the private key object
      *
@@ -81124,7 +80759,7 @@ declare module 'crypto/promises' {
      *
      *      Accepts a public key in PEM/DER form (string or Buffer), another KeyObject, or
      *      an options object with the same entries as createPrivateKey (plus \`toX25519\`,
-     *      an extension over Node.js). A private KeyObject is accepted as well: the
+     *      an extension). A private KeyObject is accepted as well: the
      *      matching public key is derived from it.
      *      @param key the public or private key material, or its options
      *      @return returns the public key object
@@ -81219,7 +80854,7 @@ declare module 'crypto/promises' {
      *      When \`csr\` is a PEM/DER string or Buffer, the request is parsed instead of
      *      created. The result exposes \`subject\`, \`publicKey\`, \`subjectAltName\`,
      *      \`infoAccess\`, \`raw\` and \`pem\`, and \`checkPrivateKey\` proves that a private key
-     *      matches the request. This member has no Node.js counterpart.
+     *      matches the request. This member is an extension of the module.
      *
      *      Example: build a CSR and confirm its public key:
      *      \`\`\`JavaScript
@@ -81297,7 +80932,7 @@ declare module 'crypto/promises' {
      *      The bytes come from the CSPRNG of the operating system (OpenSSL RAND_bytes), so
      *      they are suitable for keys, IVs, salts and tokens; never use Math.random() for
      *      those. The default size is 16 and the value must be at least 1; an out-of-range
-     *      size throws RangeError. Unlike Node.js there is no callback form - call
+     *      size throws RangeError. There is no callback form - call
      *      randomFillAsync (or randomFill with a callback) when a promise is preferred.
      *
      *      Example:
@@ -81322,8 +80957,8 @@ declare module 'crypto/promises' {
      *
      *      Writes \`size\` bytes starting at \`offset\`; by default the whole range from
      *      \`offset\` to the end of the buffer is filled. A negative \`size\` also means "to the
-     *      end". The buffer is modified in place; note that fibjs returns a Buffer object
-     *      distinct from the argument (Node.js returns the same object). A string argument
+     *      end". The buffer is modified in place; note that a Buffer object is returned
+     *      distinct from the argument. A string argument
      *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
      *      buffer or \`offset + size\` beyond its length throws RangeError. This member
      *      follows the async call forms (bare, callback, \`randomFillSync\`,
@@ -81341,8 +80976,8 @@ declare module 'crypto/promises' {
      *
      *      Writes \`size\` bytes starting at \`offset\`; by default the whole range from
      *      \`offset\` to the end of the buffer is filled. A negative \`size\` also means "to the
-     *      end". The buffer is modified in place; note that fibjs returns a Buffer object
-     *      distinct from the argument (Node.js returns the same object). A string argument
+     *      end". The buffer is modified in place; note that a Buffer object is returned
+     *      distinct from the argument. A string argument
      *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
      *      buffer or \`offset + size\` beyond its length throws RangeError. This member
      *      follows the async call forms (bare, callback, \`randomFillSync\`,
@@ -81360,8 +80995,8 @@ declare module 'crypto/promises' {
      *
      *      Writes \`size\` bytes starting at \`offset\`; by default the whole range from
      *      \`offset\` to the end of the buffer is filled. A negative \`size\` also means "to the
-     *      end". The buffer is modified in place; note that fibjs returns a Buffer object
-     *      distinct from the argument (Node.js returns the same object). A string argument
+     *      end". The buffer is modified in place; note that a Buffer object is returned
+     *      distinct from the argument. A string argument
      *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
      *      buffer or \`offset + size\` beyond its length throws RangeError. This member
      *      follows the async call forms (bare, callback, \`randomFillSync\`,
@@ -81380,9 +81015,9 @@ declare module 'crypto/promises' {
      *      The whole array is filled byte-wise and the same array is returned (the array is
      *      modified in place). At most 65536 bytes may be requested in one call; a larger
      *      array throws RangeError. This is the Web Crypto entry point, also available as
-     *      \`crypto.webcrypto.getRandomValues\`. Unlike Node.js, fibjs also accepts
-     *      floating-point TypedArrays (they still receive random bytes) and rejects a
-     *      DataView with a type error.
+     *      \`crypto.webcrypto.getRandomValues\`. Floating-point
+     *      TypedArrays are also accepted (they still receive random bytes); a DataView is
+     *      rejected with a type error.
      *      @param data the TypedArray to fill
      *      @return returns the filled TypedArray
      *
@@ -81395,7 +81030,7 @@ declare module 'crypto/promises' {
      *      The value is built from 16 random bytes with the version and variant bits set,
      *      so it matches 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx' with y in [89ab]. The same
      *      function is available as \`crypto.webcrypto.randomUUID\`. \`options\` is accepted
-     *      for Node.js compatibility but ignored, including \`disableEntropyCache\`.
+     *      for compatibility but ignored, including \`disableEntropyCache\` on this member.
      *      @param options reserved; not used
      *      @return returns the UUID string
      *
@@ -82104,7 +81739,7 @@ declare module 'crypto/promises' {
      *      key must be a Bls12381G2 private key; the options object carries \`suite\`, either
      *      'Bls12381Sha256' (default) or 'Bls12381Shake256', and an optional \`header\` bound
      *      into the signature. The signer and the verifier must use the same suite and
-     *      header. Follows the async call forms; this member has no Node.js counterpart.
+     *      header. Follows the async call forms; this member is an extension of the module.
      *      @param messages the messages to sign
      *      @param privateKey the private key and options
      *      @return returns the signature
@@ -82121,7 +81756,7 @@ declare module 'crypto/promises' {
      *      key must be a Bls12381G2 private key; the options object carries \`suite\`, either
      *      'Bls12381Sha256' (default) or 'Bls12381Shake256', and an optional \`header\` bound
      *      into the signature. The signer and the verifier must use the same suite and
-     *      header. Follows the async call forms; this member has no Node.js counterpart.
+     *      header. Follows the async call forms; this member is an extension of the module.
      *      @param messages the messages to sign
      *      @param privateKey the private key and options
      *      @return returns the signature
@@ -82138,7 +81773,7 @@ declare module 'crypto/promises' {
      *      key must be a Bls12381G2 private key; the options object carries \`suite\`, either
      *      'Bls12381Sha256' (default) or 'Bls12381Shake256', and an optional \`header\` bound
      *      into the signature. The signer and the verifier must use the same suite and
-     *      header. Follows the async call forms; this member has no Node.js counterpart.
+     *      header. Follows the async call forms; this member is an extension of the module.
      *      @param messages the messages to sign
      *      @param privateKey the private key and options
      *      @return returns the signature
@@ -82319,9 +81954,7 @@ declare module "crypto" {
  *  Load it through the \`constants\` property of the crypto module. The padding constants select
  *  the scheme of \`publicEncrypt\`/\`privateDecrypt\` and \`privateEncrypt\`/\`publicDecrypt\` (the
  *  \`padding\` option) and of RSA signing and verification (see Sign and Verify); the PSS salt
- *  length constants select the \`saltLength\` option used with RSA_PKCS1_PSS_PADDING. The values
- *  match Node.js's crypto.constants, but fibjs exports only these eight RSA entries, not
- *  Node's DH, ENGINE, POINT_CONVERSION, SSL_OP and TLS version groups.
+ *  length constants select the \`saltLength\` option used with RSA_PKCS1_PSS_PADDING. The values cover these eight RSA entries; the DH, ENGINE, POINT_CONVERSION, SSL_OP and TLS version groups are not exported.
  *
  *  Concepts:
  *
@@ -83823,11 +83456,12 @@ declare module "db" {
  *  - **Broadcast and multicast**: receiving broadcast traffic needs no option, but sending to a
  *    broadcast address requires \`setBroadcast(true)\`; multicast requires joining a group with
  *    \`addMembership\`, and \`setMulticastTTL\` limits how far multicast datagrams travel.
- *  - **Node.js differences**: \`dgram.Socket\` is a class reference and is not constructible —
+ *  - **Limits**: \`dgram.Socket\` is a class reference and is not constructible —
  *    create instances with \`createSocket\` only; \`send\` accepts a missing address (defaulting to
  *    loopback) and has no AddressInfo destination form; there is no \`socket.connect\`, no \`setTTL\`,
- *    \`setMulticastLoopback\` or \`setMulticastInterface\` and no source-specific multicast methods;
- *    accepting a family string directly in \`createSocket\` is a fibjs extension.
+ *    \`setMulticastLoopback\` or \`setMulticastInterface\` and no source-specific
+ *    multicast methods; accepting a family string directly in \`createSocket\` is a module extension
+ *    (the \`type\` key is not required).
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -83916,7 +83550,7 @@ declare module 'dgram' {
     /**
      * @description The alias of the DgramSocket class, see DgramSocket
      *
-     *      It is a class reference, useful for \`instanceof\` checks; unlike Node.js it is not a
+     *      It is a class reference, useful for \`instanceof\` checks; it is not a
      *      constructor, so a socket is always created with createSocket.
      *
      */
@@ -84117,8 +83751,7 @@ declare module 'diagnostics_channel' {
  *  Concepts:
  *
  *  - **Resolver**: both functions use the system resolver (\`getaddrinfo\`: the hosts file, NSS and
- *    the configured DNS servers), like the Node.js \`dns.lookup\`; unlike the Node.js \`dns.resolve*\`
- *    family no DNS record query is issued (c-ares is not used), so there is no resolver-level
+ *    the configured DNS servers); no DNS record query is issued (c-ares is not used), so there is no resolver-level
  *    control, no record types and no TTL. The address order is decided by the system and may
  *    change between calls; pass \`family\` when a specific family is required.
  *  - **Address families**: \`family\` accepts 0 (any), 4, 6, 'IPv4' or 'IPv6'; with \`all\` every
@@ -84133,8 +83766,7 @@ declare module 'diagnostics_channel' {
  *    shorter payload. An unsupported \`family\` is a TypeError before the lookup starts.
  *  - **Call forms**: without a callback the functions block the calling fiber and return the
  *    value; a trailing callback receives \`(err, result)\`, and the \`*Sync\`/\`*Async\` aliases and the
- *    \`dns.promises\` namespace (\`require('dns/promises')\`) return the same values. The Node.js
- *    callback of \`lookup\` is \`(err, address, family)\`, the fibjs callback only \`(err, result)\`.
+ *    \`dns.promises\` namespace (\`require('dns/promises')\`) return the same values. The callback is \`(err, result)\`.
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -84191,7 +83823,7 @@ declare module 'dns' {
      *      \`code\` (EAI_NONAME when the name does not resolve) and \`number\`, but no \`syscall\` or
      *      \`hostname\`.
      *
-     *      Unlike the Node.js \`dns.resolve\`, there is no record-type argument and no c-ares query: the
+     *      There is no record-type argument and no c-ares query: the
      *      result is the complete address list of the name, comparable to \`lookup\` with \`all: true\`.
      *
      *      Example — the address list of a numeric literal is stable:
@@ -84224,7 +83856,7 @@ declare module 'dns' {
      *      \`code\` (EAI_NONAME when the name does not resolve) and \`number\`, but no \`syscall\` or
      *      \`hostname\`.
      *
-     *      Unlike the Node.js \`dns.resolve\`, there is no record-type argument and no c-ares query: the
+     *      There is no record-type argument and no c-ares query: the
      *      result is the complete address list of the name, comparable to \`lookup\` with \`all: true\`.
      *
      *      Example — the address list of a numeric literal is stable:
@@ -84255,7 +83887,7 @@ declare module 'dns' {
      *      \`code\` (EAI_NONAME when the name does not resolve) and \`number\`, but no \`syscall\` or
      *      \`hostname\`.
      *
-     *      Unlike the Node.js \`dns.resolve\`, there is no record-type argument and no c-ares query: the
+     *      There is no record-type argument and no c-ares query: the
      *      result is the complete address list of the name, comparable to \`lookup\` with \`all: true\`.
      *
      *      Example — the address list of a numeric literal is stable:
@@ -84288,8 +83920,7 @@ declare module 'dns' {
      *
      *      A failed lookup throws an error with \`code\` (ENOTFOUND when the name does not resolve,
      *      EAI_AGAIN for a temporary failure), \`errno\`, \`syscall\` ('getaddrinfo'), \`hostname\` and an
-     *      \`args\` object with the stringified hostname, family and all values. Compared with Node.js,
-     *      the trailing callback receives only \`(err, result)\` (no separate family argument), and the
+     *      \`args\` object with the stringified hostname, family and all values. The trailing callback receives \`(err, result)\`, and the
      *      hints/order/verbatim options are not supported.
      *
      *      The options object accepts:
@@ -84335,8 +83966,7 @@ declare module 'dns' {
      *
      *      A failed lookup throws an error with \`code\` (ENOTFOUND when the name does not resolve,
      *      EAI_AGAIN for a temporary failure), \`errno\`, \`syscall\` ('getaddrinfo'), \`hostname\` and an
-     *      \`args\` object with the stringified hostname, family and all values. Compared with Node.js,
-     *      the trailing callback receives only \`(err, result)\` (no separate family argument), and the
+     *      \`args\` object with the stringified hostname, family and all values. The trailing callback receives \`(err, result)\`, and the
      *      hints/order/verbatim options are not supported.
      *
      *      The options object accepts:
@@ -84380,8 +84010,7 @@ declare module 'dns' {
      *
      *      A failed lookup throws an error with \`code\` (ENOTFOUND when the name does not resolve,
      *      EAI_AGAIN for a temporary failure), \`errno\`, \`syscall\` ('getaddrinfo'), \`hostname\` and an
-     *      \`args\` object with the stringified hostname, family and all values. Compared with Node.js,
-     *      the trailing callback receives only \`(err, result)\` (no separate family argument), and the
+     *      \`args\` object with the stringified hostname, family and all values. The trailing callback receives \`(err, result)\`, and the
      *      hints/order/verbatim options are not supported.
      *
      *      The options object accepts:
@@ -84431,7 +84060,7 @@ declare module 'dns/promises' {
      *      \`code\` (EAI_NONAME when the name does not resolve) and \`number\`, but no \`syscall\` or
      *      \`hostname\`.
      *
-     *      Unlike the Node.js \`dns.resolve\`, there is no record-type argument and no c-ares query: the
+     *      There is no record-type argument and no c-ares query: the
      *      result is the complete address list of the name, comparable to \`lookup\` with \`all: true\`.
      *
      *      Example — the address list of a numeric literal is stable:
@@ -84462,7 +84091,7 @@ declare module 'dns/promises' {
      *      \`code\` (EAI_NONAME when the name does not resolve) and \`number\`, but no \`syscall\` or
      *      \`hostname\`.
      *
-     *      Unlike the Node.js \`dns.resolve\`, there is no record-type argument and no c-ares query: the
+     *      There is no record-type argument and no c-ares query: the
      *      result is the complete address list of the name, comparable to \`lookup\` with \`all: true\`.
      *
      *      Example — the address list of a numeric literal is stable:
@@ -84493,7 +84122,7 @@ declare module 'dns/promises' {
      *      \`code\` (EAI_NONAME when the name does not resolve) and \`number\`, but no \`syscall\` or
      *      \`hostname\`.
      *
-     *      Unlike the Node.js \`dns.resolve\`, there is no record-type argument and no c-ares query: the
+     *      There is no record-type argument and no c-ares query: the
      *      result is the complete address list of the name, comparable to \`lookup\` with \`all: true\`.
      *
      *      Example — the address list of a numeric literal is stable:
@@ -84526,8 +84155,7 @@ declare module 'dns/promises' {
      *
      *      A failed lookup throws an error with \`code\` (ENOTFOUND when the name does not resolve,
      *      EAI_AGAIN for a temporary failure), \`errno\`, \`syscall\` ('getaddrinfo'), \`hostname\` and an
-     *      \`args\` object with the stringified hostname, family and all values. Compared with Node.js,
-     *      the trailing callback receives only \`(err, result)\` (no separate family argument), and the
+     *      \`args\` object with the stringified hostname, family and all values. The trailing callback receives \`(err, result)\`, and the
      *      hints/order/verbatim options are not supported.
      *
      *      The options object accepts:
@@ -84571,8 +84199,7 @@ declare module 'dns/promises' {
      *
      *      A failed lookup throws an error with \`code\` (ENOTFOUND when the name does not resolve,
      *      EAI_AGAIN for a temporary failure), \`errno\`, \`syscall\` ('getaddrinfo'), \`hostname\` and an
-     *      \`args\` object with the stringified hostname, family and all values. Compared with Node.js,
-     *      the trailing callback receives only \`(err, result)\` (no separate family argument), and the
+     *      \`args\` object with the stringified hostname, family and all values. The trailing callback receives \`(err, result)\`, and the
      *      hints/order/verbatim options are not supported.
      *
      *      The options object accepts:
@@ -84616,8 +84243,7 @@ declare module 'dns/promises' {
      *
      *      A failed lookup throws an error with \`code\` (ENOTFOUND when the name does not resolve,
      *      EAI_AGAIN for a temporary failure), \`errno\`, \`syscall\` ('getaddrinfo'), \`hostname\` and an
-     *      \`args\` object with the stringified hostname, family and all values. Compared with Node.js,
-     *      the trailing callback receives only \`(err, result)\` (no separate family argument), and the
+     *      \`args\` object with the stringified hostname, family and all values. The trailing callback receives \`(err, result)\`, and the
      *      hints/order/verbatim options are not supported.
      *
      *      The options object accepts:
@@ -84757,8 +84383,7 @@ declare module "dns" {
  *
  *  Notes:
  *
- *  - The module is a fibjs extension: Node.js has no \`encoding\` module and spreads these
- *    helpers over \`Buffer\`, \`url\` and \`querystring\`. The shared conversions behave like
+ *  - The module is an extension. The shared conversions behave like
  *    their Buffer counterparts: \`encoding.encode(data, codec)\` matches \`data.toString(codec)\`
  *    and \`encoding.decode(str, codec)\` matches \`Buffer.from(str, codec)\`.
  *  - A string argument is first converted to its utf8 bytes, so when the input is not utf8
@@ -85181,9 +84806,8 @@ declare module 'events' {
  *
  *  - \`readFile\` returns a Buffer by default and a string when an encoding is given; a descriptor
  *    read with an options object defaults to utf8.
- *  - writeFile(fd) seeks to the beginning and truncates the file before writing, which differs from
- *    Node.js where a descriptor write starts at the current position.
- *  - The Node.js \`bigint\` option is accepted in the options of the stat and watch functions but is
+ *  - writeFile(fd) seeks to the beginning and truncates the file before writing.
+ *  - The \`bigint\` option is accepted in the options of the stat and watch functions but is
  *    not implemented: the \`Ns\` properties of Stat are always numbers holding the nanosecond part.
  *  - watch returns a watcher deriving from EventEmitter and watchFile returns a StatsWatcher
  *    deriving from EventEmitter; calling \`fs.unwatchFile(target)\` is equivalent to calling
@@ -85239,8 +84863,8 @@ declare module 'fs' {
     /**
      * @description The alias of the Stat class, see Stat
      *
-     *      Stat objects are returned by stat/lstat/fstat; Node.js exposes the same class as fs.Stats,
-     *      while readdir with \`withFileTypes\` returns DirEntry objects instead.
+     *      Stat objects are returned by stat/lstat/fstat; readdir with \`withFileTypes\` returns
+     *      DirEntry objects instead.
      *
      */
     const Stats: typeof Class_Stat;
@@ -85251,7 +84875,7 @@ declare module 'fs' {
      * @description The alias of the DirEntry class, see DirEntry
      *
      *      A directory entry pairs a file name with its type, as returned by readdir with the
-     *      \`withFileTypes\` option; Node.js exposes the same class as fs.Dirent.
+     *      \`withFileTypes\` option.
      *
      */
     const Dirent: typeof Class_DirEntry;
@@ -85262,7 +84886,7 @@ declare module 'fs' {
      * @description The alias of the Dir class, see Dir
      *
      *      The directory iterator returned by opendir; entries can be read one by one with
-     *      read/readSync or with \`for await...of\`. Node.js exposes the same class as fs.Dir.
+     *      read/readSync or with \`for await...of\`.
      *
      */
     const Dir: typeof Class_Dir;
@@ -85304,7 +84928,7 @@ declare module 'fs' {
     /**
      * @description Checks whether the given file exists
      *
-     *      The options parameter is kept for Node.js compatibility only and is ignored for now.
+     *      The options parameter is reserved and is ignored for now.
      *      @param path the path to check
      *      @param options the check options (ignored)
      *      @return true when the file exists
@@ -85317,7 +84941,7 @@ declare module 'fs' {
     /**
      * @description Checks whether the given file exists
      *
-     *      The options parameter is kept for Node.js compatibility only and is ignored for now.
+     *      The options parameter is reserved and is ignored for now.
      *      @param path the path to check
      *      @param options the check options (ignored)
      *      @return true when the file exists
@@ -85328,7 +84952,7 @@ declare module 'fs' {
     /**
      * @description Checks whether the given file exists
      *
-     *      The options parameter is kept for Node.js compatibility only and is ignored for now.
+     *      The options parameter is reserved and is ignored for now.
      *      @param path the path to check
      *      @param options the check options (ignored)
      *      @return true when the file exists
@@ -85435,7 +85059,7 @@ declare module 'fs' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'); an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -85446,7 +85070,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
+     *      When recursive is true, the path of the first created directory is returned; when the directory already exists, undefined is returned.
      *      @param path the directory to create
      *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
@@ -85459,7 +85083,7 @@ declare module 'fs' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'); an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -85470,7 +85094,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
+     *      When recursive is true, the path of the first created directory is returned; when the directory already exists, undefined is returned.
      *      @param path the directory to create
      *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
@@ -85481,7 +85105,7 @@ declare module 'fs' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'); an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -85492,7 +85116,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
+     *      When recursive is true, the path of the first created directory is returned; when the directory already exists, undefined is returned.
      *      @param path the directory to create
      *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
@@ -85771,7 +85395,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      Copying a directory with recursive set to false throws; an existing
      *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
@@ -85797,7 +85421,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      Copying a directory with recursive set to false throws; an existing
      *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
@@ -85821,7 +85445,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      Copying a directory with recursive set to false throws; an existing
      *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
@@ -85833,7 +85457,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -85845,7 +85469,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -85855,7 +85479,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -85865,7 +85489,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -85877,7 +85501,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -85887,7 +85511,7 @@ declare module 'fs' {
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -85897,8 +85521,8 @@ declare module 'fs' {
     /**
      * @description Sets the owner of the given file; not supported on Windows
      *
-     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
-     *      convention as Node.js. Changing the owner usually requires elevated privileges.
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them. Changing
+     *      the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -85911,8 +85535,8 @@ declare module 'fs' {
     /**
      * @description Sets the owner of the given file; not supported on Windows
      *
-     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
-     *      convention as Node.js. Changing the owner usually requires elevated privileges.
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them. Changing
+     *      the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -85923,8 +85547,8 @@ declare module 'fs' {
     /**
      * @description Sets the owner of the given file; not supported on Windows
      *
-     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
-     *      convention as Node.js. Changing the owner usually requires elevated privileges.
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them. Changing
+     *      the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -85973,7 +85597,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the given file
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the file to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -85986,7 +85610,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the given file
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the file to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -85997,7 +85621,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the given file
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the file to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -86008,7 +85632,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the symbolic link itself, without following it
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the symbolic link to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -86021,7 +85645,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the symbolic link itself, without following it
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the symbolic link to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -86032,7 +85656,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of the symbolic link itself, without following it
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the symbolic link to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -86055,7 +85679,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *
      *      Example — inspect a text file created in a temporary directory:
@@ -86097,7 +85721,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *
      *      Example — inspect a text file created in a temporary directory:
@@ -86137,7 +85761,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *
      *      Example — inspect a text file created in a temporary directory:
@@ -86215,7 +85839,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *      @param path the file to query
      *      @return the basic information of the file, or undefined when \`throwIfNoEntry\` is false and
@@ -86241,7 +85865,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *      @param path the file to query
      *      @return the basic information of the file, or undefined when \`throwIfNoEntry\` is false and
@@ -86265,7 +85889,7 @@ declare module 'fs' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *      @param path the file to query
      *      @return the basic information of the file, or undefined when \`throwIfNoEntry\` is false and
@@ -86316,7 +85940,7 @@ declare module 'fs' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
-     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
+     *      The options overload accepts an object; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -86329,7 +85953,7 @@ declare module 'fs' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
-     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
+     *      The options overload accepts an object; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -86340,7 +85964,7 @@ declare module 'fs' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
-     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
+     *      The options overload accepts an object; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -86350,7 +85974,7 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options currently has no effective option and is kept for Node.js compatibility only.
+     *      options currently has no effective option and is reserved for future use.
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
      *      @param fd the file descriptor
@@ -86365,7 +85989,7 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options currently has no effective option and is kept for Node.js compatibility only.
+     *      options currently has no effective option and is reserved for future use.
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
      *      @param fd the file descriptor
@@ -86378,7 +86002,7 @@ declare module 'fs' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options currently has no effective option and is kept for Node.js compatibility only.
+     *      options currently has no effective option and is reserved for future use.
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
      *      @param fd the file descriptor
@@ -86491,7 +86115,7 @@ declare module 'fs' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link; throws ENOENT
      *      when the path does not exist.
      *
      *      The options overload accepts either an encoding string or:
@@ -86513,7 +86137,7 @@ declare module 'fs' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link; throws ENOENT
      *      when the path does not exist.
      *
      *      The options overload accepts either an encoding string or:
@@ -86533,7 +86157,7 @@ declare module 'fs' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link; throws ENOENT
      *      when the path does not exist.
      *
      *      The options overload accepts either an encoding string or:
@@ -86781,7 +86405,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *
      *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
      *      @param fd the file descriptor
@@ -86796,7 +86420,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *
      *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
      *      @param fd the file descriptor
@@ -86809,7 +86433,7 @@ declare module 'fs' {
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *
      *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
      *      @param fd the file descriptor
@@ -86892,7 +86516,7 @@ declare module 'fs' {
     /**
      * @description Changes the size of a file by its file descriptor
      *
-     *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
+     *      A length of 0 empties the file, and negative values are treated as 0.
      *
      *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
      *      @param fd the file descriptor
@@ -86906,7 +86530,7 @@ declare module 'fs' {
     /**
      * @description Changes the size of a file by its file descriptor
      *
-     *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
+     *      A length of 0 empties the file, and negative values are treated as 0.
      *
      *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
      *      @param fd the file descriptor
@@ -86918,7 +86542,7 @@ declare module 'fs' {
     /**
      * @description Changes the size of a file by its file descriptor
      *
-     *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
+     *      A length of 0 empties the file, and negative values are treated as 0.
      *
      *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
      *      @param fd the file descriptor
@@ -86930,7 +86554,7 @@ declare module 'fs' {
     /**
      * @description Queries the information of the file system
      *
-     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields, consistent with Node.js.
+     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields.
      *      @param path the path to query
      *      @return the file system information object
      *
@@ -86958,7 +86582,7 @@ declare module 'fs' {
     /**
      * @description Queries the information of the file system
      *
-     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields, consistent with Node.js.
+     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields.
      *      @param path the path to query
      *      @return the file system information object
      *
@@ -86976,7 +86600,7 @@ declare module 'fs' {
     /**
      * @description Queries the information of the file system
      *
-     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields, consistent with Node.js.
+     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields.
      *      @param path the path to query
      *      @return the file system information object
      *
@@ -87074,8 +86698,8 @@ declare module 'fs' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
      *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
-     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
-     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      an array of Buffer objects, but it cannot be combined with
+     *      withFileTypes (an error is thrown).
      *      With recursive set to true the entries of subdirectories are included as paths relative to
      *      the queried directory.
      *
@@ -87121,8 +86745,8 @@ declare module 'fs' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
      *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
-     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
-     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      an array of Buffer objects, but it cannot be combined with
+     *      withFileTypes (an error is thrown).
      *      With recursive set to true the entries of subdirectories are included as paths relative to
      *      the queried directory.
      *
@@ -87166,8 +86790,8 @@ declare module 'fs' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
      *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
-     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
-     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      an array of Buffer objects, but it cannot be combined with
+     *      withFileTypes (an error is thrown).
      *      With recursive set to true the entries of subdirectories are included as paths relative to
      *      the queried directory.
      *
@@ -87522,7 +87146,7 @@ declare module 'fs' {
      *
      *      The same operation is available with a string-flags form taking an octal string mode and a
      *      string-flags form taking a numeric mode defaulting to 0666. \`open\` returns a FileHandle that
-     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      wraps the descriptor; use read, write, fstat and close on it. The
      *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
@@ -87539,7 +87163,7 @@ declare module 'fs' {
      *
      *      The same operation is available with a string-flags form taking an octal string mode and a
      *      string-flags form taking a numeric mode defaulting to 0666. \`open\` returns a FileHandle that
-     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      wraps the descriptor; use read, write, fstat and close on it. The
      *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
@@ -87554,7 +87178,7 @@ declare module 'fs' {
      *
      *      The same operation is available with a string-flags form taking an octal string mode and a
      *      string-flags form taking a numeric mode defaulting to 0666. \`open\` returns a FileHandle that
-     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      wraps the descriptor; use read, write, fstat and close on it. The
      *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
@@ -87567,7 +87191,7 @@ declare module 'fs' {
     /**
      * @description Opens a file
      *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'); an invalid mode throws.
      *      @param fname the file name
      *      @param flags the open mode
      *      @param mode the file permissions, a number or an octal string
@@ -87581,7 +87205,7 @@ declare module 'fs' {
     /**
      * @description Opens a file
      *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'); an invalid mode throws.
      *      @param fname the file name
      *      @param flags the open mode
      *      @param mode the file permissions, a number or an octal string
@@ -87593,7 +87217,7 @@ declare module 'fs' {
     /**
      * @description Opens a file
      *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'); an invalid mode throws.
      *      @param fname the file name
      *      @param flags the open mode
      *      @param mode the file permissions, a number or an octal string
@@ -87812,7 +87436,7 @@ declare module 'fs' {
      *      \`\`\`
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
-     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      when an encoding is given, the decoded string is returned. A file
      *      descriptor is not closed after reading, and reading starts at the current position of the
      *      descriptor and advances it.
      *
@@ -87855,7 +87479,7 @@ declare module 'fs' {
      *      \`\`\`
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
-     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      when an encoding is given, the decoded string is returned. A file
      *      descriptor is not closed after reading, and reading starts at the current position of the
      *      descriptor and advances it.
      *
@@ -87896,7 +87520,7 @@ declare module 'fs' {
      *      \`\`\`
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
-     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      when an encoding is given, the decoded string is returned. A file
      *      descriptor is not closed after reading, and reading starts at the current position of the
      *      descriptor and advances it.
      *
@@ -88081,8 +87705,7 @@ declare module 'fs' {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
-     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      A file descriptor ignores the options object and encodes text data as utf8; the descriptor form seeks to the
      *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
@@ -88125,8 +87748,7 @@ declare module 'fs' {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
-     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      A file descriptor ignores the options object and encodes text data as utf8; the descriptor form seeks to the
      *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
@@ -88167,8 +87789,7 @@ declare module 'fs' {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
-     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      A file descriptor ignores the options object and encodes text data as utf8; the descriptor form seeks to the
      *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
@@ -88192,7 +87813,7 @@ declare module 'fs' {
      *          "flag": "a" // specify the open flag. Default: a
      *      })
      *      \`\`\`
-     *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
+     *      \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -88217,7 +87838,7 @@ declare module 'fs' {
      *          "flag": "a" // specify the open flag. Default: a
      *      })
      *      \`\`\`
-     *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
+     *      \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -88240,7 +87861,7 @@ declare module 'fs' {
      *          "flag": "a" // specify the open flag. Default: a
      *      })
      *      \`\`\`
-     *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
+     *      \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -88369,7 +87990,7 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "persistent": true, // keep the process running while files are watched
-     *          "bigint": false, // accepted for Node.js compatibility, not implemented
+     *          "bigint": false, // accepted, not implemented
      *          "interval": 5007 // poll period in milliseconds. Default: 5007
      *      })
      *      \`\`\`
@@ -88479,8 +88100,8 @@ declare module 'fs/promises' {
     /**
      * @description The alias of the Stat class, see Stat
      *
-     *      Stat objects are returned by stat/lstat/fstat; Node.js exposes the same class as fs.Stats,
-     *      while readdir with \`withFileTypes\` returns DirEntry objects instead.
+     *      Stat objects are returned by stat/lstat/fstat; readdir with \`withFileTypes\` returns
+     *      DirEntry objects instead.
      *
      */
     const Stats: typeof Class_Stat;
@@ -88491,7 +88112,7 @@ declare module 'fs/promises' {
      * @description The alias of the DirEntry class, see DirEntry
      *
      *      A directory entry pairs a file name with its type, as returned by readdir with the
-     *      \`withFileTypes\` option; Node.js exposes the same class as fs.Dirent.
+     *      \`withFileTypes\` option.
      *
      */
     const Dirent: typeof Class_DirEntry;
@@ -88502,7 +88123,7 @@ declare module 'fs/promises' {
      * @description The alias of the Dir class, see Dir
      *
      *      The directory iterator returned by opendir; entries can be read one by one with
-     *      read/readSync or with \`for await...of\`. Node.js exposes the same class as fs.Dir.
+     *      read/readSync or with \`for await...of\`.
      *
      */
     const Dir: typeof Class_Dir;
@@ -88542,7 +88163,7 @@ declare module 'fs/promises' {
     /**
      * @description Checks whether the given file exists
      *
-     *      The options parameter is kept for Node.js compatibility only and is ignored for now.
+     *      The options parameter is reserved and is ignored for now.
      *      @param path the path to check
      *      @param options the check options (ignored)
      *      @return true when the file exists
@@ -88553,7 +88174,7 @@ declare module 'fs/promises' {
     /**
      * @description Checks whether the given file exists
      *
-     *      The options parameter is kept for Node.js compatibility only and is ignored for now.
+     *      The options parameter is reserved and is ignored for now.
      *      @param path the path to check
      *      @param options the check options (ignored)
      *      @return true when the file exists
@@ -88564,7 +88185,7 @@ declare module 'fs/promises' {
     /**
      * @description Checks whether the given file exists
      *
-     *      The options parameter is kept for Node.js compatibility only and is ignored for now.
+     *      The options parameter is reserved and is ignored for now.
      *      @param path the path to check
      *      @param options the check options (ignored)
      *      @return true when the file exists
@@ -88665,7 +88286,7 @@ declare module 'fs/promises' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'); an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -88676,7 +88297,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
+     *      When recursive is true, the path of the first created directory is returned; when the directory already exists, undefined is returned.
      *      @param path the directory to create
      *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
@@ -88687,7 +88308,7 @@ declare module 'fs/promises' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'); an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -88698,7 +88319,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
+     *      When recursive is true, the path of the first created directory is returned; when the directory already exists, undefined is returned.
      *      @param path the directory to create
      *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
@@ -88709,7 +88330,7 @@ declare module 'fs/promises' {
     /**
      * @description Creates a directory
      *
-     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'), consistent with Node.js; an invalid mode throws.
+     *      mode specifies the directory permissions and is ignored on Windows; an existing directory throws, unless the recursive option is used to create parent directories. A string mode is an octal number (such as '755' or '0755'); an invalid mode throws.
      *
      *      The options object may contain:
      *      \`\`\`JavaScript
@@ -88720,7 +88341,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      When recursive is true, the path of the first created directory is returned, consistent with Node.js; when the directory already exists, undefined is returned.
+     *      When recursive is true, the path of the first created directory is returned; when the directory already exists, undefined is returned.
      *      @param path the directory to create
      *      @param mode the file mode or the creation options
      *      @return the path of the first created directory when recursive is true and a directory was actually created
@@ -88989,7 +88610,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      Copying a directory with recursive set to false throws; an existing
      *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
@@ -89013,7 +88634,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      Copying a directory with recursive set to false throws; an existing
      *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
@@ -89037,7 +88658,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      Copying a directory with recursive set to false throws, consistent with Node.js; an existing
+     *      Copying a directory with recursive set to false throws; an existing
      *      destination is overwritten unless force is false.
      *      @param src the source path to copy
      *      @param dest the target path to copy to
@@ -89049,7 +88670,7 @@ declare module 'fs/promises' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -89059,7 +88680,7 @@ declare module 'fs/promises' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -89069,7 +88690,7 @@ declare module 'fs/promises' {
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -89079,7 +88700,7 @@ declare module 'fs/promises' {
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -89089,7 +88710,7 @@ declare module 'fs/promises' {
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -89099,7 +88720,7 @@ declare module 'fs/promises' {
     /**
      * @description Sets the access permissions of the given file without changing the target of a symbolic link; available on macOS and BSD platforms only
      *
-     *      mode may be a number or an octal string (such as '755' or '0755'), consistent with Node.js.
+     *      mode may be a number or an octal string (such as '755' or '0755').
      *      @param path the file to operate on, a string is encoded as utf8
      *      @param mode the access permissions
      *
@@ -89109,8 +88730,8 @@ declare module 'fs/promises' {
     /**
      * @description Sets the owner of the given file; not supported on Windows
      *
-     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
-     *      convention as Node.js. Changing the owner usually requires elevated privileges.
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them. Changing
+     *      the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -89121,8 +88742,8 @@ declare module 'fs/promises' {
     /**
      * @description Sets the owner of the given file; not supported on Windows
      *
-     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
-     *      convention as Node.js. Changing the owner usually requires elevated privileges.
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them. Changing
+     *      the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -89133,8 +88754,8 @@ declare module 'fs/promises' {
     /**
      * @description Sets the owner of the given file; not supported on Windows
      *
-     *      Both uid and gid are required; pass -1 to keep the current value of one of them, the same
-     *      convention as Node.js. Changing the owner usually requires elevated privileges.
+     *      Both uid and gid are required; pass -1 to keep the current value of one of them. Changing
+     *      the owner usually requires elevated privileges.
      *      @param path the file to set
      *      @param uid the user id of the owner
      *      @param gid the group id of the owner
@@ -89181,7 +88802,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the access and modification time of the given file
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the file to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -89192,7 +88813,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the access and modification time of the given file
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the file to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -89203,7 +88824,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the access and modification time of the given file
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the file to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -89214,7 +88835,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the access and modification time of the symbolic link itself, without following it
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the symbolic link to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -89225,7 +88846,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the access and modification time of the symbolic link itself, without following it
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the symbolic link to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -89236,7 +88857,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the access and modification time of the symbolic link itself, without following it
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *      @param path the symbolic link to set
      *      @param atime the last access time: a Date object, a Unix timestamp in seconds, or a date string
      *      @param mtime the last modification time: a Date object, a Unix timestamp in seconds, or a date string
@@ -89259,7 +88880,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *
      *      Example — inspect a text file created in a temporary directory:
@@ -89299,7 +88920,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *
      *      Example — inspect a text file created in a temporary directory:
@@ -89339,7 +88960,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *
      *      Example — inspect a text file created in a temporary directory:
@@ -89415,7 +89036,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *      @param path the file to query
      *      @return the basic information of the file, or undefined when \`throwIfNoEntry\` is false and
@@ -89439,7 +89060,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *      @param path the file to query
      *      @return the basic information of the file, or undefined when \`throwIfNoEntry\` is false and
@@ -89463,7 +89084,7 @@ declare module 'fs/promises' {
      *      })
      *      \`\`\`
      *
-     *      \`throwIfNoEntry\` works like Node.js and only takes effect for synchronous (no callback)
+     *      \`throwIfNoEntry\` only takes effect for synchronous (no callback)
      *      calls; the asynchronous form always throws.
      *      @param path the file to query
      *      @return the basic information of the file, or undefined when \`throwIfNoEntry\` is false and
@@ -89512,7 +89133,7 @@ declare module 'fs/promises' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
-     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
+     *      The options overload accepts an object; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -89523,7 +89144,7 @@ declare module 'fs/promises' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
-     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
+     *      The options overload accepts an object; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -89534,7 +89155,7 @@ declare module 'fs/promises' {
      * @description Queries the basic information of the given file
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
-     *      The options overload accepts an object for Node.js compatibility; no option is effective yet.
+     *      The options overload accepts an object; no option is effective yet.
      *      @param fd the file descriptor
      *      @return the basic information of the file
      *
@@ -89544,7 +89165,7 @@ declare module 'fs/promises' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options currently has no effective option and is kept for Node.js compatibility only.
+     *      options currently has no effective option and is reserved for future use.
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
      *      @param fd the file descriptor
@@ -89557,7 +89178,7 @@ declare module 'fs/promises' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options currently has no effective option and is kept for Node.js compatibility only.
+     *      options currently has no effective option and is reserved for future use.
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
      *      @param fd the file descriptor
@@ -89570,7 +89191,7 @@ declare module 'fs/promises' {
     /**
      * @description Queries the basic information of the given file
      *
-     *      options currently has no effective option and is kept for Node.js compatibility only.
+     *      options currently has no effective option and is reserved for future use.
      *
      *      fd may be an integer descriptor or a FileHandle object; both address the same open file.
      *      @param fd the file descriptor
@@ -89679,7 +89300,7 @@ declare module 'fs/promises' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link; throws ENOENT
      *      when the path does not exist.
      *
      *      The options overload accepts either an encoding string or:
@@ -89699,7 +89320,7 @@ declare module 'fs/promises' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link; throws ENOENT
      *      when the path does not exist.
      *
      *      The options overload accepts either an encoding string or:
@@ -89719,7 +89340,7 @@ declare module 'fs/promises' {
     /**
      * @description Returns the absolute path of the given path, unfolding relative segments and resolving symbolic links
      *
-     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link, like Node.js; throws ENOENT
+     *      Unfolds \`.\` and \`..\` segments and resolves every symbolic link; throws ENOENT
      *      when the path does not exist.
      *
      *      The options overload accepts either an encoding string or:
@@ -89955,7 +89576,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *
      *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
      *      @param fd the file descriptor
@@ -89968,7 +89589,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *
      *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
      *      @param fd the file descriptor
@@ -89981,7 +89602,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the access and modification time of a file by its file descriptor
      *
-     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string, consistent with Node.js.
+     *      The time arguments may be a Date object, a Unix timestamp in seconds, or a date string.
      *
      *      fd may be an integer descriptor or a FileHandle object; the times are applied to the file it addresses.
      *      @param fd the file descriptor
@@ -90060,7 +89681,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the size of a file by its file descriptor
      *
-     *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
+     *      A length of 0 empties the file, and negative values are treated as 0.
      *
      *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
      *      @param fd the file descriptor
@@ -90072,7 +89693,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the size of a file by its file descriptor
      *
-     *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
+     *      A length of 0 empties the file, and negative values are treated as 0.
      *
      *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
      *      @param fd the file descriptor
@@ -90084,7 +89705,7 @@ declare module 'fs/promises' {
     /**
      * @description Changes the size of a file by its file descriptor
      *
-     *      Consistent with Node.js: a length of 0 empties the file, and negative values are treated as 0.
+     *      A length of 0 empties the file, and negative values are treated as 0.
      *
      *      fd may be an integer descriptor or a FileHandle object; the file it addresses is resized.
      *      @param fd the file descriptor
@@ -90096,7 +89717,7 @@ declare module 'fs/promises' {
     /**
      * @description Queries the information of the file system
      *
-     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields, consistent with Node.js.
+     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields.
      *      @param path the path to query
      *      @return the file system information object
      *
@@ -90114,7 +89735,7 @@ declare module 'fs/promises' {
     /**
      * @description Queries the information of the file system
      *
-     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields, consistent with Node.js.
+     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields.
      *      @param path the path to query
      *      @return the file system information object
      *
@@ -90132,7 +89753,7 @@ declare module 'fs/promises' {
     /**
      * @description Queries the information of the file system
      *
-     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields, consistent with Node.js.
+     *      The returned object contains the type, bsize, blocks, bfree, bavail, files and ffree fields.
      *      @param path the path to query
      *      @return the file system information object
      *
@@ -90226,8 +89847,8 @@ declare module 'fs/promises' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
      *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
-     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
-     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      an array of Buffer objects, but it cannot be combined with
+     *      withFileTypes (an error is thrown).
      *      With recursive set to true the entries of subdirectories are included as paths relative to
      *      the queried directory.
      *
@@ -90271,8 +89892,8 @@ declare module 'fs/promises' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
      *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
-     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
-     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      an array of Buffer objects, but it cannot be combined with
+     *      withFileTypes (an error is thrown).
      *      With recursive set to true the entries of subdirectories are included as paths relative to
      *      the queried directory.
      *
@@ -90316,8 +89937,8 @@ declare module 'fs/promises' {
      *
      *      When withFileTypes is true an array of DirEntry objects is returned, otherwise an array of
      *      file names. A string encoding is equivalent to passing it in the options; 'buffer' returns
-     *      an array of Buffer objects, consistent with Node.js, but it cannot be combined with
-     *      withFileTypes (an error is thrown, while Node.js returns Dirent objects with Buffer names).
+     *      an array of Buffer objects, but it cannot be combined with
+     *      withFileTypes (an error is thrown).
      *      With recursive set to true the entries of subdirectories are included as paths relative to
      *      the queried directory.
      *
@@ -90662,7 +90283,7 @@ declare module 'fs/promises' {
      *
      *      The same operation is available with a string-flags form taking an octal string mode and a
      *      string-flags form taking a numeric mode defaulting to 0666. \`open\` returns a FileHandle that
-     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      wraps the descriptor; use read, write, fstat and close on it. The
      *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
@@ -90677,7 +90298,7 @@ declare module 'fs/promises' {
      *
      *      The same operation is available with a string-flags form taking an octal string mode and a
      *      string-flags form taking a numeric mode defaulting to 0666. \`open\` returns a FileHandle that
-     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      wraps the descriptor; use read, write, fstat and close on it. The
      *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
@@ -90692,7 +90313,7 @@ declare module 'fs/promises' {
      *
      *      The same operation is available with a string-flags form taking an octal string mode and a
      *      string-flags form taking a numeric mode defaulting to 0666. \`open\` returns a FileHandle that
-     *      wraps the descriptor; use read, write, fstat and close on it. Consistent with Node.js, the
+     *      wraps the descriptor; use read, write, fstat and close on it. The
      *      FileHandle is not a Stream, use createReadStream/createWriteStream for streams.
      *      @param fname the file name
      *      @param flags integer flags, a combination of fs.constants values (such as fs.constants.O_WRONLY | fs.constants.O_CREAT)
@@ -90705,7 +90326,7 @@ declare module 'fs/promises' {
     /**
      * @description Opens a file
      *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'); an invalid mode throws.
      *      @param fname the file name
      *      @param flags the open mode
      *      @param mode the file permissions, a number or an octal string
@@ -90717,7 +90338,7 @@ declare module 'fs/promises' {
     /**
      * @description Opens a file
      *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'); an invalid mode throws.
      *      @param fname the file name
      *      @param flags the open mode
      *      @param mode the file permissions, a number or an octal string
@@ -90729,7 +90350,7 @@ declare module 'fs/promises' {
     /**
      * @description Opens a file
      *
-     *      mode may be a number or an octal string (such as '600', '0600', '0o600'), consistent with Node.js; an invalid mode throws.
+     *      mode may be a number or an octal string (such as '600', '0600', '0o600'); an invalid mode throws.
      *      @param fname the file name
      *      @param flags the open mode
      *      @param mode the file permissions, a number or an octal string
@@ -90940,7 +90561,7 @@ declare module 'fs/promises' {
      *      \`\`\`
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
-     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      when an encoding is given, the decoded string is returned. A file
      *      descriptor is not closed after reading, and reading starts at the current position of the
      *      descriptor and advances it.
      *
@@ -90981,7 +90602,7 @@ declare module 'fs/promises' {
      *      \`\`\`
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
-     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      when an encoding is given, the decoded string is returned. A file
      *      descriptor is not closed after reading, and reading starts at the current position of the
      *      descriptor and advances it.
      *
@@ -91022,7 +90643,7 @@ declare module 'fs/promises' {
      *      \`\`\`
      *
      *      An encoding string is empty by default, nothing is decoded and a Buffer object is returned;
-     *      when an encoding is given, the decoded string is returned. Consistent with Node.js: a file
+     *      when an encoding is given, the decoded string is returned. A file
      *      descriptor is not closed after reading, and reading starts at the current position of the
      *      descriptor and advances it.
      *
@@ -91201,8 +90822,7 @@ declare module 'fs/promises' {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
-     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      A file descriptor ignores the options object and encodes text data as utf8; the descriptor form seeks to the
      *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
@@ -91243,8 +90863,7 @@ declare module 'fs/promises' {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
-     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      A file descriptor ignores the options object and encodes text data as utf8; the descriptor form seeks to the
      *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
@@ -91285,8 +90904,7 @@ declare module 'fs/promises' {
      *      fs.rmSync(dir, { recursive: true, force: true });
      *      \`\`\`
      *
-     *      A file descriptor ignores the options object and encodes text data as utf8. Unlike Node.js,
-     *      which writes at the current position of a descriptor, the fibjs descriptor form seeks to the
+     *      A file descriptor ignores the options object and encodes text data as utf8; the descriptor form seeks to the
      *      beginning and truncates the file first.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
@@ -91310,7 +90928,7 @@ declare module 'fs/promises' {
      *          "flag": "a" // specify the open flag. Default: a
      *      })
      *      \`\`\`
-     *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
+     *      \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -91333,7 +90951,7 @@ declare module 'fs/promises' {
      *          "flag": "a" // specify the open flag. Default: a
      *      })
      *      \`\`\`
-     *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
+     *      \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -91356,7 +90974,7 @@ declare module 'fs/promises' {
      *          "flag": "a" // specify the open flag. Default: a
      *      })
      *      \`\`\`
-     *      Consistent with Node.js, \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
+     *      \`flag\` defaults to 'a' (append) and may be 'w'/'wx'/'ax' and so on. The encoding of an options object only validates the label, the data is appended as it is; a file descriptor ignores the options object and appends string data as utf8, at the current position of the descriptor rather than necessarily at the end of the file.
      *
      *      fname may be the file name, an integer file descriptor, or a FileHandle object.
      *      @param fname the file to append to
@@ -91485,7 +91103,7 @@ declare module 'fs/promises' {
      *      // fragment: options
      *      ({
      *          "persistent": true, // keep the process running while files are watched
-     *          "bigint": false, // accepted for Node.js compatibility, not implemented
+     *          "bigint": false, // accepted, not implemented
      *          "interval": 5007 // poll period in milliseconds. Default: 5007
      *      })
      *      \`\`\`
@@ -91567,8 +91185,8 @@ declare module "fs" {
  *  - **Directory entries**: the UV_DIRENT_* ids are the libuv uv_dirent_type_t values reported
  *    by the directory scan; fs.Dirent exposes the same information through isXxx().
  *  - **Extensions and gaps**: O_SYMLINK, SEEK_*, the EXTENSIONLESS_FORMAT_* pair (reserved
- *    format ids that mirror Node.js internals) and UV_FS_O_FILEMAP (0 here) are fibjs-specific;
- *    Node's O_DIRECT and O_NOATIME are not provided.
+ *    format ids) and UV_FS_O_FILEMAP (0 here) are extensions;
+ *    O_DIRECT and O_NOATIME are not provided.
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -91957,12 +91575,12 @@ declare module 'fs_constants' {
     export const COPYFILE_FICLONE_FORCE: 4;
 
     /**
-     * @description Extensionless format id for JavaScript (reserved; mirrors Node.js internals)
+     * @description Extensionless format id for JavaScript (reserved)
      */
     export const EXTENSIONLESS_FORMAT_JAVASCRIPT: 0;
 
     /**
-     * @description Extensionless format id for WebAssembly (reserved; mirrors Node.js internals)
+     * @description Extensionless format id for WebAssembly (reserved)
      */
     export const EXTENSIONLESS_FORMAT_WASM: 1;
 
@@ -92006,7 +91624,7 @@ declare module 'fs_constants' {
  * @description The global object, the base object that every script and module can access directly
  *
  *  The global object is available under two names: \`globalThis\`, the standard
- *  JavaScript name, and \`global\`, a read-only alias kept for Node.js compatibility;
+ *  JavaScript name, and \`global\`, a read-only alias;
  *  both refer to the same object (\`global === globalThis\` is true).
  *
  *  Main capabilities:
@@ -92029,8 +91647,8 @@ declare module 'fs_constants' {
  *  - **One global scope per sandbox**: a script runs in a sandbox whose global
  *    object forwards property reads and writes to the sandbox. \`globalThis.x = 1\`
  *    makes \`x\` visible as an implicit global in every script of the sandbox, while
- *    top-level \`var\` and \`function\` declarations stay in the module scope (like
- *    Node.js CommonJS modules) and do not become globals.
+ *    top-level \`var\` and \`function\` declarations stay in the module scope and do
+ *    not become globals.
  *  - **Timers and process lifetime**: each pending timer keeps the process alive
  *    until it fires or is cleared, so a repeating timer that is never cleared
  *    prevents the process from exiting. Scheduling is fiber-based: the callback
@@ -92042,18 +91660,12 @@ declare module 'fs_constants' {
  *    \`setImmediate\` callbacks, then timers.
  *  - **Error values**: \`structuredClone\` throws a \`DOMException\` (\`DataCloneError\`);
  *    \`fetch\` aborts with an \`AbortError\` and times out with a \`TimeoutError\`, both
- *    plain \`Error\` subclasses. \`btoa\` and \`atob\` throw plain \`Error\` objects,
- *    while Node.js throws a \`DOMException\` named \`InvalidCharacterError\`.
- *  - **Node.js compatibility**: most globals match the same-named Node.js global
- *    objects, with these differences: \`Request\` and \`Response\` are \`HttpRequest\`
- *    and \`HttpResponse\` instead of the WHATWG fetch classes; \`EventTarget\` is the
+ *    plain \`Error\` subclasses. \`btoa\` and \`atob\` throw plain \`Error\` objects.
+ *  - **Global class notes**: \`Request\` and \`Response\` are the \`HttpRequest\` and
+ *    \`HttpResponse\` classes; \`EventTarget\` is the
  *    \`EventEmitter\` class, so \`addEventListener\`/\`removeEventListener\` are aliases
  *    of \`on\`/\`off\` and \`dispatchEvent\` is not provided; \`Worker\` takes a script
- *    path like \`worker_threads.Worker\` instead of a URL; \`setHrInterval\` and \`run\`
- *    are fibjs extensions. Node.js globals that are not available include
- *    \`BroadcastChannel\`, \`CustomEvent\`, \`EventSource\` (as a global), \`navigator\`,
- *    \`localStorage\`, \`sessionStorage\`, \`CompressionStream\`, \`DecompressionStream\`,
- *    \`TextEncoderStream\` and \`TextDecoderStream\`.
+ *    path; \`setHrInterval\` and \`run\` are extensions of the runtime.
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -92182,7 +91794,7 @@ declare module 'global' {
     /**
      * @description The binary data buffer class, see Buffer
      *
-     *      The same class as \`require('buffer').Buffer\` and also a global in Node.js;
+     *      The same class as \`require('buffer').Buffer\`;
      *      it is installed when the sandbox is created, so binary data handling is
      *      available without requiring the buffer module. Most io APIs accept and
      *      return Buffer objects.
@@ -92196,7 +91808,7 @@ declare module 'global' {
      * @description The URL query parameter collection class, see URLSearchParams
      *
      *      The same class as the url module's URLSearchParams and aligned with the
-     *      WHATWG standard; Node.js also exposes it as a global. Values are
+     *      WHATWG standard. Values are
      *      percent-encoded when the collection is serialized.
      *
      */
@@ -92208,9 +91820,8 @@ declare module 'global' {
      * @description The URL parser class, see UrlObject
      *
      *      \`new URL(input, base)\` parses an absolute or relative URL according to the
-     *      WHATWG URL standard. Node.js exposes the WHATWG URL class under the same
-     *      name; fibjs maps the global to the url module's UrlObject, which implements
-     *      the standard URL API.
+     *      WHATWG URL standard; the global is the url module's UrlObject, which
+     *      implements the standard URL API.
      *
      */
     const URL: typeof Class_UrlObject;
@@ -92221,7 +91832,7 @@ declare module 'global' {
      * @description The immutable binary data block class of the Web File API, see Blob
      *
      *      \`new Blob(parts, { type })\` builds a blob from strings, buffers and other
-     *      blobs. Node.js also exposes Blob as a global (v18+); Blob objects are
+     *      blobs; Blob objects are
      *      accepted as fetch bodies and form values.
      *
      */
@@ -92232,9 +91843,8 @@ declare module 'global' {
     /**
      * @description The in-memory file class, a Blob with a name and modification time, see File
      *
-     *      \`new File(parts, name, { type, lastModified })\` builds one. Node.js also
-     *      exposes File as a global (v20+); unlike a file system handle it represents
-     *      data in memory and never touches the disk.
+     *      \`new File(parts, name, { type, lastModified })\` builds one; unlike a file
+     *      system handle it represents data in memory and never touches the disk.
      *
      */
     const File: typeof Class_File;
@@ -92244,9 +91854,8 @@ declare module 'global' {
     /**
      * @description The HTTP header collection class, see Headers
      *
-     *      In fibjs it derives from HttpCollection and is shared by the fetch API and
-     *      the http module. Node.js exposes the equivalent WHATWG Headers class as a
-     *      global as well.
+     *      It derives from HttpCollection and is shared by the fetch API and
+     *      the http module.
      *
      */
     const Headers: typeof Class_Headers;
@@ -92269,8 +91878,8 @@ declare module 'global' {
      * @description The HTTP request class used as the fetch request source, see HttpRequest
      *
      *      \`new Request(url, options)\` creates a request that can be passed to fetch.
-     *      This is the http module's HttpRequest class, not the WHATWG Request class
-     *      of Node.js, so the object exposes the fibjs request API (\`method\`,
+     *      This is the http module's HttpRequest class rather than the WHATWG Request
+     *      class, so the object exposes the request API (\`method\`,
      *      \`headers\`, \`body\`, \`response\` and so on).
      *
      */
@@ -92282,9 +91891,9 @@ declare module 'global' {
      * @description The HTTP response class returned by fetch, see HttpResponse
      *
      *      fetch resolves with an HttpResponse and \`new Response(body, options)\`
-     *      creates one for tests or synthetic replies. Node.js returns the WHATWG
-     *      Response class instead, so only the common members (\`status\`, \`ok\`,
-     *      \`headers\`, \`text()\`, \`json()\`) share the same names.
+     *      creates one for tests or synthetic replies. It is the HttpResponse class,
+     *      so beyond the common members (\`status\`, \`ok\`, \`headers\`, \`text()\`,
+     *      \`json()\`) the surface follows the http module.
      *
      */
     const Response: typeof Class_HttpResponse;
@@ -92295,8 +91904,7 @@ declare module 'global' {
      * @description The text decoder class, see TextDecoder
      *
      *      \`new TextDecoder(codec, options)\` decodes Buffer or ArrayBuffer bytes into a
-     *      string; the codec defaults to utf8. Node.js also exposes TextDecoder as a
-     *      global.
+     *      string; the codec defaults to utf8.
      *
      */
     const TextDecoder: typeof Class_TextDecoder;
@@ -92307,8 +91915,7 @@ declare module 'global' {
      * @description The text encoder class, see TextEncoder
      *
      *      \`new TextEncoder(codec, options)\` encodes a string into UTF-8 bytes and
-     *      returns them as a Buffer; the codec defaults to utf8. Node.js also exposes
-     *      TextEncoder as a global.
+     *      returns them as a Buffer; the codec defaults to utf8.
      *
      */
     const TextEncoder: typeof Class_TextEncoder;
@@ -92321,7 +91928,7 @@ declare module 'global' {
      *      \`new AbortController()\` creates a controller with a fresh AbortSignal.
      *      \`abort(reason)\` fires the signal's \`abort\` event synchronously and rejects
      *      any fetch using that signal; when no reason is given it is the string
-     *      \`"AbortError"\` (Node.js uses a DOMException instead).
+     *      \`"AbortError"\`.
      *
      */
     const AbortController: typeof Class_AbortController;
@@ -92346,8 +91953,7 @@ declare module 'global' {
      *
      *      \`new Event(type, { bubbles, cancelable })\` creates an event and \`type\` is
      *      required; DOMEvent exposes the standard members such as \`type\`, \`bubbles\`,
-     *      \`target\`, \`defaultPrevented\` and the prevent/stop methods. Node.js also
-     *      exposes an Event class as a global with the same constructor shape.
+     *      \`target\`, \`defaultPrevented\` and the prevent/stop methods.
      *
      */
     const Event: typeof Class_DOMEvent;
@@ -92357,8 +91963,8 @@ declare module 'global' {
     /**
      * @description The event target class, implemented by EventEmitter, see EventEmitter
      *
-     *      This global is the events module's EventEmitter, not the WHATWG EventTarget
-     *      class of Node.js: \`addEventListener\`/\`removeEventListener\` are aliases of
+     *      This global is the events module's EventEmitter rather than the WHATWG
+     *      EventTarget class: \`addEventListener\`/\`removeEventListener\` are aliases of
      *      \`on\`/\`off\` and take a plain listener, \`dispatchEvent\` is not provided, and
      *      events are listened to and dispatched with \`on\`/\`once\`/\`emit\`.
      *
@@ -92370,9 +91976,8 @@ declare module 'global' {
     /**
      * @description The event object carrying a message delivered through MessagePort, see MessageEvent
      *
-     *      \`new MessageEvent(type, { data })\` is accepted, but only the \`data\` payload
-     *      is exposed; Node.js additionally exposes \`type\`, \`origin\`, \`lastEventId\`,
-     *      \`source\` and \`ports\`.
+     *      \`new MessageEvent(type, { data })\` is accepted; only the \`data\` payload is
+     *      exposed.
      *
      */
     const MessageEvent: typeof Class_MessageEvent;
@@ -92409,8 +92014,7 @@ declare module 'global' {
      *
      *      \`new Worker(path, opts)\` starts a worker from a script path with the same
      *      semantics as the worker_threads module's Worker; the global is installed
-     *      for convenience. Node.js also has a global Worker, but it follows the Web
-     *      Worker standard and takes a URL instead of a path.
+     *      for convenience.
      *
      *      Example — run a worker script and terminate it:
      *      \`\`\`JavaScript
@@ -92441,7 +92045,7 @@ declare module 'global' {
      * @description The Web Crypto key class, see CryptoKey
      *
      *      Keys are created by \`crypto.subtle.generateKey\`/\`importKey\`; the class
-     *      cannot be constructed directly. Node.js also exposes CryptoKey as a global.
+     *      cannot be constructed directly.
      *
      */
     const CryptoKey: typeof Class_CryptoKey;
@@ -92452,7 +92056,7 @@ declare module 'global' {
      * @description The DOM parser class, see DOMParser
      *
      *      \`new DOMParser().parseFromString(source, mimeType)\` parses HTML or XML into
-     *      an XmlDocument. Node.js has no built-in DOMParser global.
+     *      an XmlDocument.
      *
      */
     const DOMParser: typeof Class_DOMParser;
@@ -92463,7 +92067,7 @@ declare module 'global' {
      * @description The inline CSS declaration block of an element, see CSSStyleDeclaration
      *
      *      Not a constructor in fibjs: instances are obtained from the \`style\`
-     *      property of an element of a parsed document. Node.js has no counterpart.
+     *      property of an element of a parsed document.
      *
      */
     const CSSStyleDeclaration: typeof Class_CSSStyleDeclaration;
@@ -92485,7 +92089,7 @@ declare module 'global' {
      * @description The serializer that turns DOM nodes into XML strings, see XMLSerializer
      *
      *      \`new XMLSerializer().serializeToString(node)\` serializes a document or
-     *      element. Node.js has no built-in counterpart.
+     *      element.
      *
      */
     const XMLSerializer: typeof Class_XMLSerializer;
@@ -92507,8 +92111,8 @@ declare module 'global' {
      * @description The WebSocket client and server class, see WebSocket
      *
      *      \`new WebSocket(url, protocols, origin)\` connects as a client, while
-     *      \`WebSocket.upgrade(options, handler)\` accepts server connections. Node.js
-     *      exposes only the client through the global of the same name.
+     *      \`WebSocket.upgrade(options, handler)\` accepts server connections, so both
+     *      the client and the server side are available.
      *
      */
     const WebSocket: typeof Class_WebSocket;
@@ -92518,7 +92122,7 @@ declare module 'global' {
     /**
      * @description The console output object, see console
      *
-     *      The same object as \`require('console')\` and also a global in Node.js; it
+     *      The same object as \`require('console')\`; it
      *      provides log/info/warn/error and the other console methods.
      *
      */
@@ -92528,7 +92132,7 @@ declare module 'global' {
      * @description The process object, see process
      *
      *      The same object as \`require('process')\`, exposing argv, env, platform,
-     *      exit and the other process members; Node.js also exposes it as a global.
+     *      exit and the other process members.
      *
      */
     const process: typeof import ('process');
@@ -92537,8 +92141,7 @@ declare module 'global' {
      * @description The performance measurement object, see performance
      *
      *      The same object as \`require('perf_hooks').performance\`, providing \`now()\`,
-     *      \`mark()\`, \`measure()\` and the other measurements; Node.js also exposes it
-     *      as a global.
+     *      \`mark()\`, \`measure()\` and the other measurements.
      *
      */
     const performance: typeof import ('performance');
@@ -92547,8 +92150,7 @@ declare module 'global' {
      * @description The observer that receives performance entries, see PerformanceObserver
      *
      *      \`new PerformanceObserver(callback)\` plus \`observe({ entryTypes })\`
-     *      subscribes to performance records; Node.js also exposes the class as a
-     *      global.
+     *      subscribes to performance records.
      *
      */
     const PerformanceObserver: typeof Class_PerformanceObserver;
@@ -92560,8 +92162,7 @@ declare module 'global' {
      *
      *      This is not the hashing module: the global is the Web Crypto API object
      *      (\`crypto.subtle\`, \`crypto.getRandomValues\`, \`crypto.randomUUID\` and the
-     *      CryptoKey class), equivalent to \`require('crypto').webcrypto\`. Node.js
-     *      exposes the same object globally.
+     *      CryptoKey class), equivalent to \`require('crypto').webcrypto\`.
      *
      */
     const crypto: typeof import ('webcrypto');
@@ -92571,7 +92172,7 @@ declare module 'global' {
      *
      *      \`global === globalThis\` is true. The property is an accessor without a
      *      setter, so assigning to \`global\` throws a TypeError; use \`globalThis\` in
-     *      new code, as Node.js recommends.
+     *      new code.
      *
      */
     const global: FIBJS.GeneralObject;
@@ -92580,7 +92181,7 @@ declare module 'global' {
      * @description The global object itself, exposed under the standard name
      *
      *      In fibjs it is an ordinary writable data property, so \`globalThis = value\`
-     *      replaces the binding, as in Node.js. Property reads and writes through it
+     *      replaces the binding. Property reads and writes through it
      *      reach the sandbox global object, so \`globalThis.x = 1\` publishes \`x\` to
      *      every script of the sandbox.
      *
@@ -92594,8 +92195,7 @@ declare module 'global' {
      *      the caller, so a script that sets \`globalThis.x\` makes \`x\` visible after
      *      the call. Relative paths are resolved against the current working
      *      directory; a file that cannot be opened throws. The return value is
-     *      undefined. This is a fibjs extension; the closest Node.js equivalents are
-     *      \`require\` and \`vm.runInThisContext\`.
+     *      undefined. The member is an extension of the runtime.
      *
      *      Example — run a script from a temporary directory:
      *      \`\`\`JavaScript
@@ -92623,8 +92223,8 @@ declare module 'global' {
      *
      *      \`require\` loads internal modules and file modules. Internal modules are
      *      initialized when the sandbox is created and are referenced by id, for
-     *      example \`require("net")\`; the \`node:\` prefix is accepted for Node.js
-     *      compatibility, so \`require("node:fs")\` is the same as \`require("fs")\`.
+     *      example \`require("net")\`; the \`node:\` prefix is also
+     *      accepted, so \`require("node:fs")\` is the same as \`require("fs")\`.
      *
      *      File modules are referenced by a path starting with ./ or ../, or by an
      *      absolute path; the .js, .jsc and .json extensions are supported, and a .js
@@ -92636,8 +92236,7 @@ declare module 'global' {
      *      module.
      *
      *      The function object also exposes \`require.resolve(id)\`, \`require.cache\` and
-     *      \`require.main\`; \`require.extensions\` is not provided (Node.js still exposes
-     *      the deprecated property). In fibjs \`require\` is available both as a global
+     *      \`require.main\`; \`require.extensions\` is not provided. In fibjs \`require\` is available both as a global
      *      and in the module scope, and calling it from an ES module throws.
      *
      *      The basic flow is as follows:
@@ -92711,7 +92310,7 @@ declare module 'global' {
      * @description Calls a function after the given delay, like the same-named timers module function
      *
      *      The delay defaults to 1 ms; values below 1 or above 2^31-1 are clamped to
-     *      1 ms, while Node.js also emits a TimeoutOverflowWarning. Extra arguments
+     *      1 ms. Extra arguments
      *      are passed to the callback. The returned Timer keeps the process alive
      *      until it fires or is cleared; call \`clearTimeout(timer)\`, or \`timer.unref()\`
      *      to let the process exit without cancelling it. Timers run after
@@ -92789,7 +92388,7 @@ declare module 'global' {
     /**
      * @description Calls a function repeatedly with a high-precision timer that interrupts JavaScript
      *
-     *      fibjs extension with no Node.js equivalent. Unlike setInterval, the timer
+     *      An extension of the runtime. Unlike setInterval, the timer
      *      fires by interrupting the isolate, so the callback can run while a busy loop
      *      is executing; keep the callback short and do not call async APIs or modify
      *      state that other modules may read, otherwise unpredictable results may
@@ -92836,7 +92435,7 @@ declare module 'global' {
      *      Extra arguments are passed to the callback and the returned Timer can be
      *      cleared with clearImmediate. Immediates run after promise jobs and
      *      \`queueMicrotask\`, but before setTimeout/setInterval callbacks (whose
-     *      smallest delay is 1 ms). Node.js names the same phase setImmediate.
+     *      smallest delay is 1 ms).
      *
      *      @param callback the callback function
      *      @param args extra arguments passed to the callback, optional.
@@ -92859,10 +92458,9 @@ declare module 'global' {
     /**
      * @description Encodes a value into a base64 string using the Latin1 range
      *
-     *      The value is converted to its string form first, as the DOM and Node.js do:
+     *      The value is converted to its string form first, as the DOM does:
      *      \`btoa(123)\` encodes "123" and \`btoa(null)\` encodes "null". Characters above
-     *      U+00FF throw an \`Error\` (Node.js throws a \`DOMException\` named
-     *      \`InvalidCharacterError\`); use \`Buffer.from(text).toString('base64')\` for
+     *      U+00FF throw an \`Error\`; use \`Buffer.from(text).toString('base64')\` for
      *      general strings.
      *
      *      Example — encode a value and decode it back:
@@ -92880,10 +92478,9 @@ declare module 'global' {
     /**
      * @description Decodes a base64 string into a Latin1 string
      *
-     *      The value is converted to its string form first, as the DOM and Node.js do:
+     *      The value is converted to its string form first, as the DOM does:
      *      \`atob(123)\` decodes "123". Whitespace is ignored and invalid characters
-     *      throw an \`Error\` (Node.js throws a \`DOMException\` named
-     *      \`InvalidCharacterError\`); the result contains one character per decoded
+     *      throw an \`Error\`; the result contains one character per decoded
      *      byte.
      *
      *      Example — decode a base64 string:
@@ -92903,12 +92500,11 @@ declare module 'global' {
      *      Circular references, Map, Set, Date, RegExp, typed arrays, ArrayBuffer,
      *      SharedArrayBuffer and Error objects are supported. Functions and other
      *      values that cannot be cloned throw a \`DOMException\` (\`DataCloneError\`,
-     *      code 25), matching the Web standard and Node.js.
+     *      code 25), matching the Web standard.
      *
      *      The \`transfer\` option lists ArrayBuffers to move instead of copy; a
      *      transferred buffer is detached and its \`byteLength\` becomes 0. Only
-     *      ArrayBuffer entries are accepted in fibjs (Node.js also transfers
-     *      MessagePort, ReadableStream and others), any other entry throws a
+     *      Only ArrayBuffer entries are accepted, any other entry throws a
      *      TypeError.
      *
      *      options supports the following fields:
@@ -92950,10 +92546,10 @@ declare module 'global' {
      *      source instead of merging them.
      *
      *      The returned promise resolves with an HttpResponse (not the WHATWG Response
-     *      class of Node.js). It rejects with an \`AbortError\` (code ABORT_ERR) when an
+     *      class). It rejects with an \`AbortError\` (code ABORT_ERR) when an
      *      AbortSignal passed in opts is aborted, including during the request, and
      *      with a \`TimeoutError\` when the signal comes from \`AbortSignal.timeout\`.
-     *      Unlike Node.js there is no global dispatcher; use the http module for
+     *      There is no global dispatcher; use the http module for
      *      proxies, agents and other client tuning.
      *
      *      opts supports the following fields:
@@ -93015,10 +92611,10 @@ declare module 'global' {
      *      source instead of merging them.
      *
      *      The returned promise resolves with an HttpResponse (not the WHATWG Response
-     *      class of Node.js). It rejects with an \`AbortError\` (code ABORT_ERR) when an
+     *      class). It rejects with an \`AbortError\` (code ABORT_ERR) when an
      *      AbortSignal passed in opts is aborted, including during the request, and
      *      with a \`TimeoutError\` when the signal comes from \`AbortSignal.timeout\`.
-     *      Unlike Node.js there is no global dispatcher; use the http module for
+     *      There is no global dispatcher; use the http module for
      *      proxies, agents and other client tuning.
      *
      *      opts supports the following fields:
@@ -93080,10 +92676,10 @@ declare module 'global' {
      *      source instead of merging them.
      *
      *      The returned promise resolves with an HttpResponse (not the WHATWG Response
-     *      class of Node.js). It rejects with an \`AbortError\` (code ABORT_ERR) when an
+     *      class). It rejects with an \`AbortError\` (code ABORT_ERR) when an
      *      AbortSignal passed in opts is aborted, including during the request, and
      *      with a \`TimeoutError\` when the signal comes from \`AbortSignal.timeout\`.
-     *      Unlike Node.js there is no global dispatcher; use the http module for
+     *      There is no global dispatcher; use the http module for
      *      proxies, agents and other client tuning.
      *
      *      opts supports the following fields:
@@ -93140,8 +92736,7 @@ declare module 'global' {
      *      starts, in the same V8 micro-task queue as promise jobs and in FIFO order
      *      with them; \`process.nextTick\` callbacks run earlier and \`setImmediate\`
      *      callbacks later. A non-function argument throws a TypeError, and an
-     *      exception thrown by the callback is reported as an uncaught exception,
-     *      matching Node.js.
+     *      exception thrown by the callback is reported as an uncaught exception.
      *
      *      Example — observe the micro-task order:
      *      \`\`\`JavaScript
@@ -94516,7 +94111,7 @@ declare module 'hex' {
  *  - **Call styles**: fibjs is synchronous-first. \`requestSync\`/\`getSync\`/... block the current fiber
  *    and return the HttpResponse directly. The event-style \`request\`/\`get\`/... return an HttpRequest
  *    immediately and deliver the response later through the callback argument or the \`'response'\`
- *    event; \`get\` and \`head\` send automatically like Node.js \`http.get\`, while \`request\` and
+ *    event; \`get\` and \`head\` send automatically, while \`request\` and
  *    post/put/del/patch wait for \`end()\` before sending. Each returned HttpRequest keeps the response
  *    in its \`response\` property as well.
  *  - **keep-alive and connection reuse**: with \`keepAlive\` enabled (the default) a client returns a
@@ -94556,10 +94151,10 @@ declare module 'hex' {
  *    \`cert\`, \`key\`, \`passphrase\`, \`ciphers\`, \`secureProtocol\` and \`rejectUnauthorized\`), so an HTTPS
  *    client can trust a private CA or present a client certificate. Passing a SecureContext object
  *    creates the client directly from it.
- *  - **Node.js differences**: \`require('https')\` returns this same module, there is no separate
- *    https module and no \`globalAgent\`; the sync functions have no Node equivalent; Node has no
- *    cookie jar and does not follow redirects or decompress bodies automatically; a Node-style
- *    \`request.setTimeout\` only emits an event while a fibjs timeout fails the request; and Node
+ *  - **Aliases and unsupported options**: \`require('https')\` returns this same module, there is no separate
+ *    https module and no \`globalAgent\`; the module also provides synchronous forms of the
+ *    request functions; the client keeps a cookie jar and follows redirects and decompresses
+ *    bodies automatically; \`request.setTimeout\` fails the request; and the
  *    options such as \`auth\`, \`createConnection\`, \`lookup\`, \`family\`, \`insecureHTTPParser\`,
  *    \`joinDuplicateHeaders\`, \`localPort\` and \`socketPath\` are not supported (basic authentication
  *    can be written into the URL as \`http://user:pass@host/\`).
@@ -94686,8 +94281,7 @@ declare module 'http' {
      *
      *      Same object as the HttpRequest class: \`new http.Request()\` creates an empty request and
      *      \`new http.Request(url, opts)\` creates one from a URL and options following the Fetch Request
-     *      constructor. Node.js exposes the client-side counterpart as http.ClientRequest and the
-     *      server-side received message as http.IncomingMessage (the \`IncomingMessage\` alias below).
+     *      constructor; the \`IncomingMessage\` alias below covers the received-message spelling.
      *
      */
     const Request: typeof Class_HttpRequest;
@@ -94697,7 +94291,7 @@ declare module 'http' {
     /**
      * @description Compatibility alias, equivalent to HttpRequest
      *
-     *      Provided so that code written for the Node.js name http.IncomingMessage keeps working; the
+     *      Provided so that code written for the \`http.IncomingMessage\` name keeps working; the
      *      object is the HttpRequest class itself, not a separate class.
      *
      */
@@ -94710,8 +94304,7 @@ declare module 'http' {
      *
      *      Same object as the HttpResponse class: servers build the reply through the \`response\`
      *      property of an HttpRequest, and clients receive one from the sync request functions or from
-     *      \`fetch\`. Node.js calls the server-side reply http.ServerResponse (the \`ServerResponse\` alias
-     *      below) and the client-side reply http.IncomingMessage.
+     *      \`fetch\`; the \`ServerResponse\` alias below is the same class.
      *
      */
     const Response: typeof Class_HttpResponse;
@@ -94721,7 +94314,7 @@ declare module 'http' {
     /**
      * @description Compatibility alias, equivalent to HttpResponse
      *
-     *      Provided so that code written for the Node.js name http.ServerResponse keeps working; the
+     *      Provided so that code written for the \`http.ServerResponse\` name keeps working; the
      *      object is the HttpResponse class itself, not a separate class.
      *
      */
@@ -94747,7 +94340,7 @@ declare module 'http' {
      *
      *      Same object as the HttpCookie class: \`new http.Cookie(name, value, opts)\` creates one from
      *      its parts, and every HttpMessage exposes the cookies it carries through the \`cookies\`
-     *      property. Node.js has no cookie class; the cookie jar is a fibjs feature of HttpClient.
+     *      property; the cookie jar is a feature of HttpClient.
      *
      */
     const Cookie: typeof Class_HttpCookie;
@@ -94759,8 +94352,7 @@ declare module 'http' {
      *
      *      Same object as the HttpServer class, which derives from TcpServer: \`new http.Server(port,
      *      handler)\` binds a port immediately and \`new http.Server(handler)\` requires \`listen()\` before
-     *      it serves. Use \`HttpsServer\` for TLS; Node.js exposes the same role as http.Server with
-     *      \`createServer\`.
+     *      it serves. Use \`HttpsServer\` for TLS; the \`createServer\` factory returns one as well.
      *
      */
     const Server: typeof Class_HttpServer;
@@ -94772,8 +94364,7 @@ declare module 'http' {
      *
      *      \`new http.Client(options)\` creates a client with its own connection pool, cookie jar and
      *      defaults; the module-level request functions use a hidden client with the module properties
-     *      as its configuration. Node.js splits this role between http.Agent (connection pooling) and
-     *      http.globalAgent (the shared default), which fibjs has no direct equivalent of.
+     *      as its configuration.
      *
      */
     const Client: typeof Class_HttpClient;
@@ -94783,7 +94374,7 @@ declare module 'http' {
     /**
      * @description Compatibility alias, equivalent to HttpClient
      *
-     *      Provided so that code written for the Node.js name http.Agent keeps working; the object is
+     *      Provided so that code written for the \`http.Agent\` name keeps working; the object is
      *      the HttpClient class itself. A client can be passed to a single request with the \`agent\`
      *      option instead of being used for every request.
      *
@@ -94795,8 +94386,7 @@ declare module 'http' {
     /**
      * @description The HttpsServer class, used to create HTTPS servers
      *
-     *      Same object as the HttpsServer class, which combines TcpServer with a SecureContext;
-     *      Node.js exposes the same role through https.createServer and https.Server.
+     *      Same object as the HttpsServer class, which combines TcpServer with a SecureContext.
      *
      */
     const HttpsServer: typeof Class_HttpsServer;
@@ -94814,8 +94404,7 @@ declare module 'http' {
      *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *
      *      The returned server is not bound to a port: call \`listen(port)\` (or \`start()\` after a port
-     *      was given to the constructor) to serve requests. Node.js \`http.createServer\` accepts only
-     *      the function form and returns a server that must be started with \`listen()\` as well.
+     *      was given to the constructor) to serve requests.
      *
      *      Example — a router map with captured segments:
      *      \`\`\`JavaScript
@@ -94863,7 +94452,7 @@ declare module 'http' {
      * @description Creates an http protocol handler object, see HttpHandler
      *
      *      Same object as the HttpHandler class, which wraps a plain function into a handler object
-     *      that can be mounted on a server, a Chain or a Routing; Node.js has no equivalent class.
+     *      that can be mounted on a server, a Chain or a Routing.
      *
      */
     const Handler: typeof Class_HttpHandler;
@@ -94873,8 +94462,7 @@ declare module 'http' {
     /**
      * @description Creates an http request repeater object, see HttpRepeater
      *
-     *      Same object as the HttpRepeater class, which forwards requests to another http(s) address;
-     *      Node.js has no equivalent class.
+     *      Same object as the HttpRepeater class, which forwards requests to another http(s) address.
      *
      */
     const Repeater: typeof Class_HttpRepeater;
@@ -94885,8 +94473,7 @@ declare module 'http' {
      * @description Returns the collection of standard HTTP response status codes and their short descriptions
      *
      *      An object whose keys are the three-digit status codes and whose values are the reason
-     *      phrases, for example STATUS_CODES[404] === 'Not Found'; same shape as the Node.js
-     *      http.STATUS_CODES object.
+     *      phrases, for example STATUS_CODES[404] === 'Not Found'.
      *
      */
     const STATUS_CODES: FIBJS.GeneralObject;
@@ -94895,7 +94482,7 @@ declare module 'http' {
      * @description Returns an array of all method names (in uppercase) supported by the HTTP protocol
      *
      *      The parser accepts any token method, but this is the list it knows by name (currently 34
-     *      entries such as 'GET', 'POST' and 'HEAD'), the same role as the Node.js http.METHODS list.
+     *      entries such as 'GET', 'POST' and 'HEAD').
      *
      */
     const METHODS: string[];
@@ -94916,7 +94503,7 @@ declare module 'http' {
      *      Enabled by default. When enabled, a connection that finished a request is kept in the
      *      client pool and reused for later requests to the same host until \`poolTimeout\` expires.
      *      Set to false to open one connection per request. A per-request \`keepAlive\` option overrides
-     *      this setting. Node.js defaults its Agent to keepAlive false instead.
+     *      this setting.
      *
      */
     var keepAlive: boolean;
@@ -94926,7 +94513,7 @@ declare module 'http' {
      *
      *      Default 0, which means no timeout. The timeout covers a whole request; when it expires the
      *      request fails with error number 20021. A per-request \`timeout\` option overrides this
-     *      setting. Node.js only emits a 'timeout' event and leaves the request running.
+     *      setting.
      *
      */
     var timeout: number;
@@ -94935,8 +94522,7 @@ declare module 'http' {
      * @description Cookie feature switch of the module-level client, enabled by default
      *
      *      When enabled, Set-Cookie headers are stored in \`cookies\` and matching cookies are sent
-     *      back with later requests. Set to false to ignore cookies completely. Node.js http has no
-     *      cookie handling; libraries manage cookies themselves.
+     *      back with later requests. Set to false to ignore cookies completely.
      *
      */
     var enableCookie: boolean;
@@ -94947,7 +94533,7 @@ declare module 'http' {
      *      When enabled, 301, 302, 303, 307 and 308 responses are followed automatically; 303 switches
      *      the request to GET and drops the body. There is no redirect count limit, but a URL visited
      *      twice raises a cyclic redirect error. When disabled, the redirect response itself is
-     *      returned. Node.js never follows redirects automatically.
+     *      returned.
      *
      */
     var autoRedirect: boolean;
@@ -94977,7 +94563,7 @@ declare module 'http' {
      * @description Queries and sets the maximum number of request headers, default 128
      *
      *      Applies to the messages parsed and generated by the module-level client; a message can
-     *      override it through its own \`maxHeadersCount\` property. Node.js defaults to 1000.
+     *      override it through its own \`maxHeadersCount\` property.
      *
      */
     var maxHeadersCount: number;
@@ -94985,8 +94571,7 @@ declare module 'http' {
     /**
      * @description Queries and sets the maximum request header size in bytes, default 8192
      *
-     *      A request whose headers exceed the limit is rejected. Node.js defaults to 16384 bytes and
-     *      allows per-server or per-request overrides, which fibjs does not expose at this level.
+     *      A request whose headers exceed the limit is rejected.
      *
      */
     var maxHeaderSize: number;
@@ -94995,7 +94580,7 @@ declare module 'http' {
      * @description Queries and sets the maximum chunk size in MB, default 2
      *
      *      Limits one chunk of a chunked request or response body; a chunk larger than the limit is
-     *      rejected. Not a Node.js option.
+     *      rejected.
      *
      */
     var maxChunkSize: number;
@@ -95005,7 +94590,7 @@ declare module 'http' {
      *
      *      A response whose body exceeds the limit fails with error number 20024; 0 rejects every
      *      body. Requests with a body larger than the limit are also rejected. A HEAD response is
-     *      exempt because it has no body. Not a Node.js option.
+     *      exempt because it has no body.
      *
      */
     var maxBodySize: number;
@@ -95014,7 +94599,7 @@ declare module 'http' {
      * @description Queries and sets the browser identifier in http requests
      *
      *      Default 'curl/8.14.1'. Sent as the User-Agent header when the request does not set one;
-     *      assign an empty string to omit the header. Node.js sends no User-Agent by default.
+     *      assign an empty string to omit the header.
      *
      */
     var userAgent: string;
@@ -95032,7 +94617,7 @@ declare module 'http' {
      * @description Queries and sets the maximum number of idle connections, default 256
      *
      *      The module-level client keeps one idle list for all hosts and drops the oldest entries
-     *      beyond this number; Node.js applies maxFreeSockets per host instead.
+     *      beyond this number.
      *
      */
     var maxFreeSockets: number;
@@ -95704,7 +95289,7 @@ declare module 'http' {
      * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
      *
      *      The request is sent automatically without calling \`end()\`; the callback receives the
-     *      HttpResponse when it arrives, the same behavior as \`http.get\` in Node.js.
+     *      HttpResponse when it arrives, the same behavior as \`http.get\`.
      *      @param url the url to request; must be a complete url including the host
      *      @param callback response callback function, receives HttpResponse as a parameter
      *      @return returns an HttpRequest object
@@ -95715,7 +95300,7 @@ declare module 'http' {
     /**
      * @description Requests the specified url with the GET method and returns an HttpRequest object
      *
-     *      Like Node.js http.get, the returned request is sent automatically without calling \`end()\`;
+     *      The returned request is sent automatically without calling \`end()\`;
      *      the response is delivered to the callback or the \`'response'\` event and stored in the
      *      \`response\` property. A GET request carries no body.
      *
@@ -95742,7 +95327,7 @@ declare module 'http' {
     /**
      * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
      *
-     *      The request is sent automatically (no \`end()\` needed), like Node.js http.get; the callback
+     *      The request is sent automatically (no \`end()\` needed); the callback
      *      receives the HttpResponse when it arrives. See the get(url, opts) overload for the options.
      *      @param url the url to request; must be a complete url including the host
      *      @param opts the additional information
@@ -96458,8 +96043,7 @@ declare module 'http/promises' {
      *
      *      Same object as the HttpRequest class: \`new http.Request()\` creates an empty request and
      *      \`new http.Request(url, opts)\` creates one from a URL and options following the Fetch Request
-     *      constructor. Node.js exposes the client-side counterpart as http.ClientRequest and the
-     *      server-side received message as http.IncomingMessage (the \`IncomingMessage\` alias below).
+     *      constructor; the \`IncomingMessage\` alias below covers the received-message spelling.
      *
      */
     const Request: typeof Class_HttpRequest;
@@ -96469,7 +96053,7 @@ declare module 'http/promises' {
     /**
      * @description Compatibility alias, equivalent to HttpRequest
      *
-     *      Provided so that code written for the Node.js name http.IncomingMessage keeps working; the
+     *      Provided so that code written for the \`http.IncomingMessage\` name keeps working; the
      *      object is the HttpRequest class itself, not a separate class.
      *
      */
@@ -96482,8 +96066,7 @@ declare module 'http/promises' {
      *
      *      Same object as the HttpResponse class: servers build the reply through the \`response\`
      *      property of an HttpRequest, and clients receive one from the sync request functions or from
-     *      \`fetch\`. Node.js calls the server-side reply http.ServerResponse (the \`ServerResponse\` alias
-     *      below) and the client-side reply http.IncomingMessage.
+     *      \`fetch\`; the \`ServerResponse\` alias below is the same class.
      *
      */
     const Response: typeof Class_HttpResponse;
@@ -96493,7 +96076,7 @@ declare module 'http/promises' {
     /**
      * @description Compatibility alias, equivalent to HttpResponse
      *
-     *      Provided so that code written for the Node.js name http.ServerResponse keeps working; the
+     *      Provided so that code written for the \`http.ServerResponse\` name keeps working; the
      *      object is the HttpResponse class itself, not a separate class.
      *
      */
@@ -96519,7 +96102,7 @@ declare module 'http/promises' {
      *
      *      Same object as the HttpCookie class: \`new http.Cookie(name, value, opts)\` creates one from
      *      its parts, and every HttpMessage exposes the cookies it carries through the \`cookies\`
-     *      property. Node.js has no cookie class; the cookie jar is a fibjs feature of HttpClient.
+     *      property; the cookie jar is a feature of HttpClient.
      *
      */
     const Cookie: typeof Class_HttpCookie;
@@ -96531,8 +96114,7 @@ declare module 'http/promises' {
      *
      *      Same object as the HttpServer class, which derives from TcpServer: \`new http.Server(port,
      *      handler)\` binds a port immediately and \`new http.Server(handler)\` requires \`listen()\` before
-     *      it serves. Use \`HttpsServer\` for TLS; Node.js exposes the same role as http.Server with
-     *      \`createServer\`.
+     *      it serves. Use \`HttpsServer\` for TLS; the \`createServer\` factory returns one as well.
      *
      */
     const Server: typeof Class_HttpServer;
@@ -96544,8 +96126,7 @@ declare module 'http/promises' {
      *
      *      \`new http.Client(options)\` creates a client with its own connection pool, cookie jar and
      *      defaults; the module-level request functions use a hidden client with the module properties
-     *      as its configuration. Node.js splits this role between http.Agent (connection pooling) and
-     *      http.globalAgent (the shared default), which fibjs has no direct equivalent of.
+     *      as its configuration.
      *
      */
     const Client: typeof Class_HttpClient;
@@ -96555,7 +96136,7 @@ declare module 'http/promises' {
     /**
      * @description Compatibility alias, equivalent to HttpClient
      *
-     *      Provided so that code written for the Node.js name http.Agent keeps working; the object is
+     *      Provided so that code written for the \`http.Agent\` name keeps working; the object is
      *      the HttpClient class itself. A client can be passed to a single request with the \`agent\`
      *      option instead of being used for every request.
      *
@@ -96567,8 +96148,7 @@ declare module 'http/promises' {
     /**
      * @description The HttpsServer class, used to create HTTPS servers
      *
-     *      Same object as the HttpsServer class, which combines TcpServer with a SecureContext;
-     *      Node.js exposes the same role through https.createServer and https.Server.
+     *      Same object as the HttpsServer class, which combines TcpServer with a SecureContext.
      *
      */
     const HttpsServer: typeof Class_HttpsServer;
@@ -96586,8 +96166,7 @@ declare module 'http/promises' {
      *      - a path or address string: a directory served as static files, or an \`http(s)://\` address forwarded by a repeater.
      *
      *      The returned server is not bound to a port: call \`listen(port)\` (or \`start()\` after a port
-     *      was given to the constructor) to serve requests. Node.js \`http.createServer\` accepts only
-     *      the function form and returns a server that must be started with \`listen()\` as well.
+     *      was given to the constructor) to serve requests.
      *
      *      Example — a router map with captured segments:
      *      \`\`\`JavaScript
@@ -96635,7 +96214,7 @@ declare module 'http/promises' {
      * @description Creates an http protocol handler object, see HttpHandler
      *
      *      Same object as the HttpHandler class, which wraps a plain function into a handler object
-     *      that can be mounted on a server, a Chain or a Routing; Node.js has no equivalent class.
+     *      that can be mounted on a server, a Chain or a Routing.
      *
      */
     const Handler: typeof Class_HttpHandler;
@@ -96645,8 +96224,7 @@ declare module 'http/promises' {
     /**
      * @description Creates an http request repeater object, see HttpRepeater
      *
-     *      Same object as the HttpRepeater class, which forwards requests to another http(s) address;
-     *      Node.js has no equivalent class.
+     *      Same object as the HttpRepeater class, which forwards requests to another http(s) address.
      *
      */
     const Repeater: typeof Class_HttpRepeater;
@@ -96657,8 +96235,7 @@ declare module 'http/promises' {
      * @description Returns the collection of standard HTTP response status codes and their short descriptions
      *
      *      An object whose keys are the three-digit status codes and whose values are the reason
-     *      phrases, for example STATUS_CODES[404] === 'Not Found'; same shape as the Node.js
-     *      http.STATUS_CODES object.
+     *      phrases, for example STATUS_CODES[404] === 'Not Found'.
      *
      */
     const STATUS_CODES: FIBJS.GeneralObject;
@@ -96667,7 +96244,7 @@ declare module 'http/promises' {
      * @description Returns an array of all method names (in uppercase) supported by the HTTP protocol
      *
      *      The parser accepts any token method, but this is the list it knows by name (currently 34
-     *      entries such as 'GET', 'POST' and 'HEAD'), the same role as the Node.js http.METHODS list.
+     *      entries such as 'GET', 'POST' and 'HEAD').
      *
      */
     const METHODS: string[];
@@ -96688,7 +96265,7 @@ declare module 'http/promises' {
      *      Enabled by default. When enabled, a connection that finished a request is kept in the
      *      client pool and reused for later requests to the same host until \`poolTimeout\` expires.
      *      Set to false to open one connection per request. A per-request \`keepAlive\` option overrides
-     *      this setting. Node.js defaults its Agent to keepAlive false instead.
+     *      this setting.
      *
      */
     var keepAlive: boolean;
@@ -96698,7 +96275,7 @@ declare module 'http/promises' {
      *
      *      Default 0, which means no timeout. The timeout covers a whole request; when it expires the
      *      request fails with error number 20021. A per-request \`timeout\` option overrides this
-     *      setting. Node.js only emits a 'timeout' event and leaves the request running.
+     *      setting.
      *
      */
     var timeout: number;
@@ -96707,8 +96284,7 @@ declare module 'http/promises' {
      * @description Cookie feature switch of the module-level client, enabled by default
      *
      *      When enabled, Set-Cookie headers are stored in \`cookies\` and matching cookies are sent
-     *      back with later requests. Set to false to ignore cookies completely. Node.js http has no
-     *      cookie handling; libraries manage cookies themselves.
+     *      back with later requests. Set to false to ignore cookies completely.
      *
      */
     var enableCookie: boolean;
@@ -96719,7 +96295,7 @@ declare module 'http/promises' {
      *      When enabled, 301, 302, 303, 307 and 308 responses are followed automatically; 303 switches
      *      the request to GET and drops the body. There is no redirect count limit, but a URL visited
      *      twice raises a cyclic redirect error. When disabled, the redirect response itself is
-     *      returned. Node.js never follows redirects automatically.
+     *      returned.
      *
      */
     var autoRedirect: boolean;
@@ -96749,7 +96325,7 @@ declare module 'http/promises' {
      * @description Queries and sets the maximum number of request headers, default 128
      *
      *      Applies to the messages parsed and generated by the module-level client; a message can
-     *      override it through its own \`maxHeadersCount\` property. Node.js defaults to 1000.
+     *      override it through its own \`maxHeadersCount\` property.
      *
      */
     var maxHeadersCount: number;
@@ -96757,8 +96333,7 @@ declare module 'http/promises' {
     /**
      * @description Queries and sets the maximum request header size in bytes, default 8192
      *
-     *      A request whose headers exceed the limit is rejected. Node.js defaults to 16384 bytes and
-     *      allows per-server or per-request overrides, which fibjs does not expose at this level.
+     *      A request whose headers exceed the limit is rejected.
      *
      */
     var maxHeaderSize: number;
@@ -96767,7 +96342,7 @@ declare module 'http/promises' {
      * @description Queries and sets the maximum chunk size in MB, default 2
      *
      *      Limits one chunk of a chunked request or response body; a chunk larger than the limit is
-     *      rejected. Not a Node.js option.
+     *      rejected.
      *
      */
     var maxChunkSize: number;
@@ -96777,7 +96352,7 @@ declare module 'http/promises' {
      *
      *      A response whose body exceeds the limit fails with error number 20024; 0 rejects every
      *      body. Requests with a body larger than the limit are also rejected. A HEAD response is
-     *      exempt because it has no body. Not a Node.js option.
+     *      exempt because it has no body.
      *
      */
     var maxBodySize: number;
@@ -96786,7 +96361,7 @@ declare module 'http/promises' {
      * @description Queries and sets the browser identifier in http requests
      *
      *      Default 'curl/8.14.1'. Sent as the User-Agent header when the request does not set one;
-     *      assign an empty string to omit the header. Node.js sends no User-Agent by default.
+     *      assign an empty string to omit the header.
      *
      */
     var userAgent: string;
@@ -96804,7 +96379,7 @@ declare module 'http/promises' {
      * @description Queries and sets the maximum number of idle connections, default 256
      *
      *      The module-level client keeps one idle list for all hosts and drops the oldest entries
-     *      beyond this number; Node.js applies maxFreeSockets per host instead.
+     *      beyond this number.
      *
      */
     var maxFreeSockets: number;
@@ -97476,7 +97051,7 @@ declare module 'http/promises' {
      * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
      *
      *      The request is sent automatically without calling \`end()\`; the callback receives the
-     *      HttpResponse when it arrives, the same behavior as \`http.get\` in Node.js.
+     *      HttpResponse when it arrives, the same behavior as \`http.get\`.
      *      @param url the url to request; must be a complete url including the host
      *      @param callback response callback function, receives HttpResponse as a parameter
      *      @return returns an HttpRequest object
@@ -97487,7 +97062,7 @@ declare module 'http/promises' {
     /**
      * @description Requests the specified url with the GET method and returns an HttpRequest object
      *
-     *      Like Node.js http.get, the returned request is sent automatically without calling \`end()\`;
+     *      The returned request is sent automatically without calling \`end()\`;
      *      the response is delivered to the callback or the \`'response'\` event and stored in the
      *      \`response\` property. A GET request carries no body.
      *
@@ -97514,7 +97089,7 @@ declare module 'http/promises' {
     /**
      * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
      *
-     *      The request is sent automatically (no \`end()\` needed), like Node.js http.get; the callback
+     *      The request is sent automatically (no \`end()\` needed); the callback
      *      receives the HttpResponse when it arrives. See the get(url, opts) overload for the options.
      *      @param url the url to request; must be a complete url including the host
      *      @param opts the additional information
@@ -98264,11 +97839,11 @@ declare module "http" {
  *    fiber until they finish; \`request\` creates the stream and sends the request headers
  *    immediately. The event style is the \`session\`/\`stream\`/\`headers\`/\`trailers\` events;
  *    \`ping\` and \`close\` are async and can also be awaited.
- *  - **Node.js differences**: the secure form is the default (there is no
+ *  - **Limits**: the secure form is the default (there is no
  *    \`createSecureServer\` and no h2c server); there is no server push API and no
  *    \`session.close\`/\`goaway\`/\`error\` event (the declared \`goaway\`/\`error\` events are not
- *    dispatched, watch \`closed\` instead); \`ping()\` returns 0 instead of reporting the
- *    round-trip time; the handler passed to a server constructor is accepted but not
+ *    dispatched, watch \`closed\` instead); \`ping()\` returns 0 because the round-trip time is not
+ *    measured; the handler passed to a server constructor is accepted but not
  *    invoked, because requests arrive through the \`session\`/\`stream\` events; and a request
  *    body cannot be sent through the raw stream API (closing a client stream closes the
  *    whole stream), so use HttpClient for requests with a body.
@@ -99084,8 +98659,7 @@ declare module "http2" {
  *
  *  The module mirrors the constant surface of the nghttp2 library bundled with fibjs and is
  *  reached through the \`constants\` property of the http2 module; it is not requireable on its
- *  own. The exported names and values are identical to Node.js's \`http2.constants\` (240
- *  entries, verified against Node.js v25.9.0):
+ * own. The module exports 240 constants:
  *
  *  - **SETTINGS**: \`NGHTTP2_SETTINGS_*\` ids (header table size, push, concurrent streams,
  *    initial window size, frame size, header list size, CONNECT protocol) and the matching
@@ -99108,7 +98682,7 @@ declare module "http2" {
  *  - **SETTINGS negotiation**: each peer sends a SETTINGS frame when the connection starts; the
  *    id selects the parameter and the \`DEFAULT_SETTINGS_*\` values apply until the peer sends
  *    its own. \`http2.getDefaultSettings()\` maps the same defaults to parameter names, except
- *    that it reports \`maxConcurrentStreams\` 100, while the constant (and Node.js) use
+ *    that it reports \`maxConcurrentStreams\` 100, while the constant uses
  *    4294967295 for "unlimited".
  *  - **Error codes**: RST_STREAM and GOAWAY carry an \`NGHTTP2_*\` code; 0 is NO_ERROR and the
  *    other defined values are 1..13. They are distinct from the internal negative
@@ -101156,8 +100730,7 @@ declare module 'json' {
  *   the extension without a leading dot; an extension registered as \`.foo\` only matches an
  *   argument whose extension is literally \`.foo\`.
  * - **Fallback**: an unknown extension returns \`application/octet-stream\` and an empty file
- *   name returns an empty string. Node.js has no core MIME module; userland packages provide
- *   the same mapping.
+ *   name returns an empty string.
  *
  * Import:
  * \`\`\`JavaScript
@@ -101229,11 +100802,11 @@ declare module 'mime' {
 `,
         "dts/module/module.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /**
- * @description The module module exposes Node.js-compatible helpers about the module system itself
+ * @description The module module exposes helpers about the module system itself
  *
  *  It builds a \`require()\` bound to a known location, lists the built-in modules and
  *  probes the compile cache; useful when a script loads code from a file it locates
- *  itself, enumerates the built-ins, or answers Node.js compatibility checks.
+ *  itself, enumerates the built-ins, or answers compatibility checks.
  *
  *  Main capabilities:
  *
@@ -101241,8 +100814,8 @@ declare module 'mime' {
  *    start next to a given file, directory or file: URL;
  *  - **Built-in inventory**: \`builtinModules\` lists every module that can be required
  *    without a path, once as a bare name and once with the \`node:\` prefix;
- *  - **Compile cache probe**: \`enableCompileCache\` is the Node.js v22.8+ entry point;
- *    fibjs does not implement the bytecode cache, so the call reports status 2.
+ *  - **Compile cache probe**: \`enableCompileCache\` is a compatibility entry point;
+ *    the bytecode cache is not implemented, so the call reports status 2.
  *
  *  Concepts:
  *
@@ -101252,8 +100825,7 @@ declare module 'mime' {
  *    \`require('node:module')\` and \`require('fibjs:module')\` return the same object,
  *    while the running script's own module object is the global \`module\`. A top-level
  *    \`const\`/\`let\` binding named \`module\` collides with that wrapper binding, so the
- *    examples below bind the core module to \`mod\` instead (Node.js rejects the same
- *    declaration).
+ *    examples below bind the core module to \`mod\` instead.
  *  - **Module resolution**: \`createRequire\` loads nothing by itself; it returns a
  *    function that resolves a request the way the global require does: relative ids
  *    against the directory of the base, bare ids through node_modules and the built-in
@@ -101262,9 +100834,8 @@ declare module 'mime' {
  *  - **Built-in modules**: modules compiled into the binary or embedded as JavaScript
  *    can be required by bare name or with the \`node:\` prefix; the inventory also covers
  *    sub-path modules such as \`fs/promises\`, \`path/posix\` and \`timers/promises\`.
- *  - **Compile cache**: Node.js can persist V8-compiled bytecode between runs; fibjs
- *    accepts the call for compatibility but keeps no cache, so \`enableCompileCache\`
- *    never changes startup or the code that runs afterwards.
+ *  - **Compile cache**: the call is accepted for compatibility but no cache is kept, so
+ *    \`enableCompileCache\` never changes startup or the code that runs afterwards.
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -101317,18 +100888,15 @@ declare module 'mime' {
  *
  *  - \`builtinModules\` holds both forms of every built-in plus the sub-path modules, in module
  *    registration order rather than alphabetically, and without duplicates.
- *  - The \`require()\` returned by \`createRequire\` carries only \`resolve\`; Node.js also exposes
- *    \`main\`, \`extensions\` and \`cache\` on it.
- *  - Node.js requires an absolute path or a file: URL as the base and rejects a relative one with
- *    ERR_INVALID_ARG_VALUE; fibjs accepts any string and resolves a relative base against the
+ *  - The \`require()\` returned by \`createRequire\` carries only \`resolve\`.
+ *  - Any string is accepted as the base; a relative base is resolved against the
  *    current working directory (plans/compat-differences.md 2.259).
- *  - Node.js implements a real on-disk compile cache (status 0/1/2/3 plus \`getCompileCacheDir\`
- *    and \`flushCompileCache\`); fibjs returns status 2 with the fixed message above and has no
- *    cache directory (plans/compat-differences.md 2.260).
+ *  - The compile cache is not implemented: the call returns status 2 with the fixed message above
+ *    and there is no cache directory (plans/compat-differences.md 2.260).
  *  - Do not bind the core module to a top-level \`const module\`: the CommonJS wrapper already
  *    provides \`module\`, so the declaration is a syntax error and the engine retries the file as
  *    an ES module, where \`require\` is undefined. Use another name (\`mod\` in these examples) or
- *    \`var module\`; Node.js rejects the same declaration.
+ *    \`var module\`.
  *
  */
 declare module 'module' {
@@ -101339,12 +100907,11 @@ declare module 'module' {
      *      directory of the base as the starting point: a relative id is looked up next to the base,
      *      a bare id goes through node_modules and the built-in list. \`base\` may be an absolute file
      *      path, a directory path, a relative path or a file: URL; the directory part is used, so a
-     *      directory base resolves relative ids against its parent. Node.js requires an absolute path
-     *      or a file: URL and rejects a relative base with ERR_INVALID_ARG_VALUE; fibjs accepts any
-     *      string and resolves a relative base against the current working directory. The returned
+     *      directory base resolves relative ids against its parent, and a relative base is resolved
+     *      against the current working directory. The returned
      *      function has \`resolve(id)\`, which returns the path that require would load (a built-in
      *      resolves to its name) without loading it, and reports a missing module with
-     *      MODULE_NOT_FOUND [20024]; unlike Node.js it has no \`main\`, \`extensions\` or \`cache\`.
+     *      MODULE_NOT_FOUND [20024]; it has no \`main\`, \`extensions\` or \`cache\`.
      *
      *      Example — resolve and load a module next to a known file:
      *      \`\`\`JavaScript
@@ -101382,9 +100949,7 @@ declare module 'module' {
      *      registration order rather than alphabetically and are unique. The property itself is
      *      read-only and non-configurable: assigning to it is silently ignored. The array object is
      *      not frozen, so elements can be added or replaced, but such edits are local and do not
-     *      change what require accepts. Node.js exposes only the bare names in this list, makes the
-     *      property writable and configurable, and covers the prefix question with
-     *      \`module.isBuiltin()\` (plans/compat-differences.md 2.258).
+     *      change what require accepts (plans/compat-differences.md 2.258).
      *
      *      Example — query the list and observe the read-only property:
      *      \`\`\`JavaScript
@@ -101403,15 +100968,13 @@ declare module 'module' {
     const builtinModules: string[];
 
     /**
-     * @description Compatibility entry point for the Node.js compile cache; always a no-op in fibjs
+     * @description Compatibility entry point for the compile cache; always a no-op
      *
-     *      Node.js uses this call to enable a V8 bytecode cache on disk so that later runs start
-     *      faster, and returns an object such as \`{ status, directory, message }\`. fibjs does not
-     *      implement the cache: the call performs no work, ignores its argument (including invalid
+     *      The call is a probe: it performs no work, ignores its argument (including invalid
      *      values and extra arguments), and always returns a new object
      *      \`{ "status": 2, "message": "Compile cache is not supported in fibjs" }\`, where status 2
      *      means "not available". Nothing about startup or about the code that runs afterwards
-     *      changes, and the Node.js companions \`module.getCompileCacheDir\` and
+     *      changes, and the companions \`module.getCompileCacheDir\` and
      *      \`module.flushCompileCache\` do not exist (plans/compat-differences.md 2.260).
      *
      *      Example — the probe and its fixed result:
@@ -101424,7 +100987,7 @@ declare module 'module' {
      *      console.log(mod.enableCompileCache('/tmp/cache').status); // 2, the path is ignored
      *      \`\`\`
      *
-     *      @param cacheDir cache directory path; accepted for Node.js compatibility and ignored, optional
+     *      @param cacheDir cache directory path; accepted and ignored, optional
      *      @return an object with status 2 and the message "Compile cache is not supported in fibjs"
      *
      */
@@ -102106,8 +101669,7 @@ declare module "mq" {
  *  Notes:
  *
  *  - The format itself is interoperable; only the JavaScript mapping above, in particular
- *    the BigInt and Map-key handling, is fibjs-specific. Node.js has no msgpack in its
- *    standard library.
+ *    the BigInt and Map-key handling, is specific to this implementation.
  *  - \`decode\` returns undefined for a valid value with trailing bytes; slice the input to one
  *    value when the data comes from a stream.
  *
@@ -102329,8 +101891,8 @@ declare module 'multibase' {
  *  - **IP detection**: \`isIP\`, \`isIPv4\` and \`isIPv6\` classify address literals without any lookup;
  *  - **Engine control**: \`backend\` reports the asynchronous engine in use and \`use_uv_socket\` switches
  *    the sockets created afterwards between the platform engine and libuv;
- *  - **Node.js compatibility**: \`getDefaultAutoSelectFamily\`, \`setDefaultAutoSelectFamily\` and the
- *    attempt-timeout pair exist so that Node.js style consumers can load unmodified, but they only
+ *  - **Compatibility accessors**: \`getDefaultAutoSelectFamily\`, \`setDefaultAutoSelectFamily\` and the
+ *    attempt-timeout pair exist so that existing consumers can load unmodified, but they only
  *    store values;
  *  - **Aliases**: \`Socket\`, \`TcpServer\`, \`Smtp\` and \`Url\` expose the classes of the module.
  *
@@ -102369,11 +101931,11 @@ declare module 'multibase' {
  *  - **Unix sockets and pipes**: a path connection is available through \`new net.Socket(net.AF_UNIX)\`,
  *    the \`unix:/path\` URL form and the \`pipe://./name\` Windows form; \`AF_UNIX\` and \`AF_PIPE\` have the
  *    same value.
- *  - **Node.js differences**: there is no \`net.Server\` class and no \`net.createConnection\` alias, use
+ *  - **Names and limits**: there is no \`net.Server\` class and no \`net.createConnection\` alias, use
  *    \`TcpServer\` and \`connect\`; a URL string must carry a scheme (\`tcp://host:port\`, \`ssl://host:port\`,
  *    \`unix:/path\`, \`pipe://...\`) and a bare path throws a TypeError on the module entry while
  *    \`Socket.connect(path)\` accepts it; the options object of connect only reads \`host\`, \`port\` and
- *    \`timeout\` (Node.js supports many more keys); and the auto-select-family accessors only store
+ *    \`timeout\`; and the auto-select-family accessors only store
  *    values, connect never performs family autodetection.
  *
  *  Import:
@@ -102464,7 +102026,7 @@ declare module 'net' {
      *
      *      The flag is process-wide and is read when a Socket object is created, so it only affects later
      *      sockets and existing sockets keep the engine they were created with. Setting it to true routes
-     *      sockets through libuv (a single loop, the backend Node.js uses); leaving it false uses the
+     *      sockets through libuv (a single loop); leaving it false uses the
      *      platform engine reported by backend(). The backends differ in a few edge cases, for example a
      *      read on a socket closed by another fiber reports EBADF/EPERM on the platform engine but
      *      CALL_E_CLOSED_SOCKET on the libuv backend, and some timeouts use different error numbers.
@@ -102477,8 +102039,7 @@ declare module 'net' {
      *
      *      The result has one property per interface name holding an array of address entries with the
      *      same shape as os.networkInterfaces(): address, family ('IPv4' or 'IPv6'), mac, internal and
-     *      netmask. The call is synchronous and does not perform any lookup; Node.js exposes the same
-     *      data through os.networkInterfaces().
+     *      netmask. The call is synchronous and does not perform any lookup.
      *      @return returns the network interface information
      *
      */
@@ -102489,8 +102050,7 @@ declare module 'net' {
      *
      *      The lookup goes through the system resolver (getaddrinfo) and returns the first address that
      *      matches the requested family, so a name with both A and AAAA records returns its IPv4 address
-     *      by default. The result is always a single address; there is no all/hints equivalent of the
-     *      Node.js dns module. family must be net.AF_INET (default) or net.AF_INET6, any other value
+     *      by default. The result is always a single address. family must be net.AF_INET (default) or net.AF_INET6, any other value
      *      throws a TypeError. A name that cannot be resolved fails with an Error carrying syscall
      *      'getaddrinfo' and a resolver code such as ENOTFOUND, which distinguishes a missing host from a
      *      local resolver failure. The call yields the current fiber while the resolver works.
@@ -102508,8 +102068,7 @@ declare module 'net' {
      *
      *      The lookup goes through the system resolver (getaddrinfo) and returns the first address that
      *      matches the requested family, so a name with both A and AAAA records returns its IPv4 address
-     *      by default. The result is always a single address; there is no all/hints equivalent of the
-     *      Node.js dns module. family must be net.AF_INET (default) or net.AF_INET6, any other value
+     *      by default. The result is always a single address. family must be net.AF_INET (default) or net.AF_INET6, any other value
      *      throws a TypeError. A name that cannot be resolved fails with an Error carrying syscall
      *      'getaddrinfo' and a resolver code such as ENOTFOUND, which distinguishes a missing host from a
      *      local resolver failure. The call yields the current fiber while the resolver works.
@@ -102525,8 +102084,7 @@ declare module 'net' {
      *
      *      The lookup goes through the system resolver (getaddrinfo) and returns the first address that
      *      matches the requested family, so a name with both A and AAAA records returns its IPv4 address
-     *      by default. The result is always a single address; there is no all/hints equivalent of the
-     *      Node.js dns module. family must be net.AF_INET (default) or net.AF_INET6, any other value
+     *      by default. The result is always a single address. family must be net.AF_INET (default) or net.AF_INET6, any other value
      *      throws a TypeError. A name that cannot be resolved fails with an Error carrying syscall
      *      'getaddrinfo' and a resolver code such as ENOTFOUND, which distinguishes a missing host from a
      *      local resolver failure. The call yields the current fiber while the resolver works.
@@ -102541,7 +102099,7 @@ declare module 'net' {
      * @description Quickly queries the host IPv4 address, equivalent to resolve(name)
      *
      *      A convenience wrapper of resolve(name, AF_INET); see resolve for the resolver behavior and the
-     *      error shapes. Node.js has no equivalent directly under net, its lookup lives in the dns module.
+     *      error shapes.
      *      @param name specifies the host name
      *      @return returns the queried ip string
      *
@@ -102554,7 +102112,7 @@ declare module 'net' {
      * @description Quickly queries the host IPv4 address, equivalent to resolve(name)
      *
      *      A convenience wrapper of resolve(name, AF_INET); see resolve for the resolver behavior and the
-     *      error shapes. Node.js has no equivalent directly under net, its lookup lives in the dns module.
+     *      error shapes.
      *      @param name specifies the host name
      *      @return returns the queried ip string
      *
@@ -102565,7 +102123,7 @@ declare module 'net' {
      * @description Quickly queries the host IPv4 address, equivalent to resolve(name)
      *
      *      A convenience wrapper of resolve(name, AF_INET); see resolve for the resolver behavior and the
-     *      error shapes. Node.js has no equivalent directly under net, its lookup lives in the dns module.
+     *      error shapes.
      *      @param name specifies the host name
      *      @return returns the queried ip string
      *
@@ -102613,7 +102171,7 @@ declare module 'net' {
     /**
      * @description The Socket class entry point, creates TCP and unix socket objects, see Socket
      *
-     *      The same class as the global net.Socket and the Node.js net.Socket; net.connect(...) is the
+     *      The same class as \`net.Socket\`; \`net.connect(...)\` is the
      *      connected-instance factory and the accepted sockets of a TcpServer are Sockets too.
      *
      */
@@ -102635,7 +102193,7 @@ declare module 'net' {
      *      })
      *      \`\`\`
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
-     *      unroutable address, so pass an explicit value when the peer may be unreachable. Node.js option
+     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
      *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
      *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
      *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
@@ -102663,7 +102221,7 @@ declare module 'net' {
      *      })
      *      \`\`\`
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
-     *      unroutable address, so pass an explicit value when the peer may be unreachable. Node.js option
+     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
      *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
      *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
      *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
@@ -102689,7 +102247,7 @@ declare module 'net' {
      *      })
      *      \`\`\`
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
-     *      unroutable address, so pass an explicit value when the peer may be unreachable. Node.js option
+     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
      *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
      *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
      *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
@@ -102761,7 +102319,7 @@ declare module 'net' {
      *      The blocking port/host/timeout form. host may be an IPv4 or IPv6 literal or a name resolved as
      *      part of the connection, and timeout is the connect timeout in milliseconds (0 leaves the
      *      operating system default). The returned Socket is already connected and ready for send/recv;
-     *      see the options overload for the error behavior and the Node.js differences of the resolution
+     *      see the options overload for the error behavior of the resolution
      *      step. Equivalent to \`new net.Socket().connect(port, host, timeout)\`.
      *
      *      @param port specifies the remote port
@@ -102780,7 +102338,7 @@ declare module 'net' {
      *      The blocking port/host/timeout form. host may be an IPv4 or IPv6 literal or a name resolved as
      *      part of the connection, and timeout is the connect timeout in milliseconds (0 leaves the
      *      operating system default). The returned Socket is already connected and ready for send/recv;
-     *      see the options overload for the error behavior and the Node.js differences of the resolution
+     *      see the options overload for the error behavior of the resolution
      *      step. Equivalent to \`new net.Socket().connect(port, host, timeout)\`.
      *
      *      @param port specifies the remote port
@@ -102797,7 +102355,7 @@ declare module 'net' {
      *      The blocking port/host/timeout form. host may be an IPv4 or IPv6 literal or a name resolved as
      *      part of the connection, and timeout is the connect timeout in milliseconds (0 leaves the
      *      operating system default). The returned Socket is already connected and ready for send/recv;
-     *      see the options overload for the error behavior and the Node.js differences of the resolution
+     *      see the options overload for the error behavior of the resolution
      *      step. Equivalent to \`new net.Socket().connect(port, host, timeout)\`.
      *
      *      @param port specifies the remote port
@@ -102997,7 +102555,7 @@ declare module 'net' {
      * @description The Smtp class entry point, creates SMTP client objects, see Smtp
      *
      *      SMTP is an application protocol on top of a TCP/TLS connection; net.openSmtp(url, timeout) is
-     *      the connected-instance factory. Node.js has no built-in SMTP client.
+     *      the connected-instance factory.
      *
      */
     const Smtp: typeof Class_Smtp;
@@ -103048,7 +102606,7 @@ declare module 'net' {
     /**
      * @description The TcpServer class entry point, creates a TCP server, see TcpServer
      *
-     *      The fibjs counterpart of the Node.js net.Server; net.createServer(...) is the factory form and
+     *      The server class of the module; net.createServer(...) is the factory form and
      *      a TcpServer may also be created with new net.TcpServer(...).
      *
      */
@@ -103082,8 +102640,7 @@ declare module 'net' {
      *      With both properties the server binds address:port immediately and start() begins accepting;
      *      with address only it binds that address with an OS-assigned port (or a unix path when the
      *      address is not an IP literal); with neither it only stores the handler and listen() must be
-     *      called. These are bind options, not the socket options of Node.js net.createServer, and Node.js
-     *      always requires listen().
+     *      called. These are bind options; \`listen()\` is only needed when the constructor did not bind.
      *
      *      listener may be given in any of these forms:
      *      - a Handler object, invoked as it is;
@@ -103106,8 +102663,7 @@ declare module 'net' {
     /**
      * @description The alias of the UrlObject class, see UrlObject
      *
-     *      The URL parser used by the URL forms of connect. Node.js has no equivalent under net; its URL
-     *      helpers live in the url module.
+     *      The URL parser used by the URL forms of connect.
      *
      */
     const Url: typeof Class_UrlObject;
@@ -103119,7 +102675,7 @@ declare module 'net' {
      *
      *      The name is platform specific: 'IOCP' on win32, 'KQueue' on darwin/freebsd and 'EPoll' on
      *      linux/android. It reports the platform engine; sockets created while use_uv_socket is true use
-     *      libuv instead. Node.js always uses libuv and has no equivalent accessor.
+     *      libuv instead.
      *      @return returns the network engine name
      *
      */
@@ -103131,7 +102687,7 @@ declare module 'net' {
      *      IPv4 must be dot-decimal without leading zeroes ('127.000.000.001' returns 0). IPv6 accepts
      *      compressed and IPv4-mapped forms ('::ffff:127.0.0.1' returns 6). A value that is not a string
      *      is converted with toString first, so an object whose toString yields an address is classified
-     *      exactly like the Node.js behavior. No lookup is performed, a host name returns 0.
+     *      as an address. No lookup is performed, a host name returns 0.
      *      @param ip the value to detect; a non-string value is not an IP address
      *      @return returns 0 for an invalid IP address, 4 for IPv4 and 6 for IPv6
      *
@@ -103161,9 +102717,9 @@ declare module 'net' {
     function isIPv6(ip?: any): boolean;
 
     /**
-     * @description Queries whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13
+     * @description Queries whether net.connect enables automatic address selection by default
      *
-     *      Compatibility accessor: fibjs stores the value so Node.js consumers that read it at module load
+     *      Compatibility accessor: the value is stored so consumers that read it at module load
      *      (for example playwright-core) work unmodified, but connect never performs family
      *      autodetection. The companion timeout is getDefaultAutoSelectFamilyAttemptTimeout.
      *      @return returns the current default value, default is true
@@ -103172,7 +102728,7 @@ declare module 'net' {
     function getDefaultAutoSelectFamily(): boolean;
 
     /**
-     * @description Sets whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13
+     * @description Sets whether net.connect enables automatic address selection by default
      *
      *      Stores the value only; it does not change the behavior of connect, which always uses the family
      *      implied by the host name or the address family of the Socket. The setter returns nothing.
@@ -103182,9 +102738,9 @@ declare module 'net' {
     function setDefaultAutoSelectFamily(enabled: boolean): void;
 
     /**
-     * @description Queries the default automatic address family selection timeout, compatible with Node.js >= 18.13
+     * @description Queries the default automatic address selection timeout
      *
-     *      Compatibility accessor for Node.js consumers; see setDefaultAutoSelectFamily. It is only stored
+     *      Compatibility accessor; see setDefaultAutoSelectFamily. It is only stored
      *      and is never used by connect.
      *      @return returns the current default timeout in milliseconds, default is 250
      *
@@ -103192,11 +102748,10 @@ declare module 'net' {
     function getDefaultAutoSelectFamilyAttemptTimeout(): number;
 
     /**
-     * @description Sets the default automatic address family selection timeout, compatible with Node.js >= 18.13
+     * @description Sets the default automatic address selection timeout
      *
      *      Values below 10 are rejected with an out-of-range error whose message is
-     *      "setDefaultAutoSelectFamilyAttemptTimeout: milliseconds must be >= 10, got N.", matching the
-     *      Node.js validation. Like the family switch, the value is only stored and never used by connect.
+     *      "setDefaultAutoSelectFamilyAttemptTimeout: milliseconds must be >= 10, got N.". Like the family switch, the value is only stored and never used by connect.
      *      @param milliseconds specifies the default timeout in milliseconds, which must be an integer greater than or equal to 10
      *
      */
@@ -103265,7 +102820,7 @@ declare module 'net/promises' {
      *
      *      The flag is process-wide and is read when a Socket object is created, so it only affects later
      *      sockets and existing sockets keep the engine they were created with. Setting it to true routes
-     *      sockets through libuv (a single loop, the backend Node.js uses); leaving it false uses the
+     *      sockets through libuv (a single loop); leaving it false uses the
      *      platform engine reported by backend(). The backends differ in a few edge cases, for example a
      *      read on a socket closed by another fiber reports EBADF/EPERM on the platform engine but
      *      CALL_E_CLOSED_SOCKET on the libuv backend, and some timeouts use different error numbers.
@@ -103278,8 +102833,7 @@ declare module 'net/promises' {
      *
      *      The result has one property per interface name holding an array of address entries with the
      *      same shape as os.networkInterfaces(): address, family ('IPv4' or 'IPv6'), mac, internal and
-     *      netmask. The call is synchronous and does not perform any lookup; Node.js exposes the same
-     *      data through os.networkInterfaces().
+     *      netmask. The call is synchronous and does not perform any lookup.
      *      @return returns the network interface information
      *
      */
@@ -103290,8 +102844,7 @@ declare module 'net/promises' {
      *
      *      The lookup goes through the system resolver (getaddrinfo) and returns the first address that
      *      matches the requested family, so a name with both A and AAAA records returns its IPv4 address
-     *      by default. The result is always a single address; there is no all/hints equivalent of the
-     *      Node.js dns module. family must be net.AF_INET (default) or net.AF_INET6, any other value
+     *      by default. The result is always a single address. family must be net.AF_INET (default) or net.AF_INET6, any other value
      *      throws a TypeError. A name that cannot be resolved fails with an Error carrying syscall
      *      'getaddrinfo' and a resolver code such as ENOTFOUND, which distinguishes a missing host from a
      *      local resolver failure. The call yields the current fiber while the resolver works.
@@ -103307,8 +102860,7 @@ declare module 'net/promises' {
      *
      *      The lookup goes through the system resolver (getaddrinfo) and returns the first address that
      *      matches the requested family, so a name with both A and AAAA records returns its IPv4 address
-     *      by default. The result is always a single address; there is no all/hints equivalent of the
-     *      Node.js dns module. family must be net.AF_INET (default) or net.AF_INET6, any other value
+     *      by default. The result is always a single address. family must be net.AF_INET (default) or net.AF_INET6, any other value
      *      throws a TypeError. A name that cannot be resolved fails with an Error carrying syscall
      *      'getaddrinfo' and a resolver code such as ENOTFOUND, which distinguishes a missing host from a
      *      local resolver failure. The call yields the current fiber while the resolver works.
@@ -103324,8 +102876,7 @@ declare module 'net/promises' {
      *
      *      The lookup goes through the system resolver (getaddrinfo) and returns the first address that
      *      matches the requested family, so a name with both A and AAAA records returns its IPv4 address
-     *      by default. The result is always a single address; there is no all/hints equivalent of the
-     *      Node.js dns module. family must be net.AF_INET (default) or net.AF_INET6, any other value
+     *      by default. The result is always a single address. family must be net.AF_INET (default) or net.AF_INET6, any other value
      *      throws a TypeError. A name that cannot be resolved fails with an Error carrying syscall
      *      'getaddrinfo' and a resolver code such as ENOTFOUND, which distinguishes a missing host from a
      *      local resolver failure. The call yields the current fiber while the resolver works.
@@ -103340,7 +102891,7 @@ declare module 'net/promises' {
      * @description Quickly queries the host IPv4 address, equivalent to resolve(name)
      *
      *      A convenience wrapper of resolve(name, AF_INET); see resolve for the resolver behavior and the
-     *      error shapes. Node.js has no equivalent directly under net, its lookup lives in the dns module.
+     *      error shapes.
      *      @param name specifies the host name
      *      @return returns the queried ip string
      *
@@ -103351,7 +102902,7 @@ declare module 'net/promises' {
      * @description Quickly queries the host IPv4 address, equivalent to resolve(name)
      *
      *      A convenience wrapper of resolve(name, AF_INET); see resolve for the resolver behavior and the
-     *      error shapes. Node.js has no equivalent directly under net, its lookup lives in the dns module.
+     *      error shapes.
      *      @param name specifies the host name
      *      @return returns the queried ip string
      *
@@ -103362,7 +102913,7 @@ declare module 'net/promises' {
      * @description Quickly queries the host IPv4 address, equivalent to resolve(name)
      *
      *      A convenience wrapper of resolve(name, AF_INET); see resolve for the resolver behavior and the
-     *      error shapes. Node.js has no equivalent directly under net, its lookup lives in the dns module.
+     *      error shapes.
      *      @param name specifies the host name
      *      @return returns the queried ip string
      *
@@ -103408,7 +102959,7 @@ declare module 'net/promises' {
     /**
      * @description The Socket class entry point, creates TCP and unix socket objects, see Socket
      *
-     *      The same class as the global net.Socket and the Node.js net.Socket; net.connect(...) is the
+     *      The same class as \`net.Socket\`; \`net.connect(...)\` is the
      *      connected-instance factory and the accepted sockets of a TcpServer are Sockets too.
      *
      */
@@ -103430,7 +102981,7 @@ declare module 'net/promises' {
      *      })
      *      \`\`\`
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
-     *      unroutable address, so pass an explicit value when the peer may be unreachable. Node.js option
+     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
      *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
      *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
      *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
@@ -103456,7 +103007,7 @@ declare module 'net/promises' {
      *      })
      *      \`\`\`
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
-     *      unroutable address, so pass an explicit value when the peer may be unreachable. Node.js option
+     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
      *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
      *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
      *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
@@ -103482,7 +103033,7 @@ declare module 'net/promises' {
      *      })
      *      \`\`\`
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
-     *      unroutable address, so pass an explicit value when the peer may be unreachable. Node.js option
+     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
      *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
      *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
      *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
@@ -103554,7 +103105,7 @@ declare module 'net/promises' {
      *      The blocking port/host/timeout form. host may be an IPv4 or IPv6 literal or a name resolved as
      *      part of the connection, and timeout is the connect timeout in milliseconds (0 leaves the
      *      operating system default). The returned Socket is already connected and ready for send/recv;
-     *      see the options overload for the error behavior and the Node.js differences of the resolution
+     *      see the options overload for the error behavior of the resolution
      *      step. Equivalent to \`new net.Socket().connect(port, host, timeout)\`.
      *
      *      @param port specifies the remote port
@@ -103571,7 +103122,7 @@ declare module 'net/promises' {
      *      The blocking port/host/timeout form. host may be an IPv4 or IPv6 literal or a name resolved as
      *      part of the connection, and timeout is the connect timeout in milliseconds (0 leaves the
      *      operating system default). The returned Socket is already connected and ready for send/recv;
-     *      see the options overload for the error behavior and the Node.js differences of the resolution
+     *      see the options overload for the error behavior of the resolution
      *      step. Equivalent to \`new net.Socket().connect(port, host, timeout)\`.
      *
      *      @param port specifies the remote port
@@ -103588,7 +103139,7 @@ declare module 'net/promises' {
      *      The blocking port/host/timeout form. host may be an IPv4 or IPv6 literal or a name resolved as
      *      part of the connection, and timeout is the connect timeout in milliseconds (0 leaves the
      *      operating system default). The returned Socket is already connected and ready for send/recv;
-     *      see the options overload for the error behavior and the Node.js differences of the resolution
+     *      see the options overload for the error behavior of the resolution
      *      step. Equivalent to \`new net.Socket().connect(port, host, timeout)\`.
      *
      *      @param port specifies the remote port
@@ -103786,7 +103337,7 @@ declare module 'net/promises' {
      * @description The Smtp class entry point, creates SMTP client objects, see Smtp
      *
      *      SMTP is an application protocol on top of a TCP/TLS connection; net.openSmtp(url, timeout) is
-     *      the connected-instance factory. Node.js has no built-in SMTP client.
+     *      the connected-instance factory.
      *
      */
     const Smtp: typeof Class_Smtp;
@@ -103835,7 +103386,7 @@ declare module 'net/promises' {
     /**
      * @description The TcpServer class entry point, creates a TCP server, see TcpServer
      *
-     *      The fibjs counterpart of the Node.js net.Server; net.createServer(...) is the factory form and
+     *      The server class of the module; net.createServer(...) is the factory form and
      *      a TcpServer may also be created with new net.TcpServer(...).
      *
      */
@@ -103869,8 +103420,7 @@ declare module 'net/promises' {
      *      With both properties the server binds address:port immediately and start() begins accepting;
      *      with address only it binds that address with an OS-assigned port (or a unix path when the
      *      address is not an IP literal); with neither it only stores the handler and listen() must be
-     *      called. These are bind options, not the socket options of Node.js net.createServer, and Node.js
-     *      always requires listen().
+     *      called. These are bind options; \`listen()\` is only needed when the constructor did not bind.
      *
      *      listener may be given in any of these forms:
      *      - a Handler object, invoked as it is;
@@ -103893,8 +103443,7 @@ declare module 'net/promises' {
     /**
      * @description The alias of the UrlObject class, see UrlObject
      *
-     *      The URL parser used by the URL forms of connect. Node.js has no equivalent under net; its URL
-     *      helpers live in the url module.
+     *      The URL parser used by the URL forms of connect.
      *
      */
     const Url: typeof Class_UrlObject;
@@ -103906,7 +103455,7 @@ declare module 'net/promises' {
      *
      *      The name is platform specific: 'IOCP' on win32, 'KQueue' on darwin/freebsd and 'EPoll' on
      *      linux/android. It reports the platform engine; sockets created while use_uv_socket is true use
-     *      libuv instead. Node.js always uses libuv and has no equivalent accessor.
+     *      libuv instead.
      *      @return returns the network engine name
      *
      */
@@ -103918,7 +103467,7 @@ declare module 'net/promises' {
      *      IPv4 must be dot-decimal without leading zeroes ('127.000.000.001' returns 0). IPv6 accepts
      *      compressed and IPv4-mapped forms ('::ffff:127.0.0.1' returns 6). A value that is not a string
      *      is converted with toString first, so an object whose toString yields an address is classified
-     *      exactly like the Node.js behavior. No lookup is performed, a host name returns 0.
+     *      as an address. No lookup is performed, a host name returns 0.
      *      @param ip the value to detect; a non-string value is not an IP address
      *      @return returns 0 for an invalid IP address, 4 for IPv4 and 6 for IPv6
      *
@@ -103948,9 +103497,9 @@ declare module 'net/promises' {
     function isIPv6(ip?: any): boolean;
 
     /**
-     * @description Queries whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13
+     * @description Queries whether net.connect enables automatic address selection by default
      *
-     *      Compatibility accessor: fibjs stores the value so Node.js consumers that read it at module load
+     *      Compatibility accessor: the value is stored so consumers that read it at module load
      *      (for example playwright-core) work unmodified, but connect never performs family
      *      autodetection. The companion timeout is getDefaultAutoSelectFamilyAttemptTimeout.
      *      @return returns the current default value, default is true
@@ -103959,7 +103508,7 @@ declare module 'net/promises' {
     function getDefaultAutoSelectFamily(): boolean;
 
     /**
-     * @description Sets whether net.connect enables automatic address family selection by default, compatible with Node.js >= 18.13
+     * @description Sets whether net.connect enables automatic address selection by default
      *
      *      Stores the value only; it does not change the behavior of connect, which always uses the family
      *      implied by the host name or the address family of the Socket. The setter returns nothing.
@@ -103969,9 +103518,9 @@ declare module 'net/promises' {
     function setDefaultAutoSelectFamily(enabled: boolean): void;
 
     /**
-     * @description Queries the default automatic address family selection timeout, compatible with Node.js >= 18.13
+     * @description Queries the default automatic address selection timeout
      *
-     *      Compatibility accessor for Node.js consumers; see setDefaultAutoSelectFamily. It is only stored
+     *      Compatibility accessor; see setDefaultAutoSelectFamily. It is only stored
      *      and is never used by connect.
      *      @return returns the current default timeout in milliseconds, default is 250
      *
@@ -103979,11 +103528,10 @@ declare module 'net/promises' {
     function getDefaultAutoSelectFamilyAttemptTimeout(): number;
 
     /**
-     * @description Sets the default automatic address family selection timeout, compatible with Node.js >= 18.13
+     * @description Sets the default automatic address selection timeout
      *
      *      Values below 10 are rejected with an out-of-range error whose message is
-     *      "setDefaultAutoSelectFamilyAttemptTimeout: milliseconds must be >= 10, got N.", matching the
-     *      Node.js validation. Like the family switch, the value is only stored and never used by connect.
+     *      "setDefaultAutoSelectFamilyAttemptTimeout: milliseconds must be >= 10, got N.". Like the family switch, the value is only stored and never used by connect.
      *      @param milliseconds specifies the default timeout in milliseconds, which must be an integer greater than or equal to 10
      *
      */
@@ -104023,8 +103571,7 @@ declare module "net" {
  *  - **CPU and load shapes**: \`cpus\` returns one object per logical CPU, re-read on every
  *    call, with \`model\`, \`speed\` in MHz and \`times\` (\`user\`, \`nice\`, \`sys\`, \`idle\`, \`irq\`)
  *    in milliseconds since boot. \`cpuNumbers\` is the same count, cached after the first
- *    call, and is a fibjs extension; Node.js has \`os.availableParallelism\` and
- *    \`os.cpus().length\` for that. \`loadavg\` is the 1, 5 and 15 minute run-queue average,
+ *    call, and is an extension of the runtime. \`loadavg\` is the 1, 5 and 15 minute run-queue average,
  *    where a value of 1.0 means one runnable task on average.
  *  - **Memory units**: \`totalmem\` and \`freemem\` are bytes of physical memory, and \`freemem\`
  *    is the memory the operating system reports as available, so on Linux it includes
@@ -104032,19 +103579,19 @@ declare module "net" {
  *  - **Network interface shape**: \`networkInterfaces\` maps an interface name to an array of
  *    address records: \`address\`, \`netmask\`, \`family\` ('IPv4' or 'IPv6'), \`mac\` (lowercase
  *    hex, all zeros for the loopback interface), \`internal\` and, on IPv6 records,
- *    \`scopeid\`. The Node.js-only \`cidr\` field is not provided.
+ *    \`scopeid\`. A \`cidr\` field is not provided.
  *  - **User information and encodings**: \`userInfo\` returns \`uid\`, \`gid\`, \`username\`,
  *    \`homedir\` and \`shell\`; on Windows uid/gid are -1 and shell is null, and on systems
  *    without a passwd entry the call throws. \`options.encoding\` selects the text encoding of
  *    the string fields, with 'buffer' returning Buffer values and any other supported
- *    encoding (such as 'base64') encoding the strings, matching Node.js.
- *  - **fibjs extensions**: \`time\`, \`dateAdd\`, \`timezone\`, \`cpuNumbers\` and \`Service\` are not
- *    part of the Node.js os module. \`time\` parses a date string and \`dateAdd\` shifts a date
+ *    encoding (such as 'base64') encoding the strings.
+ *  - **Extensions**: \`time\`, \`dateAdd\`, \`timezone\`, \`cpuNumbers\` and \`Service\` are additions of
+ *    this module. \`time\` parses a date string and \`dateAdd\` shifts a date
  *    by a calendar part with month-end clamping: 2000-01-31 plus one month is 2000-02-29.
  *    \`timezone\` is the local UTC offset in hundredths of an hour (UTC+8 is 800), unlike
  *    Date#getTimezoneOffset, which counts minutes west of UTC.
- *  - **Node.js gaps**: \`os.availableParallelism\`, \`os.machine\`, \`os.version\`, \`os.devNull\`
- *    and \`os.getPriority\`/\`setPriority\` do not exist; use \`cpus().length\` when a parallelism
+ *  - **Not provided**: \`availableParallelism\`, \`machine\`, \`version\`, \`devNull\`
+ *    and \`getPriority\`/\`setPriority\` do not exist; use \`cpus().length\` when a parallelism
  *    hint is needed.
  *
  *  Import:
@@ -104115,8 +103662,7 @@ declare module 'os' {
      *
      *      The property holds the Service constructor itself, so \`new os.Service(name, worker)\`
      *      creates a service that can be installed and controlled by the platform service
-     *      manager; see the Service class. This is a fibjs extension; Node.js has no service
-     *      API.
+     *      manager; see the Service class.
      *
      */
     const Service: typeof Class_Service;
@@ -104127,7 +103673,6 @@ declare module 'os' {
      * @description Queries the hostname of the current runtime environment
      *
      *      The value comes from the operating system and is not fully qualified on most systems.
-     *      The Node.js method is identical.
      *      @return returns the hostname
      *
      */
@@ -104137,7 +103682,7 @@ declare module 'os' {
      * @description Queries the byte order of the current CPU
      *
      *      The result is 'LE' for little-endian architectures (x64, arm64) or 'BE' for
-     *      big-endian ones, matching Node.js; it describes the build target, not the memory of a
+     *      big-endian ones; it describes the build target, not the memory of a
      *      particular buffer.
      *      @return returns the byte order
      *
@@ -104171,7 +103716,7 @@ declare module 'os' {
      *
      *      The value follows $HOME on POSIX and USERPROFILE on Windows, falling back to the
      *      passwd entry; on iOS it is the application documents directory. The string does not
-     *      end with a path separator, matching Node.js.
+     *      end with a path separator.
      *      @return returns the directory string
      *
      */
@@ -104192,8 +103737,7 @@ declare module 'os' {
      * @description Queries the current time zone of the runtime environment
      *
      *      The value is the local offset from UTC in hundredths of an hour: UTC+8 reports 800
-     *      and UTC-5 reports -500. It is a fibjs extension: Node.js exposes nothing similar on
-     *      os, and Date#getTimezoneOffset reports minutes west of UTC instead (-480 for UTC+8).
+     *      and UTC-5 reports -500. It is an extension; Date#getTimezoneOffset reports minutes west of UTC instead (-480 for UTC+8).
      *
      */
     const timezone: number;
@@ -104201,7 +103745,7 @@ declare module 'os' {
     /**
      * @description Queries the line ending of the current runtime environment, posix:'\\n'; windows:'\\r\\n'
      *
-     *      The value is '\\n' on POSIX systems and '\\r\\n' on Windows, matching Node.js; use it for
+     *      The value is '\\n' on POSIX systems and '\\r\\n' on Windows; use it for
      *      text files and protocols that require the platform separator.
      *
      */
@@ -104212,7 +103756,7 @@ declare module 'os' {
      *
      *      It groups the platform constants used by the low-level APIs: \`errno\` (error codes),
      *      \`signals\` (signal numbers), \`priority\` (process priorities) and \`dlopen\` (library
-     *      loading flags), plus libuv's \`UV_UDP_REUSEADDR\`. The sub-objects mirror Node.js, while
+     *      loading flags), plus libuv's \`UV_UDP_REUSEADDR\`. The sub-objects group the constants, while
      *      their entries follow the platform and the bundled libuv.
      *
      */
@@ -104233,7 +103777,7 @@ declare module 'os' {
      * @description Queries the total memory of the runtime environment, in bytes
      *
      *      The value is the physical memory installed in the machine, not a limit of the current
-     *      container or cgroup, matching Node.js; see \`freemem\` for the available part and
+     *      container or cgroup; see \`freemem\` for the available part and
      *      process.memoryUsage for this process.
      *      @return returns the memory value
      *
@@ -104244,7 +103788,7 @@ declare module 'os' {
      * @description Queries the available memory of the runtime environment, in bytes
      *
      *      The value is what the operating system reports as free (on Linux the MemAvailable
-     *      estimate), so it includes reclaimable cache; Node.js reports the same value.
+     *      estimate), so it includes reclaimable cache.
      *      @return returns the memory value
      *
      */
@@ -104255,8 +103799,7 @@ declare module 'os' {
      *
      *      One object per logical CPU is returned on every call, each with \`model\`, \`speed\` in
      *      MHz and \`times\`; the times are absolute counters in milliseconds since boot (\`user\`,
-     *      \`nice\`, \`sys\`, \`idle\`, \`irq\`), so sample the array twice to compute a usage ratio. The
-     *      shape matches Node.js os.cpus().
+     *      \`nice\`, \`sys\`, \`idle\`, \`irq\`), so sample the array twice to compute a usage ratio.
      *
      *      Example — summarize the first logical CPU:
      *      \`\`\`JavaScript
@@ -104275,8 +103818,7 @@ declare module 'os' {
      * @description Queries the number of CPUs in the current runtime environment
      *
      *      The number of logical CPUs is counted once and then cached for the lifetime of the
-     *      process. This is a fibjs extension; Node.js code uses os.cpus().length or
-     *      os.availableParallelism() instead.
+     *      process. Use \`cpus().length\` when a parallelism hint is needed.
      *      @return returns the number of CPUs
      *
      */
@@ -104301,7 +103843,7 @@ declare module 'os' {
      *      strings; on Windows uid/gid are -1 and shell is null, and on systems without a passwd
      *      entry the call throws. \`encoding\` selects the text encoding of the string fields:
      *      'buffer' returns Buffer values and any other supported encoding (such as 'base64')
-     *      encodes them, as in Node.js.
+     *      encodes them, as in the encoding options below.
      *
      *      Example — print the effective user:
      *      \`\`\`JavaScript
@@ -104322,8 +103864,8 @@ declare module 'os' {
      *
      *      The result maps every interface name to its address records; see the module Concepts
      *      for the fields. Interfaces with several addresses (IPv4 and IPv6, or several aliases)
-     *      contribute one record each, grouped in the order the kernel reports them. The
-     *      Node.js-only \`cidr\` field is not provided.
+     *      contribute one record each, grouped in the order the kernel reports them.
+     *      A \`cidr\` field is not provided.
      *
      *      Example — list the addresses of every interface:
      *      \`\`\`JavaScript
@@ -104343,8 +103885,7 @@ declare module 'os' {
      * @description Queries the current platform name
      *
      *      Possible results are 'linux', 'win32', 'darwin', 'freebsd', 'android' and 'ios'; the
-     *      value is fixed at build time and matches \`process.platform\`. Node.js uses the same
-     *      names for these platforms.
+     *      value is fixed at build time and matches \`process.platform\`.
      *      @return returns the platform name
      *
      */
@@ -104516,7 +104057,7 @@ declare module 'os_constants' {
  *
  *  Reached through \`require('os').constants.dlopen\`. The values are the flags of the host
  *  dynamic loader - on glibc RTLD_LAZY is 1, RTLD_NOW 2, RTLD_GLOBAL 256, RTLD_LOCAL 0 and
- *  RTLD_DEEPBIND 8 - and they match Node.js's os.constants.dlopen on Linux; process.dlopen
+ *  RTLD_DEEPBIND 8 - the glibc values; process.dlopen
  *  passes the number straight to dlopen, so take the flags from this table. The legacy
  *  constants module exposes the old libuv/macOS numbers (1/2/8/4) under the same names.
  *
@@ -105080,10 +104621,10 @@ declare module 'os_constants_errno' {
  * @description The priority table of os.constants: the process scheduling levels of libuv
  *
  *  Reached through \`require('os').constants.priority\`. The six levels are the libuv
- *  uv_priority values (19/10/0/-7/-14/-20) with the same meaning as in Node.js: on POSIX they
- *  are nice values, where a lower number means a higher priority, and on Windows they map to
- *  the process priority classes. They are the values to pass to a scheduling API; fibjs itself
- *  has no os.getPriority/os.setPriority (a Node.js API), so today the table is informational.
+ * uv_priority values (19/10/0/-7/-14/-20): on POSIX they
+ * are nice values, where a lower number means a higher priority, and on Windows they map to
+ * the process priority classes. They are the values to pass to a scheduling API; there is no
+ * getPriority/setPriority, so today the table is informational.
  *
  *  Concepts:
  *
@@ -105162,7 +104703,7 @@ declare module 'os_constants_priority' {
  *  Reached through \`require('os').constants.signals\`. On POSIX the names and numbers match the
  *  host's \`<signal.h>\` (verified against the Linux x86-64 headers) and include the aliases
  *  SIGIOT = SIGABRT and SIGPOLL = SIGIO; SIGSTKFLT and SIGPWR exist only on Linux. Windows
- *  exposes the same names (matching Node.js) but can deliver only a few of them.
+ *  exposes the same names but can deliver only a few of them.
  *
  *  Concepts:
  *
@@ -105495,12 +105036,13 @@ declare module 'os_constants_signals' {
  *
  *  Notes:
  *
- *  - Node.js offers the same API. fibjs adds \`fullpath\`; \`path.win32.fullpath\` is implemented
+ *  - In addition to the rule-set functions, the module adds \`fullpath\`;
+ *    \`path.win32.fullpath\` is implemented
  *    only on Windows and throws elsewhere.
- *  - \`toNamespacedPath\` is more tolerant than Node.js: a non-string value is returned unchanged
- *    and \`null\` becomes \`undefined\`.
+ *  - \`toNamespacedPath\` returns a non-string value unchanged and converts \`null\` to
+ *    \`undefined\`.
  *  - \`path/posix\` and \`path/win32\` are the runtime entry points of the posix and win32 rule
- *    sets, matching the Node.js subpath requires; \`path_posix\` / \`path_win32\` are only the names
+ *    sets; \`path_posix\` / \`path_win32\` are only the names
  *    of their manual pages.
  *
  */
@@ -105539,7 +105081,6 @@ declare module 'path' {
      *      a dot: basename('/a/b.txt', 'txt') returns 'b.'. When ext does not match, the name is
      *      returned unchanged. The separator rules follow the module rule set: in the posix rule set a
      *      backslash is an ordinary character, while the win32 rule set treats it as a separator.
-     *      Same name in Node.js.
      *
      *      @param path the path to query
      *      @param ext the extension to remove when the file name matches
@@ -105555,7 +105096,7 @@ declare module 'path' {
      *      extname('.env.local') is '.local'. extname('index.') is '.', and the result is '' for '..'
      *      and for paths that end with a separator. A dot in a parent directory name is ignored. In
      *      the posix rule set a backslash is an ordinary character, in the win32 rule set it
-     *      separates segments. Same name in Node.js.
+     *      separates segments.
      *
      *      @param path the path to query
      *      @return the extension
@@ -105570,7 +105111,7 @@ declare module 'path' {
      *      name and ext. Base wins over name + ext when both are present, and dir wins over root
      *      unless dir is empty. When dir equals root no separator is inserted between them; otherwise
      *      the rule set separator joins dir and base. A dir-only object produces a trailing separator
-     *      ('/a' becomes '/a/') and an empty object produces ''. Same name in Node.js.
+     *      ('/a' becomes '/a/') and an empty object produces ''.
      *
      *      pathObject supports the following properties:
      *      \`\`\`JavaScript
@@ -105611,8 +105152,7 @@ declare module 'path' {
      *      dot starts a dotfile ('.bashrc' has base and name '.bashrc' and no extension), while
      *      'index.' has ext '.'. The win32 rule set additionally recognises drive letters ('C:'),
      *      drive-absolute paths ('C:\\'), UNC shares ('\\\\server\\share\\') and '\\\\?\\' device paths,
-     *      accepting both separators. An empty string produces five empty fields. Same name in
-     *      Node.js.
+     *      accepting both separators. An empty string produces five empty fields.
      *
      *      Example — inspect a parsed path:
      *      \`\`\`JavaScript
@@ -105643,7 +105183,7 @@ declare module 'path' {
      *      Trailing separators are ignored: dirname('/foo/bar/') is '/foo', dirname('/foo') is '/',
      *      dirname('foo') is '.', dirname('') is '.' and dirname('/') is '/'. In the win32 rule set
      *      the root is kept for drive-absolute paths ('C:\\foo' becomes 'C:\\') and UNC shares, while
-     *      a drive-relative path keeps its drive ('c:foo' becomes 'c:'). Same name in Node.js.
+     *      a drive-relative path keeps its drive ('c:foo' becomes 'c:').
      *
      *      @param path the path to query
      *      @return the directory name
@@ -105654,7 +105194,7 @@ declare module 'path' {
     /**
      * @description Converts a path into an absolute path anchored at the current working directory
      *
-     *      A fibjs extension, not part of Node.js. An absolute input is normalized; a relative input
+     *      A module extension. An absolute input is normalized; a relative input
      *      is prefixed with process.cwd() and then normalized. The function is a pure string operation
      *      and does not touch the file system: it does not resolve symbolic links or check existence,
      *      and it keeps the separators of the rule set. Unlike resolve, an empty string becomes the
@@ -105685,8 +105225,7 @@ declare module 'path' {
      *      matchesGlob('.gitignore', '*') is false. In the posix rule set a backslash in the pattern
      *      escapes the next character while a backslash in the tested path is an ordinary character;
      *      in the win32 rule set both separators are accepted, drive letters are compared
-     *      case-insensitively and paths on different drives never match. Node.js exposes the same
-     *      function since v22.5.
+     *      case-insensitively and paths on different drives never match.
      *
      *      Example — select source files with a pattern:
      *      \`\`\`JavaScript
@@ -105714,7 +105253,7 @@ declare module 'path' {
      *      accepts a leading '\\' or '/', UNC paths such as '\\\\server\\share' and a drive letter
      *      followed by a separator ('C:\\' or 'C:/'), but reports false for a drive-relative path such
      *      as 'C:temp'. The empty string is never absolute, and the check is purely textual: the path
-     *      does not need to exist. Same name in Node.js.
+     *      does not need to exist.
      *
      *      @param path the path to check
      *      @return true when the path is absolute
@@ -105729,7 +105268,7 @@ declare module 'path' {
      *      segments do not reset the accumulated path the way resolve does: join('a', '/b') is 'a/b'.
      *      A '..' segment cancels a preceding segment when possible, but a leading '..' survives. In
      *      the win32 rule set a leading '//' or '\\\\' pair can form a UNC share and a drive letter is
-     *      kept: join('c:', 'file') is 'c:\\file'. Same name in Node.js.
+     *      kept: join('c:', 'file') is 'c:\\file'.
      *
      *      Example — join segments with embedded '..':
      *      \`\`\`JavaScript
@@ -105755,7 +105294,6 @@ declare module 'path' {
      *      and never ends with a separator. With no arguments, or with only empty segments, the
      *      current working directory is returned. In the win32 rule set the drive of the working
      *      directory is kept for relative segments, while a later drive-absolute segment replaces it.
-     *      Same name in Node.js.
      *
      *      Example — resolve relative, absolute and empty segments:
      *      \`\`\`JavaScript
@@ -105780,7 +105318,7 @@ declare module 'path' {
      *      describe the same location; otherwise the result is the shortest path from the first to
      *      the second, using '..' segments as needed and no trailing separator. In the win32 rule set
      *      paths are compared case-insensitively, and a target on another drive is returned unchanged
-     *      because no relative path can cross drives. Same name in Node.js.
+     *      because no relative path can cross drives.
      *
      *      Example — compute relative paths:
      *      \`\`\`JavaScript
@@ -105805,7 +105343,7 @@ declare module 'path' {
      *      becomes '\\\\?\\C:\\tmp') and a UNC path becomes '\\\\?\\UNC\\...', with forward slashes
      *      converted to backslashes. An existing '\\\\?\\' prefix is not duplicated. The function is a
      *      pure string operation and works on every platform, although the prefix is only meaningful
-     *      on Windows. Node.js returns null unchanged for a null argument, fibjs converts it to
+     *      on Windows; a null argument is converted to
      *      undefined.
      *      See https://msdn.microsoft.com/library/windows/desktop/aa365247(v=vs.85).aspx#namespaces
      *
@@ -105933,9 +105471,9 @@ declare module 'path' {
  *
  *  Notes:
  *
- *  - Node.js exposes the same rule set as require('path').posix; fibjs also provides the
- *    require('path/posix') subpath form and documents the rule set as the path_posix definition.
- *  - fibjs adds fullpath to the rule set; see the path module for the differences from Node.js.
+ *  - The rule set is available as require('path').posix and as the
+ *    require('path/posix') subpath form; it is documented as the path_posix definition.
+ *  - The rule set adds fullpath; see the path module for the shared behaviour.
  *
  */
 declare module 'path/posix' {
@@ -106075,7 +105613,7 @@ declare module 'path/posix' {
     /**
      * @description Converts a posix path into an absolute path anchored at the working directory
      *
-     *      A fibjs extension, not part of Node.js. An absolute input is normalized; a relative input
+     *      An extension of the rule set. An absolute input is normalized; a relative input
      *      is prefixed with process.cwd() and then normalized with the posix rule set. The function
      *      is a pure string operation, does not touch the file system and never checks existence.
      *      Unlike resolve, an empty string becomes the working directory plus a trailing separator.
@@ -106318,8 +105856,8 @@ declare module 'path/posix' {
  *
  *  Notes:
  *
- *  - Node.js exposes the same rule set as require('path').win32; fibjs also provides the
- *    require('path/win32') subpath form and documents the rule set as the path_win32 definition.
+ *  - The rule set is available as require('path').win32 and as the
+ *    require('path/win32') subpath form; it is documented as the path_win32 definition.
  *  - fullpath is implemented only on Windows builds; on other platforms it throws
  *    'not supported on none Win32 platform !'.
  *
@@ -106465,7 +106003,7 @@ declare module 'path/win32' {
     /**
      * @description Converts a win32 path into an absolute path using the native Windows API
      *
-     *      A fibjs extension, not part of Node.js, and implemented only on Windows: on other
+     *      An extension of the rule set, implemented only on Windows: on other
      *      platforms it throws 'not supported on none Win32 platform !'. On Windows the path is
      *      passed to GetFullPathNameW, which anchors a relative path to the current directory of the
      *      current drive and expands the result, keeping the win32 separators.
@@ -106653,19 +106191,18 @@ declare module 'path/win32' {
 /// <reference path="../interface/PerformanceObserver.d.ts" />
 /// <reference path="../module/performance.d.ts" />
 /**
- * @description Node.js compatibility entry point that exposes the performance measurement API
+ * @description Compatibility entry point that exposes the performance measurement API
  *
  *  \`require('perf_hooks')\` returns a module with exactly two members, \`performance\` and
  *  \`PerformanceObserver\`; both are the same objects as the globals \`performance\` and
- *  \`PerformanceObserver\`, so the module exists only so that code written for Node.js can keep its
- *  \`require('perf_hooks')\` destructuring.
+ * \`PerformanceObserver\`, so the module exists so that \`require('perf_hooks')\` destructuring keeps working.
  *
  *  Concepts:
  *
  *  - **What is shared**: the module object itself is stateless; marks, measures and observers live on
  *    the isolate, so every reference to \`performance\` (module, global, sandbox) sees the same
  *    timeline.
- *  - **Not provided**: Node.js also exports \`Performance\`, \`PerformanceEntry\`, \`PerformanceMark\`,
+ *  - **Not provided**: \`Performance\`, \`PerformanceEntry\`, \`PerformanceMark\`,
  *    \`PerformanceMeasure\`, \`PerformanceObserverEntryList\`, \`PerformanceResourceTiming\`,
  *    \`monitorEventLoopDelay\`, \`eventLoopUtilization\`, \`timerify\`, \`createHistogram\` and \`constants\`;
  *    fibjs exposes none of them. The entry classes exist internally but are not reachable by name,
@@ -106685,7 +106222,7 @@ declare module 'path/win32' {
  *  console.log(Object.keys(perf_hooks).sort().join(', ')); // PerformanceObserver, performance
  *  \`\`\`
  *
- *  Example 2 — a minimal Node.js style measurement:
+ *  Example 2 — a minimal measurement:
  *  \`\`\`JavaScript
  *  const { performance, PerformanceObserver } = require('perf_hooks');
  *
@@ -106735,7 +106272,7 @@ declare module 'perf_hooks' {
  *
  *  - **Clock**: \`now\` reads the monotonic high-resolution clock;
  *  - **Marks**: \`mark\` records a named timestamp and \`clearMarks\` removes them;
- *  - **Measures**: \`measure\` computes a duration; \`clearMeasures\` is a Node.js compatibility no-op;
+ *  - **Measures**: \`measure\` computes a duration; \`clearMeasures\` is a compatibility no-op;
  *  - **Timeline queries**: \`getEntries\`, \`getEntriesByType\` and \`getEntriesByName\` read the marks;
  *  - **Observation**: \`PerformanceObserver\` receives marks and measures as they are recorded;
  *  - **Resource timing**: \`markResourceTiming\` is a compatibility stub that records nothing.
@@ -106748,18 +106285,16 @@ declare module 'perf_hooks' {
  *  - **Monotonic clock**: \`now()\` returns the milliseconds elapsed since the fibjs runtime started,
  *    as a floating-point number with sub-millisecond resolution. It never goes backwards and has no
  *    relation to the wall clock (use Date for calendar time); only a difference between two readings
- *    is meaningful. Node.js additionally provides \`timeOrigin\`, \`toJSON\`, \`nodeTiming\` and
- *    \`eventLoopUtilization\`, none of which exist here.
+ *    is meaningful.
  *  - **Entry types**: only \`mark\` and \`measure\` entries are ever produced; there is no navigation,
  *    resource, paint or user-timing buffer, and an observer registered for another type never fires.
  *  - **Marks**: a mark is a named timestamp that can carry an arbitrary \`detail\` and whose
  *    \`startTime\` can be overridden. Marks are keyed by name, so marking the same name again replaces
- *    the previous entry (Node.js keeps both).
+ *    the previous entry.
  *  - **Measures**: a measure is a computed duration derived from two mark names, from explicit
  *    numbers, or from \`start\` plus \`duration\`. Measures are **not stored** in the timeline:
  *    \`getEntries\`/\`getEntriesByType\`/\`getEntriesByName\` only ever return marks and \`clearMeasures\`
- *    does nothing; a measure reaches the program exclusively through a PerformanceObserver. Node.js
- *    retains measures and can query them.
+ *    does nothing; a measure reaches the program exclusively through a PerformanceObserver.
  *  - **Observers vs polling**: \`getEntries*\` is a snapshot of the marks recorded so far, while an
  *    observer is notified about new entries. Records are queued synchronously, so \`takeRecords()\`
  *    can drain them before the callback runs; the callback itself runs when the current fiber yields.
@@ -106834,7 +106369,7 @@ declare module 'perf_hooks' {
  *  - getEntries returns the marks in an unspecified order; sort the array when a stable order is
  *    needed.
  *  - A missing mark in measure fails with Error [20024] and messages such as
- *    "startMark 'x' not found"; Node.js throws a DOMException instead.
+ *    "startMark 'x' not found".
  *
  */
 declare module 'performance' {
@@ -106851,11 +106386,11 @@ declare module 'performance' {
     function clearMarks(name?: string): void;
 
     /**
-     * @description Compatibility no-op kept for Node.js API parity
+     * @description Compatibility no-op
      *
-     *      fibjs does not retain measures in the timeline, so there is nothing to remove and the call
-     *      always returns undefined. It exists so code written for Node.js, where the member clears
-     *      named or anonymous measures, keeps working; observer delivery is not affected.
+     *      Measures are not retained in the timeline, so there is nothing to remove and the call
+     *      always returns undefined. It exists so code written against the member keeps working;
+     *      observer delivery is not affected.
      *
      *      @param name the measure name; ignored
      *
@@ -106913,8 +106448,7 @@ declare module 'performance' {
      *
      *      The second overload, measure(name, startMark, endMark), takes mark names directly: an empty
      *      startMark means timestamp 0 and an empty endMark means the current time. Both overloads
-     *      compute duration as end - start; a negative duration is accepted (Node.js rejects an
-     *      explicitly negative \`duration\` option and keeps end < start as negative). A string start or
+     *      compute duration as end - start; a negative duration is accepted. A string start or
      *      end that names a missing mark fails with Error [20024] and "startMark 'x' not found" or
      *      "endMark 'x' not found"; \`duration\` together with \`end\` fails with "end must not be specified
      *      when duration is specified"; a start or end that is neither string nor number fails with
@@ -107033,9 +106567,9 @@ declare module 'performance' {
     function getEntriesByName(name: string, type?: string): Class_PerformanceEntry[];
 
     /**
-     * @description Compatibility stub of the Node.js resource timing hook
+     * @description Compatibility stub of the resource timing hook
      *
-     *      Accepts the Node.js markResourceTiming(timingInfo, requestedUrl, initiatorType, global,
+     *      Accepts the markResourceTiming(timingInfo, requestedUrl, initiatorType, global,
      *      cacheState, bodyInfo, responseStatus) call and does nothing: no resource entry is created and
      *      observers registered for \`resource\` never fire. The arguments are still type-checked, so all
      *      seven must be supplied.
@@ -107138,18 +106672,17 @@ declare module 'performance' {
  *    these streams.
  *  - **Parent-child IPC**: only a child started with an IPC channel (child_process.fork, or
  *    \`stdio: 'ipc'\`) receives NODE_CHANNEL_FD and with it \`send\`, \`connected\` and
- *    \`disconnect\`; in any other process the three members are \`undefined\`, matching Node.js.
+ *    \`disconnect\`; in any other process the three members are \`undefined\`.
  *    Messages are JSON-encoded and newline-framed, and a child reads
  *    them lazily once a \`message\` listener is registered, so an IPC child without such a
  *    listener is not kept alive by the channel.
- *  - **Node.js differences**: \`uptime\` measures the system uptime, not the time since the
- *    process started; \`version\`/\`versions\` describe fibjs (the bundled Node-API version is
+ *  - **Fields with a specific meaning**: \`uptime\` measures the system uptime, not the time since the
+ *    process started; \`version\`/\`versions\` describe the runtime (the bundled Node-API version is
  *    \`versions.napi\`); \`release.name\` stays \`'node'\` for compatibility and
- *    \`release.venderUrl\` is a fibjs extension; \`title\` is writable but does not change the
+ *    \`release.venderUrl\` is an extension; \`title\` is writable but does not change the
  *    operating system process name; \`binding\` is an internal compatibility shim;
  *    \`getuid\`/\`getgid\` return 0 and \`setuid\`/\`setgid\` do nothing on Windows. \`emitWarning\`
- *    is dropped silently when no \`warning\` listener is attached, while Node.js prints it to
- *    stderr.
+ *    is dropped silently when no \`warning\` listener is attached.
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -107282,8 +106815,7 @@ declare module 'process' {
      * @description Returns the special command line arguments of the current process; these arguments are used by fibjs to configure the runtime environment
      *
      *      The fibjs runtime options are extracted before \`argv\` is built, so they never appear
-     *      there; the array is empty when the process was started without options. Node.js reports
-     *      the Node.js options through the same property.
+     *      there; the array is empty when the process was started without options.
      *
      */
     const execArgv: string[];
@@ -107291,9 +106823,8 @@ declare module 'process' {
     /**
      * @description Returns the fibjs version string
      *
-     *      The value carries a leading \`v\` (for example \`v0.38.0-dev\`) and describes fibjs, not
-     *      Node.js; use \`versions.node\` for the bundled Node-API compatibility version, because a
-     *      feature test based on Node.js version numbers is not portable here.
+     *      The value carries a leading \`v\` (for example \`v0.38.0-dev\`) and describes the runtime;
+     *      \`versions.node\` carries the bundled Node-API compatibility version.
      *
      */
     const version: string;
@@ -107301,7 +106832,7 @@ declare module 'process' {
     /**
      * @description Returns version information of fibjs and its components
      *
-     *      The object contains \`fibjs\`, \`node\` (the Node.js version of the bundled Node-API
+     *      The object contains \`fibjs\`, \`node\` (the Node-API version of the bundled
      *      headers), \`platform\`, \`arch\`, \`git\` (release builds), the compiler
      *      (\`clang\`/\`gcc\`/\`msvc\`), \`date\`, \`debug\` (debug builds only), \`modules\`, \`napi\`, the
      *      \`vender\` object with the bundled library versions and \`builtins\` with the names of the
@@ -107337,8 +106868,7 @@ declare module 'process' {
      *
      *      Possible results are 'x64', 'ia32', 'arm', 'arm64', 'mips', 'mips64', 'ppc64',
      *      'riscv64' and 'loong64'. The value is the build target of the fibjs binary and matches
-     *      \`os.arch\` and \`versions.arch\`; Node.js reports the same names for the architectures it
-     *      supports.
+     *      \`os.arch\` and \`versions.arch\`.
      *
      */
     const arch: string;
@@ -107348,7 +106878,7 @@ declare module 'process' {
      *
      *      Possible results are 'linux', 'win32', 'darwin', 'freebsd', 'android' (Android) and
      *      'ios' (iPhone); the value is the build target of the binary and matches \`os.platform\`
-     *      and \`versions.platform\`. Node.js uses the same names for these platforms.
+     *      and \`versions.platform\`.
      *
      */
     const platform: string;
@@ -107356,10 +106886,8 @@ declare module 'process' {
     /**
      * @description Returns the release metadata of the current build; name is set to 'node'
      *
-     *      The object has three fields: \`name\` is always 'node' so that libraries probing the
-     *      Node.js release keep working, \`sourceUrl\` points to the fibjs repository and
-     *      \`venderUrl\` to the dependency mirror (a fibjs extension). Node.js exposes a different
-     *      set of fields, so only \`name\` is portable.
+     *      The object has three fields: \`name\` is always 'node', \`sourceUrl\` points to the fibjs
+     *      repository and \`venderUrl\` to the dependency mirror (an extension).
      *
      */
     const release: {
@@ -107371,9 +106899,8 @@ declare module 'process' {
     /**
      * @description Title of the current process, initialized to 'fibjs'
      *
-     *      The property is writable, but fibjs does not change the operating system process name
-     *      when it is assigned, unlike Node.js where \`process.title\` renames the process; the
-     *      initial value is 'fibjs'.
+     *      The property is writable, but assigning it does not change the operating system process
+     *      name; the initial value is 'fibjs'.
      *
      */
     export const title: "fibjs";
@@ -107473,8 +107000,7 @@ declare module 'process' {
      *      starts at system boot, so it never jumps when the wall clock is adjusted. Pass a
      *      previous result as diff to get the elapsed time; only an array of exactly two elements
      *      is subtracted, other arrays are ignored, and a value that is not an array throws a type
-     *      error. \`hrtime.bigint()\` returns the same clock as one BigInt number of nanoseconds,
-     *      matching Node.js.
+     *      error. \`hrtime.bigint()\` returns the same clock as one BigInt number of nanoseconds.
      *      @param diff the initial time to compare against
      *      @return returns the measured time in the format [seconds, nanoseconds]
      *
@@ -107521,11 +107047,11 @@ declare module 'process' {
      *      A Node-API extension exports napi_register_module_v1; the exports object registered by this function is written to module.exports, and requiring a .node file ultimately goes through this path as well.
      *
      *      Compatibility notes:
-     *      - By default fibjs pins all JS of an isolate to one dedicated OS thread, which is consistent with Node.js's contract that "one napi_env corresponds to one OS thread";
+     *      - By default fibjs pins all JS of an isolate to one dedicated OS thread, which is the Node-API contract that "one napi_env corresponds to one OS thread";
      *        therefore extensions that cache class constructors or runtime handles in thread-local storage (TLS) when the module is loaded work correctly;
      *      - When started with --no-js-thread-affinity, the isolate's JS fibers are scheduled back on the shared thread pool, and extensions that rely on TLS may fail randomly;
      *      - If an extension uses napi_tsfn_blocking on a full threadsafe function inside a callback coming from JS, it blocks the isolate's only
-     *        JS thread, while draining that queue also requires this thread, resulting in self-deadlock; Node.js's single-threaded event loop has the same limitation.
+     *        JS thread, while draining that queue also requires this thread, resulting in self-deadlock; a single-threaded event loop has the same limitation.
      *
      *      @param module specifies the module to load
      *      @param filename specifies the file name of the module to load
@@ -107601,7 +107127,7 @@ declare module 'process' {
      * @description Queries the uptime of the runtime environment, in seconds
      *
      *      The value is the uptime of the operating system counted by the monotonic clock, not
-     *      the time since the fibjs process started as in Node.js, so a freshly started process
+     *      the time since the process started, so a freshly started process
      *      can already report a very large number. Use \`hrtime\` for elapsed time inside the
      *      process.
      *      @return returns a numeric value representing the time
@@ -107614,8 +107140,7 @@ declare module 'process' {
      *
      *      The result is cumulative and has \`user\` and \`system\` fields; pass a previous result as
      *      previousValue to receive the difference since then. Both fields of previousValue must
-     *      be numbers, otherwise the call throws Error 20005. Node.js reports the same units, so
-     *      the values are portable.
+     *      be numbers, otherwise the call throws Error 20005.
      *
      *      The report is generated similar to the following:
      *      \`\`\`JavaScript
@@ -107648,8 +107173,7 @@ declare module 'process' {
      *      - nativeObjects returns an object counting the live native objects by class name
      *      - ExtStrings returns the number of external strings currently alive
      *
-     *      Node.js returns rss/heapTotal/heapUsed/external/arrayBuffers, so \`nativeObjects\` and
-     *      \`ExtStrings\` are fibjs extensions and \`arrayBuffers\` is not provided.
+     *      \`nativeObjects\` and \`ExtStrings\` are extensions of the runtime and \`arrayBuffers\` is not provided.
      *
      *      The report is generated similar to the following:
      *      \`\`\`JavaScript
@@ -107674,7 +107198,7 @@ declare module 'process' {
      *      The report maps the operating system rusage counters: CPU times are in microseconds,
      *      maxRSS is in kilobytes on Linux and in bytes on macOS/BSD (the unit of the underlying
      *      rusage), and the remaining counters are plain numbers. Fields the kernel does not
-     *      expose are 0 (marked below). The field names match Node.js resourceUsage(); only the
+     *      expose are 0 (marked below); only the
      *      maxRSS unit follows the platform as described above.
      *
      *      resourceUsage generates results similar to the following:
@@ -107750,7 +107274,7 @@ declare module 'process' {
      *      \`'process'\` returns the process module itself, \`'EventEmitter'\` and \`'Buffer'\` return
      *      those classes, and any other name is looked up among the registered native modules
      *      (for example \`'fs'\` or \`'net'\`); an unknown name returns undefined. This is an internal
-     *      compatibility shim, not the Node.js process.binding API.
+     *      compatibility shim.
      *      @param name specifies the name of the internal module to query
      *      @return returns the specified internal module
      *
@@ -107762,8 +107286,7 @@ declare module 'process' {
      *
      *      Built-in ids may be given with or without the \`node:\` prefix; \`fibjs:\` is accepted as
      *      well, and sub-path modules such as \`path/posix\`, \`fs/promises\` or \`stream/web\` resolve
-     *      too. The returned object is identical to the one require(id) returns (Node.js
-     *      compatibility, v22.3 and later).
+     *      too. The returned object is identical to the one require(id) returns.
      *
      *      Example — the result is the same object require returns:
      *      \`\`\`JavaScript
@@ -107806,8 +107329,7 @@ declare module 'process' {
      *
      *      Only a privileged process can change its group id; when the underlying call fails
      *      (for example without the required privileges) the error is ignored and the ids stay
-     *      unchanged, unlike Node.js which reports the failure. On Windows the call does
-     *      nothing.
+     *      unchanged. On Windows the call does nothing.
      *      @param id specifies the group id to set
      *
      */
@@ -107818,7 +107340,7 @@ declare module 'process' {
      *
      *      Only a privileged process can change its user id; when the underlying call fails
      *      (for example without the required privileges) the error is ignored and the ids stay
-     *      unchanged, unlike Node.js which reports the failure. On Windows the call does
+     *      unchanged. On Windows the call does
      *      nothing.
      *      @param id specifies the user id to set
      *
@@ -107830,8 +107352,7 @@ declare module 'process' {
      *
      *      A string warning is wrapped in an Error, while any other non-Error value throws Error
      *      20003. The warning is delivered asynchronously to the \`warning\` listeners of the
-     *      process object; without a listener it is dropped silently, whereas Node.js prints it
-     *      to stderr. options may be omitted, and it supports the following properties:
+     *      process object; without a listener it is dropped silently. options may be omitted, and it supports the following properties:
      *
      *      \`\`\`JavaScript
      *      // fragment: options
@@ -107906,8 +107427,7 @@ declare module 'process' {
      *
      *      The property only exists in a child process started with an IPC channel (see
      *      child_process.fork and the 'ipc' stdio type); it is true while the channel is open and
-     *      false after \`disconnect\`. In any other process the member is undefined, as in
-     *      Node.js.
+     *      false after \`disconnect\`; in any other process the member is undefined.
      *
      */
     const connected: boolean;
@@ -108025,8 +107545,7 @@ declare module 'process' {
  *   becomes \`xn--bcher-kva.example\`. toASCII and toUnicode handle the prefix per label and
  *   leave labels that are already ASCII unchanged, while encode/decode work on the raw encoded
  *   label and never touch the prefix.
- * - **Deprecation**: Node.js marks its bundled \`punycode\` module as deprecated (DEP0040) and
- *   recommends userland packages or \`url.domainToASCII\`; the fibjs module is not deprecated,
+ * - **Deprecation**: the module is not deprecated,
  *   but url.domainToASCII and url.domainToUnicode are the preferred entry points for IDN
  *   handling because they apply the full UTS #46 mapping.
  * - The conversion accepts code points beyond the Basic Multilingual Plane; malformed input is
@@ -108104,7 +107623,7 @@ declare module 'punycode' {
      *      Each label is encoded only when it contains non-ASCII characters, so labels that are
      *      already ASCII are copied unchanged, and encoded labels receive the \`xn--\` prefix. The
      *      conversion applies the UTS #46 mapping through the URL parser and normalizes the case,
-     *      for example \`BÜCHER.com\` becomes \`xn--bcher-kva.com\` (Node.js keeps the original case).
+     *      for example \`BÜCHER.com\` becomes \`xn--bcher-kva.com\`.
      *      Malformed or unsupported input is returned unchanged instead of raising an error, so
      *      validate the result.
      *
@@ -108119,8 +107638,7 @@ declare module 'punycode' {
      *
      *      Only labels that carry the \`xn--\` prefix are converted; all other labels are copied
      *      unchanged, so the function can be applied to a domain that is already Unicode. The
-     *      prefix test is case-sensitive in fibjs: an upper-case \`XN--\` label is left as is,
-     *      while Node.js decodes it.
+     *      prefix test is case-sensitive: an upper-case \`XN--\` label is left as is.
      *
      *      @param domain ASCII (ACE) domain name to convert
      *      @return the Unicode form of the domain name
@@ -108138,8 +107656,8 @@ declare module 'punycode' {
  *
  * \`parse\` builds an HttpCollection from a query string, \`stringify\` serializes an object back
  * into a query string, and \`escape\`/\`unescape\` apply the same percent-encoding to individual
- * values. It is the fibjs counterpart of the Node.js \`querystring\` module; both runtimes treat
- * it as legacy, and URLSearchParams covers most use cases with the standard API.
+ * values. It is kept as a legacy interface; URLSearchParams covers most use cases with the
+ * standard API.
  *
  * Concepts:
  *
@@ -108151,12 +107669,12 @@ declare module 'punycode' {
  *   collection compares names case-insensitively, stores strings, keeps every value of a
  *   repeated name (\`get\` returns the first one, \`all(name)\`/\`getAll(name)\` return the array),
  *   and its iteration helpers (\`forEach\`, \`keys\`, \`values\`, \`entries\`) sort the keys in place.
- *   \`toJSON()\` returns the plain multi-value object that Node.js would have returned.
- * - **Options**: \`sep\` and \`eq\` replace the default separators; the fourth argument exists for
- *   Node.js compatibility but no option (\`maxKeys\`, \`decodeURIComponent\`) is implemented, so
+ *   \`toJSON()\` returns the plain multi-value object form.
+ * - **Options**: \`sep\` and \`eq\` replace the default separators; the fourth argument is
+ *   accepted but no option (\`maxKeys\`, \`decodeURIComponent\`) is implemented, so
  *   every pair is parsed.
  * - **Escaping**: escape encodes everything except the unreserved characters, with a space
- *   becoming \`+\` (Node.js writes \`%20\`); unescape decodes every percent escape, including the
+ *   becoming \`+\`; unescape decodes every percent escape, including the
  *   reserved characters that the standard decodeURI leaves alone, but keeps a literal \`+\` as
  *   it is. Malformed escapes are decoded leniently instead of being preserved as written, so
  *   validate untrusted input.
@@ -108203,7 +107721,7 @@ declare module 'querystring' {
      * @description Encodes a string with the urlencoded rules, writing a space as \`+\`
      *
      *      Every character outside the unreserved set \`A-Z a-z 0-9 - _ . ! ~ * ' ( )\` is
-     *      percent-encoded with upper-case hex digits; the escape matches Node.js except that a
+     *      percent-encoded with upper-case hex digits, except that a
      *      space becomes \`+\` instead of \`%20\`. The result round-trips through unescape and is the
      *      encoding used by stringify for names and values.
      *
@@ -108235,8 +107753,7 @@ declare module 'querystring' {
      *      are decoded with unescape. Repeated names keep every value, \`get\` returns the first one
      *      and \`all(name)\`/\`getAll(name)\` return the full array; empty segments are skipped and an
      *      empty name is kept. The result compares names case-insensitively and sorts the keys in
-     *      place when an iteration helper is used. The fourth argument is accepted for Node.js
-     *      compatibility but is ignored.
+     *      place when an iteration helper is used. The fourth argument is accepted but is ignored.
      *
      *      Example — read repeated values and the plain object form:
      *      \`\`\`JavaScript
@@ -108251,7 +107768,7 @@ declare module 'querystring' {
      *      @param str query string to parse
      *      @param sep separator between pairs, default \`&\`
      *      @param eq separator between name and value, default \`=\`
-     *      @param opt reserved for Node.js options; not supported and ignored
+     *      @param opt reserved for options; not supported and ignored
      *      @return the parsed HttpCollection
      *
      */
@@ -108263,9 +107780,9 @@ declare module 'querystring' {
      *      The own enumerable properties are written in their enumeration order; a value that is
      *      an array is written as one pair per element with the same name. Values are converted to
      *      strings with the usual rules, so \`null\` and \`undefined\` are written as \`null\` and
-     *      \`undefined\` (Node.js writes empty values), a number keeps its text and a nested object
+     *      \`undefined\`, a number keeps its text and a nested object
      *      becomes \`[object Object]\`. Names and values are encoded with escape, writing a space as
-     *      \`+\`. The fourth argument is accepted for Node.js compatibility but is ignored.
+     *      \`+\`. The fourth argument is accepted but is ignored.
      *
      *      Example — arrays and custom separators:
      *      \`\`\`JavaScript
@@ -108278,7 +107795,7 @@ declare module 'querystring' {
      *      @param obj object to serialize
      *      @param sep separator between pairs, default \`&\`
      *      @param eq separator between name and value, default \`=\`
-     *      @param opt reserved for Node.js options; not supported and ignored
+     *      @param opt reserved for options; not supported and ignored
      *      @return the serialized query string
      *
      */
@@ -109517,7 +109034,7 @@ declare module 'sse' {
      *      \`onerror\` and \`onclose\`. The readyState values are read from the module as
      *      \`sse.CONNECTING\`, \`sse.OPEN\` and \`sse.CLOSED\`.
      *
-     *      Node.js and MDN expose EventSource as a global and reconnect automatically; this
+     *      MDN exposes EventSource as a global that reconnects automatically; this
      *      implementation must be created from the module and never retries. See the EventSource
      *      definition for the constructor options, events and error semantics.
      *
@@ -110469,9 +109986,9 @@ declare module 'stream/web' {
         "dts/module/string_decoder.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/StringDecoder.d.ts" />
 /**
- * @description Node.js-compatible alias module whose single export is the StringDecoder class
+ * @description Alias module whose single export is the StringDecoder class
  *
- *  The module exists so that Node.js code doing \`require('string_decoder')\` keeps working:
+ *  The module exists so that \`require('string_decoder')\` resolves:
  *  it exports the same class as the StringDecoder interface, reachable as
  *  \`require('string_decoder').StringDecoder\` and also as
  *  \`require('node:string_decoder').StringDecoder\`. There is no global \`StringDecoder\`, and
@@ -110483,8 +110000,7 @@ declare module 'stream/web' {
  *  - **Streaming decode**: StringDecoder converts a byte stream into text incrementally,
  *    holding the incomplete tail of a multibyte character until the next chunk; see the
  *    StringDecoder interface for the chunk-boundary model and the per-encoding state.
- *  - **Node compatibility**: the module name, the export name and the chunk semantics
- *    match Node.js; the error types and the behavior of calling \`end\` twice differ, see the
+ *  - **Notes**: the error types and the behavior of calling \`end\` twice are documented in the
  *    StringDecoder interface notes.
  *
  *  Import:
@@ -111001,7 +110517,7 @@ declare module 'subtle' {
      *        point, the 32-byte Ed25519 public key or the HMAC secret; the algorithm's namedCurve
      *        is required for EC keys and must match the data;
      *      - \`pkcs8\` - a DER private key; \`spki\` - a DER public key;
-     *      - \`jwk\` - the object exported by exportKey (or a compatible one from Node.js); \`kty\` is
+     *      - \`jwk\` - the object exported by exportKey (or a compatible one); \`kty\` is
      *        required.
      *
      *      The algorithm must match the material: an EC key on a different curve is rejected.
@@ -111042,7 +110558,7 @@ declare module 'subtle' {
      *        point, the 32-byte Ed25519 public key or the HMAC secret; the algorithm's namedCurve
      *        is required for EC keys and must match the data;
      *      - \`pkcs8\` - a DER private key; \`spki\` - a DER public key;
-     *      - \`jwk\` - the object exported by exportKey (or a compatible one from Node.js); \`kty\` is
+     *      - \`jwk\` - the object exported by exportKey (or a compatible one); \`kty\` is
      *        required.
      *
      *      The algorithm must match the material: an EC key on a different curve is rejected.
@@ -111083,7 +110599,7 @@ declare module 'subtle' {
      *        point, the 32-byte Ed25519 public key or the HMAC secret; the algorithm's namedCurve
      *        is required for EC keys and must match the data;
      *      - \`pkcs8\` - a DER private key; \`spki\` - a DER public key;
-     *      - \`jwk\` - the object exported by exportKey (or a compatible one from Node.js); \`kty\` is
+     *      - \`jwk\` - the object exported by exportKey (or a compatible one); \`kty\` is
      *        required.
      *
      *      The algorithm must match the material: an EC key on a different curve is rejected.
@@ -111535,12 +111051,12 @@ declare module 'subtle' {
  *    the end as a numbered list with the source location and stack, after the \`N tests
  *    completed\` line and the passed/failed/todo/skipped counters. Any counted failure sets the
  *    process exit code to 1, except a failure coming only from an \`afterEach\` hook, which
- *    appears in the summary but leaves the exit code at 0 (Node.js exits 1).
+ *    appears in the summary but leaves the exit code at 0.
  *  - **Leaked resources**: \`FIBJS_TEST_WATCHDOG_MS\` (default 10000) arms a watchdog after the
  *    run; if the process is still alive then, a fibers/memory report is printed and the process
  *    exits with code 124, so cases must release handles, timers and servers.
- *  - **CLI**: \`fibjs --test [files|dirs|globs]\` discovers test files with the Node.js
- *    test-file conventions (files named \`*.test.js\`, \`*-test.js\`, \`*_test.js\`, \`test-*.js\` or
+ *  - **CLI**: \`fibjs --test [files|dirs|globs]\` discovers test files by the usual
+ *    conventions (files named \`*.test.js\`, \`*-test.js\`, \`*_test.js\`, \`test-*.js\` or
  *    \`test.js\`, and any \`.js\`/\`.mjs\`/\`.cjs\` under a directory named \`test\`) and loads them
  *    sequentially in one process. \`--test-name-pattern=<regex>\` keeps the cases whose name, or
  *    an ancestor suite's name, matches; \`--test-concurrency\` and \`--test-isolation\` are
@@ -111550,7 +111066,7 @@ declare module 'subtle' {
  *  Import:
  *  \`\`\`JavaScript
  *  const test = require('test');
- *  // the same builtin is reachable under the Node.js id and can be destructured:
+ *  // the same builtin is reachable as \`node:test\` and can be destructured:
  *  const { describe, it, suite, before, after, beforeEach, afterEach } = require('node:test');
  *  \`\`\`
  *
@@ -111614,12 +111130,11 @@ declare module 'subtle' {
  *
  *  - \`require('test')\` and \`require('node:test')\` return the same object; the \`node:\` prefixed id
  *    is the builtin, not a user-installed package.
- *  - Node.js extras are not provided: there is no \`run()\`, \`mock\`, \`snapshot\`, subtests, test
- *    context, reporters, watch mode or coverage; the case options only honor
- *    \`skip\`/\`todo\`/\`only\`, and \`timeout\` is ignored where Node.js fails the case.
- *  - In Node.js a todo case body runs and its failure is silenced, while in fibjs it does not
- *    run at all; a todo suite in fibjs is counted as planned but its cases still run and can
- *    fail the run.
+ *  - Not provided: \`run()\`, \`mock\`, \`snapshot\`, subtests, test
+ *    context, reporters, watch mode and coverage; the case options only honor
+ *    \`skip\`/\`todo\`/\`only\`, and \`timeout\` is ignored.
+ *  - A todo case body does not run at all; a todo suite is counted as planned but its cases
+ *    still run and can fail the run.
  *  - \`mustCall\` must be used inside a running case (error 20009 outside), and a wrapped function
  *    that is never called leaves the run waiting forever: the watchdog is armed only after the
  *    run finishes.
@@ -111655,7 +111170,7 @@ declare module 'test' {
      *      \`todo\` and \`only\`, and each of them only takes effect when it is the literal \`true\`
      *
      *      The options form is shared by the callable module and by \`it\`, \`skip\`, \`only\` and \`todo\`.
-     *      \`timeout\` and other Node.js options are accepted but ignored; see the two-argument form
+     *      \`timeout\` and the other options are accepted but ignored; see the two-argument form
      *      for the body execution model. \`skip: true\` wins over \`todo: true\`.
      *
      *      @param name the case title shown in the report
@@ -111668,7 +111183,7 @@ declare module 'test' {
     namespace test {
         /**
          * @description The test module itself, so \`test.test\` is the callable module and can be
-         *      destructured like the Node.js export
+         *      destructured like the module export
          *
          *      It exists because \`it\` is an alias of \`test\`: \`test.test\`, \`test.it\` and the module
          *      returned by \`require('test')\` are the same callable object. Use it when a reference to
@@ -111682,7 +111197,7 @@ declare module 'test' {
          *      block)\`, \`it.skip\`, \`it.only\` and \`it.todo\` behave exactly like the module-level
          *      functions
          *
-         *      \`it\` and \`test\` are the same callable object, which matches the Node.js \`node:test\`
+         *      \`it\` and \`test\` are the same callable object, matching the \`node:test\`
          *      aliases; \`it.it\` is therefore \`it\` again.
          *
          */
@@ -111693,8 +111208,8 @@ declare module 'test' {
          *      block)\` defines a suite, and \`suite.skip\`/\`suite.only\`/\`suite.todo\` are the marked
          *      variants
          *
-         *      See the test_suite module for the suite semantics; \`describe\` is the same object under
-         *      its Node.js name.
+         *      See the test_suite module for the suite semantics; \`describe\` is another name for the
+         *      same object.
          *
          */
         const suite: typeof import ('test_suite');
@@ -111703,7 +111218,7 @@ declare module 'test' {
          * @description The describe alias of suite; \`describe(name, block)\` defines a suite that can
          *      be nested, and \`describe.skip\`/\`describe.only\`/\`describe.todo\` are the marked variants
          *
-         *      \`describe\` and \`suite\` are the same object, which matches the Node.js \`node:test\`
+         *      \`describe\` and \`suite\` are the same object, matching the \`node:test\`
          *      aliases. See the test_suite module for the suite semantics.
          *
          */
@@ -111723,8 +111238,7 @@ declare module 'test' {
          * @description Defines a skipped suite; equivalent to \`suite.skip(name, block)\`, so the whole
          *      subtree is pruned and its cases are neither executed nor counted
          *
-         *      In Node.js the equivalent is \`describe.skip\`; fibjs keeps \`xdescribe\` as the legacy
-         *      alias next to \`suite.skip\`.
+         *      \`xdescribe\` is the legacy alias next to \`suite.skip\`.
          *
          *      @param name the suite title shown in the report
          *      @param block the suite body that declares the nested cases
@@ -111736,7 +111250,7 @@ declare module 'test' {
          * @description Defines a suite selected by \`only\`; equivalent to \`suite.only(name, block)\`,
          *      so the other direct children of the enclosing suite are skipped
          *
-         *      In Node.js the equivalent is \`describe.only\`; the options form \`{ only: true }\` has the
+         *      The options form \`{ only: true }\` has the
          *      same effect. See the \`only\` member of the test module for the selection scope.
          *
          *      @param name the suite title shown in the report
@@ -111749,7 +111263,7 @@ declare module 'test' {
          * @description Defines a skipped case; equivalent to \`skip(name, block)\`, the case is counted
          *      in the skipped total and its body is not executed
          *
-         *      In Node.js the equivalent is \`it.skip\`; fibjs keeps \`xit\` as the legacy alias. A body is
+         *      \`xit\` is the legacy alias of \`it.skip\`. A body is
          *      required here, exactly as for \`skip\`.
          *
          *      @param name the case title shown in the report
@@ -111819,7 +111333,7 @@ declare module 'test' {
 
         /**
          * @description Defines a planned case; it is counted in the todo total and its body is not
-         *      executed, which differs from Node.js where a todo body runs and its failure is silenced
+         *      executed
          *
          *      The one-argument form declares a planned case without a body. \`skip: true\` takes
          *      precedence over the todo level in the options form.
@@ -111911,7 +111425,7 @@ declare module 'test' {
          *
          *      Hooks run inner suite first. A failing \`afterEach\` hook turns the current case into a
          *      failure; when that is the only failure, the summary reports it but the process exit
-         *      code stays 0 (Node.js exits 1 in this situation).
+         *      code stays 0.
          *
          *      @param func the hook function
          *
@@ -112036,7 +111550,6 @@ declare module 'test' {
  *    \`afterEach\` from the test module attach to the suite that is being collected.
  *  - **\`todo\` suites**: a todo suite is counted in the todo total, but its body is still
  *    executed and its cases still run and can fail the run; a skip suite is pruned entirely.
- *    This differs from Node.js, where a todo suite silences its subtree.
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -112070,7 +111583,7 @@ declare module 'test' {
  *
  *  Notes:
  *
- *  - \`describe\`/\`suite\` return undefined; unlike Node.js they do not return a promise,
+ *  - \`describe\`/\`suite\` return undefined (not a promise),
  *    because the suite body is collected during the run rather than awaited at the call site.
  *  - A suite marked \`todo\` with a body is counted in the todo total while its cases still run;
  *    prefer \`it.todo\`/\`todo(name)\` for planned cases that must not run.
@@ -112159,8 +111672,7 @@ declare module 'test_suite' {
 
         /**
          * @description Defines a planned suite; it is counted in the todo total, but the body is still
-         *      executed and its cases still run, which differs from Node.js where a todo suite
-         *      silences its subtree
+         *      executed and its cases still run
          *
          *      \`suite.todo(name, block)\` and \`describe.todo(name, block)\` are the same call; prefer
          *      \`it.todo\`/\`todo(name)\` for planned cases that must not run.
@@ -112224,16 +111736,14 @@ declare module 'test_suite' {
  *    timers run, while a callback that blocks the CPU blocks all JavaScript until it returns.
  *  - **Delay clamping**: the delay is a number of milliseconds; values less than 1 or greater than
  *    2^31-1 are clamped to 1, and a fractional delay is truncated. \`setTimeout\` defaults a missing
- *    delay to 1ms, while \`setInterval\` requires it. \`NaN\` and non-numeric strings throw a TypeError
- *    (Node.js converts them to 1 and prints a warning).
+ *    delay to 1ms, while \`setInterval\` requires it. \`NaN\` and non-numeric strings throw a TypeError.
  *  - **High-resolution interval**: \`setHrInterval\` uses a VM interrupt and can call back at any time,
  *    including while JavaScript is running; its callback must not modify state used by other code nor
- *    call asynchronous APIs. It is a fibjs extension with no Node.js equivalent.
+ *    call asynchronous APIs. It is an extension of the module.
  *  - **Scheduling order**: after the current task, \`process.nextTick\` callbacks run first, then V8
  *    micro-tasks, then \`setImmediate\`, then timers; an immediate therefore runs before a
  *    \`setTimeout(callback, 0)\` timer. See the global object for the fiber and event loop model.
- *  - **Node.js comparison**: Node.js returns \`Timeout\` and \`Immediate\` objects with \`refresh\`,
- *    \`hasRef\` and \`Symbol.dispose\`; fibjs returns one Timer class with \`ref\`, \`unref\`, \`clear\` and
+ *  - **Timer objects**: one Timer class with \`ref\`, \`unref\`, \`clear\` and
  *    \`stopped\`. All four clear functions accept any Timer object, so they are interchangeable.
  *
  *  Import:
@@ -112302,11 +111812,9 @@ declare module 'test_suite' {
  *
  *  Notes:
  *
- *  - \`setHrInterval\` and \`call\` are fibjs extensions; Node.js has no equivalent member, and Node.js
- *    \`Timeout#refresh\`/\`hasRef\` do not exist on the fibjs Timer.
+ *  - \`setHrInterval\` and \`call\` are extensions of the module.
  *  - \`timers/promises\` exists with \`setTimeout\` and \`setImmediate\` but has no \`setInterval\` iterator.
- *  - A callback that is not a function throws a TypeError with number 20005; Node.js throws
- *    \`ERR_INVALID_ARG_TYPE\`.
+ *  - A callback that is not a function throws a TypeError with number 20005.
  *
  */
 declare module 'timers' {
@@ -112321,8 +111829,8 @@ declare module 'timers' {
      *      the returned Timer object. The timer keeps the process alive until it fires or is cleared; call
      *      \`Timer#unref\` on the returned object to let the process exit while the timer is pending.
      *
-     *      Unlike Node.js there is no \`refresh\`/\`hasRef\` on the returned object, and a \`NaN\` delay is
-     *      rejected instead of being treated as 1ms.
+     *      There is no \`refresh\`/\`hasRef\` on the returned object, and a \`NaN\` delay is
+     *      rejected.
      *
      *      Example — the callback receives the extra argument and the timer as \`this\`:
      *      \`\`\`JavaScript
@@ -112349,8 +111857,7 @@ declare module 'timers' {
      *      same timer repeatedly does not raise an error, and a timer that already fired is simply left
      *      stopped.
      *
-     *      The four clear functions are interchangeable because they all accept any Timer; Node.js instead
-     *      routes \`clearTimeout\` to \`Timeout\` objects only.
+     *      The four clear functions are interchangeable because they all accept any Timer.
      *
      *      Example — clearing an interval through clearTimeout and ignoring invalid values:
      *      \`\`\`JavaScript
@@ -112373,8 +111880,8 @@ declare module 'timers' {
     /**
      * @description Executes the callback function periodically at a fixed interval
      *
-     *      The delay is required and is clamped like setTimeout; unlike Node.js there is no 1ms default,
-     *      and omitting it throws a TypeError (parameter not optional). The next run is scheduled timeout
+     *      The delay is required and is clamped like setTimeout; omitting it throws a TypeError
+     *      (parameter not optional). The next run is scheduled timeout
      *      milliseconds after the previous callback returns, so a slow callback reduces the frequency.
      *
      *      The timer keeps running until \`clearInterval\` or \`Timer#clear\` is called, or it clears itself
@@ -112458,7 +111965,7 @@ declare module 'timers' {
      *      Timer is only useful to cancel it or to release its keep-alive hold with \`Timer#unref\`.
      *
      *      The arguments in args are passed to the callback unchanged and \`this\` is the returned Timer
-     *      object. Node.js returns an \`Immediate\` object without a \`stopped\` property.
+     *      object.
      *
      *      Example — immediates run after the current task and before 1ms timers:
      *      \`\`\`JavaScript
@@ -112503,8 +112010,8 @@ declare module 'timers' {
      *      execution continues normally after the call. An error thrown by func itself is propagated
      *      unchanged.
      *
-     *      This is a fibjs extension: Node.js has no equivalent member, only the promise-based timeouts of
-     *      \`timers/promises\`, which do not interrupt running code.
+     *      This is an extension of the module; the promise-based timeouts of
+     *      \`timers/promises\` do not interrupt running code.
      *
      *      Example — normal return and interruption:
      *      \`\`\`JavaScript
@@ -112610,9 +112117,8 @@ declare module 'timers/promises' {
  *  - **Verification options**: \`requestCert\` (default true) asks the peer for a certificate,
  *    \`rejectUnauthorized\` (default true on the client, false on the server) additionally requires
  *    one, and \`rejectUnverified\` (default true) fails the handshake when the presented certificate
- *    does not verify. Setting \`rejectUnverified\` to false accepts any certificate, which is the
- *    fibjs equivalent of Node.js \`rejectUnauthorized: false\`; the \`rejectUnauthorized\` option
- *    alone does not disable client-side certificate verification in fibjs.
+ *    does not verify. Setting \`rejectUnverified\` to false accepts any certificate; the \`rejectUnauthorized\` option
+ *    alone does not disable client-side certificate verification.
  *  - **SNI**: a client sends the target host name as the server name indication and verifies the
  *    server certificate against it; a name mismatch reports \`HOSTNAME_MISMATCH\` and an IP literal
  *    without a matching IP SAN reports \`IP_ADDRESS_MISMATCH\`. A server resolves the name through
@@ -112628,11 +112134,11 @@ declare module 'timers/promises' {
  *  - **Calling forms**: every async method may be called synchronously (the call blocks the fiber
  *    and throws on failure), with a callback, or through the promise namespace; \`connectSync\`,
  *    \`connectAsync\` and \`tls.promises.connect\` are the generated variants of \`connect\`.
- *  - **Node.js differences**: the classes are exported as \`tls.Server\` and \`tls.Handler\`;
- *    \`createServer\` requires a listener; \`connect\` blocks and throws without one while Node.js
- *    always returns immediately and uses the \`'secureConnect'\` event; the URL form requires an
+ *  - **Names and limits**: the classes are exported as \`tls.Server\` and \`tls.Handler\`;
+ *    \`createServer\` requires a listener; \`connect\` blocks and throws without one (there is no
+ *    \`'secureConnect'\` event); the URL form requires an
  *    \`ssl:\` scheme; sessions are not exposed; and \`checkServerIdentity\`, \`rootCertificates\`,
- *    \`getCiphers\`, \`DEFAULT_MIN_VERSION\` and the other Node.js constants do not exist.
+ *    \`getCiphers\`, \`DEFAULT_MIN_VERSION\` and the other constants do not exist.
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -112793,8 +112299,7 @@ declare module 'tls' {
      * @description The TLSServer class entry point, see TLSServer
      *
      *      The class of the servers created by createServer; it combines net.TcpServer with TLSHandler
-     *      and can also be created with new tls.Server(context, listener). Node.js names its class
-     *      tls.Server as well; neither environment exports tls.TLSServer.
+     *      and can also be created with new tls.Server(context, listener).
      *
      */
     const Server: typeof Class_TLSServer;
@@ -112816,9 +112321,7 @@ declare module 'tls' {
      *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
      *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
      *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
-     *      Node.js tls.createServer() accepts a missing listener and reports connections through the
-     *      'secureConnection' event, while fibjs requires the listener and hands each TLSSocket to it
-     *      directly; a missing listener throws a parameter-not-optional error.
+     *      The listener is required: it receives each TLSSocket directly, and a missing listener throws a parameter-not-optional error.
      *      @param options the secure context or the options used to create one
      *      @param listener the connection handler
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
@@ -112869,8 +112372,7 @@ declare module 'tls' {
      *      rejectUnauthorized control the verification described in the module concepts. minVersion
      *      and maxVersion cannot be combined with a legacy secureProtocol value that already fixes a
      *      version. sessionTimeout only affects a server context. The SNI options configure the
-     *      server-side cache used by getSNIContext and are ignored on a client context. Node.js
-     *      accepts many more keys (ciphers, ecdhCurve, honorCipherOrder, ...), which fibjs ignores.
+     *      server-side cache used by getSNIContext and are ignored on a client context.
      *
      *      @param options the options for creating the secure context
      *      @param isServer whether it is in server mode, default is false
@@ -112897,8 +112399,7 @@ declare module 'tls' {
      *
      *      Used when connect, new TLSSocket() or createSecureContext() is called without an explicit
      *      context. It is a client context, so the Mozilla roots are trusted; the same object is
-     *      exposed here for inspection or reuse. Node.js has no equivalent property, it exposes
-     *      rootCertificates and the DEFAULT_* constants instead.
+     *      exposed here for inspection or reuse.
      *
      */
     const secureContext: Class_SecureContext;
@@ -112912,8 +112413,8 @@ declare module 'tls' {
      *      \`secureContext\`, ...). host is also the server name sent as SNI and verified against the
      *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
      *      declared Stream type is its base interface) and throws an Error with a verification code on
-     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
-     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
+     *      failure. Use the listener or promise form for a
+     *      non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -112931,8 +112432,8 @@ declare module 'tls' {
      *      \`secureContext\`, ...). host is also the server name sent as SNI and verified against the
      *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
      *      declared Stream type is its base interface) and throws an Error with a verification code on
-     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
-     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
+     *      failure. Use the listener or promise form for a
+     *      non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -112948,8 +112449,8 @@ declare module 'tls' {
      *      \`secureContext\`, ...). host is also the server name sent as SNI and verified against the
      *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
      *      declared Stream type is its base interface) and throws an Error with a verification code on
-     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
-     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
+     *      failure. Use the listener or promise form for a
+     *      non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -113304,7 +112805,7 @@ declare module 'tls' {
      *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
      *      the TCP target, the SNI name and the verified name. The default context supplies the trust
      *      store, so pass a SecureContext or an options object when the server certificate is not
-     *      signed by a well-known CA. Node.js has no URL string form.
+     *      signed by a well-known CA.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object
@@ -113321,7 +112822,7 @@ declare module 'tls' {
      *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
      *      the TCP target, the SNI name and the verified name. The default context supplies the trust
      *      store, so pass a SecureContext or an options object when the server certificate is not
-     *      signed by a well-known CA. Node.js has no URL string form.
+     *      signed by a well-known CA.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object
@@ -113336,7 +112837,7 @@ declare module 'tls' {
      *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
      *      the TCP target, the SNI name and the verified name. The default context supplies the trust
      *      store, so pass a SecureContext or an options object when the server certificate is not
-     *      signed by a well-known CA. Node.js has no URL string form.
+     *      signed by a well-known CA.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object
@@ -113511,8 +113012,7 @@ declare module 'tls/promises' {
      * @description The TLSServer class entry point, see TLSServer
      *
      *      The class of the servers created by createServer; it combines net.TcpServer with TLSHandler
-     *      and can also be created with new tls.Server(context, listener). Node.js names its class
-     *      tls.Server as well; neither environment exports tls.TLSServer.
+     *      and can also be created with new tls.Server(context, listener).
      *
      */
     const Server: typeof Class_TLSServer;
@@ -113534,9 +113034,7 @@ declare module 'tls/promises' {
      *      - a handler function \`(socket) => any\`, called with each accepted TLS connection (a TLSSocket; it extends Stream, not Socket);
      *      - a routing map object, whose keys are match patterns and whose values are handlers in these same forms (see mq.Routing); it matches messages, so a raw connection cannot be routed;
      *      - a path/address string: a directory or an \`http(s)://\` address, converted through the Handler constructor.
-     *      Node.js tls.createServer() accepts a missing listener and reports connections through the
-     *      'secureConnection' event, while fibjs requires the listener and hands each TLSSocket to it
-     *      directly; a missing listener throws a parameter-not-optional error.
+     *      The listener is required: it receives each TLSSocket directly, and a missing listener throws a parameter-not-optional error.
      *      @param options the secure context or the options used to create one
      *      @param listener the connection handler
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
@@ -113587,8 +113085,7 @@ declare module 'tls/promises' {
      *      rejectUnauthorized control the verification described in the module concepts. minVersion
      *      and maxVersion cannot be combined with a legacy secureProtocol value that already fixes a
      *      version. sessionTimeout only affects a server context. The SNI options configure the
-     *      server-side cache used by getSNIContext and are ignored on a client context. Node.js
-     *      accepts many more keys (ciphers, ecdhCurve, honorCipherOrder, ...), which fibjs ignores.
+     *      server-side cache used by getSNIContext and are ignored on a client context.
      *
      *      @param options the options for creating the secure context
      *      @param isServer whether it is in server mode, default is false
@@ -113615,8 +113112,7 @@ declare module 'tls/promises' {
      *
      *      Used when connect, new TLSSocket() or createSecureContext() is called without an explicit
      *      context. It is a client context, so the Mozilla roots are trusted; the same object is
-     *      exposed here for inspection or reuse. Node.js has no equivalent property, it exposes
-     *      rootCertificates and the DEFAULT_* constants instead.
+     *      exposed here for inspection or reuse.
      *
      */
     const secureContext: Class_SecureContextPromise;
@@ -113630,8 +113126,8 @@ declare module 'tls/promises' {
      *      \`secureContext\`, ...). host is also the server name sent as SNI and verified against the
      *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
      *      declared Stream type is its base interface) and throws an Error with a verification code on
-     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
-     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
+     *      failure. Use the listener or promise form for a
+     *      non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -113647,8 +113143,8 @@ declare module 'tls/promises' {
      *      \`secureContext\`, ...). host is also the server name sent as SNI and verified against the
      *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
      *      declared Stream type is its base interface) and throws an Error with a verification code on
-     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
-     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
+     *      failure. Use the listener or promise form for a
+     *      non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -113664,8 +113160,8 @@ declare module 'tls/promises' {
      *      \`secureContext\`, ...). host is also the server name sent as SNI and verified against the
      *      server certificate. The call blocks the current fiber, returns the connected TLSSocket (the
      *      declared Stream type is its base interface) and throws an Error with a verification code on
-     *      failure. Node.js tls.connect() instead returns immediately and reports readiness through
-     *      the 'secureConnect' event; use the listener or promise form for the same non-blocking style.
+     *      failure. Use the listener or promise form for a
+     *      non-blocking style.
      *      @param options specifies the connection options
      *      @return returns the tls/ssl connection object
      *
@@ -114018,7 +113514,7 @@ declare module 'tls/promises' {
      *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
      *      the TCP target, the SNI name and the verified name. The default context supplies the trust
      *      store, so pass a SecureContext or an options object when the server certificate is not
-     *      signed by a well-known CA. Node.js has no URL string form.
+     *      signed by a well-known CA.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object
@@ -114033,7 +113529,7 @@ declare module 'tls/promises' {
      *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
      *      the TCP target, the SNI name and the verified name. The default context supplies the trust
      *      store, so pass a SecureContext or an options object when the server certificate is not
-     *      signed by a well-known CA. Node.js has no URL string form.
+     *      signed by a well-known CA.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object
@@ -114048,7 +113544,7 @@ declare module 'tls/promises' {
      *      error is thrown ("url must start with 'ssl:'" or "missing port in url"); the host part is
      *      the TCP target, the SNI name and the verified name. The default context supplies the trust
      *      store, so pass a SecureContext or an options object when the server certificate is not
-     *      signed by a well-known CA. Node.js has no URL string form.
+     *      signed by a well-known CA.
      *      @param url specifies the URL to connect
      *      @param timeout specifies the connection timeout, default is 0
      *      @return returns the tls/ssl connection object
@@ -114216,8 +113712,8 @@ declare module "tls" {
  *    event.
  *  - **Escape sequences**: the clearing and cursor members write ANSI CSI sequences to the terminal
  *    (for example \`\\x1b[2K\` clears a line); the terminal interprets them instead of displaying them,
- *    and fibjs emits the same sequences as Node.js.
- *  - **Color depth**: Node.js exposes \`hasColors\`/\`getColorDepth\` on its write stream, fibjs does not;
+ *    and the same CSI sequences are emitted.
+ *  - **Color depth**: \`hasColors\`/\`getColorDepth\` are not implemented;
  *    use \`util.colors.hasColors\` to test whether the terminal supports color (see the colors module).
  *
  *  Import:
@@ -114279,13 +113775,12 @@ declare module "tls" {
  *  Notes:
  *
  *  - \`process.stdout.isTTY\` is true on a terminal and undefined on a pipe or a redirected file,
- *    exactly like Node.js; process.stdin and process.stderr behave the same way.
+ *    process.stdin and process.stderr behave the same way.
  *  - Constructing tty.ReadStream or tty.WriteStream requires a descriptor that is already a terminal:
- *    any other descriptor throws \`TypeError: fd N is not a TTY.\` ([20004]), where Node.js fails only
- *    when the terminal cannot be initialized at all.
- *  - tty.isatty is stricter than the Node.js function: a negative descriptor throws [20009], a missing
+ *    any other descriptor throws \`TypeError: fd N is not a TTY.\` ([20004]).
+ *  - tty.isatty validates its argument: a negative descriptor throws [20009], a missing
  *    argument throws [20002], an out-of-range value throws [20006] and a value that cannot be coerced
- *    to an integer throws [20005], where Node.js returns false. fibjs also accepts an open FileHandle
+ *    to an integer throws [20005]. An open FileHandle is accepted
  *    (extension).
  *  - The two stream classes derive from the Stream class and share its read, write and close
  *    interface; see the io module and the Stream documentation for the stream model.
@@ -114296,8 +113791,7 @@ declare module 'tty' {
      * @description The TTYInputStream class, see TTYInputStream
      *
      *      \`new tty.ReadStream(fd[, opts])\` wraps a terminal descriptor; the class is also the
-     *      constructor of process.stdin when stdin is a terminal. Node.js exposes the same class
-     *      under the same name.
+     *      constructor of process.stdin when stdin is a terminal.
      *
      */
     const ReadStream: typeof Class_TTYInputStream;
@@ -114308,8 +113802,7 @@ declare module 'tty' {
      * @description The TTYOutputStream class, see TTYOutputStream
      *
      *      \`new tty.WriteStream(fd[, opts])\` wraps a terminal descriptor; the class is also the
-     *      constructor of process.stdout and process.stderr when they are terminals. Node.js
-     *      exposes the same class under the same name.
+     *      constructor of process.stdout and process.stderr when they are terminals.
      *
      */
     const WriteStream: typeof Class_TTYOutputStream;
@@ -114324,8 +113817,7 @@ declare module 'tty' {
      *      \`stdio: 'pty'\` the standard descriptors are terminals, and when a standard stream is piped or
      *      redirected it is not, which makes this function the check behind process.stdout.isTTY.
      *
-     *      Unlike Node.js, which returns false whenever fd is not a non-negative integer, fibjs throws for
-     *      some invalid inputs: a negative descriptor throws [20009], a missing argument throws [20002]
+     *      Invalid inputs throw instead of returning false: a negative descriptor throws [20009], a missing argument throws [20002]
      *      and a value that overflows Integer throws [20006]. Other values are coerced to an integer
      *      descriptor first, so 1.5, '1' and even null mean descriptors 1, 1 and 0; a value that cannot
      *      be coerced at all throws [20005].
@@ -114395,11 +113887,11 @@ declare module 'tty' {
  *   objects. \`isBoolean\`, \`isNumber\`, \`isString\` and \`isBigInt\` accept both the primitive and the
  *   boxed form, \`isSymbol\` accepts only the primitive, and the \`is*Object\` family matches only boxed
  *   values; \`isBoxedPrimitive\` is the union of the five boxed classes.
- * - Node.js comparison: 43 of the 57 members exist in Node.js \`util.types\` with the same internal-slot
- *   semantics; fibjs adds \`isEmpty\`, \`isArray\`, \`isBoolean\`, \`isNull\`, \`isNullOrUndefined\`,
+ * - Semantics: the predicates check internal slots; the module adds \`isEmpty\`, \`isArray\`,
+ *   \`isBoolean\`, \`isNull\`, \`isNullOrUndefined\`,
  *   \`isNumber\`, \`isBigInt\`, \`isString\`, \`isUndefined\`, \`isObject\`, \`isPrimitive\`, \`isSymbol\`,
- *   \`isFunction\` and \`isBuffer\`. Unlike Node.js, where a missing value simply returns false, every
- *   member here requires exactly one argument and throws TypeError otherwise.
+ *   \`isFunction\` and \`isBuffer\`. Every
+ *   member requires exactly one argument and throws TypeError otherwise.
  *
  * Import:
  * \`\`\`JavaScript
@@ -114466,8 +113958,7 @@ declare module 'tty' {
  *   callable Proxy.
  * - Buffer values satisfy \`isTypedArray\` and \`isUint8Array\`; \`isBuffer\` is the Buffer-specific tag and
  *   \`Buffer.prototype\` is false.
- * - \`isExternal\` is always false for values created from JavaScript and exists for Node.js
- *   compatibility.
+ * - \`isExternal\` is always false for values created from JavaScript.
  * - The namespace is not a global and \`require('types')\` cannot resolve it; use \`util.types\` or the
  *   \`require('util/types')\` alias.
  *
@@ -114481,7 +113972,7 @@ declare module 'util/types' {
      *      non-enumerable own properties are ignored, so dates, maps, sets and plain functions are empty,
      *      while any object with an enumerable own property is not. On a Proxy the check can run its
      *      \`ownKeys\` trap, whose error is propagated. Numbers, booleans, symbols and bigints are always
-     *      empty. This member is a fibjs extension; Node.js \`util.types\` has no equivalent.
+     *      empty. This member is an extension of the module.
      *
      *      Example — values that isEmpty treats as empty:
      *      \`\`\`JavaScript
@@ -114505,8 +113996,8 @@ declare module 'util/types' {
      *      The internal array type is tested, not the prototype chain: subclass instances are true, while
      *      \`Object.create(Array.prototype)\`, array-like objects and a Proxy whose target is an array are
      *      false. \`Array.isArray\` returns true for that last case because it looks through the
-     *      Proxy; prefer \`Array.isArray\` when proxies may be involved. This member is a fibjs
-     *      extension, Node.js only provides \`Array.isArray\`.
+     *      Proxy; prefer \`Array.isArray\` when proxies may be involved. This member is an
+     *      extension of the module.
      *
      *      @param v the variable to check
      *      @return returns True if v is an array
@@ -114555,8 +114046,8 @@ declare module 'util/types' {
      * @description Checks whether a value is a number or a Number object
      *
      *      NaN and Infinity are numbers and match, numeric strings are not. The boxed form \`new Number(1)\`
-     *      is accepted as well; use \`isNumberObject\` when only the boxed form must match. This member is a
-     *      fibjs extension, Node.js only provides \`isNumberObject\`.
+     *      is accepted as well; use \`isNumberObject\` when only the boxed form must match. This member is an
+     *      extension of the module.
      *
      *      @param v the variable to check
      *      @return returns True if v is a number or a Number object
@@ -114568,8 +114059,8 @@ declare module 'util/types' {
      * @description Checks whether a value is a bigint or a BigInt object
      *
      *      Strings such as '1' and other numeric values are false. The boxed form \`Object(1n)\` is
-     *      accepted; use \`isBigIntObject\` when only the boxed form must match. This member is a fibjs
-     *      extension, Node.js only provides \`isBigIntObject\`.
+     *      accepted; use \`isBigIntObject\` when only the boxed form must match. This member is an
+     *      extension of the module.
      *
      *      @param v the variable to check
      *      @return returns True if v is a bigint or a BigInt object
@@ -114581,8 +114072,7 @@ declare module 'util/types' {
      * @description Checks whether a value is a string or a String object
      *
      *      Both forms are accepted, so the predicate matches literals and \`new String('text')\` alike; use
-     *      \`isStringObject\` when only the boxed form must match. This member is a fibjs extension, Node.js
-     *      only provides \`isStringObject\`.
+     *      \`isStringObject\` when only the boxed form must match. This member is an extension of the module.
      *
      *      @param v the variable to check
      *      @return returns True if v is a string or a String object
@@ -114730,7 +114220,7 @@ declare module 'util/types' {
      * @description Checks whether a value is a V8 external value
      *
      *      External values carry native pointers and cannot be created from JavaScript, so this
-     *      predicate is always false for user values; it is kept for Node.js compatibility.
+     *      predicate is always false for user values.
      *
      *      @param v the variable to check
      *      @return returns True if v is an external value
@@ -114959,8 +114449,8 @@ declare module 'util/types' {
      *      Matches Buffer instances created by \`Buffer.alloc\`/\`Buffer.from\`, \`fs.readFile\` and the
      *      other Buffer producers; \`Buffer.prototype\`, plain Uint8Array values and the other typed
      *      arrays are false. Buffer is a Uint8Array subclass, so \`isTypedArray\` and \`isUint8Array\` are
-     *      true for it as well. This member is a fibjs extension, the Node.js equivalent is
-     *      \`Buffer.isBuffer\`.
+     *      true for it as well. This member is an extension of the module; \`Buffer.isBuffer\` is the
+     *      equivalent.
      *
      *      Example — Buffer against other binary values:
      *      \`\`\`JavaScript
@@ -115113,8 +114603,7 @@ declare module 'util/types' {
     /**
      * @description Checks whether a value is a Float16Array
      *
-     *      Only Float16Array instances match; the half-precision array is also available in Node.js, while
-     *      Float32Array, Float64Array and the integer arrays are false.
+     *      Only Float16Array instances match; Float32Array, Float64Array and the integer arrays are false.
      *
      *      @param v the variable to check
      *      @return returns True if v is a Float16Array
@@ -115246,7 +114735,7 @@ declare module 'util/types' {
      *      True for CryptoKey instances created by \`crypto.subtle.generateKey\`, \`importKey\` and
      *      \`deriveKey\`; KeyObject values are false, use \`isKeyObject\` for them.
      *
-     *      Example — WebCrypto and Node.js style keys:
+     *      Example — WebCrypto style keys:
      *      \`\`\`JavaScript
      *      const crypto = require('crypto');
      *      const types = require('util').types;
@@ -115287,14 +114776,14 @@ declare module 'util/types' {
  * @description The url module parses, formats and resolves URLs; it provides the WHATWG URL and URLSearchParams classes together with the legacy UrlObject API, file path conversion and internationalized domain name conversion
  *
  * The WHATWG classes are aliases of the global \`URL\` and \`URLSearchParams\`, and the legacy
- * functions (parse, format and resolve) are kept for Node.js compatibility.
+ * functions (parse, format and resolve) are kept for compatibility.
  *
  * Concepts:
  *
  * - **Two APIs**: \`URL\` implements the WHATWG URL standard and is the recommended API;
  *   \`parse\` returns the legacy UrlObject with the fields protocol, slashes, auth, host, port,
- *   hostname, hash, search, query, pathname, path and href. Node.js deprecates the legacy
- *   functions (DEP0169) because their parsing is not standardized.
+ *   hostname, hash, search, query, pathname, path and href. The legacy parsing is not
+ *   standardized, so prefer the WHATWG classes in new code.
  * - **Encoding rules**: the WHATWG parser percent-encodes characters that are invalid in the
  *   current component and normalizes the host (lower case, internationalized names to ASCII);
  *   the query serializer writes a space as \`+\`. The legacy formatter applies the same
@@ -115380,8 +114869,8 @@ declare module 'url' {
      *        but protocol is missing, \`http:\` is assumed, so http.request-style options can be
      *        formatted directly; user names and passwords are percent-encoded.
      *      - format(urlObject, options) serializes a UrlObject, a URL string or a components
-     *        object; \`options\` is accepted for Node.js compatibility (fragment, unicode, auth)
-     *        but is currently ignored and the full href is returned.
+     *        object; \`options\` (fragment, unicode, auth)
+     *        is accepted but is currently ignored and the full href is returned.
      *      - format(href) parses href with the WHATWG parser and returns the normalized href; a
      *        relative string is normalized as an absolute path (\`not a url\` becomes
      *        \`/not%20a%20url\`) while an invalid absolute URL throws a type error.
@@ -115414,7 +114903,7 @@ declare module 'url' {
      *      fields the UrlObject constructor accepts).
      *
      *      @param urlObject URL to format
-     *      @param options Node.js formatting options; accepted but currently ignored
+     *      @param options formatting options; accepted but currently ignored
      *      @return the formatted URL string
      *
      */
@@ -115436,14 +114925,13 @@ declare module 'url' {
     /**
      * @description Parses a URL string into a legacy UrlObject
      *
-     *      The returned object follows the Node.js legacy API with the fields protocol, slashes,
+     *      The returned object follows the legacy API with the fields protocol, slashes,
      *      auth, host, port, hostname, hash, search, query, pathname, path and href. By default
      *      query is the raw query text without the leading \`?\`; with parseQueryString it is a
      *      URLSearchParams built from the query. The slashesDenoteHost argument is accepted for
      *      compatibility but ignored, so a protocol-relative reference such as \`//host/path\` is
      *      parsed with \`host\` as the host. Invalid percent-encoding throws \`url: URI malformed\`
-     *      and an unparsable URL throws \`url: Invalid URL '<input>'.\` (20024). Node.js returns a
-     *      plain object when parseQueryString is true and deprecates the function (DEP0169).
+     *      and an unparsable URL throws \`url: Invalid URL '<input>'.\` (20024).
      *
      *      Example — legacy parse with and without query parsing:
      *      \`\`\`JavaScript
@@ -115458,7 +114946,7 @@ declare module 'url' {
      *
      *      @param url URL string to parse
      *      @param parseQueryString parse the query into a URLSearchParams, default false
-     *      @param slashesDenoteHost accepted for Node.js compatibility; ignored by fibjs
+     *      @param slashesDenoteHost accepted but ignored
      *      @return the parsed UrlObject
      *
      */
@@ -115470,8 +114958,7 @@ declare module 'url' {
      *      The two arguments are \`from\` (the base URL) and \`to\` (the reference); the result is
      *      normalized with the WHATWG algorithm. An empty base resolves the reference on its own,
      *      so a rooted path stays a path and a relative path is returned as a relative path. An
-     *      unparsable input throws \`url: Invalid URL '<input>'.\` (20024). Node.js deprecates this
-     *      function (DEP0169).
+     *      unparsable input throws \`url: Invalid URL '<input>'.\` (20024).
      *
      *      Example — resolve against a file base:
      *      \`\`\`JavaScript
@@ -115579,8 +115066,7 @@ declare module 'url' {
      *
      *      The conversion applies the UTS #46 mapping of the URL parser and adds the \`xn--\`
      *      prefix to non-ASCII labels; an ASCII name is returned unchanged. Unsupported input is
-     *      returned unchanged instead of raising an error, while Node.js returns an empty string
-     *      for a domain that fails the conversion. Use punycode.toASCII for the raw RFC 3492
+     *      returned unchanged instead of raising an error. Use punycode.toASCII for the raw RFC 3492
      *      conversion of a single label.
      *
      *      Example — convert a Unicode domain:
@@ -115601,7 +115087,7 @@ declare module 'url' {
      *
      *      Only labels that carry the \`xn--\` prefix are converted; all other labels are copied
      *      unchanged. The prefix test is case-sensitive: an upper-case \`XN--\` label is returned
-     *      as is, while Node.js converts it. Invalid encoded labels are returned unchanged.
+     *      as is. Invalid encoded labels are returned unchanged.
      *
      *      Example — convert an ACE domain:
      *      \`\`\`JavaScript
@@ -115662,10 +115148,10 @@ declare module 'url' {
  *   regular expressions are compared by content and fibjs native objects through their
  *   own \`equals\`. NaN compares unequal, 0 and -0 compare equal and prototypes are not
  *   part of the comparison.
- * - Node.js differences: \`parseArgs\` is a command-line tokenizer rather than Node's
- *   option parser; \`sync\`, \`compile\`, \`buildInfo\`, \`getStringWidth\`, \`isEmpty\`, \`clone\`,
- *   \`deepFreeze\` and the collection helpers are fibjs extensions; \`deprecate\` is a
- *   no-op and \`promisify.custom\` is not supported.
+ * - Surface notes: \`parseArgs\` is a command-line tokenizer; \`sync\`, \`compile\`,
+ *   \`buildInfo\`, \`getStringWidth\`, \`isEmpty\`, \`clone\`, \`deepFreeze\` and the collection
+ *   helpers are module extensions; \`deprecate\` is a no-op and \`promisify.custom\` is not
+ *   supported.
  *
  * Import:
  * \`\`\`JavaScript
@@ -115724,7 +115210,8 @@ declare module 'url' {
  * Notes:
  * - The module examples above cover the type checks, inheritance, inspection and
  *   formatting paths; the async wrappers have runnable examples on their members.
- * - \`parseArgs\` tokenizes a command line string; it is not Node.js's option parser.
+ * - \`parseArgs\` tokenizes a command line string; it does not understand options,
+ *   defaults or positionals.
  * - \`util.types\` and \`util.colors\` are exposed through this module only, not as
  *   top-level \`require('types')\` / \`require('colors')\`.
  *
@@ -115755,8 +115242,8 @@ declare module 'util' {
     /**
      * @description Utility functions for built-in type checking, exposed as \`util.types\`
      *
-     *      The same functions are also available directly as \`util.is*\` members. Unlike
-     *      Node.js, the module is not requirable by the name \`types\`; use \`util.types\`.
+     *      The same functions are also available directly as \`util.is*\` members. The module is not
+     *      requirable by the name \`types\`; use \`util.types\`.
      *
      */
     const types: typeof import ('util/types');
@@ -115824,7 +115311,7 @@ declare module 'util' {
      *      \`superConstructor.prototype\` and stores the superclass in
      *      \`constructor.super_\`. Throws a TypeError (20004) when either argument is not
      *      an object or the superclass has no prototype. Prefer the \`class\`/\`extends\`
-     *      syntax in new code; this helper matches the Node.js legacy API.
+     *      syntax in new code.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -115898,7 +115385,7 @@ declare module 'util' {
      *      \`[Uint8Array]\`, maps and sets with their markers, functions as
      *      \`[Function name]\` and errors as their stack plus own properties; repeated
      *      objects become \`[Circular]\`. Unknown options are ignored. Note that \`colors\`
-     *      defaults to true here while Node.js defaults to false.
+     *      defaults to true here.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -115923,8 +115410,7 @@ declare module 'util' {
      *      \`format\` is either a single name or an array of names; array entries are
      *      applied left to right, so the first name becomes the outermost wrapper. When
      *      the terminal does not support colors (non-TTY with NO_COLOR, or no TTY at
-     *      all) the text is returned unchanged. Unknown names are ignored, unlike
-     *      Node.js which throws for them.
+     *      all) the text is returned unchanged. Unknown names are ignored.
      *
      *      Supported formats: bold, italic, underline, strikethrough, hidden,
      *      black, red, green, yellow, blue, magenta, cyan, white,
@@ -115966,7 +115452,7 @@ declare module 'util' {
      *      The returned ConsoleObject writes to stderr only when \`NODE_DEBUG\` contains
      *      the section name, prefixing each line with \`SECTION pid:\`. Matching is
      *      case-insensitive and \`NODE_DEBUG\` is a comma separated list; wildcards are
-     *      not supported (Node.js accepts \`foo*\`). \`enabled\` reports the current state
+     *      not supported. \`enabled\` reports the current state
      *      and follows later changes of the environment variable.
      *
      *      @param section the debug section to use
@@ -116015,7 +115501,7 @@ declare module 'util' {
     function debug(section: string, fn: (log: Class_ConsoleObject)=>void): Class_ConsoleObject;
 
     /**
-     * @description Returns the function unchanged; kept for Node.js API compatibility
+     * @description Returns the function unchanged; kept for API compatibility
      *
      *      The current implementation is a no-op wrapper: the returned value is the
      *      same function, calling it never emits a deprecation warning and \`msg\` and
@@ -116033,8 +115519,7 @@ declare module 'util' {
      * @description Checks whether the given variable contains no value (no enumerable properties)
      *
      *      True for null, undefined, empty strings, empty arrays, objects without own
-     *      property names, and primitive numbers or booleans. Node.js has no equivalent
-     *      helper.
+     *      property names, and primitive numbers or booleans.
      *
      *      @param v the variable to check
      *      @return returns True if empty
@@ -116333,8 +115818,7 @@ declare module 'util' {
     /**
      * @description Checks whether the given variable is a Buffer object
      *
-     *      True only for fibjs Buffer values; Node.js has no util.types.isBuffer and
-     *      uses Buffer.isBuffer instead.
+     *      True only for Buffer values.
      *
      *      @param v the variable to check
      *      @return returns True if it is a Buffer object
@@ -116473,8 +115957,7 @@ declare module 'util' {
      *      Deep equality with component-wise loose comparison: dates and regular
      *      expressions are compared by content, fibjs native objects through their own
      *      equals, and other values with JavaScript \`==\` semantics (for example '1'
-     *      equals 1). NaN never equals NaN. This is a fibjs extension; Node.js only
-     *      provides isDeepStrictEqual.
+     *      equals 1). NaN never equals NaN.
      *
      *      @param actual the value to test
      *      @param expected the expected value
@@ -116488,8 +115971,8 @@ declare module 'util' {
      *
      *      Deep equality with component-wise strict comparison. Dates and regular
      *      expressions are compared by content, fibjs native objects through their own
-     *      equals, and functions are equal only when identical. Unlike Node.js, NaN is
-     *      not equal to NaN, 0 equals -0 and constructors are not part of the
+     *      equals, and functions are equal only when identical. NaN is not equal to NaN, 0 equals
+     *      -0 and constructors are not part of the
      *      comparison.
      *
      *      Example:
@@ -116514,7 +115997,7 @@ declare module 'util' {
      *      Checks own properties only (Object.prototype.hasOwnProperty semantics),
      *      including non-enumerable ones; null and undefined return false while other
      *      non-objects throw TypeError 20004. A shadowed hasOwnProperty does not affect
-     *      the check. Node.js has no util.has.
+     *      the check.
      *
      *      @param v the object to query
      *      @param key the key to query
@@ -116527,8 +116010,8 @@ declare module 'util' {
      * @description Queries the array of all keys of the specified object
      *
      *      Returns the enumerable property names, own and inherited, with array indices
-     *      converted to strings; non-objects return an empty array. Node.js has no
-     *      util.keys (Object.keys covers own properties only).
+     *      converted to strings; non-objects return an empty array. Inherited property names
+     *      are included, unlike \`Object.keys\`.
      *
      *      @param v the object to query
      *      @return returns the array of enumerable property names
@@ -116554,8 +116037,7 @@ declare module 'util' {
      *      Shallow copy: the result is a new object or array whose top-level properties
      *      reference the same values, so nested objects are shared. Date, RegExp and
      *      wrapper objects are recreated, functions and arguments objects are returned
-     *      as-is, and fibjs native objects (Buffer, Map, ...) are returned unchanged.
-     *      Node.js has no util.clone; structuredClone is a global instead.
+     *      as-is, and native objects (Buffer, Map, ...) are returned unchanged.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -116592,8 +116074,7 @@ declare module 'util' {
      *      Copies the enumerable properties (own and inherited) of each source into the
      *      first argument and returns it, with later sources winning. null and
      *      undefined sources are skipped, a null/undefined target is returned
-     *      unchanged, and other non-objects throw TypeError 20004. \`_extend\` is the
-     *      Node.js-compatible alias.
+     *      unchanged, and other non-objects throw TypeError 20004.
      *
      *      @param v the object to extend
      *      @param objs one or more objects used for extension
@@ -116605,7 +116086,7 @@ declare module 'util' {
     /**
      * @description Extends an object with the key-values of one or more objects (alias)
      *
-     *      Alias of extend, matching the deprecated Node.js util._extend.
+     *      Alias of extend, kept for the deprecated underscore-prefixed spelling.
      *
      *      @param v the object to extend
      *      @param objs one or more objects used for extension
@@ -116830,8 +116311,7 @@ declare module 'util' {
     /**
      * @description Splits a command line string into an argument array
      *
-     *      Honours double quotes and backslash escapes, and splits on whitespace. This
-     *      is a tokenizer, not Node.js's \`parseArgs({ options })\` parser: it does not
+     *      Honours double quotes and backslash escapes, and splits on whitespace. It does not
      *      understand options, defaults or positionals.
      *
      *      Example:
@@ -116856,7 +116336,7 @@ declare module 'util' {
      *      the code as a module, mode 1 as a script and mode 2 as a worker; a leading
      *      shebang is neutralised. Syntax errors throw SyntaxError, and compiled code
      *      cannot be recovered as source, so programs relying on Function.toString
-     *      break. Node.js has no util.compile; this is a fibjs extension.
+     *      break.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -116925,7 +116405,7 @@ declare module 'util' {
      *      \`func\` must take an error-first callback as its last argument; the returned
      *      function resolves with the callback's second argument and rejects with its
      *      first. An invocation without a value resolves with undefined. Wrapped
-     *      functions are cached and shared with sync and callbackify. Node.js's
+     *      functions are cached and shared with sync and callbackify. The
      *      \`promisify.custom\` symbol is not supported.
      *
      *      Example:
@@ -116953,8 +116433,7 @@ declare module 'util' {
      *      The returned function calls back with (null, value) when the promise
      *      resolves and (reason, null) when it rejects. A function that returns a
      *      non-promise value does not invoke the callback at all, and a rejection with
-     *      a falsy reason is passed through as-is (Node.js wraps it in an Error with a
-     *      \`reason\` field). Wrapped functions are cached and shared with sync and
+     *      a falsy reason is passed through as-is. Wrapped functions are cached and shared with sync and
      *      promisify.
      *
      *      Example:
@@ -116983,8 +116462,7 @@ declare module 'util' {
      *      \`platform\`, \`arch\`, the compiler key (\`clang\`, \`gcc\` or \`msvc\`), \`date\`,
      *      \`modules\` and a \`vender\` object with the versions of the bundled libraries
      *      (\`v8\`, \`uv\`, \`openssl\`, \`sqlite\`, \`zlib\`, ...). \`builtins\` lists the
-     *      registered module names. This is a fibjs extension; Node.js exposes
-     *      \`process.versions\` instead.
+     *      registered module names.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -117060,7 +116538,7 @@ declare module 'util' {
      *
      *      Removes CSI sequences (colors, cursor movement), OSC sequences terminated by
      *      BEL or ST, and two-byte ESC sequences; other characters are copied
-     *      unchanged. Node.js exposes the same function.
+     *      unchanged.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -117657,7 +117135,7 @@ declare module 'uuid' {
  * - **Runtime sampling**: \`start\` appends the call stacks of all fibers to a file at a
  *   fixed interval; this is the sampler behind the \`--prof\` command line option;
  * - **Serialization**: \`serialize\` and \`deserialize\` convert values to and from the V8
- *   binary format, which is compatible with Node.js;
+ *   binary format, which is interoperable with other V8-based runtimes;
  * - **Graph constants**: the \`Node_*\` and \`Edge_*\` constants classify the nodes and
  *   edges of a heap snapshot.
  *
@@ -117671,7 +117149,7 @@ declare module 'uuid' {
  * - **Garbage collection**: memory is reclaimed automatically, therefore
  *   \`used_heap_size\` includes objects that are unreachable but not collected yet. This
  *   build exposes no \`gc()\` call, and V8 command line flags cannot be changed at run
- *   time (Node.js has \`setFlagsFromString\`). The snapshot functions issue a V8
+ *   time. The snapshot functions issue a V8
  *   low-memory notification (a full collection) before capturing the graph, which is
  *   part of why they are expensive.
  * - **Serialization vs heap snapshots**: \`serialize\`/\`deserialize\` transfer a value
@@ -117691,14 +117169,11 @@ declare module 'uuid' {
  *   suspects: find the retaining path by walking edges from the root. For CPU hotspots
  *   use the \`--prof\` sampler described in the profiler guide of the documentation; for
  *   lightweight timing use the performance module.
- * - **Node.js differences**: Node.js exposes \`setFlagsFromString\`, \`gc\`,
- *   \`writeHeapSnapshot\`/\`getHeapSnapshot\`, \`cachedDataVersionTag\`, \`queryObjects\`,
- *   \`Serializer\`/\`Deserializer\`, promise hooks, coverage APIs and \`GCProfiler\`, none of
- *   which exist here. Conversely this module adds a snapshot object model
- *   (\`takeSnapshot\`, \`loadSnapshot\`, \`HeapSnapshot.diff\`) and the fiber sampler
- *   (\`start\`). \`getHeapStatistics\` omits the Node.js fields \`does_zap_garbage\`,
- *   \`total_global_handles_size\`, \`used_global_handles_size\` and \`total_allocated_bytes\`,
- *   and \`getHeapCodeStatistics\` omits \`cpu_profiler_metadata_size\`.
+ * - **Surface**: the module provides the snapshot object model (\`takeSnapshot\`, \`loadSnapshot\`,
+ *   \`HeapSnapshot.diff\`) and the fiber sampler
+ *   (\`start\`). \`getHeapStatistics\` omits the optional profiler fields
+ *   (\`total_global_handles_size\`, \`used_global_handles_size\`, \`total_allocated_bytes\`), and
+ *   \`getHeapCodeStatistics\` returns only the fields documented below.
  *
  * Import:
  * \`\`\`JavaScript
@@ -117888,8 +117363,7 @@ declare module 'v8' {
      *      - \`bytecode_and_metadata_size\`: bytecode and its metadata;
      *      - \`external_script_source_size\`: externally loaded script sources.
      *
-     *      Node.js also reports \`cpu_profiler_metadata_size\`, which this implementation does
-     *      not provide.
+     *      The \`cpu_profiler_metadata_size\` field is not provided.
      *      @return returns the statistics of the metadata
      *
      */
@@ -117925,7 +117399,7 @@ declare module 'v8' {
      *      call does not trigger a garbage collection, \`used_heap_size\` includes unreachable
      *      objects that have not been collected yet.
      *
-     *      Compared with Node.js the returned object omits \`does_zap_garbage\`,
+     *      Compared with the common heap-statistics layouts, the returned object omits \`does_zap_garbage\`,
      *      \`total_global_handles_size\`, \`used_global_handles_size\` and
      *      \`total_allocated_bytes\`.
      *      @return returns statistics of heap memory usage
@@ -117984,8 +117458,7 @@ declare module 'v8' {
      *      of a trivial process already contains tens of thousands of nodes, and V8 keeps
      *      the snapshot data until the returned object is garbage collected, so avoid
      *      calling it in a loop. Keep the snapshot referenced while its nodes and edges are
-     *      in use. Node.js has no equivalent object model; its \`writeHeapSnapshot\` returns
-     *      the path of a serialized snapshot instead.
+     *      in use.
      *
      *      Example — capture the heap and look up the root node:
      *      \`\`\`JavaScript
@@ -118086,9 +117559,7 @@ declare module 'v8' {
      *      Circular and shared references, BigInt, Map, Set, Date, RegExp, Error, Buffer,
      *      ArrayBuffer and typed arrays are preserved. Functions, Symbol, WeakMap and WeakSet
      *      cannot be serialized: the call throws an Error whose message ends with
-     *      "could not be cloned." (no errno). The format is the same as the Node.js
-     *      \`v8.serialize\`, and the produced Buffer can be deserialized by Node.js and vice
-     *      versa.
+     *      "could not be cloned." (no errno). The format is the V8 serialization format, and the produced Buffer is interoperable with other V8-based runtimes.
      *
      *      Example — serialize a value with a Set and a BigInt:
      *      \`\`\`JavaScript
@@ -118114,7 +117585,7 @@ declare module 'v8' {
      *      serialized bytes form valid utf8, so prefer a Buffer. The data must contain a
      *      complete serialization: a truncated or corrupted buffer throws an Error with the
      *      message "Unable to deserialize cloned data due to invalid or unsupported
-     *      version." (no errno). Buffers produced by the Node.js \`v8.serialize\` are accepted.
+     *      version." (no errno). Buffers produced by other V8-based runtimes are accepted.
      *
      *      Example — deserialize from a Buffer and from a Uint8Array:
      *      \`\`\`JavaScript
@@ -118176,15 +117647,14 @@ declare module 'v8' {
  *    throws Error 20003. An opts argument that is a number, boolean or array throws Error 20005;
  *    null is accepted as "no options".
  *  - **Timeout**: the timeout option (milliseconds) limits one run. A run that exceeds it fails
- *    with Error 20021 ("The maximum amount of time for a script to execute was exceeded.");
- *    Node.js reports the same condition as an ERR_SCRIPT_EXECUTION_TIMEOUT error.
+ *    with Error 20021 ("The maximum amount of time for a script to execute was exceeded.").
  *  - **Dynamic import**: vm installs no import callback for compiled scripts, so code that calls
  *    \`import()\` aborts the process in this release; load modules with require instead.
- *  - **Node.js comparison**: the core surface matches Node's vm — createContext, isContext,
+ *  - **Surface**: createContext, isContext,
  *    runInContext, runInNewContext, runInThisContext, and Script with the three run methods and
- *    createCachedData. The per-member notes list the differences; the main ones are the default
- *    file name \`<anonymous>\` (Node.js uses \`evalmachine.<anonymous>\`), the \`type: 'module'\`
- *    compile option as a fibjs extension, and the missing Node.js members compileFunction,
+ *    createCachedData. The per-member notes list the details; the main ones are the default
+ *    file name \`<anonymous>\`, the \`type: 'module'\`
+ *    compile option as an extension, and the missing members compileFunction,
  *    measureMemory, constants, SourceTextModule and SyntheticModule.
  *
  *  Import:
@@ -118269,7 +117739,7 @@ declare module 'vm' {
      *      its properties. The mark is permanent; calling createContext again with a prepared object
      *      returns it unchanged, and isContext then reports true.
      *
-     *      opts is accepted for Node.js compatibility and is currently ignored. Preparing a context is
+     *      opts is accepted and is currently ignored. Preparing a context is
      *      not a security boundary, see the module Concepts.
      *
      *      Example:
@@ -118329,8 +117799,7 @@ declare module 'vm' {
      *      \`\`\`
      *
      *      A syntax error is thrown as a SyntaxError at compile time. A run that exceeds timeout fails
-     *      with Error 20021 ("The maximum amount of time for a script to execute was exceeded.");
-     *      Node.js reports the same condition as ERR_SCRIPT_EXECUTION_TIMEOUT.
+     *      with Error 20021 ("The maximum amount of time for a script to execute was exceeded.").
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -118436,7 +117905,7 @@ declare module 'vm' {
  *    ArrayBuffer or a string (read as utf8). digest, sign and deriveBits resolve to an
  *    ArrayBuffer, JWK exports to a plain object; the subtle methods return promises and fibjs
  *    also generates blocking \`...Sync\` aliases such as \`subtle.digestSync\`.
- *  - **Node.js and browser differences**: there is no separate global \`webcrypto\` or \`subtle\`
+ *  - **Environment notes**: there is no separate global \`webcrypto\` or \`subtle\`
  *    and no secure-context requirement as in browsers; the CryptoKey class is also available
  *    as the global \`CryptoKey\`.
  *
@@ -118686,13 +118155,13 @@ declare module 'webcrypto' {
  *
  *  - The classes are also installed as globals (\`Worker\`, \`MessagePort\`, \`MessageChannel\` and
  *    \`MessageEvent\`).
- *  - Differences from Node.js: \`worker.exitCode\`, \`worker.stdin\`, \`worker.stdout\` and
- *    \`worker.stderr\` are not provided; a transfer list only detaches ArrayBuffers and a MessagePort
+ *  - Not provided: \`worker.exitCode\`, \`worker.stdin\`, \`worker.stdout\` and
+ *    \`worker.stderr\`; a transfer list only detaches ArrayBuffers and a MessagePort
  *    cannot be transferred or used as workerData; the \`markAs*\` helpers are no-ops.
  *  - Thread affinity: by default all JavaScript of one isolate runs on one dedicated OS thread
  *    (\`--no-js-thread-affinity\` disables this), matching the N-API contract that a napi_env belongs
  *    to a single thread. An extension using a blocking threadsafe function can self-deadlock in a
- *    worker, as it would block the Node.js event loop.
+ *    worker, as it would block the event loop of a single-threaded runtime.
  *
  */
 declare module 'worker_threads' {
@@ -118733,7 +118202,7 @@ declare module 'worker_threads' {
      * @description Queries whether the current Worker is the main thread
      *
      *      True in the main isolate and false in every Worker, in both cases for the isolate that
-     *      evaluates the expression; Node.js exposes the same boolean.
+     *      evaluates the expression.
      *
      */
     const isMainThread: boolean;
@@ -118743,7 +118212,7 @@ declare module 'worker_threads' {
      *
      *      Zero in the main thread; inside a Worker, the positive id that is also available as
      *      \`Worker#threadId\`. It is a logical fibjs isolate id (not an OS thread id) and is not stable
-     *      across runs; Node.js assigns small sequential ids from 1 in the same way.
+     *      across runs; ids are small sequential numbers starting at 1.
      *
      */
     const threadId: number;
@@ -118774,11 +118243,10 @@ declare module 'worker_threads' {
      *
      *      Dequeues messages in FIFO order without starting the port and without invoking its \`message\`
      *      listeners; returns \`undefined\` when the queue is empty. The result is an object with a single
-     *      \`message\` field holding the deserialized value. \`port\` must be a MessagePort: as in Node.js
-     *      there is no \`worker.port\`, so use a channel created with \`new MessageChannel()\` or a
-     *      \`parentPort\` inside a worker. A value that is not a MessagePort throws \`TypeError\`; fibjs
-     *      reports its native coercion error (\`[20005] The argument could not be coerced to the
-     *      specified type.\`) instead of Node.js's \`ERR_INVALID_ARG_TYPE\`.
+     *      \`message\` field holding the deserialized value. \`port\` must be a MessagePort: there is no
+     *      \`worker.port\`, so use a channel created with \`new MessageChannel()\` or a
+     *      \`parentPort\` inside a worker. A value that is not a MessagePort throws \`TypeError\`
+     *      (\`[20005] The argument could not be coerced to the specified type.\`).
      *
      *      Example — drain two messages without a listener:
      *      \`\`\`JavaScript
@@ -118802,8 +118270,7 @@ declare module 'worker_threads' {
     /**
      * @description Marks an object as uncloneable, a no-op in fibjs
      *
-     *      Node.js makes \`postMessage\` throw when a marked object is used as a message; fibjs
-     *      serializes with V8's ValueSerializer, which does not honor the mark, so the call has no
+     *      The mark is not honored: serialization uses V8's ValueSerializer, which ignores it, so the call has no
      *      effect and never throws. It is provided because packages such as undici call it in Web API
      *      constructors; primitives are accepted and ignored exactly like objects.
      *      @param object the object to mark
@@ -118814,8 +118281,8 @@ declare module 'worker_threads' {
     /**
      * @description Marks an object as untransferable, a no-op in fibjs
      *
-     *      fibjs only detaches ArrayBuffer entries of a transfer list, so the mark has nothing to
-     *      affect. The call is accepted for compatibility with Node.js callers and returns undefined.
+     *      Only ArrayBuffer entries of a transfer list are detached, so the mark has nothing to
+     *      affect. The call is accepted for compatibility with existing callers and returns undefined.
      *      @param object the object to mark
      *
      */
@@ -118824,8 +118291,8 @@ declare module 'worker_threads' {
     /**
      * @description Checks whether an object is marked as untransferable, always false in fibjs
      *
-     *      Because markAsUntransferable is a no-op, no object is ever marked; the function exists for
-     *      compatibility with Node.js callers and returns false for every value, primitives included.
+     *      Because markAsUntransferable is a no-op, no object is ever marked; the function returns false
+     *      for every value, primitives included.
      *      @param object the object to check
      *      @return returns whether the object is marked as untransferable; always false in fibjs
      *
@@ -119842,7 +119309,7 @@ declare module "zip" {
  *    \`createInflateRaw\`, \`createGunzip\` and \`createUnzip\` decompress into another stream and
  *    accept an output size limit;
  *  - **Codec objects**: \`Gzip\`, \`Gunzip\`, \`Deflate\`, \`Inflate\`, \`DeflateRaw\`, \`InflateRaw\`
- *    and \`Unzip\` are synchronous, Node.js compatible codec classes with explicit flush
+ *    and \`Unzip\` are synchronous codec classes with explicit flush
  *    control, kept for packages such as minizlib and tar;
  *  - **Constants**: \`NO_COMPRESSION\`, \`BEST_SPEED\`, \`BEST_COMPRESSION\` and
  *    \`DEFAULT_COMPRESSION\`, plus the \`constants\` object with the flush flags, strategies,
@@ -119859,7 +119326,7 @@ declare module "zip" {
  *  - **\`zip\` and \`unzip\`**: kept for compatibility with older fibjs code. In this build
  *    \`zip\` produces the same zlib-format stream as \`deflate\`, and \`unzip\` auto-detects gzip
  *    (first bytes 1f 8b, needs at least the 10-byte header) or zlib (first byte 0x78) and
- *    rejects raw deflate, matching Node.js. Format detection looks at the first bytes of the
+ *    rejects raw deflate. Format detection looks at the first bytes of the
  *    input, which matters for the streaming forms.
  *  - **Compression level**: accepted as an integer or as \`{ level }\`. \`DEFAULT_COMPRESSION\`
  *    (-1) balances speed and ratio, 0 stores without compressing, 1 is the fastest and 9
@@ -119879,11 +119346,11 @@ declare module "zip" {
  *    (gzip 31, zlib 15, raw -15, unzip 47 by default; an explicit value also selects the
  *    container, so \`new zlib.Gzip({ windowBits: 15 })\` writes zlib format), \`memLevel\`
  *    (1 to 9, default 8) and \`strategy\` (\`Z_DEFAULT_STRATEGY\` 0, \`Z_FILTERED\` 1,
- *    \`Z_HUFFMAN_ONLY\` 2, \`Z_RLE\` 3, \`Z_FIXED\` 4). The Node.js options \`dictionary\`,
- *    \`chunkSize\`, \`flush\` and \`finishFlush\` have no equivalent in fibjs.
+ *    \`Z_HUFFMAN_ONLY\` 2, \`Z_RLE\` 3, \`Z_FIXED\` 4). The options \`dictionary\`,
+ *    \`chunkSize\`, \`flush\` and \`finishFlush\` are not supported.
  *  - **Results and errors**: decompressing to zero bytes returns null instead of an empty
  *    Buffer, and input that ends early is decoded up to its last complete output without an
- *    error, where Node.js raises Z_BUF_ERROR. Wrong-format or corrupt data throws an Error
+ *    error. Wrong-format or corrupt data throws an Error
  *    with \`code\` \`Z_DATA_ERROR\` (number 20024, message "data error"); a closed codec throws
  *    ERR_ZLIB_BINDING_CLOSED; exceeding maxSize/maxOutputLength throws a RangeError
  *    (number 20013).
@@ -119972,12 +119439,11 @@ declare module "zip" {
  *  console.log(zlib.zip(text).equals(deflated)); // true
  *  \`\`\`
  *
- *  Notes: Node.js \`zlib.createGzip()\` returns a Transform stream, while fibjs
- *  \`zlib.createGzip(to)\` wraps an existing destination stream and the returned object is
- *  write-only (reading from it throws [20009]). Node.js also accepts TypedArrays and
- *  DataViews in the one-shot functions, while fibjs accepts Buffer and string (utf8); the
- *  options \`dictionary\`, \`chunkSize\`, \`info\`, \`flush\` and \`finishFlush\` are not supported.
- *  In return fibjs adds \`zip\`/\`unzip\`, the blocking and Sync/Async call forms and the
+ *  Notes: \`zlib.createGzip(to)\` wraps an existing destination stream and the returned object is
+ *  write-only (reading from it throws [20009]); the one-shot functions accept Buffer and
+ *  string (utf8). The options \`dictionary\`, \`chunkSize\`, \`info\`, \`flush\` and
+ *  \`finishFlush\` are not supported.
+ *  The module adds \`zip\`/\`unzip\`, the blocking and Sync/Async call forms and the
  *  \`zlib.promises\` namespace.
  *
  */
@@ -120106,8 +119572,7 @@ declare module 'zlib' {
      *      the pending output with Z_SYNC_FLUSH and \`close\` finishes the stream with Z_FINISH.
      *      \`read\`/\`readBuffer\` and the \`fd\` property throw the invalid-call error [20009], and
      *      the compression level is the default, so use \`createZip(to, level)\` or the \`Deflate\`
-     *      codec class to select one. There is no Node.js counterpart: \`zlib.createDeflate()\`
-     *      returns a Transform stream and takes no destination.
+     *      codec class to select one.
      *
      *      @param to the destination stream that receives the compressed data
      *      @return the write-only compressor stream
@@ -120198,8 +119663,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION (-1) and values outside the -1..9 range are clamped. The result
      *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
      *      \`inflate\` or \`unzip\` decode it. Other options are ignored, and secrets are not
-     *      hidden: deflate is a compression algorithm, not an encryption one. Node.js accepts
-     *      TypedArrays and DataViews here, while fibjs accepts Buffer and string. Like every
+     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
+     *      (utf8) are accepted. Like every
      *      async member it has blocking, callback, Sync/Async and \`zlib.promises\` forms.
      *
      *      Example — a fixed input produces a deterministic zlib stream:
@@ -120233,8 +119698,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION (-1) and values outside the -1..9 range are clamped. The result
      *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
      *      \`inflate\` or \`unzip\` decode it. Other options are ignored, and secrets are not
-     *      hidden: deflate is a compression algorithm, not an encryption one. Node.js accepts
-     *      TypedArrays and DataViews here, while fibjs accepts Buffer and string. Like every
+     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
+     *      (utf8) are accepted. Like every
      *      async member it has blocking, callback, Sync/Async and \`zlib.promises\` forms.
      *
      *      Example — a fixed input produces a deterministic zlib stream:
@@ -120266,8 +119731,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION (-1) and values outside the -1..9 range are clamped. The result
      *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
      *      \`inflate\` or \`unzip\` decode it. Other options are ignored, and secrets are not
-     *      hidden: deflate is a compression algorithm, not an encryption one. Node.js accepts
-     *      TypedArrays and DataViews here, while fibjs accepts Buffer and string. Like every
+     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
+     *      (utf8) are accepted. Like every
      *      async member it has blocking, callback, Sync/Async and \`zlib.promises\` forms.
      *
      *      Example — a fixed input produces a deterministic zlib stream:
@@ -120386,8 +119851,7 @@ declare module 'zlib' {
      *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
      *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
      *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer. Node.js raises Z_BUF_ERROR for truncated input and
-     *      returns an empty Buffer for an empty result.
+     *      instead of an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -120422,8 +119886,7 @@ declare module 'zlib' {
      *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
      *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
      *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer. Node.js raises Z_BUF_ERROR for truncated input and
-     *      returns an empty Buffer for an empty result.
+     *      instead of an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -120456,8 +119919,7 @@ declare module 'zlib' {
      *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
      *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
      *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer. Node.js raises Z_BUF_ERROR for truncated input and
-     *      returns an empty Buffer for an empty result.
+     *      instead of an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -120578,8 +120040,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION and the value is clamped to -1..9. The result is a gzip container
      *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
      *      same input and level produce the same bytes in this build. Decode it with \`gunzip\` or
-     *      \`unzip\`; \`inflate\` rejects it. Node.js takes the options object in the same position
-     *      and additionally supports a \`dictionary\`, which fibjs ignores.
+     *      \`unzip\`; \`inflate\` rejects it. The second argument is the options object; a \`dictionary\`
+     *      key is ignored.
      *
      *      Example — level differences and round trip:
      *      \`\`\`JavaScript
@@ -120611,8 +120073,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION and the value is clamped to -1..9. The result is a gzip container
      *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
      *      same input and level produce the same bytes in this build. Decode it with \`gunzip\` or
-     *      \`unzip\`; \`inflate\` rejects it. Node.js takes the options object in the same position
-     *      and additionally supports a \`dictionary\`, which fibjs ignores.
+     *      \`unzip\`; \`inflate\` rejects it. The second argument is the options object; a \`dictionary\`
+     *      key is ignored.
      *
      *      Example — level differences and round trip:
      *      \`\`\`JavaScript
@@ -120642,8 +120104,8 @@ declare module 'zlib' {
      *      DEFAULT_COMPRESSION and the value is clamped to -1..9. The result is a gzip container
      *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
      *      same input and level produce the same bytes in this build. Decode it with \`gunzip\` or
-     *      \`unzip\`; \`inflate\` rejects it. Node.js takes the options object in the same position
-     *      and additionally supports a \`dictionary\`, which fibjs ignores.
+     *      \`unzip\`; \`inflate\` rejects it. The second argument is the options object; a \`dictionary\`
+     *      key is ignored.
      *
      *      Example — level differences and round trip:
      *      \`\`\`JavaScript
@@ -120721,8 +120183,7 @@ declare module 'zlib' {
      *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
      *      members are decoded as a single output; bytes after the last member that are not
      *      another valid member fail with \`Z_DATA_ERROR\`. Truncated input is decoded up to its
-     *      last complete output without an error, and a zero-byte result is null. Node.js raises
-     *      Z_BUF_ERROR for truncated input and returns an empty Buffer for an empty result.
+     *      last complete output without an error, and a zero-byte result is null.
      *
      *      Example — concatenated members form one output:
      *      \`\`\`JavaScript
@@ -120756,8 +120217,7 @@ declare module 'zlib' {
      *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
      *      members are decoded as a single output; bytes after the last member that are not
      *      another valid member fail with \`Z_DATA_ERROR\`. Truncated input is decoded up to its
-     *      last complete output without an error, and a zero-byte result is null. Node.js raises
-     *      Z_BUF_ERROR for truncated input and returns an empty Buffer for an empty result.
+     *      last complete output without an error, and a zero-byte result is null.
      *
      *      Example — concatenated members form one output:
      *      \`\`\`JavaScript
@@ -120789,8 +120249,7 @@ declare module 'zlib' {
      *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
      *      members are decoded as a single output; bytes after the last member that are not
      *      another valid member fail with \`Z_DATA_ERROR\`. Truncated input is decoded up to its
-     *      last complete output without an error, and a zero-byte result is null. Node.js raises
-     *      Z_BUF_ERROR for truncated input and returns an empty Buffer for an empty result.
+     *      last complete output without an error, and a zero-byte result is null.
      *
      *      Example — concatenated members form one output:
      *      \`\`\`JavaScript
@@ -121094,9 +120553,7 @@ declare module 'zlib' {
      *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
      *      zlib-format data fails with \`Z_DATA_ERROR\` here (use \`inflate\`), gzip data with
      *      \`gunzip\`. Truncated input is decoded up to its last complete output without an error
-     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null instead of the
-     *      empty Buffer Node.js returns, and Node.js also raises Z_BUF_ERROR when the stream is
-     *      truncated.
+     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null.
      *
      *      Example — decode raw data and reject the wrapped formats:
      *      \`\`\`JavaScript
@@ -121129,9 +120586,7 @@ declare module 'zlib' {
      *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
      *      zlib-format data fails with \`Z_DATA_ERROR\` here (use \`inflate\`), gzip data with
      *      \`gunzip\`. Truncated input is decoded up to its last complete output without an error
-     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null instead of the
-     *      empty Buffer Node.js returns, and Node.js also raises Z_BUF_ERROR when the stream is
-     *      truncated.
+     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null.
      *
      *      Example — decode raw data and reject the wrapped formats:
      *      \`\`\`JavaScript
@@ -121162,9 +120617,7 @@ declare module 'zlib' {
      *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
      *      zlib-format data fails with \`Z_DATA_ERROR\` here (use \`inflate\`), gzip data with
      *      \`gunzip\`. Truncated input is decoded up to its last complete output without an error
-     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null instead of the
-     *      empty Buffer Node.js returns, and Node.js also raises Z_BUF_ERROR when the stream is
-     *      truncated.
+     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null.
      *
      *      Example — decode raw data and reject the wrapped formats:
      *      \`\`\`JavaScript
@@ -121454,7 +120907,7 @@ declare module 'zlib' {
      *
      *      \`unzip\` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
      *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
-     *      formats fail with \`Z_DATA_ERROR\`, matching Node.js \`unzip\`. The result is identical
+     *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
      *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
@@ -121489,7 +120942,7 @@ declare module 'zlib' {
      *
      *      \`unzip\` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
      *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
-     *      formats fail with \`Z_DATA_ERROR\`, matching Node.js \`unzip\`. The result is identical
+     *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
      *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
@@ -121522,7 +120975,7 @@ declare module 'zlib' {
      *
      *      \`unzip\` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
      *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
-     *      formats fail with \`Z_DATA_ERROR\`, matching Node.js \`unzip\`. The result is identical
+     *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
      *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
@@ -121742,8 +121195,7 @@ declare module 'zlib/promises' {
      *      the pending output with Z_SYNC_FLUSH and \`close\` finishes the stream with Z_FINISH.
      *      \`read\`/\`readBuffer\` and the \`fd\` property throw the invalid-call error [20009], and
      *      the compression level is the default, so use \`createZip(to, level)\` or the \`Deflate\`
-     *      codec class to select one. There is no Node.js counterpart: \`zlib.createDeflate()\`
-     *      returns a Transform stream and takes no destination.
+     *      codec class to select one.
      *
      *      @param to the destination stream that receives the compressed data
      *      @return the write-only compressor stream
@@ -121834,8 +121286,8 @@ declare module 'zlib/promises' {
      *      DEFAULT_COMPRESSION (-1) and values outside the -1..9 range are clamped. The result
      *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
      *      \`inflate\` or \`unzip\` decode it. Other options are ignored, and secrets are not
-     *      hidden: deflate is a compression algorithm, not an encryption one. Node.js accepts
-     *      TypedArrays and DataViews here, while fibjs accepts Buffer and string. Like every
+     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
+     *      (utf8) are accepted. Like every
      *      async member it has blocking, callback, Sync/Async and \`zlib.promises\` forms.
      *
      *      Example — a fixed input produces a deterministic zlib stream:
@@ -121867,8 +121319,8 @@ declare module 'zlib/promises' {
      *      DEFAULT_COMPRESSION (-1) and values outside the -1..9 range are clamped. The result
      *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
      *      \`inflate\` or \`unzip\` decode it. Other options are ignored, and secrets are not
-     *      hidden: deflate is a compression algorithm, not an encryption one. Node.js accepts
-     *      TypedArrays and DataViews here, while fibjs accepts Buffer and string. Like every
+     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
+     *      (utf8) are accepted. Like every
      *      async member it has blocking, callback, Sync/Async and \`zlib.promises\` forms.
      *
      *      Example — a fixed input produces a deterministic zlib stream:
@@ -121900,8 +121352,8 @@ declare module 'zlib/promises' {
      *      DEFAULT_COMPRESSION (-1) and values outside the -1..9 range are clamped. The result
      *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
      *      \`inflate\` or \`unzip\` decode it. Other options are ignored, and secrets are not
-     *      hidden: deflate is a compression algorithm, not an encryption one. Node.js accepts
-     *      TypedArrays and DataViews here, while fibjs accepts Buffer and string. Like every
+     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
+     *      (utf8) are accepted. Like every
      *      async member it has blocking, callback, Sync/Async and \`zlib.promises\` forms.
      *
      *      Example — a fixed input produces a deterministic zlib stream:
@@ -122018,8 +121470,7 @@ declare module 'zlib/promises' {
      *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
      *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
      *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer. Node.js raises Z_BUF_ERROR for truncated input and
-     *      returns an empty Buffer for an empty result.
+     *      instead of an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -122052,8 +121503,7 @@ declare module 'zlib/promises' {
      *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
      *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
      *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer. Node.js raises Z_BUF_ERROR for truncated input and
-     *      returns an empty Buffer for an empty result.
+     *      instead of an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -122086,8 +121536,7 @@ declare module 'zlib/promises' {
      *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
      *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
      *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer. Node.js raises Z_BUF_ERROR for truncated input and
-     *      returns an empty Buffer for an empty result.
+     *      instead of an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -122206,8 +121655,8 @@ declare module 'zlib/promises' {
      *      DEFAULT_COMPRESSION and the value is clamped to -1..9. The result is a gzip container
      *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
      *      same input and level produce the same bytes in this build. Decode it with \`gunzip\` or
-     *      \`unzip\`; \`inflate\` rejects it. Node.js takes the options object in the same position
-     *      and additionally supports a \`dictionary\`, which fibjs ignores.
+     *      \`unzip\`; \`inflate\` rejects it. The second argument is the options object; a \`dictionary\`
+     *      key is ignored.
      *
      *      Example — level differences and round trip:
      *      \`\`\`JavaScript
@@ -122237,8 +121686,8 @@ declare module 'zlib/promises' {
      *      DEFAULT_COMPRESSION and the value is clamped to -1..9. The result is a gzip container
      *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
      *      same input and level produce the same bytes in this build. Decode it with \`gunzip\` or
-     *      \`unzip\`; \`inflate\` rejects it. Node.js takes the options object in the same position
-     *      and additionally supports a \`dictionary\`, which fibjs ignores.
+     *      \`unzip\`; \`inflate\` rejects it. The second argument is the options object; a \`dictionary\`
+     *      key is ignored.
      *
      *      Example — level differences and round trip:
      *      \`\`\`JavaScript
@@ -122268,8 +121717,8 @@ declare module 'zlib/promises' {
      *      DEFAULT_COMPRESSION and the value is clamped to -1..9. The result is a gzip container
      *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
      *      same input and level produce the same bytes in this build. Decode it with \`gunzip\` or
-     *      \`unzip\`; \`inflate\` rejects it. Node.js takes the options object in the same position
-     *      and additionally supports a \`dictionary\`, which fibjs ignores.
+     *      \`unzip\`; \`inflate\` rejects it. The second argument is the options object; a \`dictionary\`
+     *      key is ignored.
      *
      *      Example — level differences and round trip:
      *      \`\`\`JavaScript
@@ -122345,8 +121794,7 @@ declare module 'zlib/promises' {
      *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
      *      members are decoded as a single output; bytes after the last member that are not
      *      another valid member fail with \`Z_DATA_ERROR\`. Truncated input is decoded up to its
-     *      last complete output without an error, and a zero-byte result is null. Node.js raises
-     *      Z_BUF_ERROR for truncated input and returns an empty Buffer for an empty result.
+     *      last complete output without an error, and a zero-byte result is null.
      *
      *      Example — concatenated members form one output:
      *      \`\`\`JavaScript
@@ -122378,8 +121826,7 @@ declare module 'zlib/promises' {
      *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
      *      members are decoded as a single output; bytes after the last member that are not
      *      another valid member fail with \`Z_DATA_ERROR\`. Truncated input is decoded up to its
-     *      last complete output without an error, and a zero-byte result is null. Node.js raises
-     *      Z_BUF_ERROR for truncated input and returns an empty Buffer for an empty result.
+     *      last complete output without an error, and a zero-byte result is null.
      *
      *      Example — concatenated members form one output:
      *      \`\`\`JavaScript
@@ -122411,8 +121858,7 @@ declare module 'zlib/promises' {
      *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
      *      members are decoded as a single output; bytes after the last member that are not
      *      another valid member fail with \`Z_DATA_ERROR\`. Truncated input is decoded up to its
-     *      last complete output without an error, and a zero-byte result is null. Node.js raises
-     *      Z_BUF_ERROR for truncated input and returns an empty Buffer for an empty result.
+     *      last complete output without an error, and a zero-byte result is null.
      *
      *      Example — concatenated members form one output:
      *      \`\`\`JavaScript
@@ -122710,9 +122156,7 @@ declare module 'zlib/promises' {
      *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
      *      zlib-format data fails with \`Z_DATA_ERROR\` here (use \`inflate\`), gzip data with
      *      \`gunzip\`. Truncated input is decoded up to its last complete output without an error
-     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null instead of the
-     *      empty Buffer Node.js returns, and Node.js also raises Z_BUF_ERROR when the stream is
-     *      truncated.
+     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null.
      *
      *      Example — decode raw data and reject the wrapped formats:
      *      \`\`\`JavaScript
@@ -122743,9 +122187,7 @@ declare module 'zlib/promises' {
      *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
      *      zlib-format data fails with \`Z_DATA_ERROR\` here (use \`inflate\`), gzip data with
      *      \`gunzip\`. Truncated input is decoded up to its last complete output without an error
-     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null instead of the
-     *      empty Buffer Node.js returns, and Node.js also raises Z_BUF_ERROR when the stream is
-     *      truncated.
+     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null.
      *
      *      Example — decode raw data and reject the wrapped formats:
      *      \`\`\`JavaScript
@@ -122776,9 +122218,7 @@ declare module 'zlib/promises' {
      *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
      *      zlib-format data fails with \`Z_DATA_ERROR\` here (use \`inflate\`), gzip data with
      *      \`gunzip\`. Truncated input is decoded up to its last complete output without an error
-     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null instead of the
-     *      empty Buffer Node.js returns, and Node.js also raises Z_BUF_ERROR when the stream is
-     *      truncated.
+     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is null.
      *
      *      Example — decode raw data and reject the wrapped formats:
      *      \`\`\`JavaScript
@@ -123062,7 +122502,7 @@ declare module 'zlib/promises' {
      *
      *      \`unzip\` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
      *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
-     *      formats fail with \`Z_DATA_ERROR\`, matching Node.js \`unzip\`. The result is identical
+     *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
      *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
@@ -123095,7 +122535,7 @@ declare module 'zlib/promises' {
      *
      *      \`unzip\` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
      *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
-     *      formats fail with \`Z_DATA_ERROR\`, matching Node.js \`unzip\`. The result is identical
+     *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
      *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
@@ -123128,7 +122568,7 @@ declare module 'zlib/promises' {
      *
      *      \`unzip\` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
      *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
-     *      formats fail with \`Z_DATA_ERROR\`, matching Node.js \`unzip\`. The result is identical
+     *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
      *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
@@ -123220,8 +122660,8 @@ declare module "zlib" {
  *  The module is not requireable on its own; load it through the \`constants\` property of the
  *  zlib module. The values describe the zlib C library version 1.3.1 linked into this build
  *  and are accepted by the \`flush\`, \`level\`, \`windowBits\`, \`memLevel\` and \`strategy\`
- *  parameters of the compression classes; the codec type ids (\`DEFLATE\`, \`GZIP\`, ...) mirror
- *  Node.js's zlib.constants.
+ * parameters of the compression classes; the codec type ids (\`DEFLATE\`, \`GZIP\`, ...) are
+ * also exported.
  *
  *  Concepts:
  *
@@ -123241,8 +122681,7 @@ declare module "zlib" {
  *    suits ordinary data, Z_FILTERED favors data produced by a filter, Z_HUFFMAN_ONLY and
  *    Z_RLE restrict LZ matching, and Z_FIXED disables dynamic Huffman codes.
  *  - **Bounds**: Z_MIN_WINDOWBITS through Z_MAX_WINDOWBITS and Z_MIN_MEMLEVEL through
- *    Z_MAX_MEMLEVEL bound the codec options; Z_MIN_CHUNK, Z_MAX_CHUNK (-1 means unlimited in
- *    fibjs, Node.js reports Infinity) and Z_DEFAULT_CHUNK describe chunk sizes.
+ *    Z_MAX_MEMLEVEL bound the codec options; Z_MIN_CHUNK, Z_MAX_CHUNK (-1 means unlimited) and Z_DEFAULT_CHUNK describe chunk sizes.
  *  - **Where options apply**: the codec classes (\`new zlib.Deflate(...)\`, \`new zlib.Gzip(...)\`
  *    and the rest) read level, windowBits, memLevel and strategy; the one-shot functions only
  *    read level, so pass the other options to a codec instance.
@@ -123500,7 +122939,7 @@ declare module 'zlib_constants' {
     export const Z_MIN_CHUNK: 64;
 
     /**
-     * @description Maximum chunk size; -1 means unlimited (Node reports Infinity)
+     * @description Maximum chunk size; -1 means unlimited
      */
     export const Z_MAX_CHUNK: -1;
 

@@ -2,19 +2,18 @@
 /// <reference path="../interface/PerformanceObserver.d.ts" />
 /// <reference path="../module/performance.d.ts" />
 /**
- * @description Node.js compatibility entry point that exposes the performance measurement API
+ * @description Compatibility entry point that exposes the performance measurement API
  *
  *  `require('perf_hooks')` returns a module with exactly two members, `performance` and
  *  `PerformanceObserver`; both are the same objects as the globals `performance` and
- *  `PerformanceObserver`, so the module exists only so that code written for Node.js can keep its
- *  `require('perf_hooks')` destructuring.
+ * `PerformanceObserver`, so the module exists so that `require('perf_hooks')` destructuring keeps working.
  *
  *  Concepts:
  *
  *  - **What is shared**: the module object itself is stateless; marks, measures and observers live on
  *    the isolate, so every reference to `performance` (module, global, sandbox) sees the same
  *    timeline.
- *  - **Not provided**: Node.js also exports `Performance`, `PerformanceEntry`, `PerformanceMark`,
+ *  - **Not provided**: `Performance`, `PerformanceEntry`, `PerformanceMark`,
  *    `PerformanceMeasure`, `PerformanceObserverEntryList`, `PerformanceResourceTiming`,
  *    `monitorEventLoopDelay`, `eventLoopUtilization`, `timerify`, `createHistogram` and `constants`;
  *    fibjs exposes none of them. The entry classes exist internally but are not reachable by name,
@@ -34,7 +33,7 @@
  *  console.log(Object.keys(perf_hooks).sort().join(', ')); // PerformanceObserver, performance
  *  ```
  *
- *  Example 2 — a minimal Node.js style measurement:
+ *  Example 2 — a minimal measurement:
  *  ```JavaScript
  *  const { performance, PerformanceObserver } = require('perf_hooks');
  *

@@ -1,7 +1,7 @@
 /*! @brief The controller object that owns an AbortSignal and cancels the operations listening to it
 
   A controller is the write side of the cancellation pair defined by the WHATWG DOM
-  standard, available as a global; Node.js also exposes AbortController globally. It owns
+  standard, available as a global. It owns
   exactly one AbortSignal, returned by its `signal` property, and can abort that signal
   once. Pass the signal to a cancellable API and call `abort()` when the operation is no
   longer needed: every consumer holding the signal observes the same cancellation. The
@@ -16,7 +16,7 @@
  - **Abort reason**: `abort(reason)` stores a reason on the signal, readable as
    `AbortSignal.reason`. When the argument is omitted, `undefined` or `null`, the reason
    is the string `"AbortError"`; a string is stored as text and any other value is stored
-   as-is. Node.js stores a DOMException by default instead. The first `abort()` wins: a
+   as-is. The first `abort()` wins: a
    later call changes nothing and does not emit the event again.
  - **Event dispatch**: aborting emits the `abort` event on the signal synchronously.
    Handlers registered with `addEventListener`, `on`, `once` and the `onabort` property
@@ -90,8 +90,7 @@ interface AbortController : object
 {
     /*! @brief Creates a controller with a fresh, not yet aborted AbortSignal
 
-     Takes no arguments; passing any argument throws a TypeError (20001), while Node.js
-     ignores extra arguments. The new signal is available immediately through `signal`
+     Takes no arguments; passing any argument throws a TypeError (20001). The new signal is available immediately through `signal`
      and starts with `aborted` false and `reason` undefined.
     */
     AbortController();
@@ -99,8 +98,7 @@ interface AbortController : object
     /*! @brief The AbortSignal owned by this controller, the read-only view given to consumers
 
      The same object is returned on every access and all consumers share its state. The
-     property is read-only: assigning to it is silently ignored (Node.js throws in strict
-     mode). Only aborting the controller changes the signal, and a signal never leaves the
+     property is read-only: assigning to it is silently ignored. Only aborting the controller changes the signal, and a signal never leaves the
      aborted state.
 
      Example — hand the same signal to several consumers:
@@ -131,8 +129,7 @@ interface AbortController : object
      AbortSignal abort event.
 
      Handlers run before the call returns. An exception thrown by a handler is rethrown to
-     the caller after the remaining handlers ran, and the signal stays aborted (Node.js
-     reports handler exceptions as uncaught exceptions instead). Passing more than one
+     the caller after the remaining handlers ran, and the signal stays aborted. Passing more than one
      argument throws a TypeError.
 
      Example — the first abort wins and both listeners see it:

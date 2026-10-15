@@ -17,18 +17,17 @@
  *  - **Descriptor and position**: the handle owns one descriptor with one file position.
  *    read/write without a position continue at the current position; an explicit position
  *    (greater than -1) seeks the descriptor first, so a positioned call also moves the position
- *    for the next sequential call. In Node.js a positioned call leaves the position untouched
- *    (plans/compat-differences.md 2.14).
+ *    for the next sequential call (plans/compat-differences.md 2.14).
  *  - **Lifetime**: the descriptor stays open until close() is called, even when the handle
  *    becomes unreachable, so an unclosed handle keeps a file busy. No other member closes it.
  *    After close() the fd property is -1 and the members report an invalid handle; closing an
- *    already closed handle throws in fibjs while Node.js resolves (2.16).
+ *    already closed handle throws (2.16).
  *  - **Call forms**: every member marked async works synchronously (the fiber blocks), with a
  *    trailing callback, or through fs.promises.open. read and write return a result object with
  *    bytesRead/bytesWritten and buffer in all three forms.
  *  - **writeFile replaces, appendFile does not seek**: writeFile seeks to 0 and truncates before
  *    writing, appendFile writes at the current position; open with the 'a' flag when appendFile
- *    must always append. Node.js writeFile writes in place instead (2.15).
+ *    must always append. writeFile rewrites the file in place (2.15).
  *
  *  Obtained from:
  *  - `fs.open(path[, flags[, mode]])` — synchronous/callback entry point, flags default to 'r';
@@ -120,7 +119,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -132,7 +131,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -142,7 +141,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -152,8 +151,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -165,8 +163,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -176,8 +173,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -194,9 +190,8 @@ declare class Class_FileHandle extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      ```JavaScript
@@ -259,9 +254,8 @@ declare class Class_FileHandle extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      ```JavaScript
@@ -319,9 +313,8 @@ declare class Class_FileHandle extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      ```JavaScript
@@ -424,7 +417,7 @@ declare class Class_FileHandle extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -473,7 +466,7 @@ declare class Class_FileHandle extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -517,7 +510,7 @@ declare class Class_FileHandle extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -742,8 +735,7 @@ declare class Class_FileHandle extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -791,8 +783,7 @@ declare class Class_FileHandle extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -838,8 +829,7 @@ declare class Class_FileHandle extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -915,7 +905,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -928,7 +918,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -939,7 +929,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -979,7 +969,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasync(): void;
@@ -990,7 +980,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasyncSync(): void;
@@ -999,7 +989,7 @@ declare class Class_FileHandle extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasyncAsync(): Promise<void>;
@@ -1139,7 +1129,7 @@ declare class Class_FileHandle extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     close(): void;
@@ -1151,7 +1141,7 @@ declare class Class_FileHandle extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     closeSync(): void;
@@ -1161,7 +1151,7 @@ declare class Class_FileHandle extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     closeAsync(): Promise<void>;
@@ -1203,7 +1193,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -1213,7 +1203,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -1223,7 +1213,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the permission bits of the open file (fchmod); effective on POSIX systems
      *
      *      Applies mode to the file the descriptor addresses, without a path lookup; on Windows only
-     *      the write bit is meaningful. Same name and purpose as Node.js filehandle.chmod.
+     *      the write bit is meaningful.
      *      @param mode the access permission to set
      *
      */
@@ -1233,8 +1223,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -1244,8 +1233,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -1255,8 +1243,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Reads the status of the open file (fstat)
      *
      *      The returned Stat describes the file the descriptor addresses and is not bound to a path,
-     *      so its name property is an empty string (unlike fs.stat). Node.js calls this
-     *      filehandle.stat().
+     *      so its name property is an empty string (unlike fs.stat).
      *      @return returns the basic information of the file
      *
      */
@@ -1273,9 +1260,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      ```JavaScript
@@ -1333,9 +1319,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      ```JavaScript
@@ -1393,9 +1378,8 @@ declare class Class_FileHandlePromise extends Class_object {
      *      bytesRead, the number of bytes actually read, and buffer, the same Buffer.
      *
      *      The options form read(options) takes the properties below; its buffer is allocated with
-     *      16384 bytes when missing and offset/length/position have the same meaning. In Node.js
-     *      the result shape and the default buffer are the same, but an explicit position does not
-     *      move the current position (plans/compat-differences.md 2.14).
+     *      16384 bytes when missing and offset/length/position have the same meaning. An explicit
+     *      position also moves the current position (plans/compat-differences.md 2.14).
      *
      *      options supports the following properties:
      *      ```JavaScript
@@ -1493,7 +1477,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -1537,7 +1521,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -1581,7 +1565,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      Writes length bytes starting at buffer[offset]. The default length -1 means "up to the
      *      end of the buffer" and the default offset 0 starts at the beginning, so the defaults are
      *      usable as a plain write. A position greater than -1 seeks the descriptor first, and the
-     *      write also leaves the position after the data (Node.js keeps it, see
+     *      write also leaves the position after the data (see
      *      plans/compat-differences.md 2.14); the default -1 writes at the current position. The
      *      result object holds bytesWritten and buffer.
      *
@@ -1799,8 +1783,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -1846,8 +1829,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -1893,8 +1875,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      object with an encoding property; the encoding of a Buffer is only validated, the bytes
      *      are written as they are.
      *
-     *      Node.js filehandle.writeFile writes in place at the current position and returns
-     *      undefined, and the descriptor form of fs.writeFile does the same truncating rewrite
+     *      The descriptor form of fs.writeFile does the same truncating rewrite
      *      (plans/compat-differences.md 2.15 and 2.7).
      *
      *      options supports the following options:
@@ -1968,7 +1949,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -1979,7 +1960,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -1990,7 +1971,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Changes the owner of the open file (fchown); effective on POSIX systems only
      *
      *      Both ids are numeric POSIX user and group ids; there is no name lookup and no change of
-     *      the group list. Node.js calls this filehandle.chown().
+     *      the group list.
      *      @param uid the file owner user id
      *      @param gid the file owner group id
      *
@@ -2028,7 +2009,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasync(): Promise<void>;
@@ -2037,7 +2018,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasyncSync(): void;
@@ -2046,7 +2027,7 @@ declare class Class_FileHandlePromise extends Class_object {
      * @description Flushes file data to the storage device (fdatasync)
      *
      *      Skips the metadata that is not needed to read the data back and is therefore often
-     *      cheaper than sync. Same name as Node.js filehandle.datasync.
+     *      cheaper than sync.
      *
      */
     datasyncAsync(): Promise<void>;
@@ -2182,7 +2163,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     close(): Promise<void>;
@@ -2192,7 +2173,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     closeSync(): void;
@@ -2202,7 +2183,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      *      After close() the handle reports fd -1 and every other member fails with an invalid
      *      handle error; the file data itself is unaffected. A second close() throws a bad file
-     *      descriptor error in fibjs, while Node.js resolves it (plans/compat-differences.md 2.16).
+     *      descriptor error (plans/compat-differences.md 2.16).
      *
      */
     closeAsync(): Promise<void>;

@@ -37,15 +37,14 @@
    throws Error 20003. An opts argument that is a number, boolean or array throws Error 20005;
    null is accepted as "no options".
  - **Timeout**: the timeout option (milliseconds) limits one run. A run that exceeds it fails
-   with Error 20021 ("The maximum amount of time for a script to execute was exceeded.");
-   Node.js reports the same condition as an ERR_SCRIPT_EXECUTION_TIMEOUT error.
+   with Error 20021 ("The maximum amount of time for a script to execute was exceeded.").
  - **Dynamic import**: vm installs no import callback for compiled scripts, so code that calls
    `import()` aborts the process in this release; load modules with require instead.
- - **Node.js comparison**: the core surface matches Node's vm — createContext, isContext,
+ - **Surface**: createContext, isContext,
    runInContext, runInNewContext, runInThisContext, and Script with the three run methods and
-   createCachedData. The per-member notes list the differences; the main ones are the default
-   file name `<anonymous>` (Node.js uses `evalmachine.<anonymous>`), the `type: 'module'`
-   compile option as a fibjs extension, and the missing Node.js members compileFunction,
+   createCachedData. The per-member notes list the details; the main ones are the default
+   file name `<anonymous>`, the `type: 'module'`
+   compile option as an extension, and the missing members compileFunction,
    measureMemory, constants, SourceTextModule and SyntheticModule.
 
  Import:
@@ -121,7 +120,7 @@ module vm
      its properties. The mark is permanent; calling createContext again with a prepared object
      returns it unchanged, and isContext then reports true.
 
-     opts is accepted for Node.js compatibility and is currently ignored. Preparing a context is
+     opts is accepted and is currently ignored. Preparing a context is
      not a security boundary, see the module Concepts.
 
      Example:
@@ -177,8 +176,7 @@ module vm
      ```
 
      A syntax error is thrown as a SyntaxError at compile time. A run that exceeds timeout fails
-     with Error 20021 ("The maximum amount of time for a script to execute was exceeded.");
-     Node.js reports the same condition as ERR_SCRIPT_EXECUTION_TIMEOUT.
+     with Error 20021 ("The maximum amount of time for a script to execute was exceeded.").
 
      Example:
      ```JavaScript

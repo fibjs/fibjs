@@ -3,7 +3,7 @@
  Reached through `require('os').constants.signals`. On POSIX the names and numbers match the
  host's `<signal.h>` (verified against the Linux x86-64 headers) and include the aliases
  SIGIOT = SIGABRT and SIGPOLL = SIGIO; SIGSTKFLT and SIGPWR exist only on Linux. Windows
- exposes the same names (matching Node.js) but can deliver only a few of them.
+ exposes the same names but can deliver only a few of them.
 
  Concepts:
 

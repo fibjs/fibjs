@@ -20,10 +20,9 @@
  *    lastModified are read-only afterwards.
  *  - **Options**: `type` is lowercased and defaults to an empty string; `lastModified` is a
  *    number of milliseconds since the Unix epoch and defaults to the current time. A Date is
- *    rejected, unlike Node.js, where it is converted (plans/compat-differences.md 2.17).
- *  - **Not in Node.js**: the single-object constructor `new File({ data, name, ... })` is a
- *    fibjs extension; Node.js also exports the class as `buffer.File`, which fibjs does not
- *    provide.
+ *    rejected (plans/compat-differences.md 2.17).
+ *  - **Extensions**: the single-object constructor `new File({ data, name, ... })` is an
+ *    extension; the class is not exported as `buffer.File`.
  *
  *  Obtained from:
  *  - `new File(blobParts, name[, options])` — an array of parts;
@@ -108,8 +107,7 @@ declare class Class_File extends Class_Blob {
      *
      *      `data` is required and is treated as one Buffer|String part; `name` is optional and
      *      defaults to an empty string, unlike the positional forms. The remaining properties are
-     *      the same options as in the parts form. This form is not part of the Web File API or
-     *      Node.js.
+     *      the same options as in the parts form. This form is not part of the Web File API.
      *      @param options optional parameter object
      *
      */
@@ -120,7 +118,7 @@ declare class Class_File extends Class_Blob {
      *
      *      Identifies the file in display, upload and download flows. It is a name, not a path, and
      *      it is never resolved against the file system. Read-only: an assignment throws in strict
-     *      mode. Same property as the Web File API and Node.js `buffer.File`.
+     *      mode. Same property as the Web File API.
      *
      */
     readonly name: string;
@@ -129,7 +127,7 @@ declare class Class_File extends Class_Blob {
      * @description Last modification time in milliseconds since the Unix epoch
      *
      *      Set from the `lastModified` option at construction and defaulted to the current time.
-     *      Only a number is accepted; Node.js also converts a Date (plans/compat-differences.md
+     *      Only a number is accepted (plans/compat-differences.md
      *      2.17). Read-only.
      *
      */
@@ -191,8 +189,7 @@ declare class Class_FilePromise extends Class_BlobPromise {
      *
      *      `data` is required and is treated as one Buffer|String part; `name` is optional and
      *      defaults to an empty string, unlike the positional forms. The remaining properties are
-     *      the same options as in the parts form. This form is not part of the Web File API or
-     *      Node.js.
+     *      the same options as in the parts form. This form is not part of the Web File API.
      *      @param options optional parameter object
      *
      */
@@ -203,7 +200,7 @@ declare class Class_FilePromise extends Class_BlobPromise {
      *
      *      Identifies the file in display, upload and download flows. It is a name, not a path, and
      *      it is never resolved against the file system. Read-only: an assignment throws in strict
-     *      mode. Same property as the Web File API and Node.js `buffer.File`.
+     *      mode. Same property as the Web File API.
      *
      */
     readonly name: string;
@@ -212,7 +209,7 @@ declare class Class_FilePromise extends Class_BlobPromise {
      * @description Last modification time in milliseconds since the Unix epoch
      *
      *      Set from the `lastModified` option at construction and defaulted to the current time.
-     *      Only a number is accepted; Node.js also converts a Date (plans/compat-differences.md
+     *      Only a number is accepted (plans/compat-differences.md
      *      2.17). Read-only.
      *
      */

@@ -30,8 +30,7 @@
  *    Content-Type header.
  *  - **Encoding**: `setEncoding` hands the encoding to the body stream, so the `data` event
  *    delivers strings instead of Buffers; for the built-in memory-backed bodies `read` keeps
- *    returning a Buffer. Node's IncomingMessage.setEncoding applies the encoding to the readable
- *    itself, so its read() returns strings.
+ *    returning a Buffer.
  *  - **Wire format**: `sendTo` and `readFrom` serialize and parse a complete message on a stream.
  *    The base Message does not implement them (they throw 20009); HttpRequest, HttpResponse and
  *    WebSocketMessage override both. `stream` is the buffered stream a message was read from.
@@ -97,8 +96,6 @@
  *    only implemented by the concrete subclasses and throw 20009 here; use HttpRequest,
  *    HttpResponse or WebSocketMessage when a serializable message is needed. The constructor is
  *    reachable as `mq.Message` (the class is not a global).
- *  - Node.js has no single message base class: http.IncomingMessage, http.ServerResponse and
- *    stream.Readable play separate roles, and mq has no counterpart at all.
  *
  */
 declare class Class_Message extends Class_EventEmitter {
@@ -135,8 +132,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Whether the current message has been sent
      *
      *      The base Message and WebSocketMessage always report false; HttpMessage reports the real
-     *      flag, which sendTo and send set when the message was written to a stream. Node.js has no
-     *      equivalent property on IncomingMessage.
+     *      flag, which sendTo and send set when the message was written to a stream.
      *
      */
     readonly sent: boolean;
@@ -272,8 +268,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Sets the encoding of the message body; this method is an alias of the corresponding body method
      *
      *      The encoding is handed to the body stream, so the `data` event then delivers strings
-     *      instead of Buffers; for the built-in memory-backed bodies `read` still returns a Buffer,
-     *      unlike Node's IncomingMessage.setEncoding, which makes read() return strings. Passing null
+     *      instead of Buffers; for the built-in memory-backed bodies `read` still returns a Buffer. Passing null
      *      or an unsupported encoding throws a TypeError.
      *
      *      Example — the data event decodes after setEncoding:
@@ -308,7 +303,7 @@ declare class Class_Message extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      ```JavaScript
@@ -337,7 +332,7 @@ declare class Class_Message extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      ```JavaScript
@@ -364,7 +359,7 @@ declare class Class_Message extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      ```JavaScript
@@ -720,7 +715,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      The size in bytes of the buffered body, 0 when the message has no body. It is also 0 for a
      *      streaming body (a response body received from a client), whose size is unknown until it is
-     *      read; Node.js exposes the size through the Content-Length header instead of a property.
+     *      read.
      *
      */
     readonly length: number;
@@ -1100,7 +1095,7 @@ declare class Class_Message extends Class_EventEmitter {
     /**
      * @description Pauses the automatic reading mode of the message body stream
      *
-     *      Kept for Node.js compatibility; like Stream.pause it currently has no effect. The method
+     *      Like Stream.pause it currently has no effect. The method
      *      still returns the message so chainable code keeps working.
      *      @return returns the message object
      *
@@ -1113,8 +1108,7 @@ declare class Class_Message extends Class_EventEmitter {
      *      Data is forwarded through the `data` events of the body, so a streaming body flows
      *      automatically while a buffered body is copied from its current position (rewind it first
      *      when it was just written). The options are handed to the underlying pipe helper; end:
-     *      false leaves the destination open when the body ends. Returns the destination, like Node's
-     *      readable.pipe.
+     *      false leaves the destination open when the body ends. Returns the destination.
      *
      *      Example — copy a buffered body into another stream:
      *      ```JavaScript
@@ -1146,7 +1140,7 @@ declare class Class_Message extends Class_EventEmitter {
     /**
      * @description Removes all pipe destinations of the message body stream
      *
-     *      Kept for Node.js compatibility; like Stream.unpipe it currently has no effect on the pipes
+     *      Like Stream.unpipe it currently has no effect on the pipes
      *      already established.
      *      @param destination a specific writable destination to unpipe
      *
@@ -1342,8 +1336,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Whether the current message has been sent
      *
      *      The base Message and WebSocketMessage always report false; HttpMessage reports the real
-     *      flag, which sendTo and send set when the message was written to a stream. Node.js has no
-     *      equivalent property on IncomingMessage.
+     *      flag, which sendTo and send set when the message was written to a stream.
      *
      */
     readonly sent: boolean;
@@ -1475,8 +1468,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Sets the encoding of the message body; this method is an alias of the corresponding body method
      *
      *      The encoding is handed to the body stream, so the `data` event then delivers strings
-     *      instead of Buffers; for the built-in memory-backed bodies `read` still returns a Buffer,
-     *      unlike Node's IncomingMessage.setEncoding, which makes read() return strings. Passing null
+     *      instead of Buffers; for the built-in memory-backed bodies `read` still returns a Buffer. Passing null
      *      or an unsupported encoding throws a TypeError.
      *
      *      Example — the data event decodes after setEncoding:
@@ -1511,7 +1503,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      ```JavaScript
@@ -1538,7 +1530,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      ```JavaScript
@@ -1565,7 +1557,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      Appends to the buffered body, creating an empty one when needed; it does not replace the
      *      existing content and does not mark the message ended. The count returned for a buffered
      *      body is not filled reliably by the current implementation, so use length for the body
-     *      size; Node's writable.write returns a boolean backpressure flag instead.
+     *      size.
      *
      *      Example — write appends and readAll rewinds:
      *      ```JavaScript
@@ -1903,7 +1895,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      The size in bytes of the buffered body, 0 when the message has no body. It is also 0 for a
      *      streaming body (a response body received from a client), whose size is unknown until it is
-     *      read; Node.js exposes the size through the Content-Length header instead of a property.
+     *      read.
      *
      */
     readonly length: number;
@@ -2271,7 +2263,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
     /**
      * @description Pauses the automatic reading mode of the message body stream
      *
-     *      Kept for Node.js compatibility; like Stream.pause it currently has no effect. The method
+     *      Like Stream.pause it currently has no effect. The method
      *      still returns the message so chainable code keeps working.
      *      @return returns the message object
      *
@@ -2284,8 +2276,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      Data is forwarded through the `data` events of the body, so a streaming body flows
      *      automatically while a buffered body is copied from its current position (rewind it first
      *      when it was just written). The options are handed to the underlying pipe helper; end:
-     *      false leaves the destination open when the body ends. Returns the destination, like Node's
-     *      readable.pipe.
+     *      false leaves the destination open when the body ends. Returns the destination.
      *
      *      Example — copy a buffered body into another stream:
      *      ```JavaScript
@@ -2317,7 +2308,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
     /**
      * @description Removes all pipe destinations of the message body stream
      *
-     *      Kept for Node.js compatibility; like Stream.unpipe it currently has no effect on the pipes
+     *      Like Stream.unpipe it currently has no effect on the pipes
      *      already established.
      *      @param destination a specific writable destination to unpipe
      *

@@ -36,9 +36,8 @@
  *    connections continue to be served.
  *  - **Events**: inherited from net.TcpServer - 'listening' after start()/listen(), 'connection'
  *    with the raw accepted Socket before the handshake, 'error' with a message string and 'close'
- *    on stop(). Node.js tls.Server reports the established session through 'secureConnection'
- *    instead and passes an Error to 'error'.
- *  - **Node.js differences**: the class is exported as tls.Server (not tls.TLSServer), the
+ *    on stop().
+ *  - **Notes**: the class is exported as tls.Server, the
  *    constructor may bind the port, SNI is configured on the context (setSNIContext) instead of
  *    server.addContext(), and there is no getTicketKeys/setTicketKeys, maxConnections or unref.
  *

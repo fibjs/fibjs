@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description InflateRaw is the Node.js compatible codec that decompresses raw deflate data
+ * @description InflateRaw is the codec that decompresses raw deflate data
  *
  *  `new zlib.InflateRaw(opts)` builds a synchronous codec; feed raw deflate chunks (no
  *  header, no checksum) with `_processChunk` and it returns the decoded bytes. It is the

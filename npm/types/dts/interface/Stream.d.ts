@@ -129,8 +129,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      and fs.createWriteStream) reports the file descriptor, net.Socket and
      *      TLSSocket the socket descriptor and the process standard streams 0/1/2.
      *      Streams without a handle (MemoryStream, RangeStream, BufferedStream) throw
-     *      [20009] when the property is read. Node.js exposes `fd` on file streams
-     *      only and returns undefined elsewhere.
+     *      [20009] when the property is read.
      *
      */
     readonly fd: number;
@@ -138,7 +137,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Queries whether the stream is writable
      *
-     *      Kept for Node compatibility: this reports whether the stream has not
+     *      This reports whether the stream has not
      *      ended, not whether the device accepts writes. It stays true after end()
      *      and close() and turns false only when the flowing read loop reaches the
      *      end of the stream or destroy() is called. Test the results of write()
@@ -150,7 +149,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Queries whether the stream is readable
      *
-     *      Node-compatible flag with the same caveats as `writable`: true until the
+     *      Compatibility flag with the same caveats as `writable`: true until the
      *      flowing read loop reaches the end of the stream or destroy() is called.
      *      It does not track pause(), close(), or pull-mode reads that reached the
      *      end of the stream.
@@ -161,10 +160,9 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Queries the readable state object of the stream
      *
-     *      A minimal Node-compatible view: an object with one `ended` property that
+     *      A minimal compatibility view: an object with one `ended` property that
      *      mirrors the internal ended flag, which becomes true when the flowing read
-     *      loop finishes or the stream is destroyed. It is not a full Node
-     *      ReadableState, and the other Node fields are absent.
+     *      loop finishes or the stream is destroyed.
      *
      */
     readonly _readableState: FIBJS.GeneralObject;
@@ -172,8 +170,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Queries the writable state object of the stream
      *
-     *      Compatibility stub: fibjs returns an empty object and keeps no Node
-     *      WritableState. Use the return value of write() and the `drain` event for
+     *      Compatibility stub: it returns an empty object. Use the return value of write() and the `drain` event for
      *      back pressure instead.
      *
      */
@@ -428,8 +425,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      decoder understands the text labels 'utf8', 'ascii', 'latin1' and
      *      'utf16le' (and their aliases); other names, including 'hex', 'base64' and
      *      'ucs2', are accepted here but decode to empty strings, and null or a
-     *      non-string throws [20005]. Node.js rejects an unknown name with
-     *      ERR_UNKNOWN_ENCODING. Returns the stream itself for chaining.
+     *      non-string throws [20005]. Returns the stream itself for chaining.
      *
      *      Example — switch to text reads, then back to binary:
      *      ```JavaScript
@@ -535,7 +531,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -570,7 +566,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -603,7 +599,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -636,7 +632,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -652,7 +648,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -666,7 +662,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -743,7 +739,6 @@ declare class Class_Stream extends Class_EventEmitter {
      *      `readable` events are delivered until resume(). Data already buffered is
      *      kept. It has no effect in pull mode (before resume or a data/readable
      *      listener) and does not undo flowing mode. Returns the stream itself.
-     *      Node.js pauses in the same way but exposes the state through isPaused().
      *
      *      @return returns the current stream object
      *
@@ -759,8 +754,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      the destination is ended (unless options.end is false); a source error is
      *      re-emitted on the destination, and a source close that is not an end
      *      destroys the destination. The destination receives a `pipe` event with the
-     *      source as its argument. Only the `end` option is read; the other Node.js
-     *      pipe options are ignored. Returns the destination for chaining, while the
+     *      source as its argument. Only the `end` option is read; the other pipe options are ignored. Returns the destination for chaining, while the
      *      copy itself continues in the background — wait for the destination
      *      `finish`/`close` before reading its result. See copyTo for a bounded
      *      synchronous copy.
@@ -803,7 +797,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      Compatibility no-op in fibjs: a piped copy stops by itself when the source
      *      ends/errors/closes or the destination closes, and there is no way to
      *      detach one destination from an active pipe. The argument is accepted and
-     *      ignored; Node.js also emits an `unpipe` event, which fibjs does not.
+     *      ignored, and no `unpipe` event is emitted.
      *
      *      @param destination the specific writable destination to unpipe
      *
@@ -961,7 +955,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -976,7 +970,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -989,7 +983,7 @@ declare class Class_Stream extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -1130,8 +1124,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when `bytes` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      ```JavaScript
@@ -1164,8 +1157,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when `bytes` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      ```JavaScript
@@ -1196,8 +1188,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when `bytes` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      ```JavaScript
@@ -1227,8 +1218,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      listener switches the stream to that mode. The payload is a Buffer, or a
      *      string when setEncoding was called (the parameter is declared as Buffer for
      *      the binary case). A `readable` workflow consumes the same data through
-     *      read() and emits no data events. Node.js has the same flowing-mode
-     *      semantics.
+     *      read() and emits no data events.
      *
      *      @param data the data read
      *
@@ -1258,8 +1248,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      listener switches the stream to that mode. The payload is a Buffer, or a
      *      string when setEncoding was called (the parameter is declared as Buffer for
      *      the binary case). A `readable` workflow consumes the same data through
-     *      read() and emits no data events. Node.js has the same flowing-mode
-     *      semantics.
+     *      read() and emits no data events.
      *
      *      @param data the data read
      *
@@ -1272,7 +1261,6 @@ declare class Class_Stream extends Class_EventEmitter {
      *      Emitted once after the stream has been closed: at the end of a flowing
      *      read (auto destroy), after destroy(), or when the runtime closes the
      *      stream. A plain close() call releases the handle without emitting it.
-     *      Node.js emits close for the same destroy/autoDestroy cases.
      *
      */
     on(event: "close", listener: ()=>void): this;
@@ -1299,7 +1287,6 @@ declare class Class_Stream extends Class_EventEmitter {
      *      Emitted once after the stream has been closed: at the end of a flowing
      *      read (auto destroy), after destroy(), or when the runtime closes the
      *      stream. A plain close() call releases the handle without emitting it.
-     *      Node.js emits close for the same destroy/autoDestroy cases.
      *
      */
     onclose: (()=>void) | null;
@@ -1310,8 +1297,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      Emitted when a read or write fails and by destroy(err). The payload is the
      *      error value, usually an Error object with `number` and `description`; the
      *      declared Integer parameter name is historical (destroy(err) emits exactly
-     *      the value it was given, even a non-Error one). Node.js also emits Error
-     *      objects.
+     *      the value it was given, even a non-Error one).
      *
      *      @param code the error value, usually an Error object
      *
@@ -1340,8 +1326,7 @@ declare class Class_Stream extends Class_EventEmitter {
      *      Emitted when a read or write fails and by destroy(err). The payload is the
      *      error value, usually an Error object with `number` and `description`; the
      *      declared Integer parameter name is historical (destroy(err) emits exactly
-     *      the value it was given, even a non-Error one). Node.js also emits Error
-     *      objects.
+     *      the value it was given, even a non-Error one).
      *
      *      @param code the error value, usually an Error object
      *
@@ -1551,8 +1536,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      and fs.createWriteStream) reports the file descriptor, net.Socket and
      *      TLSSocket the socket descriptor and the process standard streams 0/1/2.
      *      Streams without a handle (MemoryStream, RangeStream, BufferedStream) throw
-     *      [20009] when the property is read. Node.js exposes `fd` on file streams
-     *      only and returns undefined elsewhere.
+     *      [20009] when the property is read.
      *
      */
     readonly fd: number;
@@ -1560,7 +1544,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Queries whether the stream is writable
      *
-     *      Kept for Node compatibility: this reports whether the stream has not
+     *      This reports whether the stream has not
      *      ended, not whether the device accepts writes. It stays true after end()
      *      and close() and turns false only when the flowing read loop reaches the
      *      end of the stream or destroy() is called. Test the results of write()
@@ -1572,7 +1556,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Queries whether the stream is readable
      *
-     *      Node-compatible flag with the same caveats as `writable`: true until the
+     *      Compatibility flag with the same caveats as `writable`: true until the
      *      flowing read loop reaches the end of the stream or destroy() is called.
      *      It does not track pause(), close(), or pull-mode reads that reached the
      *      end of the stream.
@@ -1583,10 +1567,9 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Queries the readable state object of the stream
      *
-     *      A minimal Node-compatible view: an object with one `ended` property that
+     *      A minimal compatibility view: an object with one `ended` property that
      *      mirrors the internal ended flag, which becomes true when the flowing read
-     *      loop finishes or the stream is destroyed. It is not a full Node
-     *      ReadableState, and the other Node fields are absent.
+     *      loop finishes or the stream is destroyed.
      *
      */
     readonly _readableState: FIBJS.GeneralObject;
@@ -1594,8 +1577,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Queries the writable state object of the stream
      *
-     *      Compatibility stub: fibjs returns an empty object and keeps no Node
-     *      WritableState. Use the return value of write() and the `drain` event for
+     *      Compatibility stub: it returns an empty object. Use the return value of write() and the `drain` event for
      *      back pressure instead.
      *
      */
@@ -1844,8 +1826,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      decoder understands the text labels 'utf8', 'ascii', 'latin1' and
      *      'utf16le' (and their aliases); other names, including 'hex', 'base64' and
      *      'ucs2', are accepted here but decode to empty strings, and null or a
-     *      non-string throws [20005]. Node.js rejects an unknown name with
-     *      ERR_UNKNOWN_ENCODING. Returns the stream itself for chaining.
+     *      non-string throws [20005]. Returns the stream itself for chaining.
      *
      *      Example — switch to text reads, then back to binary:
      *      ```JavaScript
@@ -1945,7 +1926,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -1978,7 +1959,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -2011,7 +1992,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Queues the data and reports back pressure, mirroring Node.js: returns
+     *      Queues the data and reports back pressure: returns
      *      false when the queued bytes reach the write high-water mark (16384 bytes)
      *      and the caller should wait for the 'drain' event before writing more;
      *      returns true while the queue has room. Writes are queued in FIFO order and
@@ -2044,7 +2025,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -2058,7 +2039,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -2072,7 +2053,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given data to the stream
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored, because Buffer data is already binary.
      *
      *      @param data the data to write
@@ -2147,7 +2128,6 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      `readable` events are delivered until resume(). Data already buffered is
      *      kept. It has no effect in pull mode (before resume or a data/readable
      *      listener) and does not undo flowing mode. Returns the stream itself.
-     *      Node.js pauses in the same way but exposes the state through isPaused().
      *
      *      @return returns the current stream object
      *
@@ -2163,8 +2143,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      the destination is ended (unless options.end is false); a source error is
      *      re-emitted on the destination, and a source close that is not an end
      *      destroys the destination. The destination receives a `pipe` event with the
-     *      source as its argument. Only the `end` option is read; the other Node.js
-     *      pipe options are ignored. Returns the destination for chaining, while the
+     *      source as its argument. Only the `end` option is read; the other pipe options are ignored. Returns the destination for chaining, while the
      *      copy itself continues in the background — wait for the destination
      *      `finish`/`close` before reading its result. See copyTo for a bounded
      *      synchronous copy.
@@ -2207,7 +2186,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      Compatibility no-op in fibjs: a piped copy stops by itself when the source
      *      ends/errors/closes or the destination closes, and there is no way to
      *      detach one destination from an active pipe. The argument is accepted and
-     *      ignored; Node.js also emits an `unpipe` event, which fibjs does not.
+     *      ignored, and no `unpipe` event is emitted.
      *
      *      @param destination the specific writable destination to unpipe
      *
@@ -2361,7 +2340,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -2374,7 +2353,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -2387,7 +2366,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
      *
-     *      Buffer overload kept for Node compatibility: the encoding argument is
+     *      Buffer overload: the encoding argument is
      *      accepted and ignored.
      *
      *      @param data the file buffer data to write
@@ -2522,8 +2501,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when `bytes` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      ```JavaScript
@@ -2554,8 +2532,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when `bytes` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      ```JavaScript
@@ -2586,8 +2563,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      runs in the current fiber and waits for the source to end when `bytes` is
      *      -1, which makes it a simple way to move a whole stream. The destination is
      *      not closed at the end (call end/close yourself), and a closed source or
-     *      destination throws [20009]. Node.js has no direct equivalent; use pipe or
-     *      stream.pipeline for the event-driven form.
+     *      destination throws [20009]. Use pipe or stream.pipeline for the event-driven form.
      *
      *      Example — copy the first four bytes into another stream:
      *      ```JavaScript
@@ -2617,8 +2593,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      listener switches the stream to that mode. The payload is a Buffer, or a
      *      string when setEncoding was called (the parameter is declared as Buffer for
      *      the binary case). A `readable` workflow consumes the same data through
-     *      read() and emits no data events. Node.js has the same flowing-mode
-     *      semantics.
+     *      read() and emits no data events.
      *
      *      @param data the data read
      *
@@ -2631,7 +2606,6 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      Emitted once after the stream has been closed: at the end of a flowing
      *      read (auto destroy), after destroy(), or when the runtime closes the
      *      stream. A plain close() call releases the handle without emitting it.
-     *      Node.js emits close for the same destroy/autoDestroy cases.
      *
      */
     onclose: (()=>void) | null;
@@ -2642,8 +2616,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      Emitted when a read or write fails and by destroy(err). The payload is the
      *      error value, usually an Error object with `number` and `description`; the
      *      declared Integer parameter name is historical (destroy(err) emits exactly
-     *      the value it was given, even a non-Error one). Node.js also emits Error
-     *      objects.
+     *      the value it was given, even a non-Error one).
      *
      *      @param code the error value, usually an Error object
      *

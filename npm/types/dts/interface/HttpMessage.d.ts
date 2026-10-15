@@ -22,7 +22,7 @@
  *  - **Headers**: every HTTP message carries a case-insensitive Headers collection exposed as
  *    `headers`. Multi-value keys such as Set-Cookie keep their values in order; hasHeader,
  *    firstHeader, allHeader, appendHeader, setHeader, removeHeader, getHeader and getHeaders are
- *    the member forms of the same collection and follow the Node.js names. appendHeader adds
+ *    the member forms of the same collection. appendHeader adds
  *    values, setHeader replaces every value of a key (an object argument only touches the keys it
  *    contains, a Headers argument replaces the whole set), removeHeader deletes the key.
  *  - **Protocol and persistence**: `protocol` is the HTTP version string; setting a version above
@@ -44,10 +44,10 @@
  *  - **formData**: parses the body according to Content-Type; only multipart/form-data (with a
  *    boundary) and application/x-www-form-urlencoded are accepted, any other type raises a
  *    TypeError, matching the Fetch Body mixin (MDN).
- *  - **Node.js differences**: Node has no shared base class exporting these members;
- *    http.IncomingMessage carries headers/method/url and http.ServerResponse carries
- *    headersSent/setHeader/getHeaders/addTrailers. Node headers are plain objects with array
- *    values, while fibjs exposes the WHATWG-style Headers collection plus the firstHeader and
+ *  - **Shared base class**: the class is the common base of requests and responses, so the
+ *    request members (headers/method/url) and the response members
+ *    (headersSent/setHeader/getHeaders/addTrailers) live on one type. Headers are exposed as a
+ *    WHATWG-style Headers collection plus the firstHeader and
  *    allHeader helpers.
  *
  *  Obtained from:
@@ -129,8 +129,7 @@ declare class Class_HttpMessage extends Class_Message {
      *
      *      Default HTTP/1.1. The setter validates the form and throws error 20024 for anything else;
      *      a version above 1.0 enables keepAlive and 1.0 disables it. A parsed message sets the
-     *      version from its start line. Node.js exposes the same value as httpVersion on
-     *      IncomingMessage and ServerResponse.
+     *      version from its start line.
      *
      *      Example — the version drives keep-alive:
      *      ```JavaScript
@@ -155,7 +154,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      The live Headers collection of the message: the property itself cannot be replaced, but
      *      the collection can be modified with its own methods (set, append, delete, ...) and the
      *      change is reflected in the wire output. Parsed messages store keys lowercase, lookup is
-     *      case-insensitive either way. Node.js uses a plain object plus rawHeaders instead.
+     *      case-insensitive either way.
      *
      */
     readonly headers: Class_Headers;
@@ -165,8 +164,7 @@ declare class Class_HttpMessage extends Class_Message {
      *
      *      Default true. Setting protocol above 1.0 turns it on and 1.0 turns it off, and appending
      *      or parsing a Connection header updates it ('close' clears, 'keep-alive' and 'upgrade' set).
-     *      On output the value selects the Connection header written by sendTo. Node's IncomingMessage
-     *      has no such property, persistence belongs to the Agent.
+     *      On output the value selects the Connection header written by sendTo.
      *
      */
     keepAlive: boolean;
@@ -175,7 +173,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets whether the protocol is upgraded
      *
      *      Default false. Set when a Connection: Upgrade header is appended or parsed; the WebSocket
-     *      handshake relies on it. Node.js reports the same condition through the 'upgrade' event.
+     *      handshake relies on it.
      *
      */
     upgrade: boolean;
@@ -184,8 +182,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets the maximum number of request headers, default is 128
      *
      *      The parser fails with error 20024 when a message carries more header lines than this; it
-     *      is used when reading requests. A negative value throws a RangeError (20006). Node.js has
-     *      an http.Server.maxHeadersCount property instead of a per-message one.
+     *      is used when reading requests. A negative value throws a RangeError (20006).
      *
      */
     maxHeadersCount: number;
@@ -194,8 +191,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets the maximum request header length, default is 8192
      *
      *      The maximum size in bytes of one header line accepted by the parser; a longer line fails
-     *      with error 20024. A negative value throws a RangeError (20006). Node.js supports the
-     *      process-wide --max-http-header-size setting instead.
+     *      with error 20024. A negative value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -204,8 +200,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets the maximum chunk size in MB, default is 2
      *
      *      Bounds a single chunk of a chunked body while it is parsed: a larger chunk fails with
-     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted. Node.js has no equivalent
-     *      per-message setting.
+     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted.
      *
      */
     maxChunkSize: number;
@@ -215,7 +210,7 @@ declare class Class_HttpMessage extends Class_Message {
      *
      *      While parsing, a Content-Length or chunked body larger than this fails with error 20024
      *      ("HttpMessage: body is too huge."); -1 disables the limit and 0 reads no body at all. Set
-     *      it before readFrom. Node.js has no per-message body limit.
+     *      it before readFrom.
      *
      */
     maxBodySize: number;
@@ -225,7 +220,7 @@ declare class Class_HttpMessage extends Class_Message {
      *
      *      The underlying device stream the message was read from; null when the message was built in
      *      memory and reset by clear(). It differs from stream (inherited from Message), the buffered
-     *      wrapper the parser consumed. Node.js exposes socket on IncomingMessage only.
+     *      wrapper the parser consumed.
      *
      */
     readonly socket: Class_Stream;
@@ -245,7 +240,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries the first header of the specified key
      *
      *      Returns the first value when the key was appended more than once; a missing key returns
-     *      null (not undefined). Use getHeader for the Node.js-style undefined result and allHeader
+     *      null (not undefined). Use getHeader for the undefined result and allHeader
      *      for every value.
      *      @param name specifies the key to query
      *      @return returns the value corresponding to the key, or null if it does not exist
@@ -390,8 +385,7 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description deletes all headers of the specified key
      *
-     *      Case-insensitive; a missing key is ignored. Returns no data, like Node's
-     *      response.removeHeader.
+     *      Case-insensitive; a missing key is ignored. Returns no data.
      *      @param name specifies the key to delete
      *
      */
@@ -400,8 +394,8 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description queries the first header of the specified key
      *
-     *      Returns the first value as a string, or undefined when the key does not exist
-     *      (Node.js-style). firstHeader returns null instead and allHeader returns every value.
+     *      Returns the first value as a string, or undefined when the key does not exist.
+     *      firstHeader returns null instead and allHeader returns every value.
      *      @param name specifies the key to query
      *      @return returns the value corresponding to the key, or undefined if it does not exist
      *
@@ -412,8 +406,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries all headers
      *
      *      Returns one object with every header: a key with one value maps to the string, a key with
-     *      several values maps to an array; the same shape as allHeader(""). Node's
-     *      response.getHeaders() returns arrays for every key instead.
+     *      several values maps to an array; the same shape as allHeader("").
      *      @return returns the key-value pairs of all headers
      *
      */
@@ -424,7 +417,7 @@ declare class Class_HttpMessage extends Class_Message {
      *
      *      False for a message built in memory; sendTo and send set it to true when the start line
      *      and headers were written to a stream. On a server response it is true once the reply left
-     *      the handler pipeline. Node's ServerResponse.headersSent has the same meaning.
+     *      the handler pipeline.
      *
      */
     readonly headersSent: boolean;
@@ -443,7 +436,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description adds trailer headers, which will be sent after the body
      *
      *      Appends (not replaces) the entries of the object to the trailers collection; the trailer
-     *      section is written after a chunked body. Node's response.addTrailers has the same shape.
+     *      section is written after a chunked body.
      *
      *      Example — queue a trailer and read it back:
      *      ```JavaScript
@@ -560,8 +553,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *
      *      Default HTTP/1.1. The setter validates the form and throws error 20024 for anything else;
      *      a version above 1.0 enables keepAlive and 1.0 disables it. A parsed message sets the
-     *      version from its start line. Node.js exposes the same value as httpVersion on
-     *      IncomingMessage and ServerResponse.
+     *      version from its start line.
      *
      *      Example — the version drives keep-alive:
      *      ```JavaScript
@@ -586,7 +578,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      The live Headers collection of the message: the property itself cannot be replaced, but
      *      the collection can be modified with its own methods (set, append, delete, ...) and the
      *      change is reflected in the wire output. Parsed messages store keys lowercase, lookup is
-     *      case-insensitive either way. Node.js uses a plain object plus rawHeaders instead.
+     *      case-insensitive either way.
      *
      */
     readonly headers: Class_Headers;
@@ -596,8 +588,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *
      *      Default true. Setting protocol above 1.0 turns it on and 1.0 turns it off, and appending
      *      or parsing a Connection header updates it ('close' clears, 'keep-alive' and 'upgrade' set).
-     *      On output the value selects the Connection header written by sendTo. Node's IncomingMessage
-     *      has no such property, persistence belongs to the Agent.
+     *      On output the value selects the Connection header written by sendTo.
      *
      */
     keepAlive: boolean;
@@ -606,7 +597,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets whether the protocol is upgraded
      *
      *      Default false. Set when a Connection: Upgrade header is appended or parsed; the WebSocket
-     *      handshake relies on it. Node.js reports the same condition through the 'upgrade' event.
+     *      handshake relies on it.
      *
      */
     upgrade: boolean;
@@ -615,8 +606,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets the maximum number of request headers, default is 128
      *
      *      The parser fails with error 20024 when a message carries more header lines than this; it
-     *      is used when reading requests. A negative value throws a RangeError (20006). Node.js has
-     *      an http.Server.maxHeadersCount property instead of a per-message one.
+     *      is used when reading requests. A negative value throws a RangeError (20006).
      *
      */
     maxHeadersCount: number;
@@ -625,8 +615,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets the maximum request header length, default is 8192
      *
      *      The maximum size in bytes of one header line accepted by the parser; a longer line fails
-     *      with error 20024. A negative value throws a RangeError (20006). Node.js supports the
-     *      process-wide --max-http-header-size setting instead.
+     *      with error 20024. A negative value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -635,8 +624,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets the maximum chunk size in MB, default is 2
      *
      *      Bounds a single chunk of a chunked body while it is parsed: a larger chunk fails with
-     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted. Node.js has no equivalent
-     *      per-message setting.
+     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted.
      *
      */
     maxChunkSize: number;
@@ -646,7 +634,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *
      *      While parsing, a Content-Length or chunked body larger than this fails with error 20024
      *      ("HttpMessage: body is too huge."); -1 disables the limit and 0 reads no body at all. Set
-     *      it before readFrom. Node.js has no per-message body limit.
+     *      it before readFrom.
      *
      */
     maxBodySize: number;
@@ -656,7 +644,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *
      *      The underlying device stream the message was read from; null when the message was built in
      *      memory and reset by clear(). It differs from stream (inherited from Message), the buffered
-     *      wrapper the parser consumed. Node.js exposes socket on IncomingMessage only.
+     *      wrapper the parser consumed.
      *
      */
     readonly socket: Class_StreamPromise;
@@ -676,7 +664,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries the first header of the specified key
      *
      *      Returns the first value when the key was appended more than once; a missing key returns
-     *      null (not undefined). Use getHeader for the Node.js-style undefined result and allHeader
+     *      null (not undefined). Use getHeader for the undefined result and allHeader
      *      for every value.
      *      @param name specifies the key to query
      *      @return returns the value corresponding to the key, or null if it does not exist
@@ -821,8 +809,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
     /**
      * @description deletes all headers of the specified key
      *
-     *      Case-insensitive; a missing key is ignored. Returns no data, like Node's
-     *      response.removeHeader.
+     *      Case-insensitive; a missing key is ignored. Returns no data.
      *      @param name specifies the key to delete
      *
      */
@@ -831,8 +818,8 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
     /**
      * @description queries the first header of the specified key
      *
-     *      Returns the first value as a string, or undefined when the key does not exist
-     *      (Node.js-style). firstHeader returns null instead and allHeader returns every value.
+     *      Returns the first value as a string, or undefined when the key does not exist.
+     *      firstHeader returns null instead and allHeader returns every value.
      *      @param name specifies the key to query
      *      @return returns the value corresponding to the key, or undefined if it does not exist
      *
@@ -843,8 +830,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries all headers
      *
      *      Returns one object with every header: a key with one value maps to the string, a key with
-     *      several values maps to an array; the same shape as allHeader(""). Node's
-     *      response.getHeaders() returns arrays for every key instead.
+     *      several values maps to an array; the same shape as allHeader("").
      *      @return returns the key-value pairs of all headers
      *
      */
@@ -855,7 +841,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *
      *      False for a message built in memory; sendTo and send set it to true when the start line
      *      and headers were written to a stream. On a server response it is true once the reply left
-     *      the handler pipeline. Node's ServerResponse.headersSent has the same meaning.
+     *      the handler pipeline.
      *
      */
     readonly headersSent: boolean;
@@ -874,7 +860,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description adds trailer headers, which will be sent after the body
      *
      *      Appends (not replaces) the entries of the object to the trailers collection; the trailer
-     *      section is written after a chunked body. Node's response.addTrailers has the same shape.
+     *      section is written after a chunked body.
      *
      *      Example — queue a trailer and read it back:
      *      ```JavaScript

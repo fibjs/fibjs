@@ -48,7 +48,7 @@ synchronization primitives
  more room.
  - **Process lifetime**: a queued or suspended fiber keeps the process alive, so a fiber blocked
  on a lock, a condition or an Event that is never set prevents the script from exiting.
- - **Node.js comparison**: Node.js has no fibers. The closest equivalents are the event loop with
+ - **Model**: the closest equivalents elsewhere are the event loop with
  promises (one logical thread per isolate, but every suspension point must be written as a
  callback or an `await`) and `worker_threads` (real threads with message passing). `Atomics.wait`
  blocks an OS thread, while `sleep` blocks a single fiber.
@@ -424,8 +424,7 @@ module coroutine
      of creating an OS-level fiber each time. A larger pool absorbs bursts of short jobs, such as
      server request handlers, at the cost of idle stacks; a smaller pool lowers the memory watermark
      but makes new jobs allocate a fiber. The value is a process-wide setting (each isolate applies
-     it to its own pool) and is not validated, so keep it non-negative. It is a fibjs extension
-     with no Node.js equivalent.
+     it to its own pool) and is not validated, so keep it non-negative. It is an extension.
      */
     static Integer spareFibers;
 

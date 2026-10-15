@@ -42,7 +42,7 @@
  *    ArrayBuffer or a string (read as utf8). digest, sign and deriveBits resolve to an
  *    ArrayBuffer, JWK exports to a plain object; the subtle methods return promises and fibjs
  *    also generates blocking `...Sync` aliases such as `subtle.digestSync`.
- *  - **Node.js and browser differences**: there is no separate global `webcrypto` or `subtle`
+ *  - **Environment notes**: there is no separate global `webcrypto` or `subtle`
  *    and no secure-context requirement as in browsers; the CryptoKey class is also available
  *    as the global `CryptoKey`.
  *

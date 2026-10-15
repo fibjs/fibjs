@@ -52,18 +52,17 @@
  *    these streams.
  *  - **Parent-child IPC**: only a child started with an IPC channel (child_process.fork, or
  *    `stdio: 'ipc'`) receives NODE_CHANNEL_FD and with it `send`, `connected` and
- *    `disconnect`; in any other process the three members are `undefined`, matching Node.js.
+ *    `disconnect`; in any other process the three members are `undefined`.
  *    Messages are JSON-encoded and newline-framed, and a child reads
  *    them lazily once a `message` listener is registered, so an IPC child without such a
  *    listener is not kept alive by the channel.
- *  - **Node.js differences**: `uptime` measures the system uptime, not the time since the
- *    process started; `version`/`versions` describe fibjs (the bundled Node-API version is
+ *  - **Fields with a specific meaning**: `uptime` measures the system uptime, not the time since the
+ *    process started; `version`/`versions` describe the runtime (the bundled Node-API version is
  *    `versions.napi`); `release.name` stays `'node'` for compatibility and
- *    `release.venderUrl` is a fibjs extension; `title` is writable but does not change the
+ *    `release.venderUrl` is an extension; `title` is writable but does not change the
  *    operating system process name; `binding` is an internal compatibility shim;
  *    `getuid`/`getgid` return 0 and `setuid`/`setgid` do nothing on Windows. `emitWarning`
- *    is dropped silently when no `warning` listener is attached, while Node.js prints it to
- *    stderr.
+ *    is dropped silently when no `warning` listener is attached.
  *
  *  Import:
  *  ```JavaScript
@@ -196,8 +195,7 @@ declare module 'process' {
      * @description Returns the special command line arguments of the current process; these arguments are used by fibjs to configure the runtime environment
      *
      *      The fibjs runtime options are extracted before `argv` is built, so they never appear
-     *      there; the array is empty when the process was started without options. Node.js reports
-     *      the Node.js options through the same property.
+     *      there; the array is empty when the process was started without options.
      *
      */
     const execArgv: string[];
@@ -205,9 +203,8 @@ declare module 'process' {
     /**
      * @description Returns the fibjs version string
      *
-     *      The value carries a leading `v` (for example `v0.38.0-dev`) and describes fibjs, not
-     *      Node.js; use `versions.node` for the bundled Node-API compatibility version, because a
-     *      feature test based on Node.js version numbers is not portable here.
+     *      The value carries a leading `v` (for example `v0.38.0-dev`) and describes the runtime;
+     *      `versions.node` carries the bundled Node-API compatibility version.
      *
      */
     const version: string;
@@ -215,7 +212,7 @@ declare module 'process' {
     /**
      * @description Returns version information of fibjs and its components
      *
-     *      The object contains `fibjs`, `node` (the Node.js version of the bundled Node-API
+     *      The object contains `fibjs`, `node` (the Node-API version of the bundled
      *      headers), `platform`, `arch`, `git` (release builds), the compiler
      *      (`clang`/`gcc`/`msvc`), `date`, `debug` (debug builds only), `modules`, `napi`, the
      *      `vender` object with the bundled library versions and `builtins` with the names of the
@@ -251,8 +248,7 @@ declare module 'process' {
      *
      *      Possible results are 'x64', 'ia32', 'arm', 'arm64', 'mips', 'mips64', 'ppc64',
      *      'riscv64' and 'loong64'. The value is the build target of the fibjs binary and matches
-     *      `os.arch` and `versions.arch`; Node.js reports the same names for the architectures it
-     *      supports.
+     *      `os.arch` and `versions.arch`.
      *
      */
     const arch: string;
@@ -262,7 +258,7 @@ declare module 'process' {
      *
      *      Possible results are 'linux', 'win32', 'darwin', 'freebsd', 'android' (Android) and
      *      'ios' (iPhone); the value is the build target of the binary and matches `os.platform`
-     *      and `versions.platform`. Node.js uses the same names for these platforms.
+     *      and `versions.platform`.
      *
      */
     const platform: string;
@@ -270,10 +266,8 @@ declare module 'process' {
     /**
      * @description Returns the release metadata of the current build; name is set to 'node'
      *
-     *      The object has three fields: `name` is always 'node' so that libraries probing the
-     *      Node.js release keep working, `sourceUrl` points to the fibjs repository and
-     *      `venderUrl` to the dependency mirror (a fibjs extension). Node.js exposes a different
-     *      set of fields, so only `name` is portable.
+     *      The object has three fields: `name` is always 'node', `sourceUrl` points to the fibjs
+     *      repository and `venderUrl` to the dependency mirror (an extension).
      *
      */
     const release: {
@@ -285,9 +279,8 @@ declare module 'process' {
     /**
      * @description Title of the current process, initialized to 'fibjs'
      *
-     *      The property is writable, but fibjs does not change the operating system process name
-     *      when it is assigned, unlike Node.js where `process.title` renames the process; the
-     *      initial value is 'fibjs'.
+     *      The property is writable, but assigning it does not change the operating system process
+     *      name; the initial value is 'fibjs'.
      *
      */
     export const title: "fibjs";
@@ -387,8 +380,7 @@ declare module 'process' {
      *      starts at system boot, so it never jumps when the wall clock is adjusted. Pass a
      *      previous result as diff to get the elapsed time; only an array of exactly two elements
      *      is subtracted, other arrays are ignored, and a value that is not an array throws a type
-     *      error. `hrtime.bigint()` returns the same clock as one BigInt number of nanoseconds,
-     *      matching Node.js.
+     *      error. `hrtime.bigint()` returns the same clock as one BigInt number of nanoseconds.
      *      @param diff the initial time to compare against
      *      @return returns the measured time in the format [seconds, nanoseconds]
      *
@@ -435,11 +427,11 @@ declare module 'process' {
      *      A Node-API extension exports napi_register_module_v1; the exports object registered by this function is written to module.exports, and requiring a .node file ultimately goes through this path as well.
      *
      *      Compatibility notes:
-     *      - By default fibjs pins all JS of an isolate to one dedicated OS thread, which is consistent with Node.js's contract that "one napi_env corresponds to one OS thread";
+     *      - By default fibjs pins all JS of an isolate to one dedicated OS thread, which is the Node-API contract that "one napi_env corresponds to one OS thread";
      *        therefore extensions that cache class constructors or runtime handles in thread-local storage (TLS) when the module is loaded work correctly;
      *      - When started with --no-js-thread-affinity, the isolate's JS fibers are scheduled back on the shared thread pool, and extensions that rely on TLS may fail randomly;
      *      - If an extension uses napi_tsfn_blocking on a full threadsafe function inside a callback coming from JS, it blocks the isolate's only
-     *        JS thread, while draining that queue also requires this thread, resulting in self-deadlock; Node.js's single-threaded event loop has the same limitation.
+     *        JS thread, while draining that queue also requires this thread, resulting in self-deadlock; a single-threaded event loop has the same limitation.
      *
      *      @param module specifies the module to load
      *      @param filename specifies the file name of the module to load
@@ -515,7 +507,7 @@ declare module 'process' {
      * @description Queries the uptime of the runtime environment, in seconds
      *
      *      The value is the uptime of the operating system counted by the monotonic clock, not
-     *      the time since the fibjs process started as in Node.js, so a freshly started process
+     *      the time since the process started, so a freshly started process
      *      can already report a very large number. Use `hrtime` for elapsed time inside the
      *      process.
      *      @return returns a numeric value representing the time
@@ -528,8 +520,7 @@ declare module 'process' {
      *
      *      The result is cumulative and has `user` and `system` fields; pass a previous result as
      *      previousValue to receive the difference since then. Both fields of previousValue must
-     *      be numbers, otherwise the call throws Error 20005. Node.js reports the same units, so
-     *      the values are portable.
+     *      be numbers, otherwise the call throws Error 20005.
      *
      *      The report is generated similar to the following:
      *      ```JavaScript
@@ -562,8 +553,7 @@ declare module 'process' {
      *      - nativeObjects returns an object counting the live native objects by class name
      *      - ExtStrings returns the number of external strings currently alive
      *
-     *      Node.js returns rss/heapTotal/heapUsed/external/arrayBuffers, so `nativeObjects` and
-     *      `ExtStrings` are fibjs extensions and `arrayBuffers` is not provided.
+     *      `nativeObjects` and `ExtStrings` are extensions of the runtime and `arrayBuffers` is not provided.
      *
      *      The report is generated similar to the following:
      *      ```JavaScript
@@ -588,7 +578,7 @@ declare module 'process' {
      *      The report maps the operating system rusage counters: CPU times are in microseconds,
      *      maxRSS is in kilobytes on Linux and in bytes on macOS/BSD (the unit of the underlying
      *      rusage), and the remaining counters are plain numbers. Fields the kernel does not
-     *      expose are 0 (marked below). The field names match Node.js resourceUsage(); only the
+     *      expose are 0 (marked below); only the
      *      maxRSS unit follows the platform as described above.
      *
      *      resourceUsage generates results similar to the following:
@@ -664,7 +654,7 @@ declare module 'process' {
      *      `'process'` returns the process module itself, `'EventEmitter'` and `'Buffer'` return
      *      those classes, and any other name is looked up among the registered native modules
      *      (for example `'fs'` or `'net'`); an unknown name returns undefined. This is an internal
-     *      compatibility shim, not the Node.js process.binding API.
+     *      compatibility shim.
      *      @param name specifies the name of the internal module to query
      *      @return returns the specified internal module
      *
@@ -676,8 +666,7 @@ declare module 'process' {
      *
      *      Built-in ids may be given with or without the `node:` prefix; `fibjs:` is accepted as
      *      well, and sub-path modules such as `path/posix`, `fs/promises` or `stream/web` resolve
-     *      too. The returned object is identical to the one require(id) returns (Node.js
-     *      compatibility, v22.3 and later).
+     *      too. The returned object is identical to the one require(id) returns.
      *
      *      Example — the result is the same object require returns:
      *      ```JavaScript
@@ -720,8 +709,7 @@ declare module 'process' {
      *
      *      Only a privileged process can change its group id; when the underlying call fails
      *      (for example without the required privileges) the error is ignored and the ids stay
-     *      unchanged, unlike Node.js which reports the failure. On Windows the call does
-     *      nothing.
+     *      unchanged. On Windows the call does nothing.
      *      @param id specifies the group id to set
      *
      */
@@ -732,7 +720,7 @@ declare module 'process' {
      *
      *      Only a privileged process can change its user id; when the underlying call fails
      *      (for example without the required privileges) the error is ignored and the ids stay
-     *      unchanged, unlike Node.js which reports the failure. On Windows the call does
+     *      unchanged. On Windows the call does
      *      nothing.
      *      @param id specifies the user id to set
      *
@@ -744,8 +732,7 @@ declare module 'process' {
      *
      *      A string warning is wrapped in an Error, while any other non-Error value throws Error
      *      20003. The warning is delivered asynchronously to the `warning` listeners of the
-     *      process object; without a listener it is dropped silently, whereas Node.js prints it
-     *      to stderr. options may be omitted, and it supports the following properties:
+     *      process object; without a listener it is dropped silently. options may be omitted, and it supports the following properties:
      *
      *      ```JavaScript
      *      // fragment: options
@@ -820,8 +807,7 @@ declare module 'process' {
      *
      *      The property only exists in a child process started with an IPC channel (see
      *      child_process.fork and the 'ipc' stdio type); it is true while the channel is open and
-     *      false after `disconnect`. In any other process the member is undefined, as in
-     *      Node.js.
+     *      false after `disconnect`; in any other process the member is undefined.
      *
      */
     const connected: boolean;

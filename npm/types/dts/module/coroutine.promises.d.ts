@@ -363,8 +363,7 @@ declare module 'coroutine/promises' {
      *      of creating an OS-level fiber each time. A larger pool absorbs bursts of short jobs, such as
      *      server request handlers, at the cost of idle stacks; a smaller pool lowers the memory watermark
      *      but makes new jobs allocate a fiber. The value is a process-wide setting (each isolate applies
-     *      it to its own pool) and is not validated, so keep it non-negative. It is a fibjs extension
-     *      with no Node.js equivalent.
+     *      it to its own pool) and is not validated, so keep it non-negative. It is an extension.
      *
      */
     var spareFibers: number;

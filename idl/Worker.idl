@@ -71,12 +71,12 @@
 
  Notes:
 
- - Node.js members that fibjs does not provide: `worker.exitCode`, `worker.stdin`, `worker.stdout`
+ - Not provided: `worker.exitCode`, `worker.stdin`, `worker.stdout`
    and `worker.stderr`.
- - fibjs implements the constructor options `eval` and `workerData`, plus the fibjs-only
-   `file_system` and `safe_buffer`; the remaining Node.js options (`argv`, `env`, `execArgv`,
-   `resourceLimits`, `trackUnmanagedFds`, `signal`) are not read.
- - The `on<event>` properties (`ononline`, `onmessage`, `onerror`, `onexit`) are a fibjs
+ - The constructor options `eval` and `workerData` are implemented, plus the module-only
+   `file_system` and `safe_buffer`; the options `argv`, `env`, `execArgv`,
+   `resourceLimits`, `trackUnmanagedFds` and `signal` are not read.
+ - The `on<event>` properties (`ononline`, `onmessage`, `onerror`, `onexit`) are a
    convenience provided by EventEmitter; they carry the same payloads as `on('<event>')`.
  */
 interface Worker : EventEmitter
@@ -87,7 +87,7 @@ interface Worker : EventEmitter
 
    - a script path: absolute, starting with `./` or `../` (resolved against the current working
      directory), or a `file://` URL; a bare relative path such as `'worker.js'` throws `TypeError`
-     with code `ERR_WORKER_PATH`, as in Node.js;
+     with code `ERR_WORKER_PATH`;
    - JavaScript source when `opts.eval` is true; the source runs with the filename
      `[worker eval].js`.
 
@@ -150,7 +150,7 @@ interface Worker : EventEmitter
      Every `ArrayBuffer` in `transfer` is detached on the sender before the message is queued (its
      `byteLength` becomes 0) and arrives usable in the worker; the message and the buffers are
      delivered together. fibjs only detaches ArrayBuffer entries: any other value, including a
-     MessagePort that Node.js can transfer, is silently ignored and stays usable on the sender.
+     MessagePort, is silently ignored and stays usable on the sender.
 
      Example — transfer an ArrayBuffer to the worker:
      ```JavaScript
@@ -179,8 +179,7 @@ interface Worker : EventEmitter
    The termination starts synchronously and the returned promise resolves when the worker emits
    `exit`, with the same code. A worker that has already exited resolves immediately with its
    recorded code, and calling terminate() twice is safe. A worker stopped by terminate() reports
-   exit code 1, including a worker that was terminated before it went online (Node.js reports 0
-   for that case); no `error` event is emitted for the interruption and the worker's pending
+   exit code 1, including a worker that was terminated before it went online; no `error` event is emitted for the interruption and the worker's pending
    `beforeExit`/`exit` handlers do not run.
 
    Example — stop a worker that would otherwise run forever:

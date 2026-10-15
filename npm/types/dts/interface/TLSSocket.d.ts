@@ -35,11 +35,10 @@
  *    the underlying socket; they throw an invalid-call error before the handshake and after close.
  *  - **Sessions**: there is no session object and no isSessionReused(); every TLSSocket performs a
  *    full handshake.
- *  - **Node.js differences**: the class extends Stream rather than net.Socket, so send/recv, family
- *    and bind/listen do not exist; getX509Certificate()/getPeerX509Certificate() correspond to
- *    Node.js getCertificate()/getPeerCertificate(); alpnProtocol is undefined instead of false; and
- *    getProtocol() already reports the context default before the handshake, where Node.js returns
- *    null.
+ *  - **Shape**: the class extends Stream rather than net.Socket, so send/recv, family
+ *    and bind/listen do not exist; getX509Certificate()/getPeerX509Certificate() return the
+ *    peer certificates; alpnProtocol is undefined before the protocol is negotiated; and
+ *    getProtocol() already reports the context default before the handshake.
  *
  *  Obtained from:
  *  - `new tls.TLSSocket()` / `new tls.TLSSocket(context)` / `new tls.TLSSocket(options, isServer)` —
@@ -154,8 +153,7 @@ declare class Class_TLSSocket extends Class_Stream {
      *      (rejectUnauthorized false, SNI callback installed) and does not perform any handshake:
      *      connect() or accept() still has to run. new tls.TLSSocket({key, cert}) is a client socket
      *      that presents a client certificate, while new tls.TLSSocket({key, cert}, true) is a server
-     *      socket that can accept(). Node.js takes an options object here and uses it for the socket
-     *      itself as well; fibjs only reads the TLS keys.
+     *      socket that can accept(). Only the TLS keys of the options object are read.
      *      @param options the options needed to create a secure context with tls.createSecureContext
      *      @param isServer whether it is in server mode
      *
@@ -451,8 +449,7 @@ declare class Class_TLSSocket extends Class_Stream {
      * @description The TLS version in use on this connection
      *
      *      The value is a string such as 'TLSv1.3' or 'TLSv1.2'. Before the handshake it reports the
-     *      version of the underlying context (the default), while Node.js returns null until the
-     *      handshake completed.
+     *      version of the underlying context (the default).
      *      @return returns the tls/ssl protocol version
      *
      */
@@ -462,8 +459,7 @@ declare class Class_TLSSocket extends Class_Stream {
      * @description The local certificate presented by this connection
      *
      *      Returns undefined when the socket has no local certificate, which is the usual client case;
-     *      a server socket returns its configured leaf certificate. Node.js names the equivalent
-     *      method getCertificate().
+     *      a server socket returns its configured leaf certificate.
      *      @return returns the local certificate
      *
      */
@@ -474,7 +470,7 @@ declare class Class_TLSSocket extends Class_Stream {
      *
      *      Returns undefined before the handshake or when the peer sent no certificate (for example a
      *      client that did not present one). The X509Certificate exposes subject, issuer, validFrom
-     *      and validTo. Node.js names the equivalent method getPeerCertificate().
+     *      and validTo.
      *
      *      Example — reading the subject of the certificate served by a local server:
      *      ```JavaScript
@@ -565,8 +561,7 @@ declare class Class_TLSSocket extends Class_Stream {
     /**
      * @description The ALPN protocol negotiated by the handshake
      *
-     *      undefined when ALPN was not used or no offered protocol matched (Node.js reports false in
-     *      that case). The offered list comes from the alpnProtocols option of tls.createSecureContext.
+     *      undefined when ALPN was not used or no offered protocol matched. The offered list comes from the alpnProtocols option of tls.createSecureContext.
      *
      */
     readonly alpnProtocol: string;
@@ -611,8 +606,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      *      (rejectUnauthorized false, SNI callback installed) and does not perform any handshake:
      *      connect() or accept() still has to run. new tls.TLSSocket({key, cert}) is a client socket
      *      that presents a client certificate, while new tls.TLSSocket({key, cert}, true) is a server
-     *      socket that can accept(). Node.js takes an options object here and uses it for the socket
-     *      itself as well; fibjs only reads the TLS keys.
+     *      socket that can accept(). Only the TLS keys of the options object are read.
      *      @param options the options needed to create a secure context with tls.createSecureContext
      *      @param isServer whether it is in server mode
      *
@@ -904,8 +898,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      * @description The TLS version in use on this connection
      *
      *      The value is a string such as 'TLSv1.3' or 'TLSv1.2'. Before the handshake it reports the
-     *      version of the underlying context (the default), while Node.js returns null until the
-     *      handshake completed.
+     *      version of the underlying context (the default).
      *      @return returns the tls/ssl protocol version
      *
      */
@@ -915,8 +908,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      * @description The local certificate presented by this connection
      *
      *      Returns undefined when the socket has no local certificate, which is the usual client case;
-     *      a server socket returns its configured leaf certificate. Node.js names the equivalent
-     *      method getCertificate().
+     *      a server socket returns its configured leaf certificate.
      *      @return returns the local certificate
      *
      */
@@ -927,7 +919,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      *
      *      Returns undefined before the handshake or when the peer sent no certificate (for example a
      *      client that did not present one). The X509Certificate exposes subject, issuer, validFrom
-     *      and validTo. Node.js names the equivalent method getPeerCertificate().
+     *      and validTo.
      *
      *      Example — reading the subject of the certificate served by a local server:
      *      ```JavaScript
@@ -1018,8 +1010,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
     /**
      * @description The ALPN protocol negotiated by the handshake
      *
-     *      undefined when ALPN was not used or no offered protocol matched (Node.js reports false in
-     *      that case). The offered list comes from the alpnProtocols option of tls.createSecureContext.
+     *      undefined when ALPN was not used or no offered protocol matched. The offered list comes from the alpnProtocols option of tls.createSecureContext.
      *
      */
     readonly alpnProtocol: string;

@@ -15,12 +15,12 @@
  *  - **Timestamps**: mtime is the last modification time, atime the last access time, ctime the
  *    last status (inode) change time and birthtime the creation time. Each timestamp is exposed as
  *    a Date, as milliseconds since the Unix epoch (mtimeMs) and as the nanosecond part of the
- *    timestamp (mtimeNs, 0-999999999). The Node.js `bigint` option is not implemented, so the Ns
+ *    timestamp (mtimeNs, 0-999999999). The `bigint` option is not implemented, so the Ns
  *    properties are always numbers and no epoch-nanosecond values are produced.
- *  - **name**: the base name of the queried path (a fibjs extension, Node.js Stats has no name);
+ *  - **name**: the base name of the queried path (an extension);
  *    it is empty for objects that are not bound to a path.
  *  - **Permissions**: isReadable/isWritable/isExecutable test the owner permission bits of mode,
- *    not the effective access of the current user. isHidden/isMemory/isSocket are fibjs extensions;
+ *    not the effective access of the current user. isHidden/isMemory/isSocket are extensions;
  *    isMemory is true for entries served by the zip VFS, whose mode-based type predicates are not
  *    populated.
  *
@@ -93,7 +93,7 @@ declare class Class_Stat extends Class_object {
      * @description File name
      *
      *      The base name of the queried path, for example 'report.txt' for '/data/report.txt'; empty
-     *      when the object was not created from a path. Not provided by Node.js Stats (fibjs extension).
+     *      when the object was not created from a path (an extension).
      *
      */
     readonly name: string;
@@ -219,8 +219,8 @@ declare class Class_Stat extends Class_object {
     /**
      * @description Nanosecond part of the last modification time
      *
-     *      Holds the sub-second nanosecond part (0-999999999) of the timestamp. Unlike Node.js this
-     *      property is always available; the bigint option that would produce epoch-nanosecond values
+     *      Holds the sub-second nanosecond part (0-999999999) of the timestamp; it is always
+     *      available, and the bigint option that would produce epoch-nanosecond values
      *      is not implemented.
      *
      */
@@ -307,8 +307,7 @@ declare class Class_Stat extends Class_object {
     /**
      * @description Queries whether the file is writable
      *
-     *      Tests the owner write bit (S_IWUSR) of mode, not the effective access of the current user;
-     *      Node.js Stats has no such method.
+     *      Tests the owner write bit (S_IWUSR) of mode, not the effective access of the current user.
      *      @return true if it is writable
      *
      */
@@ -317,8 +316,7 @@ declare class Class_Stat extends Class_object {
     /**
      * @description Queries whether the file is readable
      *
-     *      Tests the owner read bit (S_IRUSR) of mode, not the effective access of the current user;
-     *      Node.js Stats has no such method.
+     *      Tests the owner read bit (S_IRUSR) of mode, not the effective access of the current user.
      *      @return true if it is readable
      *
      */
@@ -328,7 +326,7 @@ declare class Class_Stat extends Class_object {
      * @description Queries whether the file is executable
      *
      *      Tests the owner execute/search bit (S_IXUSR) of mode, not the effective access of the
-     *      current user; Node.js Stats has no such method.
+     *      current user.
      *      @return true if it is executable
      *
      */
@@ -337,8 +335,7 @@ declare class Class_Stat extends Class_object {
     /**
      * @description Queries whether the file is hidden
      *
-     *      Hidden-file flag; on POSIX the flag is not populated, so dotfiles report false. fibjs
-     *      extension, Node.js Stats has no such method.
+     *      Hidden-file flag; on POSIX the flag is not populated, so dotfiles report false.
      *      @return true if it is hidden
      *
      */
@@ -439,7 +436,7 @@ declare class Class_Stat extends Class_object {
      *
      *      True when the entry is served by the zip virtual file system (fs.setZipFS) instead of the
      *      real file system; such entries have no populated type bits, so the other predicates report
-     *      false. fibjs extension, Node.js Stats has no such method.
+     *      false. This is an extension.
      *      @return true if it is a memory file
      *
      */

@@ -29,9 +29,9 @@
  *  - **Captured scopes**: `AsyncLocalStorage.snapshot()` and `AsyncLocalStorage.bind(fn)` capture the
  *    context at call time and run a function inside it later; they are the recommended way to keep
  *    the correct store in event callbacks that outlive the context.
- *  - **Node.js comparison**: the API matches Node.js `async_hooks.AsyncLocalStorage`, including the
- *    static `bind`/`snapshot` methods and the `name` property; the Node.js `withScope` helper for
- *    `using` declarations is not provided, use `run` or `exit` instead.
+ *  - **API**: the static `bind`/`snapshot` methods and the `name` property are provided; the
+ *    `withScope` helper for
+ *    `using` declarations is not, use `run` or `exit` instead.
  *
  *  Import:
  *  ```JavaScript
@@ -144,8 +144,7 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      with the arguments and `this` it receives, and returns the result; the caller's context is
      *      active again after the call. This is useful for event callbacks that may run long after the
      *      context was entered. The capture happens when bind is called, not when the bound function runs,
-     *      so it must be called while the context to preserve is active. Node.js provides the same static
-     *      method.
+     *      so it must be called while the context to preserve is active.
      *
      *      Example — bind inside one run and call the function inside another:
      *      ```JavaScript
@@ -170,7 +169,6 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      asynchronous operations created from now on. The instance becomes usable again after `run` or
      *      `enterWith` is called, both of which clear the disabled state.
      *
-     *      Node.js provides the same member and also requires it before the instance can be collected.
      *
      *      Example — disable, then re-enable with run:
      *      ```JavaScript

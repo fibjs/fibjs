@@ -3,7 +3,7 @@
   An AbortSignal is the read-only half of the AbortController pair and the object handed
   to APIs that support cancellation. It carries a one-shot aborted state and an abort
   reason; when the state flips the `abort` event fires and every consumer reacts. The
-  class is a global, Node.js exposes the same class globally, and it derives from
+  class is a global, and it derives from
   EventEmitter, so listeners can be registered with `on`/`once`/`addEventListener`.
 
   Signals cannot be constructed directly: `new AbortSignal()` throws a TypeError. Obtain
@@ -18,8 +18,7 @@
    owner (or a static factory) can.
  - **Abort reasons**: `reason` is `undefined` while the signal is active and afterwards
    holds the value stored by the aborting side. The default is the string `"AbortError"`;
-   `AbortSignal.timeout()` stores `"TimeoutError"`; other values are preserved as-is.
-   Node.js stores a DOMException by default and `abort(null)` stores null. throwIfAborted
+   `AbortSignal.timeout()` stores `"TimeoutError"`; other values are preserved as-is. throwIfAborted
    throws an AbortError or TimeoutError for the two default reasons, but does not rethrow
    a custom value as-is.
  - **Listener registration**: AbortSignal is an EventEmitter (see EventEmitter). The
@@ -35,7 +34,7 @@
    `events.addAbortListener(signal, handler)`. A fetch cancelled by a controller rejects
    with an AbortError (code `ABORT_ERR`); one cancelled through `AbortSignal.timeout`
    rejects with a TimeoutError (code `TIMEOUT_ERR`). The pending timer of a timeout
-   signal keeps the process alive until it fires (Node.js lets the process exit), so a
+   signal keeps the process alive until it fires, so a
    long timeout can delay shutdown.
 
  Obtained from:
@@ -127,9 +126,9 @@ interface AbortSignal : EventEmitter
      elapsed, so a fetch cancelled by it rejects with a TimeoutError (code `TIMEOUT_ERR`).
      ms is coerced to a number, so numeric strings are accepted; values below 1 are clamped
      to 1 ms and values above the internal maximum to that maximum. NaN and a missing
-     argument throw a TypeError (Node.js throws a RangeError for NaN and negative values).
+     argument throw a TypeError.
      The timer cannot be cancelled, because the signal has no abort method, and the pending
-     timer keeps the process alive until it fires (Node.js lets the process exit).
+     timer keeps the process alive until it fires.
 
      Example — register a disposable handler for a timeout:
      ```JavaScript
@@ -148,7 +147,7 @@ interface AbortSignal : EventEmitter
     /*! @brief Creates an AbortSignal that aborts when any of the given signals aborts
 
      The argument must be an Array of AbortSignal objects; a non-array value or an element
-     of another type throws a TypeError (Node.js accepts any iterable). The returned signal
+     of another type throws a TypeError. The returned signal
      stays active while every input is active; when an input aborts, the composite aborts
      with that input's reason, and inputs that abort later do not change it again. Only the
      order in time matters, not the order in the array. If an input is already aborted, the
@@ -181,8 +180,7 @@ interface AbortSignal : EventEmitter
      `AbortError`, code `ABORT_ERR`, message "The operation was aborted.") or a TimeoutError
      (name `TimeoutError`, code `TIMEOUT_ERR`, message "The operation timed out."); a custom
      string reason is not preserved and also throws the generic AbortError, and any other
-     reason value throws a generic Error (20024) instead of the value itself. Node.js throws
-     the reason exactly as stored in every case, so read `AbortSignal.reason` when the
+     reason value throws a generic Error (20024) instead of the value itself; read `AbortSignal.reason` when the
      original value matters.
 
      Example — a no-op while active, an AbortError after the abort:
@@ -216,8 +214,7 @@ interface AbortSignal : EventEmitter
      call, with the string `"AbortError"` as the default and `"TimeoutError"` for
      `AbortSignal.timeout()`. Strings, numbers, objects and Errors are all preserved as-is
      (only `undefined` and `null` select the default), assigning to the property is
-     silently ignored, and the value never changes after the first abort. Node.js stores a
-     DOMException by default and preserves `null` as a reason.
+     silently ignored, and the value never changes after the first abort.
     */
     readonly Value reason;
 
@@ -229,7 +226,7 @@ interface AbortSignal : EventEmitter
      are never called. The event object is a plain object with `type` `"abort"` and `target`
      set to the signal; it carries `reason` only when the reason is a non-empty string,
      because a value reason is exposed solely through `AbortSignal.reason`. It is not a
-     DOMEvent instance (Node.js passes an Event object). A handler that throws is rethrown
+     DOMEvent instance. A handler that throws is rethrown
      by the aborting call after the remaining handlers ran. Do not emit this event manually:
      emitting `"abort"` marks the signal aborted without storing a reason.
 

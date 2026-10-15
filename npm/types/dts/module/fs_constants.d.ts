@@ -29,8 +29,8 @@
  *  - **Directory entries**: the UV_DIRENT_* ids are the libuv uv_dirent_type_t values reported
  *    by the directory scan; fs.Dirent exposes the same information through isXxx().
  *  - **Extensions and gaps**: O_SYMLINK, SEEK_*, the EXTENSIONLESS_FORMAT_* pair (reserved
- *    format ids that mirror Node.js internals) and UV_FS_O_FILEMAP (0 here) are fibjs-specific;
- *    Node's O_DIRECT and O_NOATIME are not provided.
+ *    format ids) and UV_FS_O_FILEMAP (0 here) are extensions;
+ *    O_DIRECT and O_NOATIME are not provided.
  *
  *  Import:
  *  ```JavaScript
@@ -419,12 +419,12 @@ declare module 'fs_constants' {
     export const COPYFILE_FICLONE_FORCE: 4;
 
     /**
-     * @description Extensionless format id for JavaScript (reserved; mirrors Node.js internals)
+     * @description Extensionless format id for JavaScript (reserved)
      */
     export const EXTENSIONLESS_FORMAT_JAVASCRIPT: 0;
 
     /**
-     * @description Extensionless format id for WebAssembly (reserved; mirrors Node.js internals)
+     * @description Extensionless format id for WebAssembly (reserved)
      */
     export const EXTENSIONLESS_FORMAT_WASM: 1;
 

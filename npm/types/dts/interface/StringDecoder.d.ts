@@ -64,7 +64,7 @@
  *
  *  Notes:
  *
- *  - The class follows Node.js's `string_decoder.StringDecoder` for the supported encodings and the chunk semantics. The errors differ: fibjs throws an Error with number 20024 for an unknown encoding where Node throws a TypeError, and `end` does not clear the pending state, so calling it twice returns the flush text twice while Node returns '' the second time.
+ *  - The class follows the `string_decoder.StringDecoder` semantics for the supported encodings and the chunk semantics. An unknown encoding throws an Error with number 20024, and `end` does not clear the pending state, so calling it twice returns the flush text twice.
  *  - `base32`, `base58` and `base64url` are rejected by the constructor even though `encoding.isEncoding` accepts them: they have no incremental decoder here.
  *
  */
@@ -124,7 +124,7 @@ declare class Class_StringDecoder extends Class_object {
     /**
      * @description Decodes a chunk starting at the given offset; this is the internal per-chunk routine
      *
-     *      The write method uses it after consuming the bytes held from the previous chunk; offset selects where the still-undecoded part of buf starts. It reads and updates the same state as write (`lastNeed`, `lastTotal`, `lastChar`), so calling it by hand on a decoder that is also being written leaves the state inconsistent. It is exposed for compatibility with code that mirrors the Node.js internals; use write instead.
+     *      The write method uses it after consuming the bytes held from the previous chunk; offset selects where the still-undecoded part of buf starts. It reads and updates the same state as write (`lastNeed`, `lastTotal`, `lastChar`), so calling it by hand on a decoder that is also being written leaves the state inconsistent. It is exposed for compatibility with code that mirrors the internals; use write instead.
      *      @param buf the chunk to decode
      *      @param offset the index in buf where decoding starts
      *      @return the decoded part of the chunk, '' while a character is incomplete
@@ -145,7 +145,7 @@ declare class Class_StringDecoder extends Class_object {
     /**
      * @description Number of bytes still needed to complete the character held from the previous chunk
      *
-     *      Zero when no partial character is pending, otherwise 1-3 for utf8, 1-2 for base64 and 1-2 for utf16le. The value is maintained by write and exposed for compatibility with the Node.js internals; it is not cleared by end, and changing it by hand breaks the decoder.
+     *      Zero when no partial character is pending, otherwise 1-3 for utf8, 1-2 for base64 and 1-2 for utf16le. The value is maintained by write and exposed for compatibility with the internals; it is not cleared by end, and changing it by hand breaks the decoder.
      *
      */
     lastNeed: number;

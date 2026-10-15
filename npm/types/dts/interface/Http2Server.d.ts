@@ -35,8 +35,8 @@
  *  - **ALPN and certificates**: the SecureContext must be a TLS server context and should
  *    advertise the `h2` protocol (`alpnProtocols: ['h2']`). Clients created by http2.connect
  *    always offer `h2`; without it the TLS handshake negotiates no protocol (a fibjs client
- *    still speaks HTTP/2, a Node.js client refuses the connection).
- *  - **Node.js differences**: Http2Server always uses TLS - there is no h2c server, no
+ *    still speaks HTTP/2, a client that requires h2 refuses the connection).
+ *  - **Notes**: Http2Server always uses TLS - there is no h2c server, no
  *    separate Http2SecureServer and no `allowHTTP1` fallback; requests are handled through
  *    the session/stream events instead of a server-level `stream` event; and server push is
  *    not implemented.

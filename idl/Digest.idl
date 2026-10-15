@@ -10,12 +10,11 @@
    finish with digest(). update() returns the object, so calls can be chained;
    digest() is a terminal operation that returns the fingerprint.
  - **One-shot rule**: after digest() the object is finalized. Any further update(),
-   digest() or size access throws "digest has been called" (Node.js throws
-   ERR_CRYPTO_HASH_FINALIZED). Create a new object to compute another value.
+   digest() or size access throws "digest has been called". Create a new object to compute another value.
  - **Encodings**: update() decodes string data with its codec argument; digest()
    encodes the result with the requested codec. Next to the Buffer encodings ('hex',
    'base64', 'utf8', ...) fibjs accepts 'base32', 'base58' and the iconv character
-   sets; Node.js returns a Buffer for an encoding it does not know.
+   sets.
  - **Algorithms and size**: names come from crypto.getHashes and are matched
    case-insensitively ('sha256', 'SHA-256' and 'sha-256' all work). `size` reports
    the output length in bytes, including the default length of XOF algorithms such
@@ -99,7 +98,7 @@ interface Digest : object
      be called only once: a second digest(), a later update() or a size access throws
      "digest has been called", so create a fresh object to hash more data. For HMAC
      digests the result is the authentication tag, which should be compared with
-     crypto.timingSafeEqual. Node.js follows the same one-shot rule.
+     crypto.timingSafeEqual.
 
      Example: the same digest in three encodings:
      ```JavaScript

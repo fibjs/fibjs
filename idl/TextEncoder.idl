@@ -6,8 +6,8 @@
  converted with a direct copy of the internal utf-8 string.
 
  fibjs extension: the constructor also accepts other charset labels (gbk, big5, euc-jp,
- utf-16le, windows-125x, ...) and produces bytes in that encoding, while the Web standard and
- Node.js ignore the label and always encode utf-8. An unknown label raises `RangeError [20004]
+ utf-16le, windows-125x, ...) and produces bytes in that encoding, while the Web standard
+ ignores the label and always encodes utf-8. An unknown label raises `RangeError [20004]
  ERR_ENCODING_NOT_SUPPORTED`.
 
  Concepts:
@@ -16,7 +16,7 @@
    UTF-8 become utf-8, latin1 becomes windows-1252) with an ICU lookup as fallback for
    charsets outside the WHATWG list. The resolved name is exposed by the encoding property.
  - **Output type**: encode() returns a Buffer, a Uint8Array subclass, so the result can be
-   used anywhere a BufferSource is expected; Node.js returns a plain Uint8Array.
+   used anywhere a BufferSource is expected.
  - **Partial writes**: encodeInto() writes into a caller-provided buffer and reports how much
    of the source (in UTF-16 code units) and how many bytes were written. A character is never
    split, so a small destination stops at the last complete character.

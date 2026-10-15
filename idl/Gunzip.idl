@@ -1,4 +1,4 @@
-/*! @brief Gunzip is the Node.js compatible codec that decompresses gzip data
+/*! @brief Gunzip is the codec that decompresses gzip data
 
  `new zlib.Gunzip(opts)` builds a synchronous codec; feed gzip chunks with `_processChunk`
  and the zlib flush flags and it returns the decoded bytes. It decodes the container

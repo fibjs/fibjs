@@ -6,8 +6,8 @@
  AsyncLocalStorage store of the request that scheduled it, even when the callback runs in a
  different fiber or after an await.
 
- The class records a diagnostic `(asyncId, triggerAsyncId)` pair and the captured context; fibjs
- does not expose the Node.js async_hooks hook callbacks, so the ids are informational and
+ The class records a diagnostic `(asyncId, triggerAsyncId)` pair and the captured context; the
+ async_hooks hook callbacks are not exposed, so the ids are informational and
  `emitDestroy` is a no-op.
 
  Concepts:
@@ -19,10 +19,10 @@
    context to code that fibjs cannot instrument by itself (a third-party event source, a poll
    loop, a queue); bind the completion path once, and all AsyncLocalStorage instances propagate
    with it.
- - **Node.js comparison**: `new AsyncResource(type, options)`, `runInAsyncScope`, `bind`, the
-   static `bind`, `asyncId` and `triggerAsyncId` match Node.js; `requireManualDestroy` is accepted
-   but ignored because there are no destroy hooks, and without an explicit triggerAsyncId fibjs
-   records 0 while Node.js records the current executionAsyncId.
+ - **Constructor and ids**: `new AsyncResource(type, options)`, `runInAsyncScope`, `bind`, the
+   static `bind`, `asyncId` and `triggerAsyncId` are provided; `requireManualDestroy` is accepted
+   but ignored because there are no destroy hooks, and without an explicit triggerAsyncId the
+   value recorded is 0.
 
  Import:
  ```JavaScript
@@ -97,7 +97,7 @@ interface AsyncResource : object
      // fragment: options
      ({
          "triggerAsyncId": 0,          // id of the triggering resource, informational
-         "requireManualDestroy": false // accepted for Node.js compatibility, ignored by fibjs
+         "requireManualDestroy": false // accepted, ignored
      })
      ```
 
@@ -115,8 +115,7 @@ interface AsyncResource : object
     /*! @brief Gets the unique async id assigned to this resource
 
      Ids come from a process-wide counter and are unique within the process; the first resource
-     created gets 1. In Node.js the id is the async id allocated by the async hooks subsystem, so
-     the values differ, but they are used in the same informational way.
+     created gets 1. The ids are informational.
 
      @return returns the numeric async id
     */
@@ -125,8 +124,8 @@ interface AsyncResource : object
     /*! @brief Gets the trigger async id of this resource
 
      The value is the second constructor argument, or the triggerAsyncId option inside it. It
-     records what created the resource for diagnostics; fibjs defaults to 0 when the argument is
-     omitted, while Node.js defaults to the current executionAsyncId().
+     records what created the resource for diagnostics; it defaults to 0 when the argument is
+     omitted.
 
      @return returns the numeric trigger async id
     */
@@ -161,9 +160,8 @@ interface AsyncResource : object
 
     /*! @brief Marks this resource as destroyed
 
-     In fibjs this is a no-op kept for Node.js compatibility: fibjs does not run async_hooks
-     destroy hooks, and calling it more than once does not raise an error. It returns the resource
-     itself so calls can be chained.
+     This is a no-op: destroy hooks are not run, and calling it more than once does not raise an
+     error. It returns the resource itself so calls can be chained.
 
      @return returns a reference to this AsyncResource
     */

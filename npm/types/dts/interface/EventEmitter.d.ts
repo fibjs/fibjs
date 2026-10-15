@@ -17,7 +17,7 @@
  *    holds the original), and `off(ev, fn)` matches either form.
  *  - **Dispatch model**: emitting invokes the first listener synchronously on the emitting fiber;
  *    the remaining listeners each run in a separate fiber in parallel, and `emit` returns only after
- *    all of them finish (Node.js calls every listener synchronously in sequence). `emit` returns
+ *    all of them finish. `emit` returns
  *    true when a listener was called and false when the event has none.
  *  - **Arguments**: there is no event object; the arguments of `emit` are forwarded to the listener
  *    as-is and `this` is the emitter. fibjs also exposes a global DOM-style event class (see
@@ -27,16 +27,16 @@
  *  - **error event**: emitting `error` with no listener throws from `emit`; an Error argument is
  *    thrown as-is and any other value is wrapped in `Error("Unhandled error. (...)")`.
  *  - **Listener limit**: `defaultMaxListeners` (10) and `setMaxListeners`/`getMaxListeners` are kept
- *    for Node.js compatibility; fibjs never warns when the limit is exceeded.
- *  - **Node.js surface**: `events.errorMonitor`, `events.captureRejectionSymbol`,
+ *    for compatibility; the limit never produces a warning.
+ *  - **Not provided**: `events.errorMonitor`, `events.captureRejectionSymbol`,
  *    `events.getEventListeners` and the static broadcast forms of `setMaxListeners` and
- *    `getMaxListeners` are not provided; the `captureRejections` option is accepted but ignored;
+ *    `getMaxListeners`; the `captureRejections` option is accepted but ignored;
  *    symbol events are omitted from `eventNames()` and are not removed by `removeAllListeners()`
  *    without arguments.
  *
  *  Obtained from:
- *  - `new EventEmitter(options = {})` — creates an emitter; the options object is accepted for
- *    Node.js compatibility and ignored;
+ *  - `new EventEmitter(options = {})` — creates an emitter; the options object is accepted and
+ *    ignored;
  *  - `require('events')` — the module itself is this class, so it doubles as the constructor:
  *    `require('events').EventEmitter === require('events')`;
  *  - the global `EventTarget` alias — it points to this class, not to the WHATWG EventTarget class:
@@ -136,13 +136,12 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Creates an event emitter
      *
-     *      The options object exists for Node.js compatibility: Node.js reads `captureRejections` from
-     *      it to capture rejected promises returned by listeners, while fibjs ignores the object and
-     *      returns a plain emitter. Every call creates an independent listener store. Always construct
+     *      The options object is accepted and ignored: the emitter does not read `captureRejections`
+     *      and returns a plain emitter. Every call creates an independent listener store. Always construct
      *      with `new`; calling without `new` attaches the event methods to the global object instead
      *      (see the class documentation).
      *
-     *      @param options options object, accepted for Node.js compatibility and ignored
+     *      @param options options object, accepted and ignored
      *
      */
     constructor(options?: FIBJS.GeneralObject);
@@ -150,7 +149,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description The EventEmitter class itself
      *
-     *      `require('events')` returns this class, so the self reference keeps Node.js-style
+     *      `require('events')` returns this class, so the self reference keeps
      *      `events.EventEmitter` code working: `require('events').EventEmitter === require('events')`.
      *      It is a constructor, not an emitter instance.
      *
@@ -213,7 +212,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Appends an event handler to the emitter
      *
-     *      Alias of on(ev, func), provided for Node.js compatibility.
+     *      Alias of on(ev, func).
      *
      *      @param ev the event name to bind
      *      @param func the event handler function
@@ -225,7 +224,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Appends several event handlers to the emitter
      *
-     *      Alias of on(map), provided for Node.js compatibility.
+     *      Alias of on(map).
      *
      *      @param map the event mapping; object property names are used as event names
      *      and property values as event handler functions
@@ -418,7 +417,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Removes an event handler from the emitter
      *
-     *      Alias of off(ev, func), provided for Node.js compatibility.
+     *      Alias of off(ev, func).
      *
      *      @param ev the event name to unbind
      *      @param func the event handler function
@@ -430,7 +429,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Removes all event handlers of one event
      *
-     *      Alias of off(ev), provided for Node.js compatibility.
+     *      Alias of off(ev).
      *
      *      @param ev the event name to unbind
      *      @return returns the event object itself for chaining
@@ -441,7 +440,7 @@ declare class Class_EventEmitter extends Class_object {
     /**
      * @description Removes several event handlers from the emitter
      *
-     *      Alias of off(map), provided for Node.js compatibility.
+     *      Alias of off(map).
      *
      *      @param map the event mapping; object property names are used as event names
      *      and property values as event handler functions
@@ -480,8 +479,7 @@ declare class Class_EventEmitter extends Class_object {
      * @description Removes all listeners of the given events, or of the whole emitter
      *
      *      An empty array — including the no-argument call, because the parameter defaults to [] —
-     *      clears every string-keyed event; symbol-keyed listeners are left in place, unlike Node.js
-     *      which removes them too. A non-empty array clears each named event as
+     *      clears every string-keyed event; symbol-keyed listeners are left in place. A non-empty array clears each named event as
      *      removeAllListeners(ev) does.
      *
      *      Example — clearing selected events and the whole emitter:
@@ -510,8 +508,8 @@ declare class Class_EventEmitter extends Class_object {
      * @description Stores a per-emitter listener limit
      *
      *      The value is reported by getMaxListeners() and is otherwise informational: fibjs never warns
-     *      when the number of listeners exceeds it. This member exists for Node.js compatibility. A
-     *      negative value throws; 0 is accepted and stored as-is, while Node.js treats 0 as unlimited.
+     *      when the number of listeners exceeds it. A
+     *      negative value throws; 0 is accepted and stored as-is.
      *
      *      @param n the number of events
      *
@@ -608,7 +606,7 @@ declare class Class_EventEmitter extends Class_object {
      * @description Returns the names of the events with at least one listener
      *
      *      Only string-keyed events are reported; symbol-keyed events are omitted and numeric event
-     *      names are returned as numbers (Node.js also reports symbol events).
+     *      names are returned as numbers.
      *
      *      @return returns the array of event names
      *

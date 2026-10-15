@@ -102,13 +102,13 @@
  *
  *  - The classes are also installed as globals (`Worker`, `MessagePort`, `MessageChannel` and
  *    `MessageEvent`).
- *  - Differences from Node.js: `worker.exitCode`, `worker.stdin`, `worker.stdout` and
- *    `worker.stderr` are not provided; a transfer list only detaches ArrayBuffers and a MessagePort
+ *  - Not provided: `worker.exitCode`, `worker.stdin`, `worker.stdout` and
+ *    `worker.stderr`; a transfer list only detaches ArrayBuffers and a MessagePort
  *    cannot be transferred or used as workerData; the `markAs*` helpers are no-ops.
  *  - Thread affinity: by default all JavaScript of one isolate runs on one dedicated OS thread
  *    (`--no-js-thread-affinity` disables this), matching the N-API contract that a napi_env belongs
  *    to a single thread. An extension using a blocking threadsafe function can self-deadlock in a
- *    worker, as it would block the Node.js event loop.
+ *    worker, as it would block the event loop of a single-threaded runtime.
  *
  */
 declare module 'worker_threads' {
@@ -149,7 +149,7 @@ declare module 'worker_threads' {
      * @description Queries whether the current Worker is the main thread
      *
      *      True in the main isolate and false in every Worker, in both cases for the isolate that
-     *      evaluates the expression; Node.js exposes the same boolean.
+     *      evaluates the expression.
      *
      */
     const isMainThread: boolean;
@@ -159,7 +159,7 @@ declare module 'worker_threads' {
      *
      *      Zero in the main thread; inside a Worker, the positive id that is also available as
      *      `Worker#threadId`. It is a logical fibjs isolate id (not an OS thread id) and is not stable
-     *      across runs; Node.js assigns small sequential ids from 1 in the same way.
+     *      across runs; ids are small sequential numbers starting at 1.
      *
      */
     const threadId: number;
@@ -190,11 +190,10 @@ declare module 'worker_threads' {
      *
      *      Dequeues messages in FIFO order without starting the port and without invoking its `message`
      *      listeners; returns `undefined` when the queue is empty. The result is an object with a single
-     *      `message` field holding the deserialized value. `port` must be a MessagePort: as in Node.js
-     *      there is no `worker.port`, so use a channel created with `new MessageChannel()` or a
-     *      `parentPort` inside a worker. A value that is not a MessagePort throws `TypeError`; fibjs
-     *      reports its native coercion error (`[20005] The argument could not be coerced to the
-     *      specified type.`) instead of Node.js's `ERR_INVALID_ARG_TYPE`.
+     *      `message` field holding the deserialized value. `port` must be a MessagePort: there is no
+     *      `worker.port`, so use a channel created with `new MessageChannel()` or a
+     *      `parentPort` inside a worker. A value that is not a MessagePort throws `TypeError`
+     *      (`[20005] The argument could not be coerced to the specified type.`).
      *
      *      Example — drain two messages without a listener:
      *      ```JavaScript
@@ -218,8 +217,7 @@ declare module 'worker_threads' {
     /**
      * @description Marks an object as uncloneable, a no-op in fibjs
      *
-     *      Node.js makes `postMessage` throw when a marked object is used as a message; fibjs
-     *      serializes with V8's ValueSerializer, which does not honor the mark, so the call has no
+     *      The mark is not honored: serialization uses V8's ValueSerializer, which ignores it, so the call has no
      *      effect and never throws. It is provided because packages such as undici call it in Web API
      *      constructors; primitives are accepted and ignored exactly like objects.
      *      @param object the object to mark
@@ -230,8 +228,8 @@ declare module 'worker_threads' {
     /**
      * @description Marks an object as untransferable, a no-op in fibjs
      *
-     *      fibjs only detaches ArrayBuffer entries of a transfer list, so the mark has nothing to
-     *      affect. The call is accepted for compatibility with Node.js callers and returns undefined.
+     *      Only ArrayBuffer entries of a transfer list are detached, so the mark has nothing to
+     *      affect. The call is accepted for compatibility with existing callers and returns undefined.
      *      @param object the object to mark
      *
      */
@@ -240,8 +238,8 @@ declare module 'worker_threads' {
     /**
      * @description Checks whether an object is marked as untransferable, always false in fibjs
      *
-     *      Because markAsUntransferable is a no-op, no object is ever marked; the function exists for
-     *      compatibility with Node.js callers and returns false for every value, primitives included.
+     *      Because markAsUntransferable is a no-op, no object is ever marked; the function returns false
+     *      for every value, primitives included.
      *      @param object the object to check
      *      @return returns whether the object is marked as untransferable; always false in fibjs
      *

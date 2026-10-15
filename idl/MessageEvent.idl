@@ -50,8 +50,8 @@
 
  - The constructor `type` argument is required; `new MessageEvent()` throws
    `TypeError [20002] Parameter not optional.` The type itself is not stored.
- - Node.js and MDN additionally expose `ports` for transferred MessagePorts, which fibjs does not
-   support, so a received message never has attached ports.
+ - `ports` for transferred MessagePorts is not supported, so a received message never has
+   attached ports.
  */
 interface MessageEvent : object
 {
@@ -60,8 +60,8 @@ interface MessageEvent : object
      `type` is mandatory, but fibjs stores only `eventInitDict.data` (default `undefined`) and
      exposes no `type` property, matching the global MessageEvent. The payload is kept by
      reference, not cloned; structured cloning only happens when a value travels through a
-     MessagePort. Node.js and MDN expose the full event properties and a `ports` list of
-     transferred MessagePorts, which fibjs does not support.
+     MessagePort. The full event properties and a `ports` list of
+     transferred MessagePorts are not supported.
      @param type The type of the event
      @param eventInitDict Optional event initialization dictionary containing data property
      */

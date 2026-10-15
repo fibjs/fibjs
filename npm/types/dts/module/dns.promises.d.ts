@@ -12,7 +12,7 @@ declare module 'dns/promises' {
      *      `code` (EAI_NONAME when the name does not resolve) and `number`, but no `syscall` or
      *      `hostname`.
      *
-     *      Unlike the Node.js `dns.resolve`, there is no record-type argument and no c-ares query: the
+     *      There is no record-type argument and no c-ares query: the
      *      result is the complete address list of the name, comparable to `lookup` with `all: true`.
      *
      *      Example — the address list of a numeric literal is stable:
@@ -43,7 +43,7 @@ declare module 'dns/promises' {
      *      `code` (EAI_NONAME when the name does not resolve) and `number`, but no `syscall` or
      *      `hostname`.
      *
-     *      Unlike the Node.js `dns.resolve`, there is no record-type argument and no c-ares query: the
+     *      There is no record-type argument and no c-ares query: the
      *      result is the complete address list of the name, comparable to `lookup` with `all: true`.
      *
      *      Example — the address list of a numeric literal is stable:
@@ -74,7 +74,7 @@ declare module 'dns/promises' {
      *      `code` (EAI_NONAME when the name does not resolve) and `number`, but no `syscall` or
      *      `hostname`.
      *
-     *      Unlike the Node.js `dns.resolve`, there is no record-type argument and no c-ares query: the
+     *      There is no record-type argument and no c-ares query: the
      *      result is the complete address list of the name, comparable to `lookup` with `all: true`.
      *
      *      Example — the address list of a numeric literal is stable:
@@ -107,8 +107,7 @@ declare module 'dns/promises' {
      *
      *      A failed lookup throws an error with `code` (ENOTFOUND when the name does not resolve,
      *      EAI_AGAIN for a temporary failure), `errno`, `syscall` ('getaddrinfo'), `hostname` and an
-     *      `args` object with the stringified hostname, family and all values. Compared with Node.js,
-     *      the trailing callback receives only `(err, result)` (no separate family argument), and the
+     *      `args` object with the stringified hostname, family and all values. The trailing callback receives `(err, result)`, and the
      *      hints/order/verbatim options are not supported.
      *
      *      The options object accepts:
@@ -152,8 +151,7 @@ declare module 'dns/promises' {
      *
      *      A failed lookup throws an error with `code` (ENOTFOUND when the name does not resolve,
      *      EAI_AGAIN for a temporary failure), `errno`, `syscall` ('getaddrinfo'), `hostname` and an
-     *      `args` object with the stringified hostname, family and all values. Compared with Node.js,
-     *      the trailing callback receives only `(err, result)` (no separate family argument), and the
+     *      `args` object with the stringified hostname, family and all values. The trailing callback receives `(err, result)`, and the
      *      hints/order/verbatim options are not supported.
      *
      *      The options object accepts:
@@ -197,8 +195,7 @@ declare module 'dns/promises' {
      *
      *      A failed lookup throws an error with `code` (ENOTFOUND when the name does not resolve,
      *      EAI_AGAIN for a temporary failure), `errno`, `syscall` ('getaddrinfo'), `hostname` and an
-     *      `args` object with the stringified hostname, family and all values. Compared with Node.js,
-     *      the trailing callback receives only `(err, result)` (no separate family argument), and the
+     *      `args` object with the stringified hostname, family and all values. The trailing callback receives `(err, result)`, and the
      *      hints/order/verbatim options are not supported.
      *
      *      The options object accepts:

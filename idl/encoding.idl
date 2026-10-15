@@ -88,8 +88,7 @@
 
  Notes:
 
- - The module is a fibjs extension: Node.js has no `encoding` module and spreads these
-   helpers over `Buffer`, `url` and `querystring`. The shared conversions behave like
+ - The module is an extension. The shared conversions behave like
    their Buffer counterparts: `encoding.encode(data, codec)` matches `data.toString(codec)`
    and `encoding.decode(str, codec)` matches `Buffer.from(str, codec)`.
  - A string argument is first converted to its utf8 bytes, so when the input is not utf8

@@ -25,8 +25,7 @@
  * - **description**: a convenience string `name[Type]` (for example
  *   `HeapMarker[Object]`); it is also the grouping key used by the `details` of
  *   `HeapSnapshot.diff`.
- * - **childs**: the outgoing edges, named `childs` rather than the `children`/`edges`
- *   of Node.js heap tools. Each access re-wraps the edges, so cache the array when
+ * - **childs**: the outgoing edges, named `childs`; each access re-wraps the edges, so cache the array when
  *   iterating.
  *
  * Obtained from:

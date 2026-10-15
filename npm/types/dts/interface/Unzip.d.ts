@@ -1,7 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/ZlibCodec.d.ts" />
 /**
- * @description Unzip is the Node.js compatible codec that decompresses gzip or zlib data by
+ * @description Unzip is the codec that decompresses gzip or zlib data by
  *  detecting the format
  *
  *  `new zlib.Unzip(opts)` builds a synchronous codec that inspects the first bytes of the

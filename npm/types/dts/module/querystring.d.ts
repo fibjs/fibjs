@@ -5,8 +5,8 @@
  *
  * `parse` builds an HttpCollection from a query string, `stringify` serializes an object back
  * into a query string, and `escape`/`unescape` apply the same percent-encoding to individual
- * values. It is the fibjs counterpart of the Node.js `querystring` module; both runtimes treat
- * it as legacy, and URLSearchParams covers most use cases with the standard API.
+ * values. It is kept as a legacy interface; URLSearchParams covers most use cases with the
+ * standard API.
  *
  * Concepts:
  *
@@ -18,12 +18,12 @@
  *   collection compares names case-insensitively, stores strings, keeps every value of a
  *   repeated name (`get` returns the first one, `all(name)`/`getAll(name)` return the array),
  *   and its iteration helpers (`forEach`, `keys`, `values`, `entries`) sort the keys in place.
- *   `toJSON()` returns the plain multi-value object that Node.js would have returned.
- * - **Options**: `sep` and `eq` replace the default separators; the fourth argument exists for
- *   Node.js compatibility but no option (`maxKeys`, `decodeURIComponent`) is implemented, so
+ *   `toJSON()` returns the plain multi-value object form.
+ * - **Options**: `sep` and `eq` replace the default separators; the fourth argument is
+ *   accepted but no option (`maxKeys`, `decodeURIComponent`) is implemented, so
  *   every pair is parsed.
  * - **Escaping**: escape encodes everything except the unreserved characters, with a space
- *   becoming `+` (Node.js writes `%20`); unescape decodes every percent escape, including the
+ *   becoming `+`; unescape decodes every percent escape, including the
  *   reserved characters that the standard decodeURI leaves alone, but keeps a literal `+` as
  *   it is. Malformed escapes are decoded leniently instead of being preserved as written, so
  *   validate untrusted input.
@@ -70,7 +70,7 @@ declare module 'querystring' {
      * @description Encodes a string with the urlencoded rules, writing a space as `+`
      *
      *      Every character outside the unreserved set `A-Z a-z 0-9 - _ . ! ~ * ' ( )` is
-     *      percent-encoded with upper-case hex digits; the escape matches Node.js except that a
+     *      percent-encoded with upper-case hex digits, except that a
      *      space becomes `+` instead of `%20`. The result round-trips through unescape and is the
      *      encoding used by stringify for names and values.
      *
@@ -102,8 +102,7 @@ declare module 'querystring' {
      *      are decoded with unescape. Repeated names keep every value, `get` returns the first one
      *      and `all(name)`/`getAll(name)` return the full array; empty segments are skipped and an
      *      empty name is kept. The result compares names case-insensitively and sorts the keys in
-     *      place when an iteration helper is used. The fourth argument is accepted for Node.js
-     *      compatibility but is ignored.
+     *      place when an iteration helper is used. The fourth argument is accepted but is ignored.
      *
      *      Example — read repeated values and the plain object form:
      *      ```JavaScript
@@ -118,7 +117,7 @@ declare module 'querystring' {
      *      @param str query string to parse
      *      @param sep separator between pairs, default `&`
      *      @param eq separator between name and value, default `=`
-     *      @param opt reserved for Node.js options; not supported and ignored
+     *      @param opt reserved for options; not supported and ignored
      *      @return the parsed HttpCollection
      *
      */
@@ -130,9 +129,9 @@ declare module 'querystring' {
      *      The own enumerable properties are written in their enumeration order; a value that is
      *      an array is written as one pair per element with the same name. Values are converted to
      *      strings with the usual rules, so `null` and `undefined` are written as `null` and
-     *      `undefined` (Node.js writes empty values), a number keeps its text and a nested object
+     *      `undefined`, a number keeps its text and a nested object
      *      becomes `[object Object]`. Names and values are encoded with escape, writing a space as
-     *      `+`. The fourth argument is accepted for Node.js compatibility but is ignored.
+     *      `+`. The fourth argument is accepted but is ignored.
      *
      *      Example — arrays and custom separators:
      *      ```JavaScript
@@ -145,7 +144,7 @@ declare module 'querystring' {
      *      @param obj object to serialize
      *      @param sep separator between pairs, default `&`
      *      @param eq separator between name and value, default `=`
-     *      @param opt reserved for Node.js options; not supported and ignored
+     *      @param opt reserved for options; not supported and ignored
      *      @return the serialized query string
      *
      */

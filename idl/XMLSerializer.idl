@@ -1,4 +1,4 @@
-/*! @brief XMLSerializer serializes a DOM node into XML text; the class is a global and Node.js has no equivalent
+/*! @brief XMLSerializer serializes a DOM node into XML text; the class is a global
 
  `new XMLSerializer().serializeToString(node)` accepts any XmlNode — a document, element, text
  node, comment, CDATA section or processing instruction — and returns the XML serialization of

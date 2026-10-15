@@ -62,7 +62,7 @@
 
  - Base58 is case-sensitive and has no fixed length; do not compare encoded values by
    length or pad them by hand.
- - Node.js has no base58 in its standard library; in fibjs the bare payload is also
+ - The bare payload is also
    reachable through `encoding.encode(data, 'base58')`.
  */
 module base58

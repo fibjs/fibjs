@@ -26,7 +26,7 @@ one fiber to another
  wake a parked waiter.
  - **Related primitives**: Lock gives mutual exclusion, Condition waits for a state,
  Event releases a group of fibers at once, and only Semaphore counts permits.
- - **Node.js**: there is no semaphore in Node.js. The closest shapes are
+ - **Notes**: the closest shapes elsewhere are
  `Atomics.wait`/`Atomics.notify` between workers and the browser Web Locks API, both
  unrelated to fibers.
 

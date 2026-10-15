@@ -62,7 +62,7 @@ declare class Class_Timer extends Class_object {
      *      A timer keeps the process alive by default, so ref is normally needed only after an `unref`
      *      call to restore the default behavior; repeated calls have no additional effect. The method
      *      returns the timer itself, which makes it chainable with the scheduling function (for example
-     *      `setTimeout(...).unref()`). Node.js `Timeout#ref` behaves the same way.
+     *      `setTimeout(...).unref()`).
      *
      *      @return returns the timer object
      *
@@ -118,7 +118,6 @@ declare class Class_Timer extends Class_object {
      *      The value is false while the timer is pending. It becomes true after the timer is cleared or,
      *      for a one-time timer, after the callback returns; inside the callback itself it is still false
      *      for a one-time timer and can be set to true by `clear` while a repeating callback is running.
-     *      Node.js exposes no equivalent property on `Timeout`/`Immediate`.
      *
      */
     readonly stopped: boolean;

@@ -130,10 +130,10 @@
  *  console.log(cert.checkEmail('admin@example.com'));                  // admin@example.com
  *  ```
  *
- *  Compared with Node.js, fibjs parses PEM only (Node.js accepts PEM or DER as well), adds
- *  the pem member, next(), the Netscape type and pathlen, and accepts PEM text or a PEM
- *  Buffer in checkIssued instead of requiring an X509Certificate. Node.js members that fibjs
- *  does not provide: issuerCertificate, validFromDate, validToDate, signatureAlgorithm,
+ *   Only PEM input is parsed. The class adds the pem member, next(), the Netscape type and
+ *  pathlen, and checkIssued accepts PEM text or a PEM
+ *  Buffer instead of requiring an X509Certificate. Members that are
+ *  not provided: issuerCertificate, validFromDate, validToDate, signatureAlgorithm,
  *  signatureAlgorithmOid and toLegacyObject; use validFrom/validTo with `new Date(...)` and
  *  pem instead.
  *
@@ -170,8 +170,7 @@ declare class Class_X509Certificate extends Class_object {
      *
      *      One RDN per line in RFC 2253 form with short attribute names, in the order they appear
      *      in the certificate, for example `C=US\nO=Example\nCN=example.com`. Reading an empty
-     *      subject throws error 20024 instead of returning an empty string. Node.js prints the
-     *      same format.
+     *      subject throws error 20024 instead of returning an empty string.
      *
      */
     readonly subject: string;
@@ -216,8 +215,7 @@ declare class Class_X509Certificate extends Class_object {
      *      Each line is `<method> - <location>`, for example
      *      `OCSP - URI:http://ocsp.example.com/` or
      *      `CA Issuers - URI:http://ca.example.com/ca.cert`; several entries are separated by
-     *      newlines. Returns undefined when the extension is absent. Node.js exposes the same
-     *      text under the same member name.
+     *      newlines. Returns undefined when the extension is absent.
      *
      */
     readonly infoAccess: string;
@@ -272,8 +270,8 @@ declare class Class_X509Certificate extends Class_object {
      *
      *      The legacy Netscape type list, in bit order: 'client', 'server', 'email', 'objsign',
      *      'reserved', 'sslCA', 'emailCA' and 'objCA'. Returns undefined when the extension is
-     *      absent; set it with the type option of X509CertificateRequest.issue. This member is a
-     *      fibjs extension: Node.js only exposes the raw fields through toLegacyObject.
+     *      absent; set it with the type option of X509CertificateRequest.issue. This member is an
+     *      extension of the class.
      *
      */
     readonly type: string[];
@@ -315,8 +313,7 @@ declare class Class_X509Certificate extends Class_object {
      *      For a certificate built from one PEM block this is that block; for a chain (array input
      *      or several concatenated PEM blocks) all certificates are re-encoded and concatenated in
      *      order, so the value can be passed back to the constructor. toString() and toJSON()
-     *      return the same text. Node.js has no pem member: its toString() and toJSON() print a
-     *      single certificate.
+     *      return the same text.
      *
      */
     readonly pem: string;
@@ -335,7 +332,7 @@ declare class Class_X509Certificate extends Class_object {
      * @description The SHA-256 fingerprint of the DER encoding
      *
      *      Uppercase hexadecimal bytes separated by colons, 95 characters long. This is the
-     *      fingerprint to pin or compare in new code; Node.js reports it in the same form.
+     *      fingerprint to pin or compare in new code.
      *
      */
     readonly fingerprint256: string;
@@ -343,8 +340,7 @@ declare class Class_X509Certificate extends Class_object {
     /**
      * @description The SHA-512 fingerprint of the DER encoding
      *
-     *      Uppercase hexadecimal bytes separated by colons, 191 characters long. Node.js exposes
-     *      the same member, added in v17.2.0 and v16.14.0, with the same format.
+     *      Uppercase hexadecimal bytes separated by colons, 191 characters long.
      *
      */
     readonly fingerprint512: string;
@@ -354,8 +350,7 @@ declare class Class_X509Certificate extends Class_object {
      *
      *      Chains come from the array constructor or from several concatenated PEM blocks, in the
      *      parsed order. Returns undefined at the end of the chain and for a single certificate.
-     *      This member is a fibjs extension: Node.js has no next(), and its pem/toString output
-     *      covers only the certificate it parsed.
+     *      This member is an extension of the class.
      *      @return returns the next certificate, or undefined at the end of the chain
      *
      */
@@ -370,8 +365,7 @@ declare class Class_X509Certificate extends Class_object {
      *      subject as well, and 'never' disables the subject fallback (SAN entries are still
      *      matched). A non-matching address, even one that is not a valid mailbox, simply returns
      *      undefined; only an address holding an embedded NUL byte throws `Invalid email
-     *      address`. An unknown options.subject value throws error 20024. Node.js matches the
-     *      same way.
+     *      address`. An unknown options.subject value throws error 20024.
      *
      *      options supports the following properties:
      *      - subject: 'default', 'always' or 'never'. Default: 'default'.
@@ -411,8 +405,8 @@ declare class Class_X509Certificate extends Class_object {
      *      - subject: 'default', 'always' or 'never'. Default: 'default'.
      *      - wildcards: allow wildcard patterns. Default: true.
      *      - partialWildcards: allow partial patterns such as `foo*`. Default: true.
-     *      - multiLabelWildcards: accepted for Node.js compatibility, but it does not enable
-     *        multi-label matching: `*.example.com` never matches `a.b.example.com` in fibjs.
+     *      - multiLabelWildcards: accepted, but it does not enable
+     *        multi-label matching: `*.example.com` never matches `a.b.example.com`.
      *        Default: false.
      *      - singleLabelSubdomains: restrict wildcards to one label, which is already the
      *        effective behavior. Default: false.
@@ -456,7 +450,7 @@ declare class Class_X509Certificate extends Class_object {
      *      never consulted, so a certificate that only carries a CN does not match any address and
      *      address checking always requires a certificate built with IP SAN entries. IPv4 and IPv6
      *      accept their usual text forms ('127.0.0.1', '::1'). Returns ip on a match and undefined
-     *      otherwise; a malformed address throws error 20024. Node.js behaves the same way.
+     *      otherwise; a malformed address throws error 20024.
      *      @param ip the IPv4 or IPv6 address to match
      *      @return returns ip on a match, undefined otherwise
      *
@@ -471,8 +465,7 @@ declare class Class_X509Certificate extends Class_object {
      *      usage extension asserts no certificate signing, but the signature, the validity
      *      window and the chain are not verified, so a certificate that carries the same issuer
      *      name but was signed by another key still passes. Use verify with the issuer public key
-     *      to check the signature. A Buffer is parsed as PEM, so DER bytes are rejected; Node.js
-     *      accepts only an X509Certificate object here.
+     *      to check the signature. A Buffer is parsed as PEM, so DER bytes are rejected.
      *
      *      Example: the issuer name matches even when the signature does not:
      *      ```JavaScript

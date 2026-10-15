@@ -47,8 +47,8 @@
  *    client aborts the handshake.
  *  - Server-side sockets have empty `url` and `origin`; the handshake request
  *    received by the accept callback carries the original header values.
- *  - Node.js and the DOM expose only the client role, so the
- *    `WebSocket.upgrade` handler is a fibjs extension. The `message` event
+ *  - The client role follows the DOM API; the
+ *    `WebSocket.upgrade` handler is an extension. The `message` event
  *    delivers the WebSocketMessage object itself rather than a DOM
  *    MessageEvent, and binary payloads are Buffers rather than ArrayBuffers.
  *

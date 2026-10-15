@@ -299,7 +299,7 @@ declare module 'crypto/promises' {
      *
      *      The matching public key can be derived with createPublicKey and the key exported
      *      again with `KeyObject.export`. fibjs also accepts `toX25519` to convert an
-     *      Ed25519/Ed448 key to its X25519 form (an extension over Node.js).
+     *      Ed25519/Ed448 key to its X25519 form (an extension).
      *      @param key the private key material or its options
      *      @return returns the private key object
      *
@@ -311,7 +311,7 @@ declare module 'crypto/promises' {
      *
      *      Accepts a public key in PEM/DER form (string or Buffer), another KeyObject, or
      *      an options object with the same entries as createPrivateKey (plus `toX25519`,
-     *      an extension over Node.js). A private KeyObject is accepted as well: the
+     *      an extension). A private KeyObject is accepted as well: the
      *      matching public key is derived from it.
      *      @param key the public or private key material, or its options
      *      @return returns the public key object
@@ -406,7 +406,7 @@ declare module 'crypto/promises' {
      *      When `csr` is a PEM/DER string or Buffer, the request is parsed instead of
      *      created. The result exposes `subject`, `publicKey`, `subjectAltName`,
      *      `infoAccess`, `raw` and `pem`, and `checkPrivateKey` proves that a private key
-     *      matches the request. This member has no Node.js counterpart.
+     *      matches the request. This member is an extension of the module.
      *
      *      Example: build a CSR and confirm its public key:
      *      ```JavaScript
@@ -484,7 +484,7 @@ declare module 'crypto/promises' {
      *      The bytes come from the CSPRNG of the operating system (OpenSSL RAND_bytes), so
      *      they are suitable for keys, IVs, salts and tokens; never use Math.random() for
      *      those. The default size is 16 and the value must be at least 1; an out-of-range
-     *      size throws RangeError. Unlike Node.js there is no callback form - call
+     *      size throws RangeError. There is no callback form - call
      *      randomFillAsync (or randomFill with a callback) when a promise is preferred.
      *
      *      Example:
@@ -509,8 +509,8 @@ declare module 'crypto/promises' {
      *
      *      Writes `size` bytes starting at `offset`; by default the whole range from
      *      `offset` to the end of the buffer is filled. A negative `size` also means "to the
-     *      end". The buffer is modified in place; note that fibjs returns a Buffer object
-     *      distinct from the argument (Node.js returns the same object). A string argument
+     *      end". The buffer is modified in place; note that a Buffer object is returned
+     *      distinct from the argument. A string argument
      *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
      *      buffer or `offset + size` beyond its length throws RangeError. This member
      *      follows the async call forms (bare, callback, `randomFillSync`,
@@ -528,8 +528,8 @@ declare module 'crypto/promises' {
      *
      *      Writes `size` bytes starting at `offset`; by default the whole range from
      *      `offset` to the end of the buffer is filled. A negative `size` also means "to the
-     *      end". The buffer is modified in place; note that fibjs returns a Buffer object
-     *      distinct from the argument (Node.js returns the same object). A string argument
+     *      end". The buffer is modified in place; note that a Buffer object is returned
+     *      distinct from the argument. A string argument
      *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
      *      buffer or `offset + size` beyond its length throws RangeError. This member
      *      follows the async call forms (bare, callback, `randomFillSync`,
@@ -547,8 +547,8 @@ declare module 'crypto/promises' {
      *
      *      Writes `size` bytes starting at `offset`; by default the whole range from
      *      `offset` to the end of the buffer is filled. A negative `size` also means "to the
-     *      end". The buffer is modified in place; note that fibjs returns a Buffer object
-     *      distinct from the argument (Node.js returns the same object). A string argument
+     *      end". The buffer is modified in place; note that a Buffer object is returned
+     *      distinct from the argument. A string argument
      *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
      *      buffer or `offset + size` beyond its length throws RangeError. This member
      *      follows the async call forms (bare, callback, `randomFillSync`,
@@ -567,9 +567,9 @@ declare module 'crypto/promises' {
      *      The whole array is filled byte-wise and the same array is returned (the array is
      *      modified in place). At most 65536 bytes may be requested in one call; a larger
      *      array throws RangeError. This is the Web Crypto entry point, also available as
-     *      `crypto.webcrypto.getRandomValues`. Unlike Node.js, fibjs also accepts
-     *      floating-point TypedArrays (they still receive random bytes) and rejects a
-     *      DataView with a type error.
+     *      `crypto.webcrypto.getRandomValues`. Floating-point
+     *      TypedArrays are also accepted (they still receive random bytes); a DataView is
+     *      rejected with a type error.
      *      @param data the TypedArray to fill
      *      @return returns the filled TypedArray
      *
@@ -582,7 +582,7 @@ declare module 'crypto/promises' {
      *      The value is built from 16 random bytes with the version and variant bits set,
      *      so it matches 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx' with y in [89ab]. The same
      *      function is available as `crypto.webcrypto.randomUUID`. `options` is accepted
-     *      for Node.js compatibility but ignored, including `disableEntropyCache`.
+     *      for compatibility but ignored, including `disableEntropyCache` on this member.
      *      @param options reserved; not used
      *      @return returns the UUID string
      *
@@ -1291,7 +1291,7 @@ declare module 'crypto/promises' {
      *      key must be a Bls12381G2 private key; the options object carries `suite`, either
      *      'Bls12381Sha256' (default) or 'Bls12381Shake256', and an optional `header` bound
      *      into the signature. The signer and the verifier must use the same suite and
-     *      header. Follows the async call forms; this member has no Node.js counterpart.
+     *      header. Follows the async call forms; this member is an extension of the module.
      *      @param messages the messages to sign
      *      @param privateKey the private key and options
      *      @return returns the signature
@@ -1308,7 +1308,7 @@ declare module 'crypto/promises' {
      *      key must be a Bls12381G2 private key; the options object carries `suite`, either
      *      'Bls12381Sha256' (default) or 'Bls12381Shake256', and an optional `header` bound
      *      into the signature. The signer and the verifier must use the same suite and
-     *      header. Follows the async call forms; this member has no Node.js counterpart.
+     *      header. Follows the async call forms; this member is an extension of the module.
      *      @param messages the messages to sign
      *      @param privateKey the private key and options
      *      @return returns the signature
@@ -1325,7 +1325,7 @@ declare module 'crypto/promises' {
      *      key must be a Bls12381G2 private key; the options object carries `suite`, either
      *      'Bls12381Sha256' (default) or 'Bls12381Shake256', and an optional `header` bound
      *      into the signature. The signer and the verifier must use the same suite and
-     *      header. Follows the async call forms; this member has no Node.js counterpart.
+     *      header. Follows the async call forms; this member is an extension of the module.
      *      @param messages the messages to sign
      *      @param privateKey the private key and options
      *      @return returns the signature

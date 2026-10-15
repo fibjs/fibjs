@@ -40,7 +40,7 @@
  *  - **Call styles**: fibjs is synchronous-first. `requestSync`/`getSync`/... block the current fiber
  *    and return the HttpResponse directly. The event-style `request`/`get`/... return an HttpRequest
  *    immediately and deliver the response later through the callback argument or the `'response'`
- *    event; `get` and `head` send automatically like Node.js `http.get`, while `request` and
+ *    event; `get` and `head` send automatically, while `request` and
  *    post/put/del/patch wait for `end()` before sending. Each returned HttpRequest keeps the response
  *    in its `response` property as well.
  *  - **keep-alive and connection reuse**: with `keepAlive` enabled (the default) a client returns a
@@ -80,10 +80,10 @@
  *    `cert`, `key`, `passphrase`, `ciphers`, `secureProtocol` and `rejectUnauthorized`), so an HTTPS
  *    client can trust a private CA or present a client certificate. Passing a SecureContext object
  *    creates the client directly from it.
- *  - **Node.js differences**: `require('https')` returns this same module, there is no separate
- *    https module and no `globalAgent`; the sync functions have no Node equivalent; Node has no
- *    cookie jar and does not follow redirects or decompress bodies automatically; a Node-style
- *    `request.setTimeout` only emits an event while a fibjs timeout fails the request; and Node
+ *  - **Aliases and unsupported options**: `require('https')` returns this same module, there is no separate
+ *    https module and no `globalAgent`; the module also provides synchronous forms of the
+ *    request functions; the client keeps a cookie jar and follows redirects and decompresses
+ *    bodies automatically; `request.setTimeout` fails the request; and the
  *    options such as `auth`, `createConnection`, `lookup`, `family`, `insecureHTTPParser`,
  *    `joinDuplicateHeaders`, `localPort` and `socketPath` are not supported (basic authentication
  *    can be written into the URL as `http://user:pass@host/`).
@@ -210,8 +210,7 @@ declare module 'http' {
      *
      *      Same object as the HttpRequest class: `new http.Request()` creates an empty request and
      *      `new http.Request(url, opts)` creates one from a URL and options following the Fetch Request
-     *      constructor. Node.js exposes the client-side counterpart as http.ClientRequest and the
-     *      server-side received message as http.IncomingMessage (the `IncomingMessage` alias below).
+     *      constructor; the `IncomingMessage` alias below covers the received-message spelling.
      *
      */
     const Request: typeof Class_HttpRequest;
@@ -221,7 +220,7 @@ declare module 'http' {
     /**
      * @description Compatibility alias, equivalent to HttpRequest
      *
-     *      Provided so that code written for the Node.js name http.IncomingMessage keeps working; the
+     *      Provided so that code written for the `http.IncomingMessage` name keeps working; the
      *      object is the HttpRequest class itself, not a separate class.
      *
      */
@@ -234,8 +233,7 @@ declare module 'http' {
      *
      *      Same object as the HttpResponse class: servers build the reply through the `response`
      *      property of an HttpRequest, and clients receive one from the sync request functions or from
-     *      `fetch`. Node.js calls the server-side reply http.ServerResponse (the `ServerResponse` alias
-     *      below) and the client-side reply http.IncomingMessage.
+     *      `fetch`; the `ServerResponse` alias below is the same class.
      *
      */
     const Response: typeof Class_HttpResponse;
@@ -245,7 +243,7 @@ declare module 'http' {
     /**
      * @description Compatibility alias, equivalent to HttpResponse
      *
-     *      Provided so that code written for the Node.js name http.ServerResponse keeps working; the
+     *      Provided so that code written for the `http.ServerResponse` name keeps working; the
      *      object is the HttpResponse class itself, not a separate class.
      *
      */
@@ -271,7 +269,7 @@ declare module 'http' {
      *
      *      Same object as the HttpCookie class: `new http.Cookie(name, value, opts)` creates one from
      *      its parts, and every HttpMessage exposes the cookies it carries through the `cookies`
-     *      property. Node.js has no cookie class; the cookie jar is a fibjs feature of HttpClient.
+     *      property; the cookie jar is a feature of HttpClient.
      *
      */
     const Cookie: typeof Class_HttpCookie;
@@ -283,8 +281,7 @@ declare module 'http' {
      *
      *      Same object as the HttpServer class, which derives from TcpServer: `new http.Server(port,
      *      handler)` binds a port immediately and `new http.Server(handler)` requires `listen()` before
-     *      it serves. Use `HttpsServer` for TLS; Node.js exposes the same role as http.Server with
-     *      `createServer`.
+     *      it serves. Use `HttpsServer` for TLS; the `createServer` factory returns one as well.
      *
      */
     const Server: typeof Class_HttpServer;
@@ -296,8 +293,7 @@ declare module 'http' {
      *
      *      `new http.Client(options)` creates a client with its own connection pool, cookie jar and
      *      defaults; the module-level request functions use a hidden client with the module properties
-     *      as its configuration. Node.js splits this role between http.Agent (connection pooling) and
-     *      http.globalAgent (the shared default), which fibjs has no direct equivalent of.
+     *      as its configuration.
      *
      */
     const Client: typeof Class_HttpClient;
@@ -307,7 +303,7 @@ declare module 'http' {
     /**
      * @description Compatibility alias, equivalent to HttpClient
      *
-     *      Provided so that code written for the Node.js name http.Agent keeps working; the object is
+     *      Provided so that code written for the `http.Agent` name keeps working; the object is
      *      the HttpClient class itself. A client can be passed to a single request with the `agent`
      *      option instead of being used for every request.
      *
@@ -319,8 +315,7 @@ declare module 'http' {
     /**
      * @description The HttpsServer class, used to create HTTPS servers
      *
-     *      Same object as the HttpsServer class, which combines TcpServer with a SecureContext;
-     *      Node.js exposes the same role through https.createServer and https.Server.
+     *      Same object as the HttpsServer class, which combines TcpServer with a SecureContext.
      *
      */
     const HttpsServer: typeof Class_HttpsServer;
@@ -338,8 +333,7 @@ declare module 'http' {
      *      - a path or address string: a directory served as static files, or an `http(s)://` address forwarded by a repeater.
      *
      *      The returned server is not bound to a port: call `listen(port)` (or `start()` after a port
-     *      was given to the constructor) to serve requests. Node.js `http.createServer` accepts only
-     *      the function form and returns a server that must be started with `listen()` as well.
+     *      was given to the constructor) to serve requests.
      *
      *      Example — a router map with captured segments:
      *      ```JavaScript
@@ -387,7 +381,7 @@ declare module 'http' {
      * @description Creates an http protocol handler object, see HttpHandler
      *
      *      Same object as the HttpHandler class, which wraps a plain function into a handler object
-     *      that can be mounted on a server, a Chain or a Routing; Node.js has no equivalent class.
+     *      that can be mounted on a server, a Chain or a Routing.
      *
      */
     const Handler: typeof Class_HttpHandler;
@@ -397,8 +391,7 @@ declare module 'http' {
     /**
      * @description Creates an http request repeater object, see HttpRepeater
      *
-     *      Same object as the HttpRepeater class, which forwards requests to another http(s) address;
-     *      Node.js has no equivalent class.
+     *      Same object as the HttpRepeater class, which forwards requests to another http(s) address.
      *
      */
     const Repeater: typeof Class_HttpRepeater;
@@ -409,8 +402,7 @@ declare module 'http' {
      * @description Returns the collection of standard HTTP response status codes and their short descriptions
      *
      *      An object whose keys are the three-digit status codes and whose values are the reason
-     *      phrases, for example STATUS_CODES[404] === 'Not Found'; same shape as the Node.js
-     *      http.STATUS_CODES object.
+     *      phrases, for example STATUS_CODES[404] === 'Not Found'.
      *
      */
     const STATUS_CODES: FIBJS.GeneralObject;
@@ -419,7 +411,7 @@ declare module 'http' {
      * @description Returns an array of all method names (in uppercase) supported by the HTTP protocol
      *
      *      The parser accepts any token method, but this is the list it knows by name (currently 34
-     *      entries such as 'GET', 'POST' and 'HEAD'), the same role as the Node.js http.METHODS list.
+     *      entries such as 'GET', 'POST' and 'HEAD').
      *
      */
     const METHODS: string[];
@@ -440,7 +432,7 @@ declare module 'http' {
      *      Enabled by default. When enabled, a connection that finished a request is kept in the
      *      client pool and reused for later requests to the same host until `poolTimeout` expires.
      *      Set to false to open one connection per request. A per-request `keepAlive` option overrides
-     *      this setting. Node.js defaults its Agent to keepAlive false instead.
+     *      this setting.
      *
      */
     var keepAlive: boolean;
@@ -450,7 +442,7 @@ declare module 'http' {
      *
      *      Default 0, which means no timeout. The timeout covers a whole request; when it expires the
      *      request fails with error number 20021. A per-request `timeout` option overrides this
-     *      setting. Node.js only emits a 'timeout' event and leaves the request running.
+     *      setting.
      *
      */
     var timeout: number;
@@ -459,8 +451,7 @@ declare module 'http' {
      * @description Cookie feature switch of the module-level client, enabled by default
      *
      *      When enabled, Set-Cookie headers are stored in `cookies` and matching cookies are sent
-     *      back with later requests. Set to false to ignore cookies completely. Node.js http has no
-     *      cookie handling; libraries manage cookies themselves.
+     *      back with later requests. Set to false to ignore cookies completely.
      *
      */
     var enableCookie: boolean;
@@ -471,7 +462,7 @@ declare module 'http' {
      *      When enabled, 301, 302, 303, 307 and 308 responses are followed automatically; 303 switches
      *      the request to GET and drops the body. There is no redirect count limit, but a URL visited
      *      twice raises a cyclic redirect error. When disabled, the redirect response itself is
-     *      returned. Node.js never follows redirects automatically.
+     *      returned.
      *
      */
     var autoRedirect: boolean;
@@ -501,7 +492,7 @@ declare module 'http' {
      * @description Queries and sets the maximum number of request headers, default 128
      *
      *      Applies to the messages parsed and generated by the module-level client; a message can
-     *      override it through its own `maxHeadersCount` property. Node.js defaults to 1000.
+     *      override it through its own `maxHeadersCount` property.
      *
      */
     var maxHeadersCount: number;
@@ -509,8 +500,7 @@ declare module 'http' {
     /**
      * @description Queries and sets the maximum request header size in bytes, default 8192
      *
-     *      A request whose headers exceed the limit is rejected. Node.js defaults to 16384 bytes and
-     *      allows per-server or per-request overrides, which fibjs does not expose at this level.
+     *      A request whose headers exceed the limit is rejected.
      *
      */
     var maxHeaderSize: number;
@@ -519,7 +509,7 @@ declare module 'http' {
      * @description Queries and sets the maximum chunk size in MB, default 2
      *
      *      Limits one chunk of a chunked request or response body; a chunk larger than the limit is
-     *      rejected. Not a Node.js option.
+     *      rejected.
      *
      */
     var maxChunkSize: number;
@@ -529,7 +519,7 @@ declare module 'http' {
      *
      *      A response whose body exceeds the limit fails with error number 20024; 0 rejects every
      *      body. Requests with a body larger than the limit are also rejected. A HEAD response is
-     *      exempt because it has no body. Not a Node.js option.
+     *      exempt because it has no body.
      *
      */
     var maxBodySize: number;
@@ -538,7 +528,7 @@ declare module 'http' {
      * @description Queries and sets the browser identifier in http requests
      *
      *      Default 'curl/8.14.1'. Sent as the User-Agent header when the request does not set one;
-     *      assign an empty string to omit the header. Node.js sends no User-Agent by default.
+     *      assign an empty string to omit the header.
      *
      */
     var userAgent: string;
@@ -556,7 +546,7 @@ declare module 'http' {
      * @description Queries and sets the maximum number of idle connections, default 256
      *
      *      The module-level client keeps one idle list for all hosts and drops the oldest entries
-     *      beyond this number; Node.js applies maxFreeSockets per host instead.
+     *      beyond this number.
      *
      */
     var maxFreeSockets: number;
@@ -1228,7 +1218,7 @@ declare module 'http' {
      * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
      *
      *      The request is sent automatically without calling `end()`; the callback receives the
-     *      HttpResponse when it arrives, the same behavior as `http.get` in Node.js.
+     *      HttpResponse when it arrives, the same behavior as `http.get`.
      *      @param url the url to request; must be a complete url including the host
      *      @param callback response callback function, receives HttpResponse as a parameter
      *      @return returns an HttpRequest object
@@ -1239,7 +1229,7 @@ declare module 'http' {
     /**
      * @description Requests the specified url with the GET method and returns an HttpRequest object
      *
-     *      Like Node.js http.get, the returned request is sent automatically without calling `end()`;
+     *      The returned request is sent automatically without calling `end()`;
      *      the response is delivered to the callback or the `'response'` event and stored in the
      *      `response` property. A GET request carries no body.
      *
@@ -1266,7 +1256,7 @@ declare module 'http' {
     /**
      * @description Requests the specified url with the GET method, registers a callback to receive the response, and returns an HttpRequest object
      *
-     *      The request is sent automatically (no `end()` needed), like Node.js http.get; the callback
+     *      The request is sent automatically (no `end()` needed); the callback
      *      receives the HttpResponse when it arrives. See the get(url, opts) overload for the options.
      *      @param url the url to request; must be a complete url including the host
      *      @param opts the additional information

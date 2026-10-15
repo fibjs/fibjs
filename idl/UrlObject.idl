@@ -39,9 +39,8 @@ Concepts:
   ignore a value the parser rejects (an out-of-range port, a bad host, a scheme
   switch between a special and a non-special protocol); `searchParams` is a
   live view, so mutating it rewrites the URL on the next serialization.
-- **Comparison with Node.js**: Node keeps its WHATWG `URL` class and the legacy
-  `url.parse` object separate and rejects a relative input without a base; fibjs
-  merges both into `UrlObject` and accepts such an input as a rooted path, so
+- **Two models in one class**: the WHATWG URL API and the legacy `url.parse` fields are
+  merged into `UrlObject`, and a relative input without a base is accepted as a rooted path, so
   the legacy fields exist on every instance.
 
 Obtained from:
@@ -101,8 +100,7 @@ interface UrlObject : object
 {
     /*! @brief Constructs a URL object from a components object
 
-     A fibjs extension; Node.js stringifies the object instead and throws on a
-     plain one. The accepted fields are protocol, slashes, auth (or
+     An extension of the runtime. The accepted fields are protocol, slashes, auth (or
      username/password), host (or hostname plus port), path (or pathname),
      query, search and hash, combined by the legacy serializer: a hostname
      without protocol implies `http:`, user names and passwords are
@@ -119,11 +117,10 @@ interface UrlObject : object
     /*! @brief Constructs a URL object from a URL string
 
      Parses url with the WHATWG URL parser. base may be a string, a UrlObject
-     or a components object and is used to resolve a relative url (Node.js
-     accepts a string or URL only). Without base, a relative string is not
+     or a components object and is used to resolve a relative url. Without base, a relative string is not
      rejected: it is normalized as a rooted path, so `new URL('a/b').href` is
      `/a/b`, and a typo such as `ht tp://h/` silently becomes the path
-     `/ht%20tp://h/`, where Node.js throws ERR_INVALID_URL. A malformed
+     `/ht%20tp://h/`. A malformed
      absolute input (`http://`, an out-of-range port, an invalid IPv6 host)
      throws `url: Invalid URL '<input>'.` ([20024]); null and undefined yield
      an empty URL, while other non-string values throw a type error ([20005]).
@@ -143,12 +140,10 @@ interface UrlObject : object
 
     /*! @brief Parses a URL string and returns a URL object
 
-     Aliases the string constructor for the Node.js `URL.parse` static (Node
-     22+) and accepts base as a URL string. Node.js returns `null` when the
-     input is invalid; fibjs throws `url: Invalid URL '<input>'.` ([20024])
-     instead, and accepts a relative string without a base as a rooted path.
-     `URL.parse('')` returns an object whose href is `''` (Node.js returns
-     null), and a non-string value throws a type error ([20005]).
+     Aliases the string constructor and accepts base as a URL string. An invalid input throws
+     `url: Invalid URL '<input>'.` ([20024]), while `URL.parse('')` returns an object whose
+     href is `''`; a relative string without a base is accepted as a rooted path, and a
+     non-string value throws a type error ([20005]).
 
      Example — success and failure:
      ```JavaScript
@@ -171,10 +166,9 @@ interface UrlObject : object
     /*! @brief Checks whether a URL string can be parsed
 
      Returns true when the matching constructor or static parse call would
-     succeed. fibjs is more permissive than Node.js: a relative string without
-     base (`/p`), an empty string and a string with spaces that cannot form an
-     absolute URL are treated as relative and return true, while Node.js
-     returns false without a base. A malformed absolute input (`http://`, a bad
+     succeed. A relative string without base (`/p`), an empty string and a string with spaces
+     that cannot form an absolute URL are treated as relative and return true.
+     A malformed absolute input (`http://`, a bad
      port, an invalid IPv6 host) returns false, and an unusable base makes the
      result false as well.
 
@@ -198,9 +192,7 @@ interface UrlObject : object
      WHATWG algorithm and returned as a new UrlObject. An empty url returns a
      copy of the receiver, an absolute url replaces it and a reference such as
      `../c` walks the base path. An unparsable url throws
-     `url: Invalid URL '<input>'.` ([20024]). Node.js has no method form on its
-     URL class and the deprecated module-level `url.resolve(from, to)` returns
-     a string instead.
+     `url: Invalid URL '<input>'.` ([20024]).
 
      Example — resolve against a base with a path:
      ```JavaScript
@@ -247,15 +239,13 @@ interface UrlObject : object
      special scheme (`http:`, `https:`, `ws:` ...) and a non-special one are
      ignored, keeping the current protocol instead of throwing. Assigning the
      protocol re-applies the default-port rule, so `http://example.com:443/`
-     becomes `https://example.com/` after switching to `https:`. Node.js and
-     MDN define the same behavior.
+     becomes `https://example.com/` after switching to `https:`.
      */
     String protocol;
 
     /*! @brief Whether the URL is serialized with a double slash after the scheme
 
-     A legacy field, not part of the WHATWG URL interface; Node.js exposes it
-     on url.parse objects only. Every object built with `new URL(...)` reports
+     A legacy field, not part of the WHATWG URL interface. Every object built with `new URL(...)` reports
      true, even for `mailto:` or `data:`, while a legacy object from
      `url.parse` reports false for a non-hierarchical scheme (`mailto:`) and
      true when the input carried `//`. Assigning false is a rendering switch:
@@ -269,8 +259,7 @@ interface UrlObject : object
      Read-only; assigning is silently ignored. Special schemes report the
      tuple serialization with the default port dropped; `blob:` inherits the
      origin of its inner URL; `file:` and other non-special schemes report the
-     literal string `'null'` (not null). Node.js and MDN report the same
-     values.
+     literal string `'null'` (not null).
      */
     readonly String origin;
 
@@ -281,8 +270,7 @@ interface UrlObject : object
      null when the serialized URL carries no `@`; an object from `url.parse`
      returns the decoded text taken from the original input and null when the
      input had no `@` at all, so `http://@h/` reads back as `''` and
-     `http://:@h/` as `':'`. Node.js exposes the decoded property on legacy
-     parse objects only.
+     `http://:@h/` as `':'`.
      */
     readonly String auth;
 
@@ -293,8 +281,7 @@ interface UrlObject : object
      `%20`) and assigning `''` removes the name while keeping the password. A
      WHATWG instance returns the encoded text; a legacy object from
      `url.parse` returns the decoded text and its setter encodes the value, so
-     a read after a write returns the decoded form again. Node.js keeps the
-     same split between its URL class and the legacy object.
+     a read after a write returns the decoded form again.
 
      Example — what each model stores:
      ```JavaScript
@@ -346,8 +333,7 @@ interface UrlObject : object
      Read/write; `''` means the scheme default. The parser drops a port that
      equals the default (`http:80`, `https:443`), and the setter ignores an
      invalid value (out of the 0-65535 range or non-numeric), keeping the
-     current port instead of throwing. Legacy parse objects use `''` where
-     Node.js uses `null`; Node.js and MDN define the same setter rules.
+     current port instead of throwing. An unset port reads back as `''`.
 
      Example — the default-port rule and an ignored value:
      ```JavaScript
@@ -365,10 +351,8 @@ interface UrlObject : object
 
     /*! @brief The path and query of the URL, `pathname + search`
 
-     Read-only; assigning is silently ignored. Legacy field kept for Node.js
-     compatibility: `new URL('http://h/p?a=1#f')` reports `/p?a=1`, the
-     fragment is not included (read href for the complete string). The WHATWG
-     URL class of Node.js has no such property; its legacy parse objects do.
+     Read-only; assigning is silently ignored. Legacy field: `new URL('http://h/p?a=1#f')` reports `/p?a=1`, the
+     fragment is not included (read href for the complete string).
      */
     readonly String path;
 
@@ -379,8 +363,7 @@ interface UrlObject : object
      and keeps repeated slashes; the setter also resolves dot segments and
      percent-encodes the text, so `'/a/../b c'` becomes `/b%20c`. A
      non-hierarchical scheme stores everything after the colon, so
-     `data:text/plain,ab` reads back as `text/plain,ab`. Node.js and MDN define
-     the same behavior.
+     `data:text/plain,ab` reads back as `text/plain,ab`.
      */
     String pathname;
 
@@ -418,7 +401,7 @@ interface UrlObject : object
      Read/write; `''` when there is no fragment. The setter accepts text with
      or without the leading `#` and percent-encodes it; assigning `'#'` alone
      clears the fragment (it reads back as `''`) while the serialized URL keeps
-     the trailing `#`, matching the WHATWG and Node.js behavior.
+     the trailing `#`, as the WHATWG standard requires.
      */
     String hash;
 

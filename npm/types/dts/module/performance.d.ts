@@ -7,7 +7,7 @@
  *
  *  - **Clock**: `now` reads the monotonic high-resolution clock;
  *  - **Marks**: `mark` records a named timestamp and `clearMarks` removes them;
- *  - **Measures**: `measure` computes a duration; `clearMeasures` is a Node.js compatibility no-op;
+ *  - **Measures**: `measure` computes a duration; `clearMeasures` is a compatibility no-op;
  *  - **Timeline queries**: `getEntries`, `getEntriesByType` and `getEntriesByName` read the marks;
  *  - **Observation**: `PerformanceObserver` receives marks and measures as they are recorded;
  *  - **Resource timing**: `markResourceTiming` is a compatibility stub that records nothing.
@@ -20,18 +20,16 @@
  *  - **Monotonic clock**: `now()` returns the milliseconds elapsed since the fibjs runtime started,
  *    as a floating-point number with sub-millisecond resolution. It never goes backwards and has no
  *    relation to the wall clock (use Date for calendar time); only a difference between two readings
- *    is meaningful. Node.js additionally provides `timeOrigin`, `toJSON`, `nodeTiming` and
- *    `eventLoopUtilization`, none of which exist here.
+ *    is meaningful.
  *  - **Entry types**: only `mark` and `measure` entries are ever produced; there is no navigation,
  *    resource, paint or user-timing buffer, and an observer registered for another type never fires.
  *  - **Marks**: a mark is a named timestamp that can carry an arbitrary `detail` and whose
  *    `startTime` can be overridden. Marks are keyed by name, so marking the same name again replaces
- *    the previous entry (Node.js keeps both).
+ *    the previous entry.
  *  - **Measures**: a measure is a computed duration derived from two mark names, from explicit
  *    numbers, or from `start` plus `duration`. Measures are **not stored** in the timeline:
  *    `getEntries`/`getEntriesByType`/`getEntriesByName` only ever return marks and `clearMeasures`
- *    does nothing; a measure reaches the program exclusively through a PerformanceObserver. Node.js
- *    retains measures and can query them.
+ *    does nothing; a measure reaches the program exclusively through a PerformanceObserver.
  *  - **Observers vs polling**: `getEntries*` is a snapshot of the marks recorded so far, while an
  *    observer is notified about new entries. Records are queued synchronously, so `takeRecords()`
  *    can drain them before the callback runs; the callback itself runs when the current fiber yields.
@@ -106,7 +104,7 @@
  *  - getEntries returns the marks in an unspecified order; sort the array when a stable order is
  *    needed.
  *  - A missing mark in measure fails with Error [20024] and messages such as
- *    "startMark 'x' not found"; Node.js throws a DOMException instead.
+ *    "startMark 'x' not found".
  *
  */
 declare module 'performance' {
@@ -123,11 +121,11 @@ declare module 'performance' {
     function clearMarks(name?: string): void;
 
     /**
-     * @description Compatibility no-op kept for Node.js API parity
+     * @description Compatibility no-op
      *
-     *      fibjs does not retain measures in the timeline, so there is nothing to remove and the call
-     *      always returns undefined. It exists so code written for Node.js, where the member clears
-     *      named or anonymous measures, keeps working; observer delivery is not affected.
+     *      Measures are not retained in the timeline, so there is nothing to remove and the call
+     *      always returns undefined. It exists so code written against the member keeps working;
+     *      observer delivery is not affected.
      *
      *      @param name the measure name; ignored
      *
@@ -185,8 +183,7 @@ declare module 'performance' {
      *
      *      The second overload, measure(name, startMark, endMark), takes mark names directly: an empty
      *      startMark means timestamp 0 and an empty endMark means the current time. Both overloads
-     *      compute duration as end - start; a negative duration is accepted (Node.js rejects an
-     *      explicitly negative `duration` option and keeps end < start as negative). A string start or
+     *      compute duration as end - start; a negative duration is accepted. A string start or
      *      end that names a missing mark fails with Error [20024] and "startMark 'x' not found" or
      *      "endMark 'x' not found"; `duration` together with `end` fails with "end must not be specified
      *      when duration is specified"; a start or end that is neither string nor number fails with
@@ -305,9 +302,9 @@ declare module 'performance' {
     function getEntriesByName(name: string, type?: string): Class_PerformanceEntry[];
 
     /**
-     * @description Compatibility stub of the Node.js resource timing hook
+     * @description Compatibility stub of the resource timing hook
      *
-     *      Accepts the Node.js markResourceTiming(timingInfo, requestedUrl, initiatorType, global,
+     *      Accepts the markResourceTiming(timingInfo, requestedUrl, initiatorType, global,
      *      cacheState, bodyInfo, responseStatus) call and does nothing: no resource entry is created and
      *      observers registered for `resource` never fire. The arguments are still type-checked, so all
      *      seven must be supplied.

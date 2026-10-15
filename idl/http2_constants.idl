@@ -5,8 +5,7 @@
 
  The module mirrors the constant surface of the nghttp2 library bundled with fibjs and is
  reached through the `constants` property of the http2 module; it is not requireable on its
- own. The exported names and values are identical to Node.js's `http2.constants` (240
- entries, verified against Node.js v25.9.0):
+own. The module exports 240 constants:
 
  - **SETTINGS**: `NGHTTP2_SETTINGS_*` ids (header table size, push, concurrent streams,
    initial window size, frame size, header list size, CONNECT protocol) and the matching
@@ -29,7 +28,7 @@
  - **SETTINGS negotiation**: each peer sends a SETTINGS frame when the connection starts; the
    id selects the parameter and the `DEFAULT_SETTINGS_*` values apply until the peer sends
    its own. `http2.getDefaultSettings()` maps the same defaults to parameter names, except
-   that it reports `maxConcurrentStreams` 100, while the constant (and Node.js) use
+   that it reports `maxConcurrentStreams` 100, while the constant uses
    4294967295 for "unlimited".
  - **Error codes**: RST_STREAM and GOAWAY carry an `NGHTTP2_*` code; 0 is NO_ERROR and the
    other defined values are 1..13. They are distinct from the internal negative

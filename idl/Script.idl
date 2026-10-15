@@ -15,26 +15,24 @@
  - **Module scripts**: `type: 'module'` is a fibjs extension that compiles the code as an
    ECMAScript module, so import and export are accepted. A module script cannot be executed: the
    run methods return undefined (after validating the syntax at compile time), and
-   createCachedData throws Error 20009. Node.js compiles modules with vm.SourceTextModule
-   instead.
+   createCachedData throws Error 20009.
  - **Code cache**: createCachedData returns the V8 code cache as a Buffer; pass it back through
    the cachedData option to skip recompilation. V8 validates the buffer against the source, and
    an invalid or mismatched cache is ignored silently (the script is recompiled). The cache
    carries no execution state.
  - **Run options**: every run method accepts timeout (milliseconds, 0 disables it); the compile
    options are fixed at construction. A run that exceeds the timeout fails with Error 20021
-   ("The maximum amount of time for a script to execute was exceeded."). Node.js reports the
-   same condition as an ERR_SCRIPT_EXECUTION_TIMEOUT error.
+   ("The maximum amount of time for a script to execute was exceeded.").
  - **Errors**: a syntax error is thrown by the constructor as a SyntaxError with the V8 message
    and no error number. A runtime error is an ordinary JavaScript error whose stack names the
    script file and the offset-adjusted position.
  - **Dynamic import**: vm installs no import callback for compiled scripts, so a script that
    calls `import()` aborts the process in this release; load modules with require instead.
- - **Node.js comparison**: the class matches Node's vm.Script for the constructor options
+ - **Surface**: the constructor options
    filename, lineOffset, columnOffset and cachedData, the three run methods and
-   createCachedData. fibjs adds type: 'module' and omits the Node.js constructor option
+   createCachedData are provided; `type: 'module'` is an extension, and the constructor option
    importModuleDynamically, the run options displayErrors and breakOnSigint, the
-   cachedDataRejected and sourceMapURL properties, and the vm.createScript alias.
+   cachedDataRejected and sourceMapURL properties, and the vm.createScript alias are omitted.
 
  Obtained from:
  - `new vm.Script(code, opts)` — compiles the source text and returns the script;
@@ -103,8 +101,7 @@ interface Script : object
 
      `type: "module"` compiles the code as an ECMAScript module (import and export are
      accepted). A module script cannot be executed: the run methods return undefined and
-     createCachedData throws Error 20009. Node.js compiles modules with vm.SourceTextModule
-     instead of a Script option.
+     createCachedData throws Error 20009.
 
      Example:
      ```JavaScript

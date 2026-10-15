@@ -23,10 +23,9 @@ Concepts:
   whole heap; reading `nodes` rebuilds the array and re-wraps every node, and each
   node or edge accessed afterwards crosses into the isolate that owns the snapshot.
   Cache the arrays and filter early.
-- **Node.js differences**: Node.js exposes the heap as a JSON stream through
-  `getHeapSnapshot`/`writeHeapSnapshot` without an object model; this class and
-  `loadSnapshot`/`diff` are fibjs additions. The property names also differ from the
-  JSON fields (`shallowSize` against `self_size`, `childs` against `children`).
+- **Notes**: this class, with `loadSnapshot`/`diff`, is the object-model form of the heap data:
+   the property names follow the snapshot model (`shallowSize`, `childs`), which the
+   accessors below document.
 
 Obtained from:
  - `v8.takeSnapshot()` — capture the live heap;
