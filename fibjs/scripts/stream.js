@@ -64,6 +64,47 @@ Stream.finished = function finished(stream, opts, callback) {
 
 Stream.promises = require('stream/promises');
 
+// Node's `stream.addAbortSignal(signal, stream)`: aborting the signal destroys
+// the stream - at once when it is already aborted. The returned stream is the
+// one given, so the call chains. Also installed as the method
+// `stream.addAbortSignal(signal)` (Node has both).
+//
+// fibjs streams are the compatibility classes here, which carry Node's
+// `destroy()`; the signal is the standard AbortSignal, so `addEventListener`
+// is what subscribes. `destroy(reason)` is the Node behaviour of reporting the
+// abort reason to the 'error' listener.
+function addAbortSignal(signal, stream) {
+    if (signal == null || typeof signal.addEventListener !== 'function')
+        throw new TypeError('The "signal" argument must be an AbortSignal.');
+
+    if (stream == null || typeof stream.destroy !== 'function')
+        throw new TypeError('The "stream" argument must be a stream with a destroy method.');
+
+    const onAbort = () => {
+        stream.destroy(signal.reason);
+    };
+
+    if (signal.aborted) {
+        // defer, so the caller gets the return value before the destruction
+        // (and so a synchronous destroy cannot unwind the caller's stack)
+        process.nextTick(onAbort);
+    } else {
+        signal.addEventListener('abort', onAbort, { once: true });
+    }
+
+    return stream;
+}
+
+Stream.addAbortSignal = addAbortSignal;
+
+[Stream.Readable, Stream.Writable, Stream.Duplex].forEach(function (ctor) {
+    if (ctor && ctor.prototype && typeof ctor.prototype.addAbortSignal !== 'function') {
+        ctor.prototype.addAbortSignal = function (signal) {
+            return addAbortSignal(signal, this);
+        };
+    }
+});
+
 // Backwards-compat with node 0.4.x
 Stream.Stream = Stream;
 
