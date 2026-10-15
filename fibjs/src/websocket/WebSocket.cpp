@@ -185,7 +185,7 @@ public:
 
         obj_ptr<Buffer_base> _data = new Buffer(data.c_str(), data.length());
         m_msg = new WebSocketMessage(type, m_this->m_masked, m_this->m_compress, 0);
-        int32_t len;
+        bool len;
         m_msg->cc_write(_data, len);
 
         init(start);
@@ -199,7 +199,7 @@ public:
         m_this->m_ioState.inc();
 
         m_msg = new WebSocketMessage(type, m_this->m_masked, m_this->m_compress, 0);
-        int32_t len;
+        bool len;
         m_msg->cc_write(data, len);
 
         init(start);
@@ -221,7 +221,7 @@ public:
         obj_ptr<Buffer_base> data = new Buffer(buf.c_str(), buf.length());
 
         m_msg = new WebSocketMessage(WebSocket_base::C_CLOSE, m_this->m_masked, m_this->m_compress, 0);
-        int32_t len;
+        bool len;
         m_msg->cc_write(data, len);
 
         init(start);

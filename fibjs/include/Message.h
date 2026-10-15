@@ -31,11 +31,11 @@ public:
     // Node parity: node's IncomingMessage is a Readable, and packages that read a
     // response in the node way call setEncoding() on it before listening for data
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal);
-    virtual result_t write(Union_write_data data, int32_t& retVal, AsyncHandle ac);
+    virtual result_t write(Union_write_data data, bool& retVal, AsyncHandle ac);
     // the merged entry dispatches to the per-type implementations: a string is
     // encoded as utf8
-    result_t write(Buffer_base* data, int32_t& retVal, AsyncHandle ac);
-    result_t write(exlib::string data, int32_t& retVal, AsyncHandle ac);
+    result_t write(Buffer_base* data, bool& retVal, AsyncHandle ac);
+    result_t write(exlib::string data, bool& retVal, AsyncHandle ac);
     virtual result_t text(exlib::string data, exlib::string& retVal, AsyncHandle ac);
     virtual result_t text(exlib::string& retVal, AsyncHandle ac);
     virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac);

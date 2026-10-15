@@ -43,9 +43,9 @@ public:
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal);
-    virtual result_t write(Union_write_data data, int32_t& retVal, AsyncHandle ac);
-    result_t write(Buffer_base* data, int32_t& retVal, AsyncHandle ac);
-    result_t write(exlib::string data, int32_t& retVal, AsyncHandle ac);
+    virtual result_t write(Union_write_data data, bool& retVal, AsyncHandle ac);
+    result_t write(Buffer_base* data, bool& retVal, AsyncHandle ac);
+    result_t write(exlib::string data, bool& retVal, AsyncHandle ac);
     virtual result_t text(exlib::string data, exlib::string& retVal, AsyncHandle ac);
     virtual result_t text(exlib::string& retVal, AsyncHandle ac);
     virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac);

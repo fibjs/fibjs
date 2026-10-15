@@ -319,39 +319,13 @@ declare class Class_Message extends Class_EventEmitter {
      *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
      *      ```
      *      @param data the data to write
-     *      @return returns the number of bytes actually written
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
-    write(data: Class_Buffer | string): number;
+    write(data: Class_Buffer | string): boolean;
 
-    write(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *
-     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
-     *      existing content and does not mark the message ended. The count returned for a buffered
-     *      body is not filled reliably by the current implementation, so use length for the body
-     *      size.
-     *
-     *      Example — write appends and readAll rewinds:
-     *      ```JavaScript
-     *      const mq = require('mq');
-     *
-     *      const msg = new mq.Message();
-     *      msg.write('hello');
-     *      msg.write(' world');
-     *      console.log(msg.length); // 11
-     *
-     *      msg.body.rewind();
-     *      console.log(msg.read(5).toString()); // hello
-     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
-     *      ```
-     *      @param data the data to write
-     *      @return returns the number of bytes actually written
-     *
-     */
-    writeSync(data: Class_Buffer | string): number;
+    write(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
@@ -375,10 +349,39 @@ declare class Class_Message extends Class_EventEmitter {
      *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
      *      ```
      *      @param data the data to write
-     *      @return returns the number of bytes actually written
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer | string): Promise<number>;
+    writeSync(data: Class_Buffer | string): boolean;
+
+    /**
+     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
+     *
+     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
+     *      existing content and does not mark the message ended. The count returned for a buffered
+     *      body is not filled reliably by the current implementation, so use length for the body
+     *      size.
+     *
+     *      Example — write appends and readAll rewinds:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.write('hello');
+     *      msg.write(' world');
+     *      console.log(msg.length); // 11
+     *
+     *      msg.body.rewind();
+     *      console.log(msg.read(5).toString()); // hello
+     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
+     *      ```
+     *      @param data the data to write
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
+     *
+     */
+    writeAsync(data: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Writes the given text data
@@ -1519,10 +1522,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
      *      ```
      *      @param data the data to write
-     *      @return returns the number of bytes actually written
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
-    write(data: Class_Buffer | string): Promise<number>;
+    write(data: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
@@ -1546,10 +1550,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
      *      ```
      *      @param data the data to write
-     *      @return returns the number of bytes actually written
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
-    writeSync(data: Class_Buffer | string): number;
+    writeSync(data: Class_Buffer | string): boolean;
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
@@ -1573,10 +1578,11 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
      *      ```
      *      @param data the data to write
-     *      @return returns the number of bytes actually written
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer | string): Promise<number>;
+    writeAsync(data: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Writes the given text data

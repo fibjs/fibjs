@@ -49,7 +49,7 @@ public:
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal) = 0;
-    virtual result_t write(Union_write_data data, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t write(Union_write_data data, bool& retVal, AsyncHandle ac) = 0;
     virtual result_t text(exlib::string data, exlib::string& retVal, AsyncHandle ac) = 0;
     virtual result_t text(exlib::string& retVal, AsyncHandle ac) = 0;
     virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac) = 0;
@@ -126,7 +126,7 @@ public:
 public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(Message_base, readAll, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE2(Message_base, write, Union_write_data, int32_t);
+    ASYNC_MEMBERVALUE2(Message_base, write, Union_write_data, bool);
     ASYNC_MEMBERVALUE2(Message_base, text, exlib::string, exlib::string);
     ASYNC_MEMBERVALUE1(Message_base, text, exlib::string);
     ASYNC_MEMBERVALUE1(Message_base, arrayBuffer, std::shared_ptr<v8::BackingStore>);
@@ -410,7 +410,7 @@ inline void Message_base::s_setEncoding(const v8::FunctionCallbackInfo<v8::Value
 
 inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    int32_t vr;
+    bool vr;
 
     ASYNC_METHOD_INSTANCE(Message_base);
     ASYNC_METHOD_ENTER("Message.write");

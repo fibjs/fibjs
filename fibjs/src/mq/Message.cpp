@@ -211,7 +211,7 @@ result_t Message::blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHand
     }, std::move(ac)))->post(result_t());
 }
 
-result_t Message::write(Union_write_data data, int32_t& retVal, AsyncHandle ac)
+result_t Message::write(Union_write_data data, bool& retVal, AsyncHandle ac)
 {
     if (std::holds_alternative<obj_ptr<Buffer_base>>(data))
         return write(std::get<obj_ptr<Buffer_base>>(data).get(), retVal, std::move(ac));
@@ -219,26 +219,23 @@ result_t Message::write(Union_write_data data, int32_t& retVal, AsyncHandle ac)
     return write(std::get<exlib::string>(data), retVal, std::move(ac));
 }
 
-result_t Message::write(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
+result_t Message::write(Buffer_base* data, bool& retVal, AsyncHandle ac)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
 
-    return m_body->writeBuffer(data, std::move(ac));
+    // the byte count this used to return was never written (the wrapper read an
+    // uninitialized slot); the Stream contract behind writeBuffer has the node
+    // backpressure answer, so take it from there
+    return m_body->write(data, retVal, std::move(ac));
 }
 
-result_t Message::write(exlib::string data, int32_t& retVal, AsyncHandle ac)
+result_t Message::write(exlib::string data, bool& retVal, AsyncHandle ac)
 {
-    if (ac.isSync())
-        return result_t::nosync();
+    if (m_body == NULL)
+        m_body = new MemoryStream();
 
-    obj_ptr<Buffer_base> buf;
-
-    result_t hr = Buffer_base::from(data, "utf8", buf);
-    if (hr.failed())
-        return hr;
-
-    return write(buf.get(), retVal, std::move(ac));
+    return m_body->write(data, "utf8", retVal, std::move(ac));
 }
 
 result_t Message::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)

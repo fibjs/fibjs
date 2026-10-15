@@ -236,9 +236,10 @@ interface Message : EventEmitter
      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
      ```
      @param data the data to write
-     @return returns the number of bytes actually written
+     @return false when the caller should wait for the 'drain' event before
+     writing more, true otherwise
      */
-    Integer write(Buffer|String data) async;
+    Boolean write(Buffer|String data) async;
 
     /*! @brief Writes the given text data
 
