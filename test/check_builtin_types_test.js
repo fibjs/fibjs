@@ -815,6 +815,33 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
         assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
     });
 
+    it('forces allowJs before the tsconfig file list is computed (C1)', () => {
+        // The checker always checks .js files, but the parsed file list is
+        // computed while the tsconfig is read - from the *command line*
+        // options, which take precedence over the tsconfig. A project listing
+        // `.js` files without writing `allowJs` used to come back empty and
+        // report TS18003, and an explicit `"allowJs": false` used to be a
+        // silent trap.
+        var dir = path.join(scratch, 'allow-js-early');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'build.js'), [
+            "const fs = require('fs');",
+            'module.exports = () => fs.readTextFile(__filename).length;'
+        ].join('\n'));
+        fs.writeFileSync(path.join(dir, 'tsconfig.json'), JSON.stringify({
+            compilerOptions: { allowJs: false },
+            include: ['**/*.js']
+        }));
+
+        var r = runCheck(dir, []);
+        var text = r.stdout + r.stderr;
+
+        assert.ok(!text.includes('TS18003'),
+            'the .js file list must not come back empty: ' + text);
+        assert.equal(errors(text), 0, text);
+    });
+
     it('types the stream family depth (hooks, iteration, operators, generic chunks)', async () => {
         // P2 of plans/fibjs-upstream-gaps-remediation-2026-10-14.md: the
         // declarations must describe the subclassing contract (`_read`,

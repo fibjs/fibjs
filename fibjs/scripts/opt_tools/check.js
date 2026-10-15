@@ -532,7 +532,17 @@ function loadProject(configPath, cliOptions, configDiagnostics) {
         onUnRecoverableConfigFileDiagnostic: diagnostic => configDiagnostics.push(diagnostic),
     });
 
-    const parsed = ts.getParsedCommandLineOfConfigFile(configPath, cliOptions, parseHost);
+    // `--check` always checks .js files, so allowJs has to be part of the
+    // command line options rather than of the post-parse override: the
+    // parsed file list is computed *while* the config is parsed, with the
+    // command line options already taking precedence over the tsconfig. A
+    // project that lists `.js` files without writing `allowJs` would
+    // otherwise come back with an empty file list and report TS18003 ("No
+    // inputs were found") for a config that is in fact fine.
+    const parsed = ts.getParsedCommandLineOfConfigFile(configPath, Object.assign({
+        allowJs: true,
+        allowImportingTsExtensions: true,
+    }, cliOptions), parseHost);
 
     if (!parsed)
         return undefined;
