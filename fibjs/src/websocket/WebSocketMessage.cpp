@@ -160,24 +160,33 @@ result_t WebSocketMessage::set_lastError(exlib::string newVal)
     return m_message->set_lastError(newVal);
 }
 
-result_t WebSocketMessage::end(int32_t& retVal, AsyncHandle ac)
+result_t WebSocketMessage::end(obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
-    return m_message->end(retVal, std::move(ac));
+    result_t hr = m_message->end(retVal, std::move(ac));
+    // the inner message wrote itself into the slot; the caller keeps the message
+    retVal = this;
+    return hr;
 }
 
-result_t WebSocketMessage::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
+result_t WebSocketMessage::end(Buffer_base* data, obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
-    return m_message->end(data, retVal, std::move(ac));
+    result_t hr = m_message->end(data, retVal, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
-result_t WebSocketMessage::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
+result_t WebSocketMessage::end(Buffer_base* data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
-    return m_message->end(data, encoding, retVal, std::move(ac));
+    result_t hr = m_message->end(data, encoding, retVal, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
-result_t WebSocketMessage::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
+result_t WebSocketMessage::end(exlib::string data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
-    return m_message->end(data, encoding, retVal, std::move(ac));
+    result_t hr = m_message->end(data, encoding, retVal, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
 result_t WebSocketMessage::isEnded(bool& retVal)

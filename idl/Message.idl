@@ -337,21 +337,22 @@ interface Message : EventEmitter
 
     /*! @brief Marks the message as ended
 
-     Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     Sets the end flag; it writes nothing and does not stop handler chains, the
      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
-     the state of its response when one is attached.
-     @return returns 0 on success
+     the state of its response when one is attached. Returns the message itself, so calls can
+     be chained.
+     @return returns the current message object
      */
-    Integer end() async;
+    Message end() async;
 
     /*! @brief Writes the given data and sets the end of current message processing
 
      Appends the buffer to the buffered body (like write) and marks the message as ended; no
      data is sent.
      @param data the data to write
-     @return returns 0 on success
+     @return returns the current message object
      */
-    Integer end(Buffer data) async;
+    Message end(Buffer data) async;
 
     /*! @brief Writes the given data and sets the end of current message processing
 
@@ -359,9 +360,9 @@ interface Message : EventEmitter
      already binary and is kept for overload compatibility.
      @param data the data to write
      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
-     @return returns 0 on success
+     @return returns the current message object
      */
-    Integer end(Buffer data, String encoding) async;
+    Message end(Buffer data, String encoding) async;
 
     /*! @brief Writes the given string data and sets the end of current message processing
 
@@ -369,9 +370,9 @@ interface Message : EventEmitter
      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      @param data the string data to write
      @param encoding the encoding of the string, default is "utf8"
-     @return returns 0 on success
+     @return returns the current message object
      */
-    Integer end(String data, String encoding = "utf8") async;
+    Message end(String data, String encoding = "utf8") async;
 
     /*! @brief Queries whether the current message has ended
 

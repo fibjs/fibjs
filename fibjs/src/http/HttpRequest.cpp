@@ -647,11 +647,11 @@ result_t HttpRequest::set_lastError(exlib::string newVal)
     return m_message->set_lastError(newVal);
 }
 
-result_t HttpRequest::end(int32_t& retVal, AsyncHandle ac)
+result_t HttpRequest::end(obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
     class AsyncEnd : public AsyncState {
     public:
-        AsyncEnd(HttpRequest* pThis, int32_t& retVal, AsyncHandle ac)
+        AsyncEnd(HttpRequest* pThis, obj_ptr<Message_base>& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_retVal(retVal)
@@ -664,7 +664,10 @@ result_t HttpRequest::end(int32_t& retVal, AsyncHandle ac)
 
         ON_STATE(AsyncEnd, end)
         {
-            return m_pThis->m_message->end(m_retVal, next(resume));
+            result_t hr = m_pThis->m_message->end(m_retVal, next(resume));
+            // the inner message wrote itself; the caller keeps the request
+            m_retVal = m_pThis;
+            return hr;
         }
 
         ON_STATE(AsyncEnd, resume)
@@ -684,7 +687,7 @@ result_t HttpRequest::end(int32_t& retVal, AsyncHandle ac)
     public:
         AsyncHandle m_ac;
         obj_ptr<HttpRequest> m_pThis;
-        int32_t& m_retVal;
+        obj_ptr<Message_base>& m_retVal;
     };
 
     if (ac.isSync())
@@ -693,11 +696,11 @@ result_t HttpRequest::end(int32_t& retVal, AsyncHandle ac)
     return (new AsyncEnd(this, retVal, std::move(ac)))->post(result_t());
 }
 
-result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
+result_t HttpRequest::end(Buffer_base* data, obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
     class AsyncEnd : public AsyncState {
     public:
-        AsyncEnd(HttpRequest* pThis, Buffer_base* data, int32_t& retVal, AsyncHandle ac)
+        AsyncEnd(HttpRequest* pThis, Buffer_base* data, obj_ptr<Message_base>& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_data(data)
@@ -711,7 +714,9 @@ result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
 
         ON_STATE(AsyncEnd, end)
         {
-            return m_pThis->m_message->end(m_data, m_retVal, next(resume));
+            result_t hr = m_pThis->m_message->end(m_data, m_retVal, next(resume));
+            m_retVal = m_pThis;
+            return hr;
         }
 
         ON_STATE(AsyncEnd, resume)
@@ -732,7 +737,7 @@ result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
         AsyncHandle m_ac;
         obj_ptr<HttpRequest> m_pThis;
         obj_ptr<Buffer_base> m_data;
-        int32_t& m_retVal;
+        obj_ptr<Message_base>& m_retVal;
     };
 
     if (ac.isSync())
@@ -741,11 +746,11 @@ result_t HttpRequest::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
     return (new AsyncEnd(this, data, retVal, std::move(ac)))->post(result_t());
 }
 
-result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
+result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
     class AsyncEnd : public AsyncState {
     public:
-        AsyncEnd(HttpRequest* pThis, Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
+        AsyncEnd(HttpRequest* pThis, Buffer_base* data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_data(data)
@@ -760,7 +765,9 @@ result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& re
 
         ON_STATE(AsyncEnd, end)
         {
-            return m_pThis->m_message->end(m_data, m_encoding, m_retVal, next(resume));
+            result_t hr = m_pThis->m_message->end(m_data, m_encoding, m_retVal, next(resume));
+            m_retVal = m_pThis;
+            return hr;
         }
 
         ON_STATE(AsyncEnd, resume)
@@ -782,7 +789,7 @@ result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& re
         obj_ptr<HttpRequest> m_pThis;
         obj_ptr<Buffer_base> m_data;
         exlib::string m_encoding;
-        int32_t& m_retVal;
+        obj_ptr<Message_base>& m_retVal;
     };
 
     if (ac.isSync())
@@ -791,11 +798,11 @@ result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, int32_t& re
     return (new AsyncEnd(this, data, encoding, retVal, std::move(ac)))->post(result_t());
 }
 
-result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
+result_t HttpRequest::end(exlib::string data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
     class AsyncEnd : public AsyncState {
     public:
-        AsyncEnd(HttpRequest* pThis, exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
+        AsyncEnd(HttpRequest* pThis, exlib::string data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_data(data)
@@ -810,7 +817,9 @@ result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& r
 
         ON_STATE(AsyncEnd, end)
         {
-            return m_pThis->m_message->end(m_data, m_encoding, m_retVal, next(resume));
+            result_t hr = m_pThis->m_message->end(m_data, m_encoding, m_retVal, next(resume));
+            m_retVal = m_pThis;
+            return hr;
         }
 
         ON_STATE(AsyncEnd, resume)
@@ -832,7 +841,7 @@ result_t HttpRequest::end(exlib::string data, exlib::string encoding, int32_t& r
         obj_ptr<HttpRequest> m_pThis;
         exlib::string m_data;
         exlib::string m_encoding;
-        int32_t& m_retVal;
+        obj_ptr<Message_base>& m_retVal;
     };
 
     if (ac.isSync())

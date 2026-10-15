@@ -380,28 +380,29 @@ result_t Message_base::_new(obj_ptr<Message_base>& retVal, v8::Local<v8::Object>
     return result_t();
 }
 
-result_t Message::end(int32_t& retVal, AsyncHandle ac)
+result_t Message::end(obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
     m_end = true;
-    retVal = 0;
+    retVal = this;
     return result_t();
 }
 
-result_t Message::end(Buffer_base* data, int32_t& retVal, AsyncHandle ac)
+result_t Message::end(Buffer_base* data, obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
 
     m_end = true;
 
-    // the stream end() returns the stream it closed (node: `end()` -> this);
-    // this message is not a Stream, so the value is dropped here (B3 makes the
-    // message return itself)
+    // the inner stream ends into its own slot (it writes itself there); the
+    // message re-asserts itself so `end()` chains on the message (B3)
     obj_ptr<Stream_base> stm;
-    return m_body->end(data, stm, std::move(ac));
+    result_t hr = m_body->end(data, stm, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
-result_t Message::end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
+result_t Message::end(Buffer_base* data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
@@ -409,10 +410,12 @@ result_t Message::end(Buffer_base* data, exlib::string encoding, int32_t& retVal
     m_end = true;
 
     obj_ptr<Stream_base> stm;
-    return m_body->end(data, encoding, stm, std::move(ac));
+    result_t hr = m_body->end(data, encoding, stm, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
-result_t Message::end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
+result_t Message::end(exlib::string data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac)
 {
     if (m_body == NULL)
         m_body = new MemoryStream();
@@ -420,7 +423,9 @@ result_t Message::end(exlib::string data, exlib::string encoding, int32_t& retVa
     m_end = true;
 
     obj_ptr<Stream_base> stm;
-    return m_body->end(data, encoding, stm, std::move(ac));
+    result_t hr = m_body->end(data, encoding, stm, std::move(ac));
+    retVal = this;
+    return hr;
 }
 
 result_t Message::isEnded(bool& retVal)

@@ -60,10 +60,10 @@ public:
     virtual result_t pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac) = 0;
     virtual result_t pack(Variant& retVal, AsyncHandle ac) = 0;
     virtual result_t get_length(int64_t& retVal) = 0;
-    virtual result_t end(int32_t& retVal, AsyncHandle ac) = 0;
-    virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncHandle ac) = 0;
-    virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac) = 0;
-    virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t end(obj_ptr<Message_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t end(Buffer_base* data, obj_ptr<Message_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t end(Buffer_base* data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t end(exlib::string data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t isEnded(bool& retVal) = 0;
     virtual result_t clear() = 0;
     virtual result_t sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac) = 0;
@@ -136,10 +136,10 @@ public:
     ASYNC_MEMBERVALUE1(Message_base, json, Variant);
     ASYNC_MEMBERVALUE2(Message_base, pack, v8::Local<v8::Value>, Variant);
     ASYNC_MEMBERVALUE1(Message_base, pack, Variant);
-    ASYNC_MEMBERVALUE1(Message_base, end, int32_t);
-    ASYNC_MEMBERVALUE2(Message_base, end, Buffer_base*, int32_t);
-    ASYNC_MEMBERVALUE3(Message_base, end, Buffer_base*, exlib::string, int32_t);
-    ASYNC_MEMBERVALUE3(Message_base, end, exlib::string, exlib::string, int32_t);
+    ASYNC_MEMBERVALUE1(Message_base, end, obj_ptr<Message_base>);
+    ASYNC_MEMBERVALUE2(Message_base, end, Buffer_base*, obj_ptr<Message_base>);
+    ASYNC_MEMBERVALUE3(Message_base, end, Buffer_base*, exlib::string, obj_ptr<Message_base>);
+    ASYNC_MEMBERVALUE3(Message_base, end, exlib::string, exlib::string, obj_ptr<Message_base>);
     ASYNC_MEMBER2(Message_base, sendTo, Stream_base*, v8::Local<v8::Object>);
     ASYNC_MEMBER2(Message_base, readFrom, Stream_base*, v8::Local<v8::Object>);
 };
@@ -574,7 +574,7 @@ inline void Message_base::s_get_length(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void Message_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    int32_t vr;
+    obj_ptr<Message_base> vr;
 
     ASYNC_METHOD_INSTANCE(Message_base);
     ASYNC_METHOD_ENTER("Message.end");

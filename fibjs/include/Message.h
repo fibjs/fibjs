@@ -46,10 +46,10 @@ public:
     virtual result_t pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac);
     virtual result_t pack(Variant& retVal, AsyncHandle ac);
     virtual result_t get_length(int64_t& retVal);
-    virtual result_t end(int32_t& retVal, AsyncHandle ac);
-    virtual result_t end(Buffer_base* data, int32_t& retVal, AsyncHandle ac);
-    virtual result_t end(Buffer_base* data, exlib::string encoding, int32_t& retVal, AsyncHandle ac);
-    virtual result_t end(exlib::string data, exlib::string encoding, int32_t& retVal, AsyncHandle ac);
+    virtual result_t end(obj_ptr<Message_base>& retVal, AsyncHandle ac);
+    virtual result_t end(Buffer_base* data, obj_ptr<Message_base>& retVal, AsyncHandle ac);
+    virtual result_t end(Buffer_base* data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac);
+    virtual result_t end(exlib::string data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac);
     virtual result_t isEnded(bool& retVal);
     virtual result_t clear();
     virtual result_t sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac);

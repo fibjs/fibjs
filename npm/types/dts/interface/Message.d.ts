@@ -726,37 +726,40 @@ declare class Class_Message extends Class_EventEmitter {
     /**
      * @description Marks the message as ended
      *
-     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      Sets the end flag; it writes nothing and does not stop handler chains, the
      *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
-     *      the state of its response when one is attached.
-     *      @return returns 0 on success
+     *      the state of its response when one is attached. Returns the message itself, so calls can
+     *      be chained.
+     *      @return returns the current message object
      *
      */
-    end(): number;
+    end(): Class_Message;
 
-    end(callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    end(callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
 
     /**
      * @description Marks the message as ended
      *
-     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      Sets the end flag; it writes nothing and does not stop handler chains, the
      *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
-     *      the state of its response when one is attached.
-     *      @return returns 0 on success
+     *      the state of its response when one is attached. Returns the message itself, so calls can
+     *      be chained.
+     *      @return returns the current message object
      *
      */
-    endSync(): number;
+    endSync(): Class_Message;
 
     /**
      * @description Marks the message as ended
      *
-     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      Sets the end flag; it writes nothing and does not stop handler chains, the
      *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
-     *      the state of its response when one is attached.
-     *      @return returns 0 on success
+     *      the state of its response when one is attached. Returns the message itself, so calls can
+     *      be chained.
+     *      @return returns the current message object
      *
      */
-    endAsync(): Promise<number>;
+    endAsync(): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -764,23 +767,12 @@ declare class Class_Message extends Class_EventEmitter {
      *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
      *      data is sent.
      *      @param data the data to write
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer): number;
+    end(data: Class_Buffer): Class_Message;
 
-    end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes the given data and sets the end of current message processing
-     *
-     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
-     *      data is sent.
-     *      @param data the data to write
-     *      @return returns 0 on success
-     *
-     */
-    endSync(data: Class_Buffer): number;
+    end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -788,10 +780,21 @@ declare class Class_Message extends Class_EventEmitter {
      *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
      *      data is sent.
      *      @param data the data to write
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer): Promise<number>;
+    endSync(data: Class_Buffer): Class_Message;
+
+    /**
+     * @description Writes the given data and sets the end of current message processing
+     *
+     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
+     *      data is sent.
+     *      @param data the data to write
+     *      @return returns the current message object
+     *
+     */
+    endAsync(data: Class_Buffer): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -800,12 +803,12 @@ declare class Class_Message extends Class_EventEmitter {
      *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer, encoding: string): number;
+    end(data: Class_Buffer, encoding: string): Class_Message;
 
-    end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -814,10 +817,10 @@ declare class Class_Message extends Class_EventEmitter {
      *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    endSync(data: Class_Buffer, encoding: string): number;
+    endSync(data: Class_Buffer, encoding: string): Class_Message;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -826,10 +829,10 @@ declare class Class_Message extends Class_EventEmitter {
      *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<number>;
+    endAsync(data: Class_Buffer, encoding: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given string data and sets the end of current message processing
@@ -838,24 +841,12 @@ declare class Class_Message extends Class_EventEmitter {
      *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    end(data: string, encoding?: string): number;
+    end(data: string, encoding?: string): Class_Message;
 
-    end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes the given string data and sets the end of current message processing
-     *
-     *      Encodes the string with the given encoding (utf8 by default), appends it to the buffered
-     *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
-     *      @param data the string data to write
-     *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 on success
-     *
-     */
-    endSync(data: string, encoding?: string): number;
+    end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
 
     /**
      * @description Writes the given string data and sets the end of current message processing
@@ -864,10 +855,22 @@ declare class Class_Message extends Class_EventEmitter {
      *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    endAsync(data: string, encoding?: string): Promise<number>;
+    endSync(data: string, encoding?: string): Class_Message;
+
+    /**
+     * @description Writes the given string data and sets the end of current message processing
+     *
+     *      Encodes the string with the given encoding (utf8 by default), appends it to the buffered
+     *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
+     *      @param data the string data to write
+     *      @param encoding the encoding of the string, default is "utf8"
+     *      @return returns the current message object
+     *
+     */
+    endAsync(data: string, encoding?: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Queries whether the current message has ended
@@ -1909,35 +1912,38 @@ declare class Class_MessagePromise extends Class_EventEmitter {
     /**
      * @description Marks the message as ended
      *
-     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      Sets the end flag; it writes nothing and does not stop handler chains, the
      *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
-     *      the state of its response when one is attached.
-     *      @return returns 0 on success
+     *      the state of its response when one is attached. Returns the message itself, so calls can
+     *      be chained.
+     *      @return returns the current message object
      *
      */
-    end(): Promise<number>;
+    end(): Promise<Class_MessagePromise>;
 
     /**
      * @description Marks the message as ended
      *
-     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      Sets the end flag; it writes nothing and does not stop handler chains, the
      *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
-     *      the state of its response when one is attached.
-     *      @return returns 0 on success
+     *      the state of its response when one is attached. Returns the message itself, so calls can
+     *      be chained.
+     *      @return returns the current message object
      *
      */
-    endSync(): number;
+    endSync(): Class_Message;
 
     /**
      * @description Marks the message as ended
      *
-     *      Sets the end flag and returns 0; it writes nothing and does not stop handler chains, the
+     *      Sets the end flag; it writes nothing and does not stop handler chains, the
      *      flag is a state marker for application code, readable with isEnded. An HttpRequest reports
-     *      the state of its response when one is attached.
-     *      @return returns 0 on success
+     *      the state of its response when one is attached. Returns the message itself, so calls can
+     *      be chained.
+     *      @return returns the current message object
      *
      */
-    endAsync(): Promise<number>;
+    endAsync(): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -1945,10 +1951,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
      *      data is sent.
      *      @param data the data to write
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer): Promise<number>;
+    end(data: Class_Buffer): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -1956,10 +1962,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
      *      data is sent.
      *      @param data the data to write
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    endSync(data: Class_Buffer): number;
+    endSync(data: Class_Buffer): Class_Message;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -1967,10 +1973,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
      *      data is sent.
      *      @param data the data to write
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer): Promise<number>;
+    endAsync(data: Class_Buffer): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -1979,10 +1985,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer, encoding: string): Promise<number>;
+    end(data: Class_Buffer, encoding: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -1991,10 +1997,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    endSync(data: Class_Buffer, encoding: string): number;
+    endSync(data: Class_Buffer, encoding: string): Class_Message;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -2003,10 +2009,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      already binary and is kept for overload compatibility.
      *      @param data the data to write
      *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<number>;
+    endAsync(data: Class_Buffer, encoding: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given string data and sets the end of current message processing
@@ -2015,10 +2021,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    end(data: string, encoding?: string): Promise<number>;
+    end(data: string, encoding?: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given string data and sets the end of current message processing
@@ -2027,10 +2033,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    endSync(data: string, encoding?: string): number;
+    endSync(data: string, encoding?: string): Class_Message;
 
     /**
      * @description Writes the given string data and sets the end of current message processing
@@ -2039,10 +2045,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      body and marks the message as ended; end('616263', 'hex') appends the bytes of 'abc'.
      *      @param data the string data to write
      *      @param encoding the encoding of the string, default is "utf8"
-     *      @return returns 0 on success
+     *      @return returns the current message object
      *
      */
-    endAsync(data: string, encoding?: string): Promise<number>;
+    endAsync(data: string, encoding?: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Queries whether the current message has ended
