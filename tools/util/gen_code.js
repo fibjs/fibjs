@@ -118,7 +118,8 @@ function union_method_for_class(def, allDefs) {
             throw new Error("[union_method] only method can be override.");
 
         if (fn.memType != fn1.memType ||
-            !check_type(fn.type, fn1.type)
+            (!check_type(fn.type, fn1.type) &&
+                !(fn1.type && !fn.type) && !(!fn1.type && fn.type))
         ) {
             throw new Error(`Override function '${fname}' with different return-type.`);
         }
@@ -283,6 +284,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                 } = vary_overs(fn, def);
 
                 function make_ov_params(tp_overs, is_load = false, sink = txts) {
+                    var _mixed = !is_load && tp_overs.some(o => !!o.type) && tp_overs.some(o => !o.type);
                     tp_overs.forEach(ov => {
                         var argc = 0;
                         var opts = 0;
@@ -290,6 +292,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         var args = [];
                         var args_call;
                         var ftype = ov.type;
+                        var _ovPfx = (_mixed && !ov.type) ? "v" : (_mixed ? "p" : "");
 
                         if (is_func_new(ov, def)) ftype = def.declare.name;
 
@@ -366,9 +369,9 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         if (ov.async) {
                             args.push('cb');;
                             ([
-                                `    if (!cb.IsEmpty())\n        hr = ${(ov.static ? 'acb_' : 'pInst->acb_')}${get_name(ov.name, ov, def)}(${args.join(', ')}, args);`,
+                                `    if (!cb.IsEmpty())\n        hr = ${(ov.static ? 'acb' : 'pInst->acb')}${_ovPfx}_${get_name(ov.name, ov, def)}(${args.join(', ')}, args);`,
                                 `    else`,
-                                `        hr = ${(ov.static ? 'ac_' : 'pInst->ac_')}${get_name(ov.name, ov, def)}(${args_call.join(', ')});\n`,
+                                `        hr = ${(ov.static ? 'ac' : 'pInst->ac')}${_ovPfx}_${get_name(ov.name, ov, def)}(${args_call.join(', ')});\n`,
                             ]).forEach(line => sink.push(line))
                         } else {
                             if (is_func_new(ov, def))
@@ -384,17 +387,21 @@ function gen_code(cls, def, baseFolder, allDefs) {
                                 ].join(''));
 
                         }
+
+                        if (_mixed && !ov.type && !is_func_new(ov, def))
+                            sink.push('    if (hr.ok())\n        hr = result_t::return_undefined();\n');
                     })
                 }
 
+                var _fcCanon = fncallee_ovs.find(o => !!o.type);
                 fncallee_ovs.slice(0, 1).forEach(ov => {
                     if (ov.static) {
                         txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name('_function', ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
-                        if (ov.type) txts.push(`    ${get_rtype(ov.type, ov.isarray)} vr;\n`);
+                        if (_fcCanon) txts.push(`    ${get_rtype(_fcCanon.type, _fcCanon.isarray)} vr;\n`);
                     } else {
                         txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name(get_fname(ov, def), ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
 
-                        if (ov.type) txts.push(`    ${get_rtype(ov.type, ov.isarray)} vr;\n`);
+                        if (_fcCanon) txts.push(`    ${get_rtype(_fcCanon.type, _fcCanon.isarray)} vr;\n`);
 
                         if (ov.async)
                             txts.push(`    ASYNC_METHOD_INSTANCE(${cls}_base);`);
@@ -408,7 +415,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(fncallee_ovs);
 
-                    if (ov.type) txts.push(ov.async ? '    ASYNC_METHOD_RETURN();\n}\n' : '    METHOD_RETURN();\n}\n');
+                    if (_fcCanon) txts.push(ov.async ? '    ASYNC_METHOD_RETURN();\n}\n' : '    METHOD_RETURN();\n}\n');
                     else txts.push(ov.async ? '    ASYNC_METHOD_VOID();\n}\n' : '    METHOD_VOID();\n}\n');
                 });
 
@@ -453,13 +460,14 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     });
                 }
 
+                var _stCanon = static_ovs.find(o => !!o.type);
                 const recorder_statics = record_exist();
                 static_ovs.forEach(ov => {
                     if (recorder_statics.isRecorded(ov.name)) return;
 
                     txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name(get_fname(ov, def), ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
 
-                    if (ov.type) txts.push(`    ${get_rtype(ov.type, ov.isarray)} vr;\n`);
+                    if (_stCanon) txts.push(`    ${get_rtype(_stCanon.type, _stCanon.isarray)} vr;\n`);
 
                     if (ov.async) {
                         if (hasLastParamFunction(static_ovs))
@@ -470,19 +478,20 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(static_ovs);
 
-                    if (ov.type) txts.push(ov.async ? '    ASYNC_METHOD_RETURN();\n}\n' : '    METHOD_RETURN();\n}\n');
+                    if (_stCanon) txts.push(ov.async ? '    ASYNC_METHOD_RETURN();\n}\n' : '    METHOD_RETURN();\n}\n');
                     else txts.push(ov.async ? '    ASYNC_METHOD_VOID();\n}\n' : '    METHOD_VOID();\n}\n');
 
                     recorder_statics.record(ov.name);
                 });
 
+                var _inCanon = inst_mem_ovs.find(o => !!o.type);
                 const recorder_insts = record_exist();
                 inst_mem_ovs.forEach(ov => {
                     if (recorder_insts.isRecorded(ov.name)) return;
 
                     txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name(get_fname(ov, def), ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
 
-                    if (ov.type) txts.push(`    ${get_rtype(ov.type, ov.isarray)} vr;\n`);
+                    if (_inCanon) txts.push(`    ${get_rtype(_inCanon.type, _inCanon.isarray)} vr;\n`);
 
                     if (ov.async) {
                         txts.push(`    ASYNC_METHOD_INSTANCE(${cls}_base);`);
@@ -496,7 +505,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     }
                     make_ov_params(inst_mem_ovs);
 
-                    if (ov.type) txts.push(ov.async ? '    ASYNC_METHOD_RETURN();\n}\n' : '    METHOD_RETURN();\n}\n');
+                    if (_inCanon) txts.push(ov.async ? '    ASYNC_METHOD_RETURN();\n}\n' : '    METHOD_RETURN();\n}\n');
                     else txts.push(ov.async ? '    ASYNC_METHOD_VOID();\n}\n' : '    METHOD_VOID();\n}\n');
 
                     recorder_insts.record(ov.name);
@@ -1253,13 +1262,16 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
                             fns += (ov.static ? "STATIC" : "MEMBER");
 
+                            var _gHasType = fn.overs.some(o => !!o.type);
+                            var _gMixed = _gHasType && fn.overs.some(o => !o.type);
+
                             if (ov.type) {
                                 pn++;
                                 ps.push(get_rtype(ov.type, ov.isarray));
                                 fns += "VALUE";
                             }
 
-                            fns += `${pn}(${ps.join(", ")});`;
+                            fns += `${pn}${(!ov.type && _gMixed) ? "V" : ((ov.type && _gMixed) ? "PICK" : "")}(${ps.join(", ")});`;
                             txts.push(fns);
                         }
                     });

@@ -1761,8 +1761,9 @@ function processDeclareInterface(def, {
 
         // per-variant return type of this member: the primary/callback/`Sync`
         // forms return fiber instances, the `Async` alias promise instances
+        let currentReturnMember = mem;
         function mapMemberReturnType(flavor) {
-            return mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions(flavor));
+            return mapMemMethodReturnTypeToDtsType(currentReturnMember.type, getMapMemberTypeOptions(flavor));
         }
 
         /**
@@ -1811,10 +1812,11 @@ function processDeclareInterface(def, {
                     if (mem.overs && mem.overs.length > 1) {
                         memberIsOver = true;
                         mem.overs.forEach(over => {
+                            currentReturnMember = over;
                             const { syncMethod, asyncMethod, syncVariant, asyncVariant } = generateDtsMethod(
                                 over,
                                 getMethodParam(over),
-                                mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
+                                mapMemMethodReturnTypeToDtsType(over.type, getMapMemberTypeOptions()),
                                 {
                                     memFlags,
                                     withOptionalParam,
