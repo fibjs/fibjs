@@ -310,14 +310,13 @@ result_t HttpMessage::get_sent(bool& retVal)
     return result_t();
 }
 
-result_t HttpMessage::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)
+result_t HttpMessage::text(exlib::string data, AsyncHandle ac)
 {
-    return Message::text(data, retVal, std::move(ac));
-}
-
-result_t HttpMessage::text(exlib::string& retVal, AsyncHandle ac)
-{
-    return Message::text(retVal, std::move(ac));
+    // `text` has a value overload and a read overload with the same arity; moving
+    // the payload names the value one (the read form takes a non-const lvalue).
+    // The read form is not overridden here: it is a plain passthrough, so the
+    // inherited Message::text(exlib::string&, AsyncHandle) is the final overrider.
+    return Message::text(std::move(data), std::move(ac));
 }
 
 result_t HttpMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
@@ -325,10 +324,10 @@ result_t HttpMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, Asy
     return Message::arrayBuffer(retVal, std::move(ac));
 }
 
-result_t HttpMessage::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
+result_t HttpMessage::json(v8::Local<v8::Value> data, AsyncHandle ac)
 {
     setHeader("Content-Type", "application/json");
-    return Message::json(data, retVal, std::move(ac));
+    return Message::json(data, std::move(ac));
 }
 
 result_t HttpMessage::json(Variant& retVal, AsyncHandle ac)
@@ -344,10 +343,10 @@ result_t HttpMessage::json(Variant& retVal, AsyncHandle ac)
     return Message::json(retVal, std::move(ac));
 }
 
-result_t HttpMessage::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
+result_t HttpMessage::pack(v8::Local<v8::Value> data, AsyncHandle ac)
 {
     setHeader("Content-Type", "application/msgpack");
-    return Message::pack(data, retVal, std::move(ac));
+    return Message::pack(data, std::move(ac));
 }
 
 result_t HttpMessage::pack(Variant& retVal, AsyncHandle ac)

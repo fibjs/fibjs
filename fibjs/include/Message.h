@@ -36,14 +36,14 @@ public:
     // encoded as utf8
     result_t write(Buffer_base* data, bool& retVal, AsyncHandle ac);
     result_t write(exlib::string data, bool& retVal, AsyncHandle ac);
-    virtual result_t text(exlib::string data, exlib::string& retVal, AsyncHandle ac);
+    virtual result_t text(exlib::string data, AsyncHandle ac);
     virtual result_t text(exlib::string& retVal, AsyncHandle ac);
     virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac);
     virtual result_t blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHandle ac);
     virtual result_t bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
-    virtual result_t json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac);
+    virtual result_t json(v8::Local<v8::Value> data, AsyncHandle ac);
     virtual result_t json(Variant& retVal, AsyncHandle ac);
-    virtual result_t pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac);
+    virtual result_t pack(v8::Local<v8::Value> data, AsyncHandle ac);
     virtual result_t pack(Variant& retVal, AsyncHandle ac);
     virtual result_t get_length(int64_t& retVal);
     virtual result_t end(obj_ptr<Message_base>& retVal, AsyncHandle ac);

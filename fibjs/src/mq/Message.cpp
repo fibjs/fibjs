@@ -238,7 +238,7 @@ result_t Message::write(exlib::string data, bool& retVal, AsyncHandle ac)
     return m_body->write(data, "utf8", retVal, std::move(ac));
 }
 
-result_t Message::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)
+result_t Message::text(exlib::string data, AsyncHandle ac)
 {
     if (ac.isSync())
         return result_t::nosync();
@@ -277,7 +277,7 @@ result_t Message::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHa
     }, std::move(ac)))->post(result_t());
 }
 
-result_t Message::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
+result_t Message::json(v8::Local<v8::Value> data, AsyncHandle ac)
 {
     if (ac.isSync()) {
         exlib::string str;
@@ -326,7 +326,7 @@ result_t Message::consumeBody(std::function<result_t(result_t, obj_ptr<Buffer_ba
     return (new asyncConsumeBody(this, std::move(fn), std::move(ac)))->post(result_t());
 }
 
-result_t Message::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
+result_t Message::pack(v8::Local<v8::Value> data, AsyncHandle ac)
 {
     if (ac.isSync()) {
         obj_ptr<Buffer_base> buf;

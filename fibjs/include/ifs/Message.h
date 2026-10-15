@@ -50,14 +50,14 @@ public:
     virtual result_t readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t setEncoding(exlib::string encoding, obj_ptr<Message_base>& retVal) = 0;
     virtual result_t write(Union_write_data data, bool& retVal, AsyncHandle ac) = 0;
-    virtual result_t text(exlib::string data, exlib::string& retVal, AsyncHandle ac) = 0;
+    virtual result_t text(exlib::string data, AsyncHandle ac) = 0;
     virtual result_t text(exlib::string& retVal, AsyncHandle ac) = 0;
     virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac) = 0;
     virtual result_t blob(exlib::string type, obj_ptr<Blob_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
-    virtual result_t json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t json(v8::Local<v8::Value> data, AsyncHandle ac) = 0;
     virtual result_t json(Variant& retVal, AsyncHandle ac) = 0;
-    virtual result_t pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t pack(v8::Local<v8::Value> data, AsyncHandle ac) = 0;
     virtual result_t pack(Variant& retVal, AsyncHandle ac) = 0;
     virtual result_t get_length(int64_t& retVal) = 0;
     virtual result_t end(obj_ptr<Message_base>& retVal, AsyncHandle ac) = 0;
@@ -127,15 +127,15 @@ public:
     ASYNC_MEMBERVALUE2(Message_base, read, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE1(Message_base, readAll, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(Message_base, write, Union_write_data, bool);
-    ASYNC_MEMBERVALUE2(Message_base, text, exlib::string, exlib::string);
-    ASYNC_MEMBERVALUE1(Message_base, text, exlib::string);
+    ASYNC_MEMBER1V(Message_base, text, exlib::string);
+    ASYNC_MEMBERVALUE1PICK(Message_base, text, exlib::string);
     ASYNC_MEMBERVALUE1(Message_base, arrayBuffer, std::shared_ptr<v8::BackingStore>);
     ASYNC_MEMBERVALUE2(Message_base, blob, exlib::string, obj_ptr<Blob_base>);
     ASYNC_MEMBERVALUE1(Message_base, bytes, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE2(Message_base, json, v8::Local<v8::Value>, Variant);
-    ASYNC_MEMBERVALUE1(Message_base, json, Variant);
-    ASYNC_MEMBERVALUE2(Message_base, pack, v8::Local<v8::Value>, Variant);
-    ASYNC_MEMBERVALUE1(Message_base, pack, Variant);
+    ASYNC_MEMBER1V(Message_base, json, v8::Local<v8::Value>);
+    ASYNC_MEMBERVALUE1PICK(Message_base, json, Variant);
+    ASYNC_MEMBER1V(Message_base, pack, v8::Local<v8::Value>);
+    ASYNC_MEMBERVALUE1PICK(Message_base, pack, Variant);
     ASYNC_MEMBERVALUE1(Message_base, end, obj_ptr<Message_base>);
     ASYNC_MEMBERVALUE2(Message_base, end, Buffer_base*, obj_ptr<Message_base>);
     ASYNC_MEMBERVALUE3(Message_base, end, Buffer_base*, exlib::string, obj_ptr<Message_base>);
@@ -439,16 +439,19 @@ inline void Message_base::s_text(const v8::FunctionCallbackInfo<v8::Value>& args
     ARG(exlib::string, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_text(v0, cb, args);
+        hr = pInst->acbv_text(v0, cb, args);
     else
-        hr = pInst->ac_text(v0, vr);
+        hr = pInst->acv_text(v0);
+
+    if (hr.ok())
+        hr = result_t::return_undefined();
 
     METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_text(cb, args);
+        hr = pInst->acbp_text(cb, args);
     else
-        hr = pInst->ac_text(vr);
+        hr = pInst->acp_text(vr);
 
     ASYNC_METHOD_RETURN();
 }
@@ -518,16 +521,19 @@ inline void Message_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args
     ARG(v8::Local<v8::Value>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_json(v0, cb, args);
+        hr = pInst->acbv_json(v0, cb, args);
     else
-        hr = pInst->ac_json(v0, vr);
+        hr = pInst->acv_json(v0);
+
+    if (hr.ok())
+        hr = result_t::return_undefined();
 
     METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_json(cb, args);
+        hr = pInst->acbp_json(cb, args);
     else
-        hr = pInst->ac_json(vr);
+        hr = pInst->acp_json(vr);
 
     ASYNC_METHOD_RETURN();
 }
@@ -544,16 +550,19 @@ inline void Message_base::s_pack(const v8::FunctionCallbackInfo<v8::Value>& args
     ARG(v8::Local<v8::Value>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_pack(v0, cb, args);
+        hr = pInst->acbv_pack(v0, cb, args);
     else
-        hr = pInst->ac_pack(v0, vr);
+        hr = pInst->acv_pack(v0);
+
+    if (hr.ok())
+        hr = result_t::return_undefined();
 
     METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_pack(cb, args);
+        hr = pInst->acbp_pack(cb, args);
     else
-        hr = pInst->ac_pack(vr);
+        hr = pInst->acp_pack(vr);
 
     ASYNC_METHOD_RETURN();
 }

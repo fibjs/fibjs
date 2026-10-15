@@ -390,24 +390,11 @@ declare class Class_Message extends Class_EventEmitter {
      *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
      *      shape.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    text(data: string): string;
+    text(data: string): void;
 
-    text(data: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
-
-    /**
-     * @description Writes the given text data
-     *
-     *      Replaces the body with the utf8 bytes of the string (write appends instead). The method
-     *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
-     *      shape.
-     *      @param data the data to write
-     *      @return this method does not return data
-     *
-     */
-    textSync(data: string): string;
+    text(data: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes the given text data
@@ -416,10 +403,20 @@ declare class Class_Message extends Class_EventEmitter {
      *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
      *      shape.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    textAsync(data: string): Promise<string>;
+    textSync(data: string): void;
+
+    /**
+     * @description Writes the given text data
+     *
+     *      Replaces the body with the utf8 bytes of the string (write appends instead). The method
+     *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
+     *      shape.
+     *      @param data the data to write
+     *
+     */
+    textAsync(data: string): Promise<void>;
 
     /**
      * @description Parses the data in the message as text encoding
@@ -568,24 +565,11 @@ declare class Class_Message extends Class_EventEmitter {
      *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
      *      cannot be encoded (for example a circular object). Returns no data.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    json(data: any): any;
+    json(data: any): void;
 
-    json(data: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
-
-    /**
-     * @description Writes the given data with JSON encoding
-     *
-     *      Replaces the body with the JSON text produced by the json module (see json.encode) and,
-     *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
-     *      cannot be encoded (for example a circular object). Returns no data.
-     *      @param data the data to write
-     *      @return this method does not return data
-     *
-     */
-    jsonSync(data: any): any;
+    json(data: any, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes the given data with JSON encoding
@@ -594,10 +578,20 @@ declare class Class_Message extends Class_EventEmitter {
      *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
      *      cannot be encoded (for example a circular object). Returns no data.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    jsonAsync(data: any): Promise<any>;
+    jsonSync(data: any): void;
+
+    /**
+     * @description Writes the given data with JSON encoding
+     *
+     *      Replaces the body with the JSON text produced by the json module (see json.encode) and,
+     *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
+     *      cannot be encoded (for example a circular object). Returns no data.
+     *      @param data the data to write
+     *
+     */
+    jsonAsync(data: any): Promise<void>;
 
     /**
      * @description Parses the data in the message as JSON
@@ -644,24 +638,11 @@ declare class Class_Message extends Class_EventEmitter {
      *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
      *      cannot be encoded. Returns no data.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    pack(data: any): any;
+    pack(data: any): void;
 
-    pack(data: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
-
-    /**
-     * @description Writes the given data with msgpack encoding
-     *
-     *      Replaces the body with the msgpack encoding produced by the msgpack module and, on an
-     *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
-     *      cannot be encoded. Returns no data.
-     *      @param data the data to write
-     *      @return this method does not return data
-     *
-     */
-    packSync(data: any): any;
+    pack(data: any, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes the given data with msgpack encoding
@@ -670,10 +651,20 @@ declare class Class_Message extends Class_EventEmitter {
      *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
      *      cannot be encoded. Returns no data.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    packAsync(data: any): Promise<any>;
+    packSync(data: any): void;
+
+    /**
+     * @description Writes the given data with msgpack encoding
+     *
+     *      Replaces the body with the msgpack encoding produced by the msgpack module and, on an
+     *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
+     *      cannot be encoded. Returns no data.
+     *      @param data the data to write
+     *
+     */
+    packAsync(data: any): Promise<void>;
 
     /**
      * @description Parses the data in the message as msgpack
@@ -1594,10 +1585,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
      *      shape.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    text(data: string): Promise<string>;
+    text(data: string): Promise<void>;
 
     /**
      * @description Writes the given text data
@@ -1606,10 +1596,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
      *      shape.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    textSync(data: string): string;
+    textSync(data: string): void;
 
     /**
      * @description Writes the given text data
@@ -1618,10 +1607,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
      *      shape.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    textAsync(data: string): Promise<string>;
+    textAsync(data: string): Promise<void>;
 
     /**
      * @description Parses the data in the message as text encoding
@@ -1762,10 +1750,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
      *      cannot be encoded (for example a circular object). Returns no data.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    json(data: any): Promise<any>;
+    json(data: any): Promise<void>;
 
     /**
      * @description Writes the given data with JSON encoding
@@ -1774,10 +1761,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
      *      cannot be encoded (for example a circular object). Returns no data.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    jsonSync(data: any): any;
+    jsonSync(data: any): void;
 
     /**
      * @description Writes the given data with JSON encoding
@@ -1786,10 +1772,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
      *      cannot be encoded (for example a circular object). Returns no data.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    jsonAsync(data: any): Promise<any>;
+    jsonAsync(data: any): Promise<void>;
 
     /**
      * @description Parses the data in the message as JSON
@@ -1834,10 +1819,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
      *      cannot be encoded. Returns no data.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    pack(data: any): Promise<any>;
+    pack(data: any): Promise<void>;
 
     /**
      * @description Writes the given data with msgpack encoding
@@ -1846,10 +1830,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
      *      cannot be encoded. Returns no data.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    packSync(data: any): any;
+    packSync(data: any): void;
 
     /**
      * @description Writes the given data with msgpack encoding
@@ -1858,10 +1841,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
      *      cannot be encoded. Returns no data.
      *      @param data the data to write
-     *      @return this method does not return data
      *
      */
-    packAsync(data: any): Promise<any>;
+    packAsync(data: any): Promise<void>;
 
     /**
      * @description Parses the data in the message as msgpack

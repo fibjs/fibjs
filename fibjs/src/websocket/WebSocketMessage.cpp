@@ -100,14 +100,17 @@ result_t WebSocketMessage::write(exlib::string data, bool& retVal, AsyncHandle a
     return m_message->write(buf.get(), retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)
+result_t WebSocketMessage::text(exlib::string data, AsyncHandle ac)
 {
-    return m_message->text(data, retVal, std::move(ac));
+    // `text` has a value overload and a read overload with the same arity; moving
+    // the payload names the value one (the read form takes a non-const lvalue)
+    return m_message->text(std::move(data), std::move(ac));
 }
 
 result_t WebSocketMessage::text(exlib::string& retVal, AsyncHandle ac)
 {
-    return m_message->text(retVal, std::move(ac));
+    auto fn = static_cast<result_t (Message::*)(exlib::string&, AsyncHandle)>(&Message::text);
+    return (m_message.get()->*fn)(retVal, std::move(ac));
 }
 
 result_t WebSocketMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
@@ -115,9 +118,9 @@ result_t WebSocketMessage::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal
     return m_message->arrayBuffer(retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
+result_t WebSocketMessage::json(v8::Local<v8::Value> data, AsyncHandle ac)
 {
-    return m_message->json(data, retVal, std::move(ac));
+    return m_message->json(data, std::move(ac));
 }
 
 result_t WebSocketMessage::json(Variant& retVal, AsyncHandle ac)
@@ -125,9 +128,9 @@ result_t WebSocketMessage::json(Variant& retVal, AsyncHandle ac)
     return m_message->json(retVal, std::move(ac));
 }
 
-result_t WebSocketMessage::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
+result_t WebSocketMessage::pack(v8::Local<v8::Value> data, AsyncHandle ac)
 {
-    return m_message->pack(data, retVal, std::move(ac));
+    return m_message->pack(data, std::move(ac));
 }
 
 result_t WebSocketMessage::pack(Variant& retVal, AsyncHandle ac)

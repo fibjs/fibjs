@@ -247,9 +247,8 @@ interface Message : EventEmitter
      returns no data; it is the writing counterpart of text() and follows the Fetch Body mixin
      shape.
      @param data the data to write
-     @return this method does not return data
      */
-    String text(String data) async;
+    text(String data) async;
 
     /*! @brief Parses the data in the message as text encoding
 
@@ -293,9 +292,8 @@ interface Message : EventEmitter
      on an HttpMessage, sets the Content-Type header to application/json. Throws when the value
      cannot be encoded (for example a circular object). Returns no data.
      @param data the data to write
-     @return this method does not return data
      */
-    Variant json(Value data) async;
+    json(Value data) async;
 
     /*! @brief Parses the data in the message as JSON
 
@@ -313,9 +311,8 @@ interface Message : EventEmitter
      HttpMessage, sets the Content-Type header to application/msgpack. Throws when the value
      cannot be encoded. Returns no data.
      @param data the data to write
-     @return this method does not return data
      */
-    Variant pack(Value data) async;
+    pack(Value data) async;
 
     /*! @brief Parses the data in the message as msgpack
 

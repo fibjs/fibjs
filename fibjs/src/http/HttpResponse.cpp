@@ -149,14 +149,19 @@ result_t HttpResponse::write(exlib::string data, bool& retVal, AsyncHandle ac)
     return m_message->write(buf.get(), retVal, std::move(ac));
 }
 
-result_t HttpResponse::text(exlib::string data, exlib::string& retVal, AsyncHandle ac)
+result_t HttpResponse::text(exlib::string data, AsyncHandle ac)
 {
-    return m_message->text(data, retVal, std::move(ac));
+    // `text` has a value overload and a read overload with the same arity; moving
+    // the payload names the value one (the read form takes a non-const lvalue)
+    return m_message->text(std::move(data), std::move(ac));
 }
 
 result_t HttpResponse::text(exlib::string& retVal, AsyncHandle ac)
 {
-    return m_message->text(retVal, std::move(ac));
+    // the group makes the plain call ambiguous; the cast only names the overload
+    // (the call itself stays virtual)
+    auto fn = static_cast<result_t (Message::*)(exlib::string&, AsyncHandle)>(&Message::text);
+    return (m_message.get()->*fn)(retVal, std::move(ac));
 }
 
 result_t HttpResponse::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac)
@@ -169,9 +174,9 @@ result_t HttpResponse::formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac)
     return m_message->formData(retVal, std::move(ac));
 }
 
-result_t HttpResponse::json(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
+result_t HttpResponse::json(v8::Local<v8::Value> data, AsyncHandle ac)
 {
-    return m_message->json(data, retVal, std::move(ac));
+    return m_message->json(data, std::move(ac));
 }
 
 result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
@@ -221,7 +226,7 @@ result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> opt
             m_message->appendHeader(std::get<obj_ptr<Headers_base>>(opts->headers.value()).get());
     }
 
-    return m_message->json(data, retVal, std::move(ac));
+    return m_message->json(data, std::move(ac));
 }
 
 result_t HttpResponse::json(Variant& retVal, AsyncHandle ac)
@@ -229,9 +234,9 @@ result_t HttpResponse::json(Variant& retVal, AsyncHandle ac)
     return m_message->json(retVal, std::move(ac));
 }
 
-result_t HttpResponse::pack(v8::Local<v8::Value> data, Variant& retVal, AsyncHandle ac)
+result_t HttpResponse::pack(v8::Local<v8::Value> data, AsyncHandle ac)
 {
-    return m_message->pack(data, retVal, std::move(ac));
+    return m_message->pack(data, std::move(ac));
 }
 
 result_t HttpResponse::pack(Variant& retVal, AsyncHandle ac)
