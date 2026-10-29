@@ -7430,6 +7430,62 @@ describe("http", () => {
         });
     });
 
+    // A server whose requests are served by the same process: the handler runs
+    // on the JS thread after a pool hop, and the machine that runs it deletes
+    // itself as soon as the hop starts. Regression for the read-after-free in
+    // Chain::asyncInvoke::js_invoke (a crash seen only on Linux, where the
+    // freed payload happened to be poisoned; deterministic from ~400 requests).
+    describe('same-process requests', () => {
+        it('serves many requests from the same process', () => {
+            var svr = new http.Server(0, (req) => {
+                req.response.writeHead(200, { 'Content-Type': 'text/plain' });
+                req.response.end('ok');
+            });
+
+            svr.start();
+            var port = svr.socket.localPort;
+
+            try {
+                // 1000 requests is well past where the crash became reliable
+                // (400 was ~1 in 5, 800 was 3 of 3); the whole loop takes a
+                // few hundred milliseconds.
+                for (var i = 0; i < 1000; i++) {
+                    var rep = http.getSync(`http://127.0.0.1:${port}/x`);
+                    assert.equal(rep.statusCode, 200);
+                    assert.equal(rep.body.readAll().toString(), 'ok');
+                }
+            } finally {
+                svr.stop();
+            }
+        });
+
+        it('survives a gc between requests', () => {
+            var svr = new http.Server(0, (req) => {
+                req.response.end('ok');
+            });
+
+            svr.start();
+            var port = svr.socket.localPort;
+
+            try {
+                for (var i = 0; i < 200; i++) {
+                    var rep = http.getSync(`http://127.0.0.1:${port}/x`);
+                    assert.equal(rep.statusCode, 200);
+                    rep.body.close();
+
+                    if (i % 50 === 0) {
+                        // A collection between two requests must not take the
+                        // request's own machine with it (the hop still owns a
+                        // pending dispatch when the JS side returns).
+                        gc();
+                    }
+                }
+            } finally {
+                svr.stop();
+            }
+        });
+    });
+
     // The http handler parameter unions (Handler|Handler[]|Function|Object|
     // String) across the server constructor forms, and the HttpResponse
     // init-object union (HttpCookie|Object).

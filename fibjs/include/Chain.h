@@ -110,13 +110,19 @@ public:
                 }
             }
 
+            // The ticket is this machine, so handing it to the pool moves the
+            // machine to another thread: it resumes at `invoke`, runs to its
+            // terminal state there and deletes itself. Nothing may touch `this`
+            // after the hand-off, so the verdict is copied out first.
+            result_t hr = m_hr;
+
             // 持票回投（唤醒等待中的状态机）。票只借用（机器自持自删），
             // handle 的 apost 交给池投递，与旧 ticket->apost() 的异步回投语义一致。
             AsyncEvent* ticket = m_jsTicket.exchange(nullptr);
             if (ticket)
                 AsyncHandle(ticket).apost(result_t());
 
-            return m_hr;
+            return hr;
         }
 
     private:
