@@ -276,7 +276,17 @@ result_t TcpServer::start(obj_ptr<TcpServer_base>& retVal)
     if (m_eventDelegate)
         m_eventDelegateRef = m_eventDelegate;
 
-    obj_ptr<ValueHolder> holder = new ValueHolder(wrap());
+    // Hold the object the user actually holds -- the event delegate
+    // (HttpServer / TLSServer / Http2Server) when there is one, this server
+    // otherwise. A native object only *borrows* its V8 wrapper
+    // (object_base::wrap stores a weak handle), so without this a server
+    // dropped by JS keeps accepting while the wrapper, the handler chain in
+    // its private slots and its listeners are collected.
+    //
+    // The hold lives in the accept machine, so it is dropped when the loop
+    // ends: a scoped root, never a cycle.
+    object_base* owner = m_eventDelegate ? m_eventDelegate : this;
+    obj_ptr<ValueHolder> holder = new ValueHolder(owner->wrap());
     (new asyncAccept(this, holder))->apost(result_t());
     _emit("listening");
     if (m_eventDelegate)

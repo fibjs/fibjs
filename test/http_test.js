@@ -7486,6 +7486,78 @@ describe("http", () => {
         });
     });
 
+    // The server is the root of everything it reaches from JS: the handler
+    // chain (kept in the wrappers' private slots) and its own event listeners.
+    // A native object only *borrows* its V8 wrapper (object_base::wrap stores
+    // a weak handle), so a server dropped by JS must be held by its accept
+    // loop for as long as that loop runs -- otherwise it keeps accepting while
+    // the wrapper, the handler chain and every listener are collected.
+    describe('server lifetime', () => {
+        function rawGet(port) {
+            var c = net.connect('tcp://127.0.0.1:' + port);
+            c.write('GET /x HTTP/1.1\r\nHost: h\r\nConnection: close\r\n\r\n');
+
+            var buf = '', chunk;
+            for (;;) {
+                chunk = c.read();
+                if (!chunk) break;
+                buf += chunk.toString();
+            }
+            c.close();
+
+            return buf.split('\r\n')[0];
+        }
+
+        it('a server dropped by js keeps serving with its listeners alive', () => {
+            var hits = 0, conns = 0;
+            var port, sock;
+
+            (function () {
+                var svr = http.createServer([(req) => {
+                    hits++;
+                    req.response.end('ok');
+                }]);
+                svr.on('connection', () => conns++);
+                svr.listen(0, '127.0.0.1');
+
+                port = svr.socket.localPort;
+                sock = svr.socket;
+            })();
+
+            try {
+                // The references above are gone: from here on only the server's
+                // own hold keeps the wrapper -- and with it the handler chain
+                // and the connection listener -- reachable.
+                test_util.gc();
+
+                assert.equal(rawGet(port), 'HTTP/1.1 200 OK');
+                assert.equal(hits, 1);
+                assert.equal(conns, 1);
+            } finally {
+                sock.close();
+            }
+        });
+
+        it('a stopped server releases its handler chain', () => {
+            test_util.gc();
+            var no = test_util.countObject('Chain');
+
+            var svr = http.createServer([() => { }]);
+
+            try {
+                svr.listen(0, '127.0.0.1');
+                assert.equal(no + 1, test_util.countObject('Chain'));
+
+                svr.close();
+            } finally {
+                svr = undefined;
+            }
+
+            test_util.gc();
+            assert.equal(no, test_util.countObject('Chain'));
+        });
+    });
+
     // The http handler parameter unions (Handler|Handler[]|Function|Object|
     // String) across the server constructor forms, and the HttpResponse
     // init-object union (HttpCookie|Object).
