@@ -111106,33 +111106,56 @@ declare module 'subtle' {
  *    loaded in-process one after another first, and the whole tree runs at the end. A suite body
  *    runs at execution time, and an async suite body is awaited, so its cases are collected then.
  *  - **Case bodies**: a body may be synchronous, an async function (fibjs waits for the returned
- *    promise on a fiber), or callback style; a one-argument body receives a \`done\` callback and
- *    a two-argument body receives \`(context, done)\` where context is a plain empty object. A
- *    plain function that returns a promise is not awaited, so async bodies must be declared
- *    \`async\`.
- *  - **Options**: the options object supports \`skip\`, \`todo\` and \`only\`, each of which must be
- *    the literal \`true\`; any other option, including \`timeout\`, is ignored. A skipped case is
- *    counted in the skipped total and its body is not executed; \`skip\` and \`only\` require a
- *    body, while \`todo(name)\` declares a planned case without one.
+ *    promise on a fiber), or callback style. Dispatch follows the declared parameter count: a body
+ *    with two or more parameters is called as \`(context, done)\`, anything else is called as
+ *    \`(context)\`. Callback-style cases therefore declare the callback as the second parameter; a
+ *    one-parameter \`(done)\` body receives the context instead, so calling it fails the case. The
+ *    runner emits one \`warning: test '...' looks like the retired callback style\` line for the
+ *    first such body it registers (the parameter name is the only hint: dispatch follows the
+ *    count, never names). A plain function that returns a promise is not awaited, so async bodies
+ *    must be declared \`async\`.
+ *  - **Context object**: a body (and a suite body, and a hook) is called with a context carrying
+ *    \`name\`, \`fullName\` (\`'suite > case'\`), \`filePath\`, \`passed\`, \`diagnostic()\`, \`log()\` and the
+ *    shared \`assert\` module; a case context additionally offers \`skip()\` and \`todo()\`, which
+ *    reclassify the running case (a runtime skip also suppresses \`afterEach\`).
+ *    \`diagnostic()\` and \`log()\` queue a line that is printed under the case. Subtests, per-case
+ *    plans, mocks and snapshots are not modelled, so \`test()\`, \`plan()\`, \`mock()\` and \`waitFor()\`
+ *    are absent.
+ *  - **Options**: the options object supports \`skip\`, \`todo\` and \`only\`; a mark counts as set when
+ *    it is neither \`undefined\` nor \`false\` (\`{ skip: '' }\` therefore marks). Any other option,
+ *    including \`timeout\`, is ignored. A skipped case is
+ *    counted in the skipped total and its body is not executed, whereas a \`todo\` case still runs
+ *    its body and its \`beforeEach\`/\`afterEach\` hooks — only the outcome is classified as todo,
+ *    so a throwing todo body never fails the run. \`skip\` and \`only\` require a body, while
+ *    \`todo(name)\` declares a planned case without one.
  *  - **\`only\` scope**: the selection applies to the enclosing suite: its other direct children
  *    are skipped, and unselected sub-suites are pruned without being counted.
  *  - **Hooks**: \`before\`/\`after\` run once per suite, \`beforeEach\`/\`afterEach\` around every case;
- *    outer hooks run first for \`before\`/\`beforeEach\`, inner hooks first for \`after\`/\`afterEach\`.
- *    A failing \`before\` fails all cases of its suite without running them; a failing \`afterEach\`
- *    turns the current case into a failure; a failing \`after\` is reported separately.
+ *    outer hooks run first for \`before\`/\`beforeEach\`, inner hooks first for \`after\`/\`afterEach\`,
+ *    and hooks of the same suite run in declaration order. A failing \`before\` fails all cases of
+ *    its suite without running them and suppresses their \`afterEach\`; a failing \`afterEach\`
+ *    turns the current case into a failure and stops the remaining \`afterEach\` hooks (including
+ *    the ancestors'); a failing \`after\` is reported separately.
  *  - **Failure reporting and exit code**: failures are collected during the run and printed at
  *    the end as a numbered list with the source location and stack, after the \`N tests
  *    completed\` line and the passed/failed/todo/skipped counters. Any counted failure sets the
- *    process exit code to 1, except a failure coming only from an \`afterEach\` hook, which
- *    appears in the summary but leaves the exit code at 0.
+ *    process exit code to 1, a failing \`beforeEach\`/\`afterEach\` included; a failing \`after\`
+ *    hook keeps the cases' own results and is reported separately, but it still fails the run.
+ *    Asynchronous activity that outlives the run is reported as
+ *    \`asynchronous activity after the tests ended\`: the case keeps its result, the error and its
+ *    stack are printed, and the process still exits with code 1.
  *  - **Leaked resources**: \`FIBJS_TEST_WATCHDOG_MS\` (default 10000) arms a watchdog after the
  *    run; if the process is still alive then, a fibers/memory report is printed and the process
  *    exits with code 124, so cases must release handles, timers and servers.
  *  - **CLI**: \`fibjs --test [files|dirs|globs]\` discovers test files by the usual
  *    conventions (files named \`*.test.js\`, \`*-test.js\`, \`*_test.js\`, \`test-*.js\` or
  *    \`test.js\`, and any \`.js\`/\`.mjs\`/\`.cjs\` under a directory named \`test\`) and loads them
- *    sequentially in one process. \`--test-name-pattern=<regex>\` keeps the cases whose name, or
- *    an ancestor suite's name, matches; \`--test-concurrency\` and \`--test-isolation\` are
+ *    sequentially in one process. \`--test-name-pattern=<regex>\` keeps the cases whose title, the
+ *    title of an enclosing suite, or the space-joined chain of titles (\`'suite sub test'\`)
+ *    matches; \`--test-skip-pattern=<regex>\` drops the cases matched the same way and takes
+ *    precedence over the name pattern. Both options are repeatable (the values are OR-ed) and
+ *    also accept a regular expression literal with flags (\`/re/i\`); a filtered run reports only
+ *    the cases it executed. \`--test-concurrency\` and \`--test-isolation\` are
  *    accepted for compatibility (files always run in-process and sequentially);
  *    \`--test-timeout\`, \`--test-reporter\` and watch/coverage modes are not supported.
  *
@@ -111188,7 +111211,7 @@ declare module 'subtle' {
  *          assert.ok(true);
  *      });
  *
- *      it('done callback', (done) => {
+ *      it('done callback', (context, done) => {
  *          setTimeout(() => { assert.ok(true); done(); }, 10);
  *      });
  *
@@ -111203,11 +111226,13 @@ declare module 'subtle' {
  *
  *  - \`require('test')\` and \`require('node:test')\` return the same object; the \`node:\` prefixed id
  *    is the builtin, not a user-installed package.
- *  - Not provided: \`run()\`, \`mock\`, \`snapshot\`, subtests, test
- *    context, reporters, watch mode and coverage; the case options only honor
- *    \`skip\`/\`todo\`/\`only\`, and \`timeout\` is ignored.
- *  - A todo case body does not run at all; a todo suite is counted as planned but its cases
- *    still run and can fail the run.
+ *  - Not provided: \`run()\`, \`mock\`, \`snapshot\`, subtests, reporters, watch mode and coverage;
+ *    the case options only honor \`skip\`/\`todo\`/\`only\`, and \`timeout\` is ignored. The context
+ *    object offers the members listed above; the subtest and per-case-plan APIs are absent.
+ *  - A todo case runs its body like any other case; only the classification differs (it is
+ *    counted in the todo total and never fails the run). A \`describe.todo\`/\`suite.todo\` marks its
+ *    own cases as todo as well, so a throwing case inside it is still reported on its line but
+ *    does not fail the run.
  *  - \`mustCall\` must be used inside a running case (error 20009 outside), and a wrapped function
  *    that is never called leaves the run waiting forever: the watchdog is armed only after the
  *    run finishes.
@@ -111222,8 +111247,9 @@ declare module 'test' {
      *
      *      Defining a case only records it; the tree runs after the entry script finishes. The body
      *      may throw to fail the case, may be an async function (fibjs waits for the returned
-     *      promise), or may take a callback: a one-argument body receives \`done\` and a two-argument
-     *      body receives \`(context, done)\`. A plain function returning a promise is not awaited.
+     *      promise), or may take a callback as its second parameter: a body with two or more
+     *      parameters is called as \`(context, done)\`, anything else as \`(context)\`. A plain function
+     *      returning a promise is not awaited.
      *
      *      Example — the module and its it alias are the same definition function:
      *      \`\`\`JavaScript
@@ -111240,7 +111266,7 @@ declare module 'test' {
 
     /**
      * @description Defines a test case with an options object; the options object supports \`skip\`,
-     *      \`todo\` and \`only\`, and each of them only takes effect when it is the literal \`true\`
+     *      \`todo\` and \`only\`, and a mark counts as set when it is neither \`undefined\` nor \`false\`
      *
      *      The options form is shared by the callable module and by \`it\`, \`skip\`, \`only\` and \`todo\`.
      *      \`timeout\` and the other options are accepted but ignored; see the two-argument form
