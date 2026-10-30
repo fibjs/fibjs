@@ -128,6 +128,26 @@ jobs:
           submodules: 'recursive'
           fetch-depth: 0
 
+      - name: Set up QEMU
+        # The runner image has to register the binfmt handlers itself: the
+        # ubuntu-latest image is migrating to Ubuntu 26.04 (actions/runner-
+        # images#14748, rolling out from 2026-10-19), where the
+        # qemu-user-static package no longer exists - it is only a virtual
+        # name whose providers are qemu-user-binfmt/qemu-user-binfmt-hwe - so
+        # `apt install qemu-user-static` fails as a whole and leaves the
+        # runner with no handler at all.  Without one, the cross architecture
+        # jobs cannot run their guest binary (docker reports an exec format
+        # error and the test step exits 126 after 0s) and the alpine/arm64 job
+        # cannot even start its arm64 build image.  This action registers the
+        # static emulators for every architecture the matrix needs
+        # (arm/arm64/mips64le/ppc64le/riscv64/loong64).  It runs before
+        # actions-env.sh so that the android/arm64 handler it re-registers
+        # without fix_binary is already present.
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: all
+
       - name: Setup the environment
         shell: bash
         run: . ./vender/build_tools/scripts/actions-env.sh
