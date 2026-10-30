@@ -32,6 +32,15 @@ int32_t child_process_kill_alive_children();
 
 class _case;
 
+static void warn_legacy_callback(v8::Local<v8::Function> func, const exlib::string& name);
+
+// Set once the test tree has finished running (the summary has been printed).
+// From that point on the process is draining the event loop, so any exception
+// that escapes a JS scope is asynchronous activity no test can observe — Node
+// reports the same situation as "generated asynchronous activity after the
+// test ended" and fails the run.
+static bool s_test_run_finished = false;
+
 static int32_t s_slow = 75;
 
 class TestData {
@@ -40,9 +49,11 @@ public:
     obj_ptr<_case> m_describe;
     _case* m_running = NULL;
 
-    // Compiled RegExp[] from --test-name-pattern (opt_tools/test.js stores it
-    // on the global before loading test files; read once at run_test time)
+    // Compiled RegExp[] from --test-name-pattern / --test-skip-pattern
+    // (opt_tools/test.js stores them on the global before loading test files;
+    // read once at run_test time)
     QuickArray<v8::Global<v8::RegExp>> m_name_patterns;
+    QuickArray<v8::Global<v8::RegExp>> m_skip_patterns;
 
     static TestData* current()
     {
@@ -61,6 +72,15 @@ enum {
     HOOK_BEFORECASE,
     HOOK_AFTERCASE
 };
+
+// The object handed to a test body (Node's TestContext) and to a suite body or
+// hook (SuiteContext). See make_case_context() for the members.
+enum {
+    CTX_TEST = 0,
+    CTX_SUITE
+};
+
+static v8::Local<v8::Object> make_case_context(_case* c, int32_t kind);
 
 class _case : public obj_base {
     _case(exlib::string name = "", int32_t level = TEST_TODO)
@@ -90,9 +110,39 @@ public:
         TEST_NONE
     };
 
+    // Small read/write surface for the context object handed to a body.
+    void request_skip() { m_runtime_skip = true; }
+    void request_todo() { m_runtime_todo = true; }
+
+    exlib::string context_name() { return m_title; }
+    exlib::string context_full_name() { return m_display_name.empty() ? m_title : m_display_name; }
+    bool context_passed() { return m_status; }
+
+    void add_diagnostic(exlib::string msg) { m_diagnostics.append(msg); }
+
 public:
     void append(_case* c)
     {
+        // Node's getTestNameWithAncestors(): ancestor titles joined by single
+        // spaces, root excluded. Used as the second match target so a test can
+        // be addressed unambiguously as 'suite sub test'.
+        c->m_full_name = m_full_name.empty() ? c->m_title : m_full_name + " " + c->m_title;
+
+        // Same chain in Node's display form ('suite > sub > case'), used by
+        // context.fullName; the space-joined one above is what patterns match.
+        if (m_is_suite || !m_display_name.empty()) {
+            exlib::string prefix = m_display_name.empty() ? m_title : m_display_name;
+            c->m_display_name = prefix + " > " + c->m_title;
+        } else
+            c->m_display_name = c->m_title;
+
+        // todo is inherited from the enclosing suite (Node: isTodo = ... ||
+        // parent.isTodo), so a describe.todo body's cases count as todo too.
+        // The implicit root is also constructed with TEST_TODO, hence the
+        // m_is_suite guard: only an explicitly registered suite inherits.
+        if (m_todo_inherited || (m_is_suite && m_level == TEST_TODO) || c->m_level == TEST_TODO)
+            c->m_todo_inherited = true;
+
         m_subs.append(c);
         if (c->m_level == TEST_ONLY)
             m_run_level = TEST_ONLY;
@@ -103,8 +153,13 @@ public:
     {
         TestData* td = TestData::current();
 
-        if (td->m_root == NULL)
-            td->m_root = td->m_describe = new _case();
+        if (td->m_root == NULL) {
+            // Node names the implicit root '<root>' and testMatchesPattern
+            // recurses into it, so a pattern matching that name (or hitting it
+            // through the ancestor-joined full name) exposes every case.
+            td->m_root = td->m_describe = new _case("<root>");
+            td->m_root->m_full_name = "";
+        }
     }
 
     static result_t describe(exlib::string name, v8::Local<v8::Function> block, int32_t level)
@@ -118,6 +173,7 @@ public:
             return result_t::invalid_call();
 
         _case* p = new _case(name, level);
+        p->m_is_suite = true;
         p->m_describe_block.Reset(Isolate::current()->m_isolate, block);
         now->append(p);
 
@@ -146,8 +202,9 @@ public:
 
         TryCatch try_catch;
         v8::Local<v8::Value> result;
+        v8::Local<v8::Value> ctx_arg = make_case_context(this, CTX_SUITE);
         bool success = block->Call(block->GetCreationContextChecked(),
-                                v8::Object::New(isolate->m_isolate), 0, NULL)
+                                ctx_arg, 1, &ctx_arg)
                            .ToLocal(&result);
 
         // If a Promise is returned, wait for it to settle (async describe)
@@ -209,17 +266,17 @@ public:
         return result_t();
     }
 
-    static bool matches_any(TestData* td, const exlib::string& name)
+    static bool matches_any(QuickArray<v8::Global<v8::RegExp>>& pats, const exlib::string& name)
     {
-        if (!td->m_name_patterns.size())
+        if (!pats.size())
             return false;
 
         Isolate* isolate = Isolate::current();
         v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::String> str = isolate->NewString(name);
 
-        for (int32_t i = 0; i < (int32_t)td->m_name_patterns.size(); i++) {
-            v8::Local<v8::RegExp> re = td->m_name_patterns[i].Get(isolate->m_isolate);
+        for (int32_t i = 0; i < (int32_t)pats.size(); i++) {
+            v8::Local<v8::RegExp> re = pats[i].Get(isolate->m_isolate);
             v8::Local<v8::Object> v = re->Exec(context, str).FromMaybe(v8::Local<v8::Object>());
             if (!v.IsEmpty() && v->IsArray() && v.As<v8::Array>()->Length() > 0)
                 return true;
@@ -228,11 +285,54 @@ public:
         return false;
     }
 
-    // --test-name-pattern gate: whether any test below this suite would stay
-    // visible. Describe blocks are expanded on the way (expand_describe is
-    // idempotent: it clears the block before invoking the callback), mirroring
-    // Node, where suite callbacks always run but hooks and tests only for
-    // visible content.
+    // Node's testMatchesPattern minus the parent recursion. A pattern matches
+    // either the node's own title or the ancestor titles joined by single
+    // spaces (getTestNameWithAncestors()); the parent recursion is supplied by
+    // m_chain_matched / m_chain_skipped, which propagate down the tree.
+    static bool matches_node(TestData* td, _case* p, bool for_skip)
+    {
+        QuickArray<v8::Global<v8::RegExp>>& pats = for_skip ? td->m_skip_patterns : td->m_name_patterns;
+
+        if (!pats.size())
+            return false;
+
+        if (matches_any(pats, p->m_title))
+            return true;
+
+        return p->m_full_name != p->m_title && matches_any(pats, p->m_full_name);
+    }
+
+    // Chain state of one child: true when the child itself matches or an
+    // ancestor already did (Node's recursive testMatchesPattern).
+    static bool chain_state(TestData* td, _case* parent, _case* c, bool for_skip)
+    {
+        bool inherited = for_skip ? parent->m_chain_skipped : parent->m_chain_matched;
+
+        return inherited || matches_node(td, c, for_skip);
+    }
+
+    // Visibility of a node whose chain flags are up to date: a name pattern
+    // must match somewhere on the chain, a skip pattern must match nowhere on
+    // it. No filters means everything is visible.
+    static bool node_visible(TestData* td, _case* c)
+    {
+        if (td->m_name_patterns.size() && !c->m_chain_matched)
+            return false;
+        if (td->m_skip_patterns.size() && c->m_chain_skipped)
+            return false;
+
+        return true;
+    }
+
+    // Whether any test below this suite stays visible. Describe blocks are
+    // expanded on the way (expand_describe is idempotent: it clears the block
+    // before invoking the callback), mirroring Node, where suite callbacks
+    // always build but hooks and tests only run for visible content.
+    //
+    // A suite whose own title does not match is still visible when a distant
+    // descendant matches the ancestor-joined full name (Node computes
+    // filteredByName per node and then clears the ancestors), so the walk keeps
+    // descending as long as the skip pattern has not pruned the subtree.
     static bool suite_visible(TestData* td, _case* p)
     {
         if (!p->m_describe_block.IsEmpty())
@@ -241,25 +341,25 @@ public:
         for (int32_t i = 0; i < (int32_t)p->m_subs.size(); i++) {
             _case* s = p->m_subs[i];
 
-            if (!s->m_chain_matched && !p->m_chain_matched && td->m_name_patterns.size())
-                s->m_chain_matched = matches_any(td, s->m_title);
+            s->m_chain_matched = s->m_chain_matched || chain_state(td, p, s, false);
+            s->m_chain_skipped = s->m_chain_skipped || chain_state(td, p, s, true);
+
+            if (td->m_skip_patterns.size() && s->m_chain_skipped)
+                continue; // skip pattern pruned this subtree: nothing below shows
+
             if (s->m_chain_matched)
-                return true;
+                return true; // title/full-name hit: the container stays visible
+                             // (its hooks run) even when the matching case is
+                             // marked skip/todo and therefore never executes
+
             if (s->m_level == _case::TEST_SKIP)
-                continue; // skipped subtrees never expand/run; under the name
-                          // filter they are invisible like in Node
-            if (s->m_level < p->m_run_level) {
-                // Below the run level (only-marked parents): leaves on the
-                // counted-skip path stay visible; suites never expand here.
-                if (s->m_level == _case::TEST_NORMAL && !s->m_block.IsEmpty())
-                    return true;
-                continue;
-            }
-            if (!s->m_block.IsEmpty())
-                continue; // chain-miss leaf that would run: pruned (incl.
-                          // only/todo marked ones, Node parity)
-            if (suite_visible(td, s))
-                return true; // describe/todo suite: children may still match
+                continue; // skipped subtrees never expand/run
+            if (s->m_level < p->m_run_level)
+                continue; // below the run level (only-marked parents): the
+                          // counted-skip path is invisible while filtering
+
+            if (s->m_is_suite && suite_visible(td, s))
+                return true; // a descendant may still match by full name
         }
 
         return false;
@@ -289,6 +389,11 @@ public:
         Isolate* isolate = Isolate::current();
         v8::Local<v8::Context> _context = isolate->context();
 
+        // Seed the root's chain state: Node's match function walks up to the
+        // root, so '<root>' matching a pattern makes everything visible.
+        td->m_root->m_chain_matched = matches_node(td, td->m_root, false);
+        td->m_root->m_chain_skipped = matches_node(td, td->m_root, true);
+
         while (stack.size()) {
             _case* p = stack[stack.size() - 1];
             _case *p1, *p2;
@@ -317,14 +422,36 @@ public:
                         for (i = 0; i < (int32_t)p->m_hooks[HOOK_BEFORE].size(); i++) {
                             TryCatch try_catch;
                             v8::Local<v8::Function> func = p->m_hooks[HOOK_BEFORE][i].Get(isolate->m_isolate);
-                            func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
+                            v8::Local<v8::Value> ctx_arg = make_case_context(p, CTX_SUITE);
+                            func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg).IsEmpty();
                             if (try_catch.HasCaught()) {
                                 // before failed: mark the suite failed, all its tests fail,
-                                // keep running (aligned with Node)
+                                // keep running (aligned with Node). The failure itself
+                                // goes through the numbered channel so the run exits 1.
                                 p->m_before_failed = true;
                                 p->m_hook_error = "[before] " + GetException(try_catch, result_t(), false, true);
                                 p->m_errors.append(p->m_hook_error);
                                 p->m_status = false;
+
+                                if (mode <= console_base::C_ERROR) {
+                                    exlib::string str1;
+
+                                    snprintf(buf, sizeof(buf), "%d) ", ++errcnt);
+                                    str1 = buf;
+                                    // stack.back() is this suite (the stack has
+                                    // not been popped yet), so the title only
+                                    // carries the ancestors before it.
+                                    for (j = 1; j < (int32_t)stack.size() - 1; j++) {
+                                        str1.append(stack[j]->m_title);
+                                        str1.append(" ", 1);
+                                    }
+                                    str1.append(p->m_title);
+                                    str1.append(" (before hook)");
+                                    names.append(COLOR_BOLD + str1 + COLOR_RESET);
+                                    msgs.append(p->m_hook_error);
+                                } else
+                                    errorLog(p->m_hook_error);
+
                                 break;
                             }
                         }
@@ -336,36 +463,48 @@ public:
                 exlib::string str(stack.size() * 2, ' ');
 
                 p1 = p->m_subs[p->m_pos++];
-                bool is_todo_case = (p1->m_level == _case::TEST_TODO);
 
-                // --test-name-pattern (chain rule, Node parity): a node runs
-                // when the pattern matches any title on the root chain. Nodes
-                // that do not match are invisible: not executed, not counted,
-                // not printed (explicit skip/todo marks included, like Node).
-                if (td->m_name_patterns.size()) {
-                    if (p->m_chain_matched)
-                        p1->m_chain_matched = true;
-                    else
-                        p1->m_chain_matched = matches_any(td, p1->m_title);
+                // A suite stays a suite after expand_describe() cleared its
+                // block; a bodyless todo(...) is a leaf case (Node counts it).
+                bool is_suite = p1->m_is_suite;
+                bool is_leaf = !is_suite && (!p1->m_block.IsEmpty() || p1->m_level == _case::TEST_TODO);
+                // skip wins over todo, as in Node's counters (pass() marks both,
+                // countCompletedTest checks skipped first).
+                bool is_todo = (p1->m_level != _case::TEST_SKIP)
+                    && (p1->m_level == _case::TEST_TODO || p1->m_todo_inherited);
 
-                    if (!p1->m_chain_matched) {
-                        if (!p1->m_block.IsEmpty() || is_todo_case) {
-                            // Leaf: prune, unless it sits on the counted-skip
-                            // path (normal tests below the run level, e.g.
-                            // under only-marked parents).
-                            bool counted_skip = (p1->m_level == _case::TEST_NORMAL && p1->m_level < p->m_run_level);
-                            if (!counted_skip)
-                                continue;
-                        } else if (p1->m_level != _case::TEST_SKIP && p1->m_level >= p->m_run_level) {
-                            // Suite: keep it only when a visible test remains
-                            // below (expanding describe blocks on the way).
-                            if (!suite_visible(td, p1))
-                                continue;
-                        }
-                    }
+                // --test-name-pattern / --test-skip-pattern (chain rule, Node
+                // parity): a node is visible when a name pattern matches its
+                // own title, the ancestor-joined full name or an ancestor
+                // title, and no skip pattern does. Invisible nodes are neither
+                // executed nor counted nor printed (explicit skip/todo marks
+                // included, like Node).
+                p1->m_chain_matched = p1->m_chain_matched || chain_state(td, p, p1, false);
+                p1->m_chain_skipped = p1->m_chain_skipped || chain_state(td, p, p1, true);
+
+                bool filtering = td->m_name_patterns.size() || td->m_skip_patterns.size();
+
+                if (filtering && !node_visible(td, p1)) {
+                    if (is_leaf)
+                        continue; // pruned: not executed, not counted
+                    if (p1->m_level == _case::TEST_SKIP)
+                        continue; // skipped suites never expand
+                    // A suite that does not match is kept only when something
+                    // below stays visible; suite_visible() expands the describe
+                    // blocks on the way, so its side effects still happen.
+                    if (!suite_visible(td, p1))
+                        continue;
                 }
 
-                if (!p1->m_block.IsEmpty() || is_todo_case) {
+                // Below the run level (a sibling marked `.only`): without a
+                // filter the entry is counted as skipped; while filtering it is
+                // invisible, like Node. Only a plain case can be shadowed this
+                // way — skip/todo marks have their own levels.
+                if (filtering && is_leaf && p1->m_level == _case::TEST_NORMAL
+                    && p1->m_level < p->m_run_level)
+                    continue;
+
+                if (is_leaf) {
                     // Parent before/describe block failed: this test fails directly
                     // without running (aligned with Node)
                     bool before_failed = false;
@@ -379,7 +518,11 @@ public:
                         }
                     }
 
-                    if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
+                    // Node counts the cases of a suite whose before hook threw
+                    // as cancelled (they never start) rather than as failures.
+                    p1->m_cancelled = before_failed;
+
+                    if (p1->m_level >= p->m_run_level) {
                         v8::HandleScope handle_scope(isolate->m_isolate);
 
                         if (before_failed)
@@ -390,7 +533,9 @@ public:
                                 for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size(); i++) {
                                     TryCatch try_catch;
                                     v8::Local<v8::Function> func = p2->m_hooks[HOOK_BEFORECASE][i].Get(isolate->m_isolate);
-                                    func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
+                                    v8::Local<v8::Value> ctx_arg = make_case_context(p1, CTX_TEST);
+                                    func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg)
+                                        .IsEmpty();
                                     if (try_catch.HasCaught()) {
                                         // beforeEach failed: current test fails and its block
                                         // is skipped, subsequent tests keep running (aligned with Node)
@@ -410,19 +555,27 @@ public:
 
                         d1.now();
 
-                        if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO && p1->m_errors.size() == 0) {
+                        // A todo case still runs its body and per-case hooks
+                        // (Node parity); the result is classified as todo below,
+                        // so a throwing body only shows up in the details and
+                        // never fails the run. A bodyless todo(...) just has no
+                        // body to run.
+                        if (p1->m_level >= p->m_run_level && p1->m_errors.size() == 0 && !p1->m_block.IsEmpty()) {
                             v8::HandleScope handle_scope(isolate->m_isolate);
 
                             td->m_running = p1;
 
                             v8::Local<v8::Function> func = p1->m_block.Get(isolate->m_isolate);
-                            func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
+                            v8::Local<v8::Value> ctx_arg = make_case_context(p1, CTX_TEST);
+                            func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg).IsEmpty();
                             if (try_catch.HasCaught()) {
                                 v8::Local<v8::Value> exp = try_catch.Exception();
                                 if (exp->IsFunction()) {
+                                    // legacy: throwing a function from the body used to
+                                    // mean "run this as the body" (kept for compatibility)
                                     func = exp.As<v8::Function>();
                                     try_catch.Reset();
-                                    func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
+                                    func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg).IsEmpty();
                                 }
                             }
 
@@ -442,7 +595,31 @@ public:
                         val->Set(_context, isolate->NewString("title"), isolate->NewString(p1->m_title)).IsJust();
 
                         p->m_total++;
-                        if (p1->m_errors.size()) {
+                        if (is_todo || p1->m_runtime_todo) {
+                            // todo (explicit, inherited from a describe.todo or
+                            // requested by ctx.todo()): counted as todo, never as
+                            // a failure. A throwing body is still reported on the
+                            // case line, but it does not fail the run (Node keeps
+                            // exit 0).
+                            p->m_todo++;
+                            val->Set(_context, isolate->NewString("status"), isolate->NewString("todo")).IsJust();
+                            str.append(COLOR_CYAN + "\xe2\x98\x90 ");
+                            str.append(p1->m_title);
+
+                            if (p1->m_errors.size()) {
+                                exlib::string err_msg = p1->m_errors.str();
+                                if (mode > console_base::C_ERROR)
+                                    errorLog(err_msg);
+                                val->Set(_context, isolate->NewString("trace"), isolate->NewString(err_msg)).IsJust();
+                            }
+                        } else if (p1->m_cancelled) {
+                            // An ancestor's before hook threw: the case never
+                            // started, so Node counts it as cancelled rather than
+                            // failed (the suite itself carries the failure).
+                            p->m_cancel++;
+                            val->Set(_context, isolate->NewString("status"), isolate->NewString("cancelled")).IsJust();
+                            str.append(COLOR_GRAY + "\xe2\x88\x92 " + p1->m_title + COLOR_RESET);
+                        } else if (p1->m_errors.size()) {
                             exlib::string err_msg = p1->m_errors.str();
 
                             p->m_fail++;
@@ -472,11 +649,10 @@ public:
                             str.append(buf);
                             str.append(p1->m_title);
                         } else {
-                            if (p1->m_level == _case::TEST_TODO) {
-                                p->m_todo++;
-                                val->Set(_context, isolate->NewString("status"), isolate->NewString("todo")).IsJust();
-                                str.append(COLOR_CYAN + "\xe2\x98\x90 ");
-                            } else if (p1->m_level < p->m_run_level) {
+                            if (p1->m_level < p->m_run_level || p1->m_runtime_skip) {
+                                // ctx.skip() called from the body counts as a
+                                // skipped case and suppresses afterEach, exactly
+                                // like an options-level skip (Node parity).
                                 p->m_skip++;
                                 val->Set(_context, isolate->NewString("status"), isolate->NewString("skipped")).IsJust();
                                 str.append(COLOR_GRAY + "\xe2\x97\x8b ");
@@ -506,27 +682,51 @@ public:
                         p->m_retVal_tests->Set(_context, p->m_pos - 1, val).IsJust();
                     }
 
+                    // node's spec reporter prints the diagnostics collected by
+                    // ctx.diagnostic()/ctx.log() right under the test line.
+                    bool printed = !p1->m_status
+                        || mode > console_base::C_ERROR || p1->m_level >= p->m_run_level;
+
                     if (!p1->m_status)
                         outLog(console_base::C_INFO, logger::error() + str + COLOR_RESET);
-                    else if (mode > console_base::C_ERROR || p1->m_level >= p->m_run_level)
-                        if (!p1->m_subs.size())
-                            outLog(console_base::C_INFO, str);
+                    else if (printed)
+                        outLog(console_base::C_INFO, str);
 
-                    if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
+                    if (printed)
+                        for (i = 0; i < (int32_t)p1->m_diagnostics.size(); i++) {
+                            exlib::string dstr(stack.size() * 2, ' ');
+                            dstr.append("\xe2\x84\xb9 "); // U+2139 INFORMATION SOURCE
+                            dstr.append(p1->m_diagnostics[i]);
+                            outLog(console_base::C_INFO, dstr);
+                        }
+
+                    // afterEach runs AFTER the case is reported, as in Node: the
+                    // case keeps its own result until a hook fails, which then
+                    // rewrites it. Ancestors' hooks run after this level's, and
+                    // hooks are called in declaration order (FIFO) — Node's
+                    // createHook splices afterEach before ownAfterEachCount and
+                    // runHook iterates forwards. A throwing hook stops the rest
+                    // of the chain (Node's runHook throws out of the loop), and
+                    // a failed before suppresses the whole afterEach phase: Node
+                    // never starts the subtests in that case.
+                    if (p1->m_level >= p->m_run_level && !before_failed && !p1->m_runtime_skip) {
                         v8::HandleScope handle_scope(isolate->m_isolate);
 
-                        for (j = (int32_t)stack.size() - 1; j >= 0; j--) {
+                        bool hook_failed = false;
+                        for (j = (int32_t)stack.size() - 1; j >= 0 && !hook_failed; j--) {
                             p2 = stack[j];
-                            for (i = (int32_t)p2->m_hooks[HOOK_AFTERCASE].size() - 1; i >= 0; i--) {
+                            for (i = 0; i < (int32_t)p2->m_hooks[HOOK_AFTERCASE].size(); i++) {
                                 TryCatch try_catch;
                                 v8::Local<v8::Function> func = p2->m_hooks[HOOK_AFTERCASE][i].Get(isolate->m_isolate);
-                                func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
+                                v8::Local<v8::Value> ctx_arg = make_case_context(p1, CTX_TEST);
+                                func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg).IsEmpty();
                                 if (try_catch.HasCaught()) {
                                     // afterEach failed: mark current test failed (even if it
-                                    // passed), keep running (aligned with Node)
+                                    // passed), stop the remaining hooks (aligned with Node)
                                     exlib::string err = "[afterEach] " + GetException(try_catch, result_t(), false, true);
                                     bool was_passed = p1->m_errors.size() == 0;
 
+                                    hook_failed = true;
                                     p1->m_errors.append(err);
                                     if (was_passed) {
                                         p1->m_status = false;
@@ -534,21 +734,43 @@ public:
                                         p->m_fail++;
                                         p->m_pass--;
 
+                                        // A hook failure that flips a passing case
+                                        // is a real failure: it goes through the
+                                        // same numbered channel, so it reaches the
+                                        // failure list and the exit code (Node
+                                        // fails the test and exits non-zero).
+                                        snprintf(buf, sizeof(buf), "%d) ", ++errcnt);
+                                        {
+                                            exlib::string str1(buf);
+                                            for (int32_t k = 1; k < (int32_t)stack.size(); k++) {
+                                                str1.append(stack[k]->m_title);
+                                                str1.append(" ", 1);
+                                            }
+                                            str1.append(p1->m_title);
+                                            str1.append(" (afterEach hook)");
+                                            names.append(COLOR_BOLD + str1 + COLOR_RESET);
+                                        }
+                                        if (mode <= console_base::C_ERROR)
+                                            msgs.append(err);
+
                                         v8::Local<v8::Object> val = p->m_retVal_tests->Get(_context, p->m_pos - 1).ToLocalChecked().As<v8::Object>();
                                         val->Set(_context, isolate->NewString("status"), isolate->NewString("failed")).IsJust();
                                         val->Set(_context, isolate->NewString("trace"), isolate->NewString(err)).IsJust();
 
                                         outLog(console_base::C_ERROR, logger::error() + str + " [afterEach failed]" + COLOR_RESET);
                                     }
+                                    break;
                                 }
                             }
                         }
                     }
                 }
 
-                // Determine whether this is a describe: has a describe_block or
-                // expanded subs, and no it block
-                if (p1->m_status && (p1->m_subs.size() || !p1->m_describe_block.IsEmpty() || (p1->m_block.IsEmpty() && p1->m_level != _case::TEST_TODO))) {
+                // Determine whether this is a describe: registered through
+                // describe()/suite(), or (defensive) a node that turned out to
+                // hold children and never had a body.
+                if (p1->m_status && (is_suite || p1->m_subs.size()
+                        || (!p1->m_describe_block.IsEmpty() && p1->m_block.IsEmpty()))) {
                     if (p1->m_level < p->m_run_level)
                         p1->m_run_level = TEST_NONE;
 
@@ -568,13 +790,28 @@ public:
             }
 
             if (p->m_pos == (int32_t)p->m_subs.size()) {
-                if (p->m_run_level != TEST_NONE) {
+                // A suite whose ancestor's before hook failed never started in
+                // Node (the parent throws before starting its subtests), so its
+                // own after hooks do not run either. The suite that owns the
+                // failing before still runs its after (Node calls after() from
+                // the catch block).
+                bool anc_before_failed = false;
+                for (j = 1; j < (int32_t)stack.size() - 1; j++)
+                    if (stack[j]->m_before_failed) {
+                        anc_before_failed = true;
+                        break;
+                    }
+
+                if (p->m_run_level != TEST_NONE && !anc_before_failed) {
                     v8::HandleScope handle_scope(isolate->m_isolate);
 
-                    for (i = (int32_t)p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--) {
+                    // Declaration order (FIFO), like Node's runHook; a throwing
+                    // hook stops the remaining ones (Node throws out of the loop).
+                    for (i = 0; i < (int32_t)p->m_hooks[HOOK_AFTER].size(); i++) {
                         TryCatch try_catch;
                         v8::Local<v8::Function> func = p->m_hooks[HOOK_AFTER][i].Get(isolate->m_isolate);
-                        func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
+                        v8::Local<v8::Value> ctx_arg = make_case_context(p, CTX_SUITE);
+                        func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg).IsEmpty();
                         if (try_catch.HasCaught()) {
                             // after failed：与 Node 一致 —— 子测试保持各自状态（已经打印过的 √
                             // 不再被改写），钩子失败本身作为一条独立失败记录：走叶子测试相同的
@@ -632,6 +869,8 @@ public:
                     p->m_retVal->Set(_context, isolate->NewString("todo"), v8::Number::New(isolate->m_isolate, p->m_todo)).IsJust();
                 if (p->m_skip)
                     p->m_retVal->Set(_context, isolate->NewString("skipped"), v8::Number::New(isolate->m_isolate, p->m_skip)).IsJust();
+                if (p->m_cancel)
+                    p->m_retVal->Set(_context, isolate->NewString("cancelled"), v8::Number::New(isolate->m_isolate, p->m_cancel)).IsJust();
 
                 p->m_retVal->Set(_context, isolate->NewString("duration"), v8::Number::New(isolate->m_isolate, p->m_duration)).IsJust();
 
@@ -649,6 +888,7 @@ public:
                     p1->m_fail += p->m_fail;
                     p1->m_skip += p->m_skip;
                     p1->m_todo += p->m_todo;
+                    p1->m_cancel += p->m_cancel;
                     if (!p->m_status)
                         p1->m_status = false;
                 }
@@ -683,6 +923,11 @@ public:
             outLog(console_base::C_INFO, buf);
         }
 
+        if (td->m_root->m_cancel) {
+            snprintf(buf, sizeof(buf), (COLOR_GRAY + "  \xe2\x88\x92 %d tests cancelled" + COLOR_RESET).c_str(), td->m_root->m_cancel);
+            outLog(console_base::C_INFO, buf);
+        }
+
         outLog(console_base::C_INFO, "");
 
         for (i = 0; i < (int32_t)msgs.size(); i++) {
@@ -693,6 +938,10 @@ public:
         retVal = td->m_root->m_retVal;
 
         clear();
+
+        // Everything after this point is event-loop drain: an exception there
+        // has no test left to fail, so test_report_late_error() takes over.
+        s_test_run_finished = true;
 
         if (errcnt)
             process_base::set_exitCode(1);
@@ -714,11 +963,22 @@ public:
 
 private:
     exlib::string m_title;
+
+    // Ancestor titles joined by single spaces (excludes the root), i.e. Node's
+    // getTestNameWithAncestors(). Kept for the --test-name-pattern full-name
+    // match; equal to m_title for top-level nodes.
+    exlib::string m_full_name;
+
+    // Same chain in Node's display form ('suite > sub > case') for
+    // context.fullName. The root is excluded, as in Node.
+    exlib::string m_display_name;
+
     int32_t m_total = 0;
     int32_t m_pass = 0;
     int32_t m_fail = 0;
     int32_t m_skip = 0;
     int32_t m_todo = 0;
+    int32_t m_cancel = 0;
 
     bool m_status = true;
 
@@ -726,6 +986,29 @@ private:
     // Computed when the node is picked during the run and reused by the
     // suite_visible gate and by the node's own children.
     bool m_chain_matched = false;
+
+    // --test-skip-pattern chain rule: a title on the root chain matched.
+    bool m_chain_skipped = false;
+
+    // todo inherited from an enclosing describe.todo/suite.todo (Node parity).
+    bool m_todo_inherited = false;
+
+    // context.skip() / context.todo() called from inside the body (Node parity):
+    // a runtime skip counts as skipped and suppresses this case's afterEach,
+    // a runtime todo classifies the outcome as todo.
+    bool m_runtime_skip = false;
+    bool m_runtime_todo = false;
+
+    // Registered through describe()/suite() rather than it(). Suites stay
+    // identifiable after expand_describe() has cleared m_describe_block.
+    bool m_is_suite = false;
+
+    // ctx.diagnostic() / ctx.log() text, printed under the case result.
+    QuickArray<exlib::string> m_diagnostics;
+
+    // Cancelled by an ancestor's failing before hook (Node counts those as
+    // cancelled instead of failed).
+    bool m_cancelled = false;
 
     // Flag for a failed before/describe block: all its tests fail
     // (Node before-failure semantics)
@@ -753,19 +1036,148 @@ static void two_arg_test_wrapper(const v8::FunctionCallbackInfo<v8::Value>& args
     v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Function> func = args.Data().As<v8::Function>();
 
+    // The stored block is this wrapper behind util.sync, so the first argument
+    // is the context the runner passed; the appended callback arrives last.
     int32_t len = args.Length();
-    std::vector<v8::Local<v8::Value>> argv(len + 1);
-    argv[0] = v8::Object::New(isolate->m_isolate);
-    for (int32_t i = 0; i < len; i++)
-        argv[i + 1] = args[i];
+    std::vector<v8::Local<v8::Value>> argv(len);
+    argv[0] = len > 0 ? args[0] : v8::Object::New(isolate->m_isolate);
+    for (int32_t i = 1; i < len; i++)
+        argv[i] = args[i];
 
     v8::Local<v8::Value> result;
     if (func->Call(context, args.This(), (int32_t)argv.size(), argv.data()).ToLocal(&result))
         args.GetReturnValue().Set(result);
 }
 
-inline v8::Local<v8::Function> wrapFunction(v8::Local<v8::Function> func)
+// The object handed to a test body (Node's TestContext) and to a suite body or
+// hook (SuiteContext). It carries the members a case can act on here:
+// name/fullName/filePath/passed, diagnostic(), log(), skip(), todo() and the
+// shared assert module. Node's test()/before()/plan()/mock()/waitFor() depend on
+// subtests and a per-case plan, neither of which fibjs has.
+static _case* ctx_case(v8::Local<v8::Value> data)
 {
+    return (_case*)data.As<v8::External>()->Value();
+}
+
+static void ctx_diagnostic(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+
+    if (args.Length() < 1)
+        return;
+
+    // ctx.log() shares the body: node routes both through the reporter, and the
+    // spec reporter prints them the same way.
+    ctx_case(args.Data())->add_diagnostic(isolate->toString(args[0]));
+}
+
+static void ctx_skip(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ctx_case(args.Data())->request_skip();
+}
+
+static void ctx_todo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ctx_case(args.Data())->request_todo();
+}
+
+static void ctx_name_getter(v8::Local<v8::Name> name, const v8::PropertyCallbackInfo<v8::Value>& info)
+{
+    Isolate* isolate = Isolate::current(info);
+    info.GetReturnValue().Set(isolate->NewString(ctx_case(info.Data())->context_name()));
+}
+
+static void ctx_full_name_getter(v8::Local<v8::Name> name, const v8::PropertyCallbackInfo<v8::Value>& info)
+{
+    Isolate* isolate = Isolate::current(info);
+    info.GetReturnValue().Set(isolate->NewString(ctx_case(info.Data())->context_full_name()));
+}
+
+static void ctx_passed_getter(v8::Local<v8::Name> name, const v8::PropertyCallbackInfo<v8::Value>& info)
+{
+    info.GetReturnValue().Set(v8::Boolean::New(Isolate::current(info)->m_isolate,
+        ctx_case(info.Data())->context_passed()));
+}
+
+static void ctx_file_getter(v8::Local<v8::Name> name, const v8::PropertyCallbackInfo<v8::Value>& info)
+{
+    Isolate* isolate = Isolate::current(info);
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Value> v = context->Global()
+                                 ->Get(context, isolate->NewString("__fibjs_test_entry_file"))
+                                 .FromMaybe(v8::Local<v8::Value>());
+    if (v.IsEmpty() || !v->IsString())
+        v = context->Global()
+                ->Get(context, isolate->NewString("__filename"))
+                .FromMaybe(v8::Local<v8::Value>());
+    if (!v.IsEmpty())
+        info.GetReturnValue().Set(v);
+}
+
+// Build the context object for a case (or a suite). The assert object is the
+// shared assert module, so `ctx.assert.equal(...)` works like `test.assert`.
+static v8::Local<v8::Object> make_case_context(_case* c, int32_t kind)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> ctx = v8::Object::New(isolate->m_isolate);
+    v8::Local<v8::Value> ext = v8::External::New(isolate->m_isolate, c);
+
+    ctx->SetNativeDataProperty(context, isolate->NewString("name"), ctx_name_getter, NULL, ext).IsJust();
+    ctx->SetNativeDataProperty(context, isolate->NewString("fullName"), ctx_full_name_getter, NULL, ext).IsJust();
+    ctx->SetNativeDataProperty(context, isolate->NewString("filePath"), ctx_file_getter, NULL, ext).IsJust();
+    ctx->SetNativeDataProperty(context, isolate->NewString("passed"), ctx_passed_getter, NULL, ext).IsJust();
+
+    ctx->Set(context, isolate->NewString("diagnostic"),
+                 isolate->NewFunction("diagnostic", ctx_diagnostic, ext)).IsJust();
+    ctx->Set(context, isolate->NewString("log"),
+                 isolate->NewFunction("log", ctx_diagnostic, ext)).IsJust();
+
+    if (kind == CTX_TEST) {
+        ctx->Set(context, isolate->NewString("skip"),
+                     isolate->NewFunction("skip", ctx_skip, ext)).IsJust();
+        ctx->Set(context, isolate->NewString("todo"),
+                     isolate->NewFunction("todo", ctx_todo, ext)).IsJust();
+    }
+
+    ctx->Set(context, isolate->NewString("assert"),
+                 assert_base::class_info().getModule(isolate)).IsJust();
+
+    return ctx;
+}
+
+// Called from Fiber.cpp whenever an exception escapes a JS scope unnoticed.
+// Errors during the run are observed by the runner (assert.throws, hook
+// failures, ...), so they are ignored here; only post-run errors fail the run.
+// ReportException has already printed the error and its stack, so this only
+// adds the notice that explains why the run fails.
+void test_report_late_error()
+{
+    if (!s_test_run_finished)
+        return;
+
+    // A worker isolate's post-run error belongs to the worker (it already reached
+    // the 'error' event / its own exit code); only the main isolate's errors are
+    // "activity after the tests ended".
+    Isolate* isolate = Isolate::current();
+    if (isolate->m_parent_worker)
+        return;
+
+    process_base::set_exitCode(1);
+    outLog(console_base::C_ERROR, logger::error()
+                + "Error: asynchronous activity after the tests ended; the error above fails the run." + COLOR_RESET);
+}
+
+// Node's arity rule (lib/internal/test_runner/test.js: `if (this.fn.length ===
+// runArgs.length - 1)` with runArgs = [fn, ctx, ctx]): a body declared with two
+// or more parameters gets (ctx, done), anything else gets (ctx). One-argument
+// bodies used to receive `done`; they now receive the context, like Node.
+// The diagnostic runs first, on the user's own function: wrapping an async body
+// yields a native wrapper whose source text no longer names its parameters.
+inline v8::Local<v8::Function> wrapFunction(v8::Local<v8::Function> func, const exlib::string& name)
+{
+    warn_legacy_callback(func, name);
+
     if (func->IsAsyncFunction())
         util_base::sync(func, true, func);
     {
@@ -776,12 +1188,100 @@ inline v8::Local<v8::Function> wrapFunction(v8::Local<v8::Function> func)
             // Create wrapper(done) that calls original(ctx, done)
             v8::Local<v8::Function> wrapper = isolate->NewFunction("test_wrapper", two_arg_test_wrapper, func);
             util_base::sync(wrapper, false, func);
-        } else if (length > 0) {
-            util_base::sync(func, false, func);
         }
     }
 
     return func;
+}
+
+// Parameter names that used to mean "this body takes a done callback" before
+// the node arity rule landed. A one-parameter body using one of them is almost
+// always left-over callback-style code, so the runner warns once. The name is
+// only used for the warning: dispatch still follows node's arity rule.
+static bool looks_like_callback_name(const exlib::string& name)
+{
+    static const char* names[] = { "done", "cb", "callback", "next", "resolve", "finish", "complete" };
+
+    for (int32_t i = 0; i < (int32_t)(sizeof(names) / sizeof(names[0])); i++)
+        if (name == names[i])
+            return true;
+
+    return false;
+}
+
+// Read the first parameter name out of a function's source text. Returns the
+// empty string when the source is unavailable (native/bound functions and
+// precompiled jsc scripts stringify to opaque text), which simply means "no
+// warning", never "callback style".
+static exlib::string first_parameter_name(v8::Local<v8::Function> func)
+{
+    Isolate* isolate = Isolate::current();
+
+    v8::Local<v8::Value> src = func->ToString(isolate->context()).FromMaybe(v8::Local<v8::Value>());
+    if (src.IsEmpty() || !src->IsString())
+        return exlib::string();
+
+    exlib::string text = isolate->toString(src);
+    size_t i = 0;
+    size_t len = text.length();
+
+    auto skip_space = [&]() {
+        while (i < len && (text[i] == ' ' || text[i] == '\t' || text[i] == '\n' || text[i] == '\r'))
+            i++;
+    };
+
+    auto is_ident = [](char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+            || c == '_' || c == '$';
+    };
+
+    // Skip the `async` prefix; a `function` keyword hides the parameters behind
+    // an optional name, so walk to the opening parenthesis in that case.
+    skip_space();
+    if (text.length() >= i + 5 && text.substr(i, 5) == "async") {
+        i += 5;
+        skip_space();
+    }
+    if (text.length() >= i + 8 && text.substr(i, 8) == "function")
+        while (i < len && text[i] != '(')
+            i++;
+
+    // `(done) =>`, `function (done)` and the unparenthesised `done =>` all end
+    // up reading the same identifier.
+    if (i < len && text[i] == '(') {
+        i++;
+        skip_space();
+    }
+
+    size_t start = i;
+    while (i < len && is_ident(text[i]))
+        i++;
+
+    return i > start ? text.substr(start, i - start) : exlib::string();
+}
+
+// One warning per run, not per case: the same file usually has many of these.
+static bool s_legacy_callback_warned = false;
+
+static void warn_legacy_callback(v8::Local<v8::Function> func, const exlib::string& name)
+{
+    if (s_legacy_callback_warned || func.IsEmpty())
+        return;
+
+    Isolate* isolate = Isolate::current();
+    int32_t length = isolate->toInt32Value(JSValue(func->Get(isolate->context(), isolate->NewString("length"))));
+    if (length != 1)
+        return;
+
+    exlib::string param = first_parameter_name(func);
+    if (param.empty() || !looks_like_callback_name(param))
+        return;
+
+    s_legacy_callback_warned = true;
+
+    // No trailing newline: the logger adds one (and the reset after it).
+    outLog(console_base::C_WARN, "warning: test '" + name + "' looks like the retired callback style (parameter named '"
+            + param + "'), but a single parameter now receives the test context. Write (ctx, done) => {} if the case needs a done callback.");
 }
 
 static int32_t get_level_from_options(v8::Local<v8::Object> options, int32_t default_level)
@@ -791,13 +1291,15 @@ static int32_t get_level_from_options(v8::Local<v8::Object> options, int32_t def
 
     v8::Local<v8::Value> v;
 
-    if (options->Get(context, isolate->NewString("skip")).ToLocal(&v) && v->IsTrue())
+    // Node treats the marks as "provided and not false" (`skip !== undefined &&
+    // skip !== false`), so any other value — `''` included — counts as set.
+    if (options->Get(context, isolate->NewString("skip")).ToLocal(&v) && !v->IsUndefined() && !v->IsFalse())
         return _case::TEST_SKIP;
 
-    if (options->Get(context, isolate->NewString("todo")).ToLocal(&v) && v->IsTrue())
+    if (options->Get(context, isolate->NewString("todo")).ToLocal(&v) && !v->IsUndefined() && !v->IsFalse())
         return _case::TEST_TODO;
 
-    if (options->Get(context, isolate->NewString("only")).ToLocal(&v) && v->IsTrue())
+    if (options->Get(context, isolate->NewString("only")).ToLocal(&v) && !v->IsUndefined() && !v->IsFalse())
         return _case::TEST_ONLY;
 
     return default_level;
@@ -805,12 +1307,12 @@ static int32_t get_level_from_options(v8::Local<v8::Object> options, int32_t def
 
 result_t test_base::_function(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::it(name, wrapFunction(block), _case::TEST_NORMAL);
+    return _case::it(name, wrapFunction(block, name), _case::TEST_NORMAL);
 }
 
 result_t test_base::_function(exlib::string name, v8::Local<v8::Object> options, v8::Local<v8::Function> block)
 {
-    return _case::it(name, wrapFunction(block), get_level_from_options(options, _case::TEST_NORMAL));
+    return _case::it(name, wrapFunction(block, name), get_level_from_options(options, _case::TEST_NORMAL));
 }
 
 result_t test_suite_base::_function(exlib::string name, v8::Local<v8::Function> block)
@@ -855,7 +1357,7 @@ result_t test_base::odescribe(exlib::string name, v8::Local<v8::Function> block)
 
 result_t test_base::skip(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::it(name, wrapFunction(block), _case::TEST_SKIP);
+    return _case::it(name, wrapFunction(block, name), _case::TEST_SKIP);
 }
 
 result_t test_base::xit(exlib::string name, v8::Local<v8::Function> block)
@@ -865,7 +1367,7 @@ result_t test_base::xit(exlib::string name, v8::Local<v8::Function> block)
 
 result_t test_base::only(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::it(name, wrapFunction(block), _case::TEST_ONLY);
+    return _case::it(name, wrapFunction(block, name), _case::TEST_ONLY);
 }
 
 result_t test_base::oit(exlib::string name, v8::Local<v8::Function> block)
@@ -875,12 +1377,12 @@ result_t test_base::oit(exlib::string name, v8::Local<v8::Function> block)
 
 result_t test_base::todo(exlib::string name, v8::Local<v8::Function> block)
 {
-    return _case::it(name, wrapFunction(block), _case::TEST_TODO);
+    return _case::it(name, wrapFunction(block, name), _case::TEST_TODO);
 }
 
 result_t test_base::todo(exlib::string name, v8::Local<v8::Object> options, v8::Local<v8::Function> block)
 {
-    return _case::it(name, wrapFunction(block), get_level_from_options(options, _case::TEST_TODO));
+    return _case::it(name, wrapFunction(block, name), get_level_from_options(options, _case::TEST_TODO));
 }
 
 result_t test_base::todo(exlib::string name)
@@ -890,22 +1392,22 @@ result_t test_base::todo(exlib::string name)
 
 result_t test_base::before(v8::Local<v8::Function> func)
 {
-    return _case::set_hook(HOOK_BEFORE, wrapFunction(func));
+    return _case::set_hook(HOOK_BEFORE, wrapFunction(func, "hook"));
 }
 
 result_t test_base::after(v8::Local<v8::Function> func)
 {
-    return _case::set_hook(HOOK_AFTER, wrapFunction(func));
+    return _case::set_hook(HOOK_AFTER, wrapFunction(func, "hook"));
 }
 
 result_t test_base::beforeEach(v8::Local<v8::Function> func)
 {
-    return _case::set_hook(HOOK_BEFORECASE, wrapFunction(func));
+    return _case::set_hook(HOOK_BEFORECASE, wrapFunction(func, "hook"));
 }
 
 result_t test_base::afterEach(v8::Local<v8::Function> func)
 {
-    return _case::set_hook(HOOK_AFTERCASE, wrapFunction(func));
+    return _case::set_hook(HOOK_AFTERCASE, wrapFunction(func, "hook"));
 }
 
 static int32_t s_watchdog_ms = 10000;
@@ -1193,20 +1695,28 @@ void run_test(int32_t mode)
         v8::HandleScope handle_scope(isolate->m_isolate);
         JSFiber::EnterJsScope s;
 
-        // --test-name-pattern: opt_tools/test.js stores the compiled RegExp[]
-        // on the global (non-enumerable) before loading test files.
+        // --test-name-pattern / --test-skip-pattern: opt_tools/test.js stores
+        // the compiled RegExp[] on the global (non-enumerable) before loading
+        // test files.
         v8::Local<v8::Context> _context = isolate->context();
-        v8::Local<v8::Value> v = _context->Global()
-                                     ->Get(_context, isolate->NewString("__fibjs_test_name_patterns"))
-                                     .FromMaybe(v8::Local<v8::Value>());
-        if (!v.IsEmpty() && v->IsArray()) {
-            v8::Local<v8::Array> arr = v.As<v8::Array>();
-            for (uint32_t i = 0; i < arr->Length(); i++) {
-                v8::Local<v8::Value> e = arr->Get(_context, i).FromMaybe(v8::Local<v8::Value>());
-                if (!e.IsEmpty() && e->IsRegExp()) {
-                    int32_t n = (int32_t)td->m_name_patterns.size();
-                    td->m_name_patterns.resize(n + 1);
-                    td->m_name_patterns[n].Reset(isolate->m_isolate, e.As<v8::RegExp>());
+        {
+            v8::Local<v8::Object> g = _context->Global();
+            const char* keys[2] = { "__fibjs_test_name_patterns", "__fibjs_test_skip_patterns" };
+            QuickArray<v8::Global<v8::RegExp>>* targets[2] = { &td->m_name_patterns, &td->m_skip_patterns };
+
+            for (int32_t k = 0; k < 2; k++) {
+                v8::Local<v8::Value> v = g->Get(_context, isolate->NewString(keys[k]))
+                                            .FromMaybe(v8::Local<v8::Value>());
+                if (!v.IsEmpty() && v->IsArray()) {
+                    v8::Local<v8::Array> arr = v.As<v8::Array>();
+                    for (uint32_t i = 0; i < arr->Length(); i++) {
+                        v8::Local<v8::Value> e = arr->Get(_context, i).FromMaybe(v8::Local<v8::Value>());
+                        if (!e.IsEmpty() && e->IsRegExp()) {
+                            int32_t n = (int32_t)targets[k]->size();
+                            targets[k]->resize(n + 1);
+                            (*targets[k])[n].Reset(isolate->m_isolate, e.As<v8::RegExp>());
+                        }
+                    }
                 }
             }
         }

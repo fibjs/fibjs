@@ -1266,7 +1266,7 @@ describe('crypto', () => {
                 });
             }
 
-            it('callback', (done) => {
+            it('callback', (ctx, done) => {
                 crypto.generateKeyPair('rsa', {
                     publicExponent: 0x10001,
                     modulusLength: 512,

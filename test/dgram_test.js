@@ -120,7 +120,7 @@ describe('dgram', () => {
         socket.close();
     });
 
-    it('address', done => {
+    it('address', (ctx, done) => {
         const socket = dgram.createSocket('udp4');
 
         socket.on('listening', () => {
@@ -145,7 +145,7 @@ describe('dgram', () => {
 
     describe("send/recv", () => {
         function test_message(name, value, port) {
-            it(`send ${name}`, done => {
+            it(`send ${name}`, (ctx, done) => {
                 var t = false;
                 const s = dgram.createSocket('udp4');
                 s.on('message', (msg, addr) => {
@@ -284,7 +284,7 @@ describe('dgram', () => {
 
     if (has_ipv6)
         describe("ipv6", () => {
-            it('ipv6 address', done => {
+            it('ipv6 address', (ctx, done) => {
                 const socket = dgram.createSocket('udp6');
 
                 socket.on('listening', () => {
@@ -307,7 +307,7 @@ describe('dgram', () => {
                 socket.bind(0, "::1");
             });
 
-            it('send/message ipv6', done => {
+            it('send/message ipv6', (ctx, done) => {
                 var t = false;
                 const s = dgram.createSocket({
                     type: 'udp6',

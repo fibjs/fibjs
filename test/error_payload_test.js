@@ -23,7 +23,7 @@ describe('error payload', () => {
         });
     });
 
-    it('keeps parameter summaries on callback errors', (done) => {
+    it('keeps parameter summaries on callback errors', (ctx, done) => {
         fs.readFile(missing, (err) => {
             try {
                 assert.ok(err instanceof Error);
@@ -190,7 +190,7 @@ describe('error payload', () => {
             assert.ok(names[i].endsWith('_' + i));
     });
 
-    it('keeps the error code on the callback path', (done) => {
+    it('keeps the error code on the callback path', (ctx, done) => {
         // The callback path builds the JS error on the JS thread from a
         // captured description; the payload restored next to it carries the
         // code, so it must not be dropped on the way.

@@ -1520,6 +1520,12 @@ inline bool isUrlSlash(char ch)
 void outLog(int32_t priority, exlib::string msg);
 void errorLog(exlib::string msg);
 
+// Implemented in test/test.cpp. No-op unless the test tree has already finished
+// running: from then on any uncaught error counts as asynchronous activity no
+// test can observe (Node: "generated asynchronous activity after the test
+// ended"), which must fail the run instead of only printing.
+void test_report_late_error();
+
 extern bool g_no_deprecation;
 #define DEPRECATED_SOON(name)                                         \
     {                                                                 \

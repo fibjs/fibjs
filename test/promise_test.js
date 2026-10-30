@@ -68,7 +68,7 @@ describe('promise', () => {
         assert.equal(stderr ? stderr.toString() : "", "");
     });
 
-    it("microtask should run before next macrotask", done => {
+    it("microtask should run before next macrotask", (ctx, done) => {
         setImmediate(() => {
             let microtaskRan = false;
 

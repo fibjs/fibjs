@@ -4189,7 +4189,7 @@ describe("http", () => {
                 }).headers['Content-Length'], 15);
             });
 
-            it("async", (done) => {
+            it("async", (ctx, done) => {
                 http.head("http://127.0.0.1:" + (8882 + base_port) + "/request", (r) => {
                     done(() => {
                         assert.isNull(r.body);
@@ -4252,7 +4252,7 @@ describe("http", () => {
                 }).headers['Content-Length'], "15");
             });
 
-            it("async", (done) => {
+            it("async", (ctx, done) => {
                 http.get("http://127.0.0.1:" + (8882 + base_port) + "/request", (r) => {
                     done(() => {
                         assert.equal(r.text(), "/request");
@@ -4284,7 +4284,7 @@ describe("http", () => {
                 }).headers['Content-Length'], "15");
             });
 
-            it("async body", (done) => {
+            it("async body", (ctx, done) => {
                 http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:",
                     (r) => {
                         done(() => {
@@ -4293,7 +4293,7 @@ describe("http", () => {
                     }).end("body");
             });
 
-            it("async header", (done) => {
+            it("async header", (ctx, done) => {
                 http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                     headers: {
                         "test_header": "header"
@@ -4496,7 +4496,7 @@ describe("http", () => {
                 }).headers['Content-Length'], 15);
             });
 
-            it("async", (done) => {
+            it("async", (ctx, done) => {
                 hc.head("https://localhost:" + (8883 + base_port) + "/request", (r) => {
                     done(() => {
                         assert.isNull(r.body);
@@ -4675,7 +4675,7 @@ describe("http", () => {
                     }).headers['test_header'], 'foobar');
                 });
 
-                it("async", (done) => {
+                it("async", (ctx, done) => {
                     client.head("http://127.0.0.1:" + (8884 + base_port) + "/request", (r) => {
                         done(() => {
                             assert.isNull(r.body);
@@ -4970,7 +4970,7 @@ describe("http", () => {
                 assert.lessThan(t2 - t1, 500);
             });
 
-            it("req.abort() on async http.request cancels request", (done) => {
+            it("req.abort() on async http.request cancels request", (ctx, done) => {
                 var controller = new AbortController();
                 var req = http.request("http://127.0.0.1:" + abortPort + "/timeout", {
                     signal: controller.signal
@@ -4999,7 +4999,7 @@ describe("http", () => {
                 });
             });
 
-            it("async abort delivers the same error as the sync path", (done) => {
+            it("async abort delivers the same error as the sync path", (ctx, done) => {
                 // The 'error' event is emitted from the completing thread, so
                 // the error description (name/code/number/message) must travel
                 // with the payload; otherwise the event reports "[0] Success".
@@ -5035,7 +5035,7 @@ describe("http", () => {
                 });
             });
 
-            it("async manual abort reports AbortError", (done) => {
+            it("async manual abort reports AbortError", (ctx, done) => {
                 var controller = new AbortController();
                 var req = http.get("http://127.0.0.1:" + abortPort + "/timeout", {
                     signal: controller.signal
@@ -6513,7 +6513,7 @@ describe("http", () => {
         }
 
         describe("http.request(url, callback)", () => {
-            it("returns HttpRequest and callback receives response", (done) => {
+            it("returns HttpRequest and callback receives response", (ctx, done) => {
                 var req = http.request(url("/hello"), (r) => {
                     done(() => {
                         assert.equal(r.statusCode, 200);
@@ -6524,7 +6524,7 @@ describe("http", () => {
                 assert.ok(req);
             });
 
-            it("request is an EventEmitter", (done) => {
+            it("request is an EventEmitter", (ctx, done) => {
                 var req = http.request(url("/hello"), (r) => {
                     done();
                 });
@@ -6534,7 +6534,7 @@ describe("http", () => {
                 assert.equal(typeof req.off, 'function');
             });
 
-            it("dispatches by string url without opts", (done) => {
+            it("dispatches by string url without opts", (ctx, done) => {
                 http.request(url("/hello"), (r) => {
                     done(() => {
                         assert.equal(r.statusCode, 200);
@@ -6543,7 +6543,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("callback request survives GC before delayed response", (done) => {
+            it("callback request survives GC before delayed response", (ctx, done) => {
                 var finished = false;
                 var timer = null;
 
@@ -6593,7 +6593,7 @@ describe("http", () => {
         });
 
         describe("http.request(method, url, opts, callback)", () => {
-            it("GET with opts", (done) => {
+            it("GET with opts", (ctx, done) => {
                 http.request("GET", url("/echo-header"), {
                     headers: { "x-custom": "test-value" }
                 }, (r) => {
@@ -6603,7 +6603,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("POST with body", (done) => {
+            it("POST with body", (ctx, done) => {
                 http.request("POST", url("/echo-body"),
                     (r) => {
                         done(() => {
@@ -6612,7 +6612,7 @@ describe("http", () => {
                     }).end("post-data");
             });
 
-            it("POST with body via write() + end()", (done) => {
+            it("POST with body via write() + end()", (ctx, done) => {
                 var req = http.request("POST", url("/echo-body"), (r) => {
                     done(() => {
                         assert.equal(r.text(), "/echo-bodywrite-data");
@@ -6622,7 +6622,7 @@ describe("http", () => {
                 req.end();
             });
 
-            it("POST with multiple write() calls", (done) => {
+            it("POST with multiple write() calls", (ctx, done) => {
                 var req = http.request("POST", url("/echo-body"), (r) => {
                     done(() => {
                         assert.equal(r.text(), "/echo-bodyabc");
@@ -6634,7 +6634,7 @@ describe("http", () => {
                 req.end();
             });
 
-            it("POST with write() + end(data)", (done) => {
+            it("POST with write() + end(data)", (ctx, done) => {
                 var req = http.request("POST", url("/echo-body"), (r) => {
                     done(() => {
                         assert.equal(r.text(), "/echo-bodyfirstlast");
@@ -6644,7 +6644,7 @@ describe("http", () => {
                 req.end("last");
             });
 
-            it("POST with end(Buffer)", (done) => {
+            it("POST with end(Buffer)", (ctx, done) => {
                 var req = http.request("POST", url("/echo-body"), (r) => {
                     done(() => {
                         assert.equal(r.text(), "/echo-bodybuf-data");
@@ -6653,7 +6653,7 @@ describe("http", () => {
                 req.end(Buffer.from("buf-data"));
             });
 
-            it("POST with end(Buffer, encoding)", (done) => {
+            it("POST with end(Buffer, encoding)", (ctx, done) => {
                 var req = http.request("POST", url("/echo-body"), (r) => {
                     done(() => {
                         assert.equal(r.text(), "/echo-bodybuf-enc");
@@ -6662,7 +6662,7 @@ describe("http", () => {
                 req.end(Buffer.from("buf-enc"), "utf8");
             });
 
-            it("POST with end(String, encoding)", (done) => {
+            it("POST with end(String, encoding)", (ctx, done) => {
                 var req = http.request("POST", url("/echo-body"), (r) => {
                     done(() => {
                         assert.equal(r.text(), "/echo-bodystr-enc");
@@ -6673,7 +6673,7 @@ describe("http", () => {
         });
 
         describe("http.request(url, opts, callback)", () => {
-            it("with headers", (done) => {
+            it("with headers", (ctx, done) => {
                 http.request(url("/echo-header"), {
                     headers: { "x-custom": "via-url-opts" }
                 }, (r) => {
@@ -6685,7 +6685,7 @@ describe("http", () => {
         });
 
         describe("http.request(opts, callback)", () => {
-            it("with Object opts (hostname/protocol/pathname) — IDL overload dispatch", (done) => {
+            it("with Object opts (hostname/protocol/pathname) — IDL overload dispatch", (ctx, done) => {
                 // Regression: passing a plain Object must dispatch to request(Object opts),
                 // NOT toString() it as a URL string ("[object Object]").
                 http.request({
@@ -6701,7 +6701,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("with Object opts (hostname/port/path) without protocol", (done) => {
+            it("with Object opts (hostname/port/path) without protocol", (ctx, done) => {
                 http.request({
                     hostname: '127.0.0.1',
                     port: cbPort,
@@ -6714,7 +6714,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("POST with Object opts (hostname/port/path)", (done) => {
+            it("POST with Object opts (hostname/port/path)", (ctx, done) => {
                 http.request({
                     method: 'POST',
                     hostname: '127.0.0.1',
@@ -6728,7 +6728,7 @@ describe("http", () => {
                 }).end("post-data");
             });
 
-            it("concurrent requests with Object opts (hostname/port/path)", (done) => {
+            it("concurrent requests with Object opts (hostname/port/path)", (ctx, done) => {
                 var total = 5;
                 var left = total;
                 var codes = [];
@@ -6764,7 +6764,7 @@ describe("http", () => {
         });
 
         describe("http.get(url, callback)", () => {
-            it("auto-sends without end() and callback receives response (D-005)", (done) => {
+            it("auto-sends without end() and callback receives response (D-005)", (ctx, done) => {
                 var req = http.get(url("/hello"), (r) => {
                     done(() => {
                         assert.equal(r.statusCode, 200);
@@ -6777,7 +6777,7 @@ describe("http", () => {
         });
 
         describe("http.get(url, opts, callback)", () => {
-            it("with custom headers", (done) => {
+            it("with custom headers", (ctx, done) => {
                 http.get(url("/echo-header"), {
                     headers: { "x-custom": "get-opts" }
                 }, (r) => {
@@ -6789,7 +6789,7 @@ describe("http", () => {
         });
 
         describe("http.get/head auto-send without end() (D-005)", () => {
-            it("http.get(url) event style without end() emits response", (done) => {
+            it("http.get(url) event style without end() emits response", (ctx, done) => {
                 var req = http.get(url("/hello"));
                 req.on("response", (r) => {
                     done(() => {
@@ -6800,7 +6800,7 @@ describe("http", () => {
                 // 不调用 end():http.get 自动发送
             });
 
-            it("http.head(url, callback) without end()", (done) => {
+            it("http.head(url, callback) without end()", (ctx, done) => {
                 http.head(url("/echo-method"), (r) => {
                     done(() => {
                         assert.equal(r.statusCode, 200);
@@ -6809,7 +6809,7 @@ describe("http", () => {
                 // 不调用 end():http.head 自动发送
             });
 
-            it("http.head(url) event style without end() emits response", (done) => {
+            it("http.head(url) event style without end() emits response", (ctx, done) => {
                 var req = http.head(url("/echo-method"));
                 req.on("response", (r) => {
                     done(() => {
@@ -6819,7 +6819,7 @@ describe("http", () => {
                 // 不调用 end():http.head 自动发送
             });
 
-            it("http.get(url, callback) + end() still works (backward compat)", (done) => {
+            it("http.get(url, callback) + end() still works (backward compat)", (ctx, done) => {
                 var req = http.get(url("/hello"), (r) => {
                     done(() => {
                         assert.equal(r.text(), "/hello");
@@ -6828,7 +6828,7 @@ describe("http", () => {
                 req.end(); // 旧模式:显式 end() 应保持无害
             });
 
-            it("http.request(url, callback) without end() does NOT send", (done) => {
+            it("http.request(url, callback) without end() does NOT send", (ctx, done) => {
                 var fired = false;
                 var req = http.request(url("/hello"), (r) => {
                     fired = true;
@@ -6839,7 +6839,7 @@ describe("http", () => {
                 done();
             });
 
-            it("http.post(url, callback) without end() does NOT send", (done) => {
+            it("http.post(url, callback) without end() does NOT send", (ctx, done) => {
                 var fired = false;
                 var req = http.post(url("/echo-body"), (r) => {
                     fired = true;
@@ -6858,7 +6858,7 @@ describe("http", () => {
                 hc = new http.Client();
             });
 
-            it("hc.request(method, url, opts, callback)", (done) => {
+            it("hc.request(method, url, opts, callback)", (ctx, done) => {
                 hc.request("GET", url("/echo-header"), {
                     headers: { "x-custom": "hc-request" }
                 }, (r) => {
@@ -6868,7 +6868,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("hc.request(url, callback)", (done) => {
+            it("hc.request(url, callback)", (ctx, done) => {
                 hc.request(url("/hello"), (r) => {
                     done(() => {
                         assert.equal(r.text(), "/hello");
@@ -6876,7 +6876,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("hc.request(url, opts, callback)", (done) => {
+            it("hc.request(url, opts, callback)", (ctx, done) => {
                 hc.request(url("/echo-header"), {
                     headers: { "x-custom": "hc-url-opts" }
                 }, (r) => {
@@ -6886,7 +6886,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("hc.request(opts, callback) — string url", (done) => {
+            it("hc.request(opts, callback) — string url", (ctx, done) => {
                 hc.request(url("/hello"), (r) => {
                     done(() => {
                         assert.equal(r.text(), "/hello");
@@ -6894,7 +6894,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("hc.request(opts, callback) — Object opts (IDL overload dispatch)", (done) => {
+            it("hc.request(opts, callback) — Object opts (IDL overload dispatch)", (ctx, done) => {
                 // Regression: plain Object must dispatch to request(Object opts),
                 // NOT be coerced via toString() to \"[object Object]\".
                 hc.request({
@@ -6910,7 +6910,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("hc.request(method, url, callback)", (done) => {
+            it("hc.request(method, url, callback)", (ctx, done) => {
                 hc.request("POST", url("/echo-body"), (r) => {
                     done(() => {
                         assert.equal(r.text(), "/echo-bodywrite-hc");
@@ -6918,7 +6918,7 @@ describe("http", () => {
                 }).end("write-hc");
             });
 
-            it("hc.get(url, callback)", (done) => {
+            it("hc.get(url, callback)", (ctx, done) => {
                 hc.get(url("/hello"), (r) => {
                     done(() => {
                         assert.equal(r.text(), "/hello");
@@ -6926,7 +6926,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("hc.get(url, opts, callback)", (done) => {
+            it("hc.get(url, opts, callback)", (ctx, done) => {
                 hc.get(url("/echo-header"), {
                     headers: { "x-custom": "hc-get-opts" }
                 }, (r) => {
@@ -6938,7 +6938,7 @@ describe("http", () => {
         });
 
         describe("no callback request API", () => {
-            it("http.request(url) returns HttpRequest and emits response", (done) => {
+            it("http.request(url) returns HttpRequest and emits response", (ctx, done) => {
                 var req = http.request(url("/hello"));
                 req.end();
                 assert.ok(req);
@@ -6966,7 +6966,7 @@ describe("http", () => {
                 });
             });
 
-            it("http.request(method, url, opts) emits response", (done) => {
+            it("http.request(method, url, opts) emits response", (ctx, done) => {
                 var req = http.request("POST", url("/echo-body"));
                 req.end("no-cb-body");
                 assert.ok(req);
@@ -6993,7 +6993,7 @@ describe("http", () => {
                 });
             });
 
-            it("http.request(method, url) without opts emits response", (done) => {
+            it("http.request(method, url) without opts emits response", (ctx, done) => {
                 var req = http.request("GET", url("/echo-method"));
                 req.end();
                 var finished = false;
@@ -7018,7 +7018,7 @@ describe("http", () => {
                 });
             });
 
-            it("http.request(opts) with Object opts (hostname/port/path) emits response", (done) => {
+            it("http.request(opts) with Object opts (hostname/port/path) emits response", (ctx, done) => {
                 var req = http.request({
                     hostname: '127.0.0.1',
                     port: cbPort,
@@ -7050,7 +7050,7 @@ describe("http", () => {
                 });
             });
 
-            it("hc.request(url) returns HttpRequest and emits response", (done) => {
+            it("hc.request(url) returns HttpRequest and emits response", (ctx, done) => {
                 var hc = new http.Client();
                 var req = hc.request(url("/hello"));
                 req.end();
@@ -7083,7 +7083,7 @@ describe("http", () => {
             before(() => {
                 http.autoRedirect = true;
             });
-            it("callback receives final response after redirect", (done) => {
+            it("callback receives final response after redirect", (ctx, done) => {
                 http.get(url("/redirect-to-final"), (r) => {
                     done(() => {
                         assert.equal(r.statusCode, 200);
@@ -7092,7 +7092,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("multi-hop redirect", (done) => {
+            it("multi-hop redirect", (ctx, done) => {
                 http.get(url("/redirect-chain"), (r) => {
                     done(() => {
                         assert.equal(r.statusCode, 200);
@@ -7101,7 +7101,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("returned request is same object across redirects", (done) => {
+            it("returned request is same object across redirects", (ctx, done) => {
                 var req = http.get(url("/redirect-to-final"), (r) => {
                     done(() => {
                         assert.equal(r.statusCode, 200);
@@ -7113,7 +7113,7 @@ describe("http", () => {
         });
 
         describe("callback with autoRedirect=false", () => {
-            it("returns redirect response without following", (done) => {
+            it("returns redirect response without following", (ctx, done) => {
                 var hc = new http.Client();
                 hc.autoRedirect = false;
                 hc.get(url("/redirect-to-final"), (r) => {
@@ -7125,7 +7125,7 @@ describe("http", () => {
         });
 
         describe("response streaming events", () => {
-            it("res.on('data') receives body chunks", (done) => {
+            it("res.on('data') receives body chunks", (ctx, done) => {
                 http.get(url("/hello"), (res) => {
                     var chunks = [];
                     res.on("data", (chunk) => {
@@ -7139,7 +7139,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("res.setEncoding('utf8') makes data chunks strings", (done) => {
+            it("res.setEncoding('utf8') makes data chunks strings", (ctx, done) => {
                 http.get(url("/hello"), (res) => {
                     var chunks = [];
 
@@ -7158,7 +7158,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("data chunks stay Buffers without setEncoding", (done) => {
+            it("data chunks stay Buffers without setEncoding", (ctx, done) => {
                 http.get(url("/hello"), (res) => {
                     var chunks = [];
 
@@ -7174,7 +7174,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("sync response res.setEncoding('utf8') works", (done) => {
+            it("sync response res.setEncoding('utf8') works", (ctx, done) => {
                 var resp = http.getSync(url("/hello"));
                 resp.setEncoding("utf8");
 
@@ -7189,7 +7189,7 @@ describe("http", () => {
                 });
             });
 
-            it("res.on('close') fires after end", (done) => {
+            it("res.on('close') fires after end", (ctx, done) => {
                 http.get(url("/hello"), (res) => {
                     res.on("data", () => { });
                     res.on("close", () => {
@@ -7198,7 +7198,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("sync mode res.on('data') works", (done) => {
+            it("sync mode res.on('data') works", (ctx, done) => {
                 var resp = http.getSync(url("/hello"));
                 var chunks = [];
                 resp.on("data", (chunk) => {
@@ -7211,7 +7211,7 @@ describe("http", () => {
                 });
             });
 
-            it("res.on('data') with callback + opts", (done) => {
+            it("res.on('data') with callback + opts", (ctx, done) => {
                 http.post(url("/echo-body"),
                     (res) => {
                         var chunks = [];
@@ -7226,7 +7226,7 @@ describe("http", () => {
                     }).end("streaming-test");
             });
 
-            it("HttpClient res.on('data') works", (done) => {
+            it("HttpClient res.on('data') works", (ctx, done) => {
                 var hc = new http.Client();
                 hc.get(url("/hello"), (res) => {
                     var chunks = [];
@@ -7243,7 +7243,7 @@ describe("http", () => {
         });
 
         describe("agent option in opts", () => {
-            it("http.request(opts) uses agent from opts", (done) => {
+            it("http.request(opts) uses agent from opts", (ctx, done) => {
                 var hc = new http.Client();
                 hc.userAgent = "custom-agent-1";
                 http.request({
@@ -7259,7 +7259,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("http.request(url, opts, callback) uses agent from opts", (done) => {
+            it("http.request(url, opts, callback) uses agent from opts", (ctx, done) => {
                 var hc = new http.Client();
                 hc.userAgent = "custom-agent-2";
                 http.request(url("/echo-agent"), { agent: hc }, (r) => {
@@ -7269,7 +7269,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("http.request(method, url, opts, callback) uses agent from opts", (done) => {
+            it("http.request(method, url, opts, callback) uses agent from opts", (ctx, done) => {
                 var hc = new http.Client();
                 hc.userAgent = "custom-agent-3";
                 http.request("GET", url("/echo-agent"), { agent: hc }, (r) => {
@@ -7279,7 +7279,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("http.get(url, opts, callback) uses agent from opts", (done) => {
+            it("http.get(url, opts, callback) uses agent from opts", (ctx, done) => {
                 var hc = new http.Client();
                 hc.userAgent = "custom-agent-4";
                 http.get(url("/echo-agent"), { agent: hc }, (r) => {
@@ -7289,7 +7289,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("agent timeout applies to request", (done) => {
+            it("agent timeout applies to request", (ctx, done) => {
                 var hc = new http.Client();
                 hc.timeout = 5000;
                 hc.userAgent = "timeout-agent";
@@ -7300,7 +7300,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("agent option does not affect global client", (done) => {
+            it("agent option does not affect global client", (ctx, done) => {
                 var oldUA = http.userAgent;
                 var hc = new http.Client();
                 hc.userAgent = "isolated-agent";
@@ -7312,7 +7312,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("no agent option uses global client", (done) => {
+            it("no agent option uses global client", (ctx, done) => {
                 var oldUA = http.userAgent;
                 http.userAgent = "global-ua-test";
                 http.request(url("/echo-agent"), {}, (r) => {
@@ -7339,7 +7339,7 @@ describe("http", () => {
         });
 
         describe("error event propagation", () => {
-            it("connection refused emits error on req", (done) => {
+            it("connection refused emits error on req", (ctx, done) => {
                 var req = http.request("http://127.0.0.1:1/nope", (r) => {
                     done(new Error("should not get response"));
                 });
@@ -7351,7 +7351,7 @@ describe("http", () => {
                 req.end();
             });
 
-            it("error event with callback mode (url, callback)", (done) => {
+            it("error event with callback mode (url, callback)", (ctx, done) => {
                 http.request("http://127.0.0.1:1/nope", (r) => {
                     done(new Error("should not get response"));
                 }).on("error", (err) => {
@@ -7361,7 +7361,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("error event with callback mode (method, url, opts, callback)", (done) => {
+            it("error event with callback mode (method, url, opts, callback)", (ctx, done) => {
                 http.request("GET", "http://127.0.0.1:1/nope", {}, (r) => {
                     done(new Error("should not get response"));
                 }).on("error", (err) => {
@@ -7371,7 +7371,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("HttpClient error event on connection refused", (done) => {
+            it("HttpClient error event on connection refused", (ctx, done) => {
                 var hc = new http.Client();
                 hc.request("http://127.0.0.1:1/nope", (r) => {
                     done(new Error("should not get response"));
@@ -7386,7 +7386,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("error payload strips credentials from the request url", (done) => {
+            it("error payload strips credentials from the request url", (ctx, done) => {
                 var hc = new http.Client();
                 hc.request("http://user:secret@127.0.0.1:1/nope?q=1", (r) => {
                     done(new Error("should not get response"));
@@ -7400,7 +7400,7 @@ describe("http", () => {
                 }).end();
             });
 
-            it("no-callback request emits error on req", (done) => {
+            it("no-callback request emits error on req", (ctx, done) => {
                 var req = http.request("http://127.0.0.1:1/nope");
                 req.on("error", (err) => {
                     done(() => {
@@ -7410,7 +7410,7 @@ describe("http", () => {
                 req.end();
             });
 
-            it("error event fires only once", (done) => {
+            it("error event fires only once", (ctx, done) => {
                 var count = 0;
                 var req = http.request("http://127.0.0.1:1/nope", (r) => {
                     done(new Error("should not get response"));

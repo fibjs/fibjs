@@ -198,7 +198,10 @@ describe("test", () => {
         todo("todo1");
 
         it("check", () => {
-            assert.equal(t, false);
+            // node runs a todo body like any other case; only the result is
+            // classified as todo (never as a failure). Verified with
+            // `node --test --test-isolation=none` on this same shape.
+            assert.equal(t, true);
         });
     });
 
@@ -258,20 +261,28 @@ describe("test", () => {
         });
 
         it("check", () => {
+            // Same sequence as `node --test --test-isolation=none` on this
+            // shape: the todo body runs (with its beforeEach/afterEach), and
+            // hooks of one level run in declaration order (FIFO).
             assert.deepEqual(steps, [
                 "before",
                 "before each 1",
                 "before each 2",
-                "test",
-                "after each 2",
+                "todo",
                 "after each 1",
+                "after each 2",
+                "before each 1",
+                "before each 2",
+                "test",
+                "after each 1",
+                "after each 2",
                 "before each 1",
                 "before each 2",
                 "sub before each 2",
                 "sub test",
                 "sub after each 1",
-                "after each 2",
                 "after each 1",
+                "after each 2",
                 "after"
             ]);
         });
@@ -323,7 +334,7 @@ describe("test", () => {
     describe("callback case", () => {
         var t;
 
-        it("function(done)", function (done) {
+        it("function(done)", function (ctx, done) {
             t = false;
             setTimeout(() => {
                 t = true;
@@ -335,7 +346,7 @@ describe("test", () => {
             assert.equal(t, true);
         });
 
-        it("function name(done)", function name(done) {
+        it("function name(done)", function name(ctx, done) {
             t = false;
             setTimeout(() => {
                 t = true;
@@ -347,7 +358,7 @@ describe("test", () => {
             assert.equal(t, true);
         });
 
-        it("done =>", done => {
+        it("done =>", (ctx, done) => {
             t = false;
             setTimeout(() => {
                 t = true;
@@ -360,7 +371,7 @@ describe("test", () => {
         });
 
 
-        it("(done) =>", (done) => {
+        it("(done) =>", (ctx, done) => {
             t = false;
             setTimeout(() => {
                 t = true;
@@ -372,7 +383,7 @@ describe("test", () => {
             assert.equal(t, true);
         });
 
-        it("done(cb)", done => {
+        it("done(cb)", (ctx, done) => {
             t = false;
             done(() => {
                 t = true;
@@ -471,10 +482,17 @@ describe("test", () => {
             }, 50);
         });
 
-        it("one-arg done still works", (done) => {
-            assert.isFunction(done);
-            results.push('one-arg-done');
-            done();
+        it("one-arg body receives the context", (ctx) => {
+            // node: `fn.length === runArgs.length - 1` is false for one
+            // parameter, so the body is called as (ctx) and the context is the
+            // only argument (it used to be `done` in fibjs).
+            assert.isObject(ctx);
+            assert.equal(ctx.name, 'one-arg body receives the context');
+            assert.isFunction(ctx.skip);
+            assert.isFunction(ctx.todo);
+            assert.isFunction(ctx.diagnostic);
+            assert.isObject(ctx.assert);
+            results.push('one-arg-ctx');
         });
 
         it("zero-arg sync still works", () => {
@@ -485,7 +503,7 @@ describe("test", () => {
             assert.deepEqual(results, [
                 'sync-two-arg',
                 'async-two-arg',
-                'one-arg-done',
+                'one-arg-ctx',
                 'zero-arg'
             ]);
         });
@@ -571,7 +589,8 @@ describe("test", () => {
         });
 
         it('check', () => {
-            assert.equal(t, false);
+            // node runs the body of a todo-marked case (mark !== skip).
+            assert.equal(t, true);
         });
     });
 

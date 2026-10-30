@@ -286,7 +286,7 @@ describe('worker_threads fibjs target behavior', () => {
         assert.strictEqual(globalThis.Worker.prototype, Worker.prototype);
     });
 
-    it('runs a worker created through globalThis.Worker', (done) => {
+    it('runs a worker created through globalThis.Worker', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new globalThis.Worker([
             "const { parentPort } = require('worker_threads');",
@@ -321,7 +321,7 @@ describe('worker_threads fibjs target behavior', () => {
         worker.postMessage('ping');
     });
 
-    it('resolves terminate() with the exit code without blocking', (done) => {
+    it('resolves terminate() with the exit code without blocking', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new globalThis.Worker('setInterval(() => {}, 50);', { eval: true });
 
@@ -357,7 +357,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('transfers an ArrayBuffer through postMessage(value, transferList)', (done) => {
+    it('transfers an ArrayBuffer through postMessage(value, transferList)', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new globalThis.Worker([
             "const { parentPort } = require('worker_threads');",
@@ -396,7 +396,7 @@ describe('worker_threads fibjs target behavior', () => {
         assert.strictEqual(typeof receiveMessageOnPort, 'function');
     });
 
-    it('exposes parentPort as MessagePort and delivers direct payloads across worker threads', (done) => {
+    it('exposes parentPort as MessagePort and delivers direct payloads across worker threads', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(readyWorkerFile, {
             workerData: { value: 'seed' }
@@ -425,7 +425,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('uses logical isolate ids for threadId', (done) => {
+    it('uses logical isolate ids for threadId', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const { parentPort, threadId } = require('worker_threads');",
@@ -448,7 +448,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('emits online and exit instead of the legacy load event surface', (done) => {
+    it('emits online and exit instead of the legacy load event surface', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(readyWorkerFile, {
             workerData: { phase: 'lifecycle' }
@@ -476,7 +476,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('accepts a postMessage immediately after construction', (done) => {
+    it('accepts a postMessage immediately after construction', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(readyWorkerFile, {
             workerData: { phase: 'immediate-post' }
@@ -515,7 +515,7 @@ describe('worker_threads fibjs target behavior', () => {
         worker.postMessage({ seq: 1, text: 'early' });
     });
 
-    it('terminates a worker with a bound dgram socket in order', (done) => {
+    it('terminates a worker with a bound dgram socket in order', (ctx, done) => {
         const worker = new Worker([
             "const dgram = require('dgram');",
             "const { parentPort } = require('worker_threads');",
@@ -546,7 +546,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('terminates a worker with a listening TCP server in order', (done) => {
+    it('terminates a worker with a listening TCP server in order', (ctx, done) => {
         const worker = new Worker([
             "const net = require('net');",
             "const { parentPort } = require('worker_threads');",
@@ -563,7 +563,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('terminates a worker with a listening HTTP server in order', (done) => {
+    it('terminates a worker with a listening HTTP server in order', (ctx, done) => {
         const worker = new Worker([
             "const http = require('http');",
             "const { parentPort } = require('worker_threads');",
@@ -580,7 +580,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('terminates a worker with fs.watch in order', (done) => {
+    it('terminates a worker with fs.watch in order', (ctx, done) => {
         const worker = new Worker([
             "const fs = require('fs');",
             "const { parentPort, workerData } = require('worker_threads');",
@@ -603,7 +603,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('terminates a worker with fs.watchFile in order', (done) => {
+    it('terminates a worker with fs.watchFile in order', (ctx, done) => {
         const worker = new Worker([
             "const fs = require('fs');",
             "const { parentPort, workerData } = require('worker_threads');",
@@ -632,7 +632,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('terminates a worker with a long-lived child process IPC channel in order', (done) => {
+    it('terminates a worker with a long-lived child process IPC channel in order', (ctx, done) => {
         const worker = new Worker([
             "const child_process = require('child_process');",
             "const { parentPort, workerData } = require('worker_threads');",
@@ -656,7 +656,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('terminates a worker with an active child stdout reader in order', (done) => {
+    it('terminates a worker with an active child stdout reader in order', (ctx, done) => {
         const worker = new Worker([
             "const child_process = require('child_process');",
             "const { parentPort, workerData } = require('worker_threads');",
@@ -699,7 +699,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('terminates a worker with a pending callback-style TCP connect in order', (done) => {
+    it('terminates a worker with a pending callback-style TCP connect in order', (ctx, done) => {
         const worker = new Worker([
             "const net = require('net');",
             "const { parentPort } = require('worker_threads');",
@@ -716,7 +716,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('terminates a worker with an open WebSocket in order', (done) => {
+    it('terminates a worker with an open WebSocket in order', (ctx, done) => {
         const worker = new Worker([
             "const { parentPort, workerData } = require('worker_threads');",
             'const socket = new WebSocket(workerData.url, "test");',
@@ -751,7 +751,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('terminates a worker with an active EventSource stream in order', (done) => {
+    it('terminates a worker with an active EventSource stream in order', (ctx, done) => {
         const worker = new Worker([
             "const sse = require('sse');",
             "const { parentPort, workerData } = require('worker_threads');",
@@ -776,7 +776,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('terminates a worker with an active http2 session in order', (done) => {
+    it('terminates a worker with an active http2 session in order', (ctx, done) => {
         const worker = new Worker([
             "const http2 = require('http2');",
             "const { parentPort, workerData } = require('worker_threads');",
@@ -802,7 +802,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('releases the worker isolate when its http2 client session is closed', (done) => {
+    it('releases the worker isolate when its http2 client session is closed', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const http2 = require('http2');",
@@ -839,7 +839,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('keeps parentPort alive across multiple messages with an async gap', (done) => {
+    it('keeps parentPort alive across multiple messages with an async gap', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const { parentPort } = require('worker_threads');",
@@ -889,7 +889,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('emits uncaught worker exceptions on the error event', (done) => {
+    it('emits uncaught worker exceptions on the error event', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(throwWorkerFile);
 
@@ -925,7 +925,7 @@ describe('worker_threads fibjs target behavior', () => {
 
     // ---- worker 优雅退出语义（对照 Node v23.9 实测；见 plans/worker-graceful-exit-plan.md）----
 
-    it('terminates a worker before it goes online', (done) => {
+    it('terminates a worker before it goes online', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker('Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10000);', { eval: true });
 
@@ -959,7 +959,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, finish);
     });
 
-    it('keeps the process alive when a worker calls process.exit()', (done) => {
+    it('keeps the process alive when a worker calls process.exit()', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const { parentPort } = require('worker_threads');",
@@ -986,7 +986,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('cascades terminate to nested workers', (done) => {
+    it('cascades terminate to nested workers', (ctx, done) => {
         const finish = doneOnce(done);
         const childFile = path.join(fixtureRoot, 'nested-child.js');
         fs.writeFileSync(childFile, 'setInterval(() => {}, 1000);\n', 'utf8');
@@ -1028,7 +1028,7 @@ describe('worker_threads fibjs target behavior', () => {
         worker.once('error', finish);
     });
 
-    it('reports the original error message and worker stack for uncaught worker exceptions', (done) => {        const finish = doneOnce(done);
+    it('reports the original error message and worker stack for uncaught worker exceptions', (ctx, done) => {        const finish = doneOnce(done);
         const worker = new Worker('throw new Error("boom-payload");', { eval: true });
 
         worker.once('error', (err) => {
@@ -1045,7 +1045,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('delivers messages sent before terminate and none after exit', (done) => {
+    it('delivers messages sent before terminate and none after exit', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const { parentPort } = require('worker_threads');",
@@ -1086,7 +1086,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('does not run callback-style async completions after terminate', (done) => {
+    it('does not run callback-style async completions after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-callback-marker.txt');
         const server = http.createServer((req) => {
             coroutine.sleep(250);
@@ -1131,7 +1131,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not run promise continuations after terminate', (done) => {
+    it('does not run promise continuations after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-promise-marker.txt');
         const server = http.createServer((req) => {
             coroutine.sleep(250);
@@ -1174,7 +1174,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not run events.once() continuations after terminate', (done) => {
+    it('does not run events.once() continuations after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-events-once-marker.txt');
         const server = http.createServer((req) => {
             coroutine.sleep(250);
@@ -1221,7 +1221,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not run events.on() iterator continuations after terminate', (done) => {
+    it('does not run events.on() iterator continuations after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-events-on-marker.txt');
         const server = http.createServer((req) => {
             coroutine.sleep(250);
@@ -1271,7 +1271,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not run util.callbackify continuations after terminate', (done) => {
+    it('does not run util.callbackify continuations after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-callbackify-marker.txt');
         const server = http.createServer((req) => {
             coroutine.sleep(250);
@@ -1320,7 +1320,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not run util.promisify continuations after terminate', (done) => {
+    it('does not run util.promisify continuations after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-promisify-marker.txt');
         const server = http.createServer((req) => {
             coroutine.sleep(250);
@@ -1371,7 +1371,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not run AsyncLocalStorage.bind continuations after terminate', (done) => {
+    it('does not run AsyncLocalStorage.bind continuations after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-als-bind-marker.txt');
         const server = http.createServer((req) => {
             coroutine.sleep(250);
@@ -1419,7 +1419,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not run AsyncLocalStorage.snapshot continuations after terminate', (done) => {
+    it('does not run AsyncLocalStorage.snapshot continuations after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-als-snapshot-marker.txt');
         const server = http.createServer((req) => {
             coroutine.sleep(250);
@@ -1467,7 +1467,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not run util.sync callbacks after terminate', (done) => {
+    it('does not run util.sync callbacks after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-util-sync-marker.txt');
         const server = http.createServer((req) => {
             coroutine.sleep(250);
@@ -1517,7 +1517,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not run AsyncResource.bind continuations after terminate', (done) => {
+    it('does not run AsyncResource.bind continuations after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-async-resource-bind-marker.txt');
         const server = http.createServer((req) => {
             coroutine.sleep(250);
@@ -1563,7 +1563,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not run AsyncResource.runInAsyncScope continuations after terminate', (done) => {
+    it('does not run AsyncResource.runInAsyncScope continuations after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-async-resource-scope-marker.txt');
         const server = http.createServer((req) => {
             coroutine.sleep(250);
@@ -1608,7 +1608,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not start later coroutine.parallel items after terminate', (done) => {
+    it('does not start later coroutine.parallel items after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-coroutine-parallel-marker.txt');
         try {
             fs.unlinkSync(markerFile);
@@ -1651,7 +1651,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not start later util.map items after terminate', (done) => {
+    it('does not start later util.map items after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-util-map-marker.txt');
         try {
             fs.unlinkSync(markerFile);
@@ -1694,7 +1694,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('does not start later util.reduce items after terminate', (done) => {
+    it('does not start later util.reduce items after terminate', (ctx, done) => {
         const markerFile = path.join(fixtureRoot, 'terminate-util-reduce-marker.txt');
         try {
             fs.unlinkSync(markerFile);
@@ -1737,7 +1737,7 @@ describe('worker_threads fibjs target behavior', () => {
         }, done);
     });
 
-    it('resolves terminate() with the recorded exit code after the worker exited', (done) => {
+    it('resolves terminate() with the recorded exit code after the worker exited', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker('process.exitCode = 5;', { eval: true });
 
@@ -1767,7 +1767,7 @@ describe('worker_threads fibjs target behavior', () => {
     // JS 的下一个 interrupt check 点回调，因此**不依赖 worker 的事件循环** —— 纯 JS 死循环
     // 也能被终止。软中断（只在 fibjs 可控的 JS/native 边界生效）做不到这一点。
 
-    it('terminates a worker stuck in a JS busy loop', (done) => {
+    it('terminates a worker stuck in a JS busy loop', (ctx, done) => {
         const finish = doneOnce(done);
         const guard = setTimeout(() => finish(new Error('terminate() did not settle: worker still in busy loop')), 5000);
         const worker = new globalThis.Worker([
@@ -1799,7 +1799,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('terminates a worker blocked in Atomics.wait', (done) => {
+    it('terminates a worker blocked in Atomics.wait', (ctx, done) => {
         const finish = doneOnce(done);
         const guard = setTimeout(() => finish(new Error('terminate() did not settle: worker still in Atomics.wait')), 5000);
         const worker = new globalThis.Worker([
@@ -2049,7 +2049,7 @@ describe('worker_threads fibjs target behavior', () => {
             return;
         }
 
-        it(`terminates a worker stuck in a ${what}`, (done) => {
+        it(`terminates a worker stuck in a ${what}`, (ctx, done) => {
             terminateBusyWorker(body, done);
         });
     });
@@ -2058,7 +2058,7 @@ describe('worker_threads fibjs target behavior', () => {
     // 而 promise_then/promise_catch 在终止态下提前 return、不再 set()。
     // 没有唤醒源时该 fiber 永久 park，worker 退不出去 —— 中断开/关都一样，
     // 所以这条同时是生产路径的回归。
-    it('terminates a worker while it is awaiting an ESM module load', (done) => {
+    it('terminates a worker while it is awaiting an ESM module load', (ctx, done) => {
         const finish = doneOnce(done);
         const guard = setTimeout(
             () => finish(new Error('terminate() did not settle: worker parked in module loading')), 5000);
@@ -2093,7 +2093,7 @@ describe('worker_threads fibjs target behavior', () => {
     // Node 语义：ref'd worker 阻止父进程退出（父进程等它）；unref() 之后父进程不再等它
     // （worker 线程随进程退出被直接回收，不发 exit 事件）。ref()/unref() 幂等，重复调用无副作用。
 
-    it('keeps the message channel working across unref() and ref()', (done) => {
+    it('keeps the message channel working across unref() and ref()', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(readyWorkerFile);
 
@@ -2131,7 +2131,7 @@ describe('worker_threads fibjs target behavior', () => {
         reply('first');
     });
 
-    it('treats unref() on an exited worker as a no-op', (done) => {
+    it('treats unref() on an exited worker as a no-op', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker('process.exitCode = 0;', { eval: true });
 
@@ -2151,7 +2151,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('does not make the parent wait for an unref()ed worker', (done) => {
+    it('does not make the parent wait for an unref()ed worker', (ctx, done) => {
         const finish = doneOnce(done);
         const liveFile = path.join(fixtureRoot, 'unref-live.js');
         const childFile = path.join(fixtureRoot, 'unref-parent.js');
@@ -2216,7 +2216,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('makes the parent wait again after ref() and observes the worker exit', (done) => {
+    it('makes the parent wait again after ref() and observes the worker exit', (ctx, done) => {
         const finish = doneOnce(done);
         const liveFile = path.join(fixtureRoot, 'ref-live.js');
         const childFile = path.join(fixtureRoot, 'ref-parent.js');
@@ -2281,7 +2281,7 @@ describe('worker_threads fibjs target behavior', () => {
         });
     });
 
-    it('re-runs beforeExit while an unref()ed worker stays alive', (done) => {
+    it('re-runs beforeExit while an unref()ed worker stays alive', (ctx, done) => {
         const finish = doneOnce(done);
         const liveFile = path.join(fixtureRoot, 'beforeexit-live.js');
         const childFile = path.join(fixtureRoot, 'beforeexit-parent.js');

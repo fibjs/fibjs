@@ -502,7 +502,7 @@ describe("child_process", () => {
         assert.equal(r.error.args.argv, '["--flag"]');
     });
 
-    it("execFile callback error carries node compatible fields", (done) => {
+    it("execFile callback error carries node compatible fields", (ctx, done) => {
         child_process.execFile('definitely-not-a-command-xyz', ['--flag'], (err) => {
             try {
                 assert.ok(err instanceof Error);

@@ -319,6 +319,12 @@ JSFiber::EnterJsScope::~EnterJsScope()
     else
         m_pFiber->m_message.clear();
 
+    // An exception that escaped a JS scope with nobody to observe it. While the
+    // test tree is still running the runner's own TryCatch decides the outcome,
+    // so the hook only reacts to errors raised after the summary was printed.
+    if (!m_pFiber->m_message.empty())
+        test_report_late_error();
+
     isolate->m_js_scope_depth--;
 
     // Only handle unhandled promise rejections when the outermost JS scope exits,

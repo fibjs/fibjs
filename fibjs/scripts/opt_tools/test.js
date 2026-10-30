@@ -13,9 +13,15 @@
  *
  * Supported options (mirroring node):
  *
- *   --test-name-pattern=<regex>     run only tests whose name (or the name of
- *                                   an enclosing describe) matches; repeatable
- *   --test-skip-pattern=<regex>      (unknown to node v23, warn as unknown)
+ *   --test-name-pattern=<regex>     run only tests whose name matches; the
+ *                                   pattern is tested against the test's own
+ *                                   name, its ancestors' names and the ancestor
+ *                                   chain joined by spaces ('suite sub test'),
+ *                                   like node; repeatable (OR)
+ *   --test-skip-pattern=<regex>     skip tests whose name matches (same match
+ *                                   rules); takes precedence over the name
+ *                                   pattern; repeatable (OR)
+ *   Both accept a regular expression literal with flags: /re/i
  *   --test-reporter=<name>           only the default spec-like reporter
  *                                         is supported; other names are
  *                                         ignored with a warning
@@ -217,6 +223,7 @@ function buildTestFileList(patterns, cwd) {
 // options that take a value (--opt=value or --opt value)
 const VALUE_OPTIONS = [
     'test-name-pattern',
+    'test-skip-pattern',
     'test-reporter',
     'test-reporter-destination',
     'test-concurrency',
@@ -245,6 +252,13 @@ const UNSUPPORTED = {
 // Key on the global where the compiled --test-name-pattern RegExps are stored
 // for the test engine (test.cpp reads it at run time). Non-enumerable.
 const NAME_PATTERNS_KEY = '__fibjs_test_name_patterns';
+
+// Same for --test-skip-pattern.
+const SKIP_PATTERNS_KEY = '__fibjs_test_skip_patterns';
+
+// Key on the global with the absolute path of the file currently being loaded;
+// the engine reads it for context.filePath (node exposes the entry file).
+const TEST_ENTRY_FILE_KEY = '__fibjs_test_entry_file';
 
 // Key on the global holding what the coverage writer must leave out of a report
 // (lcov.cpp reads it when it writes at exit): the files this run was handed, and
@@ -276,6 +290,7 @@ function parseArgs(argv) {
         timeout: undefined,
         isolation: undefined,
         namePatterns: undefined,
+        skipPatterns: undefined,
         warnings: []
     };
 
@@ -328,6 +343,28 @@ function parseArgs(argv) {
     return opts;
 }
 
+// Compile a test name pattern the way node does (internal/test_runner/utils.js
+// convertStringToRegExp): a regular expression literal /re/flags keeps its
+// source and flags, anything else is used as-is. An invalid expression is a
+// hard error, an empty value is rejected the way node's option parser does.
+function compilePattern(value, flagName) {
+    if (value === '' || value === undefined) {
+        console.error(`${flagName}= requires an argument`);
+        process.exit(9);
+    }
+
+    const m = /^\/(.*)\/([a-z]*)$/.exec(value);
+    const source = m ? m[1] : value;
+    const flags = m ? m[2] : '';
+
+    try {
+        return new RegExp(source, flags);
+    } catch (e) {
+        console.error(`${flagName} must be a valid regular expression: '${value}'`);
+        process.exit(1);
+    }
+}
+
 function applyValueOption(opts, name, value) {
     switch (name) {
         case 'test-reporter':
@@ -350,14 +387,14 @@ function applyValueOption(opts, name, value) {
             opts.isolation = value;
             break;
         case 'test-name-pattern':
-            try {
-                if (opts.namePatterns === undefined)
-                    opts.namePatterns = [];
-                opts.namePatterns.push(new RegExp(value));
-            } catch (e) {
-                console.error(`--test-name-pattern must be a valid regular expression: '${value}'`);
-                process.exit(1);
-            }
+            if (opts.namePatterns === undefined)
+                opts.namePatterns = [];
+            opts.namePatterns.push(compilePattern(value, '--test-name-pattern'));
+            break;
+        case 'test-skip-pattern':
+            if (opts.skipPatterns === undefined)
+                opts.skipPatterns = [];
+            opts.skipPatterns.push(compilePattern(value, '--test-skip-pattern'));
             break;
         default:
             break;
@@ -407,7 +444,14 @@ Options:
   --test-name-pattern=<regex>
                               run only tests whose name matches the regex
                               (repeatable; a matching describe name runs its
-                              whole subtree, like node --test)
+                              whole subtree, like node --test). The pattern is
+                              also tested against the ancestor names joined by
+                              spaces, so 'suite sub test' addresses one case
+  --test-skip-pattern=<regex>
+                              skip tests whose name matches the regex
+                              (repeatable; takes precedence over
+                              --test-name-pattern). Both options also accept a
+                              regular expression literal with flags: /re/i
   --test-reporter=<name>      reporter name (only 'spec' is supported)
   --test-reporter-destination=<dest>
                               reporter destination (only 'stdout')
@@ -448,6 +492,13 @@ function main() {
         });
     }
 
+    if (opts.skipPatterns !== undefined && opts.skipPatterns.length > 0) {
+        Object.defineProperty(globalThis, SKIP_PATTERNS_KEY, {
+            configurable: true,
+            value: opts.skipPatterns
+        });
+    }
+
     const cwd = process.cwd();
     const files = buildTestFileList(opts.patterns, cwd);
 
@@ -467,6 +518,13 @@ function main() {
     // Load the test files directly, without wrapping them in a suite, so the
     // tests register exactly as if each file had been run on its own.
     for (const f of files) {
+        // Node exposes the entry file through context.filePath; publish the
+        // file being loaded so the engine can report it (non-enumerable).
+        Object.defineProperty(globalThis, TEST_ENTRY_FILE_KEY, {
+            configurable: true,
+            value: path.resolve(cwd, f)
+        });
+
         try {
             runFile(f);
         } catch (e) {

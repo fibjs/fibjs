@@ -302,7 +302,7 @@ describe("db", () => {
             }]);
         });
 
-        it("execute async", (done) => {
+        it("execute async", (ctx, done) => {
             conn.execute("select * from test where t1=?", 1123, (e, rs) => {
                 if (e)
                     return done(e);

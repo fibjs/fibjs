@@ -298,9 +298,12 @@ describe('--test-name-pattern skip/todo interplay', { skip: !isFibjs }, () => {
 
 // ---------------------------------------------------------------------------
 // only_fixture.js: only-parent{ only-target(only), plain-leaf }
-// (fibjs native only-mode: the only-marked test's parent runs alone and plain
-//  leaves take the counted-skip path. Node needs --test-only for the
-//  analogue, so this group documents fibjs behavior rather than diffing node.)
+// fibjs has native only-mode (node needs --test-only / non-process isolation),
+// so the unfiltered column is fibjs' own documented counted-skip behaviour.
+// While a name filter is active the two runtimes must agree again: a filtered
+// run drops the counted-skip entries entirely (node: `tests 1 / skipped 0` for
+// only-target, `tests 0` for a pattern that misses the only-marked case —
+// measured with `node --test-isolation=none`).
 // ---------------------------------------------------------------------------
 
 describe('--test-name-pattern with only-marked tests', { skip: !isFibjs }, () => {
@@ -317,15 +320,19 @@ describe('--test-name-pattern with only-marked tests', { skip: !isFibjs }, () =>
         assert.equal(r.code, 0, r.stderr);
         const s = summary(r.stdout);
         assert.equal(s.passed, 1);
-        assert.equal(s.skipped, 1); // plain-leaf stays on the counted-skip path
+        assert.equal(s.skipped, 0); // filtered runs drop the counted-skip entry
+        assert.equal(s.completed, 1);
     });
 
-    it('pattern missing the only-marked test prunes it; counted-skip remains', () => {
-        const r = runFiles([ONLY_FIXTURE], ['zzz']);
-        assert.equal(r.code, 0, r.stderr);
-        const s = summary(r.stdout);
-        assert.equal(s.passed, 0);
-        assert.equal(s.skipped, 1);
+    it('pattern missing the only-marked test leaves nothing behind', () => {
+        for (const pattern of ['plain-leaf', 'zzz']) {
+            const r = runFiles([ONLY_FIXTURE], [pattern]);
+            assert.equal(r.code, 0, r.stderr);
+            const s = summary(r.stdout);
+            assert.equal(s.passed, 0, pattern);
+            assert.equal(s.skipped, 0, pattern); // node: tests 0
+            assert.equal(s.completed, 0, pattern);
+        }
     });
 });
 
@@ -352,5 +359,179 @@ describe('--test-name-pattern across multiple files', { skip: !isFibjs }, () => 
         const r = runFiles([FIXTURE, HOOKS_FIXTURE], ['a1', 'my1']);
         assert.equal(r.code, 0, r.stderr);
         assert.equal(summary(r.stdout).passed, 2);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// full_name_fixture.js: alpha{ beta{gamma, delta}, gamma }, omega{first, second}
+// Both gamma tests exist, so only the ancestor-joined full name can address one
+// of them. Every expected number below was measured with
+//   node --test --test-isolation=none [--test-name-pattern=<p>] <fixture>
+// ---------------------------------------------------------------------------
+
+const FULL_NAME_FIXTURE = path.join(FIXTURES_DIR, 'full_name_fixture.js');
+
+function logs(out) {
+    return out.split('\n')
+        .filter((line) => line.charAt(0) === '[' && line.charAt(line.length - 1) === ']')
+        .map((line) => line.slice(1, -1));
+}
+
+describe('--test-name-pattern full name', { skip: !isFibjs }, () => {
+    it('unfiltered control runs everything', () => {
+        const r = runFiles([FULL_NAME_FIXTURE], []);
+        assert.equal(r.code, 0, r.stderr);
+        assert.deepEqual(logs(r.stdout), [
+            'alpha-before', 'beta-before',
+            'beta-gamma', 'beta-delta',
+            'beta-after', 'alpha-gamma',
+            'alpha-after',
+            'omega-before', 'omega-first', 'omega-second', 'omega-after'
+        ]);
+    });
+
+    it("'beta gamma' addresses beta > gamma only", () => {
+        const r = runFiles([FULL_NAME_FIXTURE], ['beta gamma']);
+        assert.equal(r.code, 0, r.stderr);
+        assert.deepEqual(logs(r.stdout), [
+            'alpha-before', 'beta-before', 'beta-gamma', 'beta-after', 'alpha-after'
+        ]);
+        assert.equal(summary(r.stdout).completed, 1);
+    });
+
+    it("'alpha gamma' addresses alpha > gamma (the sibling with the same name)", () => {
+        const r = runFiles([FULL_NAME_FIXTURE], ['alpha gamma']);
+        assert.equal(r.code, 0, r.stderr);
+        assert.deepEqual(logs(r.stdout), ['alpha-before', 'alpha-gamma', 'alpha-after']);
+        assert.equal(summary(r.stdout).completed, 1);
+    });
+
+    it("a suite-name prefix runs that whole subtree", () => {
+        const r = runFiles([FULL_NAME_FIXTURE], ['alpha beta']);
+        assert.equal(r.code, 0, r.stderr);
+        assert.deepEqual(logs(r.stdout), [
+            'alpha-before', 'beta-before',
+            'beta-gamma', 'beta-delta',
+            'beta-after', 'alpha-after'
+        ]);
+        assert.equal(summary(r.stdout).completed, 2);
+    });
+
+    it("the ' > ' joined form does not match", () => {
+        // node joins ancestors with a single space; TestContext.fullName uses
+        // ' > ', and that string must not be what the filter matches.
+        for (const pattern of ['alpha > beta', 'beta > gamma']) {
+            const r = runFiles([FULL_NAME_FIXTURE], [pattern]);
+            assert.equal(r.code, 0, r.stderr);
+            assert.deepEqual(logs(r.stdout), [], pattern);
+        }
+    });
+
+    it('a regular expression literal keeps its flags', () => {
+        const r = runFiles([FULL_NAME_FIXTURE], ['/ALPHA BETA/i']);
+        assert.equal(r.code, 0, r.stderr);
+        assert.equal(summary(r.stdout).completed, 2);
+
+        // Without the flag the same source matches nothing (case sensitive).
+        const strict = runFiles([FULL_NAME_FIXTURE], ['/ALPHA BETA/']);
+        assert.equal(strict.code, 0, strict.stderr);
+        assert.equal(summary(strict.stdout).completed, 0);
+    });
+
+    it('the root context is addressable as <root>', () => {
+        // node names the root test '<root>', and testMatchesPattern recurses into
+        // it, so the pattern matches every case.
+        const r = runFiles([FULL_NAME_FIXTURE], ['<root>']);
+        assert.equal(r.code, 0, r.stderr);
+        assert.equal(summary(r.stdout).completed, 5);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// --test-skip-pattern (same fixture; expected counts from node)
+//   node --test-isolation=none --test-skip-pattern='<p>' <fixture>
+// ---------------------------------------------------------------------------
+
+function runSkip(files, skipPatterns, namePatterns) {
+    const args = ['--test'];
+    for (const p of namePatterns || [])
+        args.push(`--test-name-pattern=${p}`);
+    for (const p of skipPatterns)
+        args.push(`--test-skip-pattern=${p}`);
+    args.push(...files);
+
+    const r = child_process.spawnSync(process.execPath, args, {
+        encoding: 'utf8',
+        env: { ...process.env, NAME_PATTERN_FIXTURE: '1' }
+    });
+    return { code: r.status, stdout: r.stdout || '', stderr: r.stderr || '' };
+}
+
+describe('--test-skip-pattern', { skip: !isFibjs }, () => {
+    it('a skip pattern on a suite prunes the whole subtree', () => {
+        const r = runSkip([FULL_NAME_FIXTURE], ['^omega$']);
+        assert.equal(r.code, 0, r.stderr);
+        assert.deepEqual(logs(r.stdout), [
+            'alpha-before', 'beta-before',
+            'beta-gamma', 'beta-delta',
+            'beta-after', 'alpha-gamma',
+            'alpha-after'
+        ]);
+        // node: tests 3 / pass 3 (only omega's two cases are dropped)
+        assert.equal(summary(r.stdout).completed, 3);
+    });
+
+    it('a skip pattern on a leaf only drops that leaf', () => {
+        const r = runSkip([FULL_NAME_FIXTURE], ['^delta$']);
+        assert.equal(r.code, 0, r.stderr);
+        assert.deepEqual(logs(r.stdout), [
+            'alpha-before', 'beta-before',
+            'beta-gamma',
+            'beta-after', 'alpha-gamma',
+            'alpha-after',
+            'omega-before', 'omega-first', 'omega-second', 'omega-after'
+        ]);
+        // node: tests 4 / pass 4
+        assert.equal(summary(r.stdout).completed, 4);
+    });
+
+    it('a skip pattern pruned suite does not run its hooks', () => {
+        const r = runSkip([FULL_NAME_FIXTURE], ['omega']);
+        assert.equal(r.code, 0, r.stderr);
+        assert.ok(r.stdout.indexOf('omega-before') < 0, 'omega hooks must not run');
+        assert.ok(r.stdout.indexOf('alpha-before') >= 0);
+    });
+
+    it('skip wins over a matching name pattern', () => {
+        const r = runSkip([FULL_NAME_FIXTURE], ['beta'], ['alpha beta']);
+        assert.equal(r.code, 0, r.stderr);
+        assert.deepEqual(logs(r.stdout), []);
+        assert.equal(summary(r.stdout).completed, 0);
+    });
+
+    it('repeated skip patterns OR together', () => {
+        const r = runSkip([FULL_NAME_FIXTURE], ['^delta$', '^first$']);
+        assert.equal(r.code, 0, r.stderr);
+        const names = logs(r.stdout);
+        assert.ok(names.indexOf('beta-delta') < 0);
+        assert.ok(names.indexOf('omega-first') < 0);
+        assert.ok(names.indexOf('beta-gamma') >= 0);
+        assert.ok(names.indexOf('omega-second') >= 0);
+        // node: tests 3 / pass 3
+        assert.equal(summary(r.stdout).completed, 3);
+    });
+
+    it('a skip pattern on a full name works like the name pattern', () => {
+        const r = runSkip([FULL_NAME_FIXTURE], ['alpha gamma']);
+        assert.equal(r.code, 0, r.stderr);
+        const names = logs(r.stdout);
+        assert.ok(names.indexOf('alpha-gamma') < 0, 'alpha > gamma is skipped');
+        assert.ok(names.indexOf('beta-gamma') >= 0, 'beta > gamma still runs');
+    });
+
+    it('an invalid skip pattern fails fast', () => {
+        const r = runSkip([FULL_NAME_FIXTURE], ['[a']);
+        assert.notEqual(r.code, 0);
+        assert.ok((r.stderr + r.stdout).indexOf('--test-skip-pattern must be a valid regular expression') >= 0);
     });
 });

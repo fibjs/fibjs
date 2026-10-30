@@ -522,7 +522,7 @@ describe('tls', () => {
                     }
                 });
 
-                it("async handshake failure reports the sync error shape", (done) => {
+                it("async handshake failure reports the sync error shape", (ctx, done) => {
                     // A handshake failure is a CALL_E_EXCEPTION whose description
                     // (name/message) lives in per-thread state. The 'error'
                     // event is emitted from the completing thread, so the

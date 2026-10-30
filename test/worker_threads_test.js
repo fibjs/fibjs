@@ -97,7 +97,7 @@ describe('worker_threads node baseline', () => {
         assert.strictEqual(typeof workerThreads.threadId, 'number');
     });
 
-    it('accepts an absolute worker path', (done) => {
+    it('accepts an absolute worker path', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(echoWorkerFile, {
             workerData: { value: 'absolute-path' }
@@ -129,7 +129,7 @@ describe('worker_threads node baseline', () => {
         });
     });
 
-    it('accepts a file URL worker path', (done) => {
+    it('accepts a file URL worker path', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(pathToFileURL(echoWorkerFile), {
             workerData: { value: 'file-url' }
@@ -147,7 +147,7 @@ describe('worker_threads node baseline', () => {
         });
     });
 
-    it('accepts ./ and ../ worker paths relative to process.cwd()', (done) => {
+    it('accepts ./ and ../ worker paths relative to process.cwd()', (ctx, done) => {
         // The worker paths are resolved against process.cwd(), so the test has
         // to move the process into the fixture.  Restore it as soon as the test
         // settles: a leaked cwd leaves the following tests running inside a
@@ -202,7 +202,7 @@ describe('worker_threads node baseline', () => {
         });
     });
 
-    it('supports eval workers', (done) => {
+    it('supports eval workers', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const { parentPort, workerData } = require('worker_threads');",
@@ -224,7 +224,7 @@ describe('worker_threads node baseline', () => {
         });
     });
 
-    it('keeps parentPort alive across multiple messages', (done) => {
+    it('keeps parentPort alive across multiple messages', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const { parentPort } = require('worker_threads');",
@@ -277,7 +277,7 @@ describe('worker_threads node baseline', () => {
         });
     });
 
-    it('exposes a stable logical threadId for each worker isolate', (done) => {
+    it('exposes a stable logical threadId for each worker isolate', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const { parentPort, threadId } = require('worker_threads');",
@@ -300,7 +300,7 @@ describe('worker_threads node baseline', () => {
         });
     });
 
-    it('emits online before exit for a normal worker lifecycle', (done) => {
+    it('emits online before exit for a normal worker lifecycle', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(replyWorkerFile, {
             workerData: { phase: 'lifecycle' }
@@ -328,7 +328,7 @@ describe('worker_threads node baseline', () => {
         });
     });
 
-    it('quiesces active interval callbacks after terminate', (done) => {
+    it('quiesces active interval callbacks after terminate', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const { parentPort } = require('worker_threads');",
@@ -381,7 +381,7 @@ describe('worker_threads node baseline', () => {
         });
     });
 
-    it('supports parent to worker and worker to parent messaging with direct payloads', (done) => {
+    it('supports parent to worker and worker to parent messaging with direct payloads', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(replyWorkerFile, {
             workerData: { phase: 'roundtrip' }
@@ -414,7 +414,7 @@ describe('worker_threads node baseline', () => {
         });
     });
 
-    it('accepts a postMessage immediately after construction', (done) => {
+    it('accepts a postMessage immediately after construction', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(replyWorkerFile, {
             workerData: { phase: 'immediate-post' }
@@ -453,7 +453,7 @@ describe('worker_threads node baseline', () => {
         worker.postMessage({ seq: 1, text: 'early' });
     });
 
-    it('emits uncaught worker exceptions on the error event', (done) => {
+    it('emits uncaught worker exceptions on the error event', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(throwWorkerFile);
 
@@ -506,7 +506,7 @@ describe('worker_threads node baseline', () => {
         }
     });
 
-    it('returns the worker from ref() and unref()', (done) => {
+    it('returns the worker from ref() and unref()', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker(replyWorkerFile, {
             workerData: { phase: 'ref' }
@@ -526,7 +526,7 @@ describe('worker_threads node baseline', () => {
         }
     });
 
-    it('does not run worker beforeExit or exit handlers during terminate()', (done) => {
+    it('does not run worker beforeExit or exit handlers during terminate()', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const { parentPort } = require('worker_threads');",
@@ -593,7 +593,7 @@ describe('worker_threads node baseline', () => {
         }
     });
 
-    it('does not schedule new fibers from timers after terminate', (done) => {
+    it('does not schedule new fibers from timers after terminate', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const coroutine = require('coroutine');",
@@ -647,7 +647,7 @@ describe('worker_threads node baseline', () => {
         });
     });
 
-    it('does not keep a worker alive with an unconsumed parentPort message', (done) => {
+    it('does not keep a worker alive with an unconsumed parentPort message', (ctx, done) => {
         const finish = doneOnce(done);
         const worker = new Worker([
             "const { parentPort } = require('worker_threads');",

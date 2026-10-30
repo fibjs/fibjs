@@ -57,7 +57,7 @@ describe("stack", () => {
     });
 
     describe("async error stack trace", () => {
-        it("should preserve stack trace in callback errors", done => {
+        it("should preserve stack trace in callback errors", (ctx, done) => {
             level1_callback((err) => {
                 if (err) {
                     try {

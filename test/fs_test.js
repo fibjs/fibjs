@@ -341,7 +341,7 @@ describe('fs', () => {
             stm.close();
         });
 
-        it("missing file error carries the open summaries", (done) => {
+        it("missing file error carries the open summaries", (ctx, done) => {
             // The open failure is built on the calling thread and the 'error'
             // event is emitted on the JS thread: the payload (flags) and the
             // description must both travel with the event.
@@ -412,7 +412,7 @@ describe('fs', () => {
             stm.close();
         });
 
-        it("async callback", done => {
+        it("async callback", (ctx, done) => {
             fs.createReadStream(tmpFile, { start: 0, end: 4 }, (err, stm) => {
                 done(() => {
                     assert.isNull(err);
@@ -1665,7 +1665,7 @@ describe('fs', () => {
         });
 
         describe('event callback', () => {
-            it('zero read', done => {
+            it('zero read', (ctx, done) => {
                 const buf = Buffer.alloc(1);
                 fs.read(fd, buf, (err, bytes) => {
                     if (err) done(err)
@@ -1698,7 +1698,7 @@ describe('fs', () => {
                 });
             });
 
-            it('full read', done => {
+            it('full read', (ctx, done) => {
                 const buf = Buffer.alloc(15);
                 fs.read(fd, buf, 0, 15, 0, (err, bytes) => {
                     if (err) done(err)
@@ -1710,7 +1710,7 @@ describe('fs', () => {
                 });
             });
 
-            it('repeat read', done => {
+            it('repeat read', (ctx, done) => {
                 const buf1 = Buffer.alloc(15);
                 const buf2 = Buffer.alloc(15);
                 const buf3 = Buffer.alloc(1);
@@ -1738,7 +1738,7 @@ describe('fs', () => {
                 });
             });
 
-            it('offset error read', done => {
+            it('offset error read', (ctx, done) => {
                 const buf = Buffer.alloc(1);
                 fs.read(fd, buf, 1, 1, 0, (err, bytes) => {
                     if (err) {
@@ -1759,7 +1759,7 @@ describe('fs', () => {
                 });
             });
 
-            it('beyond buffer error read', done => {
+            it('beyond buffer error read', (ctx, done) => {
                 const buf = Buffer.alloc(4);
                 fs.read(fd, buf, 2, 3, 0, (err, bytes) => {
                     if (err) {
@@ -1776,7 +1776,7 @@ describe('fs', () => {
                 });
             });
 
-            it('spec offset read', done => {
+            it('spec offset read', (ctx, done) => {
                 const buf = Buffer.alloc(16);
                 buf.write('x');
                 fs.read(fd, buf, 1, 15, 0, (err, bytes) => {
@@ -1789,7 +1789,7 @@ describe('fs', () => {
                 });
             });
 
-            it('spec position read', done => {
+            it('spec position read', (ctx, done) => {
                 const buf = Buffer.alloc(14);
                 fs.read(fd, buf, 0, 14, 1, (err, bytes) => {
                     if (err) done(err)
@@ -2137,7 +2137,7 @@ describe('fs', () => {
         });
     });
 
-    it("callback missing file keeps syscall/path", (done) => {
+    it("callback missing file keeps syscall/path", (ctx, done) => {
         var missing = path.join(__dirname, '__missing_fs_callback_' + vmid);
 
         fs.open(missing, 'r', (err) => {
