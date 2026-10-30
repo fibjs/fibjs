@@ -143,6 +143,11 @@ for platform in "${!ARCH_MAP[@]}"; do
     if [ -f "${binary_path}" ]; then
         echo "✅ Found ${arch}: ${binary_path}"
         cp "${binary_path}" "binaries/${binary_name}"
+        # Dockerfile.dev copies the binary straight into the image, so it must
+        # already be executable in the build context (COPY preserves the mode).
+        # Doing chmod here instead of in a RUN layer avoids duplicating the
+        # ~70MB binary into an extra image layer.
+        chmod +x "binaries/${binary_name}"
         BUILT_PLATFORMS+=("${platform}")
     else
         echo "⚠️  Missing ${arch}: ${binary_path}"

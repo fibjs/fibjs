@@ -1,23 +1,16 @@
 FROM ubuntu:24.04
 
-ENV DEBIAN_FRONTEND=noninteractive
+# No apt packages are needed:
+#   - fibjs links OpenSSL statically and embeds its own root CA bundle
+#     (fibjs/src/crypto/root_ca.cpp, loaded by SecureContext::SetRootCerts),
+#     so HTTPS works without /etc/ssl/certs and ca-certificates.
+#   - /usr/local/bin is already in the base image PATH.
+#
+# Copy only the binary for the target platform. Copying the whole binaries/
+# directory (all architectures) and then cp-ing it into place keeps two extra
+# ~70MB copies in the image.
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy fibjs binaries from build context
 ARG FIBJS_BINARY
-COPY binaries/ /tmp/binaries/
-
-# Copy the correct binary based on build arg
-RUN cp /tmp/binaries/${FIBJS_BINARY} /usr/local/bin/fibjs
-
-# Make it executable and clean up
-RUN chmod +x /usr/local/bin/fibjs && \
-    rm -rf /tmp/binaries
-
-# Ensure PATH includes /usr/local/bin
-ENV PATH="/usr/local/bin:${PATH}"
+COPY binaries/${FIBJS_BINARY} /usr/local/bin/fibjs
 
 CMD ["fibjs"]
