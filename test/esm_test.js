@@ -165,6 +165,55 @@ describe('ECMAScript modules', () => {
             assert.deepEqual(m, { test: 10000 });
         });
 
+        it("import json - default is the parsed value", async () => {
+            // Regression: the `default` binding of a JSON module was missing,
+            // so `import data from './x.json' with { type: 'json' }` was
+            // undefined even though the named exports were correct.
+            var m = await import('./esm_files/esm3');
+            assert.equal(m.default.test, 500);
+        });
+
+        it("import json - primitive value binds to default", async () => {
+            // A JSON module holding a number, string or null has no named
+            // exports at all, so `default` is the only way in.
+            var num = await import('./esm_files/json_primitive_num.json', { with: { type: 'json' } });
+            assert.equal(num.default, 42);
+
+            var str = await import('./esm_files/json_primitive_str.json', { with: { type: 'json' } });
+            assert.equal(str.default, 'hello');
+
+            var nul = await import('./esm_files/json_primitive_null.json', { with: { type: 'json' } });
+            assert.equal(nul.default, null);
+        });
+
+        it("import json - primitive value in a static import", async () => {
+            var m = await import('./esm_files/json_primitive_static.mjs');
+            assert.deepEqual(m.values, { num: 42, str: 'hello', nul: null, hasDefault: true });
+        });
+
+        it("import cjs - default is the exports object", async () => {
+            // Regression: a CommonJS namespace had no `default` binding, so
+            // `(await import('react')).default` was undefined while the static
+            // form and require() both worked.
+            var m = await import('./esm_files/cjs_default_export');
+            assert.equal(m.default.hello, 'world');
+            assert.equal(m.hello, 'world',
+                'named exports of a CJS module must still be reachable');
+        });
+
+        it("import cjs - namespace is the object require() returns", async () => {
+            var m = await import('./esm_files/cjs_default_export');
+            var m1 = require('./esm_files/cjs_default_export');
+
+            assert.equal(m, m1);
+            assert.equal(m.default, m1);
+        });
+
+        it("import cjs - default is the exports object for a builtin", async () => {
+            var m = await import('buffer');
+            assert.equal(m.default, require('buffer'));
+        });
+
         it("import builtin module", async () => {
             var m = await import('buffer');
             var m1 = require('buffer');
