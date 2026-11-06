@@ -80,14 +80,9 @@ function toLength(value) {
     return Math.floor(Math.min(len, Number.MAX_SAFE_INTEGER));
 }
 
-// node: hex 解码遇到第一个非法字符即停止，且奇数位截断（fibjs 的 hex.decode 是宽松跳过，
-// 两者语义不同，所以只在 Buffer.from(str, 'hex') 入口处做这一步规整）
-function sanitizeHex(str) {
-    let i = 0;
-    while (i < str.length && /[0-9a-fA-F]/.test(str[i]))
-        i++;
-    return str.slice(0, i & ~1);
-}
+// node: hex 解码遇到第一个非法字符即停止（fibjs 的 hex.decode 是宽松跳过）。
+// Buffer.from(str,'hex') 与 buf.write(str,...,'hex') 都在 native 侧用
+// hexDecodeTo(kStop) 直接完成，不需要在 JS 层先规整字符串。
 
 // node 的 *Slice 家族是半公开的内部 API：receiver 必须是 Uint8Array（Buffer 是它的子类），
 // start/end 必须是区间内的整数。旧实现直接 `this.toString(enc, start, end)`，当 receiver 不是
@@ -272,8 +267,19 @@ function getPool(length) {
     if (length === 0 || length >= pool_size >>> 1)
         return -1;
 
-    if (poolOffset + length > pool_size)
+    // Buffer.poolSize 是可写的。改小之后 allocPool 仍是旧的大缓冲（还能用），
+    // 改大之后旧缓冲装不下新的 poolSize —— 但**不必立刻重建**：
+    // 只要当前池的剩余空间还够这一次分配就继续用，等它自然耗尽时
+    // createPool() 会按新的 poolSize 建。node 也是这样（它的判断是
+    // poolOffset + length > poolSize，失败后才 createPool）。
+    //
+    // 唯一的硬约束：offset + length 绝不能超出 allocPool 的实际长度，
+    // 否则构造 TypedArray 会抛 "Invalid typed array length"。
+    if (allocPool === undefined || poolOffset + length > allocPool.byteLength)
         createPool();
+
+    if (poolOffset + length > allocPool.byteLength)
+        return -1;          // 连新池都装不下（极端 poolSize），退回独立分配
 
     const offset = poolOffset;
     poolOffset += length;
@@ -563,11 +569,133 @@ class Buffer extends Uint8Array {
                 bufferOrLength = bufferOrLength.toString();
 
             if (typeof bufferOrLength === 'string') {
-                var codec = byte_offset;
-                if (codec === 'hex')
-                    bufferOrLength = sanitizeHex(bufferOrLength);   // node: 遇非法字符即停止 + 奇数位截断
+                // node 的编码参数规则：
+                //   1) 只有**字符串**才被当作编码名 —— null / 123 / true / Symbol /
+                //      {toString(){}} 一律按默认的 utf8 处理，不抛错、也不调用
+                //      toString()（node: Buffer.from('ab', 123) === Buffer.from('ab')）
+                //   2) 字符串的编码名大小写不敏感（'HEX' 与 'hex' 同义），但 native
+                //      侧大小写敏感，所以这里统一小写化后再分发
+                //   3) 不认识的字符串编码保留原样交回 native，由它决定（fibjs 扩展
+                //      的 base32/base58/字符集编码依赖这一点）
+                var codec = typeof byte_offset === 'string'
+                    ? normalizeFromCodec(byte_offset)
+                    : undefined;
 
-                if (codec === undefined || codec === 'utf8' || codec === 'utf-8' || codec == 'ascii' || codec === 'binary' || codec === 'latin1') {
+                // node: latin1/binary/ascii 的 str→bytes 是"每个 code unit 取低 8 位"，
+                // ucs2/utf16le 是"每个 code unit 两字节"。两者都能在 JS 层一次写完，
+                // 不必经过 native 的 UTF-16 中转：
+                //   from(latin1) 高位 1177 µs → 104 µs，from(ucs2) 339 µs → 67 µs
+                // 同时修正 write 方向的 length 语义（node 按字节计，不写半个 code unit）。
+                if (codec === 'latin1' || codec === 'binary' || codec === 'ascii') {
+                    var len = bufferOrLength.length;
+                    let offset = getPool(len);
+                    if (offset === -1)
+                        super(len);
+                    else
+                        super(allocPool, offset, len);
+                    // 与 write() 同理：native 的 ascii 分支就是 WriteOneByte，
+                    // 与 latin1 逐字节等价，1.6 µs vs JS 循环 103 µs
+                    Buffer.native_write.call(this, bufferOrLength, 0, len, 'ascii');
+                } else if (codec === 'ucs2' || codec === 'ucs-2'
+                    || codec === 'utf16le' || codec === 'utf-16le') {
+                    // ucs2 的 str→bytes 由 native_write 直连 V8 的 UTF-16 拷贝完成
+                    // （64 KB 91 µs → ~5 µs）。这里只负责分配。
+                    var len16 = bufferOrLength.length * 2;
+                    if (len16 > 0x7fffffff)
+                        len16 = 0x7fffffff;
+                    let offset = getPool(len16);
+                    if (offset === -1)
+                        super(len16);
+                    else
+                        super(allocPool, offset, len16);
+                    this.write(bufferOrLength, 0, len16, 'ucs2');
+                } else if (codec === 'utf16be' || codec === 'utf-16be'
+                    || codec === 'ucs2be' || codec === 'ucs-2be') {
+                    // 大端 UTF-16：与 utf16le 完全相同的语义（每个 code unit
+                    // 原样输出，孤代理项**不替换**），只是字节序相反。
+                    //
+                    // 为什么不用 native 的 utf_convert_s：那条路径会对输入做
+                    // validate_utf16，孤代理项被判非法后替换成 U+FFFD —— 于是
+                    //   Buffer.from('a\\ud800b','utf16be')  ->  0061 fffd fffd fffd 0062
+                    // 而 utf16le 是原样保留（node 的 ucs2 也是原样保留）。
+                    // 两个名字指的是同一个编码，必须给出同样的 code unit 序列。
+                    var n16 = bufferOrLength.length;
+                    var lenBE = n16 * 2;
+                    if (lenBE > 0x7fffffff)
+                        lenBE = 0x7fffffff;
+                    let offBE = getPool(lenBE);
+                    if (offBE === -1)
+                        super(lenBE);
+                    else
+                        super(allocPool, offBE, lenBE);
+                    for (var ib = 0; ib < n16; ib++) {
+                        var cu = bufferOrLength.charCodeAt(ib);
+                        this[ib * 2] = cu >>> 8;
+                        this[ib * 2 + 1] = cu & 0xff;
+                    }
+                } else if (codec === 'utf32' || codec === 'utf-32'
+                    || codec === 'utf32le' || codec === 'utf-32le'
+                    || codec === 'utf32be' || codec === 'utf-32be'
+                    || codec === 'ucs4' || codec === 'ucs-4'
+                    || codec === 'ucs4le' || codec === 'ucs-4le'
+                    || codec === 'ucs4be' || codec === 'ucs-4be') {
+                    // UTF-32：每个**码点**扩成 4 字节（代理对合并成单个 astral
+                    // 码点，孤代理项原样保留为它本身的值，与 utf16 家族一致）。
+                    //
+                    // 为什么不用 native 的 utf_convert：那条路径会把孤代理项判为
+                    // 非法并展开成多个 U+FFFD，与 utf16le 的语义不一致。
+                    var be4 = (codec === 'utf32be' || codec === 'utf-32be'
+                        || codec === 'ucs4be' || codec === 'ucs-4be');
+                    var n32 = bufferOrLength.length;
+                    var len32 = Buffer.byteLength(bufferOrLength, codec);
+                    if (len32 > 0x7fffffff)
+                        len32 = 0x7fffffff;
+                    let off32 = getPool(len32);
+                    if (off32 === -1)
+                        super(len32);
+                    else
+                        super(allocPool, off32, len32);
+                    var o32 = 0;
+                    for (var i32 = 0; i32 < n32; i32++) {
+                        var lo32 = bufferOrLength.charCodeAt(i32);
+                        var cp32 = lo32;
+                        // 合法代理对 -> 合并成一个 astral 码点（占 1 个 4 字节槽）
+                        if (lo32 >= 0xd800 && lo32 <= 0xdbff && i32 + 1 < n32) {
+                            var nx = bufferOrLength.charCodeAt(i32 + 1);
+                            if (nx >= 0xdc00 && nx <= 0xdfff) {
+                                cp32 = ((lo32 - 0xd800) << 10) + (nx - 0xdc00) + 0x10000;
+                                i32++;
+                            }
+                        }
+                        if (be4) {
+                            this[o32] = (cp32 >>> 24) & 0xff;
+                            this[o32 + 1] = (cp32 >>> 16) & 0xff;
+                            this[o32 + 2] = (cp32 >>> 8) & 0xff;
+                            this[o32 + 3] = cp32 & 0xff;
+                        } else {
+                            this[o32] = cp32 & 0xff;
+                            this[o32 + 1] = (cp32 >>> 8) & 0xff;
+                            this[o32 + 2] = (cp32 >>> 16) & 0xff;
+                            this[o32 + 3] = (cp32 >>> 24) & 0xff;
+                        }
+                        o32 += 4;
+                    }
+                } else if (codec === 'hex' || codec === 'base64' || codec === 'base64url') {
+                    // native 的零绕行解码：String::ValueView 直接拿 V8 的串指针，
+                    // simdutf 宽容模式一次解码，结果直接落在返回 Buffer 的
+                    // backing store 里（不再经过 JS 临时数组或 exlib::string）。
+                    //   from(hex)    220 µs -> 约 20 µs
+                    //   from(base64)  82 µs -> 约 10 µs
+                    //
+                    // 注意：必须在 super() **之前** 完成，所以这里不能传 this。
+                    const decoded = Buffer.native_decodeString(bufferOrLength, codec);
+                    if (decoded !== undefined) {
+                        super(decoded.buffer, decoded.byteOffset, decoded.byteLength);
+                        return;
+                    }
+                    // 理论上到不了这里（只有 hex/base64 会进来）
+                    super(encoding.decode(bufferOrLength, codec).buffer);
+                } else if (codec === undefined || codec === 'utf8' || codec === 'utf-8') {
                     var byte_length = Buffer.byteLength(bufferOrLength, codec);
 
                     let offset = getPool(byte_length);
@@ -619,30 +747,109 @@ class Buffer extends Uint8Array {
         if (typeof buf !== 'string')
             throw makeInvalidArgType('argument must be a string');
 
-        if (typeof offset === 'string') {
+        const len = this.length;
+
+        // node 的参数分派（lib/buffer.js:1102）。**顺序很关键**：
+        //
+        //   1) offset === undefined  -> 整个 length / encoding 都被忽略，
+        //      等价于 write(s)，写满 [0, length) 的 utf8。
+        //      旧实现在这条分支里算 `length = this.length - offset`，而 offset
+        //      此时还是 undefined —— NaN 一路传到校验，于是
+        //        write('abc', undefined, 'hex')
+        //      抛 RangeError（node 正常写 3 字节）。显式 undefined（很多调用方
+        //      会传 `write(s, off, len, enc)` 而 off/len 来自可能缺省的变量）
+        //      是最容易踩到的形态。
+        //   2) length === undefined && typeof offset === 'string' -> 编码名
+        //   3) 其余 -> 正常校验；length 缺省为剩余空间，编码名可以由 length
+        //      位置给出
+        if (offset === undefined) {
+            offset = 0;
+            length = len;
+            codec = 'utf8';
+        } else if (length === undefined && typeof offset === 'string') {
             codec = offset;
-            offset = undefined;
-            length = undefined;
-        } else if (typeof length === 'string') {
-            codec = length;
-            length = undefined;
+            offset = 0;
+            length = len;
+        } else {
+            if (typeof offset !== 'number')
+                throw invalidArgType('offset', 'of type number', offset);
+
+            // node 的 offset / length 校验规则（lib/buffer.js 的 validateOffset）：
+            //   offset  必须落在 [0, this.length]，越界抛 RangeError
+            //   length  必须落在 [0, this.length]，**上限是整条缓冲的长度**，
+            //           而不是"剩余空间"
+            //   length > this.length - offset 时**静默钳制**到剩余空间，不抛错
+            //     write('abc', 6, 8)  -> 写 2 字节（'ab'）
+            //     write('abc', 1, 8)  -> 写 3 字节（'abc'）
+            const remaining = len - offset;
+            if (offset % 1 !== 0 || offset < 0 || offset > len)
+                throw outOfRange('offset', `>= 0 and <= ${len}`, offset);
+
+            if (length === undefined)
+                length = remaining;
+            else if (typeof length === 'string') {
+                codec = length;
+                length = remaining;
+            } else {
+                if (typeof length !== 'number')
+                    throw invalidArgType('length', 'of type number', length);
+                if (length % 1 !== 0 || length < 0 || length > len)
+                    throw outOfRange('length', `>= 0 and <= ${len}`, length);
+                if (length > remaining)
+                    length = remaining;
+            }
         }
 
-        if (offset !== undefined && typeof offset !== 'number')
-            throw invalidArgType('offset', 'of type number', offset);
-        if (length !== undefined && typeof length !== 'number')
-            throw invalidArgType('length', 'of type number', length);
+        // node: 编码名先按 ToString 强制转换（`getEncodingOps` 的第一行就是
+        // `encoding += ''`），而且**falsy 一律当 utf8**（`if (!encoding ||
+        // encoding === 'utf8')`）：
+        //   write('ab', 0, 2, null)              -> utf8
+        //   write('ab', 0, 4, {toString(){return 'hex'}}) -> hex
+        // 之前的实现只接受字符串，null / 对象会抛 "Unknown encoding"。
+        // Symbol 在 `+ ''` 时抛 TypeError，与 node 一致。
+        if (!codec)
+            codec = 'utf8';
+        else if (typeof codec !== 'string')
+            codec = codec + '';
 
-        if (codec !== undefined && !Buffer.isEncoding(codec))
+        if (!Buffer.isEncoding(codec))
             throw unknownEncoding(codec);
 
-        const len = this.length;
-        if (offset !== undefined && (offset % 1 !== 0 || offset < 0 || offset > len))
-            throw outOfRange('offset', `>= 0 and <= ${len}`, offset);
-        if (length !== undefined && (length % 1 !== 0 || length < 0 || (offset || 0) + length > len))
-            throw outOfRange('length', `>= 0 and <= ${len - (offset || 0)}`, length);
+        // node: 编码名大小写不敏感，且 native_write 只认小写名。
+        //
+        // 之前只在 from/toString/byteLength 里做了 normalizeFromCodec，
+        // write 直接把自己的参数原样转发给 native_write，于是 'HEX' / 'BASE64' /
+        // 'UCS2' 会落到 commonDecode 的 ICU 兜底并抛
+        //   Error: encoding: Unknown charset: 'HEX'.
+        // 而 node 的 write('abcd',0,4,'HEX') 正常写入。这里补齐。
+        codec = normalizeFromCodec(codec);
 
-        return Buffer.native_write.apply(this, arguments);
+        const off = offset;
+
+        // latin1/binary/ascii 的 str→bytes 是"每个 code unit 取低 8 位"。
+        //
+        // fibjs 的 native_write 里 ascii 分支已经是 WriteOneByte（Buffer.cpp:643-651），
+        // 与 latin1 的语义**逐字节相同**（已对全部 65536 个 code unit 穷举验证，含
+        // astral / 孤立代理项 / NUL / length 截断 / offset）。它 64 KB 只要 1.6 µs，
+        // 而 JS 循环要 103 µs —— 因此这里直接转发给 native 的 ascii 分支。
+        //
+        // 注意：**解码方向不能这么做** —— native 的 ascii 解码会掩掉高位（0x80 → 0x00），
+        // 而 latin1 要保留 U+0080..U+00FF，所以 toString 仍走 JS/utf8 分支。
+        if (codec === 'latin1' || codec === 'binary' || codec === 'ascii') {
+            let n = buf.length;
+            if (length < n)
+                n = length;
+            if (n <= 0)
+                return 0;
+            return Buffer.native_write.call(this, buf, off, n, 'ascii');
+        }
+
+        // ucs2/utf16le 现在由 native_write 直连 V8 的 UTF-16 拷贝处理（is_big_endian 与
+        // 未对齐都已覆盖），这里不再重复实现。
+        //
+        // 必须显式传规范化后的 offset/length —— 不能 `apply(this, arguments)`，
+        // 否则上面刚补上的 `undefined -> 0 / 剩余长度` 归一会丢失。
+        return Buffer.native_write.call(this, buf, off, length, codec);
     }
 
     fill(buf, offset, end, codec) {
@@ -687,22 +894,70 @@ class Buffer extends Uint8Array {
             return this;
         }
 
-        let is_string = typeof buf === 'string';
         let buf_byteLength;
-        if (is_string) {
-            if (!Buffer.isEncoding(codec || 'utf8'))
+        if (typeof buf === 'string') {
+            // node: fill 的编码名处理（lib/buffer.js 的 _fill）：
+            //   null / undefined / ''  -> utf8        （`normalizeEncoding` 的
+            //                                          `enc == null` 分支 + `!encoding`）
+            //   非字符串（数字 / 布尔 / 普通对象）-> TypeError（`validateString`）
+            //   其它字符串 -> 大小写不敏感；未知编码抛 ERR_UNKNOWN_ENCODING
+            // fibjs 之前只接受字符串：write/from/byteLength 都接受 null 而 fill 抛
+            // "Unknown encoding: null"，同一个编码参数在不同 API 上不一致。
+            if (codec == null || codec === '')
+                codec = 'utf8';
+            else if (typeof codec !== 'string')
+                throw invalidArgType('encoding', 'of type string', codec);
+            else
+                codec = normalizeFromCodec(codec);
+            if (!Buffer.isEncoding(codec))
                 throw unknownEncoding(codec);
-            buf_byteLength = Buffer.byteLength(buf, codec);
+
+            // **先把字符串编码成字节，再按字节循环重复** —— 这正是 node 的 fill
+            // 做法（lib/buffer.js 里 `binding.fill` 用的是已编码的字节串）。
+            //
+            // 不能用 byteLength() 当源长度：它按 node 语义只回答"这个字符串按该
+            // 编码最**多**占多少字节"，**不校验内容**：
+            //   Buffer.byteLength('abZZ','hex')      === 2   （实际只解出 1 字节）
+            //   Buffer.byteLength('QUJD$$','base64') === 3   （实际只解出 'ABC'）
+            // 拿它当填充节奏会按"声称的长度"推进，而真正写入的字节更少，中间
+            // 留下没被覆盖的洞：
+            //   Buffer.alloc(4,0x2e).fill('abZZ','hex')  ->  ab2eab2e（node: abababab）
+            //
+            // 也不能把这件事交给 write()：write 的 length 以**字节**计，且对
+            // utf16 家族会向下取整到整 code unit，而 fill 是纯字节级的循环重复：
+            //   fill('\u00ff'.repeat(n), 'ucs2') 填 5 字节 -> ff00ff00ff
+            //   （末字节是 ff，而不是碰巧保留的 0xff 之外的其它值）
+            const decoded = Buffer.from(buf, codec);
+            buf_byteLength = decoded.length;
+
             if (buf_byteLength === 0) {
-                // node: 空字符串（或编码后为空）按 0 填充。
-                // 这里也是**死循环**的老位置：0 长度源 + while (offset < end) 时 offset 不自增
-                TypedArrayPrototypeFill(this, 0, offset, end);
-                return this;
+                if (buf.length === 0) {
+                    // node: 空字符串按 0 填充。
+                    // 这里也是**死循环**的老位置：0 长度源 + while (offset < end)
+                    // 时 offset 不自增
+                    TypedArrayPrototypeFill(this, 0, offset, end);
+                    return this;
+                }
+                // 非空源但一个字节都解不出来 -> 与 node 一致地报参数错误
+                // （fill('a','hex') / fill('!!!!','base64')）
+                throw invalidArgValue('value', buf);
             }
-        } else if (buf instanceof Uint8Array) {
+
+            // 后续统一走"字节数组重复填充"，不再区分来源是字符串还是 Buffer
+            buf = decoded;
+        } else if (ArrayBuffer.isView(buf)) {
+            // node: **任何** ArrayBufferView 都按它的字节填充，不只是 Uint8Array。
+            // 用 `buf instanceof Uint8Array` 判断会把 Uint16Array / Float32Array /
+            // DataView 漏到下面的 Number() 分支 —— Number(view) 是 NaN，于是
+            // 整段被填成 0（静默错误）：
+            //   fill(new Uint16Array([0x6162]))  node: 626162616261  fibjs: 000000
+            //   fill(new DataView(...))          node: 010201020102  fibjs: 000000
+            // 必须同时尊重 byteOffset / byteLength（子视图只填它自己的区间）。
             buf_byteLength = buf.byteLength;
             if (buf_byteLength === 0)
                 throw invalidArgValue('value', buf);
+            if (!(buf instanceof Uint8Array))
+                buf = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
         } else {
             // node: 其余类型走 Number() 强制转换（null→0、true→1、[1,2]→NaN→0）
             TypedArrayPrototypeFill(this, Number(buf), offset, end);
@@ -710,19 +965,12 @@ class Buffer extends Uint8Array {
         }
 
         if (buf_byteLength >= end - offset) {
-            if (is_string) {
-                this.write(buf, offset, end - offset, codec);
-            } else {
-                if (buf_byteLength > end - offset)
-                    buf = new Uint8Array(buf.buffer, buf.byteOffset, end - offset);
-                TypedArrayPrototypeSet(this, buf, offset);
-            }
+            if (buf_byteLength > end - offset)
+                buf = new Uint8Array(buf.buffer, buf.byteOffset, end - offset);
+            TypedArrayPrototypeSet(this, buf, offset);
         } else {
+            TypedArrayPrototypeSet(this, buf, offset);
             let fill_offset = offset;
-            if (is_string)
-                this.write(buf, offset, end - offset, codec);
-            else
-                TypedArrayPrototypeSet(this, buf, offset);
             offset += buf_byteLength;
 
             while (offset < end) {
@@ -1594,11 +1842,20 @@ class Buffer extends Uint8Array {
     // node: toString 的区间是 [0, length] 内的整数（负数按 0 钳制，超界截断）
     toString(codec, start = 0, end) {
         const len = this.byteLength;
+
+        // node: 编码名先 ToString（`getEncodingOps` 的 `encoding += ''`），只对
+        // **undefined** 采用默认值。null 仍然是 "Unknown encoding: null"，
+        // 而 `new String('hex')` / `{toString(){return 'hex'}}` 都可以用。
         if (codec === undefined)
             codec = 'utf8';
+        else if (typeof codec !== 'string')
+            codec = codec + '';
 
         if (!Buffer.isEncoding(codec))
             throw unknownEncoding(codec);
+
+        // node: 编码名大小写不敏感（toString('HEX') 等同 toString('hex')）。
+        codec = normalizeFromCodec(codec);
 
         start = start === undefined ? 0 : Math.trunc(start);
         if (!(start >= 0))
@@ -1618,6 +1875,16 @@ class Buffer extends Uint8Array {
 
         if (end <= start)
             return '';
+
+        // latin1/binary/ascii/ucs2/utf16* 走 native 的零绕行出口：字节直接挂成
+        // one-byte / two-byte 外部字符串，不经过 exlib::string(UTF-8)。
+        // 对标 Node 的 StringBytes::Encode(LATIN1/UCS2)（node/src/string_bytes.cc:547/604）。
+        //
+        // 这条路径覆盖了全部 5 个"高位/多字节"解码方向；只有 native 不认识的编码
+        // 才返回 undefined 并落到下面的通用路径。
+        const fast = Buffer.native_encodeString.call(this, codec, start, end);
+        if (fast !== undefined)
+            return fast;
 
         if (start !== 0 || end !== len)
             return encoding.encode(new Uint8Array(this.buffer, this.byteOffset + start, end - start), codec);
@@ -1665,6 +1932,12 @@ function bufferSourceOf(value) {
     if (value instanceof Uint8Array || value instanceof DataView || Array.isArray(value)
         || isAnyArrayBuffer(value) || value instanceof Date)
         return value;
+
+    // String 对象（new String('ab')）必须走 valueOf 解包：它带 length 属性，
+    // 会被后面的"类数组"判定当成数组，进而按 code unit 拷贝（'ab' -> 0000）。
+    // node 的 Buffer.from(new String('ab'),'hex') 得到 'ab'。
+    if (value instanceof String)
+        return value.valueOf();
 
     if (typeof value.length !== 'number' && typeof value.valueOf === 'function') {
         const valueOf = value.valueOf();
@@ -1718,6 +1991,42 @@ Buffer.isBuffer = function (obj) {
     return obj instanceof Buffer;
 };
 
+// node: Buffer.from 的编码名大小写不敏感（'HEX'/'BASE64' 与 'hex'/'base64' 同义）。
+// native 的 encoding.decode 对大小写敏感，所以在 JS 层统一小写化后再分发。
+// 只规范化 native 认得的名字 —— 未知编码保留原样，让 native 抛同样的错。
+//
+// **别名集合必须与 native 完全一致**（encoding_conv::is_buffer_codec +
+// encoding_conv_ucs 的 is_ucs2/is_ucs4/... 判定）。曾经漏掉 'ucs2le'/'ucs-2le'
+// 与 'ucs-4'/'utf-32' 家族，导致同一个编码名在不同 API 上给出不同结果：
+//   from('ab','UCS-4')      -> TypeError Unknown encoding
+//   byteLength('ab','UCS-4') -> 8            （native 侧认得大写以外的写法）
+//   from('ab','UTF-32')     -> BOM 前缀 + 8 字节（落到 ICU 的 UTF-32 解码器）
+//   from('ab','utf-32')     -> 8 字节         （native 的 ucs4le）
+function normalizeFromCodec(codec) {
+    switch (codec.toLowerCase()) {
+    // node 认得的标准编码
+    case 'utf8': case 'utf-8':
+    case 'utf16le': case 'utf-16le': case 'ucs2': case 'ucs-2':
+    case 'latin1': case 'binary': case 'ascii':
+    case 'base64': case 'base64url': case 'hex':
+    // fibjs 扩展：Buffer.isEncoding 对它们的大写形式也返回 true，
+    // 所以 from/toString/byteLength 必须同样接受，否则同一个编码名在不同
+    // API 上表现不一致（'BASE32' 的 byteLength 曾按 utf8 算成 2）
+    case 'base32': case 'base58':
+    case 'ucs2le': case 'ucs-2le':
+    case 'utf16': case 'utf-16':
+    case 'utf16be': case 'utf-16be': case 'ucs2be': case 'ucs-2be':
+    case 'utf32': case 'utf-32':
+    case 'utf32le': case 'utf-32le':
+    case 'utf32be': case 'utf-32be':
+    case 'ucs4': case 'ucs-4':
+    case 'ucs4le': case 'ucs-4le':
+    case 'ucs4be': case 'ucs-4be':
+        return codec.toLowerCase();
+    }
+    return codec;
+}
+
 // node 认得的标准编码（fibjs 扩展编码继续返回 true，见 plans 的「已接受差异」）
 const NODE_ENCODINGS = {
     'utf8': true, 'utf-8': true,
@@ -1727,10 +2036,141 @@ const NODE_ENCODINGS = {
     'base64': true, 'base64url': true, 'hex': true
 };
 
+// node: 编码名的规范化。node 对编码名做小写化（'BASE64' 与 'base64' 同义），
+// 所以这里也小写化后再匹配。fibjs 的 native 侧对大小写是敏感的（'LATIN1' 会落到
+// ICU 的 windows-1252），因此只有规范化命中的名字才走快路径，其余把**原始**名字
+// 交回 native，行为与改动前一致。
+function normalizeByteLengthCodec(codec) {
+    if (typeof codec !== 'string' || codec.length === 0)
+        return undefined;
+    // 只覆盖 node 认识的名字。fibjs 扩展的 base32/base58 不在其中（node 抛
+    // ERR_UNKNOWN_ENCODING，fibjs 保留支持），它们走 native 的真实换算分支。
+    switch (codec.toLowerCase()) {
+    case 'hex':
+    case 'latin1':
+    case 'binary':
+    case 'ascii':
+    case 'base64':
+    case 'base64url':
+    case 'ucs2':
+    case 'ucs-2':
+    case 'ucs2le':
+    case 'ucs-2le':
+    case 'utf16':
+    case 'utf-16':
+    case 'utf16le':
+    case 'utf-16le':
+    case 'utf16be':
+    case 'utf-16be':
+    case 'ucs2be':
+    case 'ucs-2be':
+    case 'utf32':
+    case 'utf-32':
+    case 'utf32le':
+    case 'utf-32le':
+    case 'utf32be':
+    case 'utf-32be':
+    case 'ucs4':
+    case 'ucs-4':
+    case 'ucs4le':
+    case 'ucs-4le':
+    case 'ucs4be':
+    case 'ucs-4be':
+        return codec.toLowerCase();
+    }
+    return undefined;
+}
+
+// node: byteLength 对 latin1/binary/ascii 是 UTF-16 code unit 数，
+// base64/base64url 是 (去掉最多 2 个尾部 '=' 的长度) * 3 >>> 2 —— 都是 O(1)，
+// 而且**不校验内容**（'!!!!' 得 3）。旧实现落到 native 的解码分支，
+// 等于为了计数真的解码一遍：64 KB 的 latin1 要 589 µs（node 0.06 µs）。
 Buffer.byteLength = function (string, codec) {
     // node: 只接受 string / Buffer|TypedArray / ArrayBuffer|SharedArrayBuffer / DataView
-    if (typeof string === 'string')
-        return Buffer.native_byteLength(string, codec);
+    if (typeof string === 'string') {
+        // node: 编码名同样先 ToString（getEncodingOps 的 `encoding += ''`），
+        // 但**falsy 视为默认**（`if (!encoding || encoding === 'utf8')`）。
+        //   byteLength('ab', {toString(){return 'hex'}})  node: 1
+        //   byteLength('ab', null)                        node: 2
+        if (codec == null)
+            codec = undefined;
+        else if (typeof codec !== 'string')
+            codec = codec + '';
+
+        var norm = normalizeByteLengthCodec(codec);
+        switch (norm) {
+        case 'hex':
+            // node: hex 的 byteLength 是 floor(len / 2)，**不校验内容**
+            return string.length / 2 | 0;
+
+        case 'latin1':
+        case 'binary':
+        case 'ascii':
+            return string.length;
+
+        case 'base64':
+        case 'base64url': {
+            var n = string.length;
+            if (n > 0 && string.charCodeAt(n - 1) === 61) {
+                n--;
+                if (n > 0 && string.charCodeAt(n - 1) === 61)
+                    n--;
+            }
+            return (n * 3) >>> 2;
+        }
+
+        case 'ucs2':
+        case 'ucs-2':
+        case 'utf16':
+        case 'utf-16':
+        case 'utf16le':
+        case 'utf-16le':
+        case 'utf16be':
+        case 'utf-16be':
+        case 'ucs2be':
+        case 'ucs-2be':
+            return string.length * 2;
+
+        case 'utf32':
+        case 'utf-32':
+        case 'utf32le':
+        case 'utf-32le':
+        case 'utf32be':
+        case 'utf-32be':
+        case 'ucs4':
+        case 'ucs-4':
+        case 'ucs4le':
+        case 'ucs-4le':
+        case 'ucs4be':
+        case 'ucs-4be':
+            // 每个**码点** 4 字节：代理对合并成一个 astral 码点，所以不能简单
+            // 用 length * 4（'a😀b' 有 4 个 code unit 但只有 3 个码点）。
+            {
+                var cnt = 0;
+                for (var k32 = 0; k32 < string.length; k32++) {
+                    var c32 = string.charCodeAt(k32);
+                    if (c32 >= 0xd800 && c32 <= 0xdbff && k32 + 1 < string.length) {
+                        var n32b = string.charCodeAt(k32 + 1);
+                        if (n32b >= 0xdc00 && n32b <= 0xdfff)
+                            k32++;
+                    }
+                    cnt++;
+                }
+                return cnt * 4;
+            }
+        }
+
+        // 交给 native 的编码名要与 native 的大小写敏感度一致：
+        //   - normalizeFromCodec 认得的（含 fibjs 扩展的 ucs4/utf32/base32…）
+        //     一律传小写名，这样 'UCS4' 与 'ucs4' 得到相同结果
+        //   - 其余（真正的未知编码）保留原始名字，让 native 决定
+        // 注意不能直接用 norm：它只覆盖"能用 O(1) 公式算"的那几种
+        // （ucs4/base32 等不在其中），传 undefined 会退回原始大小写。
+        var nativeCodec = codec;
+        if (typeof codec === 'string' && normalizeFromCodec(codec) !== codec)
+            nativeCodec = normalizeFromCodec(codec);
+        return Buffer.native_byteLength(string, nativeCodec);
+    }
 
     if (string instanceof Uint8Array || isAnyArrayBuffer(string) || string instanceof DataView)
         return string.byteLength;
@@ -1748,7 +2188,11 @@ Buffer.isEncoding = function (codec) {
     if (NODE_ENCODINGS[codec.toLowerCase()])
         return true;
 
-    return encoding.isEncoding(codec);      // fibjs 扩展（utf16be/utf32/base32/base58/字符集…）
+    // fibjs 扩展（utf16be/utf32/base32/base58/字符集…）。
+    // 这些名字在 from/toString 里会先经 normalizeFromCodec 小写化再交给 native，
+    // 所以这里也要用小写名去问，否则会出现「from('BASE32') 能用但
+    // isEncoding('BASE32') 说不能用」的矛盾。
+    return encoding.isEncoding(normalizeFromCodec(codec));
 };
 
 Buffer.concat = function (list, length) {
@@ -1927,7 +2371,8 @@ Object.defineProperty(buffer_module, '__postInstall', {
     configurable: true,
     value: function () {
         ['native_compare', 'native_equals', 'native_indexOf', 'native_lastIndexOf',
-            'native_write', 'native_fill', 'native_byteLength'].forEach((name) => {
+            'native_write', 'native_fill', 'native_byteLength', 'native_encodeString',
+            'native_decodeString'].forEach((name) => {
             const value = Buffer[name];
             if (value === undefined)
                 return;
