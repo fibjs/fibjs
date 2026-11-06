@@ -349,8 +349,32 @@ void init_signal()
 
 void init_signal()
 {
-    struct rlimit corelimit = { RLIM_INFINITY, RLIM_INFINITY };
-    setrlimit(RLIMIT_CORE, &corelimit);
+    // **不要覆盖调用方的 core 限制**。
+    //
+    // 这里曾经无条件执行 `setrlimit(RLIMIT_CORE, {RLIM_INFINITY, RLIM_INFINITY})`，
+    // 把 soft limit 从 shell 默认的 0 抬到硬上限（hard 通常是 unlimited，非 root
+    // 也有权抬高 soft）。后果是：
+    //
+    //   $ ulimit -c            # 0     —— 用户/shell 明确表示"不要 core"
+    //   $ fibjs app.js
+    //   ... SIGSEGV ...
+    //   $ ls core              # 生成了 core（journald 内核 core 可达数 GB）
+    //
+    // 也就是说 `ulimit -c 0`、systemd 的 `LimitCore=0`、容器里的默认
+    // （docker/podman 默认 soft=0）全部被静默绕过。而 fibjs 自己并没有
+    // 消费 core 的能力（Windows 侧是主动调 MiniDumpWriteDump，Linux 侧没有
+    // 对应实现），这些文件只会白占磁盘、在 CI 里堆积。
+    //
+    // 正确做法：只在**用户已经把 soft limit 打开**时才把它提到 hard 上限
+    // （让"我想拿到完整 core"的用户不被 soft 上限截断），soft 为 0 就保持 0。
+    // 这样"默认不产生 core、显式开启才有"的通用约定得以保留。
+    struct rlimit corelimit;
+    if (getrlimit(RLIMIT_CORE, &corelimit) == 0
+        && corelimit.rlim_cur != 0
+        && corelimit.rlim_cur != corelimit.rlim_max) {
+        corelimit.rlim_cur = corelimit.rlim_max;
+        setrlimit(RLIMIT_CORE, &corelimit);
+    }
 
     sigset_t blocked_signals;
     sigemptyset(&blocked_signals);

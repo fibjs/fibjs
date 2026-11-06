@@ -471,6 +471,66 @@ describe('process', () => {
                 assert.equal(cp.join(), -9);
             }
         });
+
+        // 回归：init_signal() 曾经无条件
+        //   setrlimit(RLIMIT_CORE, {RLIM_INFINITY, RLIM_INFINITY})
+        // 把 soft limit 从 shell 默认的 0 抬到硬上限，于是 `ulimit -c 0`、
+        // systemd 的 `LimitCore=0`、容器默认设置全部被静默绕过 —— 一个本来
+        // 不该留下任何文件的 SIGSEGV 会在 cwd 里写出一份几百 MB 的 core。
+        //
+        // 契约：fibjs **不得**改变调用方的 core 限制，只能尊重它。
+        // 下面直接读 /proc/self/limits 对比父 shell 的设置。
+        if (process.platform === 'linux') {
+            it("does not raise the inherited RLIMIT_CORE", () => {
+                function readSoftCoreLimit(pid) {
+                    var fd = fs.open('/proc/' + pid + '/limits', 'r');
+                    try {
+                        var buf = Buffer.alloc(8192);
+                        var n = fs.read(fd, buf, 0, 8192, 0);
+                        var txt = buf.slice(0, n).toString();
+                        var line = txt.split('\n').filter(function (l) {
+                            return l.indexOf('core file size') >= 0;
+                        })[0];
+                        // "Max core file size  <soft>  <hard>  bytes"
+                        return line.trim().split(/\s+/).slice(-3)[0];
+                    } finally {
+                        fs.close(fd);
+                    }
+                }
+
+                // 必须复现"shell 默认"这个精确条件：soft=0 而 **hard=unlimited**。
+                //
+                // 为什么不能直接 `ulimit -c 0`：那条命令会把 hard 也压成 0，
+                // 于是非 root 的 setrlimit 必然失败，旧代码也"看起来"没问题。
+                // 真正会漏的是默认场景 —— soft=0 / hard=unlimited，此时
+                // `setrlimit(RLIM_INFINITY)` 会成功，soft 被静默抬到 unlimited，
+                // `ulimit -c 0`、systemd LimitCore=0、容器默认设置全被绕过。
+                //
+                // 用 `ulimit -Sc 0` 只动 soft，保留 hard。
+                var cp = child_process.spawn('/bin/sh',
+                    ['-c', 'ulimit -Sc 0; exec "$0" -e "setInterval(()=>{},1000)"', cmd],
+                    { stdio: ['ignore', 'ignore', 'ignore'] });
+                try {
+                    var t0 = Date.now();
+                    while (Date.now() - t0 < 5000) {
+                        try {
+                            readSoftCoreLimit(cp.pid);
+                            break;
+                        } catch (e) {
+                            coroutine.sleep(20);
+                        }
+                    }
+                    coroutine.sleep(300);   // 让 init_signal 跑完
+
+                    // soft 0 + hard unlimited 时，继承来的 0 必须保持 0
+                    assert.strictEqual(readSoftCoreLimit(cp.pid), '0',
+                        'init_signal must not raise an inherited soft core limit of 0');
+                } finally {
+                    cp.kill('SIGKILL');
+                    cp.join();
+                }
+            });
+        }
     });
 
     describe("umask", () => {
@@ -489,7 +549,6 @@ describe('process', () => {
                 process.umask(old);
             }
         });
-
         it("rejects a mask that is not an octal string or a number", () => {
             const old = process.umask();
             try {
