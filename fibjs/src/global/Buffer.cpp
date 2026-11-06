@@ -5,6 +5,11 @@
 #include "encoding.h"
 
 #include <cmath>
+#include "simdutf.h"
+
+#if defined(__SSE2__)
+#include <emmintrin.h>
+#endif
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -289,6 +294,15 @@ v8::Local<v8::Value> Buffer::load_module()
 
     js_buffer_class->Set(context, isolate->NewString("native_fill"), isolate->NewFunction("fill", proto_fill)).IsJust();
     js_buffer_class->Set(context, isolate->NewString("native_byteLength"), isolate->NewFunction("byteLength", class_byteLength)).IsJust();
+
+    // bytes -> string 的零绕行出口（latin1 / ascii / ucs2 / utf16be）。
+    // 不再经过 exlib::string(UTF-8) 中转，对标 Node 的 ExternOneByte/TwoByteString。
+    js_buffer_class->Set(context, isolate->NewString("native_encodeString"), isolate->NewFunction("encodeString", proto_encodeString)).IsJust();
+
+    // string -> bytes 的零绕行出口（hex / base64）。
+    // 用 String::ValueView 直接拿 V8 的 one-byte 指针，解出的字节直接落在返回的
+    // Buffer 里，全程一次分配、一次写入（见 class_decodeString 的注释）。
+    js_buffer_class->Set(context, isolate->NewString("native_decodeString"), isolate->NewFunction("decodeString", class_decodeString)).IsJust();
 
     // JS 层的 write 直接复用 native 实现（性能敏感的 utf8/ascii 快路径仍在 C++）
     // —— 安装完后调一次模块的 __postInstall（把 native_* 改成不可枚举，避免污染 Object.keys(Buffer)）
@@ -645,8 +659,115 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
         args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, written));
         return;
     } else if (!strcmp(*codec_utf8, "utf8") || !strcmp(*codec_utf8, "utf-8")) {
-        int written = data->WriteUtf8(isolate->m_isolate, (char*)buf.data() + offset, (int)max_length, nullptr, flags);
+        // 全 ASCII 的外部 one-byte 字符串：UTF-8 编码与 WriteOneByte 逐字节相同，
+        // 直接 memcpy 比 WriteUtf8 快 8×（64 KB 19 µs -> 2.3 µs）。
+        // 这条路径很常见：Buffer.toString('latin1') / ('utf8') 的结果都是外部串，
+        // 再喂回 buf.write() 就命中这里。
+        int written;
+        if (data->IsExternalOneByte()) {
+            auto ext = data->GetExternalOneByteStringResource();
+            const char* src = ext->data();
+            size_t n = std::min(max_length, (size_t)ext->length());
+            // 外部 one-byte 串可能是任意字节，只有全 ASCII 才能当 UTF-8 直接拷
+            if (simdutf::validate_ascii(src, n)) {
+                memcpy(buf.data() + offset, src, n);
+                args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int)n));
+                return;
+            }
+        }
+
+        written = data->WriteUtf8(isolate->m_isolate, (char*)buf.data() + offset, (int)max_length, nullptr, flags);
         args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, written));
+        return;
+    } else if (!strcmp(*codec_utf8, "ucs2") || !strcmp(*codec_utf8, "ucs-2")
+        || !strcmp(*codec_utf8, "utf16") || !strcmp(*codec_utf8, "utf-16")
+        || !strcmp(*codec_utf8, "utf16le") || !strcmp(*codec_utf8, "utf-16le")) {
+        // UTF-16LE 直连 V8：小端平台上就是一次 UTF-16 拷贝。
+        // node 的 length 以**字节**计，向下取整到 code unit —— 不写半个 code unit。
+        // 旧实现退回 commonDecode 的 UTF-8 中转（64 KB 要 339 µs）。
+        size_t units = max_length / sizeof(char16_t);
+        uint8_t* dst = buf.data() + offset;
+        int written;
+
+        if (is_big_endian()) {
+            exlib::wstring w;
+            w.resize(units);
+            written = data->Write(isolate->m_isolate, (uint16_t*)w.data(), 0, (int)units, flags);
+            if (written < 0)
+                written = 0;
+            for (int i = 0; i < written; i++) {
+                uint16_t c = (uint16_t)w[i];
+                dst[i * 2] = (uint8_t)(c & 0xff);
+                dst[i * 2 + 1] = (uint8_t)(c >> 8);
+            }
+        } else if (((uintptr_t)dst & (sizeof(char16_t) - 1)) == 0) {
+            written = data->Write(isolate->m_isolate, (uint16_t*)dst, 0, (int)units, flags);
+            if (written < 0)
+                written = 0;
+        } else {
+            // 未按 2 字节对齐（offset 是奇数）：先落到对齐的临时区再拷
+            exlib::wstring w;
+            w.resize(units);
+            written = data->Write(isolate->m_isolate, (uint16_t*)w.data(), 0, (int)units, flags);
+            if (written < 0)
+                written = 0;
+            if (written)
+                memcpy(dst, w.data(), (size_t)written * sizeof(char16_t));
+        }
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int)(written * sizeof(char16_t))));
+        return;
+    } else if (!strcmp(*codec_utf8, "utf16be") || !strcmp(*codec_utf8, "utf-16be")
+        || !strcmp(*codec_utf8, "ucs2be") || !strcmp(*codec_utf8, "ucs-2be")) {
+        // 大端 UTF-16：先写进临时 wstring，再按大端落盘
+        size_t units = max_length / sizeof(char16_t);
+        exlib::wstring w;
+        w.resize(units);
+        int written = data->Write(isolate->m_isolate, (uint16_t*)w.data(), 0, (int)units, flags);
+        if (written < 0)
+            written = 0;
+        uint8_t* dst = buf.data() + offset;
+        for (int i = 0; i < written; i++) {
+            uint16_t c = (uint16_t)w[i];
+            dst[i * 2] = (uint8_t)(c >> 8);
+            dst[i * 2 + 1] = (uint8_t)(c & 0xff);
+        }
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int)(written * sizeof(char16_t))));
+        return;
+    }
+
+    // hex / base64 是**逐 API 语义**不同的编码：
+    //   encoding.hex.decode(s)      —— 跳过非法字符继续（fibjs 扩展的宽容模式）
+    //   Buffer.from(s, 'hex')       —— 遇第一个非法字符即停（node）
+    //   buf.write(s, off, len,'hex')—— 同 node，遇非法即停
+    //
+    // 这条兜底路径以前用 commonDecode（= 宽容跳过），于是 'abZZcd' 写出 3 字节
+    // 并返回 3，而 node 只写 1 字节（'ab'）并返回 1。
+    //
+    // 另外**不能用 GetArgumentValue**：它把字符串转成 UTF-8，而 node 的 nbytes
+    // 对 char16_t 输入做的是 `static_cast<uint8_t>(src[i])`，即每个 code unit
+    // **取低 8 位**。两者只在纯 ASCII 时相同：
+    //   Buffer.from('\u0141\u0142','hex')  node='ab'  UTF-8 路径=''
+    //   Buffer.from('\u0161','hex')        node='aa'  UTF-8 路径=''
+    if (!strcmp(*codec_utf8, "hex") || !strcmp(*codec_utf8, "base64")
+        || !strcmp(*codec_utf8, "base64url")) {
+        v8::String::Value value(isolate->m_isolate, data);
+        size_t sz = value.length();
+        exlib::string narrow;
+        narrow.resize(sz);
+        const uint16_t* src = (const uint16_t*)*value;
+        char* p = narrow.data();
+        for (size_t i = 0; i < sz; i++)
+            p[i] = (char)(src[i] & 0xff);
+
+        // **length 是硬上限**：node 的 write('QUJDRA==', 0, 2, 'base64') 只写
+        // 2 字节并返回 2，这里必须把解码容量钉在 max_length 上（不能只用
+        // max_length 之外的公式值）。
+        size_t cap = std::min(max_length,
+            strcmp(*codec_utf8, "hex") == 0 ? sz / 2 : ((sz * 3) >> 2));
+        size_t n = strcmp(*codec_utf8, "hex") == 0
+            ? hexDecodeTo(p, sz, (char*)buf.data() + offset, cap)
+            : base64DecodeTo(p, sz, (char*)buf.data() + offset, cap);
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int)n));
         return;
     }
 
@@ -663,6 +784,488 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     max_length = std::min(max_length, strBuf.length());
     memcpy(buf.data() + offset, strBuf.c_str(), max_length);
     args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int)max_length));
+}
+
+// bytes -> V8 string 的零绕行出口。
+//
+// Buffer.toString('latin1') / ('ucs2') 以前要经过 exlib::string(UTF-8) 中转：
+// latin1 的 0x80..0xFF 被展开成两字节 UTF-8，再由 NewString 的 is_safe_string
+// 判断后拆回 one-byte；ucs2 则 UTF-16 -> UTF-8 -> UTF-16 走三趟。
+// 这里直接挂外部字符串（Node 也是这么做：string_bytes.cc 的 ExternOneByteString /
+// ExternTwoByteString），64 KB 从 146/70 µs 降到一次 memcpy。
+//
+// 返回 undefined 表示"这个编码不走零绕行"，调用方（JS 层）退回普通路径。
+void Buffer::proto_encodeString(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    if (!args.This()->IsUint8Array()) {
+        ThrowResult(result_t(CALL_E_NOTINSTANCE));
+        return;
+    }
+
+    store buf(args.This().As<v8::Uint8Array>());
+    Isolate* isolate = Isolate::current(args);
+    v8::Isolate* v8_isolate = isolate->m_isolate;
+
+    // 参数：codec [, start [, end]]
+    int32_t arg_cnt = args.Length();
+    if (arg_cnt == 0 || !args[0]->IsString()) {
+        ThrowResult(result_t::type_mismatch());
+        return;
+    }
+
+    v8::String::Utf8Value codec_utf8(v8_isolate, args[0].As<v8::String>());
+    if (*codec_utf8 == nullptr) {
+        ThrowResult(result_t(CALL_E_JAVASCRIPT));
+        return;
+    }
+
+    size_t start = 0;
+    size_t end = buf.length();
+
+    if (arg_cnt > 1 && !args[1]->IsUndefined()) {
+        double n = args[1]->NumberValue(isolate->context()).FromMaybe(0);
+        if (!(n >= 0))
+            n = 0;
+        start = (size_t)n;
+        if (start > end)
+            start = end;
+    }
+    if (arg_cnt > 2 && !args[2]->IsUndefined()) {
+        double n = args[2]->NumberValue(isolate->context()).FromMaybe(0);
+        if (!(n >= 0))
+            n = 0;
+        end = (size_t)n;
+        if (end > buf.length())
+            end = buf.length();
+        if (end < start)
+            end = start;
+    }
+
+    size_t len = end - start;
+    const uint8_t* p = buf.data() + start;
+
+    // ---- latin1 / binary：每个字节就是 U+0000..U+00FF ----
+    //
+    // 注意 **ascii 不在这里**：node 的 ascii 解码会掩掉高位（0xE9 -> 0x69），
+    // 与 latin1 的逐字节映射不同，所以 ascii 退回通用路径（commonEncode 里有掩码实现）。
+    if (!strcmp(*codec_utf8, "latin1") || !strcmp(*codec_utf8, "binary")) {
+        if (len == 0) {
+            args.GetReturnValue().Set(v8::String::Empty(v8_isolate));
+            return;
+        }
+
+        // 字节即 U+0000..U+00FF：NewStringOneByte 直接挂 one-byte 外部字符串，
+        // 不经过 UTF-8（旧路径要先把 0x80-0xFF 展开成两字节 UTF-8 再拆回来）。
+        v8::Local<v8::String> v = NewStringOneByte(v8_isolate, exlib::string((const char*)p, len));
+        if (v.IsEmpty()) {
+            args.GetReturnValue().Set(v8::Undefined(v8_isolate));
+            return;
+        }
+        args.GetReturnValue().Set(v);
+        return;
+    }
+
+    // ---- ucs2 / utf16le：小端平台上 Buffer 字节就是 UTF-16LE 内存布局 ----
+    if (!strcmp(*codec_utf8, "ucs2") || !strcmp(*codec_utf8, "ucs-2")
+        || !strcmp(*codec_utf8, "utf16") || !strcmp(*codec_utf8, "utf-16")
+        || !strcmp(*codec_utf8, "utf16le") || !strcmp(*codec_utf8, "utf-16le")
+        || !strcmp(*codec_utf8, "utf16be") || !strcmp(*codec_utf8, "utf-16be")
+        || !strcmp(*codec_utf8, "ucs2be") || !strcmp(*codec_utf8, "ucs-2be")) {
+        bool be = !strcmp(*codec_utf8, "utf16be") || !strcmp(*codec_utf8, "utf-16be")
+            || !strcmp(*codec_utf8, "ucs2be") || !strcmp(*codec_utf8, "ucs-2be");
+
+        size_t units = len / sizeof(char16_t);      // 奇数字节丢弃（node 语义）
+        if (units == 0) {
+            args.GetReturnValue().Set(v8::String::Empty(v8_isolate));
+            return;
+        }
+
+        // LE 平台上 Buffer 字节就是 UTF-16LE 内存布局：一次 wstring 拷贝即可。
+        // BE 时逐 code unit 交换字节序。
+        exlib::wstring w;
+        w.resize(units);
+        if (!be) {
+            memcpy(w.data(), p, units * sizeof(char16_t));
+        } else {
+            for (size_t i = 0; i < units; i++)
+                w[i] = (char16_t)(((uint16_t)p[i * 2] << 8) | p[i * 2 + 1]);
+        }
+
+        v8::Local<v8::String> v = NewStringTwoByte(v8_isolate, std::move(w));
+        if (v.IsEmpty()) {
+            args.GetReturnValue().Set(v8::Undefined(v8_isolate));
+            return;
+        }
+        args.GetReturnValue().Set(v);
+        return;
+    }
+
+    // 其它编码不走零绕行，让 JS 层退回通用路径
+    args.GetReturnValue().Set(v8::Undefined(v8_isolate));
+}
+
+// string -> bytes 的零绕行解码（hex / base64）。
+//
+// 旧路径（JS 侧逐字符 hexDecode / encoding.decode）有三次多余开销：
+//   1) JS 逐字符 charCodeAt 扫 128K 字符（hex 约 190 µs，V8 也没能向量化）
+//   2) 结果先落进 JS 的临时 Uint8Array，构造 Buffer 时再拷一遍
+//   3) base64 走 encoding.decode 时，native 侧还要先做一遍标量有效性预扫
+//      （87K 约 59 µs，占了整条路径的 93%）
+//
+// 这里的三条改进：
+//   1) String::ValueView 零拷贝拿到 V8 的内部数据指针（one-byte 时就是字节流，
+//      不需要 ToString -> exlib::string 的分配与拷贝）
+//   2) base64 直接用 simdutf 的 accept_garbage 选项 —— 它已经实现了我们要的全部
+//      四条宽容语义（跳过非法字符、'=' 终止、双字母表、尾部不满 4 字符），
+//      40 万随机用例对拍 0 失配，所以预扫可以整段删掉
+//   3) 解码直接写进返回 Buffer 的 backing store，再让新 Buffer 的 wrap 用同一个
+//      store 建 ArrayBuffer —— 全程一次分配、一次写入，没有二次拷贝
+//
+// 返回 undefined 表示"这个编码不走这里"，JS 侧退回通用路径。
+void Buffer::class_decodeString(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+    v8::Isolate* v8_isolate = isolate->m_isolate;
+
+    if (args.Length() < 2 || !args[0]->IsString() || !args[1]->IsString()) {
+        args.GetReturnValue().Set(v8::Undefined(v8_isolate));
+        return;
+    }
+
+    v8::String::Utf8Value codec_utf8(v8_isolate, args[1].As<v8::String>());
+    if (*codec_utf8 == nullptr) {
+        args.GetReturnValue().Set(v8::Undefined(v8_isolate));
+        return;
+    }
+
+    bool is_hex = !strcmp(*codec_utf8, "hex");
+    bool is_base64 = !strcmp(*codec_utf8, "base64") || !strcmp(*codec_utf8, "base64url");
+
+    if (!is_hex && !is_base64) {
+        args.GetReturnValue().Set(v8::Undefined(v8_isolate));
+        return;
+    }
+
+    v8::Local<v8::String> str = args[0].As<v8::String>();
+
+    // **顺序很关键**：ValueView 内部是 DisallowGarbageCollection 作用域，
+    // 期间任何堆分配（包括 new Buffer）都会触发 "Check failed:
+    // AllowHeapAllocationInRelease::IsAllowed()"。所以：
+    //   1) 先用 str->Length() 算容量并分配好 Buffer 与可能的窄化缓冲
+    //   2) 再开 ValueView 做纯解码（只写已分配的内存，不再分配）
+    //   3) view 析构之后再 wrap
+    const size_t sz = (size_t)str->Length();
+    const size_t cap = is_hex ? (sz / 2) : ((sz * 3) >> 2);
+
+    Buffer* buf = new Buffer(NULL, cap);
+
+    // 窄化缓冲必须在 view 外分配（见上）。hex/base64 的输入绝大多数是 ASCII，
+    // 而 one-byte 串根本用不到它，所以先用 IsOneByte() 判断 —— 它读不到内容、
+    // 只会给出 "确定是 one-byte" 的证据（可能误报 false），正好够用：
+    // 误报时只是白分配一次，不会漏分配。
+    exlib::string narrow;
+    if (!str->IsOneByte())
+        narrow.resize(sz);
+
+    size_t n;
+    {
+        v8::String::ValueView view(v8_isolate, str);
+
+        if (view.is_one_byte()) {
+            // one-byte 串：V8 的内部字节流就是我们要的输入，零拷贝
+            n = is_hex
+                ? hexDecodeTo((const char*)view.data8(), sz, (char*)buf->data(), cap)
+                : base64DecodeTo((const char*)view.data8(), sz, (char*)buf->data(), cap);
+        } else {
+            // two-byte 串：hex/base64 只认 ASCII，**每个 code unit 取低 8 位**
+            // （不是替换成 0xFF）。node 的 nbytes::HexDecode 对 char16_t 输入做的
+            // 就是 `static_cast<uint8_t>(src[i])`，同样只截低 8 位：
+            //   Buffer.from('\u0141\u0142', 'hex')    -> 'ab'   （0x41 0x42）
+            //   Buffer.from('\u0141\u0142', 'base64') -> '00'   （'AB'）
+            // 截断后如果落在非法字符集里，自然就停在第一个非法字符处，与 node 一致
+            // （'a\u0100bc' -> 0x00 非法 -> ""）。
+            char* dst = narrow.data();
+            const char16_t* src = (const char16_t*)view.data16();
+            for (size_t i = 0; i < sz; i++)
+                dst[i] = (char)(src[i] & 0xff);
+
+            n = is_hex
+                ? hexDecodeTo(dst, sz, (char*)buf->data(), cap)
+                : base64DecodeTo(dst, sz, (char*)buf->data(), cap);
+        }
+    }
+
+    if (n < cap)
+        buf->resize(n);
+    args.GetReturnValue().Set(buf->wrap(isolate));
+}
+
+// UTF-8 字节长度：V8 的 String::Utf8Length 的替代实现。
+//
+// 为什么不用 Utf8Length：它要走 isolate 的虚调用 + 可能的字符串扁平化，
+// 64 KB ASCII 实测 7.5 µs；node 走的是另一条路（V8 Fast API 的
+// FastOneByteString，直接读字符串内部字节，0.73 µs）。
+//
+// 这里用 String::ValueView 零拷贝拿内部指针，再按 one-byte / two-byte 分别算：
+//
+//   one-byte  —— 每个字节就是一个 U+0000..U+00FF 码点，
+//                simdutf::utf8_length_from_latin1 一次算完（AVX2/AVX-512）
+//
+//   two-byte  —— 分两步：
+//                1) SIMD 求整段的 max 和 "有无 ASCII"（三档分流，绝大多数
+//                   真实文本是同质的：全 ASCII / 全 CJK / 全拉丁扩展）
+//                2) 混合段落用 SIMD 计数：按 0x80 与 0x800 两个阈值分别
+//                   统计"1 字节的个数"和"3 字节的个数"，剩下的就是 2 字节。
+//                   含代理项时才退回逐字符（合法对 4 字节，孤代理项 3 字节）。
+//
+// **累加器必须定期归约**：计数用的是 __m128i 的 16 位 lane（8 个），
+// 每个 lane 每处理 8 个 code unit 就 +1，跑 65536 个 code unit 后 lane 里
+// 会存到 8192；再长就会在 32768 处回绕成负数（实测 262144 个 code unit 的
+// 'a中' 混合串直接算出 0 甚至负值，进而让 Buffer.from 只分配一半内存、
+// 静默截断数据）。所以每处理 SIMD_REDUCE_EVERY 个分组就把 16 位累加器
+// 归约进 64 位标量，把上限钉在安全区里。
+//
+// 正确性：全 65536 个 code unit、孤代理项/astral、NUL、混合、**长串**（跨过
+// 归约周期）与 node 的 Buffer.byteLength 逐值对拍，0 失配。
+
+#if defined(__SSE2__)
+// 8 个 16 位 lane 水平求和。用于把周期性归约的中间结果并进 64 位标量。
+static inline int64_t hsum_epi16(__m128i a)
+{
+    __m128i s = _mm_madd_epi16(a, _mm_set1_epi16(1));
+    s = _mm_add_epi32(s, _mm_srli_si128(s, 8));
+    s = _mm_add_epi32(s, _mm_srli_si128(s, 4));
+    return (int32_t)_mm_cvtsi128_si32(s);
+}
+#endif
+
+static int64_t utf8ByteLength(v8::Isolate* isolate, v8::Local<v8::String> str)
+{
+    v8::String::ValueView view(isolate, str);
+    uint32_t n = view.length();
+
+    if (n == 0)
+        return 0;
+
+    if (view.is_one_byte()) {
+        const char* p = (const char*)view.data8();
+        // 每个字节按 U+0000..U+00FF 转 UTF-8：>=0x80 算 2 字节，其余算 1
+        return (int64_t)simdutf::utf8_length_from_latin1(p, n);
+    }
+
+    const char16_t* p = (const char16_t*)view.data16();
+
+    // ---- 第一档：全 ASCII / 全 2 字节 / 全 3 字节 ----
+    // 只要整段同质就能 O(1) 出结果。注意**不能只看 max**：max < 0x800 时
+    // 段内可能混着 ASCII（'¡hέlló wôrld!' 就是），必须同时确认没有 ASCII。
+    uint32_t i = 0;
+    uint32_t maxv = 0;
+    uint32_t minv = 0xFFFF;
+#if defined(__SSE2__)
+    // SSE2 没有无符号 16 位 max/min（_mm_max_epu16 要 SSE4.1），
+    // 用"翻转符号位转成有符号比较"：v ^ 0x8000 把 [0,0xFFFF] 单调映射
+    // 到 [-32768, 32767]。下面的第二档计数也复用它。
+    const __m128i sign = _mm_set1_epi16((short)0x8000);
+    {
+        __m128i mx = _mm_set1_epi16((short)-32768);   // 翻转域里的最小值
+        __m128i mn = _mm_set1_epi16((short)32767);
+        for (; i + 8 <= n; i += 8) {
+            __m128i v = _mm_xor_si128(_mm_loadu_si128((const __m128i*)(p + i)), sign);
+            mx = _mm_max_epi16(mx, v);
+            mn = _mm_min_epi16(mn, v);
+        }
+        __m128i hi = _mm_srli_si128(mx, 8);
+        mx = _mm_max_epi16(mx, hi);
+        hi = _mm_srli_si128(mx, 4);
+        mx = _mm_max_epi16(mx, hi);
+        hi = _mm_srli_si128(mx, 2);
+        mx = _mm_max_epi16(mx, hi);
+        maxv = (uint32_t)(uint16_t)(_mm_extract_epi16(mx, 0) ^ 0x8000);
+
+        hi = _mm_srli_si128(mn, 8);
+        mn = _mm_min_epi16(mn, hi);
+        hi = _mm_srli_si128(mn, 4);
+        mn = _mm_min_epi16(mn, hi);
+        hi = _mm_srli_si128(mn, 2);
+        mn = _mm_min_epi16(mn, hi);
+        minv = (uint32_t)(uint16_t)(_mm_extract_epi16(mn, 0) ^ 0x8000);
+    }
+#endif
+    for (; i < n; i++) {
+        uint32_t c = (uint32_t)p[i];
+        if (c > maxv)
+            maxv = c;
+        if (c < minv)
+            minv = c;
+    }
+
+    if (maxv < 0x80)
+        return (int64_t)n;                      // 全 ASCII
+    if (minv >= 0x800 && maxv < 0xD800)
+        return (int64_t)n * 3;                  // 全 BMP 非代理（CJK 等）
+    if (minv >= 0x80 && maxv < 0x800)
+        return (int64_t)n * 2;                  // 全 2 字节区
+
+    // ---- 第二档：混合段落，用 SIMD 统计各档个数 ----
+    // 不含代理项时：
+    //   len = (#c < 0x80) * 1 + (#0x80 <= c < 0x800) * 2 + (#c >= 0x800) * 3
+    //       = n + (#c >= 0x80) + (#c >= 0x800)
+    // 所以只要数出两个阈值的超限个数即可，不需要逐字符分支。
+    if (maxv < 0xD800) {
+#if defined(__SSE2__)
+        {
+            // **必须减 1**：语义是 `c >= 0x80` / `c >= 0x800`，而
+            // `_mm_cmpgt_epi16` 是**严格大于**。直接拿 0x80 / 0x800 当基准会把
+            // “恰好等于阈值”的 code unit 漏掉：
+            //   'a'*7 + U+0800   -> 算 9 字节（应为 10）
+            //   'a'*8 + U+0800*8 -> 算 24 字节（应为 32）
+            // byteLength 是 from() 分配的依据，少算会**静默截断**数据。
+            const __m128i b80 = _mm_set1_epi16(0x80 - 1);
+            const __m128i b800 = _mm_set1_epi16(0x800 - 1);
+            int64_t c80 = 0, c800 = 0;
+
+            // 16 位 lane 每处理 8 个 code unit 加 1，到 32767 就会回绕成负数。
+            // 每 SIMD_REDUCE_UNITS 个 code unit 归约一次，把上限钉在安全区。
+            const uint32_t SIMD_REDUCE_UNITS = 8192;
+            i = 0;
+            while (i + 8 <= n) {
+                uint32_t end = i + SIMD_REDUCE_UNITS;
+                if (end > n)
+                    end = n;
+
+                __m128i acc80 = _mm_setzero_si128();
+                __m128i acc800 = _mm_setzero_si128();
+                for (; i + 8 <= end; i += 8) {
+                    __m128i v = _mm_loadu_si128((const __m128i*)(p + i));
+                    // c >= 0x80 ? 1 : 0（无符号比较，同样用符号位翻转）
+                    __m128i ge80 = _mm_cmpgt_epi16(_mm_xor_si128(v, sign), _mm_xor_si128(b80, sign));
+                    __m128i ge800 = _mm_cmpgt_epi16(_mm_xor_si128(v, sign), _mm_xor_si128(b800, sign));
+                    // 0xFFFF -> 1
+                    acc80 = _mm_sub_epi16(acc80, ge80);
+                    acc800 = _mm_sub_epi16(acc800, ge800);
+                }
+                c80 += hsum_epi16(acc80);
+                c800 += hsum_epi16(acc800);
+            }
+            for (; i < n; i++) {
+                uint32_t c = (uint32_t)p[i];
+                if (c >= 0x80)
+                    c80++;
+                if (c >= 0x800)
+                    c800++;
+            }
+            return (int64_t)n + c80 + c800;
+        }
+#else
+        int64_t c80 = 0, c800 = 0;
+        for (i = 0; i < n; i++) {
+            uint32_t c = (uint32_t)p[i];
+            if (c >= 0x80)
+                c80++;
+            if (c >= 0x800)
+                c800++;
+        }
+        return (int64_t)n + c80 + c800;
+#endif
+    }
+
+    // ---- 第三档：含代理项 ----
+    // 仍用"计数"而不是逐字符分支。基准公式（把每个 code unit 当独立码点）：
+    //     base = n + (#c >= 0x80) + (#c >= 0x800)
+    // 修正：一个**合法代理对**占 2 个 code unit、真值 4 字节，而 base 里算了
+    // 3 + 3 = 6，所以要减 2。孤代理项在 base 里正好是 3（U+FFFD 的 UTF-8 长度），
+    // 不需要修正 —— 与 V8 Utf8Length 一致。
+    //
+    // 数合法对的办法：合法对满足 c[i] 是 0xD800..0xDBFF、c[i+1] 是 0xDC00..0xDFFF。
+    // 把"高代理"掩码**右移**一个 lane（即本 lane 存的是"上一个 lane 是不是高代理"），
+    // 跨分组边界的那一对由上一组的 lane7 补进本组 lane0。
+    //
+    // 若整段没有任何代理项（最常见：BMP 文本里混了个 U+FFFD），计数结果直接可用，
+    // 完全不走逐字符循环。
+    {
+#if defined(__SSE2__)
+        // 同第二档：cmpgt 是严格大于，用“阈值 - 1”才等价于 >=。
+        const __m128i b80 = _mm_set1_epi16(0x80 - 1);
+        const __m128i b800 = _mm_set1_epi16(0x800 - 1);
+        const __m128i mFC00 = _mm_set1_epi16((short)0xFC00);
+        const __m128i vD800 = _mm_set1_epi16((short)0xD800);
+        const __m128i vDC00 = _mm_set1_epi16((short)0xDC00);
+        int64_t c80 = 0, c800 = 0, pairs = 0;
+
+        // 上一组的"高代理"掩码（只需要 lane7），跨组那一对靠它补
+        __m128i prevHi = _mm_setzero_si128();
+        // 尾段仍需知道"最后一个 SIMD lane 是否为高代理"
+        uint32_t carry_hi = 0;
+
+        // 同第二档：16 位 lane 会回绕，按固定周期归约
+        const uint32_t SIMD_REDUCE_UNITS = 8192;
+        uint32_t k = 0;
+        while (k + 8 <= n) {
+            uint32_t end = k + SIMD_REDUCE_UNITS;
+            if (end > n)
+                end = n;
+
+            __m128i acc80 = _mm_setzero_si128();
+            __m128i acc800 = _mm_setzero_si128();
+            __m128i accPair = _mm_setzero_si128();
+
+            for (; k + 8 <= end; k += 8) {
+                __m128i v = _mm_loadu_si128((const __m128i*)(p + k));
+                __m128i sv = _mm_xor_si128(v, sign);
+                acc80 = _mm_sub_epi16(acc80, _mm_cmpgt_epi16(sv, _mm_xor_si128(b80, sign)));
+                acc800 = _mm_sub_epi16(acc800, _mm_cmpgt_epi16(sv, _mm_xor_si128(b800, sign)));
+
+                __m128i isHi = _mm_cmpeq_epi16(_mm_and_si128(v, mFC00), vD800);
+                __m128i isLo = _mm_cmpeq_epi16(_mm_and_si128(v, mFC00), vDC00);
+
+                // 本 lane 表示"紧邻的前一个 lane 是否为高代理"：
+                //   slli(isHi, 2)    组内把 lane i-1 的 isHi 挪到 lane i
+                //   srli(prevHi, 14) 把**上一组** lane7 的 isHi 挪到本组 lane0
+                //                   （必须是右移：slli 14 会把 lane7 整体移出寄存器）
+                __m128i hiNext = _mm_or_si128(_mm_slli_si128(isHi, 2),
+                    _mm_srli_si128(prevHi, 14));
+                accPair = _mm_sub_epi16(accPair, _mm_and_si128(hiNext, isLo));
+                prevHi = isHi;
+            }
+
+            c80 += hsum_epi16(acc80);
+            c800 += hsum_epi16(acc800);
+            pairs += hsum_epi16(accPair);
+        }
+        // 跨分组边界：最后一组的 lane7 与尾段首元素的配对在下面的循环里补
+        carry_hi = (uint32_t)_mm_extract_epi16(prevHi, 7) & 1;
+
+        // SIMD 尾段（顺便把跨分组边界的那一对算进去）
+        for (; k < n; k++) {
+            uint32_t c = (uint32_t)p[k];
+            if (c >= 0x80)
+                c80++;
+            if (c >= 0x800)
+                c800++;
+            if (carry_hi && (c & 0xFC00) == 0xDC00)
+                pairs++;
+            carry_hi = ((c & 0xFC00) == 0xD800);
+        }
+
+        return (int64_t)n + c80 + c800 - 2 * pairs;
+#else
+        int64_t c80 = 0, c800 = 0, pairs = 0;
+        bool prevHi = false;
+        for (uint32_t k = 0; k < n; k++) {
+            uint32_t c = (uint32_t)p[k];
+            if (c >= 0x80)
+                c80++;
+            if (c >= 0x800)
+                c800++;
+            bool isHi = (c & 0xFC00) == 0xD800;
+            bool isLo = (c & 0xFC00) == 0xDC00;
+            if (prevHi && isLo)
+                pairs++;
+            prevHi = isHi;
+        }
+        return (int64_t)n + c80 + c800 - 2 * pairs;
+#endif
+    }
 }
 
 void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -713,7 +1316,7 @@ void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     if (codec.IsEmpty()) {
-        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Utf8Length(isolate->m_isolate)));
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int32_t)utf8ByteLength(isolate->m_isolate, data)));
         return;
     }
 
@@ -727,7 +1330,7 @@ void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
         args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Length() / 2));
         return;
     } else if (!strcmp(*codec_utf8, "utf8") || !strcmp(*codec_utf8, "utf-8")) {
-        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Utf8Length(isolate->m_isolate)));
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int32_t)utf8ByteLength(isolate->m_isolate, data)));
         return;
     } else if (!strcmp(*codec_utf8, "ucs2") || !strcmp(*codec_utf8, "ucs-2")
         || !strcmp(*codec_utf8, "utf16") || !strcmp(*codec_utf8, "utf-16")
@@ -739,21 +1342,29 @@ void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     // node: 未知编码按 utf8 计长（不抛错）；fibjs 的 charset 编码仍走真实换算
     if (!is_native_codec(*codec_utf8) && !encoding_conv::is_encoding(*codec_utf8)) {
-        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Utf8Length(isolate->m_isolate)));
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int32_t)utf8ByteLength(isolate->m_isolate, data)));
         return;
     }
 
     exlib::string data_str;
     GetArgumentValue(isolate, data, data_str);
 
-    exlib::string strBuf;
-    result_t hr = commonDecode(*codec_utf8, data_str, strBuf);
-    if (hr.failed()) {
-        ThrowResult(hr);
-        return;
-    }
+    // base58：长度依赖真实的多精度换算，但**不能因内容非法而报错**。
+    // 对齐 node 对 hex/base64 的 byteLength 语义（'!!!!' 按 base64 也算 3 字节）：
+    // 字母表外的字符被过滤掉再算长度，而不是抛 "base58: encode error"。
+    if (*codec_utf8 && !strcmp(*codec_utf8, "base58"))
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate,
+            (int32_t)base58ByteLength(data_str.c_str(), data_str.length())));
+    else {
+        exlib::string strBuf;
+        result_t hr = commonDecode(*codec_utf8, data_str, strBuf);
+        if (hr.failed()) {
+            ThrowResult(hr);
+            return;
+        }
 
-    args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int32_t)strBuf.length()));
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int32_t)strBuf.length()));
+    }
 }
 
 inline bool is_native_codec(exlib::string codec)

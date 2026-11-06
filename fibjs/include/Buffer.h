@@ -310,6 +310,17 @@ private:
     static void proto_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void proto_write(const v8::FunctionCallbackInfo<v8::Value>& args);
 
+    // bytes -> V8 string，不经过 UTF-8：latin1/binary 挂 one-byte，ucs2/utf16 挂 two-byte。
+    // 对标 Node 的 StringBytes::Encode(LATIN1/UCS2)（node/src/string_bytes.cc:547/604）。
+    // ascii 不走这里 —— 它要掩掉高位，与 latin1 的逐字节映射不同。
+    static void proto_encodeString(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+    // string -> bytes，hex/base64 的零绕行入口：用 String::ValueView 直接拿 V8 的
+    // one-byte 数据指针交给 simdutf，解码结果直接写进新建 Buffer 的 backing store，
+    // 全程不经过 exlib::string，也不做二次拷贝（wrap() 用同一个 backing store 建
+    // ArrayBuffer）。返回 undefined 表示该编码不走这里。
+    static void class_decodeString(const v8::FunctionCallbackInfo<v8::Value>& args);
+
 private:
     static void class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args);
 
