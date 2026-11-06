@@ -27,6 +27,11 @@ extern v8::Platform* g_default_platform;
 
 v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t length = -1);
 v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str);
+// 裸字节 → one-byte 字符串（每个字节 = 一个 U+0000..U+00FF code unit），对应 Node 的
+// StringBytes::Encode(LATIN1)。与 NewString(exlib::string) 不同，这里**不把入参当 UTF-8**。
+v8::Local<v8::String> NewStringOneByte(v8::Isolate* isolate, exlib::string str);
+// UTF-16 code unit → two-byte 字符串，不经过 UTF-8。对应 Node 的 ucs2 Encode 分支。
+v8::Local<v8::String> NewStringTwoByte(v8::Isolate* isolate, exlib::wstring str);
 exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v);
 
 inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
