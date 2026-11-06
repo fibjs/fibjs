@@ -15,15 +15,6 @@
 
 namespace fibjs {
 
-char32_t utf_getchar(const char*& src, const char* end);
-ssize_t utf_putchar(char32_t ch, char*& dst, const char* end);
-
-char32_t utf_getchar(const char16_t*& src, const char16_t* end);
-ssize_t utf_putchar(char32_t ch, char16_t*& dst, const char16_t* end);
-
-char32_t utf_getchar(const char32_t*& src, const char32_t* end);
-ssize_t utf_putchar(char32_t ch, char32_t*& dst, const char32_t* end);
-
 ssize_t utf_convert(const char* src, ssize_t srclen, char16_t* dst, ssize_t dstlen);
 ssize_t utf_convert(const char16_t* src, ssize_t srclen, char* dst, ssize_t dstlen);
 ssize_t utf_convert(const char* src, ssize_t srclen, char32_t* dst, ssize_t dstlen);
