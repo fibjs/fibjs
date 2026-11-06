@@ -40,6 +40,7 @@ run("./timer_test.js");
 run("./buffer_test.js");
 run("./node_buffer_compat_test.js");
 run("./buffer_string_args_test.js");
+run("./buffer_encoding_semantics_test.js");
 run("./encoding_test.js");
 run("./atob_btoa_test.js");
 run("./path_test.js");
@@ -136,8 +137,18 @@ if (process.platform != "android") {
         run("./selfzip_test.js");
 }
 
-if (global.full_test)
+if (global.full_test) {
     run("./tty_test.js");
+
+    // huge_test 需要约 6 GB 峰值内存（几条用例各分配 1~1.7 GB 的 Buffer），
+    // 常规 CI 跑不动，所以只在 --full 下执行。
+    //
+    // 但它此前**完全不在任何套件里**，于是 2021 年那批 IDL 收紧（把"数字隐式
+    // 当 Buffer 长度"的转换移除）之后，其中两条用例已经在没有报错的情况下
+    // 变成了 "TypeError: 参数无法转换"，长期没人发现。放进 --full 至少让它
+    // 在 nightly / 本地全量跑时被覆盖。
+    run("./huge_test.js");
+}
 
 run("./v8_test.js");
 

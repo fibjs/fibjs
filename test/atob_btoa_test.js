@@ -351,6 +351,56 @@ describe("atob/btoa API", () => {
             });
         });
 
+
+        // -----------------------------------------------------------------
+        // 2026-11-06 审查补充：上面的 padding / length 用例都是 try/catch 宽松
+        // 模式（只要不崩溃就算通过），因此 atob('YQ=') 返回 'a'（node 抛错）
+        // 这类**语义** bug 长期未被捕获。下面改成精确断言。
+        // -----------------------------------------------------------------
+
+        it("atob - padding must exactly complete the block when present", () => {
+            // 缺少 padding 是合法的（'YQ' 与 'YQ==' 等价）
+            assert.strictEqual(atob('YQ'), 'a');
+            assert.strictEqual(atob('YQ=='), 'a');
+            assert.strictEqual(atob('YWJjZA'), 'abcd');
+            assert.strictEqual(atob('YWJjZA=='), 'abcd');
+
+            // 但 padding 一旦出现就必须正好补齐，不能少不能多
+            ['YQ=',            // 2 mod 4 需要 2 个 '='
+                'YQ===',       // 3 个太多
+                'YWJj=',       // 0 mod 4 不该有 '='
+                'YWJjZA=',     // 3 mod 4 需要 1 个？不 —— 2 mod 4 才要 2 个
+                'TQ=',         // 同上
+                'TWE==',       // 3 mod 4 只要 1 个
+                'TWFu=',       // 0 mod 4 不该有
+                'ABC===',
+                'YWJjZA=A',    // padding 不在尾部
+            ].forEach(function (tc) {
+                assert.throws(function () { atob(tc); },
+                    /not correctly encoded|Invalid character/,
+                    'atob(' + JSON.stringify(tc) + ') should throw');
+            });
+        });
+
+        it("atob - rejects characters outside the alphabet", () => {
+            ['!!!!', '====', '=', '===', 'A', '\u00ff', '\u00e9', '\u4e2d',
+                'YWJj\u0000', 'YWJj$$'].forEach(function (tc) {
+                    assert.throws(function () { atob(tc); },
+                        /not correctly encoded|Invalid character/,
+                        'atob(' + JSON.stringify(tc) + ') should throw');
+                });
+        });
+
+        it("atob - ignores ASCII whitespace only", () => {
+            assert.strictEqual(atob('YW Jj'), 'abc');
+            assert.strictEqual(atob('\tYW\r\nJj '), 'abc');
+            assert.strictEqual(atob('YWJj\n'), 'abc');
+            assert.strictEqual(atob('  YQ==  '), 'a');
+            // 其它 Unicode 空白不豁免
+            assert.throws(function () { atob('YW\u00a0Jj'); },
+                /not correctly encoded|Invalid character/);
+        });
+
         it("atob - invalid length scenarios", () => {
             // Test base64 strings with invalid lengths
             const invalidLengthCases = [
