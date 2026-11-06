@@ -44,6 +44,11 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender/boost/preprocessor/include"
 	"${PROJECT_SOURCE_DIR}/../vender/postject"
 	"${PROJECT_SOURCE_DIR}/../vender/ada/include"
+	# simdutf 的符号已由 vender/v8 的 target 静态编进 libv8.a（third_party/simdutf），
+	# 这里只需要头文件就能调用 utf8/utf16/utf32 与 base64 的向量化实现。
+	# 这是唯一一处依赖 v8 vendored 头的代码，集中在 `src/base/utf8.cpp` 与
+	# `src/encoding/encoding.cpp` 两个文件里；若将来 v8 调整目录，只需改这一行。
+	"${PROJECT_SOURCE_DIR}/../vender/v8/third_party/simdutf"
 	"${CMAKE_CURRENT_BINARY_DIR}")
 
 if("${BUILD_OS}" MATCHES "Windows|Darwin|Linux|Alpine")
