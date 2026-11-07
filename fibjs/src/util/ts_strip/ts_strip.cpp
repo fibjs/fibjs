@@ -15,6 +15,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <stdexcept>
+
+#if defined(__aarch64__)
+#include <arm_neon.h>
+#elif defined(__SSE2__)
+#include <emmintrin.h>
+#endif
 namespace fibjs {
 namespace ts_strip {
 
@@ -552,22 +558,94 @@ private:
     bool isEOF() const { return token() == SyntaxKind::EndOfFileToken; }
     
     // ========== Replacement recording ==========
+    //
+    // Erase [start, end): every byte becomes a space, except line breaks (a
+    // stripped type must not move the following line) and the bytes of
+    // U+2028/U+2029 (they are line terminators too, and a multi-byte sequence
+    // has to survive intact).
+    //
+    // This is the hot loop of the stripper: a type annotation is typically a
+    // handful of bytes, but a whole erased declaration (an interface, a `declare
+    // module` block) is one call over hundreds or thousands of bytes, and it is
+    // where most of the strip time goes.
     void addReplacement(int start, int end) {
-        // Directly replace in-place instead of collecting spans
-        for (int i = start; i < end && i < (int)m_length; i++) {
-            uint8_t ch = m_src[i];
-            if (ch == 0xE2 && i + 2 < (int)m_length) {
-                uint8_t b1 = m_src[i + 1];
-                uint8_t b2 = m_src[i + 2];
-                if (b1 == 0x80 && (b2 == 0xA8 || b2 == 0xA9)) {
-                    i += 2;
-                    continue;
+        int limit = end < (int)m_length ? end : (int)m_length;
+
+        // The scalar body shared by every architecture, and the handler for a
+        // window the vector loop cannot take. Returns where it stopped: a
+        // U+2028/U+2029 that straddles a block boundary consumes bytes past `to`,
+        // and the vector loop must not resume in the middle of that sequence.
+        auto eraseScalar = [this](int from, int to) -> int {
+            int k = from;
+            for (; k < to; k++) {
+                uint8_t ch = m_src[k];
+                if (ch == 0xE2 && k + 2 < (int)m_length) {
+                    uint8_t b1 = m_src[k + 1];
+                    uint8_t b2 = m_src[k + 2];
+                    if (b1 == 0x80 && (b2 == 0xA8 || b2 == 0xA9)) {
+                        k += 2;
+                        continue;
+                    }
+                }
+                if (ch != '\n' && ch != '\r') {
+                    m_src[k] = ' ';
                 }
             }
-            if (ch != '\n' && ch != '\r') {
-                m_src[i] = ' ';
+            return k;
+        };
+
+        int i = start;
+
+#if defined(__aarch64__)
+        {
+            const uint8x16_t nl = vdupq_n_u8('\n');
+            const uint8x16_t cr = vdupq_n_u8('\r');
+            const uint8x16_t sp = vdupq_n_u8(' ');
+            const uint8x16_t e2 = vdupq_n_u8(0xE2);
+
+            for (; i + 16 <= limit;) {
+                uint8x16_t v = vld1q_u8(m_src + i);
+
+                // A 0xE2 may begin U+2028/U+2029, which must be left alone. The
+                // handler for those spans three bytes, so it cannot be expressed
+                // lane by lane: only the block that contains one goes scalar.
+                if (vmaxvq_u8(vceqq_u8(v, e2)) != 0) {
+                    i = eraseScalar(i, i + 16);
+                    continue;
+                }
+
+                uint8x16_t keep = vorrq_u8(vceqq_u8(v, nl), vceqq_u8(v, cr));
+                vst1q_u8(m_src + i, vbslq_u8(keep, v, sp));
+                i += 16;
             }
         }
+#elif defined(__SSE2__)
+        {
+            const __m128i nl = _mm_set1_epi8('\n');
+            const __m128i cr = _mm_set1_epi8('\r');
+            const __m128i sp = _mm_set1_epi8(' ');
+            const __m128i e2 = _mm_set1_epi8((char)0xE2);
+
+            for (; i + 16 <= limit;) {
+                __m128i v = _mm_loadu_si128((const __m128i*)(m_src + i));
+
+                // A 0xE2 may begin U+2028/U+2029, which must be left alone. The
+                // handler for those spans three bytes, so it cannot be expressed
+                // lane by lane: only the block that contains one goes scalar.
+                if (_mm_movemask_epi8(_mm_cmpeq_epi8(v, e2))) {
+                    i = eraseScalar(i, i + 16);
+                    continue;
+                }
+
+                __m128i keep = _mm_or_si128(_mm_cmpeq_epi8(v, nl), _mm_cmpeq_epi8(v, cr));
+                // keep ? v : ' ' - andnot(keep, sp) preserves the line breaks.
+                _mm_storeu_si128((__m128i*)(m_src + i),
+                    _mm_or_si128(_mm_and_si128(keep, v), _mm_andnot_si128(keep, sp)));
+                i += 16;
+            }
+        }
+#endif
+        eraseScalar(i, limit);
     }
     
     // Names declared so far in each scope currently being parsed, innermost
