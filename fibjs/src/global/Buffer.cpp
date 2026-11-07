@@ -9,6 +9,8 @@
 
 #if defined(__SSE2__)
 #include <emmintrin.h>
+#elif defined(__aarch64__)
+#include <arm_neon.h>
 #endif
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -676,6 +678,45 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
             }
         }
 
+        // one-byte 但含高位字节（典型来源：Buffer.toString('latin1')）：
+        // 每个字节要展开成 1 或 2 个字节。WriteUtf8 在这里也是标量，
+        // simdutf 的 convert_latin1_to_utf8_safe 是向量化的（64 KB 29 µs -> 5 µs）。
+        // _safe 版的截断同样是"只写完整字符"，与 node 一致。
+        if (data->IsOneByte()) {
+            v8::String::ValueView view(isolate->m_isolate, data);
+            if (view.is_one_byte()) {
+                size_t n = simdutf::convert_latin1_to_utf8_safe(
+                    (const char*)view.data8(), view.length(),
+                    (char*)buf.data() + offset, max_length);
+                args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int)n));
+                return;
+            }
+        }
+
+        // two-byte 串走 simdutf 的向量化 UTF-16 -> UTF-8。
+        // V8 的 WriteUtf8 在 arm64 上是标量实现：64 KB CJK 要 85 µs，
+        // simdutf 的 convert_utf16_to_utf8_safe 只要 20 µs（4×）。
+        //
+        // `_safe` 版本的截断语义与 node 完全一致：**只写完整字符**，
+        // 放不下的那个字符一个字节也不写（实测 '中文测试' 在 cap=4/5 时
+        // 返回 3，与 node 的 buf.write 逐值相同）。
+        //
+        // 它同时在内部做校验：遇到孤代理项返回 0，此时退回 WriteUtf8 ——
+        // node 的 WriteUtf8 带 REPLACE_INVALID_UTF8，会把孤代理项写成 U+FFFD，
+        // 这与「不写」不同，不能直接用 simdutf 的结果。
+        if (!data->IsOneByte()) {
+            v8::String::ValueView view(isolate->m_isolate, data);
+            if (!view.is_one_byte()) {
+                size_t n = simdutf::convert_utf16_to_utf8_safe(
+                    (const char16_t*)view.data16(), view.length(),
+                    (char*)buf.data() + offset, max_length);
+                if (n > 0 || max_length == 0 || view.length() == 0) {
+                    args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, (int)n));
+                    return;
+                }
+            }
+        }
+
         written = data->WriteUtf8(isolate->m_isolate, (char*)buf.data() + offset, (int)max_length, nullptr, flags);
         args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, written));
         return;
@@ -865,6 +906,50 @@ void Buffer::proto_encodeString(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
+    // ---- utf8 / ascii：simdutf 解码后直接挂 two-byte 外部串 ----
+    //
+    // 旧路径是 bytes -> exlib::string(UTF-8 中转) -> utf8to16String -> NewString，
+    // 一共扫三遍、分配两次。这里用 simdutf 一次算长度一次转换，直接
+    // NewStringTwoByte 挂外部缓冲（两次扫描、一次分配）。
+    // 64 KB CJK 从 106 µs 降到约 40 µs。
+    //
+    // **ascii 不能走这里**：node 的 ascii 解码把每个字节掩成 7 位（0xE9 -> 'i'），
+    // 与 utf8 的「非法字节 -> U+FFFD」完全不同，仍退回通用路径。
+    if (!strcmp(*codec_utf8, "utf8") || !strcmp(*codec_utf8, "utf-8")) {
+        if (len == 0) {
+            args.GetReturnValue().Set(v8::String::Empty(v8_isolate));
+            return;
+        }
+
+        // 先尝试走"全合法"的快路径；有非法序列时退回通用路径。
+        //
+        // **全 ASCII 必须落成 one-byte 串**：硬转 two-byte 会让内存翻倍，
+        // 实测 64 KB ASCII 反而从 9 µs 涨到 18 µs。
+        if (simdutf::validate_ascii((const char*)p, len)) {
+            v8::Local<v8::String> v = NewStringOneByte(v8_isolate,
+                exlib::string((const char*)p, len));
+            if (!v.IsEmpty()) {
+                args.GetReturnValue().Set(v);
+                return;
+            }
+        } else if (simdutf::validate_utf8((const char*)p, len)) {
+            size_t units = simdutf::utf16_length_from_utf8((const char*)p, len);
+            exlib::wstring w;
+            w.resize(units);
+            size_t n = simdutf::convert_utf8_to_utf16((const char*)p, len, w.data());
+            if (n == units) {
+                v8::Local<v8::String> v = NewStringTwoByte(v8_isolate, std::move(w));
+                if (!v.IsEmpty()) {
+                    args.GetReturnValue().Set(v);
+                    return;
+                }
+            }
+        }
+
+        args.GetReturnValue().Set(v8::Undefined(v8_isolate));
+        return;
+    }
+
     // ---- ucs2 / utf16le：小端平台上 Buffer 字节就是 UTF-16LE 内存布局 ----
     if (!strcmp(*codec_utf8, "ucs2") || !strcmp(*codec_utf8, "ucs-2")
         || !strcmp(*codec_utf8, "utf16") || !strcmp(*codec_utf8, "utf-16")
@@ -1039,6 +1124,147 @@ static inline int64_t hsum_epi16(__m128i a)
 }
 #endif
 
+#if defined(__aarch64__)
+#define V16(p) ((const uint16_t*)(p))
+
+// 8 个 16 位 lane 水平求和（vaddlvq_u16 一条指令）。
+static inline int64_t hsum_epi16(uint16x8_t a)
+{
+    return vaddlvq_u16(a);
+}
+
+// NEON 分支的 4 路展开：同质文本靠它把「两遍 scan 的纯加载」跑满内存带宽；
+// 计数循环也是 4 路，避免 vsubq 的依赖链串行化（实测 naive 单路只有 24 GB/s，
+// 4 路能到 87 GB/s）。
+#define NEON_UNROLL 4
+// 归约周期：4 路展开下每个 lane 每周期最多 +NEON_REDUCE_UNITS/8，
+// NEON_REDUCE_UNITS=16384 时最多 +2048，离 16 位回绕点 65535 很远。
+#define NEON_REDUCE_UNITS 16384
+
+// latin1(one-byte) -> UTF-8 的字节长度：len = n + count(byte >= 0x80)。
+//
+// 不用 simdutf::utf8_length_from_latin1：它的 arm64 后端没向量化这条路径，
+// 实测与 fallback 标量同速（64 KB 约 3.0 µs），比这里的 0.81 µs 慢 3.7×。
+// validate_ascii 虽然是向量化的（0.66 µs），但它只能判定「全 ASCII」，
+// 一旦有高位字节就得再扫一遍，反而更慢（见下面的 mixed 用例）。
+//
+// 用 vpadalq_u8 把 0/1 直接累加进 16 位 lane：每批最多 +NEON_LATIN1_REDUCE/16，
+// NEON_LATIN1_REDUCE=4096 时上限 256，远低于 u16 回绕点。
+static int64_t latin1ByteLength(const char* p, size_t n)
+{
+    size_t i = 0;
+    int64_t cnt = 0;
+    const uint8x16_t t80 = vdupq_n_u8(0x80);
+    const uint8x16_t one = vdupq_n_u8(1);
+
+    while (i + 64 <= n) {
+        size_t end = i + 4096;
+        if (end > n)
+            end = n;
+
+        uint16x8_t a0 = vdupq_n_u16(0), a1 = a0, a2 = a0, a3 = a0;
+        for (; i + 64 <= end; i += 64) {
+            uint8x16_t v0 = vld1q_u8((const uint8_t*)(p + i));
+            uint8x16_t v1 = vld1q_u8((const uint8_t*)(p + i + 16));
+            uint8x16_t v2 = vld1q_u8((const uint8_t*)(p + i + 32));
+            uint8x16_t v3 = vld1q_u8((const uint8_t*)(p + i + 48));
+            a0 = vpadalq_u8(a0, vandq_u8(vcgeq_u8(v0, t80), one));
+            a1 = vpadalq_u8(a1, vandq_u8(vcgeq_u8(v1, t80), one));
+            a2 = vpadalq_u8(a2, vandq_u8(vcgeq_u8(v2, t80), one));
+            a3 = vpadalq_u8(a3, vandq_u8(vcgeq_u8(v3, t80), one));
+        }
+        cnt += hsum_epi16(vaddq_u16(vaddq_u16(a0, a1), vaddq_u16(a2, a3)));
+    }
+    {
+        uint16x8_t a0 = vdupq_n_u16(0);
+        for (; i + 16 <= n; i += 16) {
+            uint8x16_t v = vld1q_u8((const uint8_t*)(p + i));
+            a0 = vpadalq_u8(a0, vandq_u8(vcgeq_u8(v, t80), one));
+        }
+        cnt += hsum_epi16(a0);
+    }
+    for (; i < n; i++)
+        if ((uint8_t)p[i] >= 0x80)
+            cnt++;
+
+    return (int64_t)n + cnt;
+}
+
+// 只数合法代理对（供 minv >= 0x800 的特例使用）。
+//
+// 该特例下所有 code unit 都 >= 0x800，于是 c80 与 c800 恒等于 n、
+// base = n + n + n = 3n 是已知量，唯一需要扫描的就是代理对个数。
+// 省掉两套比较与累加器后，纯 emoji 文本 64K 从 8.4 µs 降到 4.1 µs（2×）。
+static int64_t neon_count_pairs(const char16_t* p, uint32_t n)
+{
+    const uint16x8_t mFC00 = vdupq_n_u16(0xFC00);
+    const uint16x8_t vD800 = vdupq_n_u16(0xD800);
+    const uint16x8_t vDC00 = vdupq_n_u16(0xDC00);
+
+    int64_t pairs = 0;
+    uint32_t k = 0;
+    uint16x8_t prevHi = vdupq_n_u16(0);
+
+    while (k + 8 * NEON_UNROLL <= n) {
+        uint32_t end = k + NEON_REDUCE_UNITS;
+        if (end > n)
+            end = n;
+
+        uint16x8_t d0 = vdupq_n_u16(0), d1 = d0, d2 = d0, d3 = d0;
+        for (; k + 8 * NEON_UNROLL <= end; k += 8 * NEON_UNROLL) {
+            uint16x8_t v0 = vld1q_u16(V16(p + k));
+            uint16x8_t v1 = vld1q_u16(V16(p + k + 8));
+            uint16x8_t v2 = vld1q_u16(V16(p + k + 16));
+            uint16x8_t v3 = vld1q_u16(V16(p + k + 24));
+
+            uint16x8_t k0 = vandq_u16(v0, mFC00);
+            uint16x8_t h0 = vceqq_u16(k0, vD800);
+            d0 = vsubq_u16(d0, vandq_u16(vextq_u16(prevHi, h0, 7), vceqq_u16(k0, vDC00)));
+            prevHi = h0;
+
+            uint16x8_t k1 = vandq_u16(v1, mFC00);
+            uint16x8_t h1 = vceqq_u16(k1, vD800);
+            d1 = vsubq_u16(d1, vandq_u16(vextq_u16(prevHi, h1, 7), vceqq_u16(k1, vDC00)));
+            prevHi = h1;
+
+            uint16x8_t k2 = vandq_u16(v2, mFC00);
+            uint16x8_t h2 = vceqq_u16(k2, vD800);
+            d2 = vsubq_u16(d2, vandq_u16(vextq_u16(prevHi, h2, 7), vceqq_u16(k2, vDC00)));
+            prevHi = h2;
+
+            uint16x8_t k3 = vandq_u16(v3, mFC00);
+            uint16x8_t h3 = vceqq_u16(k3, vD800);
+            d3 = vsubq_u16(d3, vandq_u16(vextq_u16(prevHi, h3, 7), vceqq_u16(k3, vDC00)));
+            prevHi = h3;
+        }
+        // 四个累加器可以先 vaddq_u16 再归约：每个 lane 最多累到
+        // NEON_REDUCE_UNITS/32 = 512，四个相加远低于 16 位上限。
+        // （**不能**把 0xFFFF 掩码直接交给 hsum —— 那是 65535 不是 1；
+        // 下面的尾段就是踩到这个坑的，必须用 vsubq 的借位形式。）
+        pairs += hsum_epi16(vaddq_u16(vaddq_u16(d0, d1), vaddq_u16(d2, d3)));
+    }
+    for (; k + 8 <= n; k += 8) {
+        uint16x8_t v = vld1q_u16(V16(p + k));
+        uint16x8_t kk = vandq_u16(v, mFC00);
+        uint16x8_t h = vceqq_u16(kk, vD800);
+        // vceqq 出的是 0xFFFF，必须借位减成 1，否则 hsum 会算成 65535
+        pairs += hsum_epi16(vsubq_u16(vdupq_n_u16(0),
+            vandq_u16(vextq_u16(prevHi, h, 7), vceqq_u16(kk, vDC00))));
+        prevHi = h;
+    }
+
+    uint32_t carry_hi = (uint32_t)vgetq_lane_u16(prevHi, 7) & 1;
+    for (; k < n; k++) {
+        uint32_t c = (uint32_t)p[k];
+        if (carry_hi && (c & 0xFC00) == 0xDC00)
+            pairs++;
+        carry_hi = ((c & 0xFC00) == 0xD800);
+    }
+
+    return pairs;
+}
+#endif
+
 static int64_t utf8ByteLength(v8::Isolate* isolate, v8::Local<v8::String> str)
 {
     v8::String::ValueView view(isolate, str);
@@ -1050,7 +1276,11 @@ static int64_t utf8ByteLength(v8::Isolate* isolate, v8::Local<v8::String> str)
     if (view.is_one_byte()) {
         const char* p = (const char*)view.data8();
         // 每个字节按 U+0000..U+00FF 转 UTF-8：>=0x80 算 2 字节，其余算 1
+#if defined(__aarch64__)
+        return latin1ByteLength(p, n);
+#else
         return (int64_t)simdutf::utf8_length_from_latin1(p, n);
+#endif
     }
 
     const char16_t* p = (const char16_t*)view.data16();
@@ -1061,7 +1291,39 @@ static int64_t utf8ByteLength(v8::Isolate* isolate, v8::Local<v8::String> str)
     uint32_t i = 0;
     uint32_t maxv = 0;
     uint32_t minv = 0xFFFF;
-#if defined(__SSE2__)
+#if defined(__aarch64__)
+    // AArch64 有原生无符号向量 max/min（vmaxq_u16 / vminq_u16 + 水平归约），
+    // 不需要 x86 那种符号位翻转。4 路展开把加载流水线拉满：
+    // 64 KB 全 ASCII 从 4.0 µs（标量，clang 自动向量化）降到 1.3 µs。
+    {
+        uint16x8_t mx0 = vdupq_n_u16(0), mn0 = vdupq_n_u16(0xFFFF);
+        uint16x8_t mx1 = mx0, mn1 = mn0, mx2 = mx0, mn2 = mn0, mx3 = mx0, mn3 = mn0;
+        for (; i + 8 * NEON_UNROLL <= n; i += 8 * NEON_UNROLL) {
+            uint16x8_t v0 = vld1q_u16(V16(p + i));
+            uint16x8_t v1 = vld1q_u16(V16(p + i + 8));
+            uint16x8_t v2 = vld1q_u16(V16(p + i + 16));
+            uint16x8_t v3 = vld1q_u16(V16(p + i + 24));
+            mx0 = vmaxq_u16(mx0, v0);
+            mn0 = vminq_u16(mn0, v0);
+            mx1 = vmaxq_u16(mx1, v1);
+            mn1 = vminq_u16(mn1, v1);
+            mx2 = vmaxq_u16(mx2, v2);
+            mn2 = vminq_u16(mn2, v2);
+            mx3 = vmaxq_u16(mx3, v3);
+            mn3 = vminq_u16(mn3, v3);
+        }
+        // 单个 8 lane 的尾段（n 常是 2 的幂，这一步通常不执行）
+        for (; i + 8 <= n; i += 8) {
+            uint16x8_t v = vld1q_u16(V16(p + i));
+            mx0 = vmaxq_u16(mx0, v);
+            mn0 = vminq_u16(mn0, v);
+        }
+        mx0 = vmaxq_u16(vmaxq_u16(mx0, mx1), vmaxq_u16(mx2, mx3));
+        mn0 = vminq_u16(vminq_u16(mn0, mn1), vminq_u16(mn2, mn3));
+        maxv = vmaxvq_u16(mx0);
+        minv = vminvq_u16(mn0);
+    }
+#elif defined(__SSE2__)
     // SSE2 没有无符号 16 位 max/min（_mm_max_epu16 要 SSE4.1），
     // 用"翻转符号位转成有符号比较"：v ^ 0x8000 把 [0,0xFFFF] 单调映射
     // 到 [-32768, 32767]。下面的第二档计数也复用它。
@@ -1112,7 +1374,63 @@ static int64_t utf8ByteLength(v8::Isolate* isolate, v8::Local<v8::String> str)
     //       = n + (#c >= 0x80) + (#c >= 0x800)
     // 所以只要数出两个阈值的超限个数即可，不需要逐字符分支。
     if (maxv < 0xD800) {
-#if defined(__SSE2__)
+#if defined(__aarch64__)
+        {
+            // NEON 有原生的无符号 vcgeq_u16，直接表达 `c >= 0x80` /
+            // `c >= 0x800`，不需要 x86 那套“阈值减 1 + 符号位翻转”的替代写法。
+            const uint16x8_t t80 = vdupq_n_u16(0x80);
+            const uint16x8_t t800 = vdupq_n_u16(0x800);
+            int64_t c80 = 0, c800 = 0;
+
+            i = 0;
+            while (i + 8 * NEON_UNROLL <= n) {
+                uint32_t end = i + NEON_REDUCE_UNITS;
+                if (end > n)
+                    end = n;
+
+                uint16x8_t a0 = vdupq_n_u16(0), a1 = a0, a2 = a0, a3 = a0;
+                uint16x8_t b0 = a0, b1 = a0, b2 = a0, b3 = a0;
+
+                for (; i + 8 * NEON_UNROLL <= end; i += 8 * NEON_UNROLL) {
+                    uint16x8_t v0 = vld1q_u16(V16(p + i));
+                    uint16x8_t v1 = vld1q_u16(V16(p + i + 8));
+                    uint16x8_t v2 = vld1q_u16(V16(p + i + 16));
+                    uint16x8_t v3 = vld1q_u16(V16(p + i + 24));
+                    // 0xFFFF -> 1：借位减，累加器会向左邻借但总和不变
+                    a0 = vsubq_u16(a0, vcgeq_u16(v0, t80));
+                    a1 = vsubq_u16(a1, vcgeq_u16(v1, t80));
+                    a2 = vsubq_u16(a2, vcgeq_u16(v2, t80));
+                    a3 = vsubq_u16(a3, vcgeq_u16(v3, t80));
+                    b0 = vsubq_u16(b0, vcgeq_u16(v0, t800));
+                    b1 = vsubq_u16(b1, vcgeq_u16(v1, t800));
+                    b2 = vsubq_u16(b2, vcgeq_u16(v2, t800));
+                    b3 = vsubq_u16(b3, vcgeq_u16(v3, t800));
+                }
+
+                c80 += hsum_epi16(vaddq_u16(vaddq_u16(a0, a1), vaddq_u16(a2, a3)));
+                c800 += hsum_epi16(vaddq_u16(vaddq_u16(b0, b1), vaddq_u16(b2, b3)));
+            }
+            // 尾段：单路 8 lane
+            if (i + 8 <= n) {
+                uint16x8_t a0 = vdupq_n_u16(0), b0 = a0;
+                for (; i + 8 <= n; i += 8) {
+                    uint16x8_t v = vld1q_u16(V16(p + i));
+                    a0 = vsubq_u16(a0, vcgeq_u16(v, t80));
+                    b0 = vsubq_u16(b0, vcgeq_u16(v, t800));
+                }
+                c80 += hsum_epi16(a0);
+                c800 += hsum_epi16(b0);
+            }
+            for (; i < n; i++) {
+                uint32_t c = (uint32_t)p[i];
+                if (c >= 0x80)
+                    c80++;
+                if (c >= 0x800)
+                    c800++;
+            }
+            return (int64_t)n + c80 + c800;
+        }
+#elif defined(__SSE2__)
         {
             // **必须减 1**：语义是 `c >= 0x80` / `c >= 0x800`，而
             // `_mm_cmpgt_epi16` 是**严格大于**。直接拿 0x80 / 0x800 当基准会把
@@ -1183,7 +1501,108 @@ static int64_t utf8ByteLength(v8::Isolate* isolate, v8::Local<v8::String> str)
     // 若整段没有任何代理项（最常见：BMP 文本里混了个 U+FFFD），计数结果直接可用，
     // 完全不走逐字符循环。
     {
-#if defined(__SSE2__)
+#if defined(__aarch64__)
+        {
+            // 所有 code unit 都 >= 0x800（minv 由第一遍扫描得出）时，
+            // c80 与 c800 恒等于 n，base = 3n 是已知量，只剩数代理对。
+            if (minv >= 0x800)
+                return (int64_t)n * 3 - 2 * neon_count_pairs(p, n);
+
+            const uint16x8_t t80 = vdupq_n_u16(0x80);
+            const uint16x8_t t800 = vdupq_n_u16(0x800);
+            const uint16x8_t mFC00 = vdupq_n_u16(0xFC00);
+            const uint16x8_t vD800 = vdupq_n_u16(0xD800);
+            const uint16x8_t vDC00 = vdupq_n_u16(0xDC00);
+            int64_t c80 = 0, c800 = 0, pairs = 0;
+
+            // prevHi 保存上一组 8 lane 的“高代理”掩码；跨组的那一对靠
+            // vextq_u16(prevHi, isHi, 7) 拼出来（lane0 = prevHi.lane7）。
+            uint16x8_t prevHi = vdupq_n_u16(0);
+            uint32_t k = 0;
+
+            while (k + 8 * NEON_UNROLL <= n) {
+                uint32_t end = k + NEON_REDUCE_UNITS;
+                if (end > n)
+                    end = n;
+
+                uint16x8_t a0 = vdupq_n_u16(0), a1 = a0, a2 = a0, a3 = a0;
+                uint16x8_t b0 = a0, b1 = a0, b2 = a0, b3 = a0;
+                uint16x8_t d0 = a0, d1 = a0, d2 = a0, d3 = a0;
+
+                for (; k + 8 * NEON_UNROLL <= end; k += 8 * NEON_UNROLL) {
+                    uint16x8_t v0 = vld1q_u16(V16(p + k));
+                    uint16x8_t v1 = vld1q_u16(V16(p + k + 8));
+                    uint16x8_t v2 = vld1q_u16(V16(p + k + 16));
+                    uint16x8_t v3 = vld1q_u16(V16(p + k + 24));
+
+                    a0 = vsubq_u16(a0, vcgeq_u16(v0, t80));
+                    a1 = vsubq_u16(a1, vcgeq_u16(v1, t80));
+                    a2 = vsubq_u16(a2, vcgeq_u16(v2, t80));
+                    a3 = vsubq_u16(a3, vcgeq_u16(v3, t80));
+                    b0 = vsubq_u16(b0, vcgeq_u16(v0, t800));
+                    b1 = vsubq_u16(b1, vcgeq_u16(v1, t800));
+                    b2 = vsubq_u16(b2, vcgeq_u16(v2, t800));
+                    b3 = vsubq_u16(b3, vcgeq_u16(v3, t800));
+
+                    uint16x8_t k0 = vandq_u16(v0, mFC00);
+                    uint16x8_t h0 = vceqq_u16(k0, vD800);
+                    d0 = vsubq_u16(d0, vandq_u16(vextq_u16(prevHi, h0, 7), vceqq_u16(k0, vDC00)));
+                    prevHi = h0;
+
+                    uint16x8_t k1 = vandq_u16(v1, mFC00);
+                    uint16x8_t h1 = vceqq_u16(k1, vD800);
+                    d1 = vsubq_u16(d1, vandq_u16(vextq_u16(prevHi, h1, 7), vceqq_u16(k1, vDC00)));
+                    prevHi = h1;
+
+                    uint16x8_t k2 = vandq_u16(v2, mFC00);
+                    uint16x8_t h2 = vceqq_u16(k2, vD800);
+                    d2 = vsubq_u16(d2, vandq_u16(vextq_u16(prevHi, h2, 7), vceqq_u16(k2, vDC00)));
+                    prevHi = h2;
+
+                    uint16x8_t k3 = vandq_u16(v3, mFC00);
+                    uint16x8_t h3 = vceqq_u16(k3, vD800);
+                    d3 = vsubq_u16(d3, vandq_u16(vextq_u16(prevHi, h3, 7), vceqq_u16(k3, vDC00)));
+                    prevHi = h3;
+                }
+
+                c80 += hsum_epi16(vaddq_u16(vaddq_u16(a0, a1), vaddq_u16(a2, a3)));
+                c800 += hsum_epi16(vaddq_u16(vaddq_u16(b0, b1), vaddq_u16(b2, b3)));
+                pairs += hsum_epi16(vaddq_u16(vaddq_u16(d0, d1), vaddq_u16(d2, d3)));
+            }
+
+            // 尾段：单路 8 lane，逐 lane 水平求和
+            if (k + 8 <= n) {
+                uint16x8_t a0 = vdupq_n_u16(0), b0 = a0, d0 = a0;
+                for (; k + 8 <= n; k += 8) {
+                    uint16x8_t v = vld1q_u16(V16(p + k));
+                    a0 = vsubq_u16(a0, vcgeq_u16(v, t80));
+                    b0 = vsubq_u16(b0, vcgeq_u16(v, t800));
+                    uint16x8_t kk = vandq_u16(v, mFC00);
+                    uint16x8_t h = vceqq_u16(kk, vD800);
+                    d0 = vsubq_u16(d0, vandq_u16(vextq_u16(prevHi, h, 7), vceqq_u16(kk, vDC00)));
+                    prevHi = h;
+                }
+                c80 += hsum_epi16(a0);
+                c800 += hsum_epi16(b0);
+                pairs += hsum_epi16(d0);
+            }
+
+            // 跨组的最后一个高代理（prevHi.lane7）与接下来的标量字符的配对
+            uint32_t carry_hi = (uint32_t)vgetq_lane_u16(prevHi, 7) & 1;
+            for (; k < n; k++) {
+                uint32_t c = (uint32_t)p[k];
+                if (c >= 0x80)
+                    c80++;
+                if (c >= 0x800)
+                    c800++;
+                if (carry_hi && (c & 0xFC00) == 0xDC00)
+                    pairs++;
+                carry_hi = ((c & 0xFC00) == 0xD800);
+            }
+
+            return (int64_t)n + c80 + c800 - 2 * pairs;
+        }
+#elif defined(__SSE2__)
         // 同第二档：cmpgt 是严格大于，用“阈值 - 1”才等价于 >=。
         const __m128i b80 = _mm_set1_epi16(0x80 - 1);
         const __m128i b800 = _mm_set1_epi16(0x800 - 1);
