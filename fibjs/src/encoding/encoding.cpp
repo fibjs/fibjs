@@ -13,10 +13,10 @@
 #include "simdutf.h"
 #include <math.h>
 
-#if defined(__SSSE3__)
-#include <tmmintrin.h>
-#elif defined(__aarch64__)
+#if defined(__aarch64__)
 #include <arm_neon.h>
+#elif defined(__SSE2__)
+#include <emmintrin.h>
 #endif
 
 namespace fibjs {
@@ -61,6 +61,31 @@ static void hexEncode(const char* data, size_t sz, bool upper, exlib::string& re
             uint8x8_t l = vqtbl1_u8(lut, lo);
             uint8x16_t r = vzip1q_u8(vcombine_u8(h, h), vcombine_u8(l, l));
             vst1q_u8((uint8_t*)(_retVal + i * 2), r);
+        }
+    }
+#elif defined(__SSE2__)
+    // 8 字节 -> 16 个 hex 字符（只用 SSE2 基线指令，不依赖 SSSE3 的 pshufb）。
+    //   1) 高低 nibble 用 0xF0 掩码 + 16 位右移拆开：右移只在本 lane 内，
+    //      高字节的 0xF0 部分落到 bits 8-11，正好是该字节的高 nibble，不会串位
+    //   2) nibble -> ASCII：nibble + '0'，nibble > 9 时再补 0x27（小写）
+    //      或 0x07（大写），即 'a'-'0'-10 与 'A'-'0'-10
+    //   3) unpacklo_epi8 把 hi/lo 交错成 [hi0, lo0, hi1, lo1, ...]
+    {
+        const __m128i maskF0 = _mm_set1_epi8((char)0xF0);
+        const __m128i mask0F = _mm_set1_epi8(0x0F);
+        const __m128i nine = _mm_set1_epi8(9);
+        const __m128i c0 = _mm_set1_epi8('0');
+        const __m128i adj = _mm_set1_epi8(upper ? 0x07 : 0x27);
+
+        for (i = 0; i + 8 <= sz; i += 8) {
+            __m128i v = _mm_loadl_epi64((const __m128i*)(data + i));
+            __m128i hi = _mm_and_si128(_mm_srli_epi16(_mm_and_si128(v, maskF0), 4), mask0F);
+            __m128i lo = _mm_and_si128(v, mask0F);
+
+            hi = _mm_add_epi8(hi, _mm_add_epi8(c0, _mm_and_si128(_mm_cmpgt_epi8(hi, nine), adj)));
+            lo = _mm_add_epi8(lo, _mm_add_epi8(c0, _mm_and_si128(_mm_cmpgt_epi8(lo, nine), adj)));
+
+            _mm_storeu_si128((__m128i*)(_retVal + i * 2), _mm_unpacklo_epi8(hi, lo));
         }
     }
 #else
@@ -173,16 +198,23 @@ static size_t hexDecodeImpl(const char* data, size_t sz, char* dst, size_t cap, 
             vst1_u8((uint8_t*)(dst + n), vget_low_u8(vaddq_u8(hi, lo)));
         }
     }
-#elif defined(__SSSE3__)
-    // 一次吞吐 16 个 hex 字符 -> 8 字节（64 KB 输入 34 µs -> 11.6 µs）。
+#elif defined(__SSE2__)
+    // 一次吞吐 16 个 hex 字符 -> 8 字节（SSE2 是 x86-64 ABI 基线，无需 -mssse3）。
     //   1) 合法性与取值用 psubb/pcmpgtb 批量算，movemask 一次判定整块合法
-    //   2) 压实用 pmaddubsw（每对字节加权求和：高位*0x10 + 低位*1）+ packuswb
+    //   2) 压实用 16 位 lane 的奇偶字节分离：lane = hi | lo<<8，
+    //      结果 = (lane & 0xFF) * 16 + (lane >> 8)。
+    //
+    // 这里刻意不用 SSSE3 的 pmaddubsw（一条指令就能做同样的事）：SSSE3 不在
+    // x86-64 的基线里，而这棵树没有任何 -mssse3 / -march 开关，`__SSSE3__`
+    // 永远不会被定义 —— 老代码那段 SIMD 压实在所有发行版里都是死代码。
+    // 若改成整包 -mssse3，K8/K10（Athlon 64/Phenom II）这类没有 SSSE3 的机器
+    // 会直接 SIGILL，而不是降级到标量。所以用 SSE2 的多条指令换兼容性。
     if (sz >= 16) {
         const __m128i nine = _mm_set1_epi8(9);
         const __m128i lc = _mm_set1_epi8(0x20);
         const __m128i c27 = _mm_set1_epi8(0x27);
         const __m128i c0 = _mm_set1_epi8('0');
-        const __m128i w = _mm_set1_epi16(0x0110);
+        const __m128i maskFF = _mm_set1_epi16(0x00FF);
 
         for (; i + 16 <= sz && n + 8 <= cap; i += 16, n += 8) {
             __m128i v = _mm_loadu_si128((const __m128i*)(data + i));
@@ -206,8 +238,12 @@ static size_t hexDecodeImpl(const char* data, size_t sz, char* dst, size_t cap, 
             __m128i isAlpha = _mm_cmpgt_epi8(dig, nine);
             __m128i val = _mm_sub_epi8(dig, _mm_and_si128(isAlpha, c27));
 
-            // 压实：字节对 (hi, lo) -> hi*16 + lo
-            __m128i packed = _mm_maddubs_epi16(val, w);
+            // 压实：字节对 (hi, lo) 在 16 位 lane 里小端排成 hi | lo<<8，
+            // 所以 lane & 0xFF 就是 hi、lane >> 8 就是 lo。
+            // hi <= 15，左移 4 位后仍落在低字节内，与 lo 不重叠，可以用 or。
+            __m128i hiPart = _mm_and_si128(val, maskFF);
+            __m128i loPart = _mm_srli_epi16(val, 8);
+            __m128i packed = _mm_or_si128(_mm_slli_epi16(hiPart, 4), loPart);
             __m128i out = _mm_packus_epi16(packed, packed);
             _mm_storel_epi64((__m128i*)(dst + n), out);
         }
