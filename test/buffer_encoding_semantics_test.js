@@ -261,17 +261,38 @@ describe('Buffer encoding semantics', () => {
             // NewStringOneByte 走 NewExternalOneByte 时挂的是**原始字节**。若
             // 解回 exlib::string 时按 UTF-8 处理，0x80..0xFF 会整段变成 U+FFFD
             // —— 而且只有 >= SMALL_STRING(1024) 的长串才触发，短串恰好正确。
+            //
+            // 这里必须显式用 path.posix：平台默认的 path 在 Windows 上是 win32
+            // 规则集，normalize 会把 '/' 改写成 '\'（node 行为完全相同）。这段
+            // 字节串里含 0x2f，所以"逐字符相等"在 Windows 上必然失败 —— 那是
+            // 分隔符规则，不是编码损坏。posix 规则集不做任何改写，node 与 fibjs、
+            // 各平台结果一致。
+            var posix = require('path').posix;
+
             [1, 1000, 1023, 1024, 2000].forEach(function (n) {
                 var latin = Buffer.alloc(n, 0xff).toString('latin1');
-                assert.strictEqual(require('path').normalize(latin), latin,
+                assert.strictEqual(posix.normalize(latin), latin,
                     'latin1 ff n=' + n);
 
                 var b = Buffer.alloc(n);
                 for (var i = 0; i < n; i++) b[i] = i % 256;
                 var mixed = b.toString('latin1');
                 assert.strictEqual(mixed.charCodeAt(0), 0);
-                assert.strictEqual(require('path').normalize(mixed), mixed,
+                assert.strictEqual(posix.normalize(mixed), mixed,
                     'latin1 mixed n=' + n);
+
+                // 平台规则集（Windows 上会改写分隔符）同样不能损坏高位字节：
+                // 长度不变、除 '/' 与 '\' 之外逐字符相等、不出现 U+FFFD。
+                var out = require('path').normalize(mixed);
+                assert.strictEqual(out.length, mixed.length,
+                    'platform length n=' + n);
+                for (var j = 0; j < mixed.length; j++) {
+                    var got = out.charCodeAt(j), want = mixed.charCodeAt(j);
+                    if (got === want) continue;
+                    assert.ok((want === 0x2f || want === 0x5c)
+                        && (got === 0x2f || got === 0x5c),
+                        'platform n=' + n + ' at ' + j + ': ' + got + ' != ' + want);
+                }
             });
 
             // UTF-8 多字节文本走外部串路径同样不能坏
