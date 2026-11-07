@@ -4,6 +4,7 @@
  */
 
 #include "Scanner.h"
+#include "keyword_table.h"
 #include <cstring>
 
 namespace fibjs {
@@ -153,121 +154,62 @@ void Scanner::setTextPos(int pos) {
 }
 
 SyntaxKind Scanner::getIdentifierToken(std::string_view text) const {
-    // Keywords are few and all ASCII lowercase, so comparing against the few
-    // candidates of the same length beats the hash lookup this replaces (that
-    // lookup was ~20% of strip time). Constant-size memcmp compiles to a
-    // single load + compare.
+    // Minimal perfect hash over the 83 keywords (see keyword_table.h). The key is
+    // the first six bytes plus the last six bytes: for a name of at most 12 bytes
+    // that is the whole name, so the slot can only hit a keyword when the text
+    // *is* that keyword. The length goes into the comparison as well, which also
+    // rejects a 13+ byte name that happens to share both halves.
+    //
+    // The obvious compact key - first two bytes, last byte, length - is NOT
+    // injective: "return" and "region" both give 0x066e6572, so every identifier
+    // of that shape was silently read as a keyword. Packing the ends is the same
+    // number of loads and cannot alias.
     const size_t length = text.size();
-    const char* s = text.data();
-    switch (length) {
-        case 2:
-            if (std::memcmp(s, "as", 2) == 0) return SyntaxKind::AsKeyword;
-            if (std::memcmp(s, "do", 2) == 0) return SyntaxKind::DoKeyword;
-            if (std::memcmp(s, "if", 2) == 0) return SyntaxKind::IfKeyword;
-            if (std::memcmp(s, "in", 2) == 0) return SyntaxKind::InKeyword;
-            if (std::memcmp(s, "is", 2) == 0) return SyntaxKind::IsKeyword;
-            if (std::memcmp(s, "of", 2) == 0) return SyntaxKind::OfKeyword;
-            break;
-        case 3:
-            if (std::memcmp(s, "any", 3) == 0) return SyntaxKind::AnyKeyword;
-            if (std::memcmp(s, "for", 3) == 0) return SyntaxKind::ForKeyword;
-            if (std::memcmp(s, "get", 3) == 0) return SyntaxKind::GetKeyword;
-            if (std::memcmp(s, "let", 3) == 0) return SyntaxKind::LetKeyword;
-            if (std::memcmp(s, "new", 3) == 0) return SyntaxKind::NewKeyword;
-            if (std::memcmp(s, "out", 3) == 0) return SyntaxKind::OutKeyword;
-            if (std::memcmp(s, "set", 3) == 0) return SyntaxKind::SetKeyword;
-            if (std::memcmp(s, "try", 3) == 0) return SyntaxKind::TryKeyword;
-            if (std::memcmp(s, "var", 3) == 0) return SyntaxKind::VarKeyword;
-            break;
-        case 4:
-            if (std::memcmp(s, "case", 4) == 0) return SyntaxKind::CaseKeyword;
-            if (std::memcmp(s, "else", 4) == 0) return SyntaxKind::ElseKeyword;
-            if (std::memcmp(s, "enum", 4) == 0) return SyntaxKind::EnumKeyword;
-            if (std::memcmp(s, "from", 4) == 0) return SyntaxKind::FromKeyword;
-            if (std::memcmp(s, "null", 4) == 0) return SyntaxKind::NullKeyword;
-            if (std::memcmp(s, "this", 4) == 0) return SyntaxKind::ThisKeyword;
-            if (std::memcmp(s, "true", 4) == 0) return SyntaxKind::TrueKeyword;
-            if (std::memcmp(s, "type", 4) == 0) return SyntaxKind::TypeKeyword;
-            if (std::memcmp(s, "void", 4) == 0) return SyntaxKind::VoidKeyword;
-            if (std::memcmp(s, "with", 4) == 0) return SyntaxKind::WithKeyword;
-            break;
-        case 5:
-            if (std::memcmp(s, "async", 5) == 0) return SyntaxKind::AsyncKeyword;
-            if (std::memcmp(s, "await", 5) == 0) return SyntaxKind::AwaitKeyword;
-            if (std::memcmp(s, "break", 5) == 0) return SyntaxKind::BreakKeyword;
-            if (std::memcmp(s, "catch", 5) == 0) return SyntaxKind::CatchKeyword;
-            if (std::memcmp(s, "class", 5) == 0) return SyntaxKind::ClassKeyword;
-            if (std::memcmp(s, "const", 5) == 0) return SyntaxKind::ConstKeyword;
-            if (std::memcmp(s, "false", 5) == 0) return SyntaxKind::FalseKeyword;
-            if (std::memcmp(s, "infer", 5) == 0) return SyntaxKind::InferKeyword;
-            if (std::memcmp(s, "keyof", 5) == 0) return SyntaxKind::KeyOfKeyword;
-            if (std::memcmp(s, "never", 5) == 0) return SyntaxKind::NeverKeyword;
-            if (std::memcmp(s, "super", 5) == 0) return SyntaxKind::SuperKeyword;
-            if (std::memcmp(s, "throw", 5) == 0) return SyntaxKind::ThrowKeyword;
-            if (std::memcmp(s, "using", 5) == 0) return SyntaxKind::UsingKeyword;
-            if (std::memcmp(s, "while", 5) == 0) return SyntaxKind::WhileKeyword;
-            if (std::memcmp(s, "yield", 5) == 0) return SyntaxKind::YieldKeyword;
-            break;
-        case 6:
-            if (std::memcmp(s, "assert", 6) == 0) return SyntaxKind::AssertKeyword;
-            if (std::memcmp(s, "bigint", 6) == 0) return SyntaxKind::BigIntKeyword;
-            if (std::memcmp(s, "delete", 6) == 0) return SyntaxKind::DeleteKeyword;
-            if (std::memcmp(s, "export", 6) == 0) return SyntaxKind::ExportKeyword;
-            if (std::memcmp(s, "global", 6) == 0) return SyntaxKind::GlobalKeyword;
-            if (std::memcmp(s, "import", 6) == 0) return SyntaxKind::ImportKeyword;
-            if (std::memcmp(s, "module", 6) == 0) return SyntaxKind::ModuleKeyword;
-            if (std::memcmp(s, "number", 6) == 0) return SyntaxKind::NumberKeyword;
-            if (std::memcmp(s, "object", 6) == 0) return SyntaxKind::ObjectKeyword;
-            if (std::memcmp(s, "public", 6) == 0) return SyntaxKind::PublicKeyword;
-            if (std::memcmp(s, "return", 6) == 0) return SyntaxKind::ReturnKeyword;
-            if (std::memcmp(s, "static", 6) == 0) return SyntaxKind::StaticKeyword;
-            if (std::memcmp(s, "string", 6) == 0) return SyntaxKind::StringKeyword;
-            if (std::memcmp(s, "switch", 6) == 0) return SyntaxKind::SwitchKeyword;
-            if (std::memcmp(s, "symbol", 6) == 0) return SyntaxKind::SymbolKeyword;
-            if (std::memcmp(s, "typeof", 6) == 0) return SyntaxKind::TypeOfKeyword;
-            if (std::memcmp(s, "unique", 6) == 0) return SyntaxKind::UniqueKeyword;
-            break;
-        case 7:
-            if (std::memcmp(s, "asserts", 7) == 0) return SyntaxKind::AssertsKeyword;
-            if (std::memcmp(s, "boolean", 7) == 0) return SyntaxKind::BooleanKeyword;
-            if (std::memcmp(s, "declare", 7) == 0) return SyntaxKind::DeclareKeyword;
-            if (std::memcmp(s, "default", 7) == 0) return SyntaxKind::DefaultKeyword;
-            if (std::memcmp(s, "extends", 7) == 0) return SyntaxKind::ExtendsKeyword;
-            if (std::memcmp(s, "finally", 7) == 0) return SyntaxKind::FinallyKeyword;
-            if (std::memcmp(s, "package", 7) == 0) return SyntaxKind::PackageKeyword;
-            if (std::memcmp(s, "private", 7) == 0) return SyntaxKind::PrivateKeyword;
-            if (std::memcmp(s, "require", 7) == 0) return SyntaxKind::RequireKeyword;
-            if (std::memcmp(s, "unknown", 7) == 0) return SyntaxKind::UnknownKeyword;
-            break;
-        case 8:
-            if (std::memcmp(s, "abstract", 8) == 0) return SyntaxKind::AbstractKeyword;
-            if (std::memcmp(s, "accessor", 8) == 0) return SyntaxKind::AccessorKeyword;
-            if (std::memcmp(s, "continue", 8) == 0) return SyntaxKind::ContinueKeyword;
-            if (std::memcmp(s, "debugger", 8) == 0) return SyntaxKind::DebuggerKeyword;
-            if (std::memcmp(s, "function", 8) == 0) return SyntaxKind::FunctionKeyword;
-            if (std::memcmp(s, "override", 8) == 0) return SyntaxKind::OverrideKeyword;
-            if (std::memcmp(s, "readonly", 8) == 0) return SyntaxKind::ReadonlyKeyword;
-            break;
-        case 9:
-            if (std::memcmp(s, "interface", 9) == 0) return SyntaxKind::InterfaceKeyword;
-            if (std::memcmp(s, "intrinsic", 9) == 0) return SyntaxKind::IntrinsicKeyword;
-            if (std::memcmp(s, "namespace", 9) == 0) return SyntaxKind::NamespaceKeyword;
-            if (std::memcmp(s, "protected", 9) == 0) return SyntaxKind::ProtectedKeyword;
-            if (std::memcmp(s, "satisfies", 9) == 0) return SyntaxKind::SatisfiesKeyword;
-            if (std::memcmp(s, "undefined", 9) == 0) return SyntaxKind::UndefinedKeyword;
-            break;
-        case 10:
-            if (std::memcmp(s, "implements", 10) == 0) return SyntaxKind::ImplementsKeyword;
-            if (std::memcmp(s, "instanceof", 10) == 0) return SyntaxKind::InstanceOfKeyword;
-            break;
-        case 11:
-            if (std::memcmp(s, "constructor", 11) == 0) return SyntaxKind::ConstructorKeyword;
-            break;
-        default:
-            break;
+    if (length < 2 || length > 11) {
+        return SyntaxKind::Identifier;
     }
-    return SyntaxKind::Identifier;
+
+    const char* s = text.data();
+    uint64_t hi = 0;
+    uint64_t lo = 0;
+    if (length <= 6) {
+        memcpy(&hi, s, length);
+        lo = hi;
+    } else {
+        memcpy(&hi, s, 6);
+        memcpy(&lo, s + length - 6, 6);
+    }
+
+    // Mix the two halves into 64 bits, then hash to a slot. Both steps stay in
+    // 64-bit arithmetic on purpose: a 96-bit key shifted right by 86 needs a
+    // 128-bit product, and the 64-bit version of that expression evaluates to a
+    // constant, which would leave every identifier unprefixed by a keyword.
+    const uint64_t key = (hi * 0x9e3779b97f4a7c15ull) ^ (lo * 0xc2b2ae3d27d4eb4full);
+    const KeywordEntry& e = kKeywordTable[(key * 5257846158329281261ull) >> 39 & 255];
+    return (e.hi == hi && e.lo == lo && e.len == length) ? e.kind : SyntaxKind::Identifier;
 }
+
+// 1 = byte can continue an identifier (A-Z, a-z, 0-9, _, $). A table lookup
+// is one load instead of the five comparisons the predicate used to chain, and
+// it also folds the "is this a keyword run?" test into the same loop.
+static const uint8_t kIdentifierChar[256] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1,
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
 
 SyntaxKind Scanner::scanIdentifierOrKeyword() {
     int start = m_pos;
@@ -277,12 +219,7 @@ SyntaxKind Scanner::scanIdentifierOrKeyword() {
     while (p < end) {
         uint8_t ch = *p;
         // Fast path: plain ASCII identifier characters (the overwhelming majority).
-        // The Unicode line-break check below is only relevant for bytes >= 0x80, so
-        // it does not have to run for every byte.
-        if ((ch >= 'a' && ch <= 'z') ||
-            (ch >= 'A' && ch <= 'Z') ||
-            (ch >= '0' && ch <= '9') ||
-            ch == '_' || ch == '$') {
+        if (kIdentifierChar[ch]) {
             p++;
             continue;
         }
@@ -466,6 +403,28 @@ SyntaxKind Scanner::reScanTemplateToken() {
     return m_token;
 }
 
+// Tokens that one byte decides entirely. Checking this table before the
+// operator switch keeps the ~40% of tokens that are braces, parens, commas
+// and semicolons out of a 300-line branch ladder.
+static const uint8_t kSingleByteToken[256] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, (uint8_t)SyntaxKind::OpenParenToken, (uint8_t)SyntaxKind::CloseParenToken, 0, 0, (uint8_t)SyntaxKind::CommaToken, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (uint8_t)SyntaxKind::ColonToken, (uint8_t)SyntaxKind::SemicolonToken, 0, 0, 0, 0,
+    (uint8_t)SyntaxKind::AtToken, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (uint8_t)SyntaxKind::OpenBracketToken, 0, (uint8_t)SyntaxKind::CloseBracketToken, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (uint8_t)SyntaxKind::OpenBraceToken, 0, (uint8_t)SyntaxKind::CloseBraceToken, (uint8_t)SyntaxKind::TildeToken, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
+
 SyntaxKind Scanner::scan() {
     m_startPos = m_pos;
     m_hasLineBreak = false;
@@ -497,6 +456,14 @@ rescan:
     }
     
     uint8_t ch = charCodeAt(m_pos);
+
+    // One-byte tokens (braces, parens, brackets, ; , : @ ~) are ~40% of all
+    // tokens; answer them from a table before the operator ladder.
+    if (kSingleByteToken[ch]) {
+        m_pos++;
+        m_token = (SyntaxKind)kSingleByteToken[ch];
+        return m_token;
+    }
     
     // Identifier or keyword
     if (isIdentifierStart(ch)) {
@@ -895,9 +862,12 @@ SyntaxKind Scanner::reScanSlashToken() {
 
 std::vector<Token> Scanner::scanAllTokens() {
     std::vector<Token> tokens;
-    // Rough estimate (a token plus its trivia averages a handful of bytes) to avoid
-    // repeatedly reallocating and copying the token vector on large files.
-    tokens.reserve(m_length / 8 + 16);
+    // Token density depends entirely on the file: ~3.4 bytes per token in dense
+    // code, 10-25 in hand-written source that is mostly jsdoc. Reserve for the
+    // dense case, because a short reservation costs a full reallocate-and-copy of
+    // the vector on the files where scanning is most of the work, while the
+    // overshoot is only 16 bytes a token for the sparse ones.
+    tokens.reserve(m_length / 4 + 16);
     setTextPos(0);
     
     // Track template literal nesting depth

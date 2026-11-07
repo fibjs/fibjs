@@ -4701,6 +4701,35 @@ declare const stat: any;
                 assert.strictEqual(strip(input), input);
             });
 
+            // Regression: the keyword lookup hashes the two ends of a name. A
+            // cheaper key that kept only the first two bytes, the last byte and
+            // the length is not injective - "region" and "return" both reduced to
+            // 0x066e6572 - so `region` was read as `return` and everything after
+            // it in the parameter list survived as TypeScript. Every name here
+            // collides with a keyword under that broken key.
+            it('should keep identifiers that share a keyword prefix and suffix', () => {
+                const names = [
+                    'region',   // return
+                    'consts',   // const
+                    'clas',     // class
+                    'function1',// function
+                    'stringy',  // string
+                    'numbers',  // number
+                    'exports',  // export
+                    'imports',  // import
+                ];
+                for (const name of names) {
+                    const input = `function f(${name}, b: string) {}`;
+                    const expected = `function f(${name}, b        ) {}`;
+                    assert.strictEqual(strip(input), expected, name);
+                }
+            });
+
+            it('should still recognise the keyword that shares its ends', () => {
+                const input = 'function f() { return 1; }';
+                assert.strictEqual(strip(input), input);
+            });
+
         });
 
         describe('Export Default Function Overloads', () => {
