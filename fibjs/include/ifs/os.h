@@ -27,6 +27,11 @@ public:
     static result_t endianness(exlib::string& retVal);
     static result_t type(exlib::string& retVal);
     static result_t release(exlib::string& retVal);
+    static result_t machine(exlib::string& retVal);
+    static result_t version(exlib::string& retVal);
+    static result_t get_devNull(exlib::string& retVal);
+    static result_t uptime(int64_t& retVal);
+    static result_t availableParallelism(int32_t& retVal);
     static result_t homedir(exlib::string& retVal);
     static result_t arch(exlib::string& retVal);
     static result_t get_timezone(int32_t& retVal);
@@ -59,6 +64,11 @@ public:
     static void s_static_endianness(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_type(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_release(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_machine(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_version(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_devNull(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_availableParallelism(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_homedir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_timezone(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -88,6 +98,10 @@ inline ClassInfo& os_base::class_info()
         { "endianness", s_static_endianness, true, ClassData::ASYNC_SYNC },
         { "type", s_static_type, true, ClassData::ASYNC_SYNC },
         { "release", s_static_release, true, ClassData::ASYNC_SYNC },
+        { "machine", s_static_machine, true, ClassData::ASYNC_SYNC },
+        { "version", s_static_version, true, ClassData::ASYNC_SYNC },
+        { "uptime", s_static_uptime, true, ClassData::ASYNC_SYNC },
+        { "availableParallelism", s_static_availableParallelism, true, ClassData::ASYNC_SYNC },
         { "homedir", s_static_homedir, true, ClassData::ASYNC_SYNC },
         { "arch", s_static_arch, true, ClassData::ASYNC_SYNC },
         { "loadavg", s_static_loadavg, true, ClassData::ASYNC_SYNC },
@@ -109,6 +123,7 @@ inline ClassInfo& os_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
+        { "devNull", s_static_get_devNull, block_set, true },
         { "timezone", s_static_get_timezone, block_set, true },
         { "EOL", s_static_get_EOL, block_set, true }
     };
@@ -172,6 +187,71 @@ inline void os_base::s_static_release(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_OVER(0, 0);
 
     hr = release(vr);
+
+    METHOD_RETURN();
+}
+
+inline void os_base::s_static_machine(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = machine(vr);
+
+    METHOD_RETURN();
+}
+
+inline void os_base::s_static_version(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = version(vr);
+
+    METHOD_RETURN();
+}
+
+inline void os_base::s_static_get_devNull(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_devNull(vr);
+
+    METHOD_RETURN();
+}
+
+inline void os_base::s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = uptime(vr);
+
+    METHOD_RETURN();
+}
+
+inline void os_base::s_static_availableParallelism(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = availableParallelism(vr);
 
     METHOD_RETURN();
 }

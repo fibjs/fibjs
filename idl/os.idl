@@ -40,9 +40,9 @@
    by a calendar part with month-end clamping: 2000-01-31 plus one month is 2000-02-29.
    `timezone` is the local UTC offset in hundredths of an hour (UTC+8 is 800), unlike
    Date#getTimezoneOffset, which counts minutes west of UTC.
- - **Not provided**: `availableParallelism`, `machine`, `version`, `devNull`
-   and `getPriority`/`setPriority` do not exist; use `cpus().length` when a parallelism
-   hint is needed.
+ - **Not provided**: `getPriority`/`setPriority` do not exist, and there is no other
+   priority API in this release; `availableParallelism`, `machine`, `version`, `devNull`
+   and `uptime` are provided.
 
  Import:
  ```JavaScript
@@ -148,6 +148,96 @@ module os
      @return returns the version information
      */
     static String release();
+
+    /*! @brief Queries the machine hardware name of the current system
+
+     The value is the `machine` field of uname: 'x86_64', 'aarch64', 'arm64' or
+     'riscv64'. It describes the running kernel, which can differ from `arch` (the
+     build target of this binary) when a 32-bit binary runs on a 64-bit kernel.
+
+     Example — report the kernel machine and this build's target together:
+     ```JavaScript
+     const os = require('os');
+
+     console.log(os.machine()); // x86_64
+     console.log(os.arch()); // x64
+     ```
+     @return returns the machine hardware name
+    */
+    static String machine();
+
+    /*! @brief Queries the operating system version string of the current system
+
+     The value is the `version` field of uname, the kernel build string (for example
+     '#149~20.04.1-Ubuntu SMP Wed Apr 16 08:29:56 UTC 2025' on Linux); its format
+     varies by system and it is meant for display and diagnostics only. `release`
+     reports the kernel release, which is the version number callers usually parse.
+
+     Example — report release and version separately:
+     ```JavaScript
+     const os = require('os');
+
+     console.log(os.release()); // 5.15.0-139-generic
+     console.log(os.version()); // #149~20.04.1-Ubuntu SMP ...
+     ```
+     @return returns the kernel version string
+    */
+    static String version();
+
+    /*! @brief Queries the path of the null device of the current system
+
+     The value is '/dev/null' on POSIX systems and '\\\\?\\nul' on Windows; writing to it
+     discards the data and reading from it reports end of file.
+
+     Example — discard a stream through the platform null device:
+     ```JavaScript
+     const os = require('os');
+     const fs = require('fs');
+
+     const fd = fs.openSync(os.devNull, 'w');
+     fs.writeSync(fd, 'discarded');
+     fs.closeSync(fd);
+     ```
+     */
+    static readonly String devNull;
+
+    /*! @brief Queries how long the system has been running, in seconds
+
+     This is the *system* uptime, the same value `process.uptime` reports in fibjs; it is
+     not the age of the current process. Node.js reports the process age from
+     `process.uptime` and the system uptime here, so a program that wants the fibjs
+     behaviour should read `os.uptime` explicitly.
+
+     Example — report the system uptime in whole days:
+     ```JavaScript
+     const os = require('os');
+
+     console.log(Math.floor(os.uptime() / 86400));
+     ```
+     @return returns the system uptime in seconds
+    */
+    static Long uptime();
+
+    /*! @brief Queries how many tasks the runtime may run in parallel
+
+     The value respects the CPU affinity mask and any cgroup quota, so inside a
+     container it reports the CPU allowance rather than the machine's CPU count. Use it
+     instead of `cpus().length` when sizing a worker pool.
+
+     `cpuNumbers` (a fibjs extension) reports the number of logical CPUs of the machine
+     and is cached after the first call, so the two can differ; `cpus().length` matches
+     `cpuNumbers`.
+
+     Example — size a worker pool:
+     ```JavaScript
+     const os = require('os');
+
+     console.log(os.availableParallelism()); // 32
+     console.log(os.cpuNumbers()); // 32
+     ```
+     @return returns the number of tasks that can run in parallel
+    */
+    static Integer availableParallelism();
 
     /*! @brief Queries the home directory of the current user
 

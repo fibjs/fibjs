@@ -42,6 +42,63 @@ result_t os_base::release(exlib::string& retVal)
     return result_t();
 }
 
+result_t os_base::machine(exlib::string& retVal)
+{
+    uv_utsname_t info;
+    int32_t ret = uv_os_uname(&info);
+    if (ret < 0)
+        return result_t::from_system(ret);
+
+    retVal = info.machine;
+    return result_t();
+}
+
+result_t os_base::version(exlib::string& retVal)
+{
+    uv_utsname_t info;
+    int32_t ret = uv_os_uname(&info);
+    if (ret < 0)
+        return result_t::from_system(ret);
+
+    retVal = info.version;
+    return result_t();
+}
+
+result_t os_base::get_devNull(exlib::string& retVal)
+{
+#ifdef Windows
+    retVal = "\\\\.\\nul";
+#else
+    retVal = "/dev/null";
+#endif
+
+    return result_t();
+}
+
+result_t os_base::uptime(int64_t& retVal)
+{
+    double up;
+
+    // uv_uptime reports fractional seconds; the JS surface takes whole seconds
+    // like Node's os.uptime().
+    int32_t ret = uv_uptime(&up);
+    if (ret < 0)
+        return result_t::from_system(ret);
+
+    retVal = (int64_t)up;
+    return result_t();
+}
+
+result_t os_base::availableParallelism(int32_t& retVal)
+{
+    // uv_available_parallelism honours the CPU affinity mask and cgroup quota, so
+    // inside a container it reports the allowance rather than the machine's CPU
+    // count -- the difference from cpuNumbers (a fibjs extension that caches
+    // the logical CPU count).
+    retVal = (int32_t)uv_available_parallelism();
+    return result_t();
+}
+
 result_t os_base::hostname(exlib::string& retVal)
 {
     char s[255];
