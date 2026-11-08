@@ -145,6 +145,48 @@ if (typeof process !== 'undefined' && typeof process.hrtime === 'function' && ty
     }
 })();
 
+// util Node.js surface: the two customization symbols and inspect.defaultOptions.
+//
+// The symbols use Symbol.for so they are the registry keys Node uses and the
+// same keys are reachable from another realm; `defaultOptions` is a plain object
+// pre-seeded with fibjs's current defaults, so reading it reports what inspect
+// actually does and writing it changes the defaults of later calls.
+(function installUtilCompat() {
+    var util;
+    try {
+        util = require('util');
+    } catch (e) {
+        return;
+    }
+
+    function defineStatic(target, name, value) {
+        if (target === null || (typeof target !== 'object' && typeof target !== 'function'))
+            return;
+        if (Object.prototype.hasOwnProperty.call(target, name))
+            return;
+
+        Object.defineProperty(target, name, {
+            value: value,
+            writable: true,
+            enumerable: false,
+            configurable: true,
+        });
+    }
+
+    if (typeof util.inspect === 'function') {
+        defineStatic(util.inspect, 'custom', Symbol.for('nodejs.util.inspect.custom'));
+        defineStatic(util.inspect, 'defaultOptions', {
+            colors: true,
+            depth: 4,
+            maxArrayLength: 100,
+            maxStringLength: 10000,
+        });
+    }
+
+    if (typeof util.promisify === 'function')
+        defineStatic(util.promisify, 'custom', Symbol.for('nodejs.util.promisify.custom'));
+})();
+
 // Export JS helper methods for C++ native objects to call.
 // The returned object is saved by SandBox::installBuffer() into Isolate,
 // and individual methods are retrieved by C++ code (e.g. AsyncStream::pipe).

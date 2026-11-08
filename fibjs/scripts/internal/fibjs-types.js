@@ -108371,9 +108371,10 @@ declare module 'punycode' {
  *   repeated name (\`get\` returns the first one, \`all(name)\`/\`getAll(name)\` return the array),
  *   and its iteration helpers (\`forEach\`, \`keys\`, \`values\`, \`entries\`) sort the keys in place.
  *   \`toJSON()\` returns the plain multi-value object form.
- * - **Options**: \`sep\` and \`eq\` replace the default separators; the fourth argument is
- *   accepted but no option (\`maxKeys\`, \`decodeURIComponent\`) is implemented, so
- *   every pair is parsed.
+ * - **Options**: \`sep\` and \`eq\` replace the default separators. The fourth argument is the options
+ *   object: \`maxKeys\` caps the number of pairs that are parsed and defaults to 1000, with \`0\`
+ *   meaning "no limit"; \`decodeURIComponent\` (a function) replaces the built-in decoder, which is
+ *   how a stricter or more lenient decoding can be plugged in.
  * - **Escaping**: escape encodes everything except the unreserved characters, with a space
  *   becoming \`+\`; unescape decodes every percent escape, including the
  *   reserved characters that the standard decodeURI leaves alone, but keeps a literal \`+\` as
@@ -108469,7 +108470,8 @@ declare module 'querystring' {
      *      @param str query string to parse
      *      @param sep separator between pairs, default \`&\`
      *      @param eq separator between name and value, default \`=\`
-     *      @param opt reserved for options; not supported and ignored
+     *      @param opt the options object; \`maxKeys\` caps the number of pairs, \`decodeURIComponent\`
+     *      replaces the built-in decoder
      *      @return the parsed HttpCollection
      *
      */

@@ -206,8 +206,15 @@ result_t performance_base::mark(exlib::string name, v8::Local<v8::Object> option
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
+    // `detail` defaults to null and an explicit null is kept: GetConfigValue
+    // reports a missing-or-null key the same way, so the key is read directly.
     v8::Local<v8::Value> detail;
-    GetConfigValue(options, "detail", detail);
+    if (!options.IsEmpty()) {
+        v8::Local<v8::Context> context = isolate->context();
+        detail = options->Get(context, isolate->NewString("detail")).FromMaybe(v8::Local<v8::Value>());
+    }
+    if (detail.IsEmpty() || detail->IsUndefined())
+        detail = v8::Null(isolate->m_isolate);
 
     obj_ptr<PerformanceMark> mark = new PerformanceMark(name, _now, detail);
 
@@ -274,8 +281,15 @@ result_t performance_base::measure(exlib::string name, v8::Local<v8::Object> opt
     Isolate* isolate = Isolate::current();
     result_t hr;
 
+    // `detail` defaults to null and an explicit null is kept, matching
+    // PerformanceMark above.
     v8::Local<v8::Value> detail;
-    GetConfigValue(options, "detail", detail);
+    if (!options.IsEmpty()) {
+        v8::Local<v8::Context> context = isolate->context();
+        detail = options->Get(context, isolate->NewString("detail")).FromMaybe(v8::Local<v8::Value>());
+    }
+    if (detail.IsEmpty() || detail->IsUndefined())
+        detail = v8::Null(isolate->m_isolate);
 
     double startTime = 0;
     exlib::string startMark;

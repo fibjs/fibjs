@@ -31,8 +31,17 @@ result_t querystring_base::parse(exlib::string str, exlib::string sep,
 {
     result_t hr;
 
+    // maxKeys caps the number of pairs parsed; Node uses 1000 as the default and
+    // treats 0 (like every non-positive value) as "no limit" (Node: `Infinity`).
+    int32_t max_keys = 1000;
+    hr = GetConfigValue(opt, "maxKeys", max_keys, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+    if (max_keys < 0)
+        max_keys = 0;
+
     obj_ptr<HttpCollection> c = new HttpCollection();
-    hr = c->parse(str, sep.c_str(), eq.c_str());
+    hr = c->parse(str, sep.c_str(), eq.c_str(), max_keys);
     if (hr.failed())
         return hr;
 

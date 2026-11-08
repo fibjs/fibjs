@@ -656,7 +656,9 @@ public:
     }
 
 public:
-    result_t parse(exlib::string& str, const char* sep = "&", const char* eq = "=")
+    // max_keys bounds the number of pairs that are stored; 0 means "no limit",
+    // which is what Node's querystring.parse does with maxKeys: 0.
+    result_t parse(exlib::string& str, const char* sep = "&", const char* eq = "=", int32_t max_keys = 0)
     {
         const char* pstr = str.c_str();
         int32_t nSize = (int32_t)str.length();
@@ -665,6 +667,7 @@ public:
         int32_t sep_len = (int32_t)qstrlen(sep);
         int32_t eq_len = (int32_t)qstrlen(eq);
         bool found_eq;
+        int32_t parsed = 0;
 
         while (nSize) {
             // WHATWG urlencoded parser: an empty byte sequence between two
@@ -719,6 +722,9 @@ public:
                 result_t hr = append(strKey, strValue);
                 if (hr.failed())
                     return hr;
+
+                if (max_keys > 0 && ++parsed >= max_keys)
+                    break;
             }
         }
 
