@@ -2169,127 +2169,66 @@ function ensure_declared_deps_visible(level_info) {
 /**
  * @description which kind of edge reaches each node, written onto the snapshot.
  *
- *              The rules are npm's `calc-dep-flags`, and the walk is over the
- *              snapshot's own shape rather than a projection of it: the two shapes place
- *              a link's target differently (the snapshot keeps a member's `file:`
- *              dependency at the root, `build_ideal` keeps it beside the member), and
- *              translating between them to answer a question about *this* shape
- *              answered a question about the other one.
+ *              The answer is `tree.calc_flags` — npm's own loop. The rule reads as "a
+ *              node only a dev edge reaches is dev", and a reachability walk written
+ *              from that prose agrees on `dev` and disagrees on the overlap and on
+ *              `optional`, because npm's propagation is not reachability: an optional
+ *              edge marks everything below it optional, whatever kind of edge the level
+ *              below uses.
  *
- *              A workspace member is a root of its own for the walk. That is not a
- *              second rule: npm reaches a member through the edge its `workspaces` field
- *              makes, and this snapshot has no such edge — so the member starts the
- *              walk instead of being reached by it, and what it needs for production is
- *              not mistaken for something only the root's devDependencies wanted.
+ *              That difference is not academic. `sharp` has an optional dependency on
+ *              `@img/sharp-wasm32`, which has an ordinary one on `@emnapi/runtime`; npm
+ *              records the runtime as `optional`, so `--omit=optional` leaves it off the
+ *              disk with the rest of the wasm build. The reachability walk said nothing
+ *              reached it through an optional edge — it looked the name up from the root
+ *              and found it — and the runtime was installed on machines that had asked
+ *              for no optional packages at all.
+ *
+ *              The flags are matched to the snapshot by *identity*: `snapshot_to_tree`
+ *              keeps the node it projected from, so the answer finds its way back to the
+ *              same object whatever the two shapes call the location. That is what makes
+ *              this a substitution rather than a translation — a path-keyed one had to
+ *              decide which shape owned a member's `file:` dependency, and got it wrong.
  */
 function mark_reachability(rootsnap) {
-    let next_id = 0;
+    const projected = tree.snapshot_to_tree(rootsnap, { root: process.cwd() });
 
-    function id_of(node) {
-        if (node._reach_id === undefined)
-            node._reach_id = ++next_id;
+    // The same roots npm walks from: the project, and every *workspace member*. A
+    // member's dependencies are installed like the root's, so what it needs for
+    // production is not a dev package.
+    //
+    // A `file:` dependency is not a root, and treating it as one is how a member's dev
+    // dependency came to be installed under `--omit=dev`: the link pointed at a
+    // directory of the project, its `devDependencies` were read as the project's, and
+    // the edge that should have marked the package dev was a root edge instead.
+    const roots = [''];
 
-        return node._reach_id;
-    }
+    projected.forEach((node, p) => {
+        if (p === '' || node.type !== tree.LINK)
+            return;
 
-    // the nearest ancestor that holds the name, then upwards: the tree is hoisted, so
-    // most of them live near the root
-    function lookup(from, name) {
-        let cur = from;
+        // `from_workspace` is what `build_ideal` sets for a member, and what the
+        // snapshot says with `workspace_package`
+        if (node.from_workspace !== true && node.source && node.source.workspace_package !== true)
+            return;
 
-        while (cur) {
-            if (cur.node_modules && cur.node_modules[name])
-                return cur.node_modules[name];
-            cur = cur.parent;
-        }
-
-        return rootsnap.node_modules[name] || null;
-    }
-
-    const EDGES = [
-        ['prod', node => node.dep_vs],
-        ['dev', node => node.dev_dep_vs],
-        ['optional', node => node.opt_dep_vs],
-        ['peer', node => node.peer_dep_vs],
-    ];
-
-    const FLAGS = [
-        ['dev', ['dev']],
-        ['optional', ['optional']],
-        ['devOptional', ['dev', 'optional']],
-        ['peer', ['peer']],
-    ];
-
-    // where a walk begins: the project, and every workspace member — a member is a
-    // project of its own, and what it needs is in the graph whatever the root says
-    const roots = [rootsnap];
-
-    Object.keys(rootsnap.node_modules || {}).forEach(name => {
-        const member = rootsnap.node_modules[name];
-
-        if (member.workspace_package)
-            roots.push(member);
+        if (node.resolved && projected.has(node.resolved))
+            roots.push(node.resolved);
     });
 
-    /**
-     * @description the nodes a path from a root reaches without using an edge of the
-     *              kinds in `skip`
-     */
-    function reachable(skip) {
-        const seen = {};
-        const stack = roots.slice();
+    const flags = tree.calc_flags(projected, roots);
 
-        roots.forEach(r => { seen[id_of(r)] = true; });
+    projected.forEach((node, p) => {
+        if (p === '' || node.target_only || !node.source)
+            return;
 
-        while (stack.length) {
-            const node = stack.pop();
+        const info = node.source;
 
-            EDGES.forEach(edge => {
-                if (skip.indexOf(edge[0]) > -1)
-                    return;
-
-                Object.keys(edge[1](node) || {}).forEach(name => {
-                    const child = lookup(node, name);
-
-                    if (!child)
-                        return;
-
-                    const id = id_of(child);
-
-                    if (seen[id])
-                        return;
-
-                    seen[id] = true;
-                    stack.push(child);
-                });
-            });
-        }
-
-        return seen;
-    }
-
-    const reach = { any: reachable([]) };
-
-    FLAGS.forEach(flag => { reach[flag[0]] = reachable(flag[1]); });
-
-    (function mark(node) {
-        Object.keys(node.node_modules || {}).forEach(name => {
-            const child = node.node_modules[name];
-            const id = id_of(child);
-            const known = reach.any[id] === true;
-
-            // npm's answer, in npm's terms: `dev` means "no path from a root reaches it
-            // without a dev edge", and the overlap is corrected last — a node that is
-            // dev or optional on its own is not in the overlap
-            child.dev_only = known && reach.dev[id] !== true;
-            child.optional_only = known && reach.optional[id] !== true;
-            child.dev_optional = known && reach.devOptional[id] !== true &&
-                !child.dev_only && !child.optional_only;
-            child.peer_only = known && reach.peer[id] !== true;
-
-            mark(child);
-        });
-    })(rootsnap);
+        info.dev_only = flags.dev[p] === true;
+        info.optional_only = flags.optional[p] === true;
+        info.dev_optional = flags.devOptional[p] === true;
+        info.peer_only = flags.peer[p] === true;
+    });
 }
 
 /**
@@ -5356,6 +5295,35 @@ function fill_lock_sources(lock) {
 }
 
 /**
+ * @description take the overlap flag off every entry that is dev or optional on
+ *              its own. npm's `calc-dep-flags` ends with exactly this
+ *              normalisation, so the pair is never what npm writes; a file that
+ *              carries it came from an earlier install and describes a tree
+ *              neither tool would build
+ * @returns the number of entries the correction touched
+ */
+function clear_overlap_flag(raw) {
+    if (!raw || !raw.packages)
+        return 0;
+
+    let fixed = 0;
+
+    Object.keys(raw.packages).forEach(p => {
+        const entry = raw.packages[p];
+
+        if (!entry || entry.devOptional !== true)
+            return;
+        if (entry.dev !== true && entry.optional !== true)
+            return;
+
+        delete entry.devOptional;
+        fixed++;
+    });
+
+    return fixed;
+}
+
+/**
  * @description write the lockfile the lock-first path has been editing in memory, once.
  *              The four steps before it — the tree diff, the flags the graph shows, the
  *              debris beside a link, the sources a directory cannot say — all change the
@@ -5365,6 +5333,14 @@ function fill_lock_sources(lock) {
 function persist_lock(lock) {
     if (!lock || !lock.raw || !lock.raw.packages)
         return false;
+
+    // npm ends `calc-dep-flags` by clearing the overlap flag wherever an entry is
+    // dev or optional on its own, so the pair never appears in a file npm wrote.
+    // A file that carries it was written before the flags came from the graph,
+    // and leaving it makes `--omit=optional` read the entry as belonging to only
+    // one of the two trees. `--lockfile-only` reaches the write without passing
+    // the step that adds flags, so the correction belongs at the write itself
+    clear_overlap_flag(lock.raw);
 
     const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
 

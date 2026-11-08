@@ -317,15 +317,18 @@ function calc_flags(tree, roots) {
     });
 
     const seen = new Set();
+    // what has been walked, which is not the same as what has been reached: a node is
+    // queued once when it is reached, and again only when its own flags changed
+    const processed = new Set();
     const queue = [];
 
-    // npm's walk starts at *one* node and reaches everything through edges — a
-    // workspace member included, because the project's `workspaces` field is an edge
-    // like any other. Seeding the members as extra roots as well changes the order
-    // things are visited in, and the order decides which of two visits unsets a flag
-    // first, so it changes the answer: a node reachable from a member that was seeded
-    // looked production-only and stopped the overlap from propagating
-    queue.push('');
+    // Every root the caller names is seeded, and each starts clean. npm walks from the
+    // project alone because its tree has an edge for `workspaces`; this model has one
+    // too (`build_ideal` adds it), but a snapshot projected from `read_module` does
+    // not — a member's own tree is recorded under the link, with no edge from the root
+    // to reach it by. Naming the member as a root is what stands in for that edge, and
+    // it is why the caller passes more than `''`.
+    roots.forEach(r => { queue.push(r); });
 
     while (queue.length) {
         const p = queue.pop();
@@ -342,6 +345,7 @@ function calc_flags(tree, roots) {
             // pass skips it and it comes out with no flags at all while its target is
             // correctly dev
             seen.add(p);
+            processed.add(p);
 
             const target = node.resolved;
             const mine = state.get(p);
@@ -357,7 +361,11 @@ function calc_flags(tree, roots) {
                     }
                 });
 
-                if (changed || !seen.has(target))
+                // The target is a node of the walk too: it is the directory the link
+                // installs, and its own edges are what a member's dependencies hang
+                // from — so it is processed like any other node. It has to be queued
+                // *before* it is marked seen, or the guard below cancels the visit.
+                if (!processed.has(target) || changed)
                     queue.push(target);
             }
 
@@ -367,6 +375,7 @@ function calc_flags(tree, roots) {
         const mine = state.get(p);
 
         seen.add(p);
+        processed.add(p);
 
         for (const kind of EDGE_KINDS) {
             const map = node.edges && node.edges[kind];
@@ -413,7 +422,10 @@ function calc_flags(tree, roots) {
                     changed = true;
                 }
 
-                if (changed)
+                // A link reached by an edge is walked like the node it installs: the
+                // link has no edges of its own, so skipping it leaves the directory it
+                // points at — and everything only a member depends on — never visited.
+                if (changed || !processed.has(to))
                     queue.push(to);
             });
         }
@@ -1886,8 +1898,12 @@ function snapshot_to_tree(rootsnap, opts) {
                     type: REGISTRY,
                     target_only: true,
                     edges: {
+                        // A member's `devDependencies` are installed: npm installs the dev
+                        // tree of every member of the project. Leaving the field empty here
+                        // made a member's dev dependency look production, so `--omit=dev`
+                        // kept it on the disk.
                         dependencies: (child.declared && child.declared.dep_vs) || child.dep_vs || {},
-                        devDependencies: {},
+                        devDependencies: (child.declared && child.declared.dev_dep_vs) || child.dev_dep_vs || {},
                         optionalDependencies: (child.declared && child.declared.opt_dep_vs) || child.opt_dep_vs || {},
                         peerDependencies: (child.declared && child.declared.peer_dep_vs) || child.peer_dep_vs || {},
                     },

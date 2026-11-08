@@ -1277,7 +1277,12 @@ function lock_entry(entry, p) {
         link: entry.link ? true : undefined,
         dev: entry.dev ? true : undefined,
         optional: entry.optional ? true : undefined,
-        devOptional: entry.dev_optional ? true : undefined,
+        // npm ends `calc-dep-flags` by clearing the overlap flag wherever the
+        // entry is dev or optional on its own, so the pair never appears in a
+        // file it wrote; writing it here made `--omit=optional` read an entry
+        // as belonging to only one of the two trees
+        devOptional: entry.dev_optional && !entry.dev && !entry.optional
+            ? true : undefined,
         bundleDependencies: entry.bundle_dependencies,
         inBundle: bundled ? true : undefined,
         dependencies: entry.dependencies,
@@ -1709,7 +1714,11 @@ function hidden_lock(name, version, packages, root) {
             link: entry.link ? true : undefined,
             dev: entry.dev ? true : undefined,
             optional: entry.optional ? true : undefined,
-            devOptional: entry.dev_optional ? true : undefined,
+            // npm ends `calc-dep-flags` by clearing the overlap flag wherever the
+            // entry is dev or optional on its own, so the pair never appears in
+            // a file it wrote
+            devOptional: entry.dev_optional && !entry.dev && !entry.optional
+                ? true : undefined,
             bundleDependencies: entry.bundle_dependencies,
             inBundle: entry.inBundle === true ? true : undefined,
             dependencies: entry.dependencies,
