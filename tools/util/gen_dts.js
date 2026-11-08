@@ -1175,15 +1175,28 @@ function buildDtsMethodParams(paramsHost, getMapParamOptions, { typeOverride } =
  * The parameters of a call signature (`declare interface Class_X { (...): r }`
  * and the callable modules' `function <module>(...)`).
  *
- * dts-dom's object-type writer prints a call signature's parameters through
- * writeParameter, which honours ParameterFlags and adds the punctuation itself
- * (`...args`, `options?`). An earlier version prefixed the name here as well -
- * on the assumption that the "call-signature" printer ignored the flags - which
- * shipped `(......args: any[]): void` in the corpus (TS1003, reported by
- * tools/check_dts.js). Hand the flags over unchanged and let the printer do it.
+ * dts-dom 3.6.0 prints the parameters of a *call signature* with its own loop
+ * that emits `name: type` and ignores ParameterFlags entirely, while its
+ * `function` and `method` writers go through writeParameter and honour the
+ * flags (verified against the bundled copy). Passing a Rest flag therefore
+ * silently produced `(args: any[])` instead of `(...args: any[])`, and an
+ * `Optional` flag would be dropped the same way, so the punctuation is folded
+ * into the name here: the printer concatenates the name verbatim. The caller
+ * still sees the same IR (flags intact) and the flags are cleared so nothing
+ * downstream emits the marker twice.
  */
 function callSignatureParameters(params) {
-    return params.map(p => dom.create.parameter(p.name, p.type, p.flags));
+    return params.map(p => {
+        const flags = p.flags || 0;
+        const rest = (flags & dom.ParameterFlags.Rest) !== 0;
+        const optional = !rest && (flags & dom.ParameterFlags.Optional) !== 0;
+
+        return dom.create.parameter(
+            (rest ? '...' : '') + p.name + (optional ? '?' : ''),
+            p.type,
+            flags & ~(dom.ParameterFlags.Rest | dom.ParameterFlags.Optional)
+        );
+    });
 }
 
 /**
