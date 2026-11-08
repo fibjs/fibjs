@@ -18,6 +18,7 @@ const untar = require('internal/helpers/untar');
 const helpers_pkg = require('internal/helpers/package');
 const helpers_string = require('internal/helpers/string');
 const lockfile = require('internal/helpers/lockfile');
+const tree = require('internal/helpers/tree');
 const versioning = require('internal/helpers/versioning');
 const win32_cli = require('internal/helpers/win32_cli');
 const CST = require('internal/constant');
@@ -4314,237 +4315,252 @@ function tree_entry(node, p) {
 }
 
 /**
- * @description the packages in `node_modules` that nothing in the project reaches any
- *              more — npm's `prune`, which every `npm install` does and which this one
- *              did not. A dependency removed from package.json stayed on disk *and* in
- *              the lockfile, so `--ci` went on installing it: the tree only ever grew,
- *              and a package that was removed kept resolving
- *
- *              A package `omit` leaves out is the same shape of problem the other way
- *              round: the lockfile still describes it (npm's omit is about the disk,
- *              not the graph) while the disk should not have it — `--omit=dev` after a
- *              full install used to keep the dev tree in place
- * @param reachable the lockfile paths this install means to leave on the disk
- * @param root the project
- * @returns the entries removed
+ * @description the tree the project should have, built from the manifest, the
+ *              workspace members as they are *now*, and the lockfile — the one place
+ *              that answers "what belongs on the disk". Everything below compares this
+ *              against what is there, instead of each mechanism deciding for itself
+ *              (see plans/installer-three-tree-refactor.md)
+ * @param lock the lockfile, or null
+ * @param opts { members } — the member list, when the caller already has it
  */
-function prune_unreachable(reachable, root) {
-    const nm = path.join(root, 'node_modules');
+function ideal_tree(lock, opts) {
+    const o = opts || {};
 
-    if (!fs.exists(nm))
-        return [];
+    const members = o.members || find_workspace_packages(process.cwd(), rootsnap.pkgjson.workspaces);
 
-    const removed = [];
+    // the entries the lockfile describes, in the shape the tree speaks
+    const packages = lock ? lockfile.to_path_map(lock) : {};
 
-    fs.readdir(nm).forEach(name => {
-        // npm never touches a dot entry: those are caches and notes (its own
-        // `.package-lock.json` is one), not installs
-        if (name.charAt(0) === '.')
-            return;
+    // the manifests a member's own directory has: its dependencies are what an
+    // install of that project reads, and the lockfile is not the authority on them
+    Object.keys(packages).forEach(p => { packages[p] = packages[p]; });
 
-        // a scope is not a package: it is a directory that holds them, and it goes
-        // once it holds none
-        if (name.charAt(0) === '@') {
-            const scope = path.join(nm, name);
-
-            try {
-                if (!fs.lstat(scope).isDirectory())
-                    return;
-            } catch (e) {
-                return;
-            }
-
-            let left = 0;
-
-            fs.readdir(scope).forEach(sub => {
-                const rel = `node_modules/${name}/${sub}`;
-
-                if (reachable[rel]) {
-                    left++;
-                    return;
-                }
-
-                remove_path(path.join(scope, sub));
-                removed.push(rel);
-            });
-
-            if (!left) {
-                try {
-                    fs.rmdir(scope);
-                } catch (e) {
-                    // not empty after all: something the walk did not describe
-                }
-            }
-
-            return;
-        }
-
-        const rel = `node_modules/${name}`;
-
-        if (reachable[rel])
-            return;
-
-        // a directory nothing in the tree describes is a directory nothing installs.
-        // It is not restricted to ones that look like packages: npm removes those too,
-        // and a leftover directory is how a stale tree keeps its shape
-        remove_path(path.join(nm, name));
-        removed.push(rel);
+    return tree.build_ideal({
+        root_manifest: rootsnap.pkgjson,
+        members: members.map(m => ({
+            name: m.name,
+            path: m.path,
+            relative_path: m.relative_path,
+            package_json: m.package_json,
+        })),
+        packages: packages,
     });
-
-    if (removed.length)
-        install_log(`[install] prune: ${removed.length} ` +
-            `entr${removed.length === 1 ? 'y' : 'ies'} the install leaves out ` +
-            `(${removed.slice(0, 3).join(', ')}${removed.length > 3 ? ', …' : ''})`);
-
-    return removed;
 }
 
 /**
- * @description the lockfile paths the project reaches from what it declares: every
- *              node the walk produced, and everything those lead to. This is what the
- *              tree is allowed to hold — what a dependency dropped from package.json
- *              leaves behind is not in it, which is what `prune_unreachable` removes
+ * @description the tree the resolved snapshot describes — the one an install that
+ *              *resolves* has just arrived at. It differs from `ideal_tree()` in where
+ *              the nodes come from: that one reads the manifest and the lockfile, this
+ *              one reads the tree the resolver built (which is the same information,
+ *              after every version has been chosen and every edge placed).
+ *
+ *              Both answers have to agree, because both paths prune with them: a
+ *              dependency that was removed cannot be reachable in one tree and not in
+ *              the other
  */
-function reachable_paths(rootsnap, root) {
-    const paths = {};
+function ideal_tree_of(rootsnap, root) {
+    const tree = new Map();
+
+    // the root node, whose edges are what the walk begins at
+    tree.set('', {
+        path: '', name: rootsnap.name, version: rootsnap.version,
+        type: 'registry', target_only: false,
+        edges: {
+            dependencies: rootsnap.declared ? rootsnap.declared.dep_vs : (rootsnap.dep_vs || {}),
+            devDependencies: rootsnap.declared ? rootsnap.declared.dev_dep_vs : (rootsnap.dev_dep_vs || {}),
+            optionalDependencies: rootsnap.declared ? rootsnap.declared.opt_dep_vs : (rootsnap.opt_dep_vs || {}),
+            peerDependencies: rootsnap.declared ? rootsnap.declared.peer_dep_vs : (rootsnap.peer_dep_vs || {}),
+        },
+        flags: {},
+    });
 
     (function flatten(node, prefix) {
         Object.keys(node.node_modules || {}).forEach(name => {
             const child = node.node_modules[name];
             const p = prefix + 'node_modules/' + name;
+            const local = child.local_package || child.workspace_package;
 
-            paths[p] = true;
+            tree.set(p, {
+                path: p,
+                name: name,
+                version: child.version,
+                type: local ? 'link' : (child.in_bundle ? 'bundle' : 'registry'),
+                resolved: local
+                    ? lockfile.relative_target(root, child.local_path || child.workspace_path)
+                    : (child.dist && child.dist.tarball),
+                integrity: local ? undefined : (child.dist && child.dist.integrity),
+                local_path: local ? (child.local_path || child.workspace_path) : undefined,
+                target_only: false,
+                edges: {
+                    dependencies: (child.declared && child.declared.dep_vs) || child.dep_vs || {},
+                    devDependencies: {},
+                    optionalDependencies: (child.declared && child.declared.opt_dep_vs) || child.opt_dep_vs || {},
+                    peerDependencies: (child.declared && child.declared.peer_dep_vs) || child.peer_dep_vs || {},
+                },
+                flags: {
+                    dev: child.dev_only === true,
+                    optional: child.optional_only === true,
+                    devOptional: child.dev_optional === true,
+                    peer: child.peer_only === true,
+                },
+                from_workspace: child.workspace_package === true,
+            });
 
-            // what a link depends on is installed inside the directory it points at,
-            // and the lockfile records those under that directory's path
-            const target = child.local_package || child.workspace_package
-                ? (child.local_path || child.workspace_path)
-                : null;
+            // and the directory a link points at, which is where its own edges live
+            if (local) {
+                const target = lockfile.relative_target(root, child.local_path || child.workspace_path);
 
-            flatten(child, target ? lockfile.relative_target(root, target) + '/' : p + '/');
+                if (!tree.has(target)) {
+                    tree.set(target, {
+                        path: target,
+                        name: name,
+                        version: child.version,
+                        type: 'link',
+                        resolved: target,
+                        local_path: child.local_path || child.workspace_path,
+                        target_only: true,
+                        edges: {
+                            dependencies: (child.declared && child.declared.dep_vs) || child.dep_vs || {},
+                            devDependencies: {},
+                            optionalDependencies: (child.declared && child.declared.opt_dep_vs) || child.opt_dep_vs || {},
+                            peerDependencies: (child.declared && child.declared.peer_dep_vs) || child.peer_dep_vs || {},
+                        },
+                        flags: {},
+                    });
+                }
+            }
+
+            flatten(child, local ? lockfile.relative_target(root, child.local_path || child.workspace_path) + '/' : p + '/');
         });
     })(rootsnap, '');
 
-    return paths;
+    return { tree: tree, dropped: [] };
 }
 
 /**
- * @description drop from the path table what the project does not reach. The tree
- *              the write back describes is the one on the disk, and the disk no longer
- *              holds those entries — keeping them in the file would make the next
- *              `--ci` install them again
+ * @description what the disk holds, in the tree's shape
  */
-function prune_lock_paths(paths, reachable) {
-    Object.keys(paths).forEach(p => {
-        if (reachable[p])
-            return;
-
-        delete paths[p];
-    });
+function actual_tree() {
+    return tree.load_actual(process.cwd(), { hidden_sources: read_hidden_sources() });
 }
 
 /**
- * @description the paths of the workspace member links a project owns. The manifest
- *              declares them with `workspaces`, so no dependency edge in the lockfile
- *              arrives at them — the graph walk cannot know they are wanted, and a
- *              prune that read the graph alone would delete the links
+ * @description bring the disk in line with the tree the project should have. This is
+ *              npm's `reify` reduced to the part this installer does not get from
+ *              `install_from_lock`: the removals.
+ *
+ *              A path the tree does not describe is a path nothing installs — that is
+ *              the whole of `prune`, and it is also what takes care of a workspace
+ *              member that was deleted or renamed, because the tree was built from the
+ *              member set as it is now. Nothing has to compare the member set against
+ *              what is left on the disk (which is what made a renamed member get its
+ *              new link pruned away: the comparison ran before the rename was known).
+ * @returns { removed: [path] }
  */
-function workspace_link_paths(packages) {
-    const paths = [];
-    const members = find_workspace_packages(process.cwd(), rootsnap.pkgjson.workspaces);
+function remove_what_the_tree_lacks(ideal) {
+    const actual = actual_tree();
+    const removed = [];
 
-    if (!members.length)
-        return paths;
+    // the removals the diff asks for, deepest last: a directory before its contents
+    const actions = tree.diff(actual, ideal.tree, { omit: ctx.omit })
+        .filter(a => a.action === tree.REMOVE);
 
-    const targets = {};
+    for (let i = 0; i < actions.length; i++) {
+        const a = actions[i];
 
-    members.forEach(w => {
-        targets[lockfile.relative_target(process.cwd(), w.path)] = true;
-    });
+        // a link target is a project directory, never something this removes
+        if (a.actual && a.actual.target_only)
+            continue;
 
-    Object.keys(packages).forEach(p => {
-        const entry = packages[p];
+        const abs = path.join(process.cwd(), a.path);
 
-        if (entry.link && targets[entry.resolved])
-            paths.push(p);
-    });
+        // `fs.exists` follows a link, so it answers false for one whose target is
+        // gone — which is precisely the link that has to go. The removal therefore
+        // asks the directory entry, not the path it resolves to
+        if (!exists_at(abs))
+            continue;
 
-    return paths;
+        remove_path(abs);
+        removed.push(a.path);
+    }
+
+    if (removed.length)
+        install_log(`[install] prune: ${removed.length} ` +
+            `entr${removed.length === 1 ? 'y' : 'ies'} nothing in the project reaches ` +
+            `(${removed.slice(0, 3).join(', ')}${removed.length > 3 ? ', …' : ''})`);
+
+    return { removed: removed };
 }
 
 /**
- * @description take what `omit` and the platform leave out of the set an install keeps
- *              on the disk. The lockfile still describes those entries — that is the
- *              promise `omit` makes, an omit is about the disk and never about the
- *              graph — so they stay in the file and leave the tree
+ * @description is there a directory entry at that path? `fs.exists` follows a link
+ *              and answers false for one whose target is gone, which is the case a
+ *              removal has to see — so this asks `lstat`, which does not follow
  */
-function apply_omit_to_reachable(reachable, lock, packages) {
-    const graph = lockfile.graph_flags(packages, lock.raw && lock.raw.packages && lock.raw.packages[''], {
-        workspaces: find_workspace_packages(process.cwd(), rootsnap.pkgjson.workspaces)
-            .map(w => ({ path: w.relative_path, pkgjson: w.package_json })),
-    });
+function exists_at(p) {
+    if (fs.exists(p))
+        return true;
 
-    Object.keys(reachable).forEach(p => {
-        const entry = packages[p];
-
-        if (!entry)
-            return;
-
-        const optional = entry.optional === true || graph.optional[p] === true;
-        const dev = entry.dev === true || graph.dev[p] === true;
-
-        if ((dev && ctx.omit.dev) || (optional && ctx.omit.optional))
-            delete reachable[p];
-    });
+    return is_dangling_link(p);
 }
 
 /**
- * @description take the entries the project no longer reaches out of the disk and out
- *              of the file. This is npm's `prune`, which its `install` does and its `ci`
- *              does not — the difference being that npm's `ci` reifies what package.json
- *              *and* the lockfile describe, while this path trusts the lockfile alone.
- *              Without it a dependency removed from package.json never leaves: its
- *              entry stays in the file, so the next `--ci` installs it again
+ * @description is that path a directory entry at all, whether or not it resolves?
+ *              A link whose target is gone is one, and it is exactly the case a
+ *              prune has to be able to see
+ */
+function is_dangling_link(p) {
+    try {
+        return fs.lstat(p).isSymbolicLink();
+    } catch (e) {
+        return false;
+    }
+}
+
+
+/**
+ * @description bring the disk and the lockfile in line with the tree the project
+ *              should have, which is what npm's `install` does (`ci` does not: it
+ *              installs what the file says, extra entries and all).
+ *
+ *              Both sides are now answered by **one** tree:
+ *
+ *                - the disk loses every path the tree does not describe
+ *                - the file loses every entry the tree does not describe, and keeps
+ *                  what `omit` left off the disk (omit is about the disk, never about
+ *                  the graph)
+ *
+ *              A workspace member that was deleted or renamed is simply not in the
+ *              member set the tree was built from, so its link is a `REMOVE` — and the
+ *              link of the member that took its place is in the tree, so it is never a
+ *              removal. That is why this no longer needs a rule of its own.
+ * @param packages the lockfile path table, as read
+ * @param lock the lockfile, for its entries and its file name
  * @returns { file, removed }
  */
 function prune_lock_and_disk(packages, lock) {
     if (!lock || !lock.raw || !lock.raw.packages)
         return { file: 0, removed: [] };
 
-    // the edges to walk are what the file says *now*: `sync_lock_root` has just made
-    // the root entry follow package.json, and `lock.root` is the entry as it was read
-    // — a dependency the manifest no longer has would still look reachable through it
-    const reachable = lockfile.reachable_paths(packages, lock.raw.packages[''], {
-        workspaces: find_workspace_packages(process.cwd(), rootsnap.pkgjson.workspaces)
-            .map(w => ({ path: w.relative_path, pkgjson: w.package_json })),
-    });
+    const ideal = ideal_tree(lock);
 
-    // a workspace member is installed as a link the project itself owns, and no edge in
-    // the lockfile arrives at it: the manifest says `workspaces`, not `dependencies`.
-    // Without this the prune reads the member as unreached and deletes the link it has
-    // just built
-    workspace_link_paths(packages).forEach(p => { reachable[p] = true; });
+    // the disk: every path the tree does not describe is a path nothing installs
+    const removed = remove_what_the_tree_lacks(ideal).removed;
 
-    // the file keeps everything the project still reaches, omit or not: `--omit=dev`
-    // says what the *disk* should hold, never what the lockfile describes
-    const in_file = Object.assign({}, reachable);
-
-    // the disk is another question: what `omit` leaves out has to leave it, or a full
-    // install followed by `--omit=dev` keeps the tree it was asked to drop
-    apply_omit_to_reachable(reachable, lock, packages);
-
-    const removed = prune_unreachable(reachable, process.cwd());
-
+    // the file: the same tree, without `omit` applied — what an omit leaves off the
+    // disk stays described, which is the promise it makes
     let dropped = 0;
 
     Object.keys(lock.raw.packages).forEach(p => {
-        if (p === '' || in_file[p])
+        if (p === '')
             return;
 
-        // the entry of the directory a link points at is not installed on its own
-        if (lock.raw.packages[p].link !== true && lockfile.name_from_path(p) === null)
+        if (ideal.tree.has(p))
             return;
 
+        // the target of a link the tree still has is described by that link's
+        // directory entry, which is in the tree: anything else is an entry nothing
+        // describes
         delete lock.raw.packages[p];
         dropped++;
     });
@@ -4557,7 +4573,73 @@ function prune_lock_and_disk(packages, lock) {
             `entr${dropped === 1 ? 'y' : 'ies'} nothing in the project reaches left the file)`);
     }
 
-    return { file: dropped, removed: removed };
+    // the entries the tree describes but the file does not: a member that was just
+    // renamed has a link at its new name and a directory entry whose manifest says so,
+    // and the file still describes the old ones. What the tree has and the file lacks
+    // is written from the tree — which is the same answer for every entry, so this
+    // does not need to know what changed
+    const added = sync_missing_lock_entries(ideal, lock);
+
+    return { file: dropped + added, removed: removed };
+}
+
+/**
+ * @description write the entries the tree describes and the file does not have at
+ *              all: a member that appeared, or one that was renamed (the link at its
+ *              new name, and the directory entry whose `name`/`version` follow its
+ *              manifest).
+ *
+ *              An entry that *is* already in the file is left exactly as it stands,
+ *              which is what keeps a write back from churning what npm wrote — the
+ *              `dev` mark it recorded, the integrity of a package nothing fetched, and
+ *              in general every field this does not itself produce. Rebuilding an
+ *              entry that is already there is how a second install used to move the
+ *              file
+ * @returns the number of entries written
+ */
+function sync_missing_lock_entries(ideal, lock) {
+    if (!lock || !lock.raw || !lock.raw.packages)
+        return 0;
+
+    let added = 0;
+
+    // the root follows package.json, which `sync_lock_root` has already done
+    ideal.tree.forEach((node, p) => {
+        if (p === '' || lock.raw.packages[p])
+            return;
+
+        // the directory a link points at: its entry is the manifest projected, so a
+        // renamed member is described by the name it has now. It is tested before the
+        // link below because a target node is a `LINK` too — it is the directory that
+        // is not installed, not the link to it
+        if (node.target_only) {
+            lock.raw.packages[p] = node.manifest
+                ? lockfile.project_manifest(node.manifest, p)
+                : lockfile.entry_order({ name: node.name, version: node.version });
+
+            added++;
+            return;
+        }
+
+        if (node.type === tree.LINK) {
+            lock.raw.packages[p] = lockfile.entry_order({
+                resolved: node.resolved,
+                link: true,
+            });
+
+            added++;
+        }
+    });
+
+    if (added) {
+        const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
+
+        lockfile.write_lockfile(path.join(process.cwd(), lock.filename), lock.raw, indent);
+        install_log(`update: ${lock.filename} (${added} ` +
+            `entr${added === 1 ? 'y' : 'ies'} the tree describes were not in the file)`);
+    }
+
+    return added;
 }
 
 /**
@@ -4926,11 +5008,16 @@ function build_lockfile(lock, rootsnap) {
             delete paths[p];
     });
 
-    // what the project no longer reaches is gone from the disk (see
-    // `prune_unreachable`), and it has to be gone from the file too: an entry left in
-    // the lockfile is one the next `--ci` installs again, which is how a removed
-    // dependency kept coming back
-    prune_lock_paths(paths, reachable_paths(rootsnap, root));
+    // what the project no longer reaches is gone from the disk, and it has to be gone
+    // from the file too: an entry left in the lockfile is one the next `--ci` installs
+    // again, which is how a removed dependency kept coming back. The set is the same
+    // one the prune used, so the file cannot describe a path the disk was told to drop
+    const ideal = ideal_tree_of(rootsnap, root);
+
+    Object.keys(paths).forEach(p => {
+        if (!ideal.tree.has(p))
+            delete paths[p];
+    });
 
     const built = lockfile.to_lock(paths, rootsnap.pkgjson, {
         previous: lock,
@@ -5448,6 +5535,17 @@ if (args.flags.frozen) {
         process.exit(1);
     }
 
+    // `npm ci` installs what the file says, extra entries and all — an entry the
+    // manifest no longer declares still lands, and `npm install` is the command that
+    // prunes it. The tree is still built here so that the two paths answer the same
+    // questions, but a surplus entry is not a reason to refuse the file
+    const frozen_ideal = ideal_tree(lock);
+
+    if (ctx.verbose && frozen_ideal.dropped.length)
+        install_log(`[install] ${frozen_ideal.dropped.length} ` +
+            `entr${frozen_ideal.dropped.length === 1 ? 'y' : 'ies'} ${lock.filename} describes ` +
+            'but package.json does not declare: installing them anyway, like `npm ci`');
+
     if (args.flags.dry_run) {
         install_log('[install] --dry-run: nothing was written');
         process.exit(0);
@@ -5514,6 +5612,13 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
         if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS)
             run_root_preinstall();
 
+        // npm's reify order: what is not wanted leaves the disk *before* what is
+        // wanted is put there. Taking a stale link away first is also what keeps a
+        // member that was deleted or renamed from colliding with the path its
+        // replacement is about to take (a link whose target is gone is not visible to
+        // `fs.exists`, which is how a `mkdir` came to fail with EEXIST)
+        const pruned = prune_lock_and_disk(lockfile.to_path_map(lock), lock);
+
         // the members are links at the root; the lockfile describes them too, this
         // only saves the install from creating what is already there
         link_workspace_packages();
@@ -5534,13 +5639,6 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
         sync_lock_flags(lock, result.packages, result.graph);
         drop_superseded_entries(lock);
         complete_lock_sources(lockfile.read_lockfile(process.cwd()));
-
-        // the disk and the file both have to lose what the project no longer reaches:
-        // a dependency removed from package.json is not in the manifest, but its entry
-        // is still in the lockfile, and this path installs the lockfile as it stands.
-        // That is how a removed package kept coming back — `rm -rf node_modules &&
-        // fibjs --install --ci` restored it from the entry here
-        prune_lock_and_disk(result.packages, lock);
 
         remove_hidden_lock(process.cwd());
         process.exit(0);
@@ -5697,10 +5795,15 @@ read_bundled_copies(rootsnap, process.cwd());
 mark_reachability(rootsnap);
 
 // what the project declares no longer reaches has to leave the disk, or the tree only
-// grows and a removed dependency keeps resolving. npm does this on every `install`
-// (and so on `ci`, which reifies from the manifest and the lock, not from the tree
-// that is already there)
-prune_unreachable(reachable_paths(rootsnap, process.cwd()), process.cwd());
+// grows and a removed dependency keeps resolving. This is the same judgement the
+// lock-first path applies — one tree, one diff — so a dependency removed from
+// package.json cannot come back from a lockfile entry in one path and not the other.
+//
+// Not for an install of a single package: that one resolves — and installs — only the
+// package it was asked for, so the tree it builds is not the whole project and pruning
+// against it would take away everything else
+if (!ctx.new_pkgname)
+    remove_what_the_tree_lacks(ideal_tree_of(rootsnap, process.cwd()));
 
 // create symlinks for local packages found during dependency walking
 (function create_local_package_symlinks(level_info, base_path) {
