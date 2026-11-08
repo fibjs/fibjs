@@ -200,3 +200,101 @@ describe("console", () => {
     })
 });
 
+
+describe("console counting, grouping and time logging", () => {
+    var { Console } = require('console');
+    var io = require('io');
+
+    function capture(fn) {
+        var out = new io.MemoryStream();
+        var c = new Console(out, out);
+        fn(c);
+        out.rewind();
+        return out.readAll().toString();
+    }
+
+    it("count increments per instance", () => {
+        var text = capture((c) => {
+            c.count('items');
+            c.count('items');
+        });
+        assert.equal(text, 'items: 1\nitems: 2\n');
+    });
+
+    it("count default label is 'default'", () => {
+        assert.equal(capture((c) => c.count()), 'default: 1\n');
+    });
+
+    it("countReset restarts the counter", () => {
+        var text = capture((c) => {
+            c.count('x');
+            c.countReset('x');
+            c.count('x');
+        });
+        assert.equal(text, 'x: 1\nx: 1\n');
+    });
+
+    it("countReset of an unknown label warns instead of throwing", () => {
+        var text = capture((c) => c.countReset('never'));
+        assert.ok(text.includes("Count for 'never' does not exist"));
+    });
+
+    it("two instances keep separate counters", () => {
+        var a = capture((c) => { c.count('n'); c.count('n'); });
+        var b = capture((c) => c.count('n'));
+        assert.equal(a, 'n: 1\nn: 2\n');
+        assert.equal(b, 'n: 1\n');
+    });
+
+    it("group indents until groupEnd", () => {
+        var text = capture((c) => {
+            c.group('outer');
+            c.log('inside');
+            c.groupEnd();
+            c.log('outside');
+        });
+        assert.equal(text, 'outer\n  inside\noutside\n');
+    });
+
+    it("groupCollapsed behaves like group", () => {
+        var text = capture((c) => {
+            c.groupCollapsed();
+            c.log('in');
+            c.groupEnd();
+        });
+        assert.equal(text, '  in\n');
+    });
+
+    it("groupEnd at the outermost level does nothing", () => {
+        assert.equal(capture((c) => { c.groupEnd(); c.log('x'); }), 'x\n');
+    });
+
+    it("nested groups add two columns per level", () => {
+        var text = capture((c) => {
+            c.group();
+            c.group();
+            c.log('deep');
+            c.groupEnd();
+            c.groupEnd();
+        });
+        assert.equal(text, '    deep\n');
+    });
+
+    it("timeLog samples without stopping the timer", () => {
+        var text = capture((c) => {
+            c.time('t');
+            c.timeLog('t', 'extra');
+            c.timeEnd('t');
+        });
+        var lines = text.trim().split('\n');
+        assert.equal(lines.length, 2);
+        assert.ok(/^t: [\d.]+ms extra$/.test(lines[0]), lines[0]);
+        assert.ok(/^t: [\d.]+ms$/.test(lines[1]), lines[1]);
+    });
+
+    it("module-level members exist", () => {
+        ['count', 'countReset', 'group', 'groupEnd', 'groupCollapsed', 'timeLog'].forEach((n) => {
+            assert.equal(typeof console[n], 'function', n);
+        });
+    });
+});

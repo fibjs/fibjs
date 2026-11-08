@@ -1016,3 +1016,100 @@ describe("Trigger/EventEmitter", () => {
     });
 });
 
+
+describe("events module Node.js surface", () => {
+    it("exposes the registry symbols", () => {
+        assert.equal(typeof events.errorMonitor, 'symbol');
+        assert.equal(Symbol.keyFor(events.errorMonitor), 'nodejs.errorMonitor');
+        assert.equal(typeof events.captureRejectionSymbol, 'symbol');
+        assert.equal(Symbol.keyFor(events.captureRejectionSymbol), 'nodejs.rejection');
+    });
+
+    it("getEventListeners returns the listeners of a type", () => {
+        var e = new events();
+        function f() { }
+        e.on('a', f);
+
+        assert.equal(events.getEventListeners(e, 'a')[0], f);
+        assert.deepEqual(events.getEventListeners(e, 'missing'), []);
+        assert.deepEqual(events.getEventListeners(e), []);
+    });
+
+    it("getEventListeners accepts a symbol type", () => {
+        var e = new events();
+        var s = Symbol('s');
+        e.on(s, function () { });
+
+        assert.equal(events.getEventListeners(e, s).length, 1);
+    });
+
+    it("getEventListeners rejects a non emitter", () => {
+        assert.throws(() => events.getEventListeners({}, 'a'), { code: 'ERR_INVALID_ARG_TYPE' });
+    });
+
+    it("static setMaxListeners broadcasts to the targets", () => {
+        var a = new events();
+        var b = new events();
+        events.setMaxListeners(3, a, b);
+
+        assert.equal(a.getMaxListeners(), 3);
+        assert.equal(b.getMaxListeners(), 3);
+        assert.equal(events.getMaxListeners(a), 3);
+    });
+
+    it("static setMaxListeners without a target changes the default", () => {
+        var previous = events.defaultMaxListeners;
+        events.setMaxListeners(9);
+        try {
+            assert.equal(events.defaultMaxListeners, 9);
+            assert.equal(events.getMaxListeners(), 9);
+            assert.equal(new events().getMaxListeners(), 9);
+        } finally {
+            events.setMaxListeners(previous);
+        }
+    });
+
+    it("the instance setter still chains and is independent of the static form", () => {
+        var e = new events();
+        assert.equal(e.setMaxListeners(5), e);
+        assert.equal(e.getMaxListeners(), 5);
+    });
+
+    it("dispatchEvent delivers the event object itself", () => {
+        var target = new EventTarget();
+        var seen = null;
+        target.addEventListener('x', function (ev) { seen = ev; });
+
+        var ev = new Event('x', { cancelable: true });
+        assert.equal(target.dispatchEvent(ev), true);
+        assert.equal(seen, ev);
+        assert.equal(seen.type, 'x');
+        // DOMEvent#target is read-only and stays null in this release; the
+        // limitation is asserted so a future change has to update this test.
+        assert.equal(seen.target, null);
+    });
+
+    it("dispatchEvent rejects a non event", () => {
+        assert.throws(() => new EventTarget().dispatchEvent({}), { code: 'ERR_INVALID_ARG_TYPE' });
+    });
+
+    it("CustomEvent carries detail", () => {
+        var ev = new CustomEvent('ping', { detail: 42, bubbles: true, cancelable: true });
+        assert.equal(ev.type, 'ping');
+        assert.equal(ev.detail, 42);
+        assert.equal(ev.bubbles, true);
+        assert.equal(ev.cancelable, true);
+        assert.ok(ev instanceof Event);
+        assert.equal(new CustomEvent('x').detail, undefined);
+    });
+
+    it("MessageEvent exposes type and the Web defaults", () => {
+        var ev = new MessageEvent('message', { data: 7 });
+        assert.equal(ev.type, 'message');
+        assert.equal(ev.data, 7);
+        assert.equal(ev.origin, '');
+        assert.equal(ev.lastEventId, '');
+        assert.equal(ev.source, null);
+        assert.deepEqual(ev.ports, []);
+    });
+});

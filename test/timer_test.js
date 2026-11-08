@@ -565,3 +565,79 @@ describe("timer", () => {
     });
 });
 
+
+describe("timer Node.js additions", () => {
+    it("setInterval defaults the delay to 1ms like setTimeout", () => {
+        var fired = 0;
+        var t = timers.setInterval(function () { fired++; if (fired === 2) this.clear(); });
+        assert.equal(t.stopped, false);
+        coroutine.sleep(50);
+        assert.ok(fired >= 2, 'fired ' + fired);
+    });
+
+    it("timers/promises exposes a setInterval iterator", () => {
+        assert.equal(typeof require('timers/promises').setInterval, 'function');
+    });
+
+    it("timers/promises.setInterval yields {} per tick and stops on break", () => {
+        var tp = require('timers/promises');
+        var t0 = Date.now();
+        var n = 0;
+
+        (async () => {
+            for await (const v of tp.setInterval(10)) {
+                assert.deepEqual(v, {});
+                if (++n === 3) break;
+            }
+        })();
+
+        var deadline = Date.now() + 2000;
+        while (n < 3 && Date.now() < deadline)
+            coroutine.sleep(5);
+
+        assert.equal(n, 3);
+        assert.ok(Date.now() - t0 >= 20);
+    });
+
+    it("timers/promises.setInterval stops when the signal aborts", () => {
+        var tp = require('timers/promises');
+        var ctrl = new AbortController();
+        var ticks = 0;
+
+        timers.setTimeout(() => ctrl.abort(), 40);
+
+        (async () => {
+            for await (const v of tp.setInterval(10, null, { signal: ctrl.signal }))
+                ticks++;
+        })();
+
+        var deadline = Date.now() + 2000;
+        while (!ctrl.signal.aborted && Date.now() < deadline)
+            coroutine.sleep(5);
+        coroutine.sleep(60);
+
+        assert.ok(ticks >= 1, 'ticks ' + ticks);
+        assert.ok(ticks < 20, 'the iterator must stop, ticks ' + ticks);
+    });
+
+    it("timers/promises.setInterval returns immediately when already aborted", () => {
+        var tp = require('timers/promises');
+        var ctrl = new AbortController();
+        ctrl.abort();
+
+        var ticks = 0;
+        var done = false;
+        (async () => {
+            for await (const v of tp.setInterval(10, null, { signal: ctrl.signal }))
+                ticks++;
+            done = true;
+        })();
+
+        var deadline = Date.now() + 1000;
+        while (!done && Date.now() < deadline)
+            coroutine.sleep(5);
+
+        assert.equal(ticks, 0);
+        assert.equal(done, true);
+    });
+});

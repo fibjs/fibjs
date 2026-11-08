@@ -7492,6 +7492,44 @@ describe("http", () => {
     // a weak handle), so a server dropped by JS must be held by its accept
     // loop for as long as that loop runs -- otherwise it keeps accepting while
     // the wrapper, the handler chain and every listener are collected.
+    // The MDN/Node redirect status set: 303 turns a POST into a GET and 308 keeps
+    // the method, so both are part of a normal redirect flow.
+    describe('redirect status codes', () => {
+        it('accepts 301, 302, 303, 307 and 308', () => {
+            [301, 302, 303, 307, 308].forEach((code) => {
+                var r = new http.Response();
+                r.redirect(code, '/x');
+                assert.equal(r.statusCode, code);
+                assert.equal(r.firstHeader('Location'), '/x');
+            });
+        });
+
+        it('rejects a non-redirect status', () => {
+            assert.throws(() => new http.Response().redirect(200, '/x'),
+                { number: 20024 });
+            assert.throws(() => new http.Response().redirect(304, '/x'),
+                { number: 20024 });
+        });
+
+        it('303 See Other reaches the client as a redirect', () => {
+            var server = new http.Server(0, (req) => {
+                if (req.address === '/post')
+                    req.response.redirect(303, '/result');
+                else
+                    req.response.write('result');
+            });
+            server.start();
+
+            var port = server.socket.localPort;
+            var res = http.requestSync('http://127.0.0.1:' + port + '/post',
+                { method: 'POST', body: 'x' });
+
+            assert.equal(res.statusCode, 200);
+            assert.equal(res.text(), 'result');
+            server.stop();
+        });
+    });
+
     describe('server lifetime', () => {
         function rawGet(port) {
             var c = net.connect('tcp://127.0.0.1:' + port);

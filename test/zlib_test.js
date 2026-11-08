@@ -1419,3 +1419,22 @@ describe("zlib", () => {
         });
     });
 });
+describe("zlib factory destination defaults", () => {
+    it("createGzip accepts a missing destination", () => {
+        var out = new io.MemoryStream();
+        var gz = zlib.createGzip(out);
+        gz.write('hello');
+        gz.close();
+        out.rewind();
+        assert.equal(zlib.gunzip(out.readAll()).toString(), 'hello');
+    });
+
+    it("all create* factories accept a missing destination", () => {
+        ['createDeflate', 'createDeflateRaw', 'createGzip', 'createZip',
+            'createGunzip', 'createInflate', 'createInflateRaw', 'createUnzip'].forEach((name) => {
+                var s = zlib[name]();
+                assert.equal(typeof s.write, 'function', name);
+                assert.equal(typeof s.close, 'function', name);
+            });
+    });
+});

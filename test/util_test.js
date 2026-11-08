@@ -2235,5 +2235,76 @@ describe('util', () => {
                 assert.strictEqual(util.stripVTControlCharacters(util.styleText(fmt, 'x')), 'x');
         });
     });
+
+    describe('system error names', () => {
+        it('names the common POSIX codes', () => {
+            assert.strictEqual(util.getSystemErrorName(-2), 'ENOENT');
+            assert.strictEqual(util.getSystemErrorName(-13), 'EACCES');
+            assert.strictEqual(util.getSystemErrorName(-98), 'EADDRINUSE');
+        });
+
+        it('describes the common POSIX codes', () => {
+            assert.strictEqual(util.getSystemErrorMessage(-2), 'no such file or directory');
+            assert.strictEqual(util.getSystemErrorMessage(-98), 'address already in use');
+        });
+
+        it('covers the resolver codes that os.constants omits', () => {
+            assert.strictEqual(util.getSystemErrorName(-3008), 'EAI_NONAME');
+            assert.strictEqual(util.getSystemErrorMessage(-3008), 'unknown node or service');
+            assert.strictEqual('EAI_NONAME' in require('os').constants.errno, false);
+        });
+
+        it('rejects zero and positive values', () => {
+            assert.throws(() => util.getSystemErrorName(0), { code: 'ERR_OUT_OF_RANGE' });
+            assert.throws(() => util.getSystemErrorName(2), { code: 'ERR_OUT_OF_RANGE' });
+            assert.throws(() => util.getSystemErrorMessage(0), { code: 'ERR_OUT_OF_RANGE' });
+        });
+
+        it('reports an unknown negative code instead of throwing', () => {
+            assert.strictEqual(util.getSystemErrorName(-4096), 'Unknown system error -4096');
+            assert.strictEqual(util.getSystemErrorMessage(-4096), 'Unknown system error -4096');
+        });
+
+        it('returns a fresh Map keyed by the negative errno', () => {
+            var m1 = util.getSystemErrorMap();
+            var m2 = util.getSystemErrorMap();
+
+            assert.ok(m1 instanceof Map);
+            assert.notStrictEqual(m1, m2);
+            assert.deepStrictEqual(m1.get(-2), ['ENOENT', 'no such file or directory']);
+
+            // The map follows libuv's errno table, so it covers exactly what
+            // util.getSystemErrorName can name. Node behaves the same way, and
+            // both tables omit a handful of POSIX codes that os.constants still
+            // exports (EBADMSG, ECHILD, EDOM, ...). The contract is therefore
+            // "whatever the map holds round-trips", not "every errno name is
+            // present".
+            assert.ok(m1.size >= 85, 'map size ' + m1.size);
+            m1.forEach((value, key) => {
+                assert.ok(key < 0, 'key must be negative: ' + key);
+                assert.strictEqual(util.getSystemErrorName(key), value[0]);
+                assert.strictEqual(util.getSystemErrorMessage(key), value[1]);
+            });
+
+            // The codes a program actually branches on are all there.
+            ['ENOENT', 'EACCES', 'EEXIST', 'ENOTDIR', 'EISDIR', 'EMFILE',
+                'ENOSPC', 'EPIPE', 'ETIMEDOUT', 'ECONNREFUSED', 'ECONNRESET'].forEach((name) => {
+                    var errno = require('os').constants.errno;
+                    assert.ok(m1.get(-errno[name]), 'missing entry for ' + name);
+                });
+        });
+
+        it('round-trips the errno of a real failure', () => {
+            var fs = require('fs');
+            var err = null;
+            try {
+                fs.readFileSync('/definitely/missing/path');
+            } catch (e) {
+                err = e;
+            }
+            assert.ok(err);
+            assert.strictEqual(util.getSystemErrorName(err.errno), err.code);
+        });
+    });
 });
 

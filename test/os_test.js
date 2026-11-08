@@ -202,5 +202,44 @@ describe('os', () => {
         assert.strictEqual(userInfo.username, userInfoBuffer.username.toString('utf8'));
         assert.strictEqual(userInfo.homedir, userInfoBuffer.homedir.toString('utf8'));
     });
+
+    it('machine and version come from uname', () => {
+        assert.isString(os.machine());
+        assert.ok(os.machine().length > 0);
+        assert.isString(os.version());
+        assert.ok(os.version().length > 0);
+        // arch is the build target, machine the running kernel; they are strings
+        // either way and on a native build they describe the same CPU.
+        assert.isString(os.arch());
+    });
+
+    it('devNull is the platform null device', () => {
+        assert.isString(os.devNull);
+        if (process.platform === 'win32')
+            assert.strictEqual(os.devNull, '\\\\.\\nul');
+        else
+            assert.strictEqual(os.devNull, '/dev/null');
+
+        // Writing through it must succeed and discard the data.
+        var fs = require('fs');
+        var fd = fs.openSync(os.devNull, 'w');
+        fs.writeSync(fd, 'discarded');
+        fs.closeSync(fd);
+    });
+
+    it('uptime reports the system uptime', () => {
+        var up = os.uptime();
+        assert.isNumber(up);
+        assert.ok(up > 0);
+        // fibjs keeps process.uptime as the system uptime, so the two agree.
+        assert.strictEqual(up, Math.floor(process.uptime()));
+    });
+
+    it('availableParallelism is at least 1 and no more than the CPU count', () => {
+        var n = os.availableParallelism();
+        assert.isNumber(n);
+        assert.ok(n >= 1);
+        assert.ok(n <= os.cpuNumbers());
+    });
 });
 

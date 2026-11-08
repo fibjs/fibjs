@@ -748,4 +748,64 @@ describe("module", () => {
             assert.strictEqual(builtins.length, new Set(builtins).size);
         });
     });
+
+    describe("isBuiltin", () => {
+        it("accepts both spellings", () => {
+            var module = require('module');
+
+            assert.strictEqual(module.isBuiltin('fs'), true);
+            assert.strictEqual(module.isBuiltin('node:fs'), true);
+            assert.strictEqual(module.isBuiltin('timers/promises'), true);
+            assert.strictEqual(module.isBuiltin('path/posix'), true);
+        });
+
+        it("rejects unknown and double-prefixed names", () => {
+            var module = require('module');
+
+            assert.strictEqual(module.isBuiltin('nope'), false);
+            assert.strictEqual(module.isBuiltin('node:node:fs'), false);
+            assert.strictEqual(module.isBuiltin(''), false);
+            assert.strictEqual(module.isBuiltin('node:'), false);
+        });
+
+        it("returns false for non-strings instead of throwing", () => {
+            var module = require('module');
+
+            assert.strictEqual(module.isBuiltin(), false);
+            assert.strictEqual(module.isBuiltin(1), false);
+            assert.strictEqual(module.isBuiltin(null), false);
+            assert.strictEqual(module.isBuiltin({}), false);
+            assert.strictEqual(module.isBuiltin(new String('fs')), false);
+        });
+    });
+
+    describe("Module container", () => {
+        it("exposes the Node class surface", () => {
+            var module = require('module');
+
+            assert.strictEqual(typeof module.Module, 'function');
+            assert.strictEqual(module.Module.Module, module.Module);
+            assert.strictEqual(module.Module.builtinModules, module.builtinModules);
+            assert.strictEqual(module.Module.isBuiltin, module.isBuiltin);
+            assert.strictEqual(module.Module.createRequire, module.createRequire);
+        });
+
+        it("creates a container with the CommonJS fields", () => {
+            var module = require('module');
+            var m = new module.Module('abc');
+
+            assert.strictEqual(m.id, 'abc');
+            assert.strictEqual(m.loaded, false);
+            assert.strictEqual(m.filename, null);
+            assert.deepStrictEqual(m.children, []);
+            assert.strictEqual(typeof m.exports, 'object');
+            assert.strictEqual(typeof m.path, 'string');
+        });
+
+        it("an omitted id is the empty string", () => {
+            var module = require('module');
+
+            assert.strictEqual(new module.Module().id, '');
+        });
+    });
 });
