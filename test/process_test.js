@@ -35,6 +35,35 @@ describe('process', () => {
         assert.notGreaterThan(diff[0], 2);
     });
 
+    // Node rejects a diff that is not a two-element tuple; silently ignoring it
+    // would turn a mistyped argument into a plausible-looking but wrong reading.
+    it("hrtime rejects a diff that is not two numbers", () => {
+        [1, 2, 3].forEach((length) => {
+            if (length === 2)
+                return;
+
+            var bad = [];
+            for (var i = 0; i < length; i++)
+                bad.push(0);
+
+            var thrown = null;
+            try {
+                process.hrtime(bad);
+            } catch (err) {
+                thrown = err;
+            }
+
+            assert.notStrictEqual(thrown, null, 'length ' + length + ' should throw');
+            assert.equal(thrown.name, 'RangeError');
+            assert.equal(thrown.code, 'ERR_OUT_OF_RANGE');
+        });
+    });
+
+    it("hrtime accepts an empty diff and a two-element diff", () => {
+        assert.equal(process.hrtime([]).length, 2);
+        assert.equal(process.hrtime([0, 0]).length, 2);
+    });
+
     it("pid", () => {
         assert.property(process, 'pid');
         assert.isNumber(process.pid);

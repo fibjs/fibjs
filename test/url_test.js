@@ -1025,6 +1025,20 @@ describe("url", () => {
             assert.strictEqual(url.format(new URL('http://user:pass@xn--0zwm56d.com:8080/path'), { unicode: true }), 'http://user:pass@测试.com:8080/path');
             assert.strictEqual(url.format(new URL('tel:123')), url.format(new URL('tel:123'), { unicode: true }));
         });
+
+        // A string input is already formatted, so Node ignores the options in
+        // that case and returns the text unchanged.
+        it('whatwg format ignores options for a string input', () => {
+            assert.strictEqual(
+                url.format('https://x/a?b=1#c', { fragment: false }),
+                'https://x/a?b=1#c');
+            assert.strictEqual(
+                url.format('https://u:p@x/a?b=1#c', { auth: false }),
+                'https://u:p@x/a?b=1#c');
+            assert.strictEqual(
+                url.format('https://x/a?b=1#c', { search: false }),
+                'https://x/a?b=1#c');
+        });
     });
 
     it('parse', () => {

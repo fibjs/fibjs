@@ -4636,6 +4636,44 @@ describe('crypto', () => {
                 sha256abc);
         });
 
+        // Node's createHmac takes an options object whose `encoding` decodes a
+        // string key, so hex or base64 key material need not be pre-converted.
+        describe('createHmac options', () => {
+            it('options.encoding decodes a string key', () => {
+                const from_opts = crypto.createHmac('sha256', '0011223344556677',
+                    { encoding: 'hex' }).update('m').digest('hex');
+                const from_buffer = crypto.createHmac('sha256',
+                    Buffer.from('0011223344556677', 'hex')).update('m').digest('hex');
+
+                assert.equal(from_opts, from_buffer);
+            });
+
+            it('defaults to utf8', () => {
+                assert.equal(
+                    crypto.createHmac('sha256', 'secret').update('m').digest('hex'),
+                    crypto.createHmac('sha256', 'secret', {}).update('m').digest('hex'));
+                assert.equal(
+                    crypto.createHmac('sha256', 'secret', { encoding: 'utf8' })
+                        .update('m').digest('hex'),
+                    crypto.createHmac('sha256', Buffer.from('secret', 'utf8'))
+                        .update('m').digest('hex'));
+            });
+
+            it('a hex key differs from its utf8 text', () => {
+                assert.notEqual(
+                    crypto.createHmac('sha256', '00112233', { encoding: 'hex' })
+                        .update('m').digest('hex'),
+                    crypto.createHmac('sha256', '00112233').update('m').digest('hex'));
+            });
+
+            it('ignores the encoding for a Buffer key', () => {
+                assert.equal(
+                    crypto.createHmac('sha256', Buffer.from('k'), { encoding: 'hex' })
+                        .update('m').digest('hex'),
+                    crypto.createHmac('sha256', Buffer.from('k')).update('m').digest('hex'));
+            });
+        });
+
         it('Sign/Verify.update(Buffer, codec) signs the buffer bytes', () => {
             const key = readKey('rsa_private.pem', 'ascii');
             const sig = crypto.createSign('SHA256').update(Buffer.from('abc'), 'hex').sign(key);

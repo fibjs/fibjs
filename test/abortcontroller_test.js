@@ -607,6 +607,55 @@ describe("AbortController API", () => {
             assert.strictEqual(composite.reason, undefined);
         });
 
+        // Node accepts any iterable, not only an Array, so a Set or a generator
+        // has to work while a non-signal element still has to throw.
+        describe("accepts any iterable", () => {
+            it("a Set", () => {
+                var ac1 = new AbortController();
+                var ac2 = new AbortController();
+                var composite = AbortSignal.any(new Set([ac1.signal, ac2.signal]));
+
+                assert.strictEqual(composite.aborted, false);
+
+                ac2.abort('second won');
+                assert.strictEqual(composite.aborted, true);
+                assert.strictEqual(composite.reason, 'second won');
+            });
+
+            it("a generator", () => {
+                var ac = new AbortController();
+                assert.doesNotThrow(() => AbortSignal.any((
+                    function* () { yield ac.signal; })()));
+
+                var composite = AbortSignal.any((function* () { yield ac.signal; })());
+                ac.abort('via generator');
+                assert.strictEqual(composite.reason, 'via generator');
+            });
+
+            it("an empty iterable never aborts", () => {
+                assert.strictEqual(AbortSignal.any(new Set()).aborted, false);
+                assert.strictEqual(AbortSignal.any([]).aborted, false);
+            });
+
+            it("still rejects a non-signal element", () => {
+                assert.throws(() => AbortSignal.any([1]), {
+                    name: 'TypeError',
+                    number: 20005
+                });
+                assert.throws(() => AbortSignal.any(new Set([null])), {
+                    name: 'TypeError',
+                    number: 20005
+                });
+            });
+
+            it("still rejects a non-iterable argument", () => {
+                assert.throws(() => AbortSignal.any('x'), {
+                    name: 'TypeError',
+                    number: 20005
+                });
+            });
+        });
+
         it("aborts when any source signal aborts", () => {
             var ac1 = new AbortController();
             var ac2 = new AbortController();

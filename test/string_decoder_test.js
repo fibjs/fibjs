@@ -168,6 +168,38 @@ describe('string_decoder', () => {
             assert.strictEqual(res2, res3, 'all bytes at once should match toString');
         }
     });
+
+    // Node accepts the URL-safe base64 and the fibjs base32/base58 alphabets on
+    // top of the built-in ones, so constructing a decoder must not throw and
+    // `encoding` must report the name it was given.
+    describe('the accepted encoding set', () => {
+        ['utf8', 'utf-8', 'utf16le', 'ucs2', 'latin1', 'binary', 'base64',
+            'base64url', 'base32', 'base58', 'hex', 'ascii'].forEach((name) => {
+                it('accepts ' + name, () => {
+                    assert.equal(new StringDecoder(name).encoding.length > 0, true);
+                });
+            });
+
+        it('reports base64url by name', () => {
+            assert.equal(new StringDecoder('base64url').encoding, 'base64url');
+        });
+
+        // base64url is routed through the base64 path, so the two produce the
+        // same text for the same input (the URL-safe alphabet is a superset of
+        // the cases base64 accepts).
+        it('decodes like base64', () => {
+            const plain = new StringDecoder('base64');
+            const url_safe = new StringDecoder('base64url');
+
+            assert.equal(url_safe.write('aGVsbG8='), plain.write('aGVsbG8='));
+            assert.equal(url_safe.end(), plain.end());
+        });
+
+        it('still rejects an unknown encoding', () => {
+            assert.throws(() => new StringDecoder('not-an-encoding'),
+                { message: /Unknown encoding/ });
+        });
+    });
 });
 
 describe('TextEncoder', () => {

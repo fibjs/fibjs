@@ -1051,6 +1051,20 @@ describe('util', () => {
                 maxStringLength: 4
             }), "\"测\\n试1\"... 2 more characters");
         })
+
+        // `depth: null` removes the nesting limit instead of falling back to the
+        // default, so an object deeper than the default is printed in full.
+        it('depth: null removes the limit', () => {
+            var deep = { a: { b: { c: { d: { e: 1 } } } } };
+
+            assert.ok(util.inspect(deep, { colors: false }).includes('[Object]'),
+                'the default depth truncates this object');
+            assert.ok(!util.inspect(deep, { colors: false, depth: null }).includes('[Object]'),
+                'depth: null must not truncate');
+
+            // the whole chain is printed, innermost value included
+            assert.ok(util.inspect(deep, { colors: false, depth: null }).includes('1'));
+        });
     });
 
     describe("table", () => {
@@ -2304,6 +2318,32 @@ describe('util', () => {
             }
             assert.ok(err);
             assert.strictEqual(util.getSystemErrorName(err.errno), err.code);
+        });
+    });
+
+    // The customization hooks are registry symbols, so the same key resolves from
+    // another realm and `Symbol.keyFor` reports the documented name.
+    describe('customization symbols', () => {
+        it('exposes util.inspect.custom', () => {
+            assert.equal(typeof util.inspect.custom, 'symbol');
+            assert.equal(util.inspect.custom, Symbol.for('nodejs.util.inspect.custom'));
+            assert.equal(Symbol.keyFor(util.inspect.custom), 'nodejs.util.inspect.custom');
+        });
+
+        it('exposes util.promisify.custom', () => {
+            assert.equal(typeof util.promisify.custom, 'symbol');
+            assert.equal(util.promisify.custom, Symbol.for('nodejs.util.promisify.custom'));
+            assert.equal(Symbol.keyFor(util.promisify.custom), 'nodejs.util.promisify.custom');
+        });
+
+        it('reports the inspect defaults through defaultOptions', () => {
+            var opts = util.inspect.defaultOptions;
+
+            assert.equal(typeof opts, 'object');
+            assert.equal(typeof opts.depth, 'number');
+            assert.equal(typeof opts.colors, 'boolean');
+            assert.equal(typeof opts.maxArrayLength, 'number');
+            assert.equal(typeof opts.maxStringLength, 'number');
         });
     });
 });

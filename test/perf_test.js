@@ -31,6 +31,30 @@ describe('Performance API', () => {
             assert.equal(entry.startTime, 100);
             assert.equal(entry.detail, 'test detail');
         });
+
+        // Node defaults detail to null, and an explicit null must survive as the
+        // value rather than being treated as an absent argument.
+        it('detail defaults to null', () => {
+            performance.mark('no-detail');
+            const entry = performance.getEntriesByName('no-detail')[0];
+
+            assert.strictEqual(entry.detail, null);
+        });
+
+        it('an explicit null detail is kept', () => {
+            performance.mark('null-detail', { detail: null });
+            const entry = performance.getEntriesByName('null-detail')[0];
+
+            assert.strictEqual(entry.detail, null);
+        });
+
+        it('a falsy detail other than null is kept as-is', () => {
+            performance.mark('zero-detail', { detail: 0 });
+            performance.mark('empty-detail', { detail: '' });
+
+            assert.strictEqual(performance.getEntriesByName('zero-detail')[0].detail, 0);
+            assert.strictEqual(performance.getEntriesByName('empty-detail')[0].detail, '');
+        });
     });
 
     describe('PerformanceObserver', () => {

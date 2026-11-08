@@ -1075,6 +1075,116 @@ describe("events module Node.js surface", () => {
         assert.equal(e.getMaxListeners(), 5);
     });
 
+    // The limit is emitter-wide in Node, so the event name it accepts does not
+    // change the answer, but the argument has to be accepted rather than rejected.
+    describe("the listener limit", () => {
+        it("setMaxListeners accepts an event name", () => {
+            var e = new events();
+            e.setMaxListeners(4);
+
+            assert.equal(e.setMaxListeners(5, 'foo'), e);
+            assert.equal(e.getMaxListeners(), 5);
+        });
+
+        it("getMaxListeners accepts an event name", () => {
+            var e = new events();
+            e.setMaxListeners(7);
+
+            assert.equal(e.getMaxListeners('foo'), 7);
+            assert.equal(e.getMaxListeners('bar'), 7);
+            assert.equal(e.getMaxListeners(), 7);
+        });
+
+        it("a negative limit throws RangeError", () => {
+            var e = new events();
+            var thrown = null;
+            try {
+                e.setMaxListeners(-2);
+            } catch (err) {
+                thrown = err;
+            }
+
+            assert.notStrictEqual(thrown, null);
+            assert.equal(thrown.name, 'RangeError');
+            assert.equal(thrown.code, 'ERR_OUT_OF_RANGE');
+
+            // the failed call must not have changed the stored limit
+            assert.equal(e.getMaxListeners(), events.defaultMaxListeners);
+        });
+
+        // The warning is the whole point of the limit; it is emitted through
+        // process.emitWarning, which dispatches on a later tick.
+        it("exceeding the limit emits MaxListenersExceededWarning", () => {
+            var e = new events();
+            var seen = [];
+
+            function onwarn(w) { seen.push(w.name); }
+            process.on('warning', onwarn);
+
+            try {
+                e.setMaxListeners(2);
+                for (var i = 0; i < 5; i++)
+                    e.on('leak', function () { });
+            } finally {
+                process.off('warning', onwarn);
+            }
+
+            return new Promise((resolve) => {
+                setImmediate(() => {
+                    assert.ok(seen.indexOf('MaxListenersExceededWarning') >= 0,
+                        'expected the warning, saw ' + JSON.stringify(seen));
+                    resolve();
+                });
+            });
+        });
+
+        it("0 disables the warning", () => {
+            var e = new events();
+            var seen = [];
+
+            function onwarn(w) { seen.push(w.name); }
+            process.on('warning', onwarn);
+
+            try {
+                e.setMaxListeners(0);
+                for (var i = 0; i < 9; i++)
+                    e.on('quiet', function () { });
+            } finally {
+                process.off('warning', onwarn);
+            }
+
+            return new Promise((resolve) => {
+                setImmediate(() => {
+                    assert.equal(seen.indexOf('MaxListenersExceededWarning'), -1);
+                    resolve();
+                });
+            });
+        });
+
+        it("staying under the limit emits no warning", () => {
+            var e = new events();
+            var seen = [];
+
+            function onwarn(w) { seen.push(w.name); }
+            process.on('warning', onwarn);
+
+            try {
+                e.setMaxListeners(9);
+                for (var i = 0; i < 5; i++)
+                    e.on('ok', function () { });
+            } finally {
+                process.off('warning', onwarn);
+            }
+
+            return new Promise((resolve) => {
+                setImmediate(() => {
+                    assert.equal(seen.indexOf('MaxListenersExceededWarning'), -1);
+                    resolve();
+                });
+            });
+        });
+    });
+
     it("dispatchEvent delivers the event object itself", () => {
         var target = new EventTarget();
         var seen = null;

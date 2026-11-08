@@ -209,5 +209,37 @@ describe('querystring', () => {
             );
         });
     });
+
+    // Node's fourth argument is an options object; maxKeys caps how many pairs
+    // are parsed, with 0 meaning "no limit".
+    describe('parse options', () => {
+        it('maxKeys caps the number of pairs', () => {
+            var c = qs.parse('a=1&b=2&c=3', '&', '=', { maxKeys: 1 });
+            var all = c.all();
+
+            assert.strictEqual(all.a, '1');
+            assert.strictEqual(all.b, undefined);
+            assert.strictEqual(all.c, undefined);
+        });
+
+        it('maxKeys: 0 means no limit', () => {
+            var all = qs.parse('a=1&b=2&c=3', '&', '=', { maxKeys: 0 }).all();
+
+            assert.strictEqual(all.a, '1');
+            assert.strictEqual(all.b, '2');
+            assert.strictEqual(all.c, '3');
+        });
+
+        it('parses every pair when maxKeys is absent', () => {
+            assert.strictEqual(qs.parse('a=1&b=2&c=3').all().c, '3');
+        });
+
+        it('a count under maxKeys is unaffected', () => {
+            var all = qs.parse('a=1&b=2', '&', '=', { maxKeys: 5 }).all();
+
+            assert.strictEqual(all.a, '1');
+            assert.strictEqual(all.b, '2');
+        });
+    });
 });
 

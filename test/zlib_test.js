@@ -1437,4 +1437,44 @@ describe("zlib factory destination defaults", () => {
                 assert.equal(typeof s.close, 'function', name);
             });
     });
+
+    // The one-shot gzip form takes the same options object the Deflate codec
+    // does, so strategy and memLevel have to reach deflateInit2.
+    describe("gzip one-shot options", () => {
+        var data = Buffer.from("a".repeat(2000));
+
+        it("honours strategy", () => {
+            var plain = zlib.gzipSync(data).length;
+            var huffman = zlib.gzipSync(data, {
+                strategy: zlib.constants.Z_HUFFMAN_ONLY
+            }).length;
+
+            // a fixed-code strategy cannot exploit the run of equal bytes, so the
+            // output is dramatically larger
+            assert.notEqual(huffman, plain, 'strategy must change the output');
+            assert.ok(huffman > plain, 'Z_HUFFMAN_ONLY should be larger for this input');
+        });
+
+        it("still honours level", () => {
+            assert.notEqual(zlib.gzipSync(data, { level: 1 }).length,
+                zlib.gzipSync(data).length);
+        });
+
+        it("accepts memLevel", () => {
+            assert.equal(typeof zlib.gzipSync(data, { memLevel: 1 }).length, 'number');
+        });
+
+        it("defaults are unchanged", () => {
+            assert.equal(zlib.gzipSync(data).length,
+                zlib.gzipSync(data, {}).length);
+        });
+
+        it("the result still round-trips", () => {
+            var out = zlib.gzipSync(data, {
+                strategy: zlib.constants.Z_HUFFMAN_ONLY
+            });
+
+            assert.equal(zlib.gunzipSync(out).toString(), data.toString());
+        });
+    });
 });
