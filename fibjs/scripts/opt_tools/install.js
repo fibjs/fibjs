@@ -2397,6 +2397,8 @@ function build_ideal_offline(rootsnap) {
     }).tree;
 }
 
+
+
 /**
  * @description add the nodes the manifest and the lockfile describe and the disk does
  *              not have.
@@ -6143,9 +6145,10 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
 // project resolved to
 ctx.lock_packages = lock ? lockfile.to_path_map(lock) : null;
 
-// the dev subtree is always resolved — a lockfile describes the whole graph (N14)
+// The dev subtree is always resolved — a lockfile describes the whole graph (N14)
 // and one without the dev entries cannot be used by `npm ci` — while whether those
-// packages land on disk is `ctx.omit`'s business
+// packages land on disk is `ctx.omit`'s business.
+//
 walkthrough_deps(rootsnap, true);
 move_up(rootsnap);
 

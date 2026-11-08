@@ -305,6 +305,54 @@ describe('tree projections', function () {
             'and the projection finds it again');
     });
 
+    it('round-trips without losing what the tree did not decide', function () {
+        // The tree decides where a node sits. Everything else about it — the manifest a
+        // write back projects, the `dist` a download needs — is on the node it came
+        // from, and rebuilding those on the way back is a second place for them to
+        // differ. This is what lets the resolver replace the old passes instead of
+        // running beside them: `reify` needs those fields, and the tree does not model
+        // them.
+        var snap = {
+            name: 'root', version: '1.0.0',
+            dep_vs: { a: '^1' }, dev_dep_vs: {}, opt_dep_vs: {}, peer_dep_vs: {},
+            node_modules: {
+                a: {
+                    name: 'a', version: '1.0.0', lock_path: 'node_modules/a',
+                    dep_vs: { b: '^2' }, dev_dep_vs: {}, opt_dep_vs: {}, peer_dep_vs: {},
+                    manifest: { name: 'a', version: '1.0.0', dependencies: { b: '^2' } },
+                    dist: { tarball: 'https://r/a.tgz', integrity: 'sha512-a' },
+                    pkg_install_typeinfo: { type: 'registry' },
+                    binary_pending: false,
+                    new_module: true,
+                    node_modules: {},
+                },
+            },
+        };
+
+        var t = tree.snapshot_to_tree(snap, { root: process.cwd() });
+
+        // move it, the way a placement would: same node, another location
+        var moved = t.get('node_modules/a');
+        t.delete('node_modules/a');
+        moved.path = 'node_modules/b/node_modules/a';
+        moved.source = moved.source;
+
+        t.set('node_modules/b', tree.make_node('node_modules/b', {
+            name: 'b', version: '1.0.0',
+        }));
+        t.set(moved.path, moved);
+
+        var back = tree.tree_to_snapshot(t, { root: process.cwd() });
+        var a = back.node_modules.b.node_modules.a;
+
+        assert.equal(a.name, 'a');
+        assert.deepEqual(a.manifest, snap.node_modules.a.manifest,
+            'the manifest the write back projects is still there');
+        assert.equal(a.dist.tarball, 'https://r/a.tgz', 'and the source a download needs');
+        assert.equal(a.pkg_install_typeinfo.type, 'registry');
+        assert.equal(a.lock_path, 'node_modules/a', 'the record of where it came from');
+    });
+
     it('carries the flags, which is what `omit` reads', function () {
         var t = tree_of([
             { path: '', name: 'root' },

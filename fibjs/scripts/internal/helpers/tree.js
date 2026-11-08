@@ -1841,6 +1841,13 @@ function snapshot_to_tree(rootsnap, opts) {
             // "this run put it there", which is what tells a node a previous install
             // left behind from one the resolve just arrived at
             new_module: info.new_module === true,
+
+            // The snapshot node this was projected from, kept as it is. The tree decides
+            // *where* a node sits; everything else about it — the manifest a write back
+            // projects, the `dist` a download needs, the flags `omit` reads — already
+            // exists on the original, and rebuilding those on the way back is a second
+            // place for them to differ.
+            source: info,
         };
     }
 
@@ -2020,6 +2027,20 @@ function tree_to_snapshot(tree, opts) {
 
             node_modules: {},
         };
+
+        // The node the snapshot already had, if this one came from it: the tree only
+        // moves a node, and everything the installer knows about it beyond its position
+        // is still on the original.
+        if (node.source) {
+            containers.set(p, Object.assign(node.source, { node_modules: {} }));
+
+            const target = holder === null ? null : containers.get(holder);
+
+            if (target)
+                target.node_modules[named] = containers.get(p);
+
+            return;
+        }
 
         // the flags, which is what `omit` and the write back read
         const flags = node.flags || {};
