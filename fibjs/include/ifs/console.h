@@ -74,6 +74,12 @@ public:
     static result_t time(exlib::string label);
     static result_t timeElapse(exlib::string label);
     static result_t timeEnd(exlib::string label);
+    static result_t timeLog(exlib::string label, OptArgs args);
+    static result_t count(exlib::string label);
+    static result_t countReset(exlib::string label);
+    static result_t group(OptArgs args);
+    static result_t groupCollapsed(OptArgs args);
+    static result_t groupEnd();
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -117,6 +123,12 @@ public:
     static void s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_timeLog(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_count(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_countReset(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_group(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_groupCollapsed(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_groupEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(console_base, readLine, exlib::string, exlib::string);
@@ -156,7 +168,13 @@ inline ClassInfo& console_base::class_info()
         { "getpass", s_static_getpass, true, ClassData::ASYNC_ASYNC },
         { "time", s_static_time, true, ClassData::ASYNC_SYNC },
         { "timeElapse", s_static_timeElapse, true, ClassData::ASYNC_SYNC },
-        { "timeEnd", s_static_timeEnd, true, ClassData::ASYNC_SYNC }
+        { "timeEnd", s_static_timeEnd, true, ClassData::ASYNC_SYNC },
+        { "timeLog", s_static_timeLog, true, ClassData::ASYNC_SYNC },
+        { "count", s_static_count, true, ClassData::ASYNC_SYNC },
+        { "countReset", s_static_countReset, true, ClassData::ASYNC_SYNC },
+        { "group", s_static_group, true, ClassData::ASYNC_SYNC },
+        { "groupCollapsed", s_static_groupCollapsed, true, ClassData::ASYNC_SYNC },
+        { "groupEnd", s_static_groupEnd, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -603,6 +621,83 @@ inline void console_base::s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Va
     OPT_ARG(exlib::string, 0, "time");
 
     hr = timeEnd(v0);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_static_timeLog(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 0);
+
+    OPT_ARG(exlib::string, 0, "time");
+    ARG_LIST(1);
+
+    hr = timeLog(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_static_count(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "default");
+
+    hr = count(v0);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_static_countReset(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "default");
+
+    hr = countReset(v0);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_static_group(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 0);
+
+    ARG_LIST(0);
+
+    hr = group(v0);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_static_groupCollapsed(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 0);
+
+    ARG_LIST(0);
+
+    hr = groupCollapsed(v0);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_static_groupEnd(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = groupEnd();
 
     METHOD_VOID();
 }

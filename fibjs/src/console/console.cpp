@@ -68,6 +68,8 @@ static bool colors(int32_t type)
     return true;
 }
 
+static void apply_indent(exlib::string& str);
+
 static void _log(int32_t type, exlib::string fmt, OptArgs args)
 {
     int32_t level;
@@ -78,6 +80,7 @@ static void _log(int32_t type, exlib::string fmt, OptArgs args)
         exlib::string str;
 
         util_format(Isolate::current(), fmt, args, colors(type), str);
+        apply_indent(str);
         outLog(type, str);
     }
 }
@@ -119,6 +122,7 @@ static void _log_args(int32_t type, OptArgs args)
         exlib::string str;
 
         _format_args(args, type, str);
+        apply_indent(str);
         outLog(type, str);
     }
 }
@@ -235,6 +239,116 @@ result_t console_base::print(OptArgs args)
 }
 
 static std::unordered_map<exlib::string, int64_t> s_timers;
+
+// The module-level console keeps its own counter and indentation tables.  They are
+// process-wide on purpose: the module-level timers already behave that way (a
+// label started by one module is visible to another), and these two families are
+// documented next to them.
+static std::unordered_map<exlib::string, int32_t> s_counters;
+static int32_t s_indent = 0;
+
+// Two extra columns per level, prepended to a line the module console is about to
+// write.  Every module-level sink goes through write_log, so the indent applies to
+// log/info/warn/error alike.
+static void apply_indent(exlib::string& str)
+{
+    if (s_indent <= 0)
+        return;
+
+    exlib::string indent;
+    indent.assign((size_t)s_indent * 2, ' ');
+    str = indent + str;
+}
+
+result_t console_base::timeLog(exlib::string label, OptArgs args)
+{
+    int64_t t = Ticks() - s_timers[label];
+
+    exlib::string strBuffer;
+    char numStr[64];
+
+    snprintf(numStr, sizeof(numStr), "%.10g", t / 1000.0);
+
+    strBuffer.append(label);
+    strBuffer.append(": ", 2);
+    strBuffer.append(numStr);
+    strBuffer.append("ms", 2);
+
+    if (args.Length() > 0) {
+        Isolate* isolate = Isolate::current();
+
+        std::vector<v8::Local<v8::Value>> datas;
+        args.GetData(datas);
+
+        for (size_t i = 0; i < datas.size(); i++) {
+            exlib::string v;
+            util_format(isolate, "", OptArgs({ datas[i] }), false, v);
+            strBuffer.append(1, ' ');
+            strBuffer.append(v);
+        }
+    }
+
+    apply_indent(strBuffer);
+    outLog(C_INFO, strBuffer);
+    return result_t();
+}
+
+result_t console_base::count(exlib::string label)
+{
+    int32_t& n = s_counters[label];
+    n++;
+
+    char numStr[32];
+    snprintf(numStr, sizeof(numStr), "%d", n);
+
+    exlib::string strBuffer(label);
+    strBuffer.append(": ", 2);
+    strBuffer.append(numStr);
+
+    apply_indent(strBuffer);
+    outLog(C_INFO, strBuffer);
+    return result_t();
+}
+
+result_t console_base::countReset(exlib::string label)
+{
+    auto it = s_counters.find(label);
+    if (it == s_counters.end()) {
+        exlib::string strBuffer("Count for '");
+        strBuffer.append(label);
+        strBuffer.append("' does not exist");
+
+        apply_indent(strBuffer);
+        outLog(C_WARN, strBuffer);
+        return result_t();
+    }
+
+    s_counters.erase(it);
+    return result_t();
+}
+
+result_t console_base::group(OptArgs args)
+{
+    if (args.Length() > 0)
+        _log_args(C_INFO, args);
+
+    s_indent++;
+    return result_t();
+}
+
+result_t console_base::groupCollapsed(OptArgs args)
+{
+    // fibjs has no collapsible console, so the two forms are the same call.
+    return group(args);
+}
+
+result_t console_base::groupEnd()
+{
+    if (s_indent > 0)
+        s_indent--;
+
+    return result_t();
+}
 
 result_t console_base::time(exlib::string label)
 {

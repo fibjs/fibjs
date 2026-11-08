@@ -53,6 +53,12 @@ public:
     virtual result_t time(exlib::string label);
     virtual result_t timeElapse(exlib::string label);
     virtual result_t timeEnd(exlib::string label);
+    virtual result_t timeLog(exlib::string label, OptArgs args);
+    virtual result_t count(exlib::string label);
+    virtual result_t countReset(exlib::string label);
+    virtual result_t group(OptArgs args);
+    virtual result_t groupCollapsed(OptArgs args);
+    virtual result_t groupEnd();
 
 private:
     bool check_env();
@@ -62,6 +68,10 @@ private:
     void _log(int32_t type, exlib::string str, bool is_color = false);
     void _out(int32_t type, exlib::string& msg);
 
+    // The indent is applied where the prefix is prepended, so every text sink
+    // (`_log` in both overloads) gets it and the coloured and plain paths agree.
+    void apply_indent(exlib::string& str);
+
 private:
     exlib::string m_section;
     exlib::string m_prefix;
@@ -69,6 +79,10 @@ private:
     v8::Global<v8::Function> m_fn;
     bool m_first = true;
     std::unordered_map<exlib::string, int64_t> m_timers;
+    // Counters and indentation are per instance: the module-level console keeps
+    // its own copies, so two `new Console(stream)` objects never share them.
+    std::unordered_map<exlib::string, int32_t> m_counters;
+    int32_t m_indent = 0;
     v8::Global<v8::Object> m_stdout;
     v8::Global<v8::Object> m_stderr;
 };

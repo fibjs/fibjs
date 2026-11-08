@@ -256,6 +256,7 @@ void ConsoleObject::_log(int32_t type, OptArgs args)
             util_format(isolate, "", args, is_color, str);
 
         str = (is_color ? m_prefix_color : m_prefix) + str;
+        apply_indent(str);
         _out(type, str);
     }
 }
@@ -271,6 +272,7 @@ void ConsoleObject::_log(int32_t type, exlib::string str, bool is_color)
 
     if (type <= level) {
         str = (is_color ? m_prefix_color : m_prefix) + str;
+        apply_indent(str);
         _out(type, str);
     }
 }
@@ -423,6 +425,22 @@ static inline int64_t Ticks()
     return (int64_t)(uv_hrtime() / 1000);
 }
 
+// An indented group prints two extra columns per level.  The prefix (`SECTION
+// pid: ` for a debuglogger, empty otherwise) is already in `str`, so the indent
+// goes right after it; nested lines get the same treatment because `group`
+// mutates the instance state before the next line is rendered.
+void ConsoleObject::apply_indent(exlib::string& str)
+{
+    if (m_indent <= 0)
+        return;
+
+    // The prefix (a debuglogger's `SECTION pid: `) is already in `str`, so the
+    // indent goes in front of the whole line; two columns per nesting level.
+    exlib::string indent;
+    indent.assign((size_t)m_indent * 2, ' ');
+    str = indent + str;
+}
+
 result_t ConsoleObject::time(exlib::string label)
 {
     m_timers[label] = Ticks();
@@ -464,6 +482,97 @@ result_t ConsoleObject::timeEnd(exlib::string label)
     strBuffer.append("ms", 2);
 
     _log(console_base::C_INFO, strBuffer);
+    return result_t();
+}
+
+result_t ConsoleObject::timeLog(exlib::string label, OptArgs args)
+{
+    int64_t t = Ticks() - m_timers[label];
+
+    exlib::string strBuffer;
+    char numStr[64];
+
+    snprintf(numStr, sizeof(numStr), "%.10g", t / 1000.0);
+
+    strBuffer.append(label);
+    strBuffer.append(": ", 2);
+    strBuffer.append(numStr);
+    strBuffer.append("ms", 2);
+
+    // The extra arguments are appended the way Node does it: one space each.
+    if (args.Length() > 0) {
+        Isolate* isolate = holder();
+        v8::Local<v8::Context> context = isolate->context();
+
+        std::vector<v8::Local<v8::Value>> datas;
+        args.GetData(datas);
+
+        for (size_t i = 0; i < datas.size(); i++) {
+            exlib::string v;
+            util_format(isolate, "", OptArgs({ datas[i] }), false, v);
+            strBuffer.append(1, ' ');
+            strBuffer.append(v);
+        }
+    }
+
+    _log(console_base::C_INFO, strBuffer);
+    return result_t();
+}
+
+result_t ConsoleObject::count(exlib::string label)
+{
+    int32_t& n = m_counters[label];
+    n++;
+
+    char numStr[32];
+    snprintf(numStr, sizeof(numStr), "%d", n);
+
+    exlib::string strBuffer(label);
+    strBuffer.append(": ", 2);
+    strBuffer.append(numStr);
+
+    _log(console_base::C_INFO, strBuffer);
+    return result_t();
+}
+
+result_t ConsoleObject::countReset(exlib::string label)
+{
+    auto it = m_counters.find(label);
+    if (it == m_counters.end()) {
+        // Node warns instead of throwing; the wording is its own, so keep it
+        // short and stable rather than copying the exact Node text.
+        exlib::string strBuffer("Count for '");
+        strBuffer.append(label);
+        strBuffer.append("' does not exist");
+
+        _log(console_base::C_WARN, strBuffer);
+        return result_t();
+    }
+
+    m_counters.erase(it);
+    return result_t();
+}
+
+result_t ConsoleObject::group(OptArgs args)
+{
+    if (args.Length() > 0)
+        _log(console_base::C_INFO, args);
+
+    m_indent++;
+    return result_t();
+}
+
+result_t ConsoleObject::groupCollapsed(OptArgs args)
+{
+    // fibjs has no collapsible console, so the two forms are the same call.
+    return group(args);
+}
+
+result_t ConsoleObject::groupEnd()
+{
+    if (m_indent > 0)
+        m_indent--;
+
     return result_t();
 }
 

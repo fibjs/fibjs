@@ -22,9 +22,11 @@
  *    debug logger the section must additionally be listed in NODE_DEBUG for INFO
  *    and DEBUG records; WARN and above are written even when the section is
  *    disabled, while disabled levels are dropped.
- *  - **Members that do not exist**: there is no `print`, `assert`, `count`, `countReset`,
- *    `timeLog`, `group`, `groupEnd` or `dirxml` on this object; `operator(...)`
- *    makes the object callable as a debug logger.
+ *  - **Members that do not exist**: there is no `print`, `assert` or `dirxml` on this
+ *    object; `operator(...)` makes the object callable as a debug logger. `count`,
+ *    `countReset`, `timeLog`, `group`, `groupCollapsed` and `groupEnd` are provided, and
+ *    their counters/indentation belong to the instance (the module-level `console` keeps
+ *    its own, process-wide, table).
  *
  *  Obtained from:
  *
@@ -435,6 +437,114 @@ declare class Class_ConsoleObject extends Class_object {
      *
      */
     timeEnd(label?: string): void;
+
+    /**
+     * @description Prints the value of an instance timer without stopping it, plus extra data
+     *
+     *      Same as `timeElapse`, with the remaining arguments appended to the line: the
+     *      timer keeps running, so it can be sampled repeatedly before `timeEnd`. This is
+     *      the Node.js `console.timeLog` name for the fibjs `timeElapse` behaviour.
+     *
+     *      Example — sample a running timer with context:
+     *      ```JavaScript
+     *      const { Console } = require('console');
+     *
+     *      const c = new Console(process.stdout);
+     *      c.time('import');
+     *      c.timeLog('import', 'phase 1'); // import: <elapsed>ms phase 1
+     *      c.timeEnd('import');
+     *      ```
+     *
+     *      @param label the timer label, defaults to "time"
+     *      @param args additional values printed after the elapsed time
+     *
+     */
+    timeLog(label?: string, ...args: any[]): void;
+
+    /**
+     * @description Increments the counter under a label and prints it
+     *
+     *      Stores the count on the instance, so two Console objects keep separate
+     *      counters, and writes `label: <count>` at INFO level. The default label is
+     *      `"default"`.
+     *
+     *      Example — count the occurrences of a branch:
+     *      ```JavaScript
+     *      const { Console } = require('console');
+     *
+     *      const c = new Console(process.stdout);
+     *      c.count('items'); // items: 1
+     *      c.count('items'); // items: 2
+     *      ```
+     *
+     *      @param label the counter label, defaults to "default"
+     *
+     */
+    count(label?: string): void;
+
+    /**
+     * @description Resets the counter under a label
+     *
+     *      Removes the instance counter, so the next `count` with the same label prints
+     *      1. Resetting an unknown label prints a warning at WARN level, matching Node.js.
+     *
+     *      Example — restart a counter:
+     *      ```JavaScript
+     *      const { Console } = require('console');
+     *
+     *      const c = new Console(process.stdout);
+     *      c.count('items'); // items: 1
+     *      c.countReset('items');
+     *      c.count('items'); // items: 1
+     *      ```
+     *
+     *      @param label the counter label, defaults to "default"
+     *
+     */
+    countReset(label?: string): void;
+
+    /**
+     * @description Increases the indentation and prints the arguments
+     *
+     *      Outputs the arguments at INFO level and adds two columns to the indentation of
+     *      every following line, which lasts until the matching `groupEnd`. The indentation
+     *      state belongs to the instance, so two Console objects do not share it.
+     *
+     *      Example — indent a block of output:
+     *      ```JavaScript
+     *      const { Console } = require('console');
+     *
+     *      const c = new Console(process.stdout);
+     *      c.group('request');
+     *      c.log('path: /');
+     *      c.groupEnd();
+     *      ```
+     *
+     *      @param args the values printed as the group heading
+     *
+     */
+    group(...args: any[]): void;
+
+    /**
+     * @description Increases the indentation without collapsing the group
+     *
+     *      Identical to `group`: fibjs has no collapsible console, so the two members
+     *      behave the same.
+     *
+     *      @param args the values printed as the group heading
+     *
+     */
+    groupCollapsed(...args: any[]): void;
+
+    /**
+     * @description Decreases the indentation by one level
+     *
+     *      The counterpart of `group`/`groupCollapsed`; at indentation zero the call does
+     *      nothing. Node.js prints a warning in that case, which this implementation does
+     *      not.
+     *
+     */
+    groupEnd(): void;
 
 }
 

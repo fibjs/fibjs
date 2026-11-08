@@ -651,6 +651,105 @@ declare module 'console/promises' {
     function timeEnd(label?: string): void;
 
     /**
+     * @description Prints the value of a timer without stopping it, plus extra data
+     *
+     *      Same as `timeElapse`, with the remaining arguments appended to the line; the
+     *      timer keeps running, so it can be sampled repeatedly before `timeEnd`. This is
+     *      the Node.js `console.timeLog` name for the fibjs `timeElapse` behaviour, and it
+     *      shares the process-wide timer table with `time`/`timeEnd`.
+     *
+     *      Example — sample a running timer with context:
+     *      ```JavaScript
+     *      console.time('import');
+     *      console.timeLog('import', 'phase 1'); // import: <elapsed>ms phase 1
+     *      console.timeEnd('import');
+     *      ```
+     *
+     *      @param label the timer label, defaults to "time"
+     *      @param args additional values printed after the elapsed time
+     *
+     */
+    function timeLog(label?: string, ...args: any[]): void;
+
+    /**
+     * @description Increments the counter under a label and prints it
+     *
+     *      Stores the count in the process-wide table shared with `countReset` and writes
+     *      `label: <count>` at INFO level. The default label is `"default"`. Unlike the
+     *      timers of a `Console` instance, this table is shared by every caller in the
+     *      process, matching the module-level timer behaviour.
+     *
+     *      Example — count the occurrences of a branch:
+     *      ```JavaScript
+     *      console.count('items'); // items: 1
+     *      console.count('items'); // items: 2
+     *      ```
+     *
+     *      @param label the counter label, defaults to "default"
+     *
+     */
+    function count(label?: string): void;
+
+    /**
+     * @description Resets the counter under a label
+     *
+     *      Removes the process-wide counter, so the next `count` with the same label
+     *      prints 1. Resetting an unknown label prints a warning at WARN level, matching
+     *      Node.js.
+     *
+     *      Example — restart a counter:
+     *      ```JavaScript
+     *      console.count('items'); // items: 1
+     *      console.countReset('items');
+     *      console.count('items'); // items: 1
+     *      ```
+     *
+     *      @param label the counter label, defaults to "default"
+     *
+     */
+    function countReset(label?: string): void;
+
+    /**
+     * @description Increases the indentation and prints the arguments
+     *
+     *      Outputs the arguments at INFO level and adds two columns to the indentation of
+     *      every following line, which lasts until the matching `groupEnd`. The indentation
+     *      is process-wide, like the module-level timers.
+     *
+     *      Example — indent a block of output:
+     *      ```JavaScript
+     *      console.group('request');
+     *      console.log('path: /');
+     *      console.groupEnd();
+     *      ```
+     *
+     *      @param args the values printed as the group heading
+     *
+     */
+    function group(...args: any[]): void;
+
+    /**
+     * @description Increases the indentation without collapsing the group
+     *
+     *      Identical to `group`: fibjs has no collapsible console, so the two members
+     *      behave the same.
+     *
+     *      @param args the values printed as the group heading
+     *
+     */
+    function groupCollapsed(...args: any[]): void;
+
+    /**
+     * @description Decreases the indentation by one level
+     *
+     *      The counterpart of `group`/`groupCollapsed`; at indentation zero the call does
+     *      nothing. Node.js prints a warning in that case, which this implementation does
+     *      not.
+     *
+     */
+    function groupEnd(): void;
+
+    /**
      * @description The assert module, which throws on a falsy value
      *
      *      `console.assert` is the assert module itself: `console.assert ===
