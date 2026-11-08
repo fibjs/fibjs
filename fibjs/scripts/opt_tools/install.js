@@ -18,6 +18,7 @@ const untar = require('internal/helpers/untar');
 const helpers_pkg = require('internal/helpers/package');
 const helpers_string = require('internal/helpers/string');
 const lockfile = require('internal/helpers/lockfile');
+const shadow = require('internal/helpers/shadow');
 const tree = require('internal/helpers/tree');
 const versioning = require('internal/helpers/versioning');
 const win32_cli = require('internal/helpers/win32_cli');
@@ -1559,7 +1560,25 @@ function get_root_snapshot() {
         workspaces: pkgjson.workspaces
     };
 
+    // What is installed is the *starting point*, not the answer: every pass below
+    // walks this, so a dependency deleted by hand or an interrupted install becomes
+    // part of what the next install believes. Reading the directories is still what
+    // says whether a package is there at all (a tarball's bytes, a member's directory),
+    // so the two are combined: the disk says what exists, and the inputs say what
+    // should — and where they disagree the disk's node is kept, because removing
+    // something an install found would be a decision nothing asked for.
     m.node_modules = read_module(pwd, m);
+
+    // The nodes only the *inputs* describe are added: a lockfile entry the project
+    // declares, which is not on the disk because nothing put it there yet. Without
+    // them the walk starts from what happens to be installed, so a package.json that
+    // gained a dependency and a node_modules that did not is a tree the resolver has
+    // no reason to complete.
+    //
+    // A node the disk has and the inputs do not is *kept* — removing something an
+    // install found is a decision nothing asked for, and the prune is what makes that
+    // one, against the ideal tree, on evidence.
+    merge_what_the_inputs_describe(m);
 
     // handle workspaces
     if (m.workspaces) {
@@ -1573,6 +1592,8 @@ function get_root_snapshot() {
             add_workspace_packages_to_snapshot(m, workspace_packages);
         }
     }
+
+    shadow_check_snapshot(m);
 
     return m;
 }
@@ -2148,32 +2169,20 @@ function ensure_declared_deps_visible(level_info) {
 /**
  * @description which kind of edge reaches each node, written onto the snapshot.
  *
- *              The answer is npm's `calc-dep-flags`, and it is computed by
- *              `tree.calc_flags` — the *same* function the ideal tree is built with, so
- *              what the disk gets and what the lockfile says cannot disagree. There
- *              used to be a second implementation here, walking the snapshot's own
- *              parent links, and the two drifted: a flag was right in the file and
- *              wrong on the disk, which is how a platform binary came to be installed
- *              on a machine that cannot run it.
+ *              The rules are npm's `calc-dep-flags`, and the walk is over the
+ *              snapshot's own shape rather than a projection of it: the two shapes place
+ *              a link's target differently (the snapshot keeps a member's `file:`
+ *              dependency at the root, `build_ideal` keeps it beside the member), and
+ *              translating between them to answer a question about *this* shape
+ *              answered a question about the other one.
  *
- *              A workspace member is a root of its own for this walk, exactly as the
- *              project is: what it needs is part of the graph even when the root never
- *              asks for it.
+ *              A workspace member is a root of its own for the walk. That is not a
+ *              second rule: npm reaches a member through the edge its `workspaces` field
+ *              makes, and this snapshot has no such edge — so the member starts the
+ *              walk instead of being reached by it, and what it needs for production is
+ *              not mistaken for something only the root's devDependencies wanted.
  */
 function mark_reachability(rootsnap) {
-    // The flags are a property of the *graph*, and the graph is what the snapshot is:
-    // every directory that was resolved, joined by the edges its manifest declares.
-    //
-    // This walks it directly rather than projecting it into `tree.calc_flags` first,
-    // because the two shapes disagree about a link in a way that silently changes the
-    // answer: `calc_flags` takes the edges of a link's *target* (correct — that is
-    // where the package really lives), while the snapshot records the link under the
-    // name and its directory under the spec's path. Projecting one onto the other is a
-    // translation, and a translation is another place for the two to drift.
-    //
-    // The rules are npm's `calc-dep-flags`: a node every path needs a dev edge for is
-    // `dev`, the same for `optional`, one that needs either is the overlap, and an edge
-    // of the kind being skipped does not count as a path.
     let next_id = 0;
 
     function id_of(node) {
@@ -2211,11 +2220,8 @@ function mark_reachability(rootsnap) {
         ['peer', ['peer']],
     ];
 
-    // where a walk begins: the project, and every workspace member. A member is a
-    // project of its own — what it needs is part of the graph even when the root never
-    // asks for it — while a `file:` dependency is *not*: it is reached through the edge
-    // that names it, and starting a walk there would mark its whole subtree as reached
-    // by every kind of edge
+    // where a walk begins: the project, and every workspace member — a member is a
+    // project of its own, and what it needs is in the graph whatever the root says
     const roots = [rootsnap];
 
     Object.keys(rootsnap.node_modules || {}).forEach(name => {
@@ -2272,14 +2278,425 @@ function mark_reachability(rootsnap) {
             const id = id_of(child);
             const known = reach.any[id] === true;
 
+            // npm's answer, in npm's terms: `dev` means "no path from a root reaches it
+            // without a dev edge", and the overlap is corrected last — a node that is
+            // dev or optional on its own is not in the overlap
             child.dev_only = known && reach.dev[id] !== true;
             child.optional_only = known && reach.optional[id] !== true;
-            child.dev_optional = known && reach.devOptional[id] !== true;
+            child.dev_optional = known && reach.devOptional[id] !== true &&
+                !child.dev_only && !child.optional_only;
             child.peer_only = known && reach.peer[id] !== true;
 
             mark(child);
         });
     })(rootsnap);
+}
+
+/**
+ * @description run the new resolver beside the old one and say where they disagree,
+ *              without changing anything either of them decided.
+ *
+ *              The rewrite cannot be switched in one step: the snapshot's nested maps
+ *              are what thirty-odd call sites read, so replacing the shape under them
+ *              at once turns the first divergence into a broken tree rather than a
+ *              diff. So the new pass runs in addition and the two are compared, and the
+ *              wiring happens one class of difference at a time — each step checked
+ *              against a tree that was already correct.
+ *
+ *              Off unless `FIBJS_INSTALL_SHADOW=1`, and it never writes: the compare
+ *              works on copies, and a failure here is a log line, not an error.
+ */
+function shadow_check(rootsnap) {
+    if (!shadow.active())
+        return null;
+
+    try {
+        // what the old passes arrived at, after every one of them has run
+        const before = tree.snapshot_to_tree(rootsnap, { root: process.cwd() });
+
+        // what the new pass arrives at, from the *same inputs the old one started
+        // from*: the manifest, the members as they are now, and the lockfile. Nothing
+        // is read off the disk, which is the whole difference the rewrite is about —
+        // a tree seeded from what happens to be installed cannot say what *should* be
+        const after = build_ideal_offline(rootsnap);
+
+        const result = tree.resolve(after, {
+            fetch: (name, spec) => shadow_probe(rootsnap, name, spec),
+            is_root: p => p === '',
+            on_error: () => { },
+            // comparing is not installing: an edge the new pass cannot place is the
+            // finding, not a reason to abandon the comparison
+            strict: false,
+        });
+
+        const comparison = shadow.compare(before, after);
+        const report = shadow.report(comparison);
+        if (ctx.verbose)
+            comparison.differences.slice(0, 12).forEach(d =>
+                install_log('[shadow]  ', d.kind, d.path, d.name || '', d.before && d.before.version ? d.before.version + '->' + (d.after ? d.after.version : '') : ''));
+
+        // a clean comparison is quiet unless someone asked to see it, because it is
+        // the answer every install is supposed to give
+        const quiet = !comparison.counts[shadow.NEW_ADDED] &&
+            !comparison.counts[shadow.OLD_ADDED] &&
+            !comparison.counts[shadow.VERSION] &&
+            !comparison.counts[shadow.DEPTH];
+
+        if (ctx.verbose || !quiet)
+            install_log(report);
+
+        return report;
+    } catch (e) {
+        // a diagnostic must never be the reason an install fails
+        if (ctx.verbose)
+            install_log(`[shadow] comparison unavailable: ${e.message}`);
+
+        return null;
+    }
+}
+
+/**
+ * @description the tree the *inputs* describe — package.json, the members, and the
+ *              lockfile — with nothing read from the disk.
+ *
+ *              This is the tree the rewrite wants the install to be seeded from. The
+ *              old pass starts from `read_module`, which is a description of what is
+ *              installed; a dependency deleted by hand, or an interrupted install,
+ *              then becomes part of what the next install believes.
+ */
+function build_ideal_offline(rootsnap) {
+    const members = find_workspace_packages(process.cwd(), rootsnap.pkgjson.workspaces) || [];
+
+    // the lockfile is the other record of where every dependency resolved. It is
+    // assigned later on the lock-first path, so it is read here when it is not set yet
+    // — a comparison whose two sides do not have the same inputs reports a difference
+    // in inputs as a difference in decisions
+    const packages = ctx.lock_packages !== null && ctx.lock_packages !== undefined
+        ? ctx.lock_packages
+        : (lockfile.read_lockfile(process.cwd())
+            ? lockfile.to_path_map(lockfile.read_lockfile(process.cwd()))
+            : {});
+
+    return tree.build_ideal({
+        root_manifest: rootsnap.pkgjson,
+        root: process.cwd(),
+        members: members.map(m => ({
+            name: m.name,
+            path: m.path,
+            relative_path: m.relative_path,
+            package_json: m.package_json,
+        })),
+        packages: packages,
+        local_manifest: dir => {
+            try {
+                return JSON.parse(fs.readTextFile(path.join(dir, 'package.json')));
+            } catch (e) {
+                return null;
+            }
+        },
+    }).tree;
+}
+
+/**
+ * @description add the nodes the manifest and the lockfile describe and the disk does
+ *              not have.
+ *
+ *              This is the smallest step that makes an install start from its inputs
+ *              instead of from what it finds: the walk still begins at `read_module`,
+ *              but a dependency the project declares and nothing installed is now in
+ *              the tree, so the resolver has something to complete rather than a tree
+ *              it has no reason to grow.
+ *
+ *              Nothing is removed here. A package on the disk that the inputs do not
+ *              describe may be one a previous install put there, or one a person copied
+ *              in; deciding it is unwanted is the prune's job, and the prune decides it
+ *              against the ideal tree with the diff as its evidence.
+ */
+function merge_what_the_inputs_describe(rootsnap) {
+    // the lockfile is the only record of what the project resolved to when nothing is
+    // installed, and it is what the merge reads — a first install has neither
+    const lock = lockfile.read_lockfile(process.cwd());
+
+    if (!lock)
+        return 0;
+
+    let added = 0;
+
+    const packages = lockfile.to_path_map(lock);
+
+    Object.keys(packages).forEach(p => {
+        // the root entry describes package.json, which the snapshot already is
+        if (p === '')
+            return;
+
+        const entry = packages[p];
+
+        // a directory a link points at, and a copy a tarball ships, are not nodes of
+        // their own: nothing is installed at either path
+        if (entry.link || entry.target_only || entry.in_bundle)
+            return;
+
+        // and a member's own tree is read from its directory, which the workspace step
+        // below does — adding it from the lockfile would describe it twice
+        if (!entry.path || entry.path.indexOf('node_modules/') !== 0)
+            return;
+
+        // the name is what follows the last `node_modules/`, and the holder is what
+        // comes before it — a path that itself contains `node_modules/` (a nested copy)
+        // is found by the last marker, and a scoped name (`@s/a`) has a `/` of its own
+        // that must not be read as a level
+        const marker = p.lastIndexOf('node_modules/');
+        const name = p.slice(marker + 'node_modules/'.length);
+        const holder = p.slice(0, marker).replace(/\/+$/, '');
+
+        const target = find_snapshot_level(rootsnap, holder);
+
+        if (!target)
+            return;
+
+        if (target.node_modules[name])
+            return;
+
+        if (!entry.version)
+            return;
+
+        // a node with no source of its own cannot be installed later, and inventing one
+        // here would put a tarball url in the tree that nothing verified
+        if (!entry.resolved && !is_git_entry(entry))
+            return;
+
+        target.node_modules[name] = snapshot_node_from_lock(entry, name, target);
+
+        added++;
+    });
+
+    return added;
+}
+
+/**
+ * @description the snapshot level a lockfile path names, or null when that level is not
+ *              in the snapshot (a nested location the disk does not have either)
+ */
+function find_snapshot_level(rootsnap, holder) {
+    if (holder === '' || holder === 'node_modules')
+        return rootsnap;
+
+    // the holder is a lockfile path — `node_modules/a`, or
+    // `node_modules/a/node_modules/b` — so every `node_modules/` separates a level from
+    // the name it holds
+    if (holder.indexOf('node_modules/') !== 0)
+        return null;
+
+    const names = holder.slice('node_modules/'.length).split('/node_modules/');
+
+    let cur = rootsnap;
+
+    for (let i = 0; i < names.length; i++) {
+        // a scoped name is one level whose own path has a `/` in it, so the split above
+        // only fires between levels — `@s/a` stays whole
+        const name = names[i];
+
+        if (!cur.node_modules || !cur.node_modules[name])
+            return null;
+
+        cur = cur.node_modules[name];
+    }
+
+    return cur;
+}
+
+/**
+ * @description one snapshot node from a lockfile entry — the shape `read_module`
+ *              produces, built from what the file records instead of from a directory
+ */
+function snapshot_node_from_lock(entry, name, parent) {
+    const tarball = entry.resolved
+        ? lockfile.apply_registry_replace(entry.resolved, ctx.registry)
+        : null;
+
+    return {
+        name: name,
+        real_name: entry.name && entry.name !== name ? entry.name : undefined,
+        version: entry.version,
+        lock_path: entry.path,
+
+        dep_vs: util.clone(entry.dependencies || {}),
+        dev_dep_vs: {},
+        opt_dep_vs: util.clone(entry.optionalDependencies || {}),
+        peer_dep_vs: util.clone(entry.peerDependencies || {}),
+
+        bundle_deps: bundled_names(entry.raw_entry || entry),
+        bundle_list: bundled_list(entry.raw_entry || entry),
+
+        manifest: null,
+
+        os: entry.os,
+        cpu: entry.cpu,
+        libc: entry.libc,
+        bin: entry.bin,
+        license: entry.license,
+        engines: entry.engines,
+        funding: entry.funding,
+
+        // the source is the file's, and a node this pass built has no `dist` of its own
+        // until it is fetched — recording it here is what lets the resolve path keep the
+        // version the lockfile pins instead of asking a registry
+        dist: tarball ? {
+            tarball: tarball,
+            integrity: entry.integrity,
+            shasum: null,
+            headers: auth_headers_for(tarball),
+        } : null,
+
+        // what the reify needs to know about where the bytes come from: a node built
+        // from the lockfile is a registry tarball or a repository, and the plan reads
+        // this to decide which. Without it `generate_mv_paths` dereferences undefined
+        from_lock: true,
+        new_module: true,
+        pkg_install_typeinfo: {
+            type: is_git_entry(entry) ? 'git' : 'registry',
+        },
+
+        parent: parent,
+        node_modules: {},
+    };
+}
+
+/**
+ * @description compare the snapshot the installer reads off the disk against the one
+ *              its inputs describe — the manifest, the members, and the lockfile.
+ *
+ *              This is the last structural difference the rewrite has to close: every
+ *              pass starts from `read_module`, which is a description of what happens
+ *              to be installed, so a dependency deleted by hand or an interrupted
+ *              install becomes part of what the next one believes. Starting from the
+ *              inputs is what makes an install converge on the tree the project
+ *              describes rather than on the tree it happens to find.
+ *
+ *              Off unless `FIBJS_INSTALL_SHADOW=1`, and it changes nothing.
+ */
+function shadow_check_snapshot(rootsnap) {
+    if (!shadow.active())
+        return null;
+
+    try {
+        const derived = tree.tree_to_snapshot(
+            build_ideal_offline(rootsnap),
+            { root: process.cwd() });
+
+        const disk = shallow_names(rootsnap);
+        const input = shallow_names(derived);
+
+        const only_disk = Object.keys(disk).filter(k => input[k] === undefined);
+        const only_input = Object.keys(input).filter(k => disk[k] === undefined);
+        const differing = Object.keys(disk).filter(k =>
+            input[k] !== undefined && disk[k] !== input[k]);
+
+        if (!only_disk.length && !only_input.length && !differing.length) {
+            if (ctx.verbose)
+                install_log(`[shadow] the snapshot matches what the inputs describe (${Object.keys(disk).length} nodes)`);
+
+            return null;
+        }
+
+        install_log(`[shadow] snapshot: ${Object.keys(disk).length} on disk, ` +
+            `${Object.keys(input).length} from the inputs` +
+            (only_disk.length ? `, ${only_disk.length} only on disk` : '') +
+            (only_input.length ? `, ${only_input.length} only from the inputs` : '') +
+            (differing.length ? `, ${differing.length} at another version` : ''));
+
+        const sample = list => list.slice(0, 6).join(', ') + (list.length > 6 ? ', …' : '');
+
+        if (only_disk.length && ctx.verbose)
+            install_log('[shadow]   only on disk:', sample(only_disk));
+        if (only_input.length && ctx.verbose)
+            install_log('[shadow]   only from the inputs:', sample(only_input));
+        if (differing.length && ctx.verbose)
+            install_log('[shadow]   other versions:', sample(differing.map(k =>
+                `${k} ${disk[k]} -> ${input[k]}`)));
+
+        return { only_disk, only_input, differing };
+    } catch (e) {
+        if (ctx.verbose)
+            install_log(`[shadow] snapshot comparison unavailable: ${e.message}`);
+
+        return null;
+    }
+}
+
+/**
+ * @description a flat `path -> version` view of a snapshot, which is the part two
+ *              snapshots can be compared on without carrying the whole graph
+ */
+function shallow_names(snapshot) {
+    const out = {};
+
+    (function walk(info, prefix) {
+        Object.keys(info.node_modules || {}).forEach(name => {
+            const child = info.node_modules[name];
+            const p = prefix + 'node_modules/' + name;
+            const local = child.local_package === true || child.workspace_package === true;
+
+            out[p] = String(child.version || '');
+
+            walk(child, local
+                ? lockfile.relative_target(process.cwd(), child.local_path || child.workspace_path) + '/'
+                : p + '/');
+        });
+    })(snapshot, '');
+
+    return out;
+}
+
+/**
+ * @description a node for a dependency the tree does not hold yet, built from what the
+ *              old pass already fetched — no network, because a shadow pass that went
+ *              to a registry would change how long an install takes and whether it
+ *              succeeds, and it is meant to observe, not to act
+ */
+function shadow_probe(rootsnap, name, spec) {
+    // the lockfile is the other record of what a dependency resolved to, and the old
+    // pass used it too — a comparison where one side may look and the other may not
+    // reports a difference in *inputs* as a difference in decisions
+    const entry = ctx.lock_packages
+        ? lockfile.lookup_entry(ctx.lock_packages, name, spec, semver, undefined, { nested: true })
+        : null;
+
+    if (entry && entry.version && !entry.link && !entry.target_only &&
+        lockfile.spec_satisfied(spec, entry, semver).ok) {
+        return {
+            path: '', name: name, version: entry.version,
+            real_name: entry.name && entry.name !== name ? entry.name : undefined,
+            type: 'registry', target_only: false,
+            resolved: entry.resolved,
+            integrity: entry.integrity,
+            edges: {
+                dependencies: entry.dependencies || {},
+                devDependencies: {},
+                optionalDependencies: entry.optionalDependencies || {},
+                peerDependencies: entry.peerDependencies || {},
+            },
+            platform: { os: entry.os, cpu: entry.cpu, libc: entry.libc },
+            flags: {},
+        };
+    }
+
+    const found = find_provided_node(name, rootsnap);
+
+    if (!found || !tree.satisfies_node(found, spec))
+        return null;
+
+    return {
+        path: '', name: found.name, version: found.version,
+        type: 'registry', target_only: false,
+        edges: {
+            dependencies: found.dep_vs || {},
+            devDependencies: {},
+            optionalDependencies: found.opt_dep_vs || {},
+            peerDependencies: found.peer_dep_vs || {},
+        },
+        flags: {},
+    };
 }
 
 /**
@@ -3641,6 +4058,17 @@ function write_hidden_lock(root, packages) {
  *              Everything else is in the table because it is on the disk — the plan
  *              already dropped what `omit` or the platform kept out
  */
+/**
+ * @description the entries the note inside node_modules carries, from the path table a
+ *              frozen install planned.
+ *
+ *              This is *not* the same shape as the lockfile's path table: `hidden_lock`
+ *              reads `dev_optional` / `bundle_list` / `local_path` (the snapshot's
+ *              names), not npm's `devOptional`. Handing it the lockfile's table
+ *              silently produced a note that described no flags — which is how the next
+ *              install came to treat a platform binary as a package every machine
+ *              needs.
+ */
 function hidden_tree_entries(lock, work) {
     const entries = {};
 
@@ -4199,6 +4627,7 @@ function tree_entry(node, p) {
     };
 }
 
+
 /**
  * @description the tree the project should have, built from the manifest, the
  *              workspace members as they are *now*, and the lockfile — the one place
@@ -4256,91 +4685,12 @@ function ideal_tree(lock, opts) {
  *              the other
  */
 function ideal_tree_of(rootsnap, root) {
-    const tree = new Map();
-
-    // the root node, whose edges are what the walk begins at
-    tree.set('', {
-        path: '', name: rootsnap.name, version: rootsnap.version,
-        type: 'registry', target_only: false,
-        edges: {
-            dependencies: rootsnap.declared ? rootsnap.declared.dep_vs : (rootsnap.dep_vs || {}),
-            devDependencies: rootsnap.declared ? rootsnap.declared.dev_dep_vs : (rootsnap.dev_dep_vs || {}),
-            optionalDependencies: rootsnap.declared ? rootsnap.declared.opt_dep_vs : (rootsnap.opt_dep_vs || {}),
-            peerDependencies: rootsnap.declared ? rootsnap.declared.peer_dep_vs : (rootsnap.peer_dep_vs || {}),
-        },
-        flags: {},
-    });
-
-    (function flatten(node, prefix) {
-        Object.keys(node.node_modules || {}).forEach(name => {
-            const child = node.node_modules[name];
-            const p = prefix + 'node_modules/' + name;
-            const local = child.local_package || child.workspace_package;
-
-            tree.set(p, {
-                path: p,
-                name: name,
-                version: child.version,
-                type: local ? 'link' : (child.in_bundle ? 'bundle' : 'registry'),
-                resolved: local
-                    ? lockfile.relative_target(root, child.local_path || child.workspace_path)
-                    : (child.dist && child.dist.tarball),
-                integrity: local ? undefined : (child.dist && child.dist.integrity),
-                local_path: local ? (child.local_path || child.workspace_path) : undefined,
-                target_only: false,
-                edges: {
-                    dependencies: (child.declared && child.declared.dep_vs) || child.dep_vs || {},
-                    devDependencies: {},
-                    optionalDependencies: (child.declared && child.declared.opt_dep_vs) || child.opt_dep_vs || {},
-                    peerDependencies: (child.declared && child.declared.peer_dep_vs) || child.peer_dep_vs || {},
-                },
-                flags: {
-                    dev: child.dev_only === true,
-                    optional: child.optional_only === true,
-                    devOptional: child.dev_optional === true,
-                    peer: child.peer_only === true,
-                },
-                from_workspace: child.workspace_package === true,
-            });
-
-            // and the directory a link points at, which is where its own edges live
-            if (local) {
-                const target = lockfile.relative_target(root, child.local_path || child.workspace_path);
-
-                // the *flags* of the directory are what the walk computes; the edges
-                // are the ones the snapshot read from its manifest. Both live here, so
-                // a link's target is a node of its own in this projection — without it
-                // `calc_flags` sees a link with no edges and reports the directory as
-                // reachable by every kind of edge
-                const target_manifest = child.manifest || {};
-
-                if (!tree.has(target)) {
-                    tree.set(target, {
-                        path: target,
-                        name: target_manifest.name || name,
-                        version: child.version,
-                        type: 'registry',
-                        resolved: undefined,
-                        integrity: undefined,
-                        local_path: child.local_path || child.workspace_path,
-                        target_only: true,
-                        edges: {
-                            dependencies: (child.declared && child.declared.dep_vs) || child.dep_vs || {},
-                            devDependencies: {},
-                            optionalDependencies: (child.declared && child.declared.opt_dep_vs) || child.opt_dep_vs || {},
-                            peerDependencies: (child.declared && child.declared.peer_dep_vs) || child.peer_dep_vs || {},
-                        },
-                        flags: {},
-                        target_of: p,
-                    });
-                }
-            }
-
-            flatten(child, local ? lockfile.relative_target(root, child.local_path || child.workspace_path) + '/' : p + '/');
-        });
-    })(rootsnap, '');
-
-    return { tree: tree, dropped: [] };
+    // One projection, in `tree.js`: the snapshot's nested maps are the same tree the
+    // path map describes, and there is no reason for two functions to say so. The
+    // hand-written version here was how a member's link target came to be typed as a
+    // `link` in one of them and as a directory in the other — and a resolver that
+    // skips a link's edges then skipped every member's dependencies.
+    return { tree: tree.snapshot_to_tree(rootsnap, { root: root || process.cwd() }), dropped: [] };
 }
 
 /**
@@ -4348,6 +4698,114 @@ function ideal_tree_of(rootsnap, root) {
  */
 function actual_tree() {
     return tree.load_actual(process.cwd(), { hidden_sources: read_hidden_sources() });
+}
+
+/**
+ * @description does the project's own manifest name the package at that path? The name
+ *              is what follows the last `node_modules/`, and a declaration is any of the
+ *              four kinds — the question here is only whether the project asks for it.
+ */
+function declared_by_the_root(rootsnap, p) {
+    const marker = p.lastIndexOf('node_modules/');
+
+    if (marker < 0)
+        return false;
+
+    const name = p.slice(marker + 'node_modules/'.length);
+
+    const pkg = rootsnap.pkgjson || {};
+
+    return ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']
+        .some(field => pkg[field] && pkg[field][name] !== undefined);
+}
+
+/**
+ * @description the tree a *prune* compares the disk against, after an install that
+ *              resolved.
+ *
+ *              It is not the resolved snapshot, and the difference is the whole point:
+ *              the snapshot started as a description of what is installed, so anything
+ *              left in `node_modules` by an older run is in it, and the diff has nothing
+ *              to report. The inputs — package.json, the members as they are now, and
+ *              the lockfile — are what say what belongs there; the resolved tree says
+ *              what was chosen. A path neither of them describes is a path nothing
+ *              installs.
+ *
+ *              Both sides are unioned rather than one picked: the resolved tree holds
+ *              the versions this run installed (which the lockfile just written may not
+ *              have yet, because the write happens after), and the input tree holds the
+ *              paths the snapshot dropped.
+ * @param rootsnap the tree the resolver built
+ * @returns Map<path, node>
+ */
+function prune_ideal(rootsnap, root) {
+    const resolved = ideal_tree_of(rootsnap, root || process.cwd()).tree;
+
+    // The lockfile as the resolve found it, not as the write back left it: this runs
+    // after `build_lockfile` on some paths, and reading the file again there meant
+    // judging the disk against a description an earlier answer had just filtered — the
+    // tree pruned what nothing reached, and then reported that nothing reached it.
+    const members = find_workspace_packages(process.cwd(), rootsnap.pkgjson.workspaces) || [];
+
+    const from_inputs = tree.build_ideal({
+        root_manifest: rootsnap.pkgjson,
+        root: root || process.cwd(),
+        members: members.map(m => ({
+            name: m.name,
+            path: m.path,
+            relative_path: m.relative_path,
+            package_json: m.package_json,
+        })),
+        packages: ctx.lock_packages || {},
+        local_manifest: dir => {
+            try {
+                return JSON.parse(fs.readTextFile(path.join(dir, 'package.json')));
+            } catch (e) {
+                return null;
+            }
+        },
+    }).tree;
+
+    // The *inputs* decide which paths belong; the resolved tree only supplies the node
+    // for a path they already name. Merging the two wholesale was the mistake: the
+    // resolved tree started as a description of what is installed, so anything an older
+    // run left in `node_modules` was in it, and the union kept exactly the entries the
+    // prune exists to remove.
+    const unioned = new Map();
+
+    from_inputs.forEach((node, p) => {
+        unioned.set(p, resolved.has(p) ? resolved.get(p) : node);
+    });
+
+    // What this run *resolved* is also wanted, even where the inputs could not say so:
+    // on a first install there is no lockfile, and a dependency the manifest names has
+    // nothing in `from_inputs` to match against.
+    //
+    // Only what this run resolved, though — not everything the snapshot holds. The
+    // snapshot started as a description of the disk, so a package an older run left
+    // behind is in it, and taking the union of the two kept exactly the entries this
+    // function exists to drop. `new_module` is what says "this run put it there".
+    resolved.forEach((node, p) => {
+        if (unioned.has(p))
+            return;
+
+        // a link is never extraneous: it installs a directory of the project, and the
+        // directory is the project's own file — there is nothing for an operator to
+        // "remove" and nothing a later install would not put back
+        if (node.type === tree.LINK || node.from_workspace === true || node.from_local === true) {
+            unioned.set(p, node);
+            return;
+        }
+
+        // A node on the disk the manifest names is wanted even when the inputs could not
+        // describe *which* version: with no lockfile there is nothing to pin, and the
+        // directory is the only record of what the project resolved to. Dropping it
+        // would make an install delete a dependency package.json asks for.
+        if (declared_by_the_root(rootsnap, p) || node.from_lock === true || node.new_module === true)
+            unioned.set(p, node);
+    });
+
+    return { tree: unioned, dropped: [] };
 }
 
 /**
@@ -4453,77 +4911,85 @@ function prune_lock_and_disk(packages, lock) {
     // the disk: every path the tree does not describe is a path nothing installs
     const removed = remove_what_the_tree_lacks(ideal).removed;
 
-    // the file: the same tree, without `omit` applied — what an omit leaves off the
-    // disk stays described, which is the promise it makes
-    let dropped = 0;
+    // the file: the same tree, in one write. An entry the tree does not describe
+    // leaves, one it describes and the file lacks is written, and the root follows
+    // package.json — `omit` is not applied, because an entry it leaves off the disk is
+    // still part of the graph a lockfile describes.
+    //
+    // Writing each of those as it was discovered is how a single `--install` came to
+    // write the same file four times, and how two of those writes came to disagree
+    // about what the file said
+    const file_changes = sync_lock_to_tree(ideal, lock);
 
+    return { file: file_changes, removed: removed };
+}
+
+
+/**
+ * @description bring the lockfile in line with the ideal tree, in one write: the
+ *              entries the tree does not describe leave, the ones it describes and the
+ *              file lacks are written, and the root entry follows package.json.
+ *
+ *              This is the *file* half of the same judgement the disk half makes — the
+ *              ideal tree is what should be there, and the file is a projection of it.
+ *              `omit` is deliberately not applied: an entry it leaves off the disk is
+ *              still described, because a lockfile covers the whole graph (npm does the
+ *              same, and `--ci` on another platform needs those entries).
+ * @returns the number of entries that changed
+ */
+function sync_lock_to_tree(ideal, lock) {
+    if (!lock || !lock.raw || !lock.raw.packages)
+        return 0;
+
+    let changed = 0;
+
+    // 1. what the tree does not describe, and what it describes differently: an
+    //    ordinary entry at a path the tree installs a *link* at is debris from an
+    //    older installer — it describes a registry package the project does not have.
+    //    Keeping it is how a member that became a link still had a tarball entry
+    //    beside it, and how `--ci` came to fetch something nobody published
     Object.keys(lock.raw.packages).forEach(p => {
         if (p === '')
             return;
 
-        if (ideal.tree.has(p))
-            return;
+        const node = ideal.tree.get(p);
+        const entry = lock.raw.packages[p];
 
-        // the target of a link the tree still has is described by that link's
-        // directory entry, which is in the tree: anything else is an entry nothing
-        // describes
-        delete lock.raw.packages[p];
-        dropped++;
+        if (!node) {
+            delete lock.raw.packages[p];
+            changed++;
+            return;
+        }
+
+        // a path the tree makes a link must not keep a registry entry
+        if (node.type === tree.LINK && entry.link !== true) {
+            delete lock.raw.packages[p];
+            changed++;
+            return;
+        }
+
+        // and the other way round: a link entry where the tree installs a package
+        if (node.type !== tree.LINK && entry.link === true) {
+            delete lock.raw.packages[p];
+            changed++;
+        }
     });
 
-    if (dropped) {
-        const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
-
-        lockfile.write_lockfile(path.join(process.cwd(), lock.filename), lock.raw, indent);
-        install_log(`update: ${lock.filename} (${dropped} ` +
-            `entr${dropped === 1 ? 'y' : 'ies'} nothing in the project reaches left the file)`);
-    }
-
-    // the entries the tree describes but the file does not: a member that was just
-    // renamed has a link at its new name and a directory entry whose manifest says so,
-    // and the file still describes the old ones. What the tree has and the file lacks
-    // is written from the tree — which is the same answer for every entry, so this
-    // does not need to know what changed
-    const added = sync_missing_lock_entries(ideal, lock);
-
-    return { file: dropped + added, removed: removed };
-}
-
-/**
- * @description write the entries the tree describes and the file does not have at
- *              all: a member that appeared, or one that was renamed (the link at its
- *              new name, and the directory entry whose `name`/`version` follow its
- *              manifest).
- *
- *              An entry that *is* already in the file is left exactly as it stands,
- *              which is what keeps a write back from churning what npm wrote — the
- *              `dev` mark it recorded, the integrity of a package nothing fetched, and
- *              in general every field this does not itself produce. Rebuilding an
- *              entry that is already there is how a second install used to move the
- *              file
- * @returns the number of entries written
- */
-function sync_missing_lock_entries(ideal, lock) {
-    if (!lock || !lock.raw || !lock.raw.packages)
-        return 0;
-
-    let added = 0;
-
-    // the root follows package.json, which `sync_lock_root` has already done
+    // 2. what the tree describes and the file lacks
     ideal.tree.forEach((node, p) => {
         if (p === '' || lock.raw.packages[p])
             return;
 
         // the directory a link points at: its entry is the manifest projected, so a
         // renamed member is described by the name it has now. It is tested before the
-        // link below because a target node is a `LINK` too — it is the directory that
-        // is not installed, not the link to it
+        // link below because a target node is not a link — it is the directory that is
+        // not installed, not the link to it
         if (node.target_only) {
             lock.raw.packages[p] = node.manifest
                 ? lockfile.project_manifest(node.manifest, p)
                 : lockfile.entry_order({ name: node.name, version: node.version });
 
-            added++;
+            changed++;
             return;
         }
 
@@ -4533,19 +4999,28 @@ function sync_missing_lock_entries(ideal, lock) {
                 link: true,
             });
 
-            added++;
+            changed++;
         }
     });
 
-    if (added) {
-        const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
+    // 3. the root entry, which mirrors package.json
+    const want_root = lockfile.root_entry(rootsnap.pkgjson, lock.root);
 
-        lockfile.write_lockfile(path.join(process.cwd(), lock.filename), lock.raw, indent);
-        install_log(`update: ${lock.filename} (${added} ` +
-            `entr${added === 1 ? 'y' : 'ies'} the tree describes were not in the file)`);
+    if (lockfile.stringify_lock(lock.raw.packages[''], 2) !== lockfile.stringify_lock(want_root, 2)) {
+        lock.raw.packages[''] = want_root;
+        changed++;
     }
 
-    return added;
+    if (!changed)
+        return 0;
+
+    const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
+
+    lockfile.write_lockfile(path.join(process.cwd(), lock.filename), lock.raw, indent);
+    install_log(`update: ${lock.filename} (${changed} ` +
+        `entr${changed === 1 ? 'y' : 'ies'} aligned with the tree)`);
+
+    return changed;
 }
 
 /**
@@ -4578,35 +5053,6 @@ function tree_to_path_map(rootsnap, root) {
     })(rootsnap, '');
 
     return paths;
-}
-
-/**
- * @description the root entry of a lockfile mirrors package.json. A lock-first
- *              install keeps every other entry exactly as npm wrote it, but this one
- *              has to follow package.json: a spec that moved while the tree did not
- *              (what `--save` does, for instance) is what a reader of the file looks
- *              for. Only the one entry is rewritten, and only when it differs
- */
-function sync_lock_root(lock) {
-    if (!lock || !lock.raw || !lock.raw.packages)
-        return false;
-
-    const want = lockfile.root_entry(rootsnap.pkgjson, lock.root);
-
-    // written form, not field order: the manifest lists a dependency map in its own
-    // order, the file in npm's, and writing a file whose text comes out identical is
-    // a change a reader cannot see — the entry only moves when something differs
-    if (lockfile.stringify_lock(lock.raw.packages[''], 2) === lockfile.stringify_lock(want, 2))
-        return false;
-
-    const file = path.join(process.cwd(), lock.filename);
-    const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
-
-    lock.raw.packages[''] = want;
-    lockfile.write_lockfile(file, lock.raw, indent);
-    install_log(`update: ${lock.filename} (the root entry follows package.json)`);
-
-    return true;
 }
 
 /**
@@ -4663,12 +5109,11 @@ function sync_lock_flags(lock, packages, graph) {
     if (!fixed)
         return 0;
 
-    const file = path.join(process.cwd(), lock.filename);
-    const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
-
-    lockfile.write_lockfile(file, lock.raw, indent);
-    install_log(`update: ${lock.filename} (${fixed} ${fixed === 1 ? 'entry carries' : 'entries carry'} ` +
-        'the edge kind the lockfile\'s own graph shows)');
+    // the caller writes the file: four sequential writes on one path is how a run came
+    // to produce a file that disagreed with itself, and how a reader of it saw a tree
+    // no install had ever built
+    install_log(`[install] ${fixed} ` +
+        `entr${fixed === 1 ? 'y carries' : 'ies carry'} the edge kind the lockfile's own graph shows`);
 
     return fixed;
 }
@@ -4710,13 +5155,10 @@ function drop_superseded_entries(lock) {
     if (!dropped.length)
         return 0;
 
-    const file = path.join(process.cwd(), lock.filename);
-    const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
-
-    lockfile.write_lockfile(file, lock.raw, indent);
-    install_log(`update: ${lock.filename} (${dropped.length} ` +
+    // the caller writes the file, for the same reason `sync_lock_flags` does not
+    install_log(`[install] ${dropped.length} ` +
         `${dropped.length === 1 ? 'entry describes' : 'entries describe'} a package the workspace links: ` +
-        `${dropped.slice(0, 3).join(', ')}${dropped.length > 3 ? ', …' : ''})`);
+        `${dropped.slice(0, 3).join(', ')}${dropped.length > 3 ? ', …' : ''}`);
 
     return dropped.length;
 }
@@ -4783,8 +5225,15 @@ function registry_source(entry) {
  * @returns the number of entries that gained a source, and how many could not
  */
 function complete_lock_sources(lock) {
-    if (!lock || !lock.raw || !lock.raw.packages)
+    // a lockfile as read has `raw`; one the builder just produced is the object itself.
+    // Both are accepted, because this runs before the write now, on the lock that is
+    // about to be written
+    const packages = lock && (lock.raw ? lock.raw.packages : lock.packages);
+
+    if (!packages)
         return { filled: 0, missing: [] };
+
+    const into = lock.raw ? lock.raw.packages : lock.packages;
 
     let filled = 0;
     const missing = [];
@@ -4793,8 +5242,8 @@ function complete_lock_sources(lock) {
     // and a registry round trip each, one after another, is minutes of waiting
     const wanted = {};
 
-    Object.keys(lock.raw.packages).forEach(p => {
-        const e = lock.raw.packages[p];
+    Object.keys(into).forEach(p => {
+        const e = into[p];
 
         // only a package that installs into node_modules has a source: the entry of
         // the directory a link points at carries none by nature, and neither does a
@@ -4876,16 +5325,51 @@ function complete_lock_sources(lock) {
         });
     });
 
-    if (filled) {
-        const file = path.join(process.cwd(), lock.filename);
-        const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
-
-        lockfile.write_lockfile(file, lock.raw, indent);
-        install_log(`update: ${lock.filename} (${filled} ${filled === 1 ? 'entry gained' : 'entries gained'} ` +
-            'the source it was installed from)');
-    }
+    // The caller writes the file. This only fills the object it was given: writing
+    // here is what made an install produce the file twice — once without the source
+    // and once with it — and the second write could disagree with the first about
+    // everything else in the tree
+    if (filled)
+        install_log(`[install] ${filled} ` +
+            `entr${filled === 1 ? 'y' : 'ies'} gained the source it was installed from`);
 
     return { filled: filled, missing: missing };
+}
+
+/**
+ * @description fill in the source of every entry the file describes but cannot
+ *              verify, and persist the file when anything was filled. `--ci` refuses
+ *              an entry with no source, and a directory on disk cannot say one — so
+ *              the registry is asked, once per name, in parallel.
+ */
+function fill_lock_sources(lock) {
+    if (!lock)
+        lock = lockfile.read_lockfile(process.cwd());
+
+    if (!lock || !lock.raw || !lock.raw.packages)
+        return { filled: 0, missing: [] };
+
+    // the caller owns the write: this only fills the source of what it was given
+    return complete_lock_sources(lock);
+}
+
+/**
+ * @description write the lockfile the lock-first path has been editing in memory, once.
+ *              The four steps before it — the tree diff, the flags the graph shows, the
+ *              debris beside a link, the sources a directory cannot say — all change the
+ *              same object; writing after each one produced a file four times, in four
+ *              shapes, and a reader of it saw a tree no install had built
+ */
+function persist_lock(lock) {
+    if (!lock || !lock.raw || !lock.raw.packages)
+        return false;
+
+    const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
+
+    lockfile.write_lockfile(path.join(process.cwd(), lock.filename), lock.raw, indent);
+    install_log(`write: ${lock.filename} (${Object.keys(lock.raw.packages).length - 1} packages)`);
+
+    return true;
 }
 
 /**
@@ -4916,9 +5400,22 @@ function build_lockfile(lock, rootsnap) {
 
     // what the project no longer reaches is gone from the disk, and it has to be gone
     // from the file too: an entry left in the lockfile is one the next `--ci` installs
-    // again, which is how a removed dependency kept coming back. The set is the same
-    // one the prune used, so the file cannot describe a path the disk was told to drop
-    const ideal = ideal_tree_of(rootsnap, root);
+    // again, which is how a removed dependency kept coming back.
+    //
+    // The set comes from the *same* tree the prune used, so the file cannot describe a
+    // path the disk was told to drop. A link's own path is in that tree (it is the
+    // symlink the install creates), and the directory it points at is a node of its
+    // own — so nothing here needs to special-case either.
+    // The same tree the prune uses: the file and the disk have to describe one thing, so
+    // an entry this writes is an entry the prune would keep, and an entry it leaves out
+    // is one the prune removes. Writing from the snapshot instead kept a package nothing
+    // declares in the file across installs — the entry described a disk the prune had
+    // been told to clean, so the next run read it back and rebuilt it.
+    //
+    // `prune_ideal` keeps a node the root's own manifest names even when the inputs
+    // cannot describe which version, so a first install with no lockfile still writes
+    // the dependencies package.json asks for.
+    const ideal = prune_ideal(rootsnap, root);
 
     Object.keys(paths).forEach(p => {
         if (!ideal.tree.has(p))
@@ -4953,13 +5450,17 @@ function write_back_lockfile(lock, rootsnap) {
     if (!built)
         return null;
 
-    lockfile.write_lockfile(built.file, built.lock, built.indent);
+    // A registry entry without a source cannot be verified later: `--ci` refuses it,
+    // and npm cannot check what it installs. The tree it was written from came from the
+    // disk, where a version is all there is — so the source is asked for once, from the
+    // registry of that exact version.
+    //
+    // This runs *before* the write, on the lock that is about to be written. Doing it
+    // after used to mean an install wrote the file, went to the network, and wrote it
+    // again — two writes and a round trip for a field it already knew it needed
+    const completed = complete_lock_sources(built.lock);
 
-    // a registry entry without a source cannot be verified later: `--ci` refuses it,
-    // and npm cannot check what it installs. The tree it was written from came from
-    // the disk, where a version is all there is — so the source is asked for once,
-    // from the registry of that exact version
-    const completed = complete_lock_sources(lockfile.read_lockfile(process.cwd()));
+    lockfile.write_lockfile(built.file, built.lock, built.indent);
 
     if (completed.missing.length)
         console.warn(`[install] ${completed.missing.length} lockfile ` +
@@ -5502,12 +6003,18 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
         // the same as the frozen install's: say it rather than install it in silence
         report_unmet_peers(lock, false);
 
+        // the lock-first path decides nothing about *what* to install — the file is the
+        // plan — and it is exactly where a divergence between the two tree models would
+        // go unnoticed, because nothing here compares them
+        shadow_check(rootsnap);
+
         if (args.flags.lockfile_only || args.flags.dry_run) {
             // the file is already the plan; the entries it leaves without a source are
             // still a hole, and this is the last chance to say so — or to fill them
             if (!args.flags.dry_run) {
                 drop_superseded_entries(lock);
-                complete_lock_sources(lockfile.read_lockfile(process.cwd()));
+                fill_lock_sources(lock);
+                persist_lock(lock);
             }
 
             install_log('[install] the lockfile is already what package.json asks for, nothing to write');
@@ -5541,10 +6048,10 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
             run_lock_lifecycle_scripts(lock, process.cwd(), result.installed);
         }
 
-        sync_lock_root(lock);
         sync_lock_flags(lock, result.packages, result.graph);
         drop_superseded_entries(lock);
-        complete_lock_sources(lockfile.read_lockfile(process.cwd()));
+        fill_lock_sources(lock);
+        persist_lock(lock);
 
         remove_hidden_lock(process.cwd());
         process.exit(0);
@@ -5656,6 +6163,8 @@ ensure_declared_deps_visible(rootsnap);
 
 mark_reachability(rootsnap);
 
+shadow_check(rootsnap);
+
 // a name that was never asked for is a silent no-op otherwise
 if (ctx.update && !ctx.update.all && !ctx.update.matched)
     console.warn(`[install] --update: '${ctx.update.name}' is not a dependency of this project, nothing was refreshed`);
@@ -5709,7 +6218,7 @@ mark_reachability(rootsnap);
 // package it was asked for, so the tree it builds is not the whole project and pruning
 // against it would take away everything else
 if (!ctx.new_pkgname)
-    remove_what_the_tree_lacks(ideal_tree_of(rootsnap, process.cwd()));
+    remove_what_the_tree_lacks(prune_ideal(rootsnap));
 
 // create symlinks for local packages found during dependency walking
 (function create_local_package_symlinks(level_info, base_path) {
