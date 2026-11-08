@@ -9,6 +9,7 @@
 #include "Fiber.h"
 #include "EventEmitter.h"
 #include "ifs/coroutine.h"
+#include "ifs/process.h"
 #include "QuickArray.h"
 #include "../util/util.h"
 #include <vector>
@@ -106,18 +107,22 @@ result_t object_base::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8:
     return JSTrigger(this).removeAllListeners(evs, retVal);
 }
 
-result_t object_base::setMaxListeners(int32_t n, obj_ptr<EventEmitter_base>& retVal)
+result_t object_base::setMaxListeners(int32_t n, v8::Local<v8::Value> event, obj_ptr<EventEmitter_base>& retVal)
 {
     // the IDL setter returns the emitter it was called on. Every object that
     // reaches this method through EVENT_SUPPORT() is an EventEmitter, so the
     // downcast is what getInstance() would do after its class check.
+    result_t hr = JSTrigger(this).setMaxListeners(n, event);
+    if (hr.failed())
+        return hr;
+
     retVal = static_cast<EventEmitter_base*>(this);
-    return JSTrigger(this).setMaxListeners(n);
+    return result_t();
 }
 
-result_t object_base::getMaxListeners(int32_t& retVal)
+result_t object_base::getMaxListeners(v8::Local<v8::Value> event, int32_t& retVal)
 {
-    return JSTrigger(this).getMaxListeners(retVal);
+    return JSTrigger(this).getMaxListeners(event, retVal);
 }
 
 result_t object_base::setListener(exlib::string ev, v8::Local<v8::Function> func)
@@ -286,6 +291,39 @@ result_t JSTrigger::onEventChange(exlib::string type, v8::Local<v8::Value> ev, v
     return _emit(type, _args, 2, b);
 }
 
+void JSTrigger::checkMaxListeners(v8::Local<v8::Value> ev, v8::Local<v8::Array> esa)
+{
+    int32_t limit = maxListenersFor(ev);
+    // 0 disables the warning, as in Node.
+    if (limit <= 0)
+        return;
+
+    int32_t count = esa->Length();
+    if (count <= limit)
+        return;
+
+    // Once per event name: the marker lives on the emitter, keyed by the name.
+    v8::Local<v8::Private> key = v8::Private::ForApi(isolate, NewString("_warnedMaxListeners"));
+    v8::Local<v8::Value> warned = o->GetPrivate(context, key).FromMaybe(v8::Local<v8::Value>());
+    v8::Local<v8::Object> seen;
+    if (warned.IsEmpty() || !warned->IsObject()) {
+        seen = v8::Object::New(isolate);
+        o->SetPrivate(context, key, seen).IsJust();
+    } else
+        seen = warned.As<v8::Object>();
+
+    v8::Local<v8::Value> marker = seen->Get(context, ev).FromMaybe(v8::Local<v8::Value>());
+    if (!marker.IsEmpty() && marker->BooleanValue(isolate))
+        return;
+    seen->Set(context, ev, v8::True(isolate)).IsJust();
+
+    // Report through the same warning channel the rest of the runtime uses.
+    process_base::emitWarning(
+        fibjs::NewString(isolate, "Possible EventEmitter memory leak detected. " + std::to_string(count)
+                                           + " listeners added. Use emitter.setMaxListeners() to increase limit"),
+        "MaxListenersExceededWarning", "");
+}
+
 result_t JSTrigger::putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev)
 {
     result_t hr;
@@ -295,6 +333,7 @@ result_t JSTrigger::putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function
 
     int32_t len = esa->Length();
     esa->Set(context, len, func).IsJust();
+    checkMaxListeners(ev, esa);
     return result_t();
 }
 
@@ -534,16 +573,23 @@ result_t JSTrigger::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::O
     return result_t();
 }
 
-result_t JSTrigger::setMaxListeners(int32_t n)
+result_t JSTrigger::setMaxListeners(int32_t n, v8::Local<v8::Value> event)
 {
+    // Node rejects a negative limit instead of ignoring it.
     if (n < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_message("\"defaultMaxListeners\" must be a positive number");
+        return result_t::make(CALL_E_EXCEPTION)
+            .with_type_name(errtype::kRangeError)
+            .with_code("ERR_OUT_OF_RANGE")
+            .with_message("The value of \"n\" is out of range. It must be >= 0. Received " + std::to_string(n));
 
+    // The limit is emitter-wide: Node's second argument selects nothing, it only
+    // carries the name for diagnostics, and getMaxListeners(eventName) answers the
+    // same value for every name.
     o->SetPrivate(context, v8::Private::ForApi(isolate, NewString("_maxListeners")), v8::Integer::New(isolate, n));
     return result_t();
 }
 
-result_t JSTrigger::getMaxListeners(int32_t& retVal)
+result_t JSTrigger::getMaxListeners(v8::Local<v8::Value> event, int32_t& retVal)
 {
     Isolate* _isolate = Isolate::current(isolate);
     JSValue maxListeners = o->GetPrivate(context, v8::Private::ForApi(isolate, NewString("_maxListeners")));
@@ -553,6 +599,14 @@ result_t JSTrigger::getMaxListeners(int32_t& retVal)
         GetArgumentValue(_isolate, maxListeners, retVal, true);
     }
     return result_t();
+}
+
+int32_t JSTrigger::maxListenersFor(v8::Local<v8::Value> ev)
+{
+    int32_t n;
+    if (getMaxListeners(ev, n).failed())
+        n = Isolate::current(isolate)->m_defaultMaxListeners;
+    return n;
 }
 
 result_t JSTrigger::set_defaultMaxListeners(int32_t newVal)
@@ -992,11 +1046,22 @@ void JSTrigger::s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(int32_t, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Local<v8::Value>());
 
-    JSTrigger(args).setMaxListeners(v0);
+    // Reject a negative limit here rather than in the helper: this entry is the
+    // one events.cpp installs, and METHOD_RETURN would drop a plain helper error.
+    if (v0 < 0) {
+        ThrowResult(result_t::make(CALL_E_EXCEPTION)
+                        .with_type_name(errtype::kRangeError)
+                        .with_code("ERR_OUT_OF_RANGE")
+                        .with_message("The value of \"n\" is out of range. It must be >= 0. Received " + std::to_string(v0)));
+        return;
+    }
+
+    hr = JSTrigger(args).setMaxListeners(v0, v1);
 
     // the trigger table is what the JS surface of EventEmitter and of every
     // native emitter is built from (events.cpp replaces the class method table),
@@ -1011,9 +1076,11 @@ void JSTrigger::s_getMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_ENTER();
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(1, 0);
 
-    hr = JSTrigger(args).getMaxListeners(vr);
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Local<v8::Value>());
+
+    hr = JSTrigger(args).getMaxListeners(v0, vr);
 
     METHOD_RETURN();
 }

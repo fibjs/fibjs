@@ -608,13 +608,13 @@ public:                                                                         
     {                                                                                         \
         return object_base::removeAllListeners(evs, retVal);                                  \
     }                                                                                         \
-    virtual result_t setMaxListeners(int32_t n, obj_ptr<EventEmitter_base>& retVal)           \
+    virtual result_t setMaxListeners(int32_t n, v8::Local<v8::Value> event, obj_ptr<EventEmitter_base>& retVal)           \
     {                                                                                         \
-        return object_base::setMaxListeners(n, retVal);                                       \
+        return object_base::setMaxListeners(n, event, retVal);                                       \
     }                                                                                         \
-    virtual result_t getMaxListeners(int32_t& retVal)                                         \
+    virtual result_t getMaxListeners(v8::Local<v8::Value> event, int32_t& retVal)                                         \
     {                                                                                         \
-        return object_base::getMaxListeners(retVal);                                          \
+        return object_base::getMaxListeners(event, retVal);                                          \
     }                                                                                         \
     virtual result_t listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal)                \
     {                                                                                         \

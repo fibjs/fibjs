@@ -12398,28 +12398,46 @@ declare class Class_EventEmitter extends Class_object {
     removeAllListeners(evs?: any[]): FIBJS.GeneralObject;
 
     /**
-     * @description Stores a per-emitter listener limit
+     * @description Stores the listener limit of the emitter
      *
-     *      The value is reported by getMaxListeners() and is otherwise informational: fibjs never warns
-     *      when the number of listeners exceeds it. A
-     *      negative value throws; 0 is accepted and stored as-is.
+     *      The limit is emitter-wide and is also enforced: adding a listener past it emits a
+     *      \`MaxListenersExceededWarning\` through \`process.emitWarning\`, once per event name, which
+     *      is how Node makes a leaking emitter visible. A negative value throws a RangeError
+     *      (\`ERR_OUT_OF_RANGE\`); \`0\` disables the warning and \`Infinity\` never reaches it.
      *
-     *      @param n the number of events
+     *      The second argument is the event name Node accepts for diagnostics; like Node, the limit
+     *      it stores is still emitter-wide, so every \`getMaxListeners(name)\` returns the same value.
+     *
+     *      Example — a limit that actually warns:
+     *      \`\`\`JavaScript
+     *      const events = require('events');
+     *
+     *      const emitter = new events.EventEmitter();
+     *      emitter.setMaxListeners(1);
+     *      process.on('warning', (w) => console.log(w.name));
+     *      emitter.on('x', () => {});
+     *      emitter.on('x', () => {}); // MaxListenersExceededWarning
+     *      \`\`\`
+     *
+     *      @param n the listener limit
+     *      @param event the event name reported with the limit; the limit stays emitter-wide
      *      @return returns the current emitter object
      *
      */
-    setMaxListeners(n: number): Class_EventEmitter;
+    setMaxListeners(n: number, event?: any): Class_EventEmitter;
 
     /**
      * @description Returns the listener limit of the emitter
      *
      *      Returns the value set by setMaxListeners(), or the process-wide defaultMaxListeners (10)
-     *      when no explicit value was set.
+     *      when no explicit value was set. The optional event name is accepted for Node
+     *      compatibility and does not change the answer.
      *
+     *      @param event the event name Node accepts; the answer is the same for every name
      *      @return returns the default limit
      *
      */
-    getMaxListeners(): number;
+    getMaxListeners(event?: any): number;
 
     /**
      * @description Returns a copy of the listener array of an event
@@ -108199,9 +108217,9 @@ declare module 'process' {
 
     function removeAllListeners(evs?: any[]): FIBJS.GeneralObject;
 
-    function setMaxListeners(n: number): Class_EventEmitter;
+    function setMaxListeners(n: number, event?: any): Class_EventEmitter;
 
-    function getMaxListeners(): number;
+    function getMaxListeners(event?: any): number;
 
     function listeners(ev: any): any[];
 

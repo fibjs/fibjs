@@ -475,6 +475,18 @@
             "member": "isBuiltin",
             "param": "id",
             "reason": "Node.js returns false for every non-string (including String objects and null) instead of coercing, and the call has to stay safe inside feature detection; plans/node-compat-quickwins-2026-11-07.md T3"
+        },
+        {
+            "def": "EventEmitter",
+            "member": "setMaxListeners",
+            "param": "event",
+            "reason": "Node's limit is emitter-wide, so the event name is only carried for diagnostics; the parameter exists so the extra argument is accepted instead of rejected (plans/node-compat-round2-2026-11-08.md R1)"
+        },
+        {
+            "def": "EventEmitter",
+            "member": "getMaxListeners",
+            "param": "event",
+            "reason": "Node answers the same limit for every event name; the parameter exists so the extra argument is accepted instead of rejected (plans/node-compat-round2-2026-11-08.md R1)"
         }
     ]
 }

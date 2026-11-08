@@ -43,8 +43,8 @@ public:
     virtual result_t removeEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t removeAllListeners(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t setMaxListeners(int32_t n, obj_ptr<EventEmitter_base>& retVal) = 0;
-    virtual result_t getMaxListeners(int32_t& retVal) = 0;
+    virtual result_t setMaxListeners(int32_t n, v8::Local<v8::Value> event, obj_ptr<EventEmitter_base>& retVal) = 0;
+    virtual result_t getMaxListeners(v8::Local<v8::Value> event, int32_t& retVal) = 0;
     virtual result_t listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal) = 0;
     virtual result_t rawListeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal) = 0;
     virtual result_t listenerCount(v8::Local<v8::Value> ev, int32_t& retVal) = 0;
@@ -431,11 +431,12 @@ inline void EventEmitter_base::s_setMaxListeners(const v8::FunctionCallbackInfo<
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(int32_t, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
 
-    hr = pInst->setMaxListeners(v0, vr);
+    hr = pInst->setMaxListeners(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -447,9 +448,11 @@ inline void EventEmitter_base::s_getMaxListeners(const v8::FunctionCallbackInfo<
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(1, 0);
 
-    hr = pInst->getMaxListeners(vr);
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+
+    hr = pInst->getMaxListeners(v0, vr);
 
     METHOD_RETURN();
 }

@@ -180,8 +180,25 @@ public:
     }
 
     result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal);
-    result_t setMaxListeners(int32_t n);
-    result_t getMaxListeners(int32_t& retVal);
+
+    // `event` is the optional Node argument: it scopes the limit to one event
+    // name instead of the emitter as a whole.
+    result_t setMaxListeners(int32_t n, v8::Local<v8::Value> event);
+    result_t setMaxListeners(int32_t n)
+    {
+        return setMaxListeners(n, v8::Local<v8::Value>());
+    }
+    result_t getMaxListeners(v8::Local<v8::Value> event, int32_t& retVal);
+    result_t getMaxListeners(int32_t& retVal)
+    {
+        return getMaxListeners(v8::Local<v8::Value>(), retVal);
+    }
+    // the limit that applies to one event name, falling back to the emitter-wide
+    // value and then to defaultMaxListeners
+    int32_t maxListenersFor(v8::Local<v8::Value> ev);
+    // emits MaxListenersExceededWarning once per event name when the listener
+    // count goes past the limit
+    void checkMaxListeners(v8::Local<v8::Value> ev, v8::Local<v8::Array> esa);
     static result_t set_defaultMaxListeners(int32_t newVal);
     static result_t get_defaultMaxListeners(int32_t& retVal);
     result_t listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal);

@@ -233,8 +233,8 @@ public:
     result_t removeEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
     result_t removeAllListeners(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal);
     result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal);
-    result_t setMaxListeners(int32_t n, obj_ptr<EventEmitter_base>& retVal);
-    result_t getMaxListeners(int32_t& retVal);
+    result_t setMaxListeners(int32_t n, v8::Local<v8::Value> event, obj_ptr<EventEmitter_base>& retVal);
+    result_t getMaxListeners(v8::Local<v8::Value> event, int32_t& retVal);
     result_t setListener(exlib::string ev, v8::Local<v8::Function> func);
     result_t getListener(exlib::string ev, v8::Local<v8::Function>& func);
     result_t listeners(v8::Local<v8::Value> ev, v8::Local<v8::Array>& retVal);
