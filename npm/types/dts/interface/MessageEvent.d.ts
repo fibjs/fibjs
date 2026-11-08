@@ -5,8 +5,8 @@
  *
  *  Instances are produced by `MessageChannel` ports when they receive a message, and the constructor
  *  `new MessageEvent('message', { data })` creates one directly for tests or synthetic events. fibjs
- *  implements the subset of the MDN MessageEvent that MessagePort uses: `data` is exposed, while
- *  `type`, `origin`, `lastEventId`, `source` and `ports` are not.
+ *  implements the part of the MDN MessageEvent that messages use: `data` and `type` carry the real
+ *  values, while `origin`, `lastEventId`, `source` and `ports` exist but hold their defaults.
  *
  *  Concepts:
  *
@@ -52,25 +52,72 @@
  *  Notes:
  *
  *  - The constructor `type` argument is required; `new MessageEvent()` throws
- *    `TypeError [20002] Parameter not optional.` The type itself is not stored.
+ *    `TypeError [20002] Parameter not optional.` and the value is stored on the
+ *    instance.
  *  - `ports` for transferred MessagePorts is not supported, so a received message never has
- *    attached ports.
+ *    attached ports and the property is always an empty array.
  *
  */
 declare class Class_MessageEvent extends Class_object {
     /**
      * @description MessageEvent constructor
      *
-     *      `type` is mandatory, but fibjs stores only `eventInitDict.data` (default `undefined`) and
-     *      exposes no `type` property, matching the global MessageEvent. The payload is kept by
-     *      reference, not cloned; structured cloning only happens when a value travels through a
-     *      MessagePort. The full event properties and a `ports` list of
-     *      transferred MessagePorts are not supported.
+     *      `type` is mandatory and is stored on the instance, as it is in the Web API.
+     *      The payload is kept by reference, not cloned; structured cloning only happens
+     *      when a value travels through a MessagePort. The remaining MessageEvent fields
+     *      (`origin`, `lastEventId`, `source`, `ports`) exist for interface compatibility
+     *      but carry their defaults, and a `ports` list of transferred MessagePorts is not
+     *      supported.
      *      @param type The type of the event
      *      @param eventInitDict Optional event initialization dictionary containing data property
      *
      */
     constructor(type: string, eventInitDict?: FIBJS.GeneralObject);
+
+    /**
+     * @description The event type, as passed to the constructor
+     *
+     *      Returns the first constructor argument, so `new MessageEvent('message', { data })
+     *      .type` is `'message'`. Events produced by a MessagePort use `'message'` as well.
+     *
+     */
+    readonly type: string;
+
+    /**
+     * @description The origin of the message emitter
+     *
+     *      fibjs does not track an origin for port messages, so the property is always the
+     *      empty string. The Web API fills it with the origin of the sender.
+     *
+     */
+    readonly origin: string;
+
+    /**
+     * @description The last event ID of the message emitter
+     *
+     *      fibjs does not send or track event IDs, so the property is always the empty
+     *      string.
+     *
+     */
+    readonly lastEventId: string;
+
+    /**
+     * @description The message emitter
+     *
+     *      Always `null`: fibjs delivers messages between MessagePorts, and those are not
+     *      exposed as an event source the way a Window or Worker is on the Web.
+     *
+     */
+    readonly source: any;
+
+    /**
+     * @description The MessagePorts transferred with the message
+     *
+     *      Always an empty array: fibjs does not support transferring ports inside a
+     *      message, so a received message never carries any.
+     *
+     */
+    readonly ports: any[];
 
     /**
      * @description The data sent by the message emitter

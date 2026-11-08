@@ -32,6 +32,39 @@ public:
         return result_t();
     }
 
+    // The type is stored at construction for exactly this getter; the other
+    // MessageEvent fields have no fibjs counterpart, so they report the Web
+    // defaults instead of inventing state.
+    virtual result_t get_type(exlib::string& retVal)
+    {
+        retVal = m_type;
+        return result_t();
+    }
+
+    virtual result_t get_origin(exlib::string& retVal)
+    {
+        retVal.clear();
+        return result_t();
+    }
+
+    virtual result_t get_lastEventId(exlib::string& retVal)
+    {
+        retVal.clear();
+        return result_t();
+    }
+
+    virtual result_t get_source(v8::Local<v8::Value>& retVal)
+    {
+        retVal = v8::Null(holder()->m_isolate);
+        return result_t();
+    }
+
+    virtual result_t get_ports(v8::Local<v8::Array>& retVal)
+    {
+        retVal = v8::Array::New(holder()->m_isolate);
+        return result_t();
+    }
+
 private:
     exlib::string m_type;
     v8::Global<v8::Value> m_data;

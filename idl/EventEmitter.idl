@@ -25,11 +25,17 @@
    thrown as-is and any other value is wrapped in `Error("Unhandled error. (...)")`.
  - **Listener limit**: `defaultMaxListeners` (10) and `setMaxListeners`/`getMaxListeners` are kept
    for compatibility; the limit never produces a warning.
- - **Not provided**: `events.errorMonitor`, `events.captureRejectionSymbol`,
-   `events.getEventListeners` and the static broadcast forms of `setMaxListeners` and
-   `getMaxListeners`; the `captureRejections` option is accepted but ignored;
+ - **Not provided**: the `captureRejections` option is accepted but ignored;
    symbol events are omitted from `eventNames()` and are not removed by `removeAllListeners()`
    without arguments.
+ - **events module surface**: `require('events')` is the class itself, and the module
+   object carries the Node.js statics — `errorMonitor` (`Symbol.for('nodejs.errorMonitor')`),
+   `captureRejectionSymbol` (`Symbol.for('nodejs.rejection')`), `getEventListeners(target, type)`
+   (which delegates to `target.listeners(type)`, returning `[]` for an unknown or omitted type),
+   the static broadcast forms `setMaxListeners(n, ...targets)` /
+   `getMaxListeners(target)`, and `dispatchEvent(event)` on the prototype (so an
+   `EventTarget` delivers the `Event` object itself). `DOMEvent#target` stays `null`
+   in this release, so `dispatchEvent` cannot fill it.
 
  Obtained from:
  - `new EventEmitter(options = {})` — creates an emitter; the options object is accepted and
