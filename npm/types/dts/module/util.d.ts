@@ -96,7 +96,8 @@
  *
  * const nested = { a: { b: { c: 1 } } };
  * console.log(util.inspect(nested, { colors: false }));
- * console.log(util.inspect(nested, { colors: false, depth: null }));
+ * // depth: null removes the nesting limit, so a deeper object is printed in full
+ * console.log(util.inspect({ a: { b: { c: { d: { e: 1 } } } } }, { colors: false, depth: null }));
  * console.log(util.inspect([1, 2, 3], { colors: false, maxArrayLength: 1 }));
  * ```
  *

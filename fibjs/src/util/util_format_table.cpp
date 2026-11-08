@@ -453,6 +453,14 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
 
         if (!options.IsEmpty()) {
             GetConfigValue(options, "colors", colors, true);
+
+            // `depth: null` means "no limit" in Node; GetConfigValue treats a
+            // null value as absent, so the key is inspected directly.
+            v8::Local<v8::Context> context = isolate->context();
+            v8::Local<v8::Value> depth_opt = options->Get(context, isolate->NewString("depth")).FromMaybe(v8::Local<v8::Value>());
+            if (!depth_opt.IsEmpty() && depth_opt->IsNull())
+                depth = 0x7fffffff;
+
             GetConfigValue(options, "depth", depth, true);
             GetConfigValue(options, "maxArrayLength", maxArrayLength, true);
             GetConfigValue(options, "maxStringLength", maxStringLength, true);

@@ -350,8 +350,8 @@ declare class Class_AbortSignal extends Class_EventEmitter {
     /**
      * @description Creates an AbortSignal that aborts when any of the given signals aborts
      *
-     *      The argument must be an Array of AbortSignal objects; a non-array value or an element
-     *      of another type throws a TypeError. The returned signal
+     *      The argument may be any iterable of AbortSignal objects (an Array, a Set, a generator, ...);
+     *      an element of another type throws a TypeError. The returned signal
      *      stays active while every input is active; when an input aborts, the composite aborts
      *      with that input's reason, and inputs that abort later do not change it again. Only the
      *      order in time matters, not the order in the array. If an input is already aborted, the
@@ -372,7 +372,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      first.abort('first too late');
      *      console.log(combined.aborted, combined.reason); // true second won
      *      \`\`\`
-     *      @param signals an array of AbortSignal objects
+     * @param signals an iterable of AbortSignal objects
      *      @return returns a composite AbortSignal object
      *
      */
@@ -115964,7 +115964,8 @@ declare module 'url' {
  *
  * const nested = { a: { b: { c: 1 } } };
  * console.log(util.inspect(nested, { colors: false }));
- * console.log(util.inspect(nested, { colors: false, depth: null }));
+ * // depth: null removes the nesting limit, so a deeper object is printed in full
+ * console.log(util.inspect({ a: { b: { c: { d: { e: 1 } } } } }, { colors: false, depth: null }));
  * console.log(util.inspect([1, 2, 3], { colors: false, maxArrayLength: 1 }));
  * \`\`\`
  *
