@@ -1143,6 +1143,123 @@ function normalize_bin(bin, name) {
 }
 
 /**
+ * @description the name a lockfile path already implies: the leaf inside a
+ *              node_modules directory (`node_modules/@s/a` → `@s/a`), or the directory
+ *              itself (`packages/@s/a` → `@s/a`). npm writes `name` only where the
+ *              package disagrees with it — an alias, or a member whose directory is
+ *              not called what its manifest says
+ */
+function implied_name(p) {
+    const from_nm = name_from_path(p);
+
+    return from_nm || name_from_folder(p);
+}
+
+/**
+ * @description the name a package directory implies when its manifest names nothing,
+ *              the way npm derives it (`@npmcli/name-from-folder`): the directory's
+ *              own name, with the scope directory it sits in as a prefix — `pkg` for
+ *              `packages/pkg`, `@s/pkg` for `packages/@s/pkg`
+ */
+function name_from_folder(dir) {
+    const p = String(dir || '').replace(/\\/g, '/').replace(/\/+$/, '');
+    const base = p.slice(p.lastIndexOf('/') + 1);
+    const parent_path = p.slice(0, p.lastIndexOf('/'));
+    const parent = parent_path.slice(parent_path.lastIndexOf('/') + 1);
+
+    return parent.charAt(0) === '@' ? `${parent}/${base}` : base;
+}
+
+// the package.json fields npm projects into a lock entry (arborist's `pkgMetaKeys`).
+// An entry for a directory — the root, or the target of a link — is that projection,
+// and a projection written by hand is what left a workspace member describing its
+// name and version and nothing else while its manifest declared dependencies.
+//
+// The two underscored entries are npm's legacy spellings (`_integrity`,
+// `_hasShrinkwrap`): `metaFieldFromPkg` reads them and the key is written without
+// the underscore. `hasInstallScript` is not a package.json field at all — npm derives
+// it from the scripts — so it is projected below, from the package's own answer
+const PKG_META_KEYS = [
+    'version', 'dependencies', 'peerDependencies', 'peerDependenciesMeta',
+    'optionalDependencies', 'bundleDependencies', 'acceptDependencies', 'funding',
+    'engines', 'os', 'cpu', 'libc', '_integrity', 'license', '_hasShrinkwrap',
+    'bin', 'deprecated', 'workspaces',
+];
+// the keys a projection decides, absence included: whatever the previous entry
+// carried under one of them is replaced by the manifest's answer
+const PROJECTED_KEYS = PKG_META_KEYS
+    .map(k => k.replace(/^_/, ''))
+    .concat(['name', 'devDependencies', 'hasInstallScript']);
+
+/**
+ * @description one package.json field as a lock entry carries it (npm's
+ *              `metaFieldFromPkg`): a license object becomes its type, an empty
+ *              object is nothing, and a falsy value is nothing
+ */
+function meta_field(pkgjson, key) {
+    const val = pkgjson && pkgjson[key];
+
+    if (!val)
+        return null;
+
+    if (key === 'license' && typeof val === 'object' && val.type)
+        return val.type;
+
+    if (typeof val !== 'object' || Object.keys(val).length)
+        return val;
+
+    return null;
+}
+
+/**
+ * @description the lock entry a package directory describes: npm's projection of
+ *              `pkgMetaKeys`, plus the name where the directory does not already say
+ *              it, plus `devDependencies` (npm writes those for a directory a link
+ *              points at — a workspace member is a project of its own, and its
+ *              devDependencies are installed with the project)
+ * @param p the directory, in lockfile terms (`packages/member`, `linkpkg`)
+ */
+function project_manifest(pkgjson, p) {
+    if (!pkgjson)
+        return {};
+
+    const meta = {};
+
+    PKG_META_KEYS.forEach(key => {
+        const val = meta_field(pkgjson, key);
+
+        if (val !== null)
+            meta[key.replace(/^_/, '')] = val;
+    });
+
+    // npm writes `name` only where the path does not already imply it: an entry for
+    // `packages/alpha` says `@repro/alpha`, one for `packages/alpha` holding `alpha`
+    // says nothing at all
+    const derived = name_from_folder(p);
+
+    if (pkgjson.name && pkgjson.name !== derived)
+        meta.name = pkgjson.name;
+
+    if (pkgjson.devDependencies)
+        meta.devDependencies = pkgjson.devDependencies;
+
+    if (meta.bin)
+        meta.bin = normalize_bin(meta.bin, pkgjson.name || derived);
+
+    // npm records `bundledDependencies` under the name it reads it from as well
+    if (meta.bundleDependencies === undefined && pkgjson.bundledDependencies)
+        meta.bundleDependencies = pkgjson.bundledDependencies;
+
+    // `hasInstallScript` is not a package.json field: npm derives it from the scripts
+    const scripted = has_install_script(pkgjson);
+
+    if (scripted)
+        meta.hasInstallScript = scripted;
+
+    return entry_order(meta);
+}
+
+/**
  * @description one entry of the path table as a lockfile entry. `name` is written
  *              only when it differs from the path (an alias), the way npm does it
  */
@@ -1152,7 +1269,8 @@ function lock_entry(entry, p) {
     const bundled = entry.in_bundle === true;
 
     return entry_order({
-        name: entry.name !== name_from_path(p) ? entry.name : undefined,
+        // npm's `metaFromNode`: only where the package is not what its path says
+        name: entry.name !== implied_name(p) ? entry.name : undefined,
         version: entry.version,
         resolved: bundled ? undefined : entry.resolved,
         integrity: bundled ? undefined : entry.integrity,
@@ -1178,17 +1296,50 @@ function lock_entry(entry, p) {
 }
 
 /**
- * @description the entry npm writes for the directory a link points at
+ * @description the entry npm writes for the directory a link points at. It is the
+ *              manifest's projection (`project_manifest`), not a stub: npm describes
+ *              what that directory is — its dependencies, its bin, its engines — and
+ *              a reader of the lockfile (a sync check, npm itself, a graph walk) reads
+ *              the member's dependencies from exactly there.
+ *
+ *              The flags live here and not on the link: npm's `metaFromNode` returns
+ *              `{ resolved, link }` for a link without asking about them, while its
+ *              `calc-dep-flags` copies `dev`/`optional`/`devOptional` onto the target
+ *              node, which is the entry that carries them
  */
-function target_entry(entry, previous) {
-    if (previous && previous.version === entry.version)
-        return previous.raw_entry;
+function target_entry(entry, previous, p, flags) {
+    const fresh = entry.manifest
+        ? project_manifest(entry.manifest, p)
+        : entry_order({
+            name: p && entry.name !== name_from_folder(p) ? entry.name : undefined,
+            version: entry.version,
+            hasInstallScript: entry.has_install_script ? true : undefined,
+        });
 
-    return entry_order({
-        name: entry.name,
-        version: entry.version,
-        hasInstallScript: entry.has_install_script ? true : undefined,
-    });
+    if (flags) {
+        if (flags.dev)
+            fresh.dev = true;
+        if (flags.optional)
+            fresh.optional = true;
+        if (flags.dev_optional && !flags.dev && !flags.optional)
+            fresh.devOptional = true;
+    }
+
+    if (!previous || typeof previous !== 'object')
+        return entry_order(fresh);
+
+    const merged = {};
+
+    // what npm wrote and the projection does not produce (a field of a newer npm)
+    // survives; what the manifest decides is the manifest's answer, absence included
+    Object.keys(previous).forEach(k => { merged[k] = previous[k]; });
+    PROJECTED_KEYS.concat(['dev', 'optional', 'devOptional']).forEach(k => { delete merged[k]; });
+
+    Object.keys(fresh).forEach(k => { merged[k] = fresh[k]; });
+
+    // an entry whose manifest says nothing is still an entry (npm writes `{}` for a
+    // member with no name and no version)
+    return entry_order(merged);
 }
 
 /**
@@ -1237,33 +1388,20 @@ function legacy_tree(packages) {
  * @description the root entry of a lockfile: what package.json declares
  */
 function root_entry(root_pkgjson, previous) {
+    // npm projects a fixed list of package.json fields into a lock entry
+    // (arborist's `pkgMetaKeys`), `workspaces` among them: a root entry written
+    // without it makes npm and this rewrite the file back and forth. The root is
+    // the one entry that always carries its name, and its devDependencies are
+    // installed with the project
+    const entry = project_manifest(root_pkgjson, '');
     const license = root_pkgjson.license && typeof root_pkgjson.license === 'object'
         ? root_pkgjson.license.type
         : root_pkgjson.license;
 
-    // npm projects a fixed list of package.json fields into a lock entry
-    // (arborist's `pkgMetaKeys`), `workspaces` among them: a root entry written
-    // without it makes npm and this rewrite the file back and forth
-    const entry = {
-        name: root_pkgjson.name,
-        version: root_pkgjson.version,
-        license: license,
-        dependencies: root_pkgjson.dependencies,
-        devDependencies: root_pkgjson.devDependencies,
-        optionalDependencies: root_pkgjson.optionalDependencies,
-        peerDependencies: root_pkgjson.peerDependencies,
-        peerDependenciesMeta: root_pkgjson.peerDependenciesMeta,
-        bundleDependencies: root_pkgjson.bundleDependencies || root_pkgjson.bundledDependencies,
-        acceptDependencies: root_pkgjson.acceptDependencies,
-        funding: root_pkgjson.funding,
-        engines: root_pkgjson.engines,
-        os: root_pkgjson.os,
-        cpu: root_pkgjson.cpu,
-        bin: root_pkgjson.bin,
-        deprecated: root_pkgjson.deprecated,
-        hasInstallScript: has_install_script(root_pkgjson),
-        workspaces: root_pkgjson.workspaces,
-    };
+    entry.name = root_pkgjson.name;
+    entry.version = root_pkgjson.version;
+    entry.license = license;
+    entry.devDependencies = root_pkgjson.devDependencies;
 
     if (!previous || typeof previous !== 'object')
         return entry_order(entry);
@@ -1277,6 +1415,8 @@ function root_entry(root_pkgjson, previous) {
     // … except the fields the manifest decides, absence included: a dependency or an
     // engine dropped from package.json has to leave the entry, or npm and this write
     // the field back and forth
+    PROJECTED_KEYS.forEach(k => { delete merged[k]; });
+
     Object.keys(entry).forEach(k => { merged[k] = entry[k]; });
 
     return entry_order(merged);
@@ -1351,20 +1491,17 @@ function to_lock(paths, root_pkgjson, opts) {
         const entry = paths[p];
         const previous = old[p];
 
-        // a link is the target plus the flag (and the dev/optional marks, which
-        // apply to a link like to anything else) — npm writes it that way, and the
-        // target is what an install follows
+        // a link is the target and the flag, nothing else: npm's `metaFromNode` returns
+        // exactly `{ resolved, link }` for one, and an entry that also carries `dev` or
+        // `optional` is a file npm rewrites the moment it touches it. The flags still
+        // exist — the graph answers them — they are just not written here
         if (entry.link) {
             const target = relative_target(o.root, entry.local_path);
-            const previous_ok = previous && previous.link === true && previous.resolved === target &&
-                previous.dev === entry.dev && previous.optional === entry.optional;
+            const previous_ok = previous && previous.link === true && previous.resolved === target;
 
             packages[p] = previous_ok ? previous.raw_entry : entry_order({
                 resolved: target,
                 link: true,
-                dev: entry.dev ? true : undefined,
-                optional: entry.optional ? true : undefined,
-                devOptional: entry.dev_optional ? true : undefined,
             });
             return;
         }
@@ -1396,7 +1533,7 @@ function to_lock(paths, root_pkgjson, opts) {
             return;
 
         const target = relative_target(o.root, entry.local_path);
-        packages[target] = target_entry(entry, old[target]);
+        packages[target] = target_entry(entry, old[target], target, entry);
     });
 
     packages[''] = root_entry(root_pkgjson, o.previous ? o.previous.root : null);
@@ -1455,6 +1592,225 @@ function write_lockfile(file, lock, indent) {
     return text;
 }
 
+/**
+ * @description the file npm keeps inside node_modules: the record of what was
+ *              installed there and where each package came from
+ *              (`node_modules/.package-lock.json`). An install that describes a tree
+ *              it finds on disk can only know the version from the directory, and a
+ *              version alone is not something a frozen install can fetch — npm has
+ *              this file precisely so that question has an answer
+ */
+function hidden_lock_path(root) {
+    return path.join(root, 'node_modules', '.package-lock.json');
+}
+
+/**
+ * @description what the hidden lockfile says about the tree on disk, as a map from
+ *              lockfile path to the fields only the installer that wrote it knows:
+ *              `resolved` and `integrity`. It is a cache, never an authority — a
+ *              caller matches it against the version that is actually there — so a
+ *              file that is stale, unreadable or from another npm simply enriches
+ *              nothing
+ * @returns { [path]: { resolved, integrity } }
+ */
+function read_hidden_lock(root) {
+    const file = hidden_lock_path(root);
+    const sources = {};
+
+    if (!fs.exists(file))
+        return sources;
+
+    let data;
+
+    try {
+        data = JSON.parse(fs.readTextFile(file).replace(/^\uFEFF/, ''));
+    } catch (e) {
+        return sources;
+    }
+
+    if (!data || typeof data.packages !== 'object' || !data.packages)
+        return sources;
+
+    Object.keys(data.packages).forEach(p => {
+        if (p === '')
+            return;
+
+        const entry = data.packages[p];
+
+        if (!entry || entry.link || entry.inBundle)
+            return;
+
+        if (!entry.resolved && !entry.integrity)
+            return;
+
+        sources[p] = {
+            version: entry.version,
+            resolved: entry.resolved,
+            integrity: entry.integrity,
+        };
+    });
+
+    return sources;
+}
+
+/**
+ * @description the hidden lockfile npm would write for that path table: the entries
+ *              of the tree with the fields that describe where each one came from. It
+ *              carries no root entry (`""`) and no legacy tree — npm's own does not,
+ *              and a root entry there would describe package.json rather than what is
+ *              installed
+ *
+ *              A link gets the entry of the directory it points at as well, projected
+ *              from that directory's manifest the way npm describes a member. The path
+ *              table of an installed tree only walks node_modules, so without this the
+ *              members would be missing from the note that is supposed to describe
+ *              them
+ * @param packages the `to_path_map` shape, or lockfile entries
+ * @param root the project, for a link whose target entry has to be read from the disk
+ * @param name, version what to write at the top level
+ */
+function hidden_lock(name, version, packages, root) {
+    const ordered = {};
+    const targets = {};
+
+    Object.keys(packages).forEach(p => {
+        const entry = packages[p];
+
+        if (!entry || !entry.link)
+            return;
+
+        // the directory it points at, as the lockfile spells it: a lock entry already
+        // has the target, a tree node has the path on the disk
+        const target = entry.resolved || (entry.local_path ? relative_target(root, entry.local_path) : null);
+
+        if (target && packages[target] === undefined)
+            targets[target] = entry;
+    });
+
+    Object.keys(packages).sort().forEach(p => {
+        // npm leaves the root entry out (it describes package.json, not what is
+        // installed) and keeps every other path, a member's own directory included
+        if (p === '')
+            return;
+
+        const entry = packages[p];
+        const local = entry.link === true;
+        // a link's `resolved` is its target, and npm writes it: it is what an install
+        // follows. `integrity` is what it does not have
+        const resolved = local
+            ? (entry.resolved || (entry.local_path ? relative_target(root, entry.local_path) : undefined))
+            : (entry.in_bundle ? undefined : entry.resolved);
+
+        ordered[p] = entry_order({
+            name: entry.name !== implied_name(p) ? entry.name : undefined,
+            version: entry.version,
+            resolved: resolved,
+            integrity: local || entry.in_bundle ? undefined : entry.integrity,
+            link: entry.link ? true : undefined,
+            dev: entry.dev ? true : undefined,
+            optional: entry.optional ? true : undefined,
+            devOptional: entry.dev_optional ? true : undefined,
+            bundleDependencies: entry.bundle_dependencies,
+            inBundle: entry.inBundle === true ? true : undefined,
+            dependencies: entry.dependencies,
+            peerDependencies: entry.peerDependencies,
+            peerDependenciesMeta: entry.peerDependenciesMeta,
+            optionalDependencies: entry.optionalDependencies,
+            funding: entry.funding,
+            engines: entry.engines,
+            os: entry.os,
+            cpu: entry.cpu,
+            libc: entry.libc,
+            license: entry.license,
+            hasInstallScript: entry.has_install_script ? true : undefined,
+            bin: entry.bin,
+        });
+    });
+
+    Object.keys(targets).sort().forEach(p => {
+        if (ordered[p])
+            return;
+
+        const manifest = targets[p].manifest || read_manifest(root, p);
+        const entry = project_manifest(manifest, p);
+
+        // the flags npm's `calc-dep-flags` copies onto the target of a link
+        if (targets[p].dev)
+            entry.dev = true;
+        if (targets[p].optional)
+            entry.optional = true;
+        if (targets[p].dev_optional && !targets[p].dev && !targets[p].optional)
+            entry.devOptional = true;
+
+        ordered[p] = entry_order(entry);
+    });
+
+    // npm writes the path table in order: the root first (here: absent), then the rest
+    const sorted = {};
+
+    Object.keys(ordered).sort().forEach(p => { sorted[p] = ordered[p]; });
+
+    return order_keys({
+        name: name,
+        version: version,
+        lockfileVersion: 3,
+        requires: true,
+        packages: sorted,
+    }, TOP_KEY_ORDER);
+}
+
+/**
+ * @description the manifest of a directory in the project, or null
+ */
+function read_manifest(root, p) {
+    if (!root || !p)
+        return null;
+
+    const file = path.join(root, p, 'package.json');
+
+    if (!fs.exists(file))
+        return null;
+
+    try {
+        return JSON.parse(fs.readTextFile(file));
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * @description write the hidden lockfile. Callers do this last, once the tree is what
+ *              they mean to leave behind: it is a claim about the disk
+ * @param packages the `to_path_map` shape of what is installed
+ */
+function write_hidden_lock(root, name, version, packages, indent) {
+    const file = hidden_lock_path(root);
+    const text = stringify_lock(hidden_lock(name, version, packages, root),
+        indent === undefined ? 2 : indent) + '\n';
+
+    fs.mkdir(path.join(root, 'node_modules'), { recursive: true });
+
+    const tmp = file + '.tmp';
+
+    fs.writeFile(tmp, text);
+    if (fs.exists(file))
+        fs.unlink(file);
+    (fs.renameSync || fs.rename)(tmp, file);
+
+    return text;
+}
+
+/**
+ * @description drop the hidden lockfile. An install that changes node_modules and
+ *              does not rewrite it leaves a record that describes another tree
+ */
+function remove_hidden_lock(root) {
+    const file = hidden_lock_path(root);
+
+    if (fs.exists(file))
+        fs.unlink(file);
+}
+
 // ---------------------- not implemented yet :start ------------------------- //
 
 module.exports = {
@@ -1468,6 +1824,7 @@ module.exports = {
     supported_version,
     read_lockfile,
     name_from_path,
+    implied_name,
     to_path_map,
     spec_satisfied,
     lookup_entry,
@@ -1480,6 +1837,13 @@ module.exports = {
     auth_header_for_url,
     to_lock,
     root_entry,
+    project_manifest,
+    name_from_folder,
+    hidden_lock_path,
+    read_hidden_lock,
+    hidden_lock,
+    write_hidden_lock,
+    remove_hidden_lock,
     entry_order,
     stringify_lock,
     relative_target,

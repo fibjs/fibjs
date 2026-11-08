@@ -912,7 +912,11 @@ describe('opt_tools install lifecycle', function () {
 
             // npm writes a link as the target plus the flag, nothing else
             assert.deepEqual(lock.packages['node_modules/linkpkg'], { resolved: 'linkpkg', link: true });
-            assert.deepEqual(lock.packages['linkpkg'], { name: 'linkpkg', version: '1.0.0' });
+
+            // and the directory it points at as its manifest projected: npm leaves
+            // `name` out where the path already says it (`packages/linkpkg` is
+            // `linkpkg`), and carries the flags over from the link
+            assert.deepEqual(lock.packages['linkpkg'], { version: '1.0.0' });
             assert.equal(lock.packages[''].dependencies.linkpkg, 'file:linkpkg');
         });
 
@@ -923,8 +927,14 @@ describe('opt_tools install lifecycle', function () {
             assert.equal(res.status, 0, diag(targetDir, res));
 
             var lock = lockOf(targetDir);
-            assert.equal(lock.packages['node_modules/devpkg'].dev, true,
-                'a lockfile describes the whole graph: ' + JSON.stringify(lock.packages['node_modules/devpkg']));
+
+            // npm marks a link's *target*, not the link: `metaFromNode` returns
+            // `{ resolved, link }` for one and `calc-dep-flags` copies the flags onto
+            // the directory it points at
+            assert.equal(lock.packages['node_modules/devpkg'].dev, undefined,
+                'npm does not mark the link itself: ' + JSON.stringify(lock.packages['node_modules/devpkg']));
+            assert.equal(lock.packages['devpkg'].dev, true,
+                'a lockfile describes the whole graph: ' + JSON.stringify(lock.packages['devpkg']));
             assert.ok(checkInstalled(targetDir, 'devpkg'),
                 'dev dependencies are installed by default, as npm does' + diag(targetDir, res));
         });
@@ -934,7 +944,7 @@ describe('opt_tools install lifecycle', function () {
             var res = runInstaller(targetDir, ['--install', '--omit=dev']);
 
             assert.equal(res.status, 0, diag(targetDir, res));
-            assert.equal(lockOf(targetDir).packages['node_modules/devpkg'].dev, true,
+            assert.equal(lockOf(targetDir).packages['devpkg'].dev, true,
                 'the lockfile still describes them (npm: omit is about the disk)');
             assert.equal(fs.existsSync(path.join(targetDir, 'node_modules', 'devpkg')), false,
                 'and they are not installed');
@@ -966,6 +976,348 @@ describe('opt_tools install lifecycle', function () {
 
             assert.equal(res.status, 0, diag(targetDir, res));
             assert.equal(fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8'), first);
+        });
+
+        // the defects reported on 2026-11-08, all four of which made a lockfile this
+        // installer wrote unusable by itself or by npm
+        it('describes a workspace member with the manifest npm projects into it', function () {
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'ws-write', version: '1.0.0', private: true, workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/alpha/package.json', JSON.stringify({
+                name: '@repro/alpha', version: '0.1.0', private: true,
+                dependencies: { linkpkg: 'file:../../linkpkg' },
+            }, null, 2));
+            writeFile(targetDir, 'linkpkg/package.json', JSON.stringify({ name: 'linkpkg', version: '1.0.0' }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var member = lockOf(targetDir).packages['packages/alpha'];
+
+            // npm writes the member's manifest into the entry: its dependencies are
+            // what a reader of the lockfile — npm itself, `--ci`, a graph walk — reads
+            assert.deepEqual(member.dependencies, { linkpkg: 'file:../../linkpkg' },
+                'the member describes what it depends on: ' + JSON.stringify(member));
+            assert.equal(member.name, '@repro/alpha', 'and the name its path does not imply');
+            assert.equal(member.version, '0.1.0');
+        });
+
+        it('names a workspace member the way npm does when its manifest has no name', function () {
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'ws-nameless', version: '1.0.0', private: true, workspaces: ['packages/*'],
+            }, null, 2));
+            // npm derives the name from the directory rather than skipping the member:
+            // skipping one left the resolver blind to it while the tree on disk held it
+            writeFile(targetDir, 'packages/beta/package.json', JSON.stringify({
+                version: '0.1.0', private: true,
+                dependencies: { linkpkg: 'file:../../linkpkg' },
+            }, null, 2));
+            writeFile(targetDir, 'linkpkg/package.json', JSON.stringify({ name: 'linkpkg', version: '1.0.0' }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var packages = lockOf(targetDir).packages;
+
+            assert.ok(fs.lstatSync(path.join(targetDir, 'node_modules/beta')).isSymbolicLink(),
+                'the member is linked under its directory name: ' +
+                listDir(path.join(targetDir, 'node_modules')));
+            assert.deepEqual(packages['node_modules/beta'], { resolved: 'packages/beta', link: true },
+                'and the lockfile says so: ' + JSON.stringify(packages['node_modules/beta']));
+            assert.deepEqual(packages['packages/beta'].dependencies, { linkpkg: 'file:../../linkpkg' },
+                'with the manifest it declares: ' + JSON.stringify(packages['packages/beta']));
+        });
+
+        it('records where a package on disk came from, so `--ci` can install it', function () {
+            // the report's second defect: a lockfile derived from an existing
+            // node_modules carried versions and nothing else, and the `--ci` that
+            // followed refused the file this installer had just written
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'derive-proj', version: '1.0.0', private: true,
+                dependencies: { linkpkg: 'file:linkpkg' },
+            }, null, 2));
+            writeFile(targetDir, 'linkpkg/package.json', JSON.stringify({ name: 'linkpkg', version: '1.0.0' }, null, 2));
+
+            // a first install writes both the lockfile and the note npm keeps
+            var first = runInstaller(targetDir, ['--install']);
+            assert.equal(first.status, 0, diag(targetDir, first));
+
+            assert.ok(fs.existsSync(path.join(targetDir, 'node_modules', '.package-lock.json')),
+                'the note npm keeps is written as well: ' + listDir(path.join(targetDir, 'node_modules')));
+
+            // now the lockfile goes away and has to be rebuilt from the tree on disk
+            fs.unlinkSync(path.join(targetDir, 'package-lock.json'));
+
+            var second = runInstaller(targetDir, ['--install']);
+            assert.equal(second.status, 0, diag(targetDir, second));
+
+            var packages = lockOf(targetDir).packages;
+
+            assert.deepEqual(packages['node_modules/linkpkg'], { resolved: 'linkpkg', link: true },
+                'the link survived the rebuild: ' + JSON.stringify(packages['node_modules/linkpkg']));
+
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            assert.equal(ci.status, 0, 'and the file it wrote is one its own --ci accepts:\n' + outputOf(ci));
+        });
+
+        it('keeps the source of a registry package the hidden lockfile recorded', function () {
+            // the same defect in its registry form: the version is in the directory,
+            // but `resolved` and `integrity` only ever lived in the lockfile — which is
+            // why npm keeps them in node_modules/.package-lock.json as well
+            var targetDir = makeTargetDir();
+            var url = 'https://registry.npmjs.org/linkpkg/-/linkpkg-1.0.0.tgz';
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'hidden-proj', version: '1.0.0', private: true,
+                dependencies: { linkpkg: '1.0.0' },
+            }, null, 2));
+
+            writeFile(targetDir, 'node_modules/linkpkg/package.json', JSON.stringify({
+                name: 'linkpkg', version: '1.0.0', license: 'MIT',
+            }, null, 2));
+
+            // npm's note about the tree it installed
+            writeFile(targetDir, 'node_modules/.package-lock.json', JSON.stringify({
+                name: 'hidden-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    'node_modules/linkpkg': { version: '1.0.0', resolved: url, integrity: 'sha512-' + 'B'.repeat(86) + '==' },
+                },
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var entry = lockOf(targetDir).packages['node_modules/linkpkg'];
+
+            assert.equal(entry.resolved, url, 'the source came from the note: ' + JSON.stringify(entry));
+            assert.equal(entry.integrity, 'sha512-' + 'B'.repeat(86) + '==',
+                'and so did the integrity: ' + JSON.stringify(entry));
+        });
+
+        it('ignores a note that describes another tree', function () {
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'stale-proj', version: '1.0.0', private: true,
+                dependencies: { stale: '2.0.0' },
+            }, null, 2));
+
+            // the directory says 2.0.0, the note says 1.0.0: the note is about a tree
+            // that is not there any more, and believing it would describe the wrong thing
+            writeFile(targetDir, 'node_modules/stale/package.json', JSON.stringify({
+                name: 'stale', version: '2.0.0',
+            }, null, 2));
+            writeFile(targetDir, 'node_modules/.package-lock.json', JSON.stringify({
+                name: 'stale-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    'node_modules/stale': {
+                        version: '1.0.0',
+                        resolved: 'https://registry.example.invalid/stale/-/stale-1.0.0.tgz',
+                        integrity: 'sha512-' + 'C'.repeat(86) + '==',
+                    },
+                },
+            }, null, 2));
+
+            // `--lockfile-only`: the verdict is what this is about, and a registry
+            // lookup for `stale` is not
+            var res = runInstaller(targetDir, ['--install', '--lockfile-only']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var entry = JSON.parse(fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8'))
+                .packages['node_modules/stale'];
+
+            assert.equal(entry.version, '2.0.0', 'the directory decides the version: ' + JSON.stringify(entry));
+            assert.ok(!entry.resolved || entry.resolved.indexOf('stale-2.0.0.tgz') > -1,
+                'and a stale source is not borrowed for it: ' + JSON.stringify(entry));
+        });
+
+        it('refuses an entry it cannot verify before touching node_modules', function () {
+            // the report's third defect: `--ci` emptied node_modules and then failed on
+            // a download, which left a project with neither its old tree nor a new one
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'unsigned-proj', version: '1.0.0', private: true,
+                dependencies: { linkpkg: '1.0.0' },
+            }, null, 2));
+            writeFile(targetDir, 'package-lock.json', JSON.stringify({
+                name: 'unsigned-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': { name: 'unsigned-proj', version: '1.0.0', dependencies: { linkpkg: '1.0.0' } },
+                    // a version and a source, and nothing to check the bytes against
+                    'node_modules/linkpkg': {
+                        version: '1.0.0',
+                        resolved: 'https://registry.npmjs.org/linkpkg/-/linkpkg-1.0.0.tgz',
+                    },
+                },
+            }, null, 2));
+
+            // a tree that must survive the refusal
+            writeFile(targetDir, 'node_modules/keepme/package.json',
+                JSON.stringify({ name: 'keepme', version: '1.0.0' }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install', '--ci']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, 'the entry is refused' + diag(targetDir, res));
+            assert.ok(out.indexOf('the lockfile carries no integrity') > -1, out);
+            assert.ok(out.indexOf('--no-strict-integrity') > -1, 'and the way out is offered:\n' + out);
+            assert.ok(fs.existsSync(path.join(targetDir, 'node_modules', 'keepme')),
+                'node_modules was left as it was: ' + listDir(path.join(targetDir, 'node_modules')));
+        });
+
+        it('stops on a tarball the registry does not serve, with a code and a name', function () {
+            // what actually left the report's tree half installed: a non-200 answer
+            // ended the process from inside a download fiber. `process.exit()` with no
+            // code is 0, so the run that installed two packages out of five reported
+            // success; and the retry loop never got a second chance
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'missing-proj', version: '1.0.0', private: true,
+                dependencies: { ghost: '9.9.9' },
+            }, null, 2));
+            writeFile(targetDir, 'package-lock.json', JSON.stringify({
+                name: 'missing-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': { name: 'missing-proj', version: '1.0.0', dependencies: { ghost: '9.9.9' } },
+                    // `ghost` is published, `9.9.9` never was: the registry answers 404
+                    'node_modules/ghost': {
+                        version: '9.9.9',
+                        resolved: 'https://registry.npmjs.org/ghost/-/ghost-9.9.9.tgz',
+                        integrity: 'sha512-' + 'D'.repeat(86) + '==',
+                    },
+                },
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install', '--ci']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, 'a package that could not be fetched fails the run' + diag(targetDir, res));
+            assert.ok(out.indexOf('could not be installed') > -1, 'and the run says what is missing:\n' + out);
+            assert.ok(out.indexOf('ghost') > -1, out);
+            assert.ok(out.indexOf('HTTP 404') > -1, 'with the reason:\n' + out);
+        });
+
+        it('completes the source of an entry the tree only knows the version of', function () {
+            // the report's second defect, end to end: a lockfile whose registry
+            // entries carry a version and nothing else. `--install` used to write it
+            // back unchanged and the `--ci` that followed refused it — a file the tool
+            // insisted on and then could not use
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'source-proj', version: '1.0.0', private: true,
+                dependencies: { 'is-number': '6.0.0' },
+            }, null, 2));
+            writeFile(targetDir, 'package-lock.json', JSON.stringify({
+                name: 'source-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': { name: 'source-proj', version: '1.0.0', dependencies: { 'is-number': '6.0.0' } },
+                    'node_modules/is-number': { version: '6.0.0' },
+                },
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.ok(outputOf(res).indexOf('gained the source') > -1,
+                'the source was completed, and the run says so:\n' + outputOf(res));
+
+            var entry = lockOf(targetDir).packages['node_modules/is-number'];
+
+            assert.ok(entry.resolved && entry.resolved.indexOf('is-number-6.0.0.tgz') > -1,
+                'the entry names the tarball it was installed from: ' + JSON.stringify(entry));
+            assert.ok(entry.integrity, 'and carries a digest to check it against: ' + JSON.stringify(entry));
+
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            assert.equal(ci.status, 0, 'the file it healed is one its own --ci accepts:\n' + outputOf(ci));
+        });
+
+        it('drops an entry an older install left beside the link that provides it', function () {
+            // the debris the report's fourth defect left behind: a member linked at
+            // `node_modules/@scope/member` *and* described as a registry package under
+            // its directory name. Installing that entry asked a registry for a tarball
+            // nobody published, so the tree could not be installed at all
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'debris-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/member/package.json', JSON.stringify({
+                name: '@repro/member', version: '0.1.0', private: true,
+            }, null, 2));
+            writeFile(targetDir, 'package-lock.json', JSON.stringify({
+                name: 'debris-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': { name: 'debris-proj', version: '1.0.0', workspaces: ['packages/*'] },
+                    'node_modules/@repro/member': { resolved: 'packages/member', link: true },
+                    'packages/member': { name: '@repro/member', version: '0.1.0' },
+                    // what an older installer added: the member as a registry package,
+                    // keyed by the directory it sits in
+                    'node_modules/member': { name: '@repro/member', version: '0.1.0' },
+                },
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.equal(out.indexOf('registry.npmjs.org/member') > -1, false,
+                'the member was not fetched from a registry:\n' + out);
+
+            var packages = lockOf(targetDir).packages;
+
+            assert.equal(packages['node_modules/member'], undefined,
+                'the entry beside the link is gone: ' + Object.keys(packages).join(', '));
+            assert.deepEqual(packages['node_modules/@repro/member'], { resolved: 'packages/member', link: true },
+                'and the link that provides the package is kept: ' +
+                JSON.stringify(packages['node_modules/@repro/member']));
+            assert.ok(packages['packages/member'], 'with the directory it points at');
+        });
+
+        it('never fetches a workspace member from the registry', function () {
+            // the report's fourth defect: a member the tree held as a plain directory
+            // was described as a registry package, and the frozen install derived a
+            // tarball url from its name — 404 for anything not published
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'ws-no-fetch', version: '1.0.0', private: true, workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/templates/package.json', JSON.stringify({
+                version: '0.1.0', private: true,
+                dependencies: { linkpkg: 'file:../../linkpkg' },
+            }, null, 2));
+            writeFile(targetDir, 'linkpkg/package.json', JSON.stringify({ name: 'linkpkg', version: '1.0.0' }, null, 2));
+
+            // the state the report describes: the member is already a link in the tree
+            // (npm put it there) while the lockfile is gone
+            fs.mkdirSync(path.join(targetDir, 'node_modules'), { recursive: true });
+            fs.symlinkSync(path.join(targetDir, 'packages', 'templates'),
+                path.join(targetDir, 'node_modules', 'templates'), 'dir');
+
+            var res = runInstaller(targetDir, ['--install']);
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.equal(out.indexOf('registry.npmjs.org/templates') > -1, false,
+                'the member was not turned into a registry url:\n' + out);
+
+            var packages = lockOf(targetDir).packages;
+
+            assert.deepEqual(packages['node_modules/templates'], { resolved: 'packages/templates', link: true },
+                'the tree on disk is a link and the lockfile says so: ' +
+                JSON.stringify(packages['node_modules/templates']));
+            assert.ok(!packages['node_modules/templates'].version,
+                'and a link carries no version: ' + JSON.stringify(packages['node_modules/templates']));
         });
 
         it('updates the lockfile when package.json grew a dependency', function () {
@@ -3476,8 +3828,11 @@ describe('opt_tools install lifecycle', function () {
             assert.ok(checkInstalled(targetDir, 'linkpkg'), 'the install itself happened' + diag(targetDir, res));
         });
 
-        it('keeps a lockfile entry nothing needs, without complaining', function () {
-            // npm validates the tree against the lockfile, not the other way round
+        it('keeps a lockfile entry nothing needs, and installs it like npm does', function () {
+            // npm validates the tree against the lockfile, not the other way round:
+            // an entry package.json never asked for is installed, not pruned. What npm
+            // does not do either is skip one it cannot fetch — `npm ci` fails on that,
+            // and so does this (it used to leave the package out and report success)
             var targetDir = linkProject({
                 name: 'extra-proj', version: '1.0.0',
                 dependencies: { linkpkg: 'file:linkpkg' },
@@ -3488,7 +3843,43 @@ describe('opt_tools install lifecycle', function () {
                         '': { name: 'extra-proj', version: '1.0.0', dependencies: { linkpkg: 'file:linkpkg' } },
                         'linkpkg': { name: 'linkpkg', version: '1.0.0' },
                         'node_modules/linkpkg': { resolved: 'linkpkg', link: true },
-                        'node_modules/ghost': { version: '9.9.9', resolved: 'https://registry.npmjs.org/ghost/-/ghost-9.9.9.tgz' },
+                        // a published name at a version that was never published: the
+                        // registry answers 404, as it does for `npm ci`
+                        'node_modules/ghost': {
+                            version: '9.9.9',
+                            resolved: 'https://registry.npmjs.org/ghost/-/ghost-9.9.9.tgz',
+                            integrity: 'sha512-' + 'A'.repeat(86) + '==',
+                        },
+                    },
+                }, null, 2));
+            });
+
+            var res = runInstaller(targetDir, ['--install', '--ci']);
+
+            assert.notEqual(res.status, 0, 'a package that cannot be fetched is an error' + diag(targetDir, res));
+            assert.ok(outputOf(res).indexOf('ghost') > -1,
+                'and the package is named rather than dropped in silence' + diag(targetDir, res));
+        });
+
+        it('installs a lockfile entry nothing needs, once it can be fetched', function () {
+            // the same shape, with a target that exists: an entry the manifest never
+            // asked for is installed, because the lockfile is the plan (`npm ci` does
+            // the same)
+            var targetDir = linkProject({
+                name: 'extra-ok-proj', version: '1.0.0',
+                dependencies: { linkpkg: 'file:linkpkg' },
+            }, function (dir) {
+                writeFile(dir, 'extrapkg/package.json',
+                    JSON.stringify({ name: 'extrapkg', version: '3.0.0' }, null, 2));
+                writeFile(dir, 'package-lock.json', JSON.stringify({
+                    name: 'extra-ok-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                    packages: {
+                        '': { name: 'extra-ok-proj', version: '1.0.0', dependencies: { linkpkg: 'file:linkpkg' } },
+                        'linkpkg': { name: 'linkpkg', version: '1.0.0' },
+                        'node_modules/linkpkg': { resolved: 'linkpkg', link: true },
+                        // a second local package, which needs no registry
+                        'extrapkg': { name: 'extrapkg', version: '3.0.0' },
+                        'node_modules/extrapkg': { resolved: 'extrapkg', link: true },
                     },
                 }, null, 2));
             });
@@ -3497,6 +3888,8 @@ describe('opt_tools install lifecycle', function () {
 
             assert.equal(res.status, 0, 'an extra lockfile entry is not an error' + diag(targetDir, res));
             assert.ok(checkInstalled(targetDir, 'linkpkg'), diag(targetDir, res));
+            assert.ok(checkInstalled(targetDir, 'extrapkg'),
+                'and the entry the manifest never asked for is installed: ' + diag(targetDir, res));
         });
 
         it('refuses a lockfileVersion it does not know', function () {
@@ -3627,7 +4020,9 @@ describe('opt_tools install lifecycle', function () {
 
             assert.equal(res.status, 0, diag(targetDir, res));
 
-            var entry = lockfileOf(targetDir).packages['node_modules/linkpkg'];
+            // the flags live on the link's target (npm's `calc-dep-flags` puts them
+            // there), not on the link entry
+            var entry = lockfileOf(targetDir).packages['linkpkg'];
             assert.equal(entry.devOptional, true, JSON.stringify(entry));
             assert.equal(entry.dev, undefined,
                 'npm does not mark dev when the entry is also optional: ' + JSON.stringify(entry));

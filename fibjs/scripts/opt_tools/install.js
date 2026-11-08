@@ -62,10 +62,10 @@ function read_module(p, parent) {
         // the installer all use. Skipping it made every scoped package (and the
         // whole subtree below it) invisible, which is how a write back lost them:
         // the walk never repaired what it could not see
-        function read_entries(dir, prefix) {
-            fs.readdir(dir).forEach(n => {
+        function read_entries(container, prefix) {
+            fs.readdir(container).forEach(n => {
                 if (prefix === '' && n.charAt(0) === '@') {
-                    const scope = path.join(dir, n);
+                    const scope = path.join(container, n);
 
                     try {
                         if (!fs.stat(scope).isDirectory())
@@ -79,7 +79,25 @@ function read_module(p, parent) {
                 }
 
                 const name = prefix + n;
-                const f = path.join(dir, n, 'package.json');
+                const dir = path.join(container, n);
+                const f = path.join(dir, 'package.json');
+
+                // a directory in node_modules that is a *link* is not an installed copy:
+                // it is a local package or a workspace member, and its own directory is
+                // where its manifest lives. Reading it as an ordinary installed package
+                // wrote an entry with a version and no source, which the next frozen
+                // install turned into a registry url derived from the name — a workspace
+                // member that is not published answered 404
+                let linked_to = null;
+
+                try {
+                    if (fs.lstat(dir).isSymbolicLink())
+                        linked_to = fs.realpath(dir);
+                } catch (e) {
+                    // unreadable or already gone: read it like anything else, and let
+                    // the checks that follow report it
+                }
+
                 if (!fs.exists(f))
                     return;
 
@@ -98,13 +116,14 @@ function read_module(p, parent) {
                     version: minfo.version,
                     // where it sits, in lockfile terms: the resolver looks a dependency
                     // up along that path, the way npm does
-                    lock_path: lock_path_of(path.join(dir, n)),
+                    lock_path: lock_path_of(dir),
                     dep_vs: dep_vs,
                     dev_dep_vs: dev_dep_vs,
                     opt_dep_vs: opt_dep_vs,
                     peer_dep_vs: read_peer_dep_vs(minfo),
                     bundle_deps: bundled_names(minfo),
                     bundle_list: bundled_list(minfo),
+                    manifest: minfo,
                     // what the entry a write back produces needs and the directory is
                     // the only place it can come from: the platform it is for, and the
                     // commands it installs. A node this run fetched has them from the
@@ -122,6 +141,14 @@ function read_module(p, parent) {
                     parent: parent
                 };
 
+                // a link is a link, whatever it points at: the tree records it as one
+                // (`link: true` plus the target), and the frozen install follows it
+                // instead of fetching a tarball
+                if (linked_to) {
+                    modules[name].local_package = true;
+                    modules[name].local_path = linked_to;
+                }
+
                 // a copy the parent ships lives where the parent's tarball put it: it
                 // is read here, and never resolved or fetched — and a copy inside a copy
                 // came the same way (npm marks the whole subtree of a tarball)
@@ -129,7 +156,7 @@ function read_module(p, parent) {
                     (parent.parent && parent.bundle_deps && parent.bundle_deps[name])))
                     modules[name].in_bundle = true;
 
-                modules[name].node_modules = read_module(path.join(dir, n), modules[name]);
+                modules[name].node_modules = read_module(dir, modules[name]);
             });
         }
 
@@ -211,6 +238,56 @@ function read_peer_dep_vs(pkgjson) {
     }
 
     return peer_dep_vs;
+}
+
+/**
+ * @description stop the install on a failure that no retry can fix. `coroutine.parallel`
+ *              runs the downloads in fibers, and a fiber's exception is swallowed by
+ *              the scheduler (`[20020] Internal error`, with nothing said about the
+ *              package), while `process.exit()` inside one ends the *process* right
+ *              there: the rest of the wave never ran, the run reported success, and the
+ *              tree stayed half built. The failures are collected instead and the
+ *              install stops once the wave is done — with an exit code, and with the
+ *              name of everything that failed
+ */
+function download_failures() {
+    return ctx.download_failures || (ctx.download_failures = []);
+}
+
+/**
+ * @description record a package that cannot be installed and stop asking for it
+ */
+function fail_download(what, url, reason) {
+    download_failures().push({ what: what, url: url, reason: reason });
+}
+
+/**
+ * @description end the run when a download phase left failures behind: the code is
+ *              non-zero (a failed install must never look like a successful one) and
+ *              every package that did not make it is named. The report has already
+ *              been printed, so this exits rather than throwing: a stack trace of the
+ *              installer's own frames is noise next to the list of packages
+ */
+function throw_download_failures(stage) {
+    const failures = download_failures();
+
+    if (!failures.length)
+        return;
+
+    console.error(`[install] ${failures.length} package${failures.length === 1 ? '' : 's'} could not be installed:`);
+    (ctx.verbose ? failures : failures.slice(0, 20)).forEach(f => {
+        console.error(`  ${f.what}`);
+        if (f.url)
+            console.error(`    ${f.url}`);
+        if (f.reason)
+            console.error(`    ${f.reason}`);
+    });
+
+    if (!ctx.verbose && failures.length > 20)
+        console.error(`  … and ${failures.length - 20} more (--verbose lists them all)`);
+
+    console.error(`  ${stage}: the tree is incomplete — fix the source above and run \`fibjs --install\` again`);
+    process.exit(1);
 }
 
 function http_get(u, { quit_if_error = true, headers = null } = {}) {
@@ -432,7 +509,25 @@ function format_dep_failures(level_info, failures) {
 
 // ---------------------- WORKSPACES UTILS :start ------------------------- //
 /**
- * @description find all workspace packages based on workspaces config
+ * @description the name of a directory the package inside it did not name, the way
+ *              npm works it out (`@npmcli/name-from-folder`): the directory's own
+ *              name, prefixed with the scope directory it sits in — `packages/beta`
+ *              is `beta`, `packages/@s/beta` is `@s/beta`
+ */
+function name_from_folder(dir) {
+    const base = path.basename(dir);
+    const parent = path.basename(path.dirname(dir));
+
+    return parent.charAt(0) === '@' ? `${parent}/${base}` : base;
+}
+
+/**
+ * @description find all workspace packages based on workspaces config. A member that
+ *              declares no name is named after its directory, which is what npm does
+ *              (`getPackageName`): skipping it made the two halves of the installer
+ *              disagree — the resolver never knew the package existed, while the tree
+ *              on disk held it as a directory called `beta`, and a dependency on that
+ *              name then went to the registry
  */
 function find_workspace_packages(root_path, workspaces_config) {
     if (!workspaces_config || !Array.isArray(workspaces_config)) {
@@ -452,15 +547,16 @@ function find_workspace_packages(root_path, workspaces_config) {
                     const pkg_dir = path.dirname(pkg_json_path);
                     const pkg_info = JSON.parse(fs.readTextFile(pkg_json_path));
 
-                    if (pkg_info.name) {
-                        workspace_packages.push({
-                            name: pkg_info.name,
-                            version: pkg_info.version || '1.0.0',
-                            path: pkg_dir,
-                            relative_path: path.relative(root_path, pkg_dir),
-                            package_json: pkg_info
-                        });
-                    }
+                    workspace_packages.push({
+                        name: pkg_info.name || name_from_folder(pkg_dir),
+                        // npm writes `undefined` for a member without a version — the
+                        // entry then carries no version at all, and a reader has to tell
+                        // that apart from a member at 1.0.0
+                        version: pkg_info.version,
+                        path: pkg_dir,
+                        relative_path: path.relative(root_path, pkg_dir),
+                        package_json: pkg_info
+                    });
                 } catch (e) {
                     console.warn(`[workspaces] Failed to read package.json at ${pkg_json_path}:`, e.message);
                 }
@@ -633,6 +729,11 @@ function add_workspace_packages_to_snapshot(rootsnap, workspace_packages) {
             dev_dep_vs: util.extend({}, pkg.package_json.devDependencies),
             opt_dep_vs: util.extend({}, pkg.package_json.optionalDependencies),
             peer_dep_vs: read_peer_dep_vs(pkg.package_json),
+            // the manifest itself: the lockfile entry of a link target is this
+            // manifest projected (`lockfile.project_manifest`), the way npm derives
+            // it, so a member's dependencies reach the file instead of being left to
+            // the two fields this used to write
+            manifest: pkg.package_json,
             parent: rootsnap,
             workspace_package: true,
             workspace_path: pkg.path,
@@ -1023,6 +1124,9 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
                 dev_dep_vs: util.extend({}, local_pkg_info.devDependencies),
                 opt_dep_vs: util.extend({}, local_pkg_info.optionalDependencies),
                 peer_dep_vs: read_peer_dep_vs(local_pkg_info),
+                // the directory's manifest: the lockfile entry of a link target is
+                // that manifest projected, the way npm writes it
+                manifest: local_pkg_info,
                 node_modules: {},
                 parent: parent,
                 dist: null,
@@ -1093,54 +1197,96 @@ function get_root_snapshot() {
 }
 
 /**
- * @description check if a package's os/cpu constraints match the current platform
+ * @description the libc family this machine runs, the way npm answers it
+ *              (`npm-install-checks/lib/current-env.js`): only Linux is asked, musl
+ *              is recognised by its loader, and anything else is glibc. `undefined`
+ *              means "not knowable here", which is different from glibc: an entry
+ *              that requires a libc at all cannot be satisfied by a machine whose
+ *              libc is unknown
+ */
+function current_libc() {
+    if (process.platform !== 'linux')
+        return undefined;
+
+    // fibjs reports the musl build of its own runtime
+    if (process.versions.musl)
+        return 'musl';
+
+    // `/usr/bin/ldd` is a glibc program; on musl it is a shell script that names the
+    // loader it belongs to
+    try {
+        if (fs.exists('/usr/bin/ldd'))
+            return fs.readTextFile('/usr/bin/ldd').indexOf('musl') > -1 ? 'musl' : 'glibc';
+    } catch (e) {
+        // unreadable: fall through to the loader files
+    }
+
+    // a musl system has a loader under `/lib/ld-musl-*.so.1` and no ld.so.cache
+    try {
+        if (fs.exists('/lib'))
+            return fs.readdir('/lib').some(n => n.indexOf('ld-musl-') === 0) ? 'musl' : 'glibc';
+    } catch (e) {
+        return undefined;
+    }
+
+    return undefined;
+}
+
+/**
+ * @description one `os` / `cpu` / `libc` list, decided the way npm decides it
+ *              (`checkList` in `npm-install-checks`): a negated entry that matches
+ *              fails the whole list, a list of nothing but negated entries passes if
+ *              none of them matched, and a list with positive entries needs one of
+ *              them to match. `any` is everything
+ * @param value what this machine is, or undefined when it is not knowable
+ */
+function check_list(value, list) {
+    if (typeof list === 'string')
+        list = [list];
+
+    if (list.length === 1 && list[0] === 'any')
+        return true;
+
+    let negated = 0;
+    let matched = false;
+
+    for (let i = 0; i < list.length; i++) {
+        const entry = list[i];
+        const negate = String(entry).charAt(0) === '!';
+        const test = negate ? String(entry).slice(1) : String(entry);
+
+        if (negate) {
+            negated++;
+            if (value === test)
+                return false;
+        } else if (value === test) {
+            matched = true;
+        }
+    }
+
+    return matched || negated === list.length;
+}
+
+/**
+ * @description check if a package's os/cpu/libc constraints match this machine. This
+ *              is npm's `checkPlatform` (`npm-install-checks`), including the part
+ *              that matters for a lockfile: an entry that names a libc cannot be
+ *              satisfied by a machine whose libc is not knowable
  */
 function check_platform_match(pkg_info) {
-    var i;
-    var matched;
+    const os = check_list(process.platform, pkg_info.os || []);
+    const cpu = check_list(process.arch, pkg_info.cpu || []);
+    const libc = current_libc();
 
-    // check os
-    if (pkg_info.os && pkg_info.os.length > 0) {
-        matched = false;
-        for (i = 0; i < pkg_info.os.length; i++) {
-            var o = pkg_info.os[i];
-            if (o[0] === '!') {
-                if (o.slice(1) === process.platform) return false;
-                continue;
-            }
-            if (o === process.platform) matched = true;
-        }
-        if (!matched) return false;
-    }
+    let libc_ok = check_list(libc, pkg_info.libc || []);
 
-    // check cpu
-    if (pkg_info.cpu && pkg_info.cpu.length > 0) {
-        matched = false;
-        for (i = 0; i < pkg_info.cpu.length; i++) {
-            if (pkg_info.cpu[i] === process.arch) { matched = true; break; }
-        }
-        if (!matched) return false;
-    }
+    // npm: "if the package asks for a libc and this machine has none, it is not a
+    // match" — `checkList(undefined, ['glibc'])` would otherwise answer false for the
+    // positive list and true for a list of negations, which is not what npm says
+    if (pkg_info.libc && pkg_info.libc.length && !libc)
+        libc_ok = false;
 
-    // check libc (musl)
-    if (pkg_info.libc && pkg_info.libc.length > 0) {
-        var is_musl = !!process.versions.musl;
-        matched = false;
-        for (i = 0; i < pkg_info.libc.length; i++) {
-            var l = pkg_info.libc[i];
-            if (l[0] === '!') {
-                if (l.slice(1) === 'musl' && is_musl) return false;
-                continue;
-            }
-            if ((l === 'musl' && is_musl) || (l === 'glibc' && !is_musl))
-                matched = true;
-            else if (l === process.versions.modules ? 'glibc' : 'unknown')
-                matched = true;
-        }
-        if (!matched) return false;
-    }
-
-    return true;
+    return os && cpu && libc_ok;
 }
 
 const name_maps_installation2pkg = {}
@@ -1443,9 +1589,14 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
             // devDependencies of every member of the project, while a dependency's own
             // devDependencies are never installed
             child.workspace_package === true,
-            // a local package lives outside node_modules, so its own relative
-            // dependencies are resolved against its own directory
-            child.local_path || path.join(base_dir, 'node_modules', k)
+            // a package that lives outside node_modules has its own directory: a local
+            // package says so, and so does a workspace member — whose `file:../x` spec
+            // is relative to `packages/member`, not to the `node_modules/member` the
+            // link sits at. Resolving it against the link looked for
+            // `node_modules/x`, which is how a member's own local dependency came to
+            // "not be found" on a fresh tree (the link only exists once the members
+            // have been materialized)
+            child.local_path || child.workspace_path || path.join(base_dir, 'node_modules', k)
         );
     }
 }
@@ -1935,7 +2086,9 @@ function download_binary_task(mvm) {
             });
             if (binary_r.statusCode !== 200) {
                 console.error('[download] error:', mvm.name, mvm.binary.hosted_tarball, `-> HTTP ${binary_r.statusCode}`);
-                process.exit();
+                fail_download(`${mvm.name}${mvm.version ? '@' + mvm.version : ''} (prebuilt binary)`,
+                    mvm.binary.hosted_tarball, `HTTP ${binary_r.statusCode}`);
+                return;
             }
             binary_tgz = binary_r.bytes();
             binary_r = null;
@@ -1947,7 +2100,9 @@ function download_binary_task(mvm) {
     }
     if (!binary_tgz) {
         console.error('[download] failed:', mvm.name, 'prebuilt binary', mvm.binary.hosted_tarball);
-        process.exit(-1);
+        fail_download(`${mvm.name}${mvm.version ? '@' + mvm.version : ''} (prebuilt binary)`,
+            mvm.binary.hosted_tarball, 'the download kept failing');
+        return;
     }
 
     var tgz = binary_tgz;
@@ -2027,6 +2182,119 @@ function download_manifest_binary(mvm) {
     return true;
 }
 
+/**
+ * @description fetch one tarball into a scratch file, retrying a transport failure.
+ *              A non-200 answer is *not* a transport failure: the registry said no,
+ *              and asking it three times gets the same answer. It is recorded and the
+ *              package left out, so that the run ends with a code and a list instead
+ *              of stopping in the middle of a wave
+ * @returns {null|{ path, digest }} — null when the tarball could not be fetched
+ */
+function fetch_registry_tarball(mvm) {
+    const url = mvm.dist.tarball;
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+        let tgz_path = null;
+
+        try {
+            const r = http_get(url, { headers: mvm.dist.headers || auth_headers_for(url) });
+
+            if (r.statusCode !== 200) {
+                console.error('[download] error:', mvm.name, url, `-> HTTP ${r.statusCode}`);
+                fail_download(`${mvm.name}${mvm.version ? '@' + mvm.version : ''}`, url,
+                    `HTTP ${r.statusCode}`);
+                return null;
+            }
+
+            // straight to the disk, hashed on the way: a big tarball is never read
+            // into memory (see download_to_file)
+            tgz_path = temp_path(mvm);
+
+            return { path: tgz_path, digest: download_to_file(r, tgz_path, mvm.dist) };
+        } catch (e) {
+            remove_temp(tgz_path);
+
+            console.log(e);
+            console.warn(`[download] retry ${attempt + 1}: ${url}`);
+        }
+    }
+
+    console.error('[download] failed:', mvm.name, 'tarball', url);
+    fail_download(`${mvm.name}${mvm.version ? '@' + mvm.version : ''}`, url, 'the download kept failing');
+    return null;
+}
+
+/**
+ * @description fetch a git archive: the same rule as a tarball, a non-200 is final
+ * @returns {null|object} — the opened zip, null when it could not be fetched
+ */
+function fetch_git_archive(mvm, url) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            const r = http_get(url);
+
+            if (r.statusCode !== 200) {
+                console.error('[download] error:', mvm.name, url, `-> HTTP ${r.statusCode}`);
+                fail_download(`${mvm.name}${mvm.version ? '@' + mvm.version : ''}`, url,
+                    `HTTP ${r.statusCode}`);
+                return null;
+            }
+
+            return zip.open(r.bytes());
+        } catch (e) {
+            console.log(e);
+            console.warn(`[download] retry ${attempt + 1}: ${url}`);
+        }
+    }
+
+    console.error('[download] failed:', mvm.name, 'git archive', url);
+    fail_download(`${mvm.name}${mvm.version ? '@' + mvm.version : ''}`, url, 'the download kept failing');
+    return null;
+}
+
+/**
+ * @description unpack a fetched tarball, whose compressed payload is on the disk: only
+ *              the tar has to be in memory
+ */
+function untar_scratch(mvm, tgz) {
+    let tar_path = null;
+
+    try {
+        if (tgz.digest.gzip) {
+            // the compressed payload goes through a scratch file as well
+            tar_path = tgz.path + '.tar';
+            const gz_in = fs.createReadStream(tgz.path);
+            const tar_out = fs.createWriteStream(tar_path);
+
+            try {
+                zlib.gunzipTo(gz_in, tar_out);
+            } finally {
+                gz_in.close();
+                tar_out.close();
+            }
+
+            remove_temp(tgz.path);
+
+            const t = fs.readFile(tar_path);
+
+            remove_temp(tar_path);
+            tar_path = null;
+
+            return untar(t.buffer);
+        }
+
+        const t = fs.readFile(tgz.path);
+
+        remove_temp(tgz.path);
+        tgz.path = null;
+
+        return untar(t.buffer);
+    } finally {
+        remove_temp(tgz.path);
+        remove_temp(tar_path);
+    }
+}
+
 function download_module() {
     // a package's tarball carries copies of the dependencies it bundles
     // (`bundleDependencies`), so unpacking it after those were put in place left
@@ -2069,70 +2337,23 @@ function download_module() {
 
             switch (mvm.pkg_install_typeinfo.type) {
                 case 'registry':
-                    let tgz_path = null;
-                    let tgz_download = null;
-                    for (let _dl = 0; _dl < 3; _dl++) {
-                        try {
-                            var r = http_get(mvm.dist.tarball, {
-                                headers: mvm.dist.headers || auth_headers_for(mvm.dist.tarball)
-                            });
-                            if (r.statusCode !== 200) {
-                                console.error('[download] error:', mvm.name, mvm.dist.tarball, `-> HTTP ${r.statusCode}`);
-                                process.exit();
-                            }
-                            // straight to the disk, hashed on the way: a big tarball
-                            // is never read into memory (see download_to_file)
-                            tgz_path = temp_path(mvm);
-                            tgz_download = download_to_file(r, tgz_path, mvm.dist);
-                            r = null;
-                            break;
-                        } catch (e) {
-                            remove_temp(tgz_path);
-                            tgz_path = null;
-                            tgz_download = null;
-                            console.log(e);
-                            console.warn(`[download] retry ${_dl + 1}: ${mvm.dist.tarball}`);
-                        }
-                    }
-                    if (!tgz_path) {
-                        console.error('[download] failed:', mvm.name, 'tarball', mvm.dist.tarball);
-                        process.exit(-1);
-                    }
+                    var tgz = fetch_registry_tarball(mvm);
+
+                    if (!tgz)
+                        return;
 
                     // the lockfile is what a frozen install trusts: an entry it cannot
                     // verify is refused (the resolve path only warns, npm does not
                     // verify at all there)
-                    if (!verify_digest(tgz_download.digest, mvm, mvm.frozen === true)) {
-                        remove_temp(tgz_path);
+                    if (!verify_digest(tgz.digest.digest, mvm, mvm.frozen === true)) {
+                        remove_temp(tgz.path);
                         console.error('[download] failed:', mvm.name, 'tarball', mvm.dist.tarball);
-                        process.exit(-1);
+                        fail_download(`${mvm.name}${mvm.version ? '@' + mvm.version : ''}`,
+                            mvm.dist.tarball, 'the tarball does not match the lockfile');
+                        return;
                     }
 
-                    let t;
-                    if (tgz_download.gzip) {
-                        // only the unpacked tar has to be in memory: the compressed
-                        // payload goes through a scratch file as well
-                        const tar_path = tgz_path + '.tar';
-                        const gz_in = fs.createReadStream(tgz_path);
-                        const tar_out = fs.createWriteStream(tar_path);
-
-                        try {
-                            zlib.gunzipTo(gz_in, tar_out);
-                        } finally {
-                            gz_in.close();
-                            tar_out.close();
-                        }
-
-                        remove_temp(tgz_path);
-                        t = fs.readFile(tar_path);
-                        remove_temp(tar_path);
-                    } else {
-                        t = fs.readFile(tgz_path);
-                        remove_temp(tgz_path);
-                    }
-
-                    const untar_files = untar(t.buffer);
-
+                    const untar_files = untar_scratch(mvm, tgz);
 
                     // most package from registry is archived with root directory `package`
                     archive_root_name = find_tar_home(untar_files);
@@ -2169,29 +2390,11 @@ function download_module() {
                     break
                 case 'git':
                     const git_archive_url = helpers_pkg.get_git_archive_url(mvm.pkg_install_typeinfo);
-                    var git_r;
-                    var git_zip_file;
-                    for (let _dl = 0; _dl < 3; _dl++) {
-                        try {
-                            git_r = http_get(git_archive_url);
-                            if (git_r.statusCode !== 200) {
-                                console.error('[download] error:', mvm.name, git_archive_url, `-> HTTP ${git_r.statusCode}`);
-                                process.exit();
-                            }
-                            git_zip_file = zip.open(git_r.bytes());
-                            git_r = null;
-                            break;
-                        } catch (e) {
-                            console.log(e);
-                            console.warn(`[download] retry ${_dl + 1}: ${git_archive_url}`);
-                            git_r = null;
-                            git_zip_file = null;
-                        }
-                    }
-                    if (!git_zip_file) {
-                        console.error('[download] failed:', mvm.name, 'git archive', git_archive_url);
-                        process.exit(-1);
-                    }
+                    const git_zip_file = fetch_git_archive(mvm, git_archive_url);
+
+                    if (!git_zip_file)
+                        return;
+
                     const namelist = git_zip_file.namelist();
 
                     archive_root_name = `${mvm.pkg_install_typeinfo.git_basename}-${mvm.pkg_install_typeinfo.git_reference}`;
@@ -2259,6 +2462,10 @@ function download_module() {
         if (waves[d])
             download_wave(waves[d]);
     }
+
+    // every wave has run: what could not be fetched is named now, and the run ends
+    // with a failure instead of leaving the tree half built and claiming success
+    throw_download_failures('download');
 }
 
 /**
@@ -2301,70 +2508,23 @@ function download_one(mkey) {
 
     switch (mvm.pkg_install_typeinfo.type) {
         case 'registry':
-            let tgz_path = null;
-            let tgz_download = null;
-            for (let _dl = 0; _dl < 3; _dl++) {
-                try {
-                    var r = http_get(mvm.dist.tarball, {
-                        headers: mvm.dist.headers || auth_headers_for(mvm.dist.tarball)
-                    });
-                    if (r.statusCode !== 200) {
-                        console.error('[download] error:', mvm.name, mvm.dist.tarball, `-> HTTP ${r.statusCode}`);
-                        process.exit();
-                    }
-                    // straight to the disk, hashed on the way: a big tarball
-                    // is never read into memory (see download_to_file)
-                    tgz_path = temp_path(mvm);
-                    tgz_download = download_to_file(r, tgz_path, mvm.dist);
-                    r = null;
-                    break;
-                } catch (e) {
-                    remove_temp(tgz_path);
-                    tgz_path = null;
-                    tgz_download = null;
-                    console.log(e);
-                    console.warn(`[download] retry ${_dl + 1}: ${mvm.dist.tarball}`);
-                }
-            }
-            if (!tgz_path) {
-                console.error('[download] failed:', mvm.name, 'tarball', mvm.dist.tarball);
-                process.exit(-1);
-            }
+            var tgz = fetch_registry_tarball(mvm);
+
+            if (!tgz)
+                return;
 
             // the lockfile is what a frozen install trusts: an entry it cannot
             // verify is refused (the resolve path only warns, npm does not
             // verify at all there)
-            if (!verify_digest(tgz_download.digest, mvm, mvm.frozen === true)) {
-                remove_temp(tgz_path);
+            if (!verify_digest(tgz.digest.digest, mvm, mvm.frozen === true)) {
+                remove_temp(tgz.path);
                 console.error('[download] failed:', mvm.name, 'tarball', mvm.dist.tarball);
-                process.exit(-1);
+                fail_download(`${mvm.name}${mvm.version ? '@' + mvm.version : ''}`,
+                    mvm.dist.tarball, 'the tarball does not match the lockfile');
+                return;
             }
 
-            let t;
-            if (tgz_download.gzip) {
-                // only the unpacked tar has to be in memory: the compressed
-                // payload goes through a scratch file as well
-                const tar_path = tgz_path + '.tar';
-                const gz_in = fs.createReadStream(tgz_path);
-                const tar_out = fs.createWriteStream(tar_path);
-
-                try {
-                    zlib.gunzipTo(gz_in, tar_out);
-                } finally {
-                    gz_in.close();
-                    tar_out.close();
-                }
-
-                remove_temp(tgz_path);
-                t = fs.readFile(tar_path);
-                remove_temp(tar_path);
-            } else {
-                t = fs.readFile(tgz_path);
-                remove_temp(tgz_path);
-            }
-
-            const untar_files = untar(t.buffer);
-
+            const untar_files = untar_scratch(mvm, tgz);
 
             // most package from registry is archived with root directory `package`
             archive_root_name = find_tar_home(untar_files);
@@ -2391,29 +2551,11 @@ function download_one(mkey) {
             break
         case 'git':
             const git_archive_url = helpers_pkg.get_git_archive_url(mvm.pkg_install_typeinfo);
-            var git_r;
-            var git_zip_file;
-            for (let _dl = 0; _dl < 3; _dl++) {
-                try {
-                    git_r = http_get(git_archive_url);
-                    if (git_r.statusCode !== 200) {
-                        console.error('[download] error:', mvm.name, git_archive_url, `-> HTTP ${git_r.statusCode}`);
-                        process.exit();
-                    }
-                    git_zip_file = zip.open(git_r.bytes());
-                    git_r = null;
-                    break;
-                } catch (e) {
-                    console.log(e);
-                    console.warn(`[download] retry ${_dl + 1}: ${git_archive_url}`);
-                    git_r = null;
-                    git_zip_file = null;
-                }
-            }
-            if (!git_zip_file) {
-                console.error('[download] failed:', mvm.name, 'git archive', git_archive_url);
-                process.exit(-1);
-            }
+            const git_zip_file = fetch_git_archive(mvm, git_archive_url);
+
+            if (!git_zip_file)
+                return;
+
             const namelist = git_zip_file.namelist();
 
             archive_root_name = `${mvm.pkg_install_typeinfo.git_basename}-${mvm.pkg_install_typeinfo.git_reference}`;
@@ -3055,6 +3197,66 @@ function print_sync_errors(lock, sync) {
 }
 
 /**
+ * @description the packages a lockfile's own link entries provide, by the name the
+ *              package goes by. An ordinary entry for one of those names is not a
+ *              second copy of it: it is the debris of an installer that described a
+ *              linked directory as a registry package. Installing one asked a
+ *              registry for a tarball nobody published (`@scope/member`, 404), and
+ *              the file came to describe two different things at one name
+ * @returns { [name]: { path, version } } — the link entry that provides it
+ */
+function linked_names(packages) {
+    const names = {};
+
+    Object.keys(packages).forEach(p => {
+        const entry = packages[p];
+
+        if (!entry.link)
+            return;
+
+        const installed_as = lockfile.name_from_path(p) || entry.name;
+
+        names[installed_as] = { path: p, target: entry.resolved, version: entry.version };
+
+        // a member's entry names the package when the directory does not: the link
+        // sits at `node_modules/@scope/member` while the package it points at says
+        // `@scope/member`, and the directory is called `member`
+        const target = packages[entry.resolved];
+
+        if (target) {
+            if (target.version !== undefined)
+                names[installed_as].version = target.version;
+            if (target.name)
+                names[target.name] = names[installed_as];
+        }
+    });
+
+    return names;
+}
+
+/**
+ * @description is that entry the debris described above? It is an ordinary entry
+ *              that carries no source of its own, the package it claims to be is one
+ *              the workspace installs as a link, and it is not the directory that link
+ *              points at (that entry describes the package itself, and npm writes it)
+ */
+function superseded_by_link(p, entry, links) {
+    // the directory a link points at is a target, not an installation of its own
+    if (entry.target_only)
+        return false;
+
+    if (entry.link || entry.in_bundle || entry.resolved || entry.integrity)
+        return false;
+
+    // the name it goes by: its own where npm wrote one (an alias, or a member the
+    // directory does not name), the leaf of its path otherwise
+    const claimed = [lockfile.name_from_path(p), entry.name];
+    const link = claimed.map(name => (name && links[name]) || null).filter(Boolean)[0];
+
+    return !!link && link.path !== p && link.target !== p;
+}
+
+/**
  * @description is that path already what the lockfile asks for? A lock-first
  *              install keeps what is on disk and fills the gaps the way npm's reify
  *              does — emptying node_modules is what `npm ci` is for
@@ -3088,31 +3290,138 @@ function lock_entry_satisfied(root, p, entry) {
 }
 
 /**
+ * @description the hints the tree on disk cannot carry: `resolved` and `integrity`
+ *              live in the manifest of nobody. npm keeps them in
+ *              `node_modules/.package-lock.json`, which is exactly the question
+ *              "where did the copies that are here come from?" — and without it an
+ *              install that describes a tree it found on disk can only record the
+ *              version, which a later `--ci` refuses and a reader cannot verify.
+ *              The file is a cache and is treated like one: a version that disagrees
+ *              with the directory is an old note about another tree and is ignored
+ */
+function read_hidden_sources() {
+    if (ctx.hidden_sources)
+        return ctx.hidden_sources;
+
+    const sources = lockfile.read_hidden_lock(process.cwd());
+
+    // the paths in there are relative to the project, like ours: a nesting keeps the
+    // same two separators apart in both
+    ctx.hidden_sources = sources;
+
+    return sources;
+}
+
+/**
+ * @description the source a node's copy came from, when only the hidden lockfile
+ *              knows it. The version has to agree: the record describes the tree that
+ *              was installed when it was written
+ */
+function hidden_source(node, p, version) {
+    const sources = read_hidden_sources();
+    const found = sources[p];
+
+    if (!found || found.version !== version)
+        return null;
+
+    return found;
+}
+
+/**
  * @description node_modules/.package-lock.json is npm's note of what it installed.
  *              The installer changes node_modules, so whatever is in there is stale
  *              now: npm has checks for that, but removing it cannot hurt
  */
 function remove_hidden_lock(root) {
-    const p = path.join(root, 'node_modules', '.package-lock.json');
+    const p = lockfile.hidden_lock_path(root);
 
     if (fs.exists(p)) {
-        remove_path(p);
+        lockfile.remove_hidden_lock(root);
         install_log('remove stale node_modules/.package-lock.json');
     }
 }
 
 /**
- * @description install exactly what the lockfile describes: the `packages` path
- *              table *is* the final node_modules layout, so nothing is resolved,
- *              hoisted or moved and the tree has npm's shape by construction
- * @param opts { registry, strict_integrity, incremental }
+ * @description write the note npm writes, so that the next install — and npm itself —
+ *              can tell where the copies on disk came from. It is written once the
+ *              tree is final, because it is a claim about the disk
+ * @param packages the path table of what is installed, in the `tree_entry` shape
  */
-function install_from_lock(lock, opts) {
+function write_hidden_lock(root, packages) {
+    const indent = lockfile.detect_indent(
+        fs.exists(path.join(root, 'package.json')) ? fs.readTextFile(path.join(root, 'package.json')) : ''
+    );
+
+    lockfile.write_hidden_lock(root, rootsnap.pkgjson.name, rootsnap.pkgjson.version, packages, indent);
+}
+
+/**
+ * @description the entries of the tree a lock install left, in the shape the hidden
+ *              lockfile is written from: the lockfile's own path table minus a copy a
+ *              parent's tarball ships (it is on disk inside its parent, not as an
+ *              installation of its own, and npm's hidden lockfile leaves those out).
+ *              Everything else is in the table because it is on the disk — the plan
+ *              already dropped what `omit` or the platform kept out
+ */
+function hidden_tree_entries(lock, work) {
+    const entries = {};
+
+    Object.keys(work.packages).forEach(p => {
+        const entry = work.packages[p];
+
+        if (p === '' || entry.in_bundle)
+            return;
+
+        entries[p] = {
+            name: entry.name,
+            version: entry.version,
+            resolved: entry.resolved,
+            integrity: entry.integrity,
+            link: entry.link,
+            dev: entry.dev,
+            optional: entry.optional,
+            dev_optional: entry.dev_optional,
+            bundle_dependencies: entry.bundle_dependencies,
+            dependencies: entry.dependencies,
+            optionalDependencies: entry.optionalDependencies,
+            peerDependencies: entry.peerDependencies,
+            peerDependenciesMeta: entry.peerDependenciesMeta,
+            funding: entry.funding,
+            engines: entry.engines,
+            os: entry.os,
+            cpu: entry.cpu,
+            libc: entry.libc,
+            license: entry.license,
+            has_install_script: entry.has_install_script,
+            bin: entry.bin,
+            local_path: entry.link ? path.resolve(process.cwd(), entry.resolved || '') : undefined,
+        };
+    });
+
+    return entries;
+}
+
+/**
+ * @description work out what a lockfile asks for, without touching the disk. The
+ *              `packages` path table *is* the final node_modules layout, so nothing is
+ *              resolved, hoisted or moved and the tree has npm's shape by construction
+ *
+ *              This is separate from `apply_lock_plan()` on purpose: a frozen install
+ *              validates the whole plan — a missing source, an entry the lockfile
+ *              cannot vouch for — *before* it empties node_modules. Clearing first and
+ *              discovering the problem while downloading is what left a project with
+ *              neither its old tree nor the new one
+ * @param opts { registry, strict_integrity, incremental }
+ * @returns { plan, installed, packages, graph, git_entries, refused }
+ *          `refused` is what cannot be installed and why (empty when all is well)
+ */
+function plan_lock_install(lock, opts) {
     const o = opts || {};
     const packages = lockfile.to_path_map(lock);
     const root = process.cwd();
     const git_entries = [];
     const installed = [];
+    const refused = [];
     const plan = { registry: 0, link: 0, git: 0, skipped: 0, kept: 0, bundled: 0 };
 
     // what the lockfile's own edges say about the kind of edge that reaches an entry.
@@ -3126,12 +3435,27 @@ function install_from_lock(lock, opts) {
             .map(w => ({ path: w.relative_path, pkgjson: w.package_json })),
     });
 
+    // what the file's own links provide: an ordinary entry for the same name is the
+    // debris of an older installer, not a package to fetch
+    const links = linked_names(packages);
+
     Object.keys(packages).forEach(p => {
         const entry = packages[p];
 
         // a link target is not installed on its own
         if (entry.target_only)
             return;
+
+        // a workspace member is a link, and an ordinary entry for the same name is
+        // not a second installation of it (see `superseded_by_link`)
+        if (superseded_by_link(p, entry, links)) {
+            plan.superseded = (plan.superseded || 0) + 1;
+
+            if (ctx.verbose)
+                install_log('skip (the lockfile links that name):', p);
+
+            return;
+        }
 
         // a copy the parent's tarball carries arrives with it: npm does not install
         // one of those on its own, and a lockfile records them with no source
@@ -3206,9 +3530,36 @@ function install_from_lock(lock, opts) {
             return;
         }
 
+        // a registry entry without a version cannot be turned into a url at all. Every
+        // other check happens on the tarball, which is one round trip away; this one is
+        // visible in the file, so it is caught before anything is touched
+        if (!entry.version || !/^\d/.test(String(entry.version))) {
+            refused.push({
+                path: p,
+                name: entry.name,
+                version: entry.version,
+                why: 'the lockfile entry has no version to install',
+            });
+            return;
+        }
+
         const tarball = entry.resolved
             ? lockfile.apply_registry_replace(entry.resolved, o.registry, o.registry_policy)
             : default_tarball_url(o.registry, entry);
+
+        // the frozen install refuses an entry it cannot verify, and it has to say so
+        // before node_modules is emptied rather than half way through the downloads
+        if (o.strict_integrity && !entry.integrity) {
+            refused.push({
+                path: p,
+                name: entry.name,
+                version: entry.version,
+                url: tarball,
+                unsigned: true,
+                why: 'the lockfile carries no integrity for it',
+            });
+            return;
+        }
 
         // one task per path, not per name@version: two entries can share a name and
         // a version and still land in different directories
@@ -3236,16 +3587,70 @@ function install_from_lock(lock, opts) {
         installed.push(p);
     });
 
+    return {
+        plan: plan, installed: installed, packages: packages, graph: graph,
+        git_entries: git_entries, refused: refused,
+    };
+}
+
+/**
+ * @description the entries a frozen install cannot put in place, in npm's words. npm
+ *              has no such check (it trusts whatever the lockfile says and fails on the
+ *              download); this answers it from the file, so the answer arrives before
+ *              anything on the disk changes
+ */
+function report_refused_entries(refused) {
+    if (!refused.length)
+        return 0;
+
+    console.error(`[install] ${refused.length} lockfile entr${refused.length === 1 ? 'y' : 'ies'} ` +
+        `cannot be installed as it stands:`);
+    (ctx.verbose ? refused : refused.slice(0, 20)).forEach(e => {
+        console.error(`  ${e.name}${e.version ? '@' + e.version : ''} (${e.path})`);
+        console.error(`    ${e.why}`);
+        if (e.url)
+            console.error(`    ${e.url}`);
+    });
+
+    if (!ctx.verbose && refused.length > 20)
+        console.error(`  … and ${refused.length - 20} more (--verbose lists them all)`);
+
+    // the way out depends on what is wrong: a digest nobody wrote needs a flag, a
+    // field nobody wrote needs a lockfile
+    if (refused.every(e => e.unsigned))
+        console.error('  pass --no-strict-integrity to install an entry no digest can be checked against');
+    else
+        console.error('  `fibjs --install` resolves the entries an older lockfile left without a version');
+
+    console.error('  node_modules was left as it was');
+
+    return refused.length;
+}
+
+/**
+ * @description put the plan on the disk
+ */
+function apply_lock_plan(work, lock) {
+    const plan = work.plan;
+
     install_log(`[install] lockfile: ${plan.registry} registry, ${plan.link} link, ${plan.git} git` +
         (plan.skipped ? `, ${plan.skipped} skipped for this platform` : '') +
         (plan.bundled ? `, ${plan.bundled} shipped inside a parent` : '') +
         (plan.kept ? `, ${plan.kept} already in place` : ''));
 
     download_module();
-    install_git_entries(git_entries);
-    install_lock_binaries(lock, root, installed);
+    install_git_entries(work.git_entries);
+    install_lock_binaries(lock, process.cwd(), work.installed);
 
-    return { plan: plan, installed: installed, packages: packages, graph: graph };
+    return work;
+}
+
+/**
+ * @description install exactly what the lockfile describes (plan, then apply)
+ * @param opts { registry, strict_integrity, incremental }
+ */
+function install_from_lock(lock, opts) {
+    return apply_lock_plan(plan_lock_install(lock, opts), lock);
 }
 
 /**
@@ -3451,6 +3856,33 @@ function tree_entry(node, p) {
         return has(src) ? src : undefined;
     };
 
+    // a package this run fetched knows its source from the registry response. One it
+    // found on disk does not — the directory carries a version and nothing else —
+    // and an entry with a version but no source is one a frozen install refuses and
+    // nobody can verify. npm answers the question from two places this reads as well:
+    // the hidden lockfile it keeps inside node_modules, and the `_resolved` /
+    // `_integrity` fields npm 6 left in installed manifests
+    let resolved = local ? undefined : (node.dist && node.dist.tarball);
+    let integrity = local ? undefined : (node.dist && node.dist.integrity);
+
+    if (!local && !node.in_bundle && (!resolved || !integrity)) {
+        const hint = hidden_source(node, p, node.version);
+
+        if (hint) {
+            resolved = resolved || hint.resolved;
+            integrity = integrity || hint.integrity;
+        }
+
+        const manifest = node.manifest;
+
+        if (manifest) {
+            if (!resolved && typeof manifest._resolved === 'string')
+                resolved = manifest._resolved;
+            if (!integrity && typeof manifest._integrity === 'string')
+                integrity = manifest._integrity;
+        }
+    }
+
     return {
         // npm writes `name` only where the directory and the package disagree, which is
         // how an alias is recorded (`node_modules/string-width-cjs` holding
@@ -3460,10 +3892,14 @@ function tree_entry(node, p) {
         // a copy that came inside a parent's tarball has no source of its own
         in_bundle: node.in_bundle === true,
         bundle_dependencies: node.bundle_list,
-        resolved: local ? undefined : (node.dist && node.dist.tarball),
-        integrity: local ? undefined : (node.dist && node.dist.integrity),
+        resolved: resolved,
+        integrity: integrity,
         link: local ? true : undefined,
         local_path: local ? (node.local_path || node.workspace_path) : undefined,
+        // the manifest of the directory a link points at: its entry in the lockfile
+        // is that manifest projected, the way npm writes it (a member's dependencies
+        // are read from there by every consumer of the file)
+        manifest: local ? node.manifest : undefined,
         dev: node.dev_only === true,
         optional: node.optional_only === true,
         // npm writes the overlap of the two trees as `dev` plus `optional`, and the
@@ -3486,9 +3922,10 @@ function tree_entry(node, p) {
 }
 
 /**
- * @description the installed tree as a path table. `dev` / `optional` come from
- *              `mark_reachability()`, the same answer npm's ideal tree gives and the
- *              one `npm ci --omit=dev` depends on
+ * @description the entries of the tree as a path table, with the ones a link
+ *              supersedes left out — the same rule `plan_lock_install` applies, so
+ *              that what the write back produces is what an install of the file
+ *              would put on the disk
  */
 function tree_to_path_map(rootsnap, root) {
     const paths = {};
@@ -3567,6 +4004,11 @@ function sync_lock_flags(lock, packages, graph) {
         if (!raw)
             return;
 
+        // npm keeps a link entry to `{ resolved, link }`: the flags belong to the
+        // directory it points at (`calc-dep-flags` copies them onto the target node)
+        if (raw.link === true)
+            return;
+
         // npm's answer for the overlap of the two trees: `devOptional` only where
         // neither `dev` nor `optional` is set
         const want = [];
@@ -3605,6 +4047,221 @@ function sync_lock_flags(lock, packages, graph) {
 }
 
 /**
+ * @description drop the entries an older install left beside a link that provides the
+ *              same package (see `superseded_by_link`). npm does not: it reads such a
+ *              file as "this package is here *and* is a link", and the frozen install
+ *              fails asking a registry for a member nobody published. The entry is a
+ *              description of a tree that never existed, so the file is put right
+ * @returns the number of entries dropped
+ */
+function drop_superseded_entries(lock) {
+    if (!lock || !lock.raw || !lock.raw.packages)
+        return 0;
+
+    const packages = lockfile.to_path_map(lock);
+    const links = linked_names(packages);
+    const dropped = [];
+
+    Object.keys(lock.raw.packages).forEach(p => {
+        const raw = lock.raw.packages[p];
+
+        if (!raw || p === '')
+            return;
+
+        const entry = packages[p];
+
+        if (!entry || !superseded_by_link(p, entry, links))
+            return;
+
+        if (lock.raw.dependencies)
+            delete lock.raw.dependencies[p.replace(/^node_modules\//, '')];
+
+        delete lock.raw.packages[p];
+        dropped.push(p);
+    });
+
+    if (!dropped.length)
+        return 0;
+
+    const file = path.join(process.cwd(), lock.filename);
+    const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
+
+    lockfile.write_lockfile(file, lock.raw, indent);
+    install_log(`update: ${lock.filename} (${dropped.length} ` +
+        `${dropped.length === 1 ? 'entry describes' : 'entries describe'} a package the workspace links: ` +
+        `${dropped.slice(0, 3).join(', ')}${dropped.length > 3 ? ', …' : ''})`);
+
+    return dropped.length;
+}
+
+/**
+ * @description the source a registry entry that has none is published at: `resolved`
+ *              and `integrity` from the registry metadata of exactly that version. A
+ *              package found on disk carries a version and a manifest and nothing
+ *              else, and an entry with a version but no source is one this
+ *              installer's own `--ci` refuses (and npm cannot verify) — writing one is
+ *              how a lockfile came to be refused by the tool that had just produced it
+ * @returns { resolved, integrity } | null — null when the registry has no such version
+ */
+function registry_source(entry) {
+    const name = entry.real_name || entry.name;
+    const registry_url = `${registry_for_package(name)}${encodeURIComponent(name)}`;
+    let info = pkg_registrytype_module_infos[name];
+
+    if (info === undefined) {
+        try {
+            const res = http_get(registry_url, {
+                quit_if_error: false,
+                headers: auth_headers_for(registry_url),
+            });
+
+            if (!res || res.statusCode !== 200)
+                return null;
+
+            info = JSON.parse(res.text());
+
+            if (!info || !info.versions)
+                return null;
+
+            pkg_registrytype_module_infos[name] = info;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    const meta = info.versions && info.versions[entry.version];
+
+    if (!meta || !meta.dist)
+        return null;
+
+    const tarball = meta.dist.tarball;
+
+    if (!tarball)
+        return null;
+
+    return {
+        resolved: tarball,
+        integrity: meta.dist.integrity || null,
+        shasum: meta.dist.shasum || null,
+    };
+}
+
+/**
+ * @description give every registry entry the lockfile describes a source. An entry
+ *              whose bytes nobody can name is not a lockfile entry: `--ci` refuses it,
+ *              npm rewrites the file to add one, and a reader cannot verify what it
+ *              installs. The write back ran on a tree that came from the disk — the
+ *              versions are known, the sources are not — so this is where they are
+ *              completed
+ * @returns the number of entries that gained a source, and how many could not
+ */
+function complete_lock_sources(lock) {
+    if (!lock || !lock.raw || !lock.raw.packages)
+        return { filled: 0, missing: [] };
+
+    let filled = 0;
+    const missing = [];
+
+    // the entries to look up, one per package: a big project has thousands of them,
+    // and a registry round trip each, one after another, is minutes of waiting
+    const wanted = {};
+
+    Object.keys(lock.raw.packages).forEach(p => {
+        const e = lock.raw.packages[p];
+
+        // only a package that installs into node_modules has a source: the entry of
+        // the directory a link points at carries none by nature, and neither does a
+        // copy a package ships inside its own tarball (npm records those with
+        // `inBundle`), nor a git entry (its `resolved` is the repository). A member's
+        // own nested copy (`packages/member/node_modules/x`) is an installation like
+        // any other
+        if (!lockfile.name_from_path(p))
+            return;
+        if (e.link || e.inBundle)
+            return;
+        if (e.resolved && e.integrity)
+            return;
+        if (!e.version || !/^\d/.test(String(e.version)))
+            return;
+
+        const name = lockfile.name_from_path(p) || e.name;
+
+        (wanted[name] = wanted[name] || []).push({ path: p, entry: e });
+    });
+
+    const names = Object.keys(wanted);
+    const looked_up = {};
+
+    if (names.length) {
+        // `fetch_leveled_module_info` already asks a registry once per name and
+        // caches the answer there; this is the same cache, filled in parallel
+        coroutine.parallel(names, name => {
+            looked_up[name] = registry_source({
+                name: name,
+                real_name: wanted[name][0].entry.name,
+                version: wanted[name][0].entry.version,
+            });
+        }, CST.DEFAULT_FIBERS);
+
+        // a name can appear at several versions (`node_modules/a/node_modules/b`);
+        // the answer above is for the first, and the rest are asked for on their own
+        Object.keys(wanted).forEach(name => {
+            wanted[name].forEach(item => {
+                if (item.entry.version === wanted[name][0].entry.version)
+                    return;
+
+                if (!item.entry.resolved)
+                    looked_up[name + '@' + item.entry.version] = registry_source({
+                        name: name,
+                        real_name: item.entry.name,
+                        version: item.entry.version,
+                    });
+            });
+        });
+    }
+
+    Object.keys(wanted).forEach(name => {
+        wanted[name].forEach(item => {
+            const e = item.entry;
+            const source = e.version === wanted[name][0].entry.version
+                ? looked_up[name]
+                : looked_up[name + '@' + e.version];
+
+            if (!source) {
+                // an entry that has a source already is only missing its digest: it
+                // can still be installed, unverified, so it is not a hole in the file
+                if (!e.resolved)
+                    missing.push(item.path);
+                return;
+            }
+
+            e.resolved = source.resolved || e.resolved;
+
+            // npm's own answer when it only has `dist.shasum`: a sha1 digest, which
+            // is weaker than the sha512 registries publish but is a check where there
+            // was none
+            if (source.integrity)
+                e.integrity = source.integrity;
+            else if (source.shasum)
+                e.integrity = `sha1-${source.shasum}`;
+
+            filled++;
+        });
+    });
+
+    if (filled) {
+        const file = path.join(process.cwd(), lock.filename);
+        const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
+
+        lockfile.write_lockfile(file, lock.raw, indent);
+        install_log(`update: ${lock.filename} (${filled} ${filled === 1 ? 'entry gained' : 'entries gained'} ` +
+            'the source it was installed from)');
+    }
+
+    return { filled: filled, missing: missing };
+}
+
+/**
  * @description the lockfile the installed tree describes, with the smallest change
  *              against the one that was read
  * @returns { file, lock, kept, indent } | null when there is no package.json
@@ -3618,6 +4275,18 @@ function build_lockfile(lock, rootsnap) {
 
     const raw = fs.readTextFile(pkgjson_file);
     const paths = tree_to_path_map(rootsnap, root);
+
+    // an ordinary entry beside a link that provides the same name is debris from an
+    // older installer: it describes a registry package where the workspace links a
+    // member, and it is not on the disk. Writing it back would keep asking a registry
+    // for something nobody published, so the entry goes
+    const links = linked_names(paths);
+
+    Object.keys(paths).forEach(p => {
+        if (superseded_by_link(p, paths[p], links))
+            delete paths[p];
+    });
+
     const built = lockfile.to_lock(paths, rootsnap.pkgjson, {
         previous: lock,
         root: root,
@@ -3648,25 +4317,18 @@ function write_back_lockfile(lock, rootsnap) {
 
     lockfile.write_lockfile(built.file, built.lock, built.indent);
 
-    // a registry entry without a source cannot be verified later: `--ci` refuses
-    // it, so say so now instead of letting the next frozen install fail. It happens
-    // when the tree holds a package no lockfile ever described (installed by hand,
-    // or left over from one written before the lockfile existed)
-    const unsourced = Object.keys(built.lock.packages).filter(p => {
-        const e = built.lock.packages[p];
+    // a registry entry without a source cannot be verified later: `--ci` refuses it,
+    // and npm cannot check what it installs. The tree it was written from came from
+    // the disk, where a version is all there is — so the source is asked for once,
+    // from the registry of that exact version
+    const completed = complete_lock_sources(lockfile.read_lockfile(process.cwd()));
 
-        // only a package that installs into node_modules needs a source: the entry of
-        // the directory a link points at carries none by nature, and neither does a
-        // copy a package ships inside its own tarball (npm records those with
-        // `inBundle`)
-        return p.indexOf('node_modules/') === 0 && !e.link && !e.inBundle && !e.resolved && !e.integrity &&
-            e.version && /^\d/.test(String(e.version));
-    });
-
-    if (unsourced.length)
-        console.warn(`[install] ${unsourced.length} lockfile entr${unsourced.length === 1 ? 'y has' : 'ies have'} no ` +
-            `source (${unsourced.slice(0, 3).join(', ')}${unsourced.length > 3 ? ', …' : ''}): ` +
-            '`--ci` will refuse them; `fibjs --install --update` fetches them again');
+    if (completed.missing.length)
+        console.warn(`[install] ${completed.missing.length} lockfile ` +
+            `entr${completed.missing.length === 1 ? 'y has' : 'ies have'} no source ` +
+            `(${completed.missing.slice(0, 3).join(', ')}${completed.missing.length > 3 ? ', …' : ''}): ` +
+            'the registry does not describe them, so `--ci` will refuse the file — ' +
+            '`fibjs --install --update` resolves them again');
 
     install_log(`write: ${path.basename(built.file)}` +
         ` (${Object.keys(built.lock.packages).length - 1} packages)` +
@@ -4020,6 +4682,11 @@ if (args.flags.save) {
 
 const rootsnap = get_root_snapshot();
 
+// where the copies on disk came from, before anything is installed or removed: an
+// install that describes a tree it found can only know the version from the
+// directory, and this is the note npm leaves for exactly that question
+read_hidden_sources();
+
 if (!pkgjson_path_specified) {
     // when specified new_pkgname, install it only
     ctx.new_pkgname = args.positionals[0];
@@ -4100,6 +4767,24 @@ if (args.flags.frozen) {
     // disk, and `--legacy-peer-deps` is how npm is told to install it anyway
     report_unmet_peers(lock, !args.flags.no_strict_peer);
 
+    // what the lockfile asks for is worked out *before* node_modules is emptied: an
+    // entry that cannot be installed — no version, no digest to check the tarball
+    // against — is a property of the file, not of the network, and finding it half
+    // way through the downloads is how a frozen install left a project with neither
+    // its old tree nor a new one. It is also what `--dry-run` has to answer: a check
+    // that reports a clean file while the install of that same file refuses it is a
+    // check nobody can trust
+    const work = plan_lock_install(lock, {
+        registry: ctx.registry,
+        strict_integrity: !args.flags.no_strict_integrity,
+        omit: ctx.omit,
+    });
+
+    if (work.refused.length) {
+        report_refused_entries(work.refused);
+        process.exit(1);
+    }
+
     if (args.flags.dry_run) {
         install_log('[install] --dry-run: nothing was written');
         process.exit(0);
@@ -4116,11 +4801,11 @@ if (args.flags.frozen) {
     // the members are links at the root, recreated after the directory was emptied
     link_workspace_packages();
 
-    install_from_lock(lock, {
-        registry: ctx.registry,
-        strict_integrity: !args.flags.no_strict_integrity,
-        omit: ctx.omit,
-    });
+    apply_lock_plan(work, lock);
+
+    // the note npm keeps for the tree it installed. `npm ci` writes it too, and
+    // without it the next install has no source for anything it finds on disk
+    write_hidden_lock(process.cwd(), hidden_tree_entries(lock, work));
 
     if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS) {
         install_log('\nrun lifecycle scripts...');
@@ -4151,6 +4836,13 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
         report_unmet_peers(lock, false);
 
         if (args.flags.lockfile_only || args.flags.dry_run) {
+            // the file is already the plan; the entries it leaves without a source are
+            // still a hole, and this is the last chance to say so — or to fill them
+            if (!args.flags.dry_run) {
+                drop_superseded_entries(lock);
+                complete_lock_sources(lockfile.read_lockfile(process.cwd()));
+            }
+
             install_log('[install] the lockfile is already what package.json asks for, nothing to write');
             process.exit(0);
         }
@@ -4177,6 +4869,8 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
 
         sync_lock_root(lock);
         sync_lock_flags(lock, result.packages, result.graph);
+        drop_superseded_entries(lock);
+        complete_lock_sources(lockfile.read_lockfile(process.cwd()));
         remove_hidden_lock(process.cwd());
         process.exit(0);
     }
@@ -4357,23 +5051,31 @@ mark_reachability(rootsnap);
 // exception: it resolves — and therefore installs — only that package, so the tree
 // it builds is not the whole project and a lockfile written from it would be missing
 // everything else (npm re-resolves the whole project here instead)
+let written_lock = null;
+
 if (!args.flags.no_package_lock && !ctx.new_pkgname) {
-    write_back_lockfile(lock, rootsnap);
+    const built = write_back_lockfile(lock, rootsnap);
 
     // what one run leaves has to be what the lockfile it just wrote describes: a
     // path whose copy on disk is not that version is put in place now, instead of
     // being left to the next install (or to `--ci`) to repair
     converge_with_lockfile(process.cwd());
 
-    const written = lockfile.read_lockfile(process.cwd());
+    written_lock = lockfile.read_lockfile(process.cwd());
 
-    if (written)
-        report_unmet_peers(written, false);
+    if (written_lock)
+        report_unmet_peers(written_lock, false);
 } else if (ctx.new_pkgname && !args.flags.no_package_lock) {
     console.warn('[install] the lockfile was left alone: run `fibjs --install` to bring it back in sync');
 }
 
-remove_hidden_lock(process.cwd());
+// the note npm keeps inside node_modules: what is installed there and where each copy
+// came from. It is written last — the tree is final by now — and it is what makes the
+// next install able to describe what it finds on disk
+if (written_lock)
+    write_hidden_lock(process.cwd(), tree_to_path_map(rootsnap, process.cwd()));
+else
+    remove_hidden_lock(process.cwd());
 
 // run lifecycle scripts (unless --ignore-scripts)
 if (!ignore_scripts && !process.env.FIBJS_IGNORE_SCRIPTS) {
