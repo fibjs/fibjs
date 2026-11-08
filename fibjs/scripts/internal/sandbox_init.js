@@ -187,6 +187,34 @@ if (typeof process !== 'undefined' && typeof process.hrtime === 'function' && ty
         defineStatic(util.promisify, 'custom', Symbol.for('nodejs.util.promisify.custom'));
 })();
 
+// AbortSignal.any accepts any iterable, not only an Array.
+//
+// The native entry takes an Array and throws 20005 for anything else, while Node
+// accepts every iterable (a Set, a generator, another signal collection).  The
+// wrapper only expands the argument and leaves the element checks to the native
+// implementation, so a non-signal element still throws.
+(function installAbortSignalAny() {
+    var signals = globalThis.AbortSignal;
+    if (!signals || typeof signals.any !== 'function')
+        return;
+
+    var nativeAny = signals.any;
+
+    Object.defineProperty(signals, 'any', {
+        value: function any(iterable) {
+            if (iterable !== null && iterable !== undefined
+                && typeof iterable !== 'string'
+                && typeof iterable[Symbol.iterator] === 'function')
+                iterable = Array.from(iterable);
+
+            return nativeAny.call(this, iterable);
+        },
+        writable: true,
+        enumerable: false,
+        configurable: true,
+    });
+})();
+
 // Export JS helper methods for C++ native objects to call.
 // The returned object is saved by SandBox::installBuffer() into Isolate,
 // and individual methods are retrieved by C++ code (e.g. AsyncStream::pipe).

@@ -24,8 +24,26 @@ static result_t parse_level_option(v8::Local<v8::Object> options, AsyncHandle ac
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
-    ac.ctxv().resize(1);
+    // The two other deflateInit2 knobs Node exposes on the one-shot forms.
+    int32_t strategy = Z_DEFAULT_STRATEGY;
+    hr = GetConfigValue(options, "strategy", strategy, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+
+    int32_t memLevel = DEFAULT_MEM_LEVEL;
+    hr = GetConfigValue(options, "memLevel", memLevel, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+
+    if (memLevel < 1)
+        memLevel = 1;
+    else if (memLevel > 9)
+        memLevel = 9;
+
+    ac.ctxv().resize(3);
     ac.ctxv()[0] = level;
+    ac.ctxv()[1] = strategy;
+    ac.ctxv()[2] = memLevel;
     return result_t::nosync();
 }
 
@@ -208,10 +226,12 @@ result_t zlib_base::gzip(Union_gzip_data data, v8::Local<v8::Object> options, ob
         return hr;
 
     // the compile-cache entry (cc_gzip) runs the async phase without the sync
-    // one, so no options were parsed: fall back to the default level
+    // one, so no options were parsed: fall back to the defaults
     int32_t lv = ac.ctxv().size() > 0 ? ac.ctxv()[0].intVal() : zlib_base::C_DEFAULT_COMPRESSION;
+    int32_t strategy = ac.ctxv().size() > 1 ? ac.ctxv()[1].intVal() : Z_DEFAULT_STRATEGY;
+    int32_t memLevel = ac.ctxv().size() > 2 ? ac.ctxv()[2].intVal() : DEFAULT_MEM_LEVEL;
 
-    return (new gz(NULL, lv))->process(buf, retVal, std::move(ac));
+    return (new gz(NULL, lv, strategy, memLevel))->process(buf, retVal, std::move(ac));
 }
 
 

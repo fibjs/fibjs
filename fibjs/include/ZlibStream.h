@@ -376,7 +376,8 @@ public:
 
 class gz : public def_base {
 public:
-    gz(Stream_base* stm, int32_t level = -1)
+    gz(Stream_base* stm, int32_t level = -1, int32_t strategy = Z_DEFAULT_STRATEGY,
+        int32_t memLevel = DEFAULT_MEM_LEVEL)
         : def_base(stm)
     {
         if (level < zlib_base::C_DEFAULT_COMPRESSION)
@@ -384,7 +385,7 @@ public:
         else if (level > zlib_base::C_BEST_COMPRESSION)
             level = zlib_base::C_BEST_COMPRESSION;
 
-        deflateInit2(&strm, level, Z_DEFLATED, GZIP_WINDOW_BITS, DEFAULT_MEM_LEVEL, Z_DEFAULT_STRATEGY);
+        deflateInit2(&strm, level, Z_DEFLATED, GZIP_WINDOW_BITS, memLevel, strategy);
     }
 };
 
