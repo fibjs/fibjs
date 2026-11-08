@@ -598,16 +598,23 @@ function copy_dir(src_path, dest_path) {
  *              a FAT/exFAT volume on Windows refuses reparse points. There the
  *              package is copied instead, which installs a snapshot of the source
  *              directory rather than a live link to it.
+ *
+ *              The link is written as a *relative* path, which is what npm writes and
+ *              what makes the tree portable: an absolute one survives neither a
+ *              renamed project directory nor a copy of it. Moved, the absolute target
+ *              is simply gone; copied, it still resolves — to the *original*
+ *              directory, so every edit in the copy is invisible and nothing says so
  */
 function link_or_copy_dir(src_path, dest_path) {
     var link_error = null;
 
     try {
-        // create symlink or junction based on platform
+        // a Windows junction takes an absolute target and nothing else; everywhere
+        // else the target is relative to the directory the link is created in
         if (process.platform === 'win32') {
             fs.symlink(src_path, dest_path, 'junction');
         } else {
-            fs.symlink(src_path, dest_path);
+            fs.symlink(path.relative(path.dirname(dest_path), src_path), dest_path);
         }
 
         install_log('link:', src_path, '→', dest_path);
@@ -627,6 +634,46 @@ function link_or_copy_dir(src_path, dest_path) {
 
 // packages already installed into node_modules by this run, see create_local_symlinks
 const installed_paths = {};
+
+/**
+ * @description does that link already point at the package it should, *and* in the
+ *              portable form? The two are different questions: an absolute target an
+ *              older install wrote resolves to the same directory as long as the
+ *              project has not moved, and it is still the wrong link — renaming the
+ *              project breaks it, and copying the project makes it read the original
+ *              directory. A link is left alone only when it is relative and resolves
+ *              where it should
+ */
+function link_target_ok(link_path, target_path) {
+    let current;
+
+    try {
+        current = fs.readlink(link_path);
+    } catch (e) {
+        return false;
+    }
+
+    // a Windows junction carries an absolute target and cannot carry anything else
+    if (path.isAbsolute(current))
+        return process.platform === 'win32' && same_path(link_path, current, target_path);
+
+    try {
+        return fs.realpath(link_path) === fs.realpath(target_path);
+    } catch (e) {
+        return false;
+    }
+}
+
+/**
+ * @description do two paths name the same place, once symlinks are resolved
+ */
+function same_path(link_path, current, target_path) {
+    try {
+        return fs.realpath(path.resolve(path.dirname(link_path), current)) === fs.realpath(target_path);
+    } catch (e) {
+        return false;
+    }
+}
 
 /**
  * @description create symlinks for local/workspace packages
@@ -662,6 +709,17 @@ function create_local_symlinks(root_path, packages) {
             if (fs.exists(link_path)) {
                 const stats = fs.lstat(link_path);
                 if (stats.isSymbolicLink()) {
+                    // a link that already points where it should is left alone: an
+                    // install over a healthy tree must not churn its node_modules.
+                    // It has to be checked by where it *resolves*, so that a tree an
+                    // older install wrote with an absolute target (which breaks when
+                    // the project is renamed, and silently reads the original
+                    // directory when the project is copied) is put right here
+                    if (link_target_ok(link_path, target_path)) {
+                        installed_paths[link_path] = true;
+                        return;
+                    }
+
                     fs.unlink(link_path);
                 } else if (stats.isDirectory()) {
                     // don't remove if it's a real directory with installed packages
@@ -2432,12 +2490,18 @@ function download_module() {
                     mvm.base_path.forEach(bp => {
                         const destPath = path.join(bp, task_dir(mvm));
 
-                        // skip if already exists (symlink or directory)
+                        // a link that already resolves here is left alone; one an
+                        // older install wrote with an absolute target is repointed (see
+                        // `link_target_ok`), and a real directory is not a link at all
                         if (fs.exists(destPath)) {
                             try {
                                 const st = fs.lstat(destPath);
-                                if (st.isSymbolicLink() || st.isDirectory())
+                                if (st.isSymbolicLink() && link_target_ok(destPath, localSrcPath))
                                     return;
+                                if (!st.isSymbolicLink() && st.isDirectory())
+                                    return;
+                                if (st.isSymbolicLink())
+                                    fs.unlink(destPath);
                             } catch (e) { }
                         }
 
@@ -2593,12 +2657,18 @@ function download_one(mkey) {
             mvm.base_path.forEach(bp => {
                 const destPath = path.join(bp, task_dir(mvm));
 
-                // skip if already exists (symlink or directory)
+                // a link that already resolves here is left alone; one an older
+                // install wrote with an absolute target is repointed (see
+                // `link_target_ok`), and a real directory is not a link at all
                 if (fs.exists(destPath)) {
                     try {
                         const st = fs.lstat(destPath);
-                        if (st.isSymbolicLink() || st.isDirectory())
+                        if (st.isSymbolicLink() && link_target_ok(destPath, localSrcPath))
                             return;
+                        if (!st.isSymbolicLink() && st.isDirectory())
+                            return;
+                        if (st.isSymbolicLink())
+                            fs.unlink(destPath);
                     } catch (e) { }
                 }
 

@@ -1283,6 +1283,100 @@ describe('opt_tools install lifecycle', function () {
             assert.ok(packages['packages/member'], 'with the directory it points at');
         });
 
+        it('links a workspace member with a relative target, the way npm does', function () {
+            // an absolute target survives neither a renamed project directory nor a
+            // copy of it: moved it is simply gone, and copied it still resolves — to
+            // the *original* directory, so every edit in the copy is invisible and
+            // nothing says so. npm writes the relative form for exactly that reason
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'rel-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/core/package.json', JSON.stringify({
+                name: '@z/core', version: '0.1.0', private: true,
+            }, null, 2));
+            writeFile(targetDir, 'packages/core/index.js', 'module.exports = "CORE";\n');
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var link = path.join(targetDir, 'node_modules', '@z', 'core');
+
+            if (!LINKS_USED) {
+                // a filesystem that cannot host a link installs a copy instead
+                assert.ok(fs.existsSync(path.join(link, 'package.json')), listDir(path.join(targetDir, 'node_modules')));
+                return;
+            }
+
+            var target = fs.readlinkSync(link);
+
+            assert.equal(path.isAbsolute(target), false,
+                'the link target is relative (' + target + '), so the tree can move');
+            assert.equal(target, path.join('..', '..', 'packages', 'core'),
+                'and names the package the way npm spells it');
+            assert.equal(fs.realpathSync(link), fs.realpathSync(path.join(targetDir, 'packages', 'core')),
+                'while still resolving to the member');
+        });
+
+        it('repoints a link an older install wrote with an absolute target', function () {
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'repoint-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/core/package.json', JSON.stringify({
+                name: '@z/core', version: '0.1.0', private: true,
+            }, null, 2));
+            writeFile(targetDir, 'packages/core/index.js', 'module.exports = "CORE";\n');
+
+            if (!LINKS_USED)
+                return;     // a copy is not a link, so there is nothing to repoint
+
+            // the shape an earlier build left: an absolute target
+            fs.mkdirSync(path.join(targetDir, 'node_modules', '@z'), { recursive: true });
+            fs.symlinkSync(path.join(targetDir, 'packages', 'core'),
+                path.join(targetDir, 'node_modules', '@z', 'core'), 'dir');
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var target = fs.readlinkSync(path.join(targetDir, 'node_modules', '@z', 'core'));
+
+            assert.equal(path.isAbsolute(target), false,
+                'a plain --install repoints it, no rm -rf needed: ' + target);
+        });
+
+        it('leaves a healthy relative link alone', function () {
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'stable-link-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/core/package.json', JSON.stringify({
+                name: '@z/core', version: '0.1.0', private: true,
+            }, null, 2));
+
+            runInstaller(targetDir, ['--install']);
+
+            if (!LINKS_USED)
+                return;
+
+            var link = path.join(targetDir, 'node_modules', '@z', 'core');
+            var before = fs.lstatSync(link).ino;
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            assert.equal(fs.lstatSync(link).ino, before,
+                'a link that already resolves where it should is not churned');
+            assert.equal(outputOf(res).indexOf('link: ') > -1, false,
+                'and the run says nothing about relinking:\n' + outputOf(res));
+        });
+
         it('never fetches a workspace member from the registry', function () {
             // the report's fourth defect: a member the tree held as a plain directory
             // was described as a registry package, and the frozen install derived a
