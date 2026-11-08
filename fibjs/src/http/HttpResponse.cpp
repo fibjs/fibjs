@@ -878,8 +878,12 @@ result_t HttpResponse::redirect(exlib::string url)
 
 result_t HttpResponse::redirect(int32_t statusCode, exlib::string url)
 {
-    if (statusCode != 301 && statusCode != 302 && statusCode != 307)
-        return result_t::make(CALL_E_EXCEPTION).with_format("HttpResponse: Invalid statusCode %d, expected 301, 302, or 307.", statusCode);
+    // The MDN/Node set.  303 turns a POST into a GET and 308 keeps the method, so
+    // both are needed for a normal redirect flow; only a code outside the redirect
+    // class is rejected.
+    if (statusCode != 301 && statusCode != 302 && statusCode != 303
+        && statusCode != 307 && statusCode != 308)
+        return result_t::make(CALL_E_EXCEPTION).with_format("HttpResponse: Invalid statusCode %d, expected 301, 302, 303, 307, or 308.", statusCode);
 
     m_statusCode = statusCode;
     m_message->setHeader("Location", url);

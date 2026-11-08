@@ -220,19 +220,34 @@ interface HttpResponse : HttpMessage
     /*! @brief Sends a 302 redirect to the client
 
      Sets statusCode to 302 and Location to the URL; the body is not touched. Equivalent
-     to redirect(302, url). Only 301, 302 and 307 are accepted by the explicit overload,
-     while the static factory Response.redirect() writes any status without validating
-     it.
+     to redirect(302, url). 301, 302, 303, 307 and 308 are accepted by the explicit
+     overload, while the static factory Response.redirect() writes any status without
+     validating it.
      @param url the redirect address
      */
     redirect(String url);
 
     /*! @brief Sends a redirect with an explicit status code
 
-     Only 301, 302 and 307 are accepted; any other code throws error 20024 ("Invalid
-     statusCode ..., expected 301, 302, or 307."). 303 and 308 have to be set manually
-     with statusCode plus a Location header.
-     @param statusCode the return status; accepted values are 301, 302 and 307
+     301, 302, 303, 307 and 308 are accepted, the set the Web standard and Node.js
+     allow; any other code throws error 20024 ("Invalid statusCode ..., expected 301,
+     302, 303, 307, or 308."). 303 turns a POST into a GET and 308 keeps the method,
+     which is the usual pair for the two non-permanent redirects.
+
+     Example — answer a POST with 303 See Other:
+     ```JavaScript
+     const http = require('http');
+
+     const server = new http.Server(0, (req) => {
+         req.response.redirect(303, '/result');
+     });
+     server.start();
+
+     console.log(server.socket.localPort > 0); // true
+     server.stop();
+     ```
+
+     @param statusCode the return status; accepted values are 301, 302, 303, 307 and 308
      @param url the redirect address
      */
     redirect(Integer statusCode, String url);
