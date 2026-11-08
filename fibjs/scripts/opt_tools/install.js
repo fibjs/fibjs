@@ -547,6 +547,12 @@ function find_workspace_packages(root_path, workspaces_config) {
                     const pkg_dir = path.dirname(pkg_json_path);
                     const pkg_info = JSON.parse(fs.readTextFile(pkg_json_path));
 
+                    // a directory two patterns both name is one member, not two: npm
+                    // keys members by path, so `packages/*` and `packages/core` naming
+                    // the same directory is not a duplicate
+                    if (workspace_packages.some(w => w.path === pkg_dir))
+                        return;
+
                     workspace_packages.push({
                         name: pkg_info.name || name_from_folder(pkg_dir),
                         // npm writes `undefined` for a member without a version — the
@@ -566,7 +572,50 @@ function find_workspace_packages(root_path, workspaces_config) {
         }
     });
 
+    // two members with one name is a project that cannot be installed the way it is
+    // written: the link at `node_modules/<name>` can only point at one of them, and
+    // whichever directory happened to be read last won. Nothing said so — the loser's
+    // copy simply vanished, and a lockfile that describes a single entry made the
+    // next `--ci` just as happy. npm refuses the whole project (`EDUPLICATEWORKSPACE`)
+    // and names both paths, which is the only answer that does not depend on the order
+    // the directories come back in
+    assert_unique_workspace_names(workspace_packages);
+
     return workspace_packages;
+}
+
+/**
+ * @description refuse a project with two workspace members of the same name, in npm's
+ *              words (`@npmcli/map-workspaces`). A link can only point at one
+ *              directory, so one of the two packages is installed and the other is
+ *              dropped — silently, and only on some machines, because it is the
+ *              directory order that decides which one
+ */
+function assert_unique_workspace_names(workspace_packages) {
+    const by_name = {};
+
+    workspace_packages.forEach(w => {
+        (by_name[w.name] = by_name[w.name] || []).push(w.path);
+    });
+
+    const clashes = Object.keys(by_name).filter(name => by_name[name].length > 1);
+
+    if (!clashes.length)
+        return;
+
+    const lines = ['must not have multiple workspaces with the same name'];
+
+    clashes.forEach(name => {
+        lines.push(`package '${name}' has conflicts in the following paths:`);
+        // npm prints every path it saw, and does not sort them: the order is the
+        // order they were found in
+        by_name[name].forEach(p => lines.push('    ' + p));
+    });
+
+    console.error(lines.join('\n'));
+    console.error('  a workspace member is installed as a link, so only one directory can');
+    console.error('  answer to a name: give the members distinct "name" fields');
+    process.exit(1);
 }
 
 /**

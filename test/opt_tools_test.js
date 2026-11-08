@@ -1377,6 +1377,89 @@ describe('opt_tools install lifecycle', function () {
                 'and the run says nothing about relinking:\n' + outputOf(res));
         });
 
+        it('refuses two workspace members of the same name, naming both', function () {
+            // a link can only point at one directory, so one of the two packages is
+            // installed and the other is dropped — silently, and only on some machines,
+            // because it is the directory order that decides which one. npm refuses the
+            // project (`EDUPLICATEWORKSPACE`); this answers the same way
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'dup-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/p1/package.json', JSON.stringify({
+                name: '@f/dup', version: '0.1.0', private: true,
+            }, null, 2));
+            writeFile(targetDir, 'packages/p2/package.json', JSON.stringify({
+                name: '@f/dup', version: '0.2.0', private: true,
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, 'a project two members share a name in is refused' + diag(targetDir, res));
+            assert.ok(out.indexOf('must not have multiple workspaces with the same name') > -1, out);
+            assert.ok(out.indexOf("@f/dup") > -1, 'the name is named:\n' + out);
+            assert.ok(out.indexOf('p1') > -1 && out.indexOf('p2') > -1,
+                'and so is every directory that claims it:\n' + out);
+
+            assert.equal(fs.existsSync(path.join(targetDir, 'node_modules')), false,
+                'nothing was installed' + diag(targetDir, res));
+            assert.equal(fs.existsSync(path.join(targetDir, 'package-lock.json')), false,
+                'and no lockfile was written for a project that cannot be installed');
+        });
+
+        it('refuses the duplicate under --ci as well', function () {
+            // the case the report worried about most: a lockfile that describes one of
+            // the two members made `--ci` pass, so the clash never surfaced in CI
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'dup-ci-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/p1/package.json', JSON.stringify({
+                name: '@f/dup', version: '0.1.0', private: true,
+            }, null, 2));
+            writeFile(targetDir, 'packages/p2/package.json', JSON.stringify({
+                name: '@f/dup', version: '0.2.0', private: true,
+            }, null, 2));
+            // a lockfile that happens to describe just one of them
+            writeFile(targetDir, 'package-lock.json', JSON.stringify({
+                name: 'dup-ci-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': { name: 'dup-ci-proj', version: '1.0.0', workspaces: ['packages/*'] },
+                    'node_modules/@f/dup': { resolved: 'packages/p2', link: true },
+                    'packages/p2': { name: '@f/dup', version: '0.2.0' },
+                },
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install', '--ci']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, 'the frozen install refuses it too' + diag(targetDir, res));
+            assert.ok(out.indexOf('multiple workspaces with the same name') > -1, out);
+        });
+
+        it('accepts two patterns that name the same member once', function () {
+            // npm keys a member by its path: `packages/*` and `packages/core` naming the
+            // same directory is one member, not two of the same name
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'overlap-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*', 'packages/core'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/core/package.json', JSON.stringify({
+                name: '@g/core', version: '0.1.0', private: true,
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.ok(checkInstalled(targetDir, '@g/core'), diag(targetDir, res));
+        });
+
         it('never fetches a workspace member from the registry', function () {
             // the report's fourth defect: a member the tree held as a plain directory
             // was described as a registry package, and the frozen install derived a
