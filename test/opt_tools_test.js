@@ -1594,6 +1594,163 @@ describe('opt_tools install lifecycle', function () {
             });
         });
 
+        it('prunes a dependency that was removed from package.json', function () {
+            // the most ordinary operation there is: drop a dependency, install again.
+            // The package stayed on disk *and* in the lockfile, so `--ci` went on
+            // installing it — a removed dependency kept resolving, and the tree only
+            // ever grew. npm prunes; this did not
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'prune-proj', version: '1.0.0', private: true,
+                dependencies: { 'is-number': '6.0.0', 'linkpkg': 'file:linkpkg' },
+            }, null, 2));
+            writeFile(targetDir, 'linkpkg/package.json', JSON.stringify({
+                name: 'linkpkg', version: '1.0.0', dependencies: { 'is-odd': '3.0.1' },
+            }, null, 2));
+
+            var first = runInstaller(targetDir, ['--install']);
+            assert.equal(first.status, 0, diag(targetDir, first));
+
+            assert.ok(fs.existsSync(path.join(targetDir, 'node_modules', 'is-odd')),
+                'the transitive dependency is there: ' + listDir(path.join(targetDir, 'node_modules')));
+
+            // drop `linkpkg`, which is what brings `is-odd` in
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'prune-proj', version: '1.0.0', private: true,
+                dependencies: { 'is-number': '6.0.0' },
+            }, null, 2));
+
+            var second = runInstaller(targetDir, ['--install']);
+            assert.equal(second.status, 0, diag(targetDir, second));
+            assert.ok(outputOf(second).indexOf('prune') > -1,
+                'the run says what it removed:\n' + outputOf(second));
+
+            var packages = lockOf(targetDir).packages;
+            var on_disk = fs.readdirSync(path.join(targetDir, 'node_modules')).filter(n => n.charAt(0) !== '.').sort();
+
+            assert.deepEqual(on_disk, ['is-number'],
+                'the tree holds only what the project declares: ' + on_disk.join(', '));
+            assert.equal(packages['node_modules/linkpkg'], undefined, 'the link is out of the lockfile');
+            assert.equal(packages['node_modules/is-odd'], undefined,
+                'and so is what it brought in: ' + Object.keys(packages).filter(k => k.indexOf('node_modules/') === 0).join(', '));
+        });
+
+        it('does not install a pruned package again from a stale lockfile', function () {
+            // the second half of the same problem: `rm -rf node_modules && fibjs
+            // --install --ci` restored the removed package, because the entry was still
+            // in the file. Both entries are local here, so the case needs no registry
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'stale-proj', version: '1.0.0', private: true,
+                dependencies: { 'linkpkg': 'file:linkpkg' },
+            }, null, 2));
+            writeFile(targetDir, 'linkpkg/package.json', JSON.stringify({
+                name: 'linkpkg', version: '1.0.0',
+            }, null, 2));
+            writeFile(targetDir, 'oldpkg/package.json', JSON.stringify({
+                name: 'oldpkg', version: '1.0.0',
+            }, null, 2));
+
+            writeFile(targetDir, 'package-lock.json', JSON.stringify({
+                name: 'stale-proj', version: '1.0.0', lockfileVersion: 3, requires: true,
+                packages: {
+                    '': { name: 'stale-proj', version: '1.0.0', dependencies: { 'linkpkg': 'file:linkpkg' } },
+                    'linkpkg': { version: '1.0.0' },
+                    'node_modules/linkpkg': { resolved: 'linkpkg', link: true },
+                    // what a dependency that is no longer declared left behind
+                    'oldpkg': { version: '1.0.0' },
+                    'node_modules/oldpkg': { resolved: 'oldpkg', link: true },
+                },
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var on_disk = fs.readdirSync(path.join(targetDir, 'node_modules')).filter(n => n.charAt(0) !== '.').sort();
+
+            assert.deepEqual(on_disk, ['linkpkg'],
+                'the removed dependency is not installed back: ' + on_disk.join(', '));
+        });
+
+        it('takes an omitted dependency off the disk but keeps it in the lockfile', function () {
+            // npm's `--omit=dev` is about the disk and never about the graph: a full
+            // install followed by `--omit=dev` used to leave the dev tree in place
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'omit-proj', version: '1.0.0', private: true,
+                dependencies: { 'is-number': '6.0.0' },
+                devDependencies: { 'linkpkg': 'file:linkpkg' },
+            }, null, 2));
+            writeFile(targetDir, 'linkpkg/package.json', JSON.stringify({
+                name: 'linkpkg', version: '1.0.0',
+            }, null, 2));
+
+            runInstaller(targetDir, ['--install']);
+
+            var res = runInstaller(targetDir, ['--install', '--omit=dev']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            assert.equal(checkInstalled(targetDir, 'linkpkg'), false,
+                'the dev dependency left the disk: ' + listDir(path.join(targetDir, 'node_modules')));
+
+            var packages = lockOf(targetDir).packages;
+
+            assert.ok(packages['packages/../linkpkg'] || packages['linkpkg'],
+                'and stays in the lockfile: ' + Object.keys(packages).join(', '));
+        });
+
+        it('keeps the workspace links a project owns when it prunes', function () {
+            // no dependency edge arrives at a member — the manifest says `workspaces` —
+            // so a prune that read the graph alone deleted the link it had just built
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'ws-prune-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/core/package.json', JSON.stringify({
+                name: '@z/core', version: '0.1.0', private: true,
+            }, null, 2));
+
+            runInstaller(targetDir, ['--install']);
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            assert.ok(checkInstalled(targetDir, '@z/core'),
+                'the member is still linked after a second install: ' +
+                listDir(path.join(targetDir, 'node_modules')));
+        });
+
+        it('refuses to install where there is no package.json', function () {
+            // a `cd` to the wrong place in a script looked like it worked: nothing was
+            // installed and the exit code was 0. npm refuses with ENOENT
+            var targetDir = makeTargetDir();
+
+            var res = runInstaller(targetDir, ['--install']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, 'an install with nothing to install is an error' + diag(targetDir, res));
+            assert.ok(out.indexOf('no package.json') > -1, out);
+            assert.equal(fs.existsSync(path.join(targetDir, 'package-lock.json')), false,
+                'and nothing was written');
+        });
+
+        it('still installs a named package where there is no package.json', function () {
+            // the one command whose purpose is to create the project
+            var targetDir = makeTargetDir();
+
+            var res = runInstaller(targetDir, ['--install', 'is-number']);
+
+            assert.equal(res.status, 0, 'naming a package is how a project starts' + diag(targetDir, res));
+            assert.ok(fs.existsSync(path.join(targetDir, 'node_modules', 'is-number')) ||
+                fs.existsSync(path.join(targetDir, 'package-lock.json')),
+                'something was installed: ' + listDir(path.join(targetDir, 'node_modules')));
+        });
+
         it('never fetches a workspace member from the registry', function () {
             // the report's fourth defect: a member the tree held as a plain directory
             // was described as a registry package, and the frozen install derived a

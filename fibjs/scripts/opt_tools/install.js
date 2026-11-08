@@ -1532,6 +1532,7 @@ function get_root_snapshot() {
         root_is_new = false;
     } catch (e) {
         // package.json doesn't exist, create default
+        pkgjson = {};
     }
     pkgjson.name = pkgjson.name || (path.basename(pwd, path.extname(pwd))).toLowerCase();
     pkgjson.version = pkgjson.version || '1.0.0';
@@ -4313,7 +4314,254 @@ function tree_entry(node, p) {
 }
 
 /**
- * @description the entries of the tree as a path table, with the ones a link
+ * @description the packages in `node_modules` that nothing in the project reaches any
+ *              more — npm's `prune`, which every `npm install` does and which this one
+ *              did not. A dependency removed from package.json stayed on disk *and* in
+ *              the lockfile, so `--ci` went on installing it: the tree only ever grew,
+ *              and a package that was removed kept resolving
+ *
+ *              A package `omit` leaves out is the same shape of problem the other way
+ *              round: the lockfile still describes it (npm's omit is about the disk,
+ *              not the graph) while the disk should not have it — `--omit=dev` after a
+ *              full install used to keep the dev tree in place
+ * @param reachable the lockfile paths this install means to leave on the disk
+ * @param root the project
+ * @returns the entries removed
+ */
+function prune_unreachable(reachable, root) {
+    const nm = path.join(root, 'node_modules');
+
+    if (!fs.exists(nm))
+        return [];
+
+    const removed = [];
+
+    fs.readdir(nm).forEach(name => {
+        // npm never touches a dot entry: those are caches and notes (its own
+        // `.package-lock.json` is one), not installs
+        if (name.charAt(0) === '.')
+            return;
+
+        // a scope is not a package: it is a directory that holds them, and it goes
+        // once it holds none
+        if (name.charAt(0) === '@') {
+            const scope = path.join(nm, name);
+
+            try {
+                if (!fs.lstat(scope).isDirectory())
+                    return;
+            } catch (e) {
+                return;
+            }
+
+            let left = 0;
+
+            fs.readdir(scope).forEach(sub => {
+                const rel = `node_modules/${name}/${sub}`;
+
+                if (reachable[rel]) {
+                    left++;
+                    return;
+                }
+
+                remove_path(path.join(scope, sub));
+                removed.push(rel);
+            });
+
+            if (!left) {
+                try {
+                    fs.rmdir(scope);
+                } catch (e) {
+                    // not empty after all: something the walk did not describe
+                }
+            }
+
+            return;
+        }
+
+        const rel = `node_modules/${name}`;
+
+        if (reachable[rel])
+            return;
+
+        // a directory nothing in the tree describes is a directory nothing installs.
+        // It is not restricted to ones that look like packages: npm removes those too,
+        // and a leftover directory is how a stale tree keeps its shape
+        remove_path(path.join(nm, name));
+        removed.push(rel);
+    });
+
+    if (removed.length)
+        install_log(`[install] prune: ${removed.length} ` +
+            `entr${removed.length === 1 ? 'y' : 'ies'} the install leaves out ` +
+            `(${removed.slice(0, 3).join(', ')}${removed.length > 3 ? ', …' : ''})`);
+
+    return removed;
+}
+
+/**
+ * @description the lockfile paths the project reaches from what it declares: every
+ *              node the walk produced, and everything those lead to. This is what the
+ *              tree is allowed to hold — what a dependency dropped from package.json
+ *              leaves behind is not in it, which is what `prune_unreachable` removes
+ */
+function reachable_paths(rootsnap, root) {
+    const paths = {};
+
+    (function flatten(node, prefix) {
+        Object.keys(node.node_modules || {}).forEach(name => {
+            const child = node.node_modules[name];
+            const p = prefix + 'node_modules/' + name;
+
+            paths[p] = true;
+
+            // what a link depends on is installed inside the directory it points at,
+            // and the lockfile records those under that directory's path
+            const target = child.local_package || child.workspace_package
+                ? (child.local_path || child.workspace_path)
+                : null;
+
+            flatten(child, target ? lockfile.relative_target(root, target) + '/' : p + '/');
+        });
+    })(rootsnap, '');
+
+    return paths;
+}
+
+/**
+ * @description drop from the path table what the project does not reach. The tree
+ *              the write back describes is the one on the disk, and the disk no longer
+ *              holds those entries — keeping them in the file would make the next
+ *              `--ci` install them again
+ */
+function prune_lock_paths(paths, reachable) {
+    Object.keys(paths).forEach(p => {
+        if (reachable[p])
+            return;
+
+        delete paths[p];
+    });
+}
+
+/**
+ * @description the paths of the workspace member links a project owns. The manifest
+ *              declares them with `workspaces`, so no dependency edge in the lockfile
+ *              arrives at them — the graph walk cannot know they are wanted, and a
+ *              prune that read the graph alone would delete the links
+ */
+function workspace_link_paths(packages) {
+    const paths = [];
+    const members = find_workspace_packages(process.cwd(), rootsnap.pkgjson.workspaces);
+
+    if (!members.length)
+        return paths;
+
+    const targets = {};
+
+    members.forEach(w => {
+        targets[lockfile.relative_target(process.cwd(), w.path)] = true;
+    });
+
+    Object.keys(packages).forEach(p => {
+        const entry = packages[p];
+
+        if (entry.link && targets[entry.resolved])
+            paths.push(p);
+    });
+
+    return paths;
+}
+
+/**
+ * @description take what `omit` and the platform leave out of the set an install keeps
+ *              on the disk. The lockfile still describes those entries — that is the
+ *              promise `omit` makes, an omit is about the disk and never about the
+ *              graph — so they stay in the file and leave the tree
+ */
+function apply_omit_to_reachable(reachable, lock, packages) {
+    const graph = lockfile.graph_flags(packages, lock.raw && lock.raw.packages && lock.raw.packages[''], {
+        workspaces: find_workspace_packages(process.cwd(), rootsnap.pkgjson.workspaces)
+            .map(w => ({ path: w.relative_path, pkgjson: w.package_json })),
+    });
+
+    Object.keys(reachable).forEach(p => {
+        const entry = packages[p];
+
+        if (!entry)
+            return;
+
+        const optional = entry.optional === true || graph.optional[p] === true;
+        const dev = entry.dev === true || graph.dev[p] === true;
+
+        if ((dev && ctx.omit.dev) || (optional && ctx.omit.optional))
+            delete reachable[p];
+    });
+}
+
+/**
+ * @description take the entries the project no longer reaches out of the disk and out
+ *              of the file. This is npm's `prune`, which its `install` does and its `ci`
+ *              does not — the difference being that npm's `ci` reifies what package.json
+ *              *and* the lockfile describe, while this path trusts the lockfile alone.
+ *              Without it a dependency removed from package.json never leaves: its
+ *              entry stays in the file, so the next `--ci` installs it again
+ * @returns { file, removed }
+ */
+function prune_lock_and_disk(packages, lock) {
+    if (!lock || !lock.raw || !lock.raw.packages)
+        return { file: 0, removed: [] };
+
+    // the edges to walk are what the file says *now*: `sync_lock_root` has just made
+    // the root entry follow package.json, and `lock.root` is the entry as it was read
+    // — a dependency the manifest no longer has would still look reachable through it
+    const reachable = lockfile.reachable_paths(packages, lock.raw.packages[''], {
+        workspaces: find_workspace_packages(process.cwd(), rootsnap.pkgjson.workspaces)
+            .map(w => ({ path: w.relative_path, pkgjson: w.package_json })),
+    });
+
+    // a workspace member is installed as a link the project itself owns, and no edge in
+    // the lockfile arrives at it: the manifest says `workspaces`, not `dependencies`.
+    // Without this the prune reads the member as unreached and deletes the link it has
+    // just built
+    workspace_link_paths(packages).forEach(p => { reachable[p] = true; });
+
+    // the file keeps everything the project still reaches, omit or not: `--omit=dev`
+    // says what the *disk* should hold, never what the lockfile describes
+    const in_file = Object.assign({}, reachable);
+
+    // the disk is another question: what `omit` leaves out has to leave it, or a full
+    // install followed by `--omit=dev` keeps the tree it was asked to drop
+    apply_omit_to_reachable(reachable, lock, packages);
+
+    const removed = prune_unreachable(reachable, process.cwd());
+
+    let dropped = 0;
+
+    Object.keys(lock.raw.packages).forEach(p => {
+        if (p === '' || in_file[p])
+            return;
+
+        // the entry of the directory a link points at is not installed on its own
+        if (lock.raw.packages[p].link !== true && lockfile.name_from_path(p) === null)
+            return;
+
+        delete lock.raw.packages[p];
+        dropped++;
+    });
+
+    if (dropped) {
+        const indent = lockfile.detect_indent(fs.readTextFile(path.join(process.cwd(), 'package.json')));
+
+        lockfile.write_lockfile(path.join(process.cwd(), lock.filename), lock.raw, indent);
+        install_log(`update: ${lock.filename} (${dropped} ` +
+            `entr${dropped === 1 ? 'y' : 'ies'} nothing in the project reaches left the file)`);
+    }
+
+    return { file: dropped, removed: removed };
+}
+
+/**
+ * @description the installed tree as a path table, with the ones a link
  *              supersedes left out — the same rule `plan_lock_install` applies, so
  *              that what the write back produces is what an install of the file
  *              would put on the disk
@@ -4677,6 +4925,12 @@ function build_lockfile(lock, rootsnap) {
         if (superseded_by_link(p, paths[p], links))
             delete paths[p];
     });
+
+    // what the project no longer reaches is gone from the disk (see
+    // `prune_unreachable`), and it has to be gone from the file too: an entry left in
+    // the lockfile is one the next `--ci` installs again, which is how a removed
+    // dependency kept coming back
+    prune_lock_paths(paths, reachable_paths(rootsnap, root));
 
     const built = lockfile.to_lock(paths, rootsnap.pkgjson, {
         previous: lock,
@@ -5071,6 +5325,19 @@ if (args.flags.save) {
     ctx.depk = DEPENDENCIES;
 }
 
+// an install in a directory with no package.json used to invent a project, install
+// nothing and report success — a `cd` to the wrong place in a script looked like it
+// worked. npm refuses (`ENOENT`). Everything this installer can do is described by
+// the manifest: what to install, which workspace members exist, what the lockfile has
+// to agree with. Installing a *package* is the exception, because that is the one
+// command whose purpose is to create the project
+if (!fs.exists(path.join(process.cwd(), 'package.json')) &&
+    !args.positionals[0] && args.flags.target === undefined) {
+    console.error(`[install] no package.json in ${process.cwd()}`);
+    console.error('  run it in a project, or name a package to install: `fibjs --install <pkg>`');
+    process.exit(1);
+}
+
 const rootsnap = get_root_snapshot();
 
 // a workspace member whose package.json could not be read is a hole in what the
@@ -5267,6 +5534,14 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
         sync_lock_flags(lock, result.packages, result.graph);
         drop_superseded_entries(lock);
         complete_lock_sources(lockfile.read_lockfile(process.cwd()));
+
+        // the disk and the file both have to lose what the project no longer reaches:
+        // a dependency removed from package.json is not in the manifest, but its entry
+        // is still in the lockfile, and this path installs the lockfile as it stands.
+        // That is how a removed package kept coming back — `rm -rf node_modules &&
+        // fibjs --install --ci` restored it from the entry here
+        prune_lock_and_disk(result.packages, lock);
+
         remove_hidden_lock(process.cwd());
         process.exit(0);
     }
@@ -5420,6 +5695,12 @@ download_module();
 // is not written as one every machine needs
 read_bundled_copies(rootsnap, process.cwd());
 mark_reachability(rootsnap);
+
+// what the project declares no longer reaches has to leave the disk, or the tree only
+// grows and a removed dependency keeps resolving. npm does this on every `install`
+// (and so on `ci`, which reifies from the manifest and the lock, not from the tree
+// that is already there)
+prune_unreachable(reachable_paths(rootsnap, process.cwd()), process.cwd());
 
 // create symlinks for local packages found during dependency walking
 (function create_local_package_symlinks(level_info, base_path) {
