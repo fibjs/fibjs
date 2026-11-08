@@ -302,7 +302,10 @@ describe('tree helper', function () {
             var target = t.get('packages/m');
 
             assert.equal(link.type, tree.LINK);
-            assert.equal(target.type, tree.LINK);
+            // the directory it points at is an ordinary node of its own: npm's
+            // `Link#target` is where the package really lives, and treating it as
+            // another link is what made the resolver skip every member's dependencies
+            assert.equal(target.type, tree.REGISTRY);
             assert.equal(target.target_only, true, 'the directory is not an install');
             assert.deepEqual(target.edges.dependencies, { x: '1.0.0' },
                 'and its dependencies are what a reader reads');

@@ -859,107 +859,6 @@ function check_sync(root_pkgjson, lock, opts) {
     return { ok: errors.length === 0, errors: errors, warnings: warnings };
 }
 
-/**
- * @description the entries a project actually reaches, read from the lockfile's own
- *              edges: the roots (the project and every workspace member) and what
- *              their declarations lead to, walking the way `require()` would. This is
- *              the set an install of that project has to leave on the disk — an entry
- *              no path from a root arrives at is one a dependency removed from
- *              package.json left behind, which is what npm's `prune` removes
- * @param packages the `to_path_map` shape
- * @param root_entry the lockfile's `""` entry (what package.json declares)
- * @param opts { workspaces: [{ path, pkgjson }] }
- * @returns { [path]: true }
- */
-function reachable_paths(packages, root_entry, opts) {
-    const o = opts || {};
-    const manifests = {};
-
-    (o.workspaces || []).forEach(w => {
-        if (w && w.path)
-            manifests[String(w.path).replace(/\/+$/, '')] = w.pkgjson || {};
-    });
-
-    const entry_at = p => {
-        if (p === '')
-            return root_entry || {};
-
-        if (manifests[p])
-            return manifests[p];
-
-        return packages[p] || {};
-    };
-
-    const reachable = {};
-
-    // the walk starts from what the project declares in its own manifest, and only
-    // from that. A link is *not* a root: the entry exists because an edge from the
-    // manifest asked for it, and one whose edge is gone is an entry nothing installs —
-    // treating it as a root is what kept a removed `file:` dependency's whole subtree
-    // reachable
-    const roots = [''];
-
-    // a workspace member is the exception, and the manifest says so: `workspaces` names
-    // it, and no dependency edge arrives at it
-    (o.workspaces || []).forEach(w => {
-        if (!w || !w.path)
-            return;
-
-        const target = String(w.path).replace(/\/+$/, '');
-
-        Object.keys(packages).forEach(p => {
-            if (packages[p].link && packages[p].resolved === target)
-                roots.push(p);
-        });
-    });
-
-    const fields = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'];
-    const seen = {};
-    const stack = [];
-
-    roots.forEach(r => {
-        seen[r] = true;
-        stack.push(r);
-    });
-
-    while (stack.length) {
-        const from = stack.pop();
-        const entry = entry_at(from);
-
-        if (from !== '' && !manifests[from])
-            reachable[from] = true;
-
-        // a link carries no edges of its own: what it depends on is installed inside
-        // the directory it points at
-        const target = entry.link && entry.resolved ? entry.resolved : from;
-        const node = entry_at(target);
-
-        if (target !== from && !seen[target]) {
-            seen[target] = true;
-            stack.push(target);
-        }
-
-        fields.forEach(field => {
-            const map = node[field];
-
-            if (!map)
-                return;
-
-            Object.keys(map).forEach(name => {
-                const to = resolve_path(packages, name, target);
-
-                if (!to || seen[to])
-                    return;
-
-                seen[to] = true;
-                stack.push(to);
-            });
-        });
-    }
-
-    return reachable;
-}
-
 // ---------------------- .npmrc :start ------------------------- //
 
 /**
@@ -1930,7 +1829,6 @@ module.exports = {
     spec_satisfied,
     lookup_entry,
     graph_flags,
-    reachable_paths,
     check_peers,
     check_sync,
     read_npmrc,

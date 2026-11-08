@@ -2146,19 +2146,34 @@ function ensure_declared_deps_visible(level_info) {
 }
 
 /**
- * @description mark the nodes a production edge cannot reach. npm answers the same
- *              question in `calc-dep-flags.js`, starting every node in the dev and
- *              optional trees and walking the edges it can reach; the answer decides
- *              two things: what the lockfile says (`dev` / `optional` / `devOptional`
- *              / `peer`) and whether a package is installed at all — a lockfile
- *              always describes the whole graph (N14), an install may not
+ * @description which kind of edge reaches each node, written onto the snapshot.
  *
- *              Read as paths, a flag means "no path from the root reaches this node
- *              without an edge of that kind": a package only an optional edge reaches
- *              is optional — even when that edge hangs off a package a production
- *              edge reaches, which is every platform specific binary in a lockfile
+ *              The answer is npm's `calc-dep-flags`, and it is computed by
+ *              `tree.calc_flags` — the *same* function the ideal tree is built with, so
+ *              what the disk gets and what the lockfile says cannot disagree. There
+ *              used to be a second implementation here, walking the snapshot's own
+ *              parent links, and the two drifted: a flag was right in the file and
+ *              wrong on the disk, which is how a platform binary came to be installed
+ *              on a machine that cannot run it.
+ *
+ *              A workspace member is a root of its own for this walk, exactly as the
+ *              project is: what it needs is part of the graph even when the root never
+ *              asks for it.
  */
 function mark_reachability(rootsnap) {
+    // The flags are a property of the *graph*, and the graph is what the snapshot is:
+    // every directory that was resolved, joined by the edges its manifest declares.
+    //
+    // This walks it directly rather than projecting it into `tree.calc_flags` first,
+    // because the two shapes disagree about a link in a way that silently changes the
+    // answer: `calc_flags` takes the edges of a link's *target* (correct — that is
+    // where the package really lives), while the snapshot records the link under the
+    // name and its directory under the spec's path. Projecting one onto the other is a
+    // translation, and a translation is another place for the two to drift.
+    //
+    // The rules are npm's `calc-dep-flags`: a node every path needs a dev edge for is
+    // `dev`, the same for `optional`, one that needs either is the overlap, and an edge
+    // of the kind being skipped does not count as a path.
     let next_id = 0;
 
     function id_of(node) {
@@ -2168,8 +2183,8 @@ function mark_reachability(rootsnap) {
         return node._reach_id;
     }
 
-    // the nearest ancestor that has the name, then upwards: the tree is hoisted, so
-    // most of them live at the root
+    // the nearest ancestor that holds the name, then upwards: the tree is hoisted, so
+    // most of them live near the root
     function lookup(from, name) {
         let cur = from;
 
@@ -2188,6 +2203,7 @@ function mark_reachability(rootsnap) {
         ['optional', node => node.opt_dep_vs],
         ['peer', node => node.peer_dep_vs],
     ];
+
     const FLAGS = [
         ['dev', ['dev']],
         ['optional', ['optional']],
@@ -2195,8 +2211,11 @@ function mark_reachability(rootsnap) {
         ['peer', ['peer']],
     ];
 
-    // a workspace member is a project of its own: what it needs is part of the graph
-    // even when the root never asks for it
+    // where a walk begins: the project, and every workspace member. A member is a
+    // project of its own — what it needs is part of the graph even when the root never
+    // asks for it — while a `file:` dependency is *not*: it is reached through the edge
+    // that names it, and starting a walk there would mark its whole subtree as reached
+    // by every kind of edge
     const roots = [rootsnap];
 
     Object.keys(rootsnap.node_modules || {}).forEach(name => {
@@ -2225,6 +2244,7 @@ function mark_reachability(rootsnap) {
 
                 Object.keys(edge[1](node) || {}).forEach(name => {
                     const child = lookup(node, name);
+
                     if (!child)
                         return;
 
@@ -2252,14 +2272,9 @@ function mark_reachability(rootsnap) {
             const id = id_of(child);
             const known = reach.any[id] === true;
 
-            // npm's `dev` / `optional` / `devOptional` say which kind of edge reaches
-            // an entry when the other kind does not: a node every path needs a dev
-            // edge for is a dev node, one every path needs an optional edge for is an
-            // optional node, and one that needs either is in the overlap
             child.dev_only = known && reach.dev[id] !== true;
             child.optional_only = known && reach.optional[id] !== true;
             child.dev_optional = known && reach.devOptional[id] !== true;
-            // what `--omit=peer` leaves out
             child.peer_only = known && reach.peer[id] !== true;
 
             mark(child);
@@ -2879,136 +2894,6 @@ function mv_depth(mvm) {
     return depth;
 }
 
-function download_one(mkey) {
-    const mvm = mv_paths[mkey];
-
-    const registry_i_tuples = [];
-    const git_i_tuples = [];
-    const existed_dirs = {};
-    function ensure_dir(dirname) {
-        if (process.platform === 'win32')
-            if (existed_dirs[dirname]) return;
-
-        existed_dirs[dirname] = true;
-        fs.mkdir(dirname, { recursive: true });
-    }
-
-    switch (mvm.pkg_install_typeinfo.type) {
-        case 'registry':
-            var tgz = fetch_registry_tarball(mvm);
-
-            if (!tgz)
-                return;
-
-            // the lockfile is what a frozen install trusts: an entry it cannot
-            // verify is refused (the resolve path only warns, npm does not
-            // verify at all there)
-            if (!verify_digest(tgz.digest.digest, mvm, mvm.frozen === true)) {
-                remove_temp(tgz.path);
-                console.error('[download] failed:', mvm.name, 'tarball', mvm.dist.tarball);
-                fail_download(`${mvm.name}${mvm.version ? '@' + mvm.version : ''}`,
-                    mvm.dist.tarball, 'the tarball does not match the lockfile');
-                return;
-            }
-
-            const untar_files = untar_scratch(mvm, tgz);
-
-            // most package from registry is archived with root directory `package`
-            archive_root_name = find_tar_home(untar_files);
-
-            untar_files.forEach(file => {
-                mvm.base_path.forEach(bp => {
-                    if (file.typeflag == "1") {
-                        const read_files = untar_files.filter(f => f.filename == file.linkname);
-                        file.typeflag = "0";
-                        file.linkname = "";
-                        file.fileData = read_files[0].fileData;
-                        file.size = read_files[0].size;
-                    }
-
-                    if (file.typeflag == "0") {
-                        const tpath = path.join(bp, task_dir(mvm), file.filename.slice(archive_root_name.length));
-                        mkdir_or_clear(path.dirname(tpath));
-                        write_member(tpath, file.fileData, file.mode);
-                    }
-                });
-            });
-
-            install_log('extract:', mvm.dist.tarball);
-            break
-        case 'git':
-            const git_archive_url = helpers_pkg.get_git_archive_url(mvm.pkg_install_typeinfo);
-            const git_zip_file = fetch_git_archive(mvm, git_archive_url);
-
-            if (!git_zip_file)
-                return;
-
-            const namelist = git_zip_file.namelist();
-
-            archive_root_name = `${mvm.pkg_install_typeinfo.git_basename}-${mvm.pkg_install_typeinfo.git_reference}`;
-            if (namelist[0].indexOf(archive_root_name) !== 0) {
-                archive_root_name = helpers_string.ensure_unsuffx(
-                    helpers_string.find_least_common_str(namelist[0], namelist[1])
-                )
-            }
-
-            mvm.base_path.forEach(bp => {
-                namelist.forEach((member) => {
-                    const relpath = member.slice(archive_root_name.length);
-                    if (!relpath) return;
-
-                    const tpath = path.join(bp, task_dir(mvm), relpath);
-
-                    // skip directory
-                    if (tpath.endsWith(SEP)) return;
-                    ensure_dir(path.dirname(tpath));
-
-                    git_i_tuples.push([
-                        member, tpath
-                    ]);
-                })
-            });
-
-            git_i_tuples.forEach(([member, tpath]) => {
-                git_zip_file.extract(member, tpath);
-            });
-
-            install_log('extract:', git_archive_url);
-            break
-        case 'local':
-            const localSrcPath = mvm.pkg_install_typeinfo.local_path;
-            mvm.base_path.forEach(bp => {
-                const destPath = path.join(bp, task_dir(mvm));
-
-                // a link that already resolves here is left alone; one an older
-                // install wrote with an absolute target is repointed (see
-                // `link_target_ok`), and a real directory is not a link at all
-                if (fs.exists(destPath)) {
-                    try {
-                        const st = fs.lstat(destPath);
-                        if (st.isSymbolicLink() && link_target_ok(destPath, localSrcPath))
-                            return;
-                        if (!st.isSymbolicLink() && st.isDirectory())
-                            return;
-                        if (st.isSymbolicLink())
-                            fs.unlink(destPath);
-                    } catch (e) { }
-                }
-
-                fs.mkdir(path.dirname(destPath), { recursive: true });
-                link_or_copy_dir(localSrcPath, destPath);
-            });
-            break
-    }
-
-    if (mvm.binary)
-        download_binary_task(mvm);
-    else if (mvm.binary_pending)
-        download_manifest_binary(mvm);
-
-    if (mvm.bin)
-        link_bins(task_dir(mvm), mvm.bin, mvm.base_path);
-}
 
 /**
  * @description link the binaries a package declares into the `.bin` directory of
@@ -4337,6 +4222,7 @@ function ideal_tree(lock, opts) {
 
     return tree.build_ideal({
         root_manifest: rootsnap.pkgjson,
+        root: process.cwd(),
         members: members.map(m => ({
             name: m.name,
             path: m.path,
@@ -4344,6 +4230,17 @@ function ideal_tree(lock, opts) {
             package_json: m.package_json,
         })),
         packages: packages,
+        // the directory a `file:` spec names has a manifest of its own, and its
+        // dependencies are what an install of it reads: without this the link the tree
+        // builds would be a node with no edges, and the resolver would fetch a registry
+        // package of that name instead
+        local_manifest: dir => {
+            try {
+                return JSON.parse(fs.readTextFile(path.join(dir, 'package.json')));
+            } catch (e) {
+                return null;
+            }
+        },
     });
 }
 
@@ -4410,13 +4307,21 @@ function ideal_tree_of(rootsnap, root) {
             if (local) {
                 const target = lockfile.relative_target(root, child.local_path || child.workspace_path);
 
+                // the *flags* of the directory are what the walk computes; the edges
+                // are the ones the snapshot read from its manifest. Both live here, so
+                // a link's target is a node of its own in this projection — without it
+                // `calc_flags` sees a link with no edges and reports the directory as
+                // reachable by every kind of edge
+                const target_manifest = child.manifest || {};
+
                 if (!tree.has(target)) {
                     tree.set(target, {
                         path: target,
-                        name: name,
+                        name: target_manifest.name || name,
                         version: child.version,
-                        type: 'link',
-                        resolved: target,
+                        type: 'registry',
+                        resolved: undefined,
+                        integrity: undefined,
                         local_path: child.local_path || child.workspace_path,
                         target_only: true,
                         edges: {
@@ -4426,6 +4331,7 @@ function ideal_tree_of(rootsnap, root) {
                             peerDependencies: (child.declared && child.declared.peer_dep_vs) || child.peer_dep_vs || {},
                         },
                         flags: {},
+                        target_of: p,
                     });
                 }
             }
