@@ -30,8 +30,8 @@
  *    timer can clear itself. A callback that waits (I/O, `coroutine.sleep`) yields and lets other
  *    timers run, while a callback that blocks the CPU blocks all JavaScript until it returns.
  *  - **Delay clamping**: the delay is a number of milliseconds; values less than 1 or greater than
- *    2^31-1 are clamped to 1, and a fractional delay is truncated. `setTimeout` defaults a missing
- *    delay to 1ms, while `setInterval` requires it. `NaN` and non-numeric strings throw a TypeError.
+ *    2^31-1 are clamped to 1, and a fractional delay is truncated. Both `setTimeout` and
+ *    `setInterval` default a missing delay to 1ms. `NaN` and non-numeric strings throw a TypeError.
  *  - **High-resolution interval**: `setHrInterval` uses a VM interrupt and can call back at any time,
  *    including while JavaScript is running; its callback must not modify state used by other code nor
  *    call asynchronous APIs. It is an extension of the module.
@@ -108,7 +108,9 @@
  *  Notes:
  *
  *  - `setHrInterval` and `call` are extensions of the module.
- *  - `timers/promises` exists with `setTimeout` and `setImmediate` but has no `setInterval` iterator.
+ *  - `timers/promises` provides `setTimeout`, `setImmediate` and a `setInterval` async
+ *    iterator that yields an empty object per tick and stops on an aborted `signal` or
+ *    when the consumer breaks out of the loop.
  *  - A callback that is not a function throws a TypeError with number 20005.
  *
  */
@@ -175,21 +177,33 @@ declare module 'timers' {
     /**
      * @description Executes the callback function periodically at a fixed interval
      *
-     *      The delay is required and is clamped like setTimeout; omitting it throws a TypeError
-     *      (parameter not optional). The next run is scheduled timeout
-     *      milliseconds after the previous callback returns, so a slow callback reduces the frequency.
+     *      The delay defaults to 1ms when omitted and is clamped like setTimeout, so
+     *      `setInterval(fn)` and `setInterval(fn, 1)` are the same timer. The next run is
+     *      scheduled timeout milliseconds after the previous callback returns, so a slow
+     *      callback reduces the frequency.
      *
      *      The timer keeps running until `clearInterval` or `Timer#clear` is called, or it clears itself
      *      inside the callback through `this`. The arguments in args are passed to every run, and a
      *      repeating timer keeps the process alive forever unless it is cleared or unreferenced.
      *
+     *      Example — a repeating timer that clears itself after three runs:
+     *      ```JavaScript
+     *      const timers = require('timers');
+     *
+     *      let runs = 0;
+     *      const timer = timers.setInterval(function () {
+     *          console.log(++runs); // 1, 2, 3
+     *          if (runs === 3) this.clear();
+     *      }, 5);
+     *      ```
+     *
      *      @param callback callback function
-     *      @param timeout interval time in milliseconds
+     *      @param timeout interval time in milliseconds, default 1
      *      @param args additional arguments passed to the callback function, optional
      *      @return returns a timer object
      *
      */
-    function setInterval(callback: (...args: any[])=>void, timeout: number, ...args: any[]): Class_Timer;
+    function setInterval(callback: (...args: any[])=>void, timeout?: number, ...args: any[]): Class_Timer;
 
     /**
      * @description Clears the specified timer

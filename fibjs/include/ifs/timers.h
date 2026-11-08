@@ -120,10 +120,10 @@ inline void timers_base::s_static_setInterval(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 2);
+    METHOD_OVER(-1, 1);
 
     ARG(v8::Local<v8::Function>, 0);
-    ARG(double, 1);
+    OPT_ARG(double, 1, 1);
     ARG_LIST(2);
 
     hr = setInterval(v0, v1, v2, vr);
