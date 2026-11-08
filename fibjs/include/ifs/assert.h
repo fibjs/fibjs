@@ -81,6 +81,9 @@ public:
     static result_t rejects(v8::Local<v8::Function> block, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal);
     static result_t rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value> error, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal);
     static result_t rejects(v8::Local<v8::Promise> result, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal);
+    static result_t doesNotReject(v8::Local<v8::Value> block, v8::Local<v8::Value> error, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal);
+    static result_t doesNotReject(v8::Local<v8::Value> block, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal);
+    static result_t partialDeepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg);
     static result_t ifError(v8::Local<v8::Value> object);
 
 public:
@@ -145,6 +148,8 @@ public:
     static void s_static_throws(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_doesNotThrow(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_rejects(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_doesNotReject(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_partialDeepStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_ifError(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -208,6 +213,8 @@ inline ClassInfo& assert_base::class_info()
         { "throws", s_static_throws, true, ClassData::ASYNC_SYNC },
         { "doesNotThrow", s_static_doesNotThrow, true, ClassData::ASYNC_SYNC },
         { "rejects", s_static_rejects, true, ClassData::ASYNC_SYNC },
+        { "doesNotReject", s_static_doesNotReject, true, ClassData::ASYNC_SYNC },
+        { "partialDeepStrictEqual", s_static_partialDeepStrictEqual, true, ClassData::ASYNC_SYNC },
         { "ifError", s_static_ifError, true, ClassData::ASYNC_SYNC }
     };
 
@@ -1062,6 +1069,45 @@ inline void assert_base::s_static_rejects(const v8::FunctionCallbackInfo<v8::Val
     hr = rejects(v0, v1, vr);
 
     METHOD_RETURN();
+}
+
+inline void assert_base::s_static_doesNotReject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Promise> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+
+    hr = doesNotReject(v0, v1, v2, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+
+    hr = doesNotReject(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void assert_base::s_static_partialDeepStrictEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+
+    hr = partialDeepStrictEqual(v0, v1, v2);
+
+    METHOD_VOID();
 }
 
 inline void assert_base::s_static_ifError(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -327,4 +327,205 @@ result_t assert_base::rejects(v8::Local<v8::Function> block, v8::Local<v8::Value
     return rejects(block, v8::Local<v8::Value>(), msg, retVal);
 }
 
+// The counterpart of rejects: the promise must fulfil.  A rejection is only an
+// error when it matches the optional filter, so a `doesNotReject(p, /boom/)`
+// passes if the promise rejects with something else -- that is how Node defines
+// the filter, and it is what makes the pair usable for "anything but this" tests.
+struct DoesNotRejectData {
+    v8::Persistent<v8::Promise::Resolver> resolver;
+    v8::Persistent<v8::Value> errorCheck;
+    v8::Persistent<v8::Value> assertion;
+};
+
+static void OnDoesNotRejectResolve(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+    DoesNotRejectData* data = static_cast<DoesNotRejectData*>(v8::External::Cast(*args.Data())->Value());
+    v8::Local<v8::Context> context = isolate->context();
+
+    data->resolver.Get(isolate->m_isolate)->Resolve(context, v8::Undefined(isolate->m_isolate));
+
+    delete data;
+}
+
+static void OnDoesNotRejectReject(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+    DoesNotRejectData* data = static_cast<DoesNotRejectData*>(v8::External::Cast(*args.Data())->Value());
+    v8::Local<v8::Context> context = isolate->context();
+
+    v8::Local<v8::Value> errorCheck = data->errorCheck.Get(isolate->m_isolate);
+    bool matched = true;
+
+    if (!errorCheck.IsEmpty() && !errorCheck->IsUndefined()) {
+        // check_error returns an empty value when the filter matches and a
+        // generated AssertionError when it does not; only the match/no-match bit
+        // matters here, the failure below carries its own 'doesNotReject' operator.
+        TryCatch try_catch;
+        v8::Local<v8::Value> result = check_error(args[0], errorCheck, "doesNotReject", v8::Local<v8::Value>());
+        matched = result.IsEmpty() && !try_catch.HasCaught();
+        if (try_catch.HasCaught())
+            try_catch.Reset();
+    }
+
+    if (matched)
+        data->resolver.Get(isolate->m_isolate)->Reject(context, data->assertion.Get(isolate->m_isolate));
+    else
+        data->resolver.Get(isolate->m_isolate)->Resolve(context, v8::Undefined(isolate->m_isolate));
+
+    delete data;
+}
+
+// Attach the fulfil/reject handlers to `result` and hand the caller back the
+// promise the assertion settles on.
+static void watch_does_not_reject(Isolate* isolate, v8::Local<v8::Promise> result,
+    v8::Local<v8::Value> error, const exlib::string& message, v8::Local<v8::Promise>& retVal)
+{
+    v8::Local<v8::Context> context = isolate->context();
+
+    v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).FromMaybe(v8::Local<v8::Promise::Resolver>());
+    retVal = resolver->GetPromise();
+
+    DoesNotRejectData* data = new DoesNotRejectData {
+        v8::Persistent<v8::Promise::Resolver>(isolate->m_isolate, resolver),
+        v8::Persistent<v8::Value>(isolate->m_isolate, error),
+        v8::Persistent<v8::Value>(isolate->m_isolate, AssertionError("doesNotReject", v8::Local<v8::Value>(), v8::Local<v8::Value>(), message))
+    };
+    v8::Local<v8::External> external = v8::External::New(isolate->m_isolate, data);
+
+    result->Then(context,
+        v8::Function::New(context, OnDoesNotRejectResolve, external).FromMaybe(v8::Local<v8::Function>()),
+        v8::Function::New(context, OnDoesNotRejectReject, external).FromMaybe(v8::Local<v8::Function>()));
+}
+
+result_t assert_base::doesNotReject(v8::Local<v8::Value> block, v8::Local<v8::Value> error, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal)
+{
+    // The value form cannot be handed to Isolate::current(T), which asks V8 for
+    // the creation context of an object; the running isolate is the right one.
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+
+    // A promise is used as-is; a function is called and its result inspected.
+    v8::Local<v8::Value> v = block;
+    if (block->IsFunction()) {
+        TryCatch try_catch;
+        v = block.As<v8::Function>()
+                ->Call(isolate->m_isolate, context, v8::Undefined(isolate->m_isolate), 0, NULL)
+                .FromMaybe(v8::Local<v8::Value>());
+        if (try_catch.HasCaught()) {
+            // A synchronous throw counts as a rejection of the block, so it is
+            // reported the same way a rejected promise is.
+            exlib::string message;
+            if (!msg.IsEmpty() && !msg->IsUndefined())
+                GetArgumentValue(isolate, msg, message);
+
+            v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).FromMaybe(v8::Local<v8::Promise::Resolver>());
+            retVal = resolver->GetPromise();
+            resolver->Reject(context,
+                         AssertionError("doesNotReject", v8::Local<v8::Value>(), v8::Local<v8::Value>(), message))
+                .IsJust();
+            return result_t();
+        }
+    }
+
+    if (v.IsEmpty() || !v->IsPromise()) {
+        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(context).FromMaybe(v8::Local<v8::Promise::Resolver>());
+        retVal = resolver->GetPromise();
+        v8::Local<v8::Value> err = v8::Exception::TypeError(isolate->NewString("The result of the function is not a promise."));
+        err.As<v8::Object>()->Set(context, isolate->NewString("code"), isolate->NewString("ERR_INVALID_RETURN_VALUE")).IsJust();
+        resolver->Reject(context, err).IsJust();
+        return result_t();
+    }
+
+    exlib::string message;
+    if (!msg.IsEmpty() && !msg->IsUndefined())
+        GetArgumentValue(isolate, msg, message);
+
+    watch_does_not_reject(isolate, v.As<v8::Promise>(), error, message, retVal);
+    return result_t();
+}
+
+result_t assert_base::doesNotReject(v8::Local<v8::Value> block, v8::Local<v8::Value> msg, v8::Local<v8::Promise>& retVal)
+{
+    return doesNotReject(block, v8::Local<v8::Value>(), msg, retVal);
+}
+
+// Every own enumerable key of `expected` must exist in `actual` with a strictly
+// equal value; arrays compare element-by-element with `actual` allowed to be
+// longer.  The element comparison goes through util's isDeepStrictEqual, so the
+// rules match deepStrictEqual exactly and there is only one "deep compare"
+// semantic in the runtime.
+static bool partialEquals(Isolate* isolate, v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
+{
+    if (actual.IsEmpty() || expected.IsEmpty())
+        return actual.IsEmpty() && expected.IsEmpty();
+
+    if (expected->IsArray() && actual->IsArray()) {
+        v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::Array> act = actual.As<v8::Array>();
+        v8::Local<v8::Array> exp = expected.As<v8::Array>();
+
+        if (act->Length() < exp->Length())
+            return false;
+
+        for (uint32_t i = 0; i < exp->Length(); i++) {
+            v8::Local<v8::Value> a, e;
+            if (!act->Get(context, i).ToLocal(&a) || !exp->Get(context, i).ToLocal(&e))
+                return false;
+            if (!partialEquals(isolate, a, e))
+                return false;
+        }
+        return true;
+    }
+
+    // A non-plain expected value (primitive, Date, RegExp, function, native object)
+    // is compared with the strict deep rule as a whole.
+    if (!expected->IsObject() || expected->IsFunction() || expected->IsDate()
+        || expected->IsRegExp() || object_base::getInstance(expected) != NULL) {
+        bool r;
+        util_base::isDeepStrictEqual(actual, expected, r);
+        return r;
+    }
+
+    if (!actual->IsObject())
+        return false;
+
+    v8::Local<v8::Context> context = Isolate::current()->context();
+    v8::Local<v8::Object> act = actual.As<v8::Object>();
+    v8::Local<v8::Object> exp = expected.As<v8::Object>();
+
+    JSArray keys = exp->GetPropertyNames(context);
+    if (keys.IsEmpty())
+        return false;
+
+    for (uint32_t i = 0; i < keys->Length(); i++) {
+        v8::Local<v8::Value> k;
+        if (!keys->Get(context, i).ToLocal(&k))
+            return false;
+
+        v8::Local<v8::Value> a, e;
+        if (!act->Get(context, k).ToLocal(&a) || !exp->Get(context, k).ToLocal(&e))
+            return false;
+
+        // A key the actual object does not have at all is a mismatch; the value
+        // being undefined is a legitimate value and is compared normally.
+        if (a->IsUndefined() && !e->IsUndefined()
+            && !act->Has(context, k).FromMaybe(false))
+            return false;
+
+        if (!partialEquals(isolate, a, e))
+            return false;
+    }
+
+    return true;
+}
+
+result_t assert_base::partialDeepStrictEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected, v8::Local<v8::Value> msg)
+{
+    Isolate* isolate = Isolate::current();
+
+    return _test(partialEquals(isolate, actual, expected),
+        "partialDeepStrictEqual", actual, expected, msg);
+}
+
 }

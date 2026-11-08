@@ -104,8 +104,11 @@
  *    valueOf) is reported as a failed AssertionError.
  *  - `throws` treats a function whose `prototype.constructor` is itself as an error class,
  *    not as a validation function; pass an arrow function to validate an error.
- *  - `doesNotReject` and `partialDeepStrictEqual` are not provided; `fail` takes
- *    only a message.
+ *  - `partialDeepStrictEqual` is a subset comparison: every own enumerable key of
+ *    `expected` must exist in `actual` with a strictly equal value, and an `actual`
+ *    array may be longer. Element comparison goes through the same deep-compare rule as
+ *    `deepStrictEqual`, so the module has a single definition of "deep equal".
+ *  - `fail` takes only a message.
  *  - See the assert_strict module for the strict comparison mode and the differences it maps.
  *
  */
@@ -1039,6 +1042,79 @@ declare module 'assert' {
          *
          */
         function rejects(result: Promise, msg?: any): Promise;
+
+        /**
+         * @description Tests that the given code does not reject
+         *
+         *      The counterpart of `rejects`: the block is called and the returned promise is
+         *      observed. A synchronous throw, a rejected promise, or a return value that is not a
+         *      promise each fail the assertion; only a fulfilling promise or a block that returns
+         *      one passes. An optional `error` filter narrows what counts as a mismatch, using the
+         *      same rules as `rejects` (RegExp, error class, arrow validation function or property
+         *      filter object), so a rejection that does not match the filter is reported as an
+         *      AssertionError with the operator 'doesNotReject'.
+         *
+         *      The returned promise resolves to undefined when nothing was rejected and rejects with
+         *      the generated AssertionError otherwise.
+         *
+         *      Example — a call that must complete:
+         *      ```JavaScript
+         *      const assert = require('assert');
+         *
+         *      (async () => {
+         *          await assert.doesNotReject(Promise.resolve(42));
+         *          await assert.doesNotReject(async () => { return 'ok'; });
+         *      })();
+         *      ```
+         *
+         *      @param block the code to test, given as a function or a promise
+         *      @param error the expected error filter, optional
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function doesNotReject(block: any, error: any, msg?: any): Promise;
+
+        /**
+         * ! Tests that the given code does not reject, with only a message
+         *
+         *      Equivalent to the three-argument overload with an undefined error filter.
+         *      @param block the code to test, given as a function or a promise
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function doesNotReject(block: any, msg?: any): Promise;
+
+        /**
+         * @description Tests that `actual` contains everything `expected` contains
+         *
+         *      A subset comparison: every own enumerable key of `expected` has to exist in
+         *      `actual` with a strictly equal value, and for arrays every element of `expected` has
+         *      to match the element at the same index with `actual` allowed to be longer. Extra
+         *      keys and extra array elements on the `actual` side are not errors, which is what
+         *      makes it useful for asserting on the fields a caller cares about instead of the
+         *      whole object.
+         *
+         *      The value comparison follows the same rules as `deepStrictEqual`, so `actual` and
+         *      `expected` are compared with fibjs' own semantics (prototypes are not part of the
+         *      comparison and NaN compares unequal); the assertion is a strict comparison only in
+         *      the sense that `===`-style matching applies to primitives.
+         *
+         *      Example — assert the subset of a record:
+         *      ```JavaScript
+         *      const assert = require('assert');
+         *
+         *      assert.partialDeepStrictEqual({ id: 1, name: 'a', extra: true }, { id: 1 });
+         *      assert.partialDeepStrictEqual([1, 2, 3], [1, 2]);
+         *      ```
+         *
+         *      @param actual the value to check
+         *      @param expected the subset it has to contain
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function partialDeepStrictEqual(actual: any, expected: any, msg?: any): void;
 
         /**
          * @description Throws the given value when it is truthy
