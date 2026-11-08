@@ -1460,6 +1460,140 @@ describe('opt_tools install lifecycle', function () {
             assert.ok(checkInstalled(targetDir, '@g/core'), diag(targetDir, res));
         });
 
+        it('honours an excluded workspace pattern, the way npm does', function () {
+            // `!pattern` is npm's way of keeping a member out of the tree — a package
+            // used only for publishing, say. It used to be globbed like any other
+            // pattern, so the excluded member was linked and written into the lockfile
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'excl-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*', '!packages/skip'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/keep/package.json', JSON.stringify({
+                name: '@a/keep', version: '0.1.0', private: true,
+            }, null, 2));
+            writeFile(targetDir, 'packages/skip/package.json', JSON.stringify({
+                name: '@a/skip', version: '0.1.0', private: true,
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var packages = lockOf(targetDir).packages;
+
+            assert.ok(packages['packages/keep'], 'the member that is not excluded is described');
+            assert.equal(packages['packages/skip'], undefined,
+                'and the excluded one is not: ' + Object.keys(packages).filter(k => k.indexOf('packages/') === 0).join(', '));
+            assert.equal(checkInstalled(targetDir, '@a/skip'), false,
+                'nor installed' + listDir(path.join(targetDir, 'node_modules')));
+        });
+
+        it('lets a later pattern cancel an exclusion, which npm also does', function () {
+            // npm reads the list in order and a selecting pattern that matches an
+            // exclusion cancels it: `['packages/**', '!packages/b/**', 'packages/b/a']`
+            // excludes nothing, because the third pattern overrides the second
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'cancel-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/**', '!packages/b/**', 'packages/b/a'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/b/a/package.json', JSON.stringify({
+                name: '@c/ba', version: '0.1.0', private: true,
+            }, null, 2));
+            writeFile(targetDir, 'packages/b/c/package.json', JSON.stringify({
+                name: '@c/bc', version: '0.1.0', private: true,
+            }, null, 2));
+            writeFile(targetDir, 'packages/d/package.json', JSON.stringify({
+                name: '@c/d', version: '0.1.0', private: true,
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var members = Object.keys(lockOf(targetDir).packages)
+                .filter(k => k.indexOf('packages/') === 0).sort();
+
+            assert.deepEqual(members, ['packages/b/a', 'packages/b/c', 'packages/d'],
+                'the exclusion was cancelled by the pattern after it: ' + members.join(', '));
+        });
+
+        it('refuses a project whose workspace member cannot be read', function () {
+            // the member is silently skipped otherwise: `--install` exited 0, so
+            // `fibjs --install && npm test` carried on against a tree that was not what
+            // the project describes. npm stops with EJSONPARSE
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'broken-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/good/package.json', JSON.stringify({
+                name: '@b/good', version: '0.1.0', private: true,
+            }, null, 2));
+            writeFile(targetDir, 'packages/bad/package.json', '{ "name": "@b/bad", "version": BROKEN }');
+
+            var res = runInstaller(targetDir, ['--install']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, 'a member that cannot be read stops the install' + diag(targetDir, res));
+            assert.ok(out.indexOf('cannot be read') > -1, out);
+            assert.ok(out.indexOf(path.join('packages', 'bad')) > -1, 'and the file is named:\n' + out);
+
+            // the same file was reported once per pass before, and one broken member
+            // printed its warning three times in a single run
+            assert.equal(out.split('packages/bad/package.json').length - 1, 1,
+                'reported once, not once per pass:\n' + out);
+
+            assert.equal(fs.existsSync(path.join(targetDir, 'node_modules')), false,
+                'nothing was installed' + diag(targetDir, res));
+        });
+
+        it('refuses a workspace member whose name cannot be a directory', function () {
+            // a link at `node_modules/@t10/has space` is a directory nothing can
+            // require, and the install said nothing about it
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'badname-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/x/package.json', JSON.stringify({
+                name: '@t10/has space', version: '0.1.0', private: true,
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, 'the name is refused' + diag(targetDir, res));
+            assert.ok(out.indexOf('@t10/has space') > -1, 'and named:\n' + out);
+            assert.ok(out.indexOf('URL-friendly') > -1, out);
+            assert.equal(fs.existsSync(path.join(targetDir, 'node_modules', '@t10')), false,
+                'no directory was created for it');
+        });
+
+        it('accepts the names npm accepts', function () {
+            // npm checks a member's name in two places, and neither of them minds
+            // capital letters, a leading hyphen or the characters `~'!()*` — this has
+            // to accept exactly the same set, or a project npm installs is refused here
+            ['plain-name', 'MixedCase', '-dash', 'ok~name', '@s/ok'].forEach(name => {
+                var targetDir = makeTargetDir();
+
+                writeFile(targetDir, 'package.json', JSON.stringify({
+                    name: 'okname-proj', version: '1.0.0', private: true,
+                    workspaces: ['packages/*'],
+                }, null, 2));
+                writeFile(targetDir, 'packages/m/package.json', JSON.stringify({
+                    name: name, version: '0.1.0', private: true,
+                }, null, 2));
+
+                var res = runInstaller(targetDir, ['--install']);
+
+                assert.equal(res.status, 0, `'${name}' is a name npm installs` + diag(targetDir, res));
+            });
+        });
+
         it('never fetches a workspace member from the registry', function () {
             // the report's fourth defect: a member the tree held as a plain directory
             // was described as a registry package, and the frozen install derived a

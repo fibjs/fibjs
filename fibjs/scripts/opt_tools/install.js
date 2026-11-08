@@ -522,6 +522,218 @@ function name_from_folder(dir) {
 }
 
 /**
+ * @description the workspace patterns split into the ones that select and the ones
+ *              that exclude, the way npm does it (`appendNegatedPatterns` in
+ *              `@npmcli/map-workspaces`): a leading `!` negates, `!!` negates the
+ *              negation (so it selects), and a selecting pattern that *matches* an
+ *              exclusion cancels it — `['packages/**', '!packages/b/**',
+ *              'packages/b/a']` excludes nothing, because the third pattern overrides
+ *              the second for the path it names. Position matters, so the list is read
+ *              in order
+ * @returns { patterns, negated } — both without their `!` markers
+ */
+function split_workspace_patterns(workspaces_config) {
+    const patterns = [];
+    const negated = [];
+
+    workspaces_config.forEach(raw => {
+        let pattern = String(raw);
+        const excl = pattern.match(/^!+/);
+
+        if (excl) {
+            pattern = pattern.slice(excl[0].length);
+
+            // an odd number of `!` excludes, an even one does not
+            if (excl[0].length % 2 === 1) {
+                negated.push(strip_dot_slash(pattern));
+                return;
+            }
+        }
+
+        pattern = strip_dot_slash(pattern);
+
+        // a selecting pattern cancels the exclusions it matches: the last pattern that
+        // names a path wins, and that is what makes the list order meaningful
+        for (let i = negated.length - 1; i >= 0; i--) {
+            if (glob_match(pattern, negated[i]))
+                negated.splice(i, 1);
+        }
+
+        patterns.push(pattern);
+    });
+
+    return { patterns: patterns, negated: negated };
+}
+
+/**
+ * @description a workspace pattern the way npm normalises it: no leading `./`
+ */
+function strip_dot_slash(pattern) {
+    return pattern.replace(/^\.?\/+/, '');
+}
+
+/**
+ * @description does a path match a workspace pattern, with the subset of glob the
+ *              `workspaces` field actually uses: `*` (one segment), `**` (any number
+ *              of them) and `?` (one character). npm matches with `minimatch`; this is
+ *              the part of it a workspace list can express
+ * @param pathname `/`-separated, relative to the project
+ */
+function glob_match(pathname, pattern) {
+    const re = glob_to_regex(pattern);
+
+    return re ? re.test(pathname) : false;
+}
+
+/**
+ * @description compile a workspace pattern to a regular expression
+ */
+function glob_to_regex(pattern) {
+    const p = strip_dot_slash(String(pattern)).replace(/\\/g, '/').replace(/\/+$/, '');
+
+    if (!p)
+        return null;
+
+    let out = '';
+    let i = 0;
+
+    while (i < p.length) {
+        const ch = p.charAt(i);
+
+        if (ch === '*') {
+            if (p.charAt(i + 1) === '*') {
+                // `**` spans separators; `**/` also matches zero segments
+                if (p.charAt(i + 2) === '/') {
+                    out += '(?:.*/)?';
+                    i += 3;
+                } else {
+                    out += '.*';
+                    i += 2;
+                }
+                continue;
+            }
+
+            out += '[^/]*';
+            i++;
+            continue;
+        }
+
+        if (ch === '?') {
+            out += '[^/]';
+            i++;
+            continue;
+        }
+
+        out += ch.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+        i++;
+    }
+
+    try {
+        return new RegExp('^' + out + '$');
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * @description is that a name a tree can hold, judged the way npm judges a member's
+ *              manifest? This is `@npmcli/package-json`'s `normalize.js`, which is
+ *              what npm actually runs over a workspace member — not
+ *              `validate-npm-package-name`, which is stricter and would refuse names
+ *              npm accepts (`-dash` falls back to a tag spec there and passes). The
+ *              rule is:
+ *
+ *                - it does not start with `.`
+ *                - it is either a scoped name (`@scope/pkg`, two halves, each
+ *                  url-friendly) or a plain one (url-friendly, and none of `/@\s+%:`)
+ *                - it is not `node_modules` / `favicon.ico`
+ *
+ *              Case, length and the characters `~'!()*` are not checked, because npm
+ *              does not check them here either.
+ *
+ *              There is a second gate, and it is the one that catches `_name`: npm
+ *              turns a member into an edge with `npa.resolve(name, 'file:…')`, and
+ *              `npa` runs `validate-npm-package-name` on the name it was handed. A
+ *              leading `_` fails there and nowhere else (`-dash` does not, because it
+ *              is read as a tag spec instead), so the two rules are applied together
+ * @returns null when the name is usable, the reason otherwise
+ */
+function package_name_error(name) {
+    if (typeof name !== 'string' || !name)
+        return 'the "name" field is empty';
+
+    if (name.charAt(0) === '.')
+        return 'the name cannot start with a period';
+
+    // `npa`'s gate
+    if (name.charAt(0) === '_')
+        return 'the name cannot start with an underscore';
+
+    if (!is_valid_scoped_name(name) && !is_correctly_encoded_name(name))
+        return 'the name has to be URL-friendly: no spaces, and only one "/" after "@scope"';
+
+    const lower = name.toLowerCase();
+
+    if (lower === 'node_modules' || lower === 'favicon.ico')
+        return `${lower} is not a valid package name`;
+
+    return null;
+}
+
+/**
+ * @description `@scope/pkg`, exactly two halves, both url-friendly
+ */
+function is_valid_scoped_name(name) {
+    if (name.charAt(0) !== '@')
+        return false;
+
+    const rest = name.slice(1).split('/');
+
+    if (rest.length !== 2)
+        return false;
+
+    return !!rest[0] && !!rest[1] &&
+        rest[0] === encodeURIComponent(rest[0]) &&
+        rest[1] === encodeURIComponent(rest[1]);
+}
+
+/**
+ * @description a plain name that survives a url unchanged, with none of `/@\s+%:`
+ */
+function is_correctly_encoded_name(name) {
+    return !/[/@\s+%:]/.test(name) && name === encodeURIComponent(name);
+}
+
+/**
+ * @description refuse a workspace member whose name cannot be installed. A link at
+ *              such a name is a directory nothing can require (`node_modules/@t10/has
+ *              space`), and nothing said so: the link was created, the lockfile
+ *              described it, and `--ci` was just as happy. npm refuses the project
+ *              and names the member
+ */
+function assert_installable_workspace_names(workspace_packages) {
+    const bad = [];
+
+    workspace_packages.forEach(w => {
+        const why = package_name_error(w.name);
+
+        if (why)
+            bad.push({ name: w.name, path: w.path, why: why });
+    });
+
+    if (!bad.length)
+        return;
+
+    bad.forEach(b => {
+        console.error(`Invalid name: ${JSON.stringify(b.name)} (${b.path}): ${b.why}`);
+    });
+
+    console.error('  a workspace member is installed as a link under node_modules, and the');
+    console.error('  name has to be one a require() can spell: fix its "name" field');
+    process.exit(1);
+}
+
+/**
  * @description find all workspace packages based on workspaces config. A member that
  *              declares no name is named after its directory, which is what npm does
  *              (`getPackageName`): skipping it made the two halves of the installer
@@ -535,8 +747,13 @@ function find_workspace_packages(root_path, workspaces_config) {
     }
 
     const workspace_packages = [];
+    const split = split_workspace_patterns(workspaces_config);
 
-    workspaces_config.forEach(pattern => {
+    // a bare `!pattern` list selects nothing, and npm says so by installing nothing
+    if (!split.patterns.length)
+        return workspace_packages;
+
+    split.patterns.forEach(pattern => {
         const glob_pattern = path.join(root_path, pattern, 'package.json');
 
         try {
@@ -545,6 +762,14 @@ function find_workspace_packages(root_path, workspaces_config) {
             matched_files.forEach(pkg_json_path => {
                 try {
                     const pkg_dir = path.dirname(pkg_json_path);
+                    const relative = path.relative(root_path, pkg_dir).replace(/\\/g, '/');
+
+                    // an exclusion is about the directory, which is why it is decided
+                    // here and not by leaving the pattern out of the glob: `!x` and
+                    // `x` name the same path, only the sense differs
+                    if (split.negated.some(n => glob_match(relative, n)))
+                        return;
+
                     const pkg_info = JSON.parse(fs.readTextFile(pkg_json_path));
 
                     // a directory two patterns both name is one member, not two: npm
@@ -564,7 +789,7 @@ function find_workspace_packages(root_path, workspaces_config) {
                         package_json: pkg_info
                     });
                 } catch (e) {
-                    console.warn(`[workspaces] Failed to read package.json at ${pkg_json_path}:`, e.message);
+                    report_workspace_error(pkg_json_path, e);
                 }
             });
         } catch (e) {
@@ -580,8 +805,55 @@ function find_workspace_packages(root_path, workspaces_config) {
     // and names both paths, which is the only answer that does not depend on the order
     // the directories come back in
     assert_unique_workspace_names(workspace_packages);
+    assert_installable_workspace_names(workspace_packages);
 
     return workspace_packages;
+}
+
+/**
+ * @description a workspace member whose package.json cannot be read is a member the
+ *              project has and the installer cannot describe: its dependencies would
+ *              be resolved from nothing and its link would point at a directory the
+ *              tree knows no name for. npm stops (`EJSONPARSE`); this collects the
+ *              failures and refuses the install once the whole list has been read, so
+ *              every broken member is named in one run rather than one run per file.
+ *
+ *              It used to be a `console.warn` per occurrence and the install went on:
+ *              `--install` exited 0 with the member silently skipped, so `fibjs
+ *              --install && npm test` carried on against a tree that was not what the
+ *              project describes. The same member is read by several passes (the root
+ *              snapshot, the sync check, the lockfile write back), which is also why
+ *              one broken file printed its warning three times
+ */
+function report_workspace_error(pkg_json_path, error) {
+    const failures = ctx.workspace_failures || (ctx.workspace_failures = []);
+
+    if (failures.some(f => f.path === pkg_json_path))
+        return;
+
+    failures.push({ path: pkg_json_path, error: error });
+}
+
+/**
+ * @description end the run when a workspace member's package.json could not be read
+ */
+function throw_workspace_failures() {
+    const failures = ctx.workspace_failures;
+
+    if (!failures || !failures.length)
+        return;
+
+    console.error(`[install] ${failures.length} workspace member${failures.length === 1 ? '' : 's'} ` +
+        'cannot be read:');
+
+    failures.forEach(f => {
+        console.error(`  ${f.path}`);
+        console.error(`    ${String(f.error && f.error.message || f.error).split('\n')[0]}`);
+    });
+
+    console.error('  a member the installer cannot read is a member it cannot install');
+    console.error('  fix the file above and run `fibjs --install` again');
+    process.exit(1);
 }
 
 /**
@@ -4800,6 +5072,11 @@ if (args.flags.save) {
 }
 
 const rootsnap = get_root_snapshot();
+
+// a workspace member whose package.json could not be read is a hole in what the
+// project describes: the install stops here, before anything is resolved or written,
+// rather than continuing against a tree that is missing a member
+throw_workspace_failures();
 
 // where the copies on disk came from, before anything is installed or removed: an
 // install that describes a tree it found can only know the version from the
