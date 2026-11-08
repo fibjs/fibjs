@@ -83,18 +83,24 @@ static result_t _createHmac(exlib::string algo, const char* key, size_t keylen,
 // a string alternative of a KDF argument is decoded as utf8, once, in the
 // asynchronous phase
 template <typename T>
-static result_t union_to_buffer(T& v, obj_ptr<Buffer_base>& buf)
+static result_t union_to_buffer(T& v, obj_ptr<Buffer_base>& buf, const char* encoding = "utf8")
 {
     if (std::holds_alternative<exlib::string>(v))
-        return Buffer_base::from(std::get<exlib::string>(v), "utf8", buf);
+        return Buffer_base::from(std::get<exlib::string>(v), encoding, buf);
 
     buf = std::get<obj_ptr<Buffer_base>>(v);
     return result_t();
 }
 
 result_t crypto_base::createHmac(exlib::string algo, Union_createHmac_key key,
-    obj_ptr<Digest_base>& retVal)
+    v8::Local<v8::Object> options, obj_ptr<Digest_base>& retVal)
 {
+    // Node.js applies options.encoding to a string key, so the same key material
+    // can be written as hex or base64 instead of as a Buffer literal.  A Buffer
+    // or KeyObject key ignores it.
+    exlib::string key_encoding = "utf8";
+    GetConfigValue(options, "encoding", key_encoding, true);
+
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
         KeyObject* ko = (KeyObject*)std::get<obj_ptr<KeyObject_base>>(key).get();
         if (ko->type() != KeyObject::kKeyTypeSecret)
@@ -104,7 +110,7 @@ result_t crypto_base::createHmac(exlib::string algo, Union_createHmac_key key,
     }
 
     obj_ptr<Buffer_base> keyBuf;
-    result_t hr = union_to_buffer(key, keyBuf);
+    result_t hr = union_to_buffer(key, keyBuf, key_encoding.c_str());
     if (hr.failed())
         return hr;
 

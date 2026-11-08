@@ -137,7 +137,7 @@ public:
     static result_t getHashes(std::vector<exlib::string>& retVal);
     static result_t createECDH(exlib::string curve, obj_ptr<ECDH_base>& retVal);
     static result_t createHash(exlib::string algo, obj_ptr<Digest_base>& retVal);
-    static result_t createHmac(exlib::string algo, Union_createHmac_key key, obj_ptr<Digest_base>& retVal);
+    static result_t createHmac(exlib::string algo, Union_createHmac_key key, v8::Local<v8::Object> options, obj_ptr<Digest_base>& retVal);
     static result_t getCiphers(std::vector<exlib::string>& retVal);
     static result_t getCipherInfo(Union_getCipherInfo_nameOrNid nameOrNid, v8::Local<v8::Object> options, obj_ptr<GetCipherInfoType>& retVal);
     static result_t createCipher(exlib::string algorithm, Union_createCipher_key key, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
@@ -364,12 +364,13 @@ inline void crypto_base::s_static_createHmac(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(Union_createHmac_key, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
-    hr = createHmac(v0, v1, vr);
+    hr = createHmac(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }

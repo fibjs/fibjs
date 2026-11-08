@@ -79597,6 +79597,11 @@ declare module 'crypto' {
      *      a secret KeyObject; passing a non-secret KeyObject throws, as do XOF algorithms.
      *      Compare the resulting tag with timingSafeEqual, not with ==.
      *
+     *      \`options.encoding\` decodes a string key the way \`Buffer.from(key, encoding)\` would, so
+     *      \`createHmac('sha256', '001122', { encoding: 'hex' })\` is the same as passing
+     *      \`Buffer.from('001122', 'hex')\`. It has no effect on Buffer and KeyObject keys, and
+     *      defaults to \`'utf8'\`.
+     *
      *      Example: a secret KeyObject and the same key as a Buffer give the same tag:
      *      \`\`\`JavaScript
      *      const crypto = require('crypto');
@@ -79612,12 +79617,22 @@ declare module 'crypto' {
      *          .update('message to authenticate').digest('hex') === tag); // true
      *      \`\`\`
      *
+     *      Example: a hex key decoded through the options object:
+     *      \`\`\`JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      const fromHex = crypto.createHmac('sha256', '0011223344556677', { encoding: 'hex' });
+     *      const fromBuf = crypto.createHmac('sha256', Buffer.from('0011223344556677', 'hex'));
+     *      console.log(fromHex.update('m').digest('hex') === fromBuf.update('m').digest('hex')); // true
+     *      \`\`\`
+     *
      *      @param algo the digest algorithm name to use
      *      @param key the secret key to use
+     *      @param options the options object; \`encoding\` decodes a string key
      *      @return returns the message digest object
      *
      */
-    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string): Class_Digest;
+    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string, options?: FIBJS.GeneralObject): Class_Digest;
 
     /**
      * @description Lists the symmetric cipher names accepted by the createCipher family and
@@ -81118,6 +81133,11 @@ declare module 'crypto/promises' {
      *      a secret KeyObject; passing a non-secret KeyObject throws, as do XOF algorithms.
      *      Compare the resulting tag with timingSafeEqual, not with ==.
      *
+     *      \`options.encoding\` decodes a string key the way \`Buffer.from(key, encoding)\` would, so
+     *      \`createHmac('sha256', '001122', { encoding: 'hex' })\` is the same as passing
+     *      \`Buffer.from('001122', 'hex')\`. It has no effect on Buffer and KeyObject keys, and
+     *      defaults to \`'utf8'\`.
+     *
      *      Example: a secret KeyObject and the same key as a Buffer give the same tag:
      *      \`\`\`JavaScript
      *      const crypto = require('crypto');
@@ -81133,12 +81153,22 @@ declare module 'crypto/promises' {
      *          .update('message to authenticate').digest('hex') === tag); // true
      *      \`\`\`
      *
+     *      Example: a hex key decoded through the options object:
+     *      \`\`\`JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      const fromHex = crypto.createHmac('sha256', '0011223344556677', { encoding: 'hex' });
+     *      const fromBuf = crypto.createHmac('sha256', Buffer.from('0011223344556677', 'hex'));
+     *      console.log(fromHex.update('m').digest('hex') === fromBuf.update('m').digest('hex')); // true
+     *      \`\`\`
+     *
      *      @param algo the digest algorithm name to use
      *      @param key the secret key to use
+     *      @param options the options object; \`encoding\` decodes a string key
      *      @return returns the message digest object
      *
      */
-    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string): Class_Digest;
+    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string, options?: FIBJS.GeneralObject): Class_Digest;
 
     /**
      * @description Lists the symmetric cipher names accepted by the createCipher family and

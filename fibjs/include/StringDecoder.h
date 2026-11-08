@@ -42,7 +42,7 @@ public:
             m_end2 = &StringDecoder::utf8End2;
             m_text = &StringDecoder::utf8Text;
             m_fillLast = &StringDecoder::utf8FillLast;
-        } else if (m_encoding == "base64") {
+        } else if (m_encoding == "base64" || m_encoding == "base64url") {
             size = 3;
             m_write = &StringDecoder::defaultWrite;
             m_end1 = &StringDecoder::base64End1;
@@ -173,6 +173,9 @@ inline exlib::string normalizeEncoding(exlib::string encoding)
             || encoding == "binary") {
             return "latin1";
         } else if (encoding == "base64"
+            || encoding == "base64url"
+            || encoding == "base32"
+            || encoding == "base58"
             || encoding == "ascii"
             || encoding == "hex") {
             return encoding;

@@ -208,6 +208,14 @@ result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& r
         uint64_t seconds = isolate->toUint32Value(JSValue(diff->Get(context, 0)));
         uint64_t nanos = isolate->toUint32Value(JSValue(diff->Get(context, 1)));
         t -= (seconds * NANOS_PER_SEC) + nanos;
+    } else if (diff->Length() != 0) {
+        // Node rejects a diff that is not a two-element tuple instead of
+        // silently ignoring it, so a mistyped argument cannot turn into a
+        // plausible-looking but wrong reading.
+        return result_t::make(CALL_E_EXCEPTION)
+            .with_type_name(errtype::kRangeError)
+            .with_code("ERR_OUT_OF_RANGE")
+            .with_message("The value of \"time\" is out of range. It must be an Array of two numbers.");
     }
 
     v8::Local<v8::Array> tuple = v8::Array::New(isolate->m_isolate, 2);
