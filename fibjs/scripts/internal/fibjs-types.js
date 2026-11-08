@@ -5640,9 +5640,11 @@ declare namespace Class_Condition {
  *    debug logger the section must additionally be listed in NODE_DEBUG for INFO
  *    and DEBUG records; WARN and above are written even when the section is
  *    disabled, while disabled levels are dropped.
- *  - **Members that do not exist**: there is no \`print\`, \`assert\`, \`count\`, \`countReset\`,
- *    \`timeLog\`, \`group\`, \`groupEnd\` or \`dirxml\` on this object; \`operator(...)\`
- *    makes the object callable as a debug logger.
+ *  - **Members that do not exist**: there is no \`print\`, \`assert\` or \`dirxml\` on this
+ *    object; \`operator(...)\` makes the object callable as a debug logger. \`count\`,
+ *    \`countReset\`, \`timeLog\`, \`group\`, \`groupCollapsed\` and \`groupEnd\` are provided, and
+ *    their counters/indentation belong to the instance (the module-level \`console\` keeps
+ *    its own, process-wide, table).
  *
  *  Obtained from:
  *
@@ -6053,6 +6055,114 @@ declare class Class_ConsoleObject extends Class_object {
      *
      */
     timeEnd(label?: string): void;
+
+    /**
+     * @description Prints the value of an instance timer without stopping it, plus extra data
+     *
+     *      Same as \`timeElapse\`, with the remaining arguments appended to the line: the
+     *      timer keeps running, so it can be sampled repeatedly before \`timeEnd\`. This is
+     *      the Node.js \`console.timeLog\` name for the fibjs \`timeElapse\` behaviour.
+     *
+     *      Example — sample a running timer with context:
+     *      \`\`\`JavaScript
+     *      const { Console } = require('console');
+     *
+     *      const c = new Console(process.stdout);
+     *      c.time('import');
+     *      c.timeLog('import', 'phase 1'); // import: <elapsed>ms phase 1
+     *      c.timeEnd('import');
+     *      \`\`\`
+     *
+     *      @param label the timer label, defaults to "time"
+     *      @param args additional values printed after the elapsed time
+     *
+     */
+    timeLog(label?: string, ...args: any[]): void;
+
+    /**
+     * @description Increments the counter under a label and prints it
+     *
+     *      Stores the count on the instance, so two Console objects keep separate
+     *      counters, and writes \`label: <count>\` at INFO level. The default label is
+     *      \`"default"\`.
+     *
+     *      Example — count the occurrences of a branch:
+     *      \`\`\`JavaScript
+     *      const { Console } = require('console');
+     *
+     *      const c = new Console(process.stdout);
+     *      c.count('items'); // items: 1
+     *      c.count('items'); // items: 2
+     *      \`\`\`
+     *
+     *      @param label the counter label, defaults to "default"
+     *
+     */
+    count(label?: string): void;
+
+    /**
+     * @description Resets the counter under a label
+     *
+     *      Removes the instance counter, so the next \`count\` with the same label prints
+     *      1. Resetting an unknown label prints a warning at WARN level, matching Node.js.
+     *
+     *      Example — restart a counter:
+     *      \`\`\`JavaScript
+     *      const { Console } = require('console');
+     *
+     *      const c = new Console(process.stdout);
+     *      c.count('items'); // items: 1
+     *      c.countReset('items');
+     *      c.count('items'); // items: 1
+     *      \`\`\`
+     *
+     *      @param label the counter label, defaults to "default"
+     *
+     */
+    countReset(label?: string): void;
+
+    /**
+     * @description Increases the indentation and prints the arguments
+     *
+     *      Outputs the arguments at INFO level and adds two columns to the indentation of
+     *      every following line, which lasts until the matching \`groupEnd\`. The indentation
+     *      state belongs to the instance, so two Console objects do not share it.
+     *
+     *      Example — indent a block of output:
+     *      \`\`\`JavaScript
+     *      const { Console } = require('console');
+     *
+     *      const c = new Console(process.stdout);
+     *      c.group('request');
+     *      c.log('path: /');
+     *      c.groupEnd();
+     *      \`\`\`
+     *
+     *      @param args the values printed as the group heading
+     *
+     */
+    group(...args: any[]): void;
+
+    /**
+     * @description Increases the indentation without collapsing the group
+     *
+     *      Identical to \`group\`: fibjs has no collapsible console, so the two members
+     *      behave the same.
+     *
+     *      @param args the values printed as the group heading
+     *
+     */
+    groupCollapsed(...args: any[]): void;
+
+    /**
+     * @description Decreases the indentation by one level
+     *
+     *      The counterpart of \`group\`/\`groupCollapsed\`; at indentation zero the call does
+     *      nothing. Node.js prints a warning in that case, which this implementation does
+     *      not.
+     *
+     */
+    groupEnd(): void;
 
 }
 
@@ -11805,11 +11915,17 @@ declare namespace Class_Event {
  *    thrown as-is and any other value is wrapped in \`Error("Unhandled error. (...)")\`.
  *  - **Listener limit**: \`defaultMaxListeners\` (10) and \`setMaxListeners\`/\`getMaxListeners\` are kept
  *    for compatibility; the limit never produces a warning.
- *  - **Not provided**: \`events.errorMonitor\`, \`events.captureRejectionSymbol\`,
- *    \`events.getEventListeners\` and the static broadcast forms of \`setMaxListeners\` and
- *    \`getMaxListeners\`; the \`captureRejections\` option is accepted but ignored;
+ *  - **Not provided**: the \`captureRejections\` option is accepted but ignored;
  *    symbol events are omitted from \`eventNames()\` and are not removed by \`removeAllListeners()\`
  *    without arguments.
+ *  - **events module surface**: \`require('events')\` is the class itself, and the module
+ *    object carries the Node.js statics — \`errorMonitor\` (\`Symbol.for('nodejs.errorMonitor')\`),
+ *    \`captureRejectionSymbol\` (\`Symbol.for('nodejs.rejection')\`), \`getEventListeners(target, type)\`
+ *    (which delegates to \`target.listeners(type)\`, returning \`[]\` for an unknown or omitted type),
+ *    the static broadcast forms \`setMaxListeners(n, ...targets)\` /
+ *    \`getMaxListeners(target)\`, and \`dispatchEvent(event)\` on the prototype (so an
+ *    \`EventTarget\` delivers the \`Event\` object itself). \`DOMEvent#target\` stays \`null\`
+ *    in this release, so \`dispatchEvent\` cannot fill it.
  *
  *  Obtained from:
  *  - \`new EventEmitter(options = {})\` — creates an emitter; the options object is accepted and
@@ -27123,9 +27239,9 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description Sends a 302 redirect to the client
      *
      *      Sets statusCode to 302 and Location to the URL; the body is not touched. Equivalent
-     *      to redirect(302, url). Only 301, 302 and 307 are accepted by the explicit overload,
-     *      while the static factory Response.redirect() writes any status without validating
-     *      it.
+     *      to redirect(302, url). 301, 302, 303, 307 and 308 are accepted by the explicit
+     *      overload, while the static factory Response.redirect() writes any status without
+     *      validating it.
      *      @param url the redirect address
      *
      */
@@ -27134,10 +27250,25 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     /**
      * @description Sends a redirect with an explicit status code
      *
-     *      Only 301, 302 and 307 are accepted; any other code throws error 20024 ("Invalid
-     *      statusCode ..., expected 301, 302, or 307."). 303 and 308 have to be set manually
-     *      with statusCode plus a Location header.
-     *      @param statusCode the return status; accepted values are 301, 302 and 307
+     *      301, 302, 303, 307 and 308 are accepted, the set the Web standard and Node.js
+     *      allow; any other code throws error 20024 ("Invalid statusCode ..., expected 301,
+     *      302, 303, 307, or 308."). 303 turns a POST into a GET and 308 keeps the method,
+     *      which is the usual pair for the two non-permanent redirects.
+     *
+     *      Example — answer a POST with 303 See Other:
+     *      \`\`\`JavaScript
+     *      const http = require('http');
+     *
+     *      const server = new http.Server(0, (req) => {
+     *          req.response.redirect(303, '/result');
+     *      });
+     *      server.start();
+     *
+     *      console.log(server.socket.localPort > 0); // true
+     *      server.stop();
+     *      \`\`\`
+     *
+     *      @param statusCode the return status; accepted values are 301, 302, 303, 307 and 308
      *      @param url the redirect address
      *
      */
@@ -27475,9 +27606,9 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      * @description Sends a 302 redirect to the client
      *
      *      Sets statusCode to 302 and Location to the URL; the body is not touched. Equivalent
-     *      to redirect(302, url). Only 301, 302 and 307 are accepted by the explicit overload,
-     *      while the static factory Response.redirect() writes any status without validating
-     *      it.
+     *      to redirect(302, url). 301, 302, 303, 307 and 308 are accepted by the explicit
+     *      overload, while the static factory Response.redirect() writes any status without
+     *      validating it.
      *      @param url the redirect address
      *
      */
@@ -27486,10 +27617,25 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     /**
      * @description Sends a redirect with an explicit status code
      *
-     *      Only 301, 302 and 307 are accepted; any other code throws error 20024 ("Invalid
-     *      statusCode ..., expected 301, 302, or 307."). 303 and 308 have to be set manually
-     *      with statusCode plus a Location header.
-     *      @param statusCode the return status; accepted values are 301, 302 and 307
+     *      301, 302, 303, 307 and 308 are accepted, the set the Web standard and Node.js
+     *      allow; any other code throws error 20024 ("Invalid statusCode ..., expected 301,
+     *      302, 303, 307, or 308."). 303 turns a POST into a GET and 308 keeps the method,
+     *      which is the usual pair for the two non-permanent redirects.
+     *
+     *      Example — answer a POST with 303 See Other:
+     *      \`\`\`JavaScript
+     *      const http = require('http');
+     *
+     *      const server = new http.Server(0, (req) => {
+     *          req.response.redirect(303, '/result');
+     *      });
+     *      server.start();
+     *
+     *      console.log(server.socket.localPort > 0); // true
+     *      server.stop();
+     *      \`\`\`
+     *
+     *      @param statusCode the return status; accepted values are 301, 302, 303, 307 and 308
      *      @param url the redirect address
      *
      */
@@ -33790,8 +33936,8 @@ declare class Class_MessageChannel extends Class_object {
  *
  *  Instances are produced by \`MessageChannel\` ports when they receive a message, and the constructor
  *  \`new MessageEvent('message', { data })\` creates one directly for tests or synthetic events. fibjs
- *  implements the subset of the MDN MessageEvent that MessagePort uses: \`data\` is exposed, while
- *  \`type\`, \`origin\`, \`lastEventId\`, \`source\` and \`ports\` are not.
+ *  implements the part of the MDN MessageEvent that messages use: \`data\` and \`type\` carry the real
+ *  values, while \`origin\`, \`lastEventId\`, \`source\` and \`ports\` exist but hold their defaults.
  *
  *  Concepts:
  *
@@ -33837,25 +33983,72 @@ declare class Class_MessageChannel extends Class_object {
  *  Notes:
  *
  *  - The constructor \`type\` argument is required; \`new MessageEvent()\` throws
- *    \`TypeError [20002] Parameter not optional.\` The type itself is not stored.
+ *    \`TypeError [20002] Parameter not optional.\` and the value is stored on the
+ *    instance.
  *  - \`ports\` for transferred MessagePorts is not supported, so a received message never has
- *    attached ports.
+ *    attached ports and the property is always an empty array.
  *
  */
 declare class Class_MessageEvent extends Class_object {
     /**
      * @description MessageEvent constructor
      *
-     *      \`type\` is mandatory, but fibjs stores only \`eventInitDict.data\` (default \`undefined\`) and
-     *      exposes no \`type\` property, matching the global MessageEvent. The payload is kept by
-     *      reference, not cloned; structured cloning only happens when a value travels through a
-     *      MessagePort. The full event properties and a \`ports\` list of
-     *      transferred MessagePorts are not supported.
+     *      \`type\` is mandatory and is stored on the instance, as it is in the Web API.
+     *      The payload is kept by reference, not cloned; structured cloning only happens
+     *      when a value travels through a MessagePort. The remaining MessageEvent fields
+     *      (\`origin\`, \`lastEventId\`, \`source\`, \`ports\`) exist for interface compatibility
+     *      but carry their defaults, and a \`ports\` list of transferred MessagePorts is not
+     *      supported.
      *      @param type The type of the event
      *      @param eventInitDict Optional event initialization dictionary containing data property
      *
      */
     constructor(type: string, eventInitDict?: FIBJS.GeneralObject);
+
+    /**
+     * @description The event type, as passed to the constructor
+     *
+     *      Returns the first constructor argument, so \`new MessageEvent('message', { data })
+     *      .type\` is \`'message'\`. Events produced by a MessagePort use \`'message'\` as well.
+     *
+     */
+    readonly type: string;
+
+    /**
+     * @description The origin of the message emitter
+     *
+     *      fibjs does not track an origin for port messages, so the property is always the
+     *      empty string. The Web API fills it with the origin of the sender.
+     *
+     */
+    readonly origin: string;
+
+    /**
+     * @description The last event ID of the message emitter
+     *
+     *      fibjs does not send or track event IDs, so the property is always the empty
+     *      string.
+     *
+     */
+    readonly lastEventId: string;
+
+    /**
+     * @description The message emitter
+     *
+     *      Always \`null\`: fibjs delivers messages between MessagePorts, and those are not
+     *      exposed as an event source the way a Window or Worker is on the Web.
+     *
+     */
+    readonly source: any;
+
+    /**
+     * @description The MessagePorts transferred with the message
+     *
+     *      Always an empty array: fibjs does not support transferring ports inside a
+     *      message, so a received message never carries any.
+     *
+     */
+    readonly ports: any[];
 
     /**
      * @description The data sent by the message emitter
@@ -71089,8 +71282,11 @@ declare class Class_object {
  *    valueOf) is reported as a failed AssertionError.
  *  - \`throws\` treats a function whose \`prototype.constructor\` is itself as an error class,
  *    not as a validation function; pass an arrow function to validate an error.
- *  - \`doesNotReject\` and \`partialDeepStrictEqual\` are not provided; \`fail\` takes
- *    only a message.
+ *  - \`partialDeepStrictEqual\` is a subset comparison: every own enumerable key of
+ *    \`expected\` must exist in \`actual\` with a strictly equal value, and an \`actual\`
+ *    array may be longer. Element comparison goes through the same deep-compare rule as
+ *    \`deepStrictEqual\`, so the module has a single definition of "deep equal".
+ *  - \`fail\` takes only a message.
  *  - See the assert_strict module for the strict comparison mode and the differences it maps.
  *
  */
@@ -72024,6 +72220,79 @@ declare module 'assert' {
          *
          */
         function rejects(result: Promise, msg?: any): Promise;
+
+        /**
+         * @description Tests that the given code does not reject
+         *
+         *      The counterpart of \`rejects\`: the block is called and the returned promise is
+         *      observed. A synchronous throw, a rejected promise, or a return value that is not a
+         *      promise each fail the assertion; only a fulfilling promise or a block that returns
+         *      one passes. An optional \`error\` filter narrows what counts as a mismatch, using the
+         *      same rules as \`rejects\` (RegExp, error class, arrow validation function or property
+         *      filter object), so a rejection that does not match the filter is reported as an
+         *      AssertionError with the operator 'doesNotReject'.
+         *
+         *      The returned promise resolves to undefined when nothing was rejected and rejects with
+         *      the generated AssertionError otherwise.
+         *
+         *      Example — a call that must complete:
+         *      \`\`\`JavaScript
+         *      const assert = require('assert');
+         *
+         *      (async () => {
+         *          await assert.doesNotReject(Promise.resolve(42));
+         *          await assert.doesNotReject(async () => { return 'ok'; });
+         *      })();
+         *      \`\`\`
+         *
+         *      @param block the code to test, given as a function or a promise
+         *      @param error the expected error filter, optional
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function doesNotReject(block: any, error: any, msg?: any): Promise;
+
+        /**
+         * ! Tests that the given code does not reject, with only a message
+         *
+         *      Equivalent to the three-argument overload with an undefined error filter.
+         *      @param block the code to test, given as a function or a promise
+         *      @param msg the message when the assertion fails
+         *      @return returns a Promise
+         *
+         */
+        function doesNotReject(block: any, msg?: any): Promise;
+
+        /**
+         * @description Tests that \`actual\` contains everything \`expected\` contains
+         *
+         *      A subset comparison: every own enumerable key of \`expected\` has to exist in
+         *      \`actual\` with a strictly equal value, and for arrays every element of \`expected\` has
+         *      to match the element at the same index with \`actual\` allowed to be longer. Extra
+         *      keys and extra array elements on the \`actual\` side are not errors, which is what
+         *      makes it useful for asserting on the fields a caller cares about instead of the
+         *      whole object.
+         *
+         *      The value comparison follows the same rules as \`deepStrictEqual\`, so \`actual\` and
+         *      \`expected\` are compared with fibjs' own semantics (prototypes are not part of the
+         *      comparison and NaN compares unequal); the assertion is a strict comparison only in
+         *      the sense that \`===\`-style matching applies to primitives.
+         *
+         *      Example — assert the subset of a record:
+         *      \`\`\`JavaScript
+         *      const assert = require('assert');
+         *
+         *      assert.partialDeepStrictEqual({ id: 1, name: 'a', extra: true }, { id: 1 });
+         *      assert.partialDeepStrictEqual([1, 2, 3], [1, 2]);
+         *      \`\`\`
+         *
+         *      @param actual the value to check
+         *      @param expected the subset it has to contain
+         *      @param msg the message when the assertion fails
+         *
+         */
+        function partialDeepStrictEqual(actual: any, expected: any, msg?: any): void;
 
         /**
          * @description Throws the given value when it is truthy
@@ -75463,8 +75732,10 @@ declare module 'colors' {
  *    function, readLineAsync takes a callback and \`console.promises.readLine\`
  *    returns a promise. See the readLine member for the terminal details.
  *  - **Behaviour notes**: \`console.assert\` is the assert module and throws when the value is
- *    falsy instead of logging an "Assertion failed" message; count, countReset, timeLog, group,
- *    groupEnd, groupCollapsed, profile and context do not exist; the default timer
+ *    falsy instead of logging an "Assertion failed" message; \`profile\`, \`profileEnd\`,
+ *    \`timeStamp\`, \`context\` and \`createTask\` do not exist; \`count\`/\`countReset\`,
+ *    \`group\`/\`groupCollapsed\`/\`groupEnd\` and \`timeLog\` are provided and use a process-wide
+ *    table (the instance forms of \`Console\` keep their own state). The default timer
  *    label is \`time\`, and timeEnd on an unknown label
  *    measures from zero instead of warning. \`print\` and \`loglevel\` are module extensions.
  *
@@ -76181,6 +76452,105 @@ declare module 'console' {
     function timeEnd(label?: string): void;
 
     /**
+     * @description Prints the value of a timer without stopping it, plus extra data
+     *
+     *      Same as \`timeElapse\`, with the remaining arguments appended to the line; the
+     *      timer keeps running, so it can be sampled repeatedly before \`timeEnd\`. This is
+     *      the Node.js \`console.timeLog\` name for the fibjs \`timeElapse\` behaviour, and it
+     *      shares the process-wide timer table with \`time\`/\`timeEnd\`.
+     *
+     *      Example — sample a running timer with context:
+     *      \`\`\`JavaScript
+     *      console.time('import');
+     *      console.timeLog('import', 'phase 1'); // import: <elapsed>ms phase 1
+     *      console.timeEnd('import');
+     *      \`\`\`
+     *
+     *      @param label the timer label, defaults to "time"
+     *      @param args additional values printed after the elapsed time
+     *
+     */
+    function timeLog(label?: string, ...args: any[]): void;
+
+    /**
+     * @description Increments the counter under a label and prints it
+     *
+     *      Stores the count in the process-wide table shared with \`countReset\` and writes
+     *      \`label: <count>\` at INFO level. The default label is \`"default"\`. Unlike the
+     *      timers of a \`Console\` instance, this table is shared by every caller in the
+     *      process, matching the module-level timer behaviour.
+     *
+     *      Example — count the occurrences of a branch:
+     *      \`\`\`JavaScript
+     *      console.count('items'); // items: 1
+     *      console.count('items'); // items: 2
+     *      \`\`\`
+     *
+     *      @param label the counter label, defaults to "default"
+     *
+     */
+    function count(label?: string): void;
+
+    /**
+     * @description Resets the counter under a label
+     *
+     *      Removes the process-wide counter, so the next \`count\` with the same label
+     *      prints 1. Resetting an unknown label prints a warning at WARN level, matching
+     *      Node.js.
+     *
+     *      Example — restart a counter:
+     *      \`\`\`JavaScript
+     *      console.count('items'); // items: 1
+     *      console.countReset('items');
+     *      console.count('items'); // items: 1
+     *      \`\`\`
+     *
+     *      @param label the counter label, defaults to "default"
+     *
+     */
+    function countReset(label?: string): void;
+
+    /**
+     * @description Increases the indentation and prints the arguments
+     *
+     *      Outputs the arguments at INFO level and adds two columns to the indentation of
+     *      every following line, which lasts until the matching \`groupEnd\`. The indentation
+     *      is process-wide, like the module-level timers.
+     *
+     *      Example — indent a block of output:
+     *      \`\`\`JavaScript
+     *      console.group('request');
+     *      console.log('path: /');
+     *      console.groupEnd();
+     *      \`\`\`
+     *
+     *      @param args the values printed as the group heading
+     *
+     */
+    function group(...args: any[]): void;
+
+    /**
+     * @description Increases the indentation without collapsing the group
+     *
+     *      Identical to \`group\`: fibjs has no collapsible console, so the two members
+     *      behave the same.
+     *
+     *      @param args the values printed as the group heading
+     *
+     */
+    function groupCollapsed(...args: any[]): void;
+
+    /**
+     * @description Decreases the indentation by one level
+     *
+     *      The counterpart of \`group\`/\`groupCollapsed\`; at indentation zero the call does
+     *      nothing. Node.js prints a warning in that case, which this implementation does
+     *      not.
+     *
+     */
+    function groupEnd(): void;
+
+    /**
      * @description The assert module, which throws on a falsy value
      *
      *      \`console.assert\` is the assert module itself: \`console.assert ===
@@ -76879,6 +77249,105 @@ declare module 'console/promises' {
      *
      */
     function timeEnd(label?: string): void;
+
+    /**
+     * @description Prints the value of a timer without stopping it, plus extra data
+     *
+     *      Same as \`timeElapse\`, with the remaining arguments appended to the line; the
+     *      timer keeps running, so it can be sampled repeatedly before \`timeEnd\`. This is
+     *      the Node.js \`console.timeLog\` name for the fibjs \`timeElapse\` behaviour, and it
+     *      shares the process-wide timer table with \`time\`/\`timeEnd\`.
+     *
+     *      Example — sample a running timer with context:
+     *      \`\`\`JavaScript
+     *      console.time('import');
+     *      console.timeLog('import', 'phase 1'); // import: <elapsed>ms phase 1
+     *      console.timeEnd('import');
+     *      \`\`\`
+     *
+     *      @param label the timer label, defaults to "time"
+     *      @param args additional values printed after the elapsed time
+     *
+     */
+    function timeLog(label?: string, ...args: any[]): void;
+
+    /**
+     * @description Increments the counter under a label and prints it
+     *
+     *      Stores the count in the process-wide table shared with \`countReset\` and writes
+     *      \`label: <count>\` at INFO level. The default label is \`"default"\`. Unlike the
+     *      timers of a \`Console\` instance, this table is shared by every caller in the
+     *      process, matching the module-level timer behaviour.
+     *
+     *      Example — count the occurrences of a branch:
+     *      \`\`\`JavaScript
+     *      console.count('items'); // items: 1
+     *      console.count('items'); // items: 2
+     *      \`\`\`
+     *
+     *      @param label the counter label, defaults to "default"
+     *
+     */
+    function count(label?: string): void;
+
+    /**
+     * @description Resets the counter under a label
+     *
+     *      Removes the process-wide counter, so the next \`count\` with the same label
+     *      prints 1. Resetting an unknown label prints a warning at WARN level, matching
+     *      Node.js.
+     *
+     *      Example — restart a counter:
+     *      \`\`\`JavaScript
+     *      console.count('items'); // items: 1
+     *      console.countReset('items');
+     *      console.count('items'); // items: 1
+     *      \`\`\`
+     *
+     *      @param label the counter label, defaults to "default"
+     *
+     */
+    function countReset(label?: string): void;
+
+    /**
+     * @description Increases the indentation and prints the arguments
+     *
+     *      Outputs the arguments at INFO level and adds two columns to the indentation of
+     *      every following line, which lasts until the matching \`groupEnd\`. The indentation
+     *      is process-wide, like the module-level timers.
+     *
+     *      Example — indent a block of output:
+     *      \`\`\`JavaScript
+     *      console.group('request');
+     *      console.log('path: /');
+     *      console.groupEnd();
+     *      \`\`\`
+     *
+     *      @param args the values printed as the group heading
+     *
+     */
+    function group(...args: any[]): void;
+
+    /**
+     * @description Increases the indentation without collapsing the group
+     *
+     *      Identical to \`group\`: fibjs has no collapsible console, so the two members
+     *      behave the same.
+     *
+     *      @param args the values printed as the group heading
+     *
+     */
+    function groupCollapsed(...args: any[]): void;
+
+    /**
+     * @description Decreases the indentation by one level
+     *
+     *      The counterpart of \`group\`/\`groupCollapsed\`; at indentation zero the call does
+     *      nothing. Node.js prints a warning in that case, which this implementation does
+     *      not.
+     *
+     */
+    function groupEnd(): void;
 
     /**
      * @description The assert module, which throws on a falsy value
@@ -101041,6 +101510,35 @@ declare module 'module' {
     const builtinModules: string[];
 
     /**
+     * @description Tells whether a name refers to a built-in module
+     *
+     *      A built-in module is one that can be required without a path, including the
+     *      sub-path modules (\`fs/promises\`, \`path/posix\`, \`timers/promises\` and the rest of
+     *      the list in \`builtinModules\`). The name may be given with or without the \`node:\`
+     *      prefix, so \`isBuiltin('fs')\` and \`isBuiltin('node:fs')\` are both true, while a
+     *      double prefix (\`'node:node:fs'\`) and an empty string are false. Only strings are
+     *      inspected: any other value (including a \`String\` object) returns false without
+     *      throwing, which is what makes the call safe inside feature detection.
+     *
+     *      \`Module.isBuiltin\` carries the same function.
+     *
+     *      Example — gate code on a built-in module:
+     *      \`\`\`JavaScript
+     *      const mod = require('module');
+     *
+     *      console.log(mod.isBuiltin('fs')); // true
+     *      console.log(mod.isBuiltin('node:fs')); // true
+     *      console.log(mod.isBuiltin('timers/promises')); // true
+     *      console.log(mod.isBuiltin('nope')); // false
+     *      \`\`\`
+     *
+     *      @param id module name, with or without the node: prefix
+     *      @return true when the name is a built-in module
+     *
+     */
+    function isBuiltin(id?: any): boolean;
+
+    /**
      * @description Compatibility entry point for the compile cache; always a no-op
      *
      *      The call is a probe: it performs no work, ignores its argument (including invalid
@@ -103663,9 +104161,9 @@ declare module "net" {
  *    by a calendar part with month-end clamping: 2000-01-31 plus one month is 2000-02-29.
  *    \`timezone\` is the local UTC offset in hundredths of an hour (UTC+8 is 800), unlike
  *    Date#getTimezoneOffset, which counts minutes west of UTC.
- *  - **Not provided**: \`availableParallelism\`, \`machine\`, \`version\`, \`devNull\`
- *    and \`getPriority\`/\`setPriority\` do not exist; use \`cpus().length\` when a parallelism
- *    hint is needed.
+ *  - **Not provided**: \`getPriority\`/\`setPriority\` do not exist, and there is no other
+ *    priority API in this release; \`availableParallelism\`, \`machine\`, \`version\`, \`devNull\`
+ *    and \`uptime\` are provided.
  *
  *  Import:
  *  \`\`\`JavaScript
@@ -103783,6 +104281,106 @@ declare module 'os' {
      *
      */
     function release(): string;
+
+    /**
+     * @description Queries the machine hardware name of the current system
+     *
+     *      The value is the \`machine\` field of uname: 'x86_64', 'aarch64', 'arm64' or
+     *      'riscv64'. It describes the running kernel, which can differ from \`arch\` (the
+     *      build target of this binary) when a 32-bit binary runs on a 64-bit kernel.
+     *
+     *      Example — report the kernel machine and this build's target together:
+     *      \`\`\`JavaScript
+     *      const os = require('os');
+     *
+     *      console.log(os.machine()); // x86_64
+     *      console.log(os.arch()); // x64
+     *      \`\`\`
+     *      @return returns the machine hardware name
+     *
+     */
+    function machine(): string;
+
+    /**
+     * @description Queries the operating system version string of the current system
+     *
+     *      The value is the \`version\` field of uname, the kernel build string (for example
+     *      '#149~20.04.1-Ubuntu SMP Wed Apr 16 08:29:56 UTC 2025' on Linux); its format
+     *      varies by system and it is meant for display and diagnostics only. \`release\`
+     *      reports the kernel release, which is the version number callers usually parse.
+     *
+     *      Example — report release and version separately:
+     *      \`\`\`JavaScript
+     *      const os = require('os');
+     *
+     *      console.log(os.release()); // 5.15.0-139-generic
+     *      console.log(os.version()); // #149~20.04.1-Ubuntu SMP ...
+     *      \`\`\`
+     *      @return returns the kernel version string
+     *
+     */
+    function version(): string;
+
+    /**
+     * @description Queries the path of the null device of the current system
+     *
+     *      The value is '/dev/null' on POSIX systems and '\\\\\\\\?\\\\nul' on Windows; writing to it
+     *      discards the data and reading from it reports end of file.
+     *
+     *      Example — discard a stream through the platform null device:
+     *      \`\`\`JavaScript
+     *      const os = require('os');
+     *      const fs = require('fs');
+     *
+     *      const fd = fs.openSync(os.devNull, 'w');
+     *      fs.writeSync(fd, 'discarded');
+     *      fs.closeSync(fd);
+     *      \`\`\`
+     *
+     */
+    const devNull: string;
+
+    /**
+     * @description Queries how long the system has been running, in seconds
+     *
+     *      This is the *system* uptime, the same value \`process.uptime\` reports in fibjs; it is
+     *      not the age of the current process. Node.js reports the process age from
+     *      \`process.uptime\` and the system uptime here, so a program that wants the fibjs
+     *      behaviour should read \`os.uptime\` explicitly.
+     *
+     *      Example — report the system uptime in whole days:
+     *      \`\`\`JavaScript
+     *      const os = require('os');
+     *
+     *      console.log(Math.floor(os.uptime() / 86400));
+     *      \`\`\`
+     *      @return returns the system uptime in seconds
+     *
+     */
+    function uptime(): number;
+
+    /**
+     * @description Queries how many tasks the runtime may run in parallel
+     *
+     *      The value respects the CPU affinity mask and any cgroup quota, so inside a
+     *      container it reports the CPU allowance rather than the machine's CPU count. Use it
+     *      instead of \`cpus().length\` when sizing a worker pool.
+     *
+     *      \`cpuNumbers\` (a fibjs extension) reports the number of logical CPUs of the machine
+     *      and is cached after the first call, so the two can differ; \`cpus().length\` matches
+     *      \`cpuNumbers\`.
+     *
+     *      Example — size a worker pool:
+     *      \`\`\`JavaScript
+     *      const os = require('os');
+     *
+     *      console.log(os.availableParallelism()); // 32
+     *      console.log(os.cpuNumbers()); // 32
+     *      \`\`\`
+     *      @return returns the number of tasks that can run in parallel
+     *
+     */
+    function availableParallelism(): number;
 
     /**
      * @description Queries the home directory of the current user
@@ -111834,8 +112432,8 @@ declare module 'test_suite' {
  *    timer can clear itself. A callback that waits (I/O, \`coroutine.sleep\`) yields and lets other
  *    timers run, while a callback that blocks the CPU blocks all JavaScript until it returns.
  *  - **Delay clamping**: the delay is a number of milliseconds; values less than 1 or greater than
- *    2^31-1 are clamped to 1, and a fractional delay is truncated. \`setTimeout\` defaults a missing
- *    delay to 1ms, while \`setInterval\` requires it. \`NaN\` and non-numeric strings throw a TypeError.
+ *    2^31-1 are clamped to 1, and a fractional delay is truncated. Both \`setTimeout\` and
+ *    \`setInterval\` default a missing delay to 1ms. \`NaN\` and non-numeric strings throw a TypeError.
  *  - **High-resolution interval**: \`setHrInterval\` uses a VM interrupt and can call back at any time,
  *    including while JavaScript is running; its callback must not modify state used by other code nor
  *    call asynchronous APIs. It is an extension of the module.
@@ -111912,7 +112510,9 @@ declare module 'test_suite' {
  *  Notes:
  *
  *  - \`setHrInterval\` and \`call\` are extensions of the module.
- *  - \`timers/promises\` exists with \`setTimeout\` and \`setImmediate\` but has no \`setInterval\` iterator.
+ *  - \`timers/promises\` provides \`setTimeout\`, \`setImmediate\` and a \`setInterval\` async
+ *    iterator that yields an empty object per tick and stops on an aborted \`signal\` or
+ *    when the consumer breaks out of the loop.
  *  - A callback that is not a function throws a TypeError with number 20005.
  *
  */
@@ -111979,21 +112579,33 @@ declare module 'timers' {
     /**
      * @description Executes the callback function periodically at a fixed interval
      *
-     *      The delay is required and is clamped like setTimeout; omitting it throws a TypeError
-     *      (parameter not optional). The next run is scheduled timeout
-     *      milliseconds after the previous callback returns, so a slow callback reduces the frequency.
+     *      The delay defaults to 1ms when omitted and is clamped like setTimeout, so
+     *      \`setInterval(fn)\` and \`setInterval(fn, 1)\` are the same timer. The next run is
+     *      scheduled timeout milliseconds after the previous callback returns, so a slow
+     *      callback reduces the frequency.
      *
      *      The timer keeps running until \`clearInterval\` or \`Timer#clear\` is called, or it clears itself
      *      inside the callback through \`this\`. The arguments in args are passed to every run, and a
      *      repeating timer keeps the process alive forever unless it is cleared or unreferenced.
      *
+     *      Example — a repeating timer that clears itself after three runs:
+     *      \`\`\`JavaScript
+     *      const timers = require('timers');
+     *
+     *      let runs = 0;
+     *      const timer = timers.setInterval(function () {
+     *          console.log(++runs); // 1, 2, 3
+     *          if (runs === 3) this.clear();
+     *      }, 5);
+     *      \`\`\`
+     *
      *      @param callback callback function
-     *      @param timeout interval time in milliseconds
+     *      @param timeout interval time in milliseconds, default 1
      *      @param args additional arguments passed to the callback function, optional
      *      @return returns a timer object
      *
      */
-    function setInterval(callback: (...args: any[])=>void, timeout: number, ...args: any[]): Class_Timer;
+    function setInterval(callback: (...args: any[])=>void, timeout?: number, ...args: any[]): Class_Timer;
 
     /**
      * @description Clears the specified timer
@@ -115251,6 +115863,18 @@ declare module 'url' {
  *   \`buildInfo\`, \`getStringWidth\`, \`isEmpty\`, \`clone\`, \`deepFreeze\` and the collection
  *   helpers are module extensions; \`deprecate\` is a no-op and \`promisify.custom\` is not
  *   supported.
+ * - System error codes: \`getSystemErrorName\`, \`getSystemErrorMessage\` and
+ *   \`getSystemErrorMap\` translate the negative errno values that fibjs reports in
+ *   \`err.errno\` (and that libuv defines) into the name and text Node.js uses, for
+ *   example -2 to \`'ENOENT'\` and \`'no such file or directory'\`. The map covers every
+ *   entry of the bundled libuv errno table plus the three POSIX codes that list omits
+ *   (85 entries in this build, including the \`EAI_*\` resolver codes such as -3008
+ *   \`EAI_NONAME\`), which is a superset of the errno names exported by
+ *   \`os.constants\`. Only negative integers are accepted;
+ *   zero and positive values are rejected with a RangeError carrying
+ *   \`code: 'ERR_OUT_OF_RANGE'\`, and the names/messages come from the same table that
+ *   \`err.code\` is built from, so a round trip through the map always agrees with the
+ *   error an operation reported.
  *
  * Import:
  * \`\`\`JavaScript
@@ -116631,6 +117255,87 @@ declare module 'util' {
      *
      */
     function getStringWidth(str: string): number;
+
+    /**
+     * @description Gets the symbolic name of a system error number
+     *
+     *      \`err\` is the negative errno value reported by fibjs in \`err.errno\` (the same
+     *      numbering libuv uses), so \`getSystemErrorName(-2)\` returns \`'ENOENT'\`. Zero and
+     *      positive values are not system errors and are rejected with a RangeError whose
+     *      \`code\` is \`'ERR_OUT_OF_RANGE'\`. A value that is negative but outside the table
+     *      yields the libuv placeholder text \`'Unknown system error <n>'\` rather than
+     *      throwing.
+     *
+     *      Example — name the error an operation reported:
+     *      \`\`\`JavaScript
+     *      const util = require('util');
+     *      const fs = require('fs');
+     *
+     *      try {
+     *          fs.readFileSync('/definitely/missing');
+     *      } catch (err) {
+     *          console.log(err.code, err.errno);
+     *          console.log(util.getSystemErrorName(err.errno)); // ENOENT
+     *      }
+     *      \`\`\`
+     *
+     *      @param err the negative error number
+     *      @return the error name, for example 'ENOENT'
+     *
+     */
+    function getSystemErrorName(err: number): string;
+
+    /**
+     * @description Gets the description text of a system error number
+     *
+     *      Returns the human readable text for the same negative error numbers that
+     *      \`getSystemErrorName\` accepts, for example \`'no such file or directory'\` for -2.
+     *      The argument rules are identical: only negative integers are accepted, zero and
+     *      positive values throw a RangeError with \`code: 'ERR_OUT_OF_RANGE'\`.
+     *
+     *      The text comes from the bundled libuv table, so on POSIX it matches the C library
+     *      wording; on Windows the libuv text is used instead of the OS \`FormatMessage\`
+     *      wording, so a few messages differ from Node.js.
+     *
+     *      Example — print the description of a code:
+     *      \`\`\`JavaScript
+     *      const util = require('util');
+     *
+     *      console.log(util.getSystemErrorMessage(-2)); // no such file or directory
+     *      console.log(util.getSystemErrorMessage(-98)); // address already in use
+     *      \`\`\`
+     *
+     *      @param err the negative error number
+     *      @return the error description text
+     *
+     */
+    function getSystemErrorMessage(err: number): string;
+
+    /**
+     * @description Gets the full table mapping error numbers to names and descriptions
+     *
+     *      Returns a Map keyed by the negative error number whose values are
+     *      \`[name, message]\` pairs, mirroring the table behind \`getSystemErrorName\` and
+     *      \`getSystemErrorMessage\`. The table holds every entry of the bundled libuv errno
+     *      list plus the three POSIX codes it omits (85 entries in this build), which
+     *      includes the \`EAI_*\` resolver codes such as -3008 \`EAI_NONAME\` that
+     *      \`os.constants.errno\` does not export.
+     *
+     *      A new Map is built on every call, so callers may keep or modify the result.
+     *
+     *      Example — look up a pair and iterate the table:
+     *      \`\`\`JavaScript
+     *      const util = require('util');
+     *
+     *      const map = util.getSystemErrorMap();
+     *      console.log(map.get(-2)); // [ 'ENOENT', 'no such file or directory' ]
+     *      console.log(map.size); // 85
+     *      \`\`\`
+     *
+     *      @return a Map from the negative error number to [name, message]
+     *
+     */
+    function getSystemErrorMap(): any;
 
     /**
      * @description Removes ANSI escape sequences (VT control characters) from a string
@@ -119673,11 +120378,12 @@ declare module 'zlib' {
      *      the compression level is the default, so use \`createZip(to, level)\` or the \`Deflate\`
      *      codec class to select one.
      *
-     *      @param to the destination stream that receives the compressed data
+     *      @param to the destination stream that receives the compressed data; omit it to write into
+     *      an internal memory stream (the compressed bytes stay inside the returned object)
      *      @return the write-only compressor stream
      *
      */
-    function createDeflate(to: Class_Stream | Class_StreamPromise): Class_Stream;
+    function createDeflate(to?: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates a raw-deflate compressor that writes into \`to\`
@@ -119687,11 +120393,12 @@ declare module 'zlib' {
      *      is write-only and follows the write/flush/close contract of \`createDeflate\`, with the
      *      default compression level.
      *
-     *      @param to the destination stream that receives the raw compressed data
+     *      @param to the destination stream that receives the raw compressed data; omit it to write
+     *      into an internal memory stream
      *      @return the write-only compressor stream
      *
      */
-    function createDeflateRaw(to: Class_Stream | Class_StreamPromise): Class_Stream;
+    function createDeflateRaw(to?: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates a gzip decompressor that writes into \`to\`
@@ -119702,12 +120409,13 @@ declare module 'zlib' {
      *      non-gzip input fails with \`Z_DATA_ERROR\`, and input that ends early is decoded up to
      *      its last complete output without an error.
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createGunzip(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createGunzip(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Creates a gzip compressor that writes into \`to\`
@@ -119718,11 +120426,12 @@ declare module 'zlib' {
      *      incomplete container. Unlike the \`Gzip\` codec class and \`gzipTo\`, this factory has no
      *      level parameter.
      *
-     *      @param to the destination stream that receives the compressed data
+     *      @param to the destination stream that receives the compressed data; omit it to write into
+     *      an internal memory stream (the gzip bytes stay inside the returned object)
      *      @return the write-only compressor stream
      *
      */
-    function createGzip(to: Class_Stream | Class_StreamPromise): Class_Stream;
+    function createGzip(to?: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates a zlib-format decompressor that writes into \`to\`
@@ -119732,12 +120441,13 @@ declare module 'zlib' {
      *      no limit; over the limit a RangeError [20013] is thrown). Feed the whole input, call
      *      \`close\`, then read the destination from its beginning.
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createInflate(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createInflate(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Creates a raw-deflate decompressor that writes into \`to\`
@@ -119747,12 +120457,13 @@ declare module 'zlib' {
      *      (default -1, no limit; over the limit a RangeError [20013] is thrown). Raw deflate is
      *      the payload of protocols such as WebSocket permessage-deflate.
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createInflateRaw(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createInflateRaw(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -120849,12 +121560,13 @@ declare module 'zlib' {
      *      like the one-shot functions. The returned stream is write-only with the usual
      *      write/flush/close contract; it is unrelated to the \`zip\` archive module.
      *
-     *      @param to the destination stream that receives the compressed data
+     *      @param to the destination stream that receives the compressed data; omit it to write into
+     *      an internal memory stream
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *      @return the write-only compressor stream
      *
      */
-    function createZip(to: Class_Stream | Class_StreamPromise, level?: number): Class_Stream;
+    function createZip(to?: Class_Stream | Class_StreamPromise, level?: number): Class_Stream;
 
     /**
      * @description Creates a decompressor that detects the input format and writes into \`to\`
@@ -120867,12 +121579,13 @@ declare module 'zlib' {
      *      \`createInflate\` instead. \`maxSize\` limits the total decompressed size (default -1, no
      *      limit; exceeding it throws a RangeError [20013]).
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createUnzip(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createUnzip(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Compresses data with the zip algorithm
@@ -121296,11 +122009,12 @@ declare module 'zlib/promises' {
      *      the compression level is the default, so use \`createZip(to, level)\` or the \`Deflate\`
      *      codec class to select one.
      *
-     *      @param to the destination stream that receives the compressed data
+     *      @param to the destination stream that receives the compressed data; omit it to write into
+     *      an internal memory stream (the compressed bytes stay inside the returned object)
      *      @return the write-only compressor stream
      *
      */
-    function createDeflate(to: Class_Stream | Class_StreamPromise): Class_Stream;
+    function createDeflate(to?: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates a raw-deflate compressor that writes into \`to\`
@@ -121310,11 +122024,12 @@ declare module 'zlib/promises' {
      *      is write-only and follows the write/flush/close contract of \`createDeflate\`, with the
      *      default compression level.
      *
-     *      @param to the destination stream that receives the raw compressed data
+     *      @param to the destination stream that receives the raw compressed data; omit it to write
+     *      into an internal memory stream
      *      @return the write-only compressor stream
      *
      */
-    function createDeflateRaw(to: Class_Stream | Class_StreamPromise): Class_Stream;
+    function createDeflateRaw(to?: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates a gzip decompressor that writes into \`to\`
@@ -121325,12 +122040,13 @@ declare module 'zlib/promises' {
      *      non-gzip input fails with \`Z_DATA_ERROR\`, and input that ends early is decoded up to
      *      its last complete output without an error.
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createGunzip(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createGunzip(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Creates a gzip compressor that writes into \`to\`
@@ -121341,11 +122057,12 @@ declare module 'zlib/promises' {
      *      incomplete container. Unlike the \`Gzip\` codec class and \`gzipTo\`, this factory has no
      *      level parameter.
      *
-     *      @param to the destination stream that receives the compressed data
+     *      @param to the destination stream that receives the compressed data; omit it to write into
+     *      an internal memory stream (the gzip bytes stay inside the returned object)
      *      @return the write-only compressor stream
      *
      */
-    function createGzip(to: Class_Stream | Class_StreamPromise): Class_Stream;
+    function createGzip(to?: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates a zlib-format decompressor that writes into \`to\`
@@ -121355,12 +122072,13 @@ declare module 'zlib/promises' {
      *      no limit; over the limit a RangeError [20013] is thrown). Feed the whole input, call
      *      \`close\`, then read the destination from its beginning.
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createInflate(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createInflate(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Creates a raw-deflate decompressor that writes into \`to\`
@@ -121370,12 +122088,13 @@ declare module 'zlib/promises' {
      *      (default -1, no limit; over the limit a RangeError [20013] is thrown). Raw deflate is
      *      the payload of protocols such as WebSocket permessage-deflate.
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createInflateRaw(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createInflateRaw(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -122448,12 +123167,13 @@ declare module 'zlib/promises' {
      *      like the one-shot functions. The returned stream is write-only with the usual
      *      write/flush/close contract; it is unrelated to the \`zip\` archive module.
      *
-     *      @param to the destination stream that receives the compressed data
+     *      @param to the destination stream that receives the compressed data; omit it to write into
+     *      an internal memory stream
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *      @return the write-only compressor stream
      *
      */
-    function createZip(to: Class_Stream | Class_StreamPromise, level?: number): Class_Stream;
+    function createZip(to?: Class_Stream | Class_StreamPromise, level?: number): Class_Stream;
 
     /**
      * @description Creates a decompressor that detects the input format and writes into \`to\`
@@ -122466,12 +123186,13 @@ declare module 'zlib/promises' {
      *      \`createInflate\` instead. \`maxSize\` limits the total decompressed size (default -1, no
      *      limit; exceeding it throws a RangeError [20013]).
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createUnzip(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createUnzip(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Compresses data with the zip algorithm
