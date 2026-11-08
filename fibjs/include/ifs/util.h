@@ -109,6 +109,9 @@ public:
     static result_t buildInfo(v8::Local<v8::Object>& retVal);
     static result_t stripTypeScript(exlib::string code, exlib::string& retVal);
     static result_t getStringWidth(exlib::string str, int32_t& retVal);
+    static result_t getSystemErrorName(int32_t err, exlib::string& retVal);
+    static result_t getSystemErrorMessage(int32_t err, exlib::string& retVal);
+    static result_t getSystemErrorMap(v8::Local<v8::Value>& retVal);
     static result_t stripVTControlCharacters(exlib::string str, exlib::string& retVal);
 
 public:
@@ -200,6 +203,9 @@ public:
     static void s_static_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_stripTypeScript(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getStringWidth(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getSystemErrorName(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getSystemErrorMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getSystemErrorMap(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_stripVTControlCharacters(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -292,6 +298,9 @@ inline ClassInfo& util_base::class_info()
         { "buildInfo", s_static_buildInfo, true, ClassData::ASYNC_SYNC },
         { "stripTypeScript", s_static_stripTypeScript, true, ClassData::ASYNC_SYNC },
         { "getStringWidth", s_static_getStringWidth, true, ClassData::ASYNC_SYNC },
+        { "getSystemErrorName", s_static_getSystemErrorName, true, ClassData::ASYNC_SYNC },
+        { "getSystemErrorMessage", s_static_getSystemErrorMessage, true, ClassData::ASYNC_SYNC },
+        { "getSystemErrorMap", s_static_getSystemErrorMap, true, ClassData::ASYNC_SYNC },
         { "stripVTControlCharacters", s_static_stripVTControlCharacters, true, ClassData::ASYNC_SYNC }
     };
 
@@ -1521,6 +1530,49 @@ inline void util_base::s_static_getStringWidth(const v8::FunctionCallbackInfo<v8
     ARG(exlib::string, 0);
 
     hr = getStringWidth(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_getSystemErrorName(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = getSystemErrorName(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_getSystemErrorMessage(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = getSystemErrorMessage(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_getSystemErrorMap(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getSystemErrorMap(vr);
 
     METHOD_RETURN();
 }

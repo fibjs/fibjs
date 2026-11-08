@@ -45,6 +45,18 @@
  *   `buildInfo`, `getStringWidth`, `isEmpty`, `clone`, `deepFreeze` and the collection
  *   helpers are module extensions; `deprecate` is a no-op and `promisify.custom` is not
  *   supported.
+ * - System error codes: `getSystemErrorName`, `getSystemErrorMessage` and
+ *   `getSystemErrorMap` translate the negative errno values that fibjs reports in
+ *   `err.errno` (and that libuv defines) into the name and text Node.js uses, for
+ *   example -2 to `'ENOENT'` and `'no such file or directory'`. The map covers every
+ *   entry of the bundled libuv errno table plus the three POSIX codes that list omits
+ *   (85 entries in this build, including the `EAI_*` resolver codes such as -3008
+ *   `EAI_NONAME`), which is a superset of the errno names exported by
+ *   `os.constants`. Only negative integers are accepted;
+ *   zero and positive values are rejected with a RangeError carrying
+ *   `code: 'ERR_OUT_OF_RANGE'`, and the names/messages come from the same table that
+ *   `err.code` is built from, so a round trip through the map always agrees with the
+ *   error an operation reported.
  *
  * Import:
  * ```JavaScript
@@ -1425,6 +1437,87 @@ declare module 'util' {
      *
      */
     function getStringWidth(str: string): number;
+
+    /**
+     * @description Gets the symbolic name of a system error number
+     *
+     *      `err` is the negative errno value reported by fibjs in `err.errno` (the same
+     *      numbering libuv uses), so `getSystemErrorName(-2)` returns `'ENOENT'`. Zero and
+     *      positive values are not system errors and are rejected with a RangeError whose
+     *      `code` is `'ERR_OUT_OF_RANGE'`. A value that is negative but outside the table
+     *      yields the libuv placeholder text `'Unknown system error <n>'` rather than
+     *      throwing.
+     *
+     *      Example — name the error an operation reported:
+     *      ```JavaScript
+     *      const util = require('util');
+     *      const fs = require('fs');
+     *
+     *      try {
+     *          fs.readFileSync('/definitely/missing');
+     *      } catch (err) {
+     *          console.log(err.code, err.errno);
+     *          console.log(util.getSystemErrorName(err.errno)); // ENOENT
+     *      }
+     *      ```
+     *
+     *      @param err the negative error number
+     *      @return the error name, for example 'ENOENT'
+     *
+     */
+    function getSystemErrorName(err: number): string;
+
+    /**
+     * @description Gets the description text of a system error number
+     *
+     *      Returns the human readable text for the same negative error numbers that
+     *      `getSystemErrorName` accepts, for example `'no such file or directory'` for -2.
+     *      The argument rules are identical: only negative integers are accepted, zero and
+     *      positive values throw a RangeError with `code: 'ERR_OUT_OF_RANGE'`.
+     *
+     *      The text comes from the bundled libuv table, so on POSIX it matches the C library
+     *      wording; on Windows the libuv text is used instead of the OS `FormatMessage`
+     *      wording, so a few messages differ from Node.js.
+     *
+     *      Example — print the description of a code:
+     *      ```JavaScript
+     *      const util = require('util');
+     *
+     *      console.log(util.getSystemErrorMessage(-2)); // no such file or directory
+     *      console.log(util.getSystemErrorMessage(-98)); // address already in use
+     *      ```
+     *
+     *      @param err the negative error number
+     *      @return the error description text
+     *
+     */
+    function getSystemErrorMessage(err: number): string;
+
+    /**
+     * @description Gets the full table mapping error numbers to names and descriptions
+     *
+     *      Returns a Map keyed by the negative error number whose values are
+     *      `[name, message]` pairs, mirroring the table behind `getSystemErrorName` and
+     *      `getSystemErrorMessage`. The table holds every entry of the bundled libuv errno
+     *      list plus the three POSIX codes it omits (85 entries in this build), which
+     *      includes the `EAI_*` resolver codes such as -3008 `EAI_NONAME` that
+     *      `os.constants.errno` does not export.
+     *
+     *      A new Map is built on every call, so callers may keep or modify the result.
+     *
+     *      Example — look up a pair and iterate the table:
+     *      ```JavaScript
+     *      const util = require('util');
+     *
+     *      const map = util.getSystemErrorMap();
+     *      console.log(map.get(-2)); // [ 'ENOENT', 'no such file or directory' ]
+     *      console.log(map.size); // 85
+     *      ```
+     *
+     *      @return a Map from the negative error number to [name, message]
+     *
+     */
+    function getSystemErrorMap(): any;
 
     /**
      * @description Removes ANSI escape sequences (VT control characters) from a string

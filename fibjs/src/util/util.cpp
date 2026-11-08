@@ -15,10 +15,68 @@
 #include "util.h"
 #include "dotenv_parser.h"
 #include <unordered_map>
+#include <uv/include/uv.h>
+#include <errno.h>
 
 namespace fibjs {
 
 DECLARE_MODULE(util);
+
+// The system error table: UV_ERRNO_MAP is expanded once into a static array so
+// the three helpers below (and anything else that needs a name or a message)
+// share one copy.  This is the same construction Node uses (src/uv.cc), so the
+// names and texts agree with err.code / err.errno for the codes libuv reports.
+namespace {
+struct UVError {
+    int value;
+    const char* name;
+    const char* message;
+};
+
+static const struct UVError s_uv_errors[] = {
+#define UV_ERRNO_ENTRY(name, message) { UV_##name, #name, message },
+    UV_ERRNO_MAP(UV_ERRNO_ENTRY)
+#undef UV_ERRNO_ENTRY
+// The bundled libuv 1.44.2 list omits three POSIX codes that Node's table (and
+// newer libuv) carry.  They are ordinary <errno.h> constants, so add them when
+// the platform defines them, which brings the map to the 85 entries Node has on
+// Linux.  libuv encodes a POSIX errno as its negative value (UV__ERR in
+// uv/errno.h, which is not part of the public headers).
+#ifdef ENOEXEC
+        { -(ENOEXEC), "ENOEXEC", "exec format error" },
+#endif
+#ifdef ENODATA
+        { -(ENODATA), "ENODATA", "no data available" },
+#endif
+#ifdef EUNATCH
+        { -(EUNATCH), "EUNATCH", "protocol driver not attached" },
+#endif
+};
+
+// Node rejects zero and positive values: they are not "system errors", and
+// accepting them would silently disagree with the libuv table that only holds
+// negative numbers.
+static result_t check_errno(int32_t err)
+{
+    if (err >= 0)
+        return result_t::make(CALL_E_EXCEPTION)
+            .with_type_name(errtype::kRangeError)
+            .with_result(result_t::out_of_range())
+            .with_code("ERR_OUT_OF_RANGE")
+            .with_format("The value of \"err\" is out of range. It must be < 0. Received %d", err);
+    return result_t();
+}
+
+// Unknown negative codes keep the libuv placeholder behaviour: they are not an
+// error, they simply have no name in the table.
+static const char* find_err(int32_t err)
+{
+    for (size_t i = 0; i < ARRAYSIZE(s_uv_errors); i++)
+        if (s_uv_errors[i].value == err)
+            return s_uv_errors[i].name;
+    return NULL;
+}
+}
 
 result_t util_base::inherits(v8::Local<v8::Value> constructor,
     v8::Local<v8::Value> superConstructor)
@@ -1114,6 +1172,65 @@ result_t util_base::stripVTControlCharacters(exlib::string str, exlib::string& r
     }
 
     retVal = result;
+    return result_t();
+}
+
+result_t util_base::getSystemErrorName(int32_t err, exlib::string& retVal)
+{
+    result_t hr = check_errno(err);
+    if (hr.failed())
+        return hr;
+
+    const char* name = find_err(err);
+    if (name)
+        retVal = name;
+    else {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "Unknown system error %d", err);
+        retVal = buf;
+    }
+    return result_t();
+}
+
+result_t util_base::getSystemErrorMessage(int32_t err, exlib::string& retVal)
+{
+    result_t hr = check_errno(err);
+    if (hr.failed())
+        return hr;
+
+    for (size_t i = 0; i < ARRAYSIZE(s_uv_errors); i++)
+        if (s_uv_errors[i].value == err) {
+            retVal = s_uv_errors[i].message;
+            return result_t();
+        }
+
+    char buf[64];
+    snprintf(buf, sizeof(buf), "Unknown system error %d", err);
+    retVal = buf;
+    return result_t();
+}
+
+result_t util_base::getSystemErrorMap(v8::Local<v8::Value>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Map> map = v8::Map::New(isolate->m_isolate);
+
+    for (size_t i = 0; i < ARRAYSIZE(s_uv_errors); i++) {
+        const struct UVError& e = s_uv_errors[i];
+
+        v8::Local<v8::Value> pair[2] = {
+            isolate->NewString(e.name),
+            isolate->NewString(e.message)
+        };
+
+        map->Set(context,
+             v8::Integer::New(isolate->m_isolate, e.value),
+             v8::Array::New(isolate->m_isolate, pair, 2))
+            .IsEmpty();
+    }
+
+    retVal = map;
     return result_t();
 }
 }
