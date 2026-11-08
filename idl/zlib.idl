@@ -240,10 +240,11 @@ module zlib
      the compression level is the default, so use `createZip(to, level)` or the `Deflate`
      codec class to select one.
 
-     @param to the destination stream that receives the compressed data
+     @param to the destination stream that receives the compressed data; omit it to write into
+     an internal memory stream (the compressed bytes stay inside the returned object)
      @return the write-only compressor stream
      */
-    static Stream createDeflate(Stream to);
+    static Stream createDeflate(Stream to = null);
 
     /*! @brief Creates a raw-deflate compressor that writes into `to`
 
@@ -252,10 +253,11 @@ module zlib
      is write-only and follows the write/flush/close contract of `createDeflate`, with the
      default compression level.
 
-     @param to the destination stream that receives the raw compressed data
+     @param to the destination stream that receives the raw compressed data; omit it to write
+     into an internal memory stream
      @return the write-only compressor stream
      */
-    static Stream createDeflateRaw(Stream to);
+    static Stream createDeflateRaw(Stream to = null);
 
     /*! @brief Creates a gzip decompressor that writes into `to`
 
@@ -265,11 +267,12 @@ module zlib
      non-gzip input fails with `Z_DATA_ERROR`, and input that ends early is decoded up to
      its last complete output without an error.
 
-     @param to the destination stream that receives the decompressed data
+     @param to the destination stream that receives the decompressed data; omit it to write into
+     an internal memory stream
      @param maxSize the decompression size limit, default -1, no limit
      @return the write-only decompressor stream
      */
-    static Stream createGunzip(Stream to, Integer maxSize = -1);
+    static Stream createGunzip(Stream to = null, Integer maxSize = -1);
 
     /*! @brief Creates a gzip compressor that writes into `to`
 
@@ -279,10 +282,11 @@ module zlib
      incomplete container. Unlike the `Gzip` codec class and `gzipTo`, this factory has no
      level parameter.
 
-     @param to the destination stream that receives the compressed data
+     @param to the destination stream that receives the compressed data; omit it to write into
+     an internal memory stream (the gzip bytes stay inside the returned object)
      @return the write-only compressor stream
      */
-    static Stream createGzip(Stream to);
+    static Stream createGzip(Stream to = null);
 
     /*! @brief Creates a zlib-format decompressor that writes into `to`
 
@@ -291,11 +295,12 @@ module zlib
      no limit; over the limit a RangeError [20013] is thrown). Feed the whole input, call
      `close`, then read the destination from its beginning.
 
-     @param to the destination stream that receives the decompressed data
+     @param to the destination stream that receives the decompressed data; omit it to write into
+     an internal memory stream
      @param maxSize the decompression size limit, default -1, no limit
      @return the write-only decompressor stream
      */
-    static Stream createInflate(Stream to, Integer maxSize = -1);
+    static Stream createInflate(Stream to = null, Integer maxSize = -1);
 
     /*! @brief Creates a raw-deflate decompressor that writes into `to`
 
@@ -304,11 +309,12 @@ module zlib
      (default -1, no limit; over the limit a RangeError [20013] is thrown). Raw deflate is
      the payload of protocols such as WebSocket permessage-deflate.
 
-     @param to the destination stream that receives the decompressed data
+     @param to the destination stream that receives the decompressed data; omit it to write into
+     an internal memory stream
      @param maxSize the decompression size limit, default -1, no limit
      @return the write-only decompressor stream
      */
-    static Stream createInflateRaw(Stream to, Integer maxSize = -1);
+    static Stream createInflateRaw(Stream to = null, Integer maxSize = -1);
 
     /*! @brief Compresses data with the deflate algorithm (zlib format)
 
@@ -648,11 +654,12 @@ module zlib
      like the one-shot functions. The returned stream is write-only with the usual
      write/flush/close contract; it is unrelated to the `zip` archive module.
 
-     @param to the destination stream that receives the compressed data
+     @param to the destination stream that receives the compressed data; omit it to write into
+     an internal memory stream
      @param level the compression level, default DEFAULT_COMPRESSION
      @return the write-only compressor stream
      */
-    static Stream createZip(Stream to, Integer level = DEFAULT_COMPRESSION);
+    static Stream createZip(Stream to = null, Integer level = DEFAULT_COMPRESSION);
 
     /*! @brief Creates a decompressor that detects the input format and writes into `to`
 
@@ -664,11 +671,12 @@ module zlib
      `createInflate` instead. `maxSize` limits the total decompressed size (default -1, no
      limit; exceeding it throws a RangeError [20013]).
 
-     @param to the destination stream that receives the decompressed data
+     @param to the destination stream that receives the decompressed data; omit it to write into
+     an internal memory stream
      @param maxSize the decompression size limit, default -1, no limit
      @return the write-only decompressor stream
      */
-    static Stream createUnzip(Stream to, Integer maxSize = -1);
+    static Stream createUnzip(Stream to = null, Integer maxSize = -1);
 
     /*! @brief Compresses data with the zip algorithm
 

@@ -291,11 +291,12 @@ declare module 'zlib' {
      *      the compression level is the default, so use `createZip(to, level)` or the `Deflate`
      *      codec class to select one.
      *
-     *      @param to the destination stream that receives the compressed data
+     *      @param to the destination stream that receives the compressed data; omit it to write into
+     *      an internal memory stream (the compressed bytes stay inside the returned object)
      *      @return the write-only compressor stream
      *
      */
-    function createDeflate(to: Class_Stream | Class_StreamPromise): Class_Stream;
+    function createDeflate(to?: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates a raw-deflate compressor that writes into `to`
@@ -305,11 +306,12 @@ declare module 'zlib' {
      *      is write-only and follows the write/flush/close contract of `createDeflate`, with the
      *      default compression level.
      *
-     *      @param to the destination stream that receives the raw compressed data
+     *      @param to the destination stream that receives the raw compressed data; omit it to write
+     *      into an internal memory stream
      *      @return the write-only compressor stream
      *
      */
-    function createDeflateRaw(to: Class_Stream | Class_StreamPromise): Class_Stream;
+    function createDeflateRaw(to?: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates a gzip decompressor that writes into `to`
@@ -320,12 +322,13 @@ declare module 'zlib' {
      *      non-gzip input fails with `Z_DATA_ERROR`, and input that ends early is decoded up to
      *      its last complete output without an error.
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createGunzip(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createGunzip(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Creates a gzip compressor that writes into `to`
@@ -336,11 +339,12 @@ declare module 'zlib' {
      *      incomplete container. Unlike the `Gzip` codec class and `gzipTo`, this factory has no
      *      level parameter.
      *
-     *      @param to the destination stream that receives the compressed data
+     *      @param to the destination stream that receives the compressed data; omit it to write into
+     *      an internal memory stream (the gzip bytes stay inside the returned object)
      *      @return the write-only compressor stream
      *
      */
-    function createGzip(to: Class_Stream | Class_StreamPromise): Class_Stream;
+    function createGzip(to?: Class_Stream | Class_StreamPromise): Class_Stream;
 
     /**
      * @description Creates a zlib-format decompressor that writes into `to`
@@ -350,12 +354,13 @@ declare module 'zlib' {
      *      no limit; over the limit a RangeError [20013] is thrown). Feed the whole input, call
      *      `close`, then read the destination from its beginning.
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createInflate(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createInflate(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Creates a raw-deflate decompressor that writes into `to`
@@ -365,12 +370,13 @@ declare module 'zlib' {
      *      (default -1, no limit; over the limit a RangeError [20013] is thrown). Raw deflate is
      *      the payload of protocols such as WebSocket permessage-deflate.
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createInflateRaw(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createInflateRaw(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -1467,12 +1473,13 @@ declare module 'zlib' {
      *      like the one-shot functions. The returned stream is write-only with the usual
      *      write/flush/close contract; it is unrelated to the `zip` archive module.
      *
-     *      @param to the destination stream that receives the compressed data
+     *      @param to the destination stream that receives the compressed data; omit it to write into
+     *      an internal memory stream
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *      @return the write-only compressor stream
      *
      */
-    function createZip(to: Class_Stream | Class_StreamPromise, level?: number): Class_Stream;
+    function createZip(to?: Class_Stream | Class_StreamPromise, level?: number): Class_Stream;
 
     /**
      * @description Creates a decompressor that detects the input format and writes into `to`
@@ -1485,12 +1492,13 @@ declare module 'zlib' {
      *      `createInflate` instead. `maxSize` limits the total decompressed size (default -1, no
      *      limit; exceeding it throws a RangeError [20013]).
      *
-     *      @param to the destination stream that receives the decompressed data
+     *      @param to the destination stream that receives the decompressed data; omit it to write into
+     *      an internal memory stream
      *      @param maxSize the decompression size limit, default -1, no limit
      *      @return the write-only decompressor stream
      *
      */
-    function createUnzip(to: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
+    function createUnzip(to?: Class_Stream | Class_StreamPromise, maxSize?: number): Class_Stream;
 
     /**
      * @description Compresses data with the zip algorithm

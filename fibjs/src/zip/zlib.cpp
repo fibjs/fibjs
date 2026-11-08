@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "ZlibStream.h"
+#include "MemoryStream.h"
 #include "utils.h"
 
 namespace fibjs {
@@ -72,39 +73,50 @@ static result_t process_to(DataVariant& data, Stream_base* stm, int32_t param, A
     return (new StreamT(stm, param))->process(buf, std::move(ac));
 }
 
+// The create* factories accept a missing destination: the stream then writes into
+// an internal MemoryStream so the call still produces a usable object, the way
+// `zlib.createGzip()` does in Node.  The bytes stay inside the returned stream's
+// destination, which `process()`/`readAll()` on the codec class exposes; a
+// write-only stream alone cannot hand them back, so callers that need the output
+// pass a destination (as before).
+static Stream_base* default_dest(Stream_base* to)
+{
+    return to ? to : new MemoryStream();
+}
+
 result_t zlib_base::createDeflate(Stream_base* to, obj_ptr<Stream_base>& retVal)
 {
-    retVal = new def(to, -1);
+    retVal = new def(default_dest(to), -1);
     return result_t();
 }
 
 result_t zlib_base::createDeflateRaw(Stream_base* to, obj_ptr<Stream_base>& retVal)
 {
-    retVal = new defraw(to);
+    retVal = new defraw(default_dest(to));
     return result_t();
 }
 
 result_t zlib_base::createGunzip(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal)
 {
-    retVal = new gunz(to, maxSize);
+    retVal = new gunz(default_dest(to), maxSize);
     return result_t();
 }
 
 result_t zlib_base::createGzip(Stream_base* to, obj_ptr<Stream_base>& retVal)
 {
-    retVal = new gz(to);
+    retVal = new gz(default_dest(to));
     return result_t();
 }
 
 result_t zlib_base::createInflate(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal)
 {
-    retVal = new inf(to, maxSize);
+    retVal = new inf(default_dest(to), maxSize);
     return result_t();
 }
 
 result_t zlib_base::createInflateRaw(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal)
 {
-    retVal = new infraw(to, maxSize);
+    retVal = new infraw(default_dest(to), maxSize);
     return result_t();
 }
 
@@ -330,13 +342,13 @@ result_t zlib_base::inflateRawTo(Union_inflateRawTo_data data, Stream_base* stm,
 
 result_t zlib_base::createZip(Stream_base* to, int32_t level, obj_ptr<Stream_base>& retVal)
 {
-    retVal = new class zip(to, level);
+    retVal = new class zip(default_dest(to), level);
     return result_t();
 }
 
 result_t zlib_base::createUnzip(Stream_base* to, int32_t maxSize, obj_ptr<Stream_base>& retVal)
 {
-    retVal = new class unzip(to, maxSize);
+    retVal = new class unzip(default_dest(to), maxSize);
     return result_t();
 }
 

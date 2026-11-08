@@ -222,9 +222,9 @@ inline void zlib_base::s_static_createDeflate(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(1, 0);
 
-    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
 
     hr = createDeflate(v0.get(), vr);
 
@@ -237,9 +237,9 @@ inline void zlib_base::s_static_createDeflateRaw(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(1, 0);
 
-    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
 
     hr = createDeflateRaw(v0.get(), vr);
 
@@ -252,9 +252,9 @@ inline void zlib_base::s_static_createGunzip(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(2, 0);
 
-    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
     OPT_ARG(int32_t, 1, -1);
 
     hr = createGunzip(v0.get(), v1, vr);
@@ -268,9 +268,9 @@ inline void zlib_base::s_static_createGzip(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(1, 0);
 
-    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
 
     hr = createGzip(v0.get(), vr);
 
@@ -283,9 +283,9 @@ inline void zlib_base::s_static_createInflate(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(2, 0);
 
-    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
     OPT_ARG(int32_t, 1, -1);
 
     hr = createInflate(v0.get(), v1, vr);
@@ -299,9 +299,9 @@ inline void zlib_base::s_static_createInflateRaw(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(2, 0);
 
-    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
     OPT_ARG(int32_t, 1, -1);
 
     hr = createInflateRaw(v0.get(), v1, vr);
@@ -536,9 +536,9 @@ inline void zlib_base::s_static_createZip(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(2, 0);
 
-    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
     OPT_ARG(int32_t, 1, C_DEFAULT_COMPRESSION);
 
     hr = createZip(v0.get(), v1, vr);
@@ -552,9 +552,9 @@ inline void zlib_base::s_static_createUnzip(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(2, 0);
 
-    ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
     OPT_ARG(int32_t, 1, -1);
 
     hr = createUnzip(v0.get(), v1, vr);
