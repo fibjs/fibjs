@@ -469,6 +469,12 @@
             "member": "markResourceTiming",
             "param": "global",
             "reason": "the global object is not a plain JS object, so Object would reject it; timingInfo and bodyInfo were tightened to Object (plan section 5.3)"
+        },
+        {
+            "def": "module",
+            "member": "isBuiltin",
+            "param": "id",
+            "reason": "Node.js returns false for every non-string (including String objects and null) instead of coercing, and the call has to stay safe inside feature detection; plans/node-compat-quickwins-2026-11-07.md T3"
         }
     ]
 }

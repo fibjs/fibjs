@@ -75,4 +75,48 @@ result_t module_base::createRequire(exlib::string base, v8::Local<v8::Function>&
     return result_t::invalid_call();
 }
 
+result_t module_base::isBuiltin(v8::Local<v8::Value> id, bool& retVal)
+{
+    retVal = false;
+
+    // Only a primitive string names a module.  A String object or anything with a
+    // toString() is deliberately not coerced: Node returns false for those, and the
+    // call has to stay safe inside feature detection.
+    if (!id->IsString())
+        return result_t();
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+
+    exlib::string name;
+    result_t hr = GetArgumentValue(isolate, id, name);
+    if (hr.failed())
+        return hr;
+
+    // Accept both forms.  builtinModules holds every module twice (bare and
+    // node:-prefixed), so matching the given spelling directly would reject the
+    // form the caller did not use; strip one prefix and probe both spellings.
+    // "node:node:fs" strips to "node:fs", and the table holds that entry, so the
+    // second pass has to reject a name that still starts with the prefix.
+    static const char kNodePrefix[] = "node:";
+    const size_t kPrefixLen = sizeof(kNodePrefix) - 1;
+
+    if (name.length() >= kPrefixLen && !qstrcmp(name.c_str(), kNodePrefix, kPrefixLen))
+        name = name.substr(kPrefixLen);
+
+    if (name.length() >= kPrefixLen && !qstrcmp(name.c_str(), kNodePrefix, kPrefixLen))
+        return result_t();
+
+    std::vector<exlib::string> modules;
+    module_base::get_builtinModules(modules);
+
+    for (size_t i = 0; i < modules.size(); i++)
+        if (!qstrcmp(modules[i].c_str(), name.c_str())) {
+            retVal = true;
+            break;
+        }
+
+    return result_t();
+}
+
 } /* namespace fibjs */

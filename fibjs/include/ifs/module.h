@@ -22,6 +22,7 @@ public:
     // module_base
     static result_t createRequire(exlib::string base, v8::Local<v8::Function>& retVal);
     static result_t get_builtinModules(std::vector<exlib::string>& retVal);
+    static result_t isBuiltin(v8::Local<v8::Value> id, bool& retVal);
     static result_t enableCompileCache(exlib::string cacheDir, v8::Local<v8::Object>& retVal);
 
 public:
@@ -38,6 +39,7 @@ public:
 public:
     static void s_static_createRequire(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_builtinModules(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isBuiltin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_enableCompileCache(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -47,6 +49,7 @@ inline ClassInfo& module_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "createRequire", s_static_createRequire, true, ClassData::ASYNC_SYNC },
+        { "isBuiltin", s_static_isBuiltin, true, ClassData::ASYNC_SYNC },
         { "enableCompileCache", s_static_enableCompileCache, true, ClassData::ASYNC_SYNC }
     };
 
@@ -89,6 +92,21 @@ inline void module_base::s_static_get_builtinModules(const v8::FunctionCallbackI
     METHOD_OVER(0, 0);
 
     hr = get_builtinModules(vr);
+
+    METHOD_RETURN();
+}
+
+inline void module_base::s_static_isBuiltin(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+
+    hr = isBuiltin(v0, vr);
 
     METHOD_RETURN();
 }

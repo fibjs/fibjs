@@ -159,6 +159,33 @@ module module
     */
     static readonly String[] builtinModules;
 
+    /*! @brief Tells whether a name refers to a built-in module
+
+     A built-in module is one that can be required without a path, including the
+     sub-path modules (`fs/promises`, `path/posix`, `timers/promises` and the rest of
+     the list in `builtinModules`). The name may be given with or without the `node:`
+     prefix, so `isBuiltin('fs')` and `isBuiltin('node:fs')` are both true, while a
+     double prefix (`'node:node:fs'`) and an empty string are false. Only strings are
+     inspected: any other value (including a `String` object) returns false without
+     throwing, which is what makes the call safe inside feature detection.
+
+     `Module.isBuiltin` carries the same function.
+
+     Example — gate code on a built-in module:
+     ```JavaScript
+     const mod = require('module');
+
+     console.log(mod.isBuiltin('fs')); // true
+     console.log(mod.isBuiltin('node:fs')); // true
+     console.log(mod.isBuiltin('timers/promises')); // true
+     console.log(mod.isBuiltin('nope')); // false
+     ```
+
+     @param id module name, with or without the node: prefix
+     @return true when the name is a built-in module
+     */
+    static Boolean isBuiltin(Value id = undefined);
+
     /*! @brief Compatibility entry point for the compile cache; always a no-op
 
      The call is a probe: it performs no work, ignores its argument (including invalid

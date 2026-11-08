@@ -247,6 +247,43 @@ SandBox::Context::Context(SandBox* sb, exlib::string id)
     m_fnRun = isolate->NewFunction("run", _run, _mod);
 }
 
+// The `Module` constructor exposed as module.Module.  Node's Module is the
+// container a CommonJS file runs in (`id`, `path`, `exports`, `filename`,
+// `loaded`, `children`); fibjs already runs every script in a wrapper of its
+// own, so this is the user-constructible shape plus the statics Node puts on the
+// class.  Creating one does not register it anywhere: it is a plain container,
+// exactly like `new Module(id)` in Node without a parent.
+static void _ModuleCtor(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+    v8::Local<v8::Context> context = isolate->context();
+
+    v8::Local<v8::Object> self = args.This();
+
+    exlib::string id;
+    if (args.Length() > 0 && args[0]->IsString())
+        GetArgumentValue(isolate, args[0], id);
+
+    self->Set(context, isolate->NewString("id"), isolate->NewString(id)).IsJust();
+    self->Set(context, isolate->NewString("path"), isolate->NewString(".")).IsJust();
+    self->Set(context, isolate->NewString("exports"), v8::Object::New(isolate->m_isolate)).IsJust();
+    self->Set(context, isolate->NewString("filename"), v8::Null(isolate->m_isolate)).IsJust();
+    self->Set(context, isolate->NewString("loaded"), v8::False(isolate->m_isolate)).IsJust();
+    self->Set(context, isolate->NewString("children"),
+         v8::Array::New(isolate->m_isolate))
+        .IsJust();
+
+    args.GetReturnValue().Set(self);
+}
+
+// A Module instance has to be callable-with-new but also usable straight from
+// C++, so the constructor is built once per isolate and cached in the module
+// object; this keeps `module.Module === require('module').Module`.
+static v8::Local<v8::Function> get_Module_ctor(Isolate* isolate)
+{
+    return isolate->NewFunction("Module", _ModuleCtor);
+}
+
 void SandBox::initModule()
 {
     Isolate* isolate = holder();
@@ -257,6 +294,12 @@ void SandBox::initModule()
 
     // enableCompileCache is a no-op for compatibility with Node.js v22.8+
     _mod->Set(context, isolate->NewString("enableCompileCache"), isolate->NewFunction("enableCompileCache", _enableCompileCache)).IsJust();
+
+    // isBuiltin is a C++ implementation (module.cpp); initModule builds this object
+    // by hand instead of going through the generated class method table, so the
+    // entry is wired here too.
+    v8::Local<v8::Function> fnIsBuiltin = isolate->NewFunction("isBuiltin", module_base::s_static_isBuiltin);
+    _mod->Set(context, isolate->NewString("isBuiltin"), fnIsBuiltin).IsJust();
 
     // Build builtinModules array
     std::vector<exlib::string> builtinModules;
@@ -270,6 +313,19 @@ void SandBox::initModule()
     _mod->DefineOwnProperty(context, isolate->NewString("builtinModules"), builtinModulesArray,
         (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete))
         .IsJust();
+
+    // The Module container class, with the statics Node hangs off it.  The
+    // functions are the ones the module object itself uses, so the two faces stay
+    // in sync and `Module.isBuiltin === module.isBuiltin` holds.
+    v8::Local<v8::Function> ModuleCtor = get_Module_ctor(isolate);
+    ModuleCtor->Set(context, isolate->NewString("Module"), ModuleCtor).IsJust();
+    ModuleCtor->Set(context, isolate->NewString("builtinModules"), builtinModulesArray).IsJust();
+    ModuleCtor->Set(context, isolate->NewString("isBuiltin"), fnIsBuiltin).IsJust();
+    ModuleCtor->Set(context, isolate->NewString("createRequire"),
+         JSValue(_mod->Get(context, isolate->NewString("createRequire"))))
+        .IsJust();
+
+    _mod->Set(context, isolate->NewString("Module"), ModuleCtor).IsJust();
 
     // InstallModule is used instead of add() so that every prefix returns the
     // very same module object, as it does for all other builtin modules
