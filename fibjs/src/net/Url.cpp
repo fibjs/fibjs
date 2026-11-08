@@ -268,13 +268,111 @@ result_t url_base::domainToUnicode(exlib::string domain, exlib::string& retVal)
 
 result_t url_base::format(Union_format_urlObject urlObject, v8::Local<v8::Object> options, exlib::string& retVal)
 {
+    // A string input is already formatted; Node ignores the options in that case
+    // and returns the text as it is, so only a URL/UrlObject input is rewritten.
+    bool from_object = std::holds_alternative<obj_ptr<UrlObject_base>>(urlObject)
+        || std::holds_alternative<v8::Local<v8::Object>>(urlObject);
+
     obj_ptr<UrlObject_base> u;
     result_t hr = urlobject_from_union(urlObject, u);
     if (hr.failed())
         return hr;
 
-    // Temporary minimal implementation for compilation
-    return u->get_href(retVal);
+    exlib::string href;
+    hr = u->get_href(href);
+    if (hr.failed())
+        return hr;
+
+    if (options.IsEmpty() || !from_object)
+        return u->get_href(retVal);
+
+    // Node's WHATWG options: auth/fragment/search are "keep unless falsy" and
+    // unicode switches the host between its ASCII and its Unicode form.
+    if (!options->IsObject())
+        return result_t::make(CALL_E_EXCEPTION)
+            .with_type_name(errtype::kTypeError)
+            .with_code("ERR_INVALID_ARG_TYPE")
+            .with_message("The \"options\" argument must be of type object.");
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Value> option;
+
+    auto option_enabled = [&](const char* name, bool dflt) -> bool {
+        option = options->Get(context, isolate->NewString(name)).FromMaybe(v8::Local<v8::Value>());
+        if (option.IsEmpty() || option->IsUndefined() || option->IsNull())
+            return dflt;
+        return option->BooleanValue(isolate->m_isolate);
+    };
+
+    bool keep_auth = option_enabled("auth", true);
+    bool keep_fragment = option_enabled("fragment", true);
+    bool keep_search = option_enabled("search", true);
+    bool unicode = option_enabled("unicode", false);
+
+    // Every option is honoured by rewriting the href, so the parts that are
+    // dropped are exactly the ones Node drops and the rest keeps its original
+    // spelling.
+    exlib::string result(href);
+
+    if (!keep_fragment) {
+        size_t pos = result.find('#');
+        if (pos != exlib::string::npos)
+            result.resize(pos);
+    }
+
+    if (!keep_search) {
+        size_t hash = result.find('#');
+        size_t end = hash == exlib::string::npos ? result.length() : hash;
+        size_t pos = result.find('?');
+        if (pos != exlib::string::npos && pos < end) {
+            size_t stop = end;
+            result.erase(pos, stop - pos);
+        }
+    }
+
+    if (!keep_auth) {
+        // "scheme://user:pass@host/...": drop the userinfo section.
+        size_t scheme = result.find("://");
+        if (scheme != exlib::string::npos) {
+            size_t at = result.find('@', scheme + 3);
+            size_t slash = result.find('/', scheme + 3);
+            if (at != exlib::string::npos && (slash == exlib::string::npos || at < slash))
+                result.erase(scheme + 3, at - scheme - 2);
+        }
+    }
+
+    if (unicode) {
+        // Rewrite the host through the IDN decoder, keeping the rest as it is.
+        size_t scheme = result.find("://");
+        if (scheme != exlib::string::npos) {
+            size_t start = scheme + 3;
+            size_t at = result.find('@', start);
+            if (at != exlib::string::npos) {
+                size_t slash = result.find('/', start);
+                if (slash != exlib::string::npos && at < slash)
+                    start = at + 1;
+            }
+
+            size_t end = start;
+            while (end < result.length() && result[end] != '/' && result[end] != '?' && result[end] != '#')
+                end++;
+
+            size_t colon = result.find(':', start);
+            if (colon != exlib::string::npos && colon < end)
+                end = colon;
+
+            if (end > start) {
+                exlib::string host(result.c_str() + start, end - start);
+                exlib::string decoded = ada::idna::to_unicode(host);
+                if (decoded != host)
+                    result = exlib::string(result.c_str(), start) + decoded + result.substr(end);
+            }
+        }
+    }
+
+    retVal = result;
+    return result_t();
 }
 
 } /* namespace fibjs */

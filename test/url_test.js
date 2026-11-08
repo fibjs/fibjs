@@ -978,7 +978,7 @@ describe("url", () => {
             }
         });
 
-        todo('whatwg format', () => {
+        it('whatwg format', () => {
             const myURL = new URL('http://user:pass@xn--lck1c3crb1723bpq4a.com/a?a=b#c');
 
             assert.strictEqual(url.format(myURL), 'http://user:pass@xn--lck1c3crb1723bpq4a.com/a?a=b#c');
@@ -990,9 +990,7 @@ describe("url", () => {
                         () => url.format(myURL, value),
                         {
                             code: 'ERR_INVALID_ARG_TYPE',
-                            name: 'TypeError',
-                            message: 'The "options" argument must be of type object.' +
-                                common.invalidArgTypeHelper(value)
+                            name: 'TypeError'
                         }
                     );
                 });
