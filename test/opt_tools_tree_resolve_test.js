@@ -236,113 +236,85 @@ describe('tree resolver', function () {
     });
 });
 
-// ---------- the lockfile is the ideal tree, written out ----------
+// ---------- the two projections ----------
 //
-// npm writes `package-lock.json` from its ideal tree and nothing else, which is why the
-// file and `npm ci` cannot disagree. These cases pin the projection down: the same tree
-// gives the same bytes, and what comes back out is the tree that went in.
+// The installer holds the same graph in two shapes: the nested maps the resolver walks,
+// and the path table the diff and the flags speak. Each has a projection to the other,
+// and they have to be inverses — otherwise the answer to "where is this node" depends
+// on which shape was asked, which is what made a prune disagree with a write back.
 
-describe('tree serialization', function () {
-    it('writes the entries of the tree it is given, and the root', function () {
+describe('tree projections', function () {
+    function tree_of(entries) {
         var t = new Map();
 
-        t.set('', tree.make_node('', { name: 'root', version: '1.0.0', manifest: {} }));
-        t.set('node_modules/a', tree.make_node('node_modules/a', {
-            name: 'a', version: '1.0.0', resolved: 'https://r/a-1.0.0.tgz', integrity: 'sha512-x',
-            edges: tree.edges_of({ dependencies: { b: '^2' } }),
-        }));
-
-        var packages = tree.serialize(t, {
-            root_manifest: { name: 'root', version: '1.0.0', dependencies: { a: '^1' } },
+        entries.forEach(function (e) {
+            t.set(e.path, tree.make_node(e.path, Object.assign({
+                name: e.name || 'a', version: '1.0.0',
+            }, e)));
         });
 
-        assert.deepEqual(packages[''], { name: 'root', version: '1.0.0', dependencies: { a: '^1' } });
-        assert.equal(packages['node_modules/a'].version, '1.0.0');
-        assert.equal(packages['node_modules/a'].resolved, 'https://r/a-1.0.0.tgz');
-        assert.deepEqual(packages['node_modules/a'].dependencies, { b: '^2' },
-            'the declared range, not the chosen version');
-    });
+        return t;
+    }
 
-    it('round-trips: what it writes is what it reads back', function () {
-        // the property that makes `npm ci` accept what `npm install` wrote
-        var t = new Map();
+    it('round-trips a plain nesting', function () {
+        var t = tree_of([
+            { path: '', name: 'root', edges: tree.edges_of({ dependencies: { a: '^1' } }) },
+            { path: 'node_modules/a', name: 'a', edges: tree.edges_of({ dependencies: { b: '^2' } }) },
+            { path: 'node_modules/a/node_modules/b', name: 'b' },
+        ]);
 
-        t.set('', tree.make_node('', { name: 'root', version: '1.0.0', manifest: {} }));
-        t.set('node_modules/a', tree.make_node('node_modules/a', {
-            name: 'a', version: '1.0.0', resolved: 'https://r/a.tgz', integrity: 'sha512-x',
-            edges: tree.edges_of({ dependencies: { b: '^2' }, optionalDependencies: { c: '^3' } }),
-            flags: { dev: false, optional: true },
-        }));
-        t.set('node_modules/b', tree.make_node('node_modules/b', {
-            name: 'b', version: '2.0.0', resolved: 'https://r/b.tgz', integrity: 'sha512-y',
-        }));
-
-        var packages = tree.serialize(t, { root_manifest: { name: 'root', version: '1.0.0' } });
-        var back = tree.load_virtual(packages, { root_manifest: { name: 'root', version: '1.0.0' } });
+        var snap = tree.tree_to_snapshot(t, { root: process.cwd() });
+        var back = tree.snapshot_to_tree(snap, { root: process.cwd() });
 
         assert.equal(back.get('node_modules/a').version, '1.0.0');
-        assert.equal(back.get('node_modules/a').integrity, 'sha512-x');
+        assert.equal(back.get('node_modules/a/node_modules/b').version, '1.0.0');
         assert.deepEqual(back.get('node_modules/a').edges.dependencies, { b: '^2' });
-        assert.equal(back.get('node_modules/a').edges.optionalDependencies.c, '^3');
-        assert.equal(back.get('node_modules/b').version, '2.0.0');
     });
 
-    it('writes the source of a node that came off the disk from the note', function () {
-        // a directory carries a version and nothing else, and an entry without a source
-        // is one a frozen install refuses
-        var t = new Map();
+    it('puts a link at its name and its directory at the target path', function () {
+        // the paths are real, because a link's target is recorded relative to the
+        // project and the projection has to resolve it
+        var root = require('fs').mkdtempSync(require('path').join(require('os').tmpdir(), 'proj-'));
+        var target = require('path').join(root, 'packages/m');
 
-        t.set('', tree.make_node('', { name: 'root', version: '1.0.0', manifest: {} }));
-        t.set('node_modules/a', tree.make_node('node_modules/a', { name: 'a', version: '1.0.0' }));
-
-        var packages = tree.serialize(t, {
-            root_manifest: { name: 'root', version: '1.0.0' },
-            hidden_source: function (p, version) {
-                return p === 'node_modules/a' && version === '1.0.0'
-                    ? { resolved: 'https://r/a.tgz', integrity: 'sha512-z' }
-                    : null;
+        var t = tree_of([
+            { path: '', name: 'root' },
+            {
+                path: 'node_modules/m', name: 'm', type: tree.LINK,
+                resolved: 'packages/m', local_path: target,
             },
-        });
+            {
+                path: 'packages/m', name: 'm', target_only: true,
+                local_path: target,
+                edges: tree.edges_of({ dependencies: { x: '^1' } }),
+            },
+            { path: 'packages/m/node_modules/x', name: 'x' },
+        ]);
 
-        assert.equal(packages['node_modules/a'].resolved, 'https://r/a.tgz');
-        assert.equal(packages['node_modules/a'].integrity, 'sha512-z');
+        var snap = tree.tree_to_snapshot(t, { root: root });
+
+        assert.ok(snap.node_modules.m, 'the link is a child of the project');
+        assert.equal(snap.node_modules.m.local_package, true, 'and it is a link');
+        assert.ok(snap.node_modules.m.node_modules.x,
+            "the member's own dependency hangs off the member");
+
+        var back = tree.snapshot_to_tree(snap, { root: root });
+
+        assert.equal(back.get('node_modules/m').type, tree.LINK);
+        assert.ok(back.has('packages/m/node_modules/x'),
+            'and the projection finds it again');
     });
 
-    it('marks a link as a link and a shipped copy as shipped', function () {
-        var t = new Map();
+    it('carries the flags, which is what `omit` reads', function () {
+        var t = tree_of([
+            { path: '', name: 'root' },
+            { path: 'node_modules/d', name: 'd', flags: { dev: true } },
+            { path: 'node_modules/o', name: 'o', flags: { optional: true } },
+        ]);
 
-        t.set('', tree.make_node('', { name: 'root', version: '1.0.0', manifest: {} }));
-        t.set('node_modules/m', tree.make_node('node_modules/m', {
-            name: 'm', version: '1.0.0', type: tree.LINK, resolved: 'packages/m', local_path: '/p/packages/m',
-        }));
-        t.set('node_modules/h/node_modules/x', tree.make_node('node_modules/h/node_modules/x', {
-            name: 'x', version: '1.0.0', type: tree.BUNDLE,
-        }));
+        var snap = tree.tree_to_snapshot(t, { root: process.cwd() });
 
-        var packages = tree.serialize(t, { root_manifest: { name: 'root', version: '1.0.0' } });
-
-        assert.equal(packages['node_modules/m'].link, true);
-        assert.equal(packages['node_modules/m'].resolved, undefined, 'a link has no tarball');
-        assert.equal(packages['node_modules/h/node_modules/x'].in_bundle, true);
-    });
-
-    it('leaves the omitted nodes in the tree and out of the include set', function () {
-        // `omit` is about the disk: the file describes the whole graph, so the caller
-        // decides which nodes are written -- and the file stays the same either way
-        var t = new Map();
-
-        t.set('', tree.make_node('', { name: 'root', version: '1.0.0', manifest: {} }));
-        t.set('node_modules/d', tree.make_node('node_modules/d', { name: 'd', version: '1.0.0', flags: { dev: true } }));
-        t.set('node_modules/p', tree.make_node('node_modules/p', { name: 'p', version: '1.0.0' }));
-
-        var with_dev = tree.serialize(t, { root_manifest: { name: 'root', version: '1.0.0' } });
-        var without = tree.serialize(t, {
-            root_manifest: { name: 'root', version: '1.0.0' },
-            include: function (p, n) { return !(n.flags && n.flags.dev); },
-        });
-
-        assert.ok(with_dev['node_modules/d'], 'the file describes it');
-        assert.equal(without['node_modules/d'], undefined, 'the invisible-to-this-platform set leaves it out');
-        assert.equal(t.has('node_modules/d'), true, 'the tree still holds it');
+        assert.equal(snap.node_modules.d.dev_only, true);
+        assert.equal(snap.node_modules.o.optional_only, true);
     });
 });

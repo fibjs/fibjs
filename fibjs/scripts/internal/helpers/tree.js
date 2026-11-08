@@ -279,91 +279,189 @@ function resolve_path(tree, name, from) {
 const EDGE_KINDS = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 
 /**
- * @description which kind of edge reaches each node, the way npm's `calc-dep-flags`
- *              answers it: a node every path from a root needs a `dev` edge for is
- *              `dev`, the same for `optional`, one that needs either is the overlap,
- *              and a production edge clears both.
+ * @description which kind of edge reaches each node — npm's `calc-dep-flags`, and
+ *              deliberately the same algorithm rather than an equivalent-looking one.
  *
- *              The answer is a property of the edges, which is why it is computed from
- *              the tree rather than carried around by the resolver: whether a package
- *              is dev-only is not something an install decides per node, it is what
- *              the graph says about it.
+ *              The rules read as "a node only a dev edge reaches is dev", and that is
+ *              true, but the answer is not the one a reachability walk produces. npm
+ *              starts every flag `true` and *unsets* as it walks edges, and the
+ *              difference is visible: a node under an optional parent keeps
+ *              `devOptional` even though nothing dev reaches it, because the edge that
+ *              would have unset it is `optional` and npm's test is
+ *              `!node.devOptional && !node.dev && !node.optional && !dev && !optional`.
+ *
+ *              A reachability walk written from the prose agrees on `dev` and disagrees
+ *              on the overlap — which is what decides whether `--omit=optional` takes a
+ *              package off the disk. So this is npm's loop, kept in npm's shape.
  * @param tree Map<path, node>
- * @param roots the paths a walk starts at: the project (and every link target that is
- *              a project of its own — a workspace member)
+ * @param roots the paths the walk begins at: the project, and every link target that is
+ *              a project of its own (a workspace member)
  * @returns { dev, optional, devOptional, peer } — each a `{ [path]: true }` map
  */
 function calc_flags(tree, roots) {
-    function reach(skip) {
-        const seen = {};
-        const stack = [];
-
-        roots.forEach(r => {
-            if (seen[r])
-                return;
-
-            seen[r] = true;
-            stack.push(r);
-        });
-
-        while (stack.length) {
-            const from = stack.pop();
-            const node = tree.get(from);
-
-            if (!node)
-                continue;
-
-            // a link carries no edges of its own: what it depends on is installed
-            // inside the directory it points at
-            const target = node.type === LINK && node.resolved ? node.resolved : from;
-
-            if (target !== from && !seen[target]) {
-                seen[target] = true;
-                stack.push(target);
-            }
-
-            EDGE_KINDS.forEach(kind => {
-                if (skip.indexOf(kind) > -1)
-                    return;
-
-                const map = node.edges && node.edges[kind];
-
-                if (!map)
-                    return;
-
-                Object.keys(map).forEach(name => {
-                    const to = resolve_path(tree, name, target);
-
-                    if (!to || seen[to])
-                        return;
-
-                    seen[to] = true;
-                    stack.push(to);
-                });
-            });
-        }
-
-        return seen;
-    }
-
-    const any = reach([]);
-    const without = {
-        dev: reach(['devDependencies']),
-        optional: reach(['optionalDependencies']),
-        devOptional: reach(['devDependencies', 'optionalDependencies']),
-        peer: reach(['peerDependencies']),
-    };
-
     const flags = { dev: {}, optional: {}, devOptional: {}, peer: {} };
 
-    Object.keys(any).forEach(p => {
-        if (!p)
+    // Every node starts in all four trees, exactly as npm's `resetDepFlags` leaves
+    // them — with one exception that is easy to miss: the *root* starts clean. npm's
+    // `#rootNodeFromPackage` builds it with `dev: false, optional: false, peer: false`,
+    // and that is what makes the first step do any work: an edge out of the root sees
+    // `!subject.dev` and unsets the flag on what it reaches. A root that started `true`
+    // like everything else would mark the whole tree dev, and the walk would agree with
+    // itself about nothing
+    const state = new Map();
+
+    tree.forEach((node, p) => {
+        state.set(p, p === ''
+            ? { dev: false, optional: false, devOptional: false, peer: false }
+            : { dev: true, optional: true, devOptional: true, peer: true });
+    });
+
+    const seen = new Set();
+    const queue = [];
+
+    // npm's walk starts at *one* node and reaches everything through edges — a
+    // workspace member included, because the project's `workspaces` field is an edge
+    // like any other. Seeding the members as extra roots as well changes the order
+    // things are visited in, and the order decides which of two visits unsets a flag
+    // first, so it changes the answer: a node reachable from a member that was seeded
+    // looked production-only and stopped the overlap from propagating
+    queue.push('');
+
+    while (queue.length) {
+        const p = queue.pop();
+        const node = tree.get(p);
+
+        if (!node || state.get(p) === undefined)
+            continue;
+
+        // a link's flags are its target's: npm copies them across, so a member reached
+        // only through a dev edge marks what it needs as dev too
+        if (node.type === LINK && node.resolved) {
+            // the link is reached, and what the diff asks about it is whether the
+            // package it installs is wanted — so it has to be in `seen`, or the final
+            // pass skips it and it comes out with no flags at all while its target is
+            // correctly dev
+            seen.add(p);
+
+            const target = node.resolved;
+            const mine = state.get(p);
+            const theirs = state.get(target);
+
+            if (theirs) {
+                let changed = false;
+
+                ['dev', 'optional', 'devOptional', 'peer'].forEach(kind => {
+                    if (theirs[kind] && !mine[kind]) {
+                        theirs[kind] = false;
+                        changed = true;
+                    }
+                });
+
+                if (changed || !seen.has(target))
+                    queue.push(target);
+            }
+
+            continue;
+        }
+
+        const mine = state.get(p);
+
+        seen.add(p);
+
+        for (const kind of EDGE_KINDS) {
+            const map = node.edges && node.edges[kind];
+
+            if (!map)
+                continue;
+
+            const is_peer = kind === 'peerDependencies';
+            const is_optional = kind === 'optionalDependencies';
+            const is_dev = kind === 'devDependencies';
+
+            Object.keys(map).forEach(name => {
+                const to = resolve_path(tree, name, p);
+
+                // a dependency nothing serves has no flags to unset
+                if (!to || state.get(to) === undefined)
+                    return;
+
+                const theirs = state.get(to);
+
+                let changed = false;
+
+                if (theirs.dev && !mine.dev && !is_dev) {
+                    theirs.dev = false;
+                    changed = true;
+                }
+
+                if (theirs.optional && !mine.optional && !is_optional) {
+                    theirs.optional = false;
+                    changed = true;
+                }
+
+                // npm's rule, in npm's words: only unset the overlap when neither side
+                // is dev *or* optional, because unsetting any earlier would stop the
+                // overlap from propagating deeper
+                if (theirs.devOptional && !mine.devOptional &&
+                    !mine.dev && !mine.optional && !is_dev && !is_optional) {
+                    theirs.devOptional = false;
+                    changed = true;
+                }
+
+                if (theirs.peer && !mine.peer && !is_peer) {
+                    theirs.peer = false;
+                    changed = true;
+                }
+
+                if (changed)
+                    queue.push(to);
+            });
+        }
+    }
+
+    // A link and its target are one package, and npm keeps one set of flags for the
+    // pair: `calc-dep-flags` ends with `if (node.isLink) Object.assign(node,
+    // flags(node.target))`, so the link carries the directory's answer. Without that
+    // the link node came out with no flags at all while its target was correctly dev,
+    // and `--omit=dev` kept the symlink on the disk — the target was dev and the
+    // thing being removed was not
+    tree.forEach((node, p) => {
+        if (node.type !== LINK || !node.resolved)
             return;
 
-        Object.keys(without).forEach(kind => {
-            if (!without[kind][p])
-                flags[kind][p] = true;
+        const theirs = state.get(node.resolved);
+        const mine = state.get(p);
+
+        if (!theirs || !mine)
+            return;
+
+        // the link is the symlink; the directory is the package. What the diff asks
+        // about the symlink is whether the package it installs is wanted, so the answer
+        // is the directory's
+        ['dev', 'optional', 'devOptional', 'peer'].forEach(kind => {
+            mine[kind] = theirs[kind];
         });
+    });
+
+    state.forEach((v, p) => {
+        if (p === '')
+            return;
+
+        // A node the walk never reached is one nothing declares — npm calls it
+        // `extraneous` and the answer is "no flags", not "in every tree". Leaving the
+        // initial `true` in place made an orphan come out as dev *and* optional *and*
+        // peer, which is the opposite of what it is
+        if (!seen.has(p))
+            return;
+
+        // npm's last step: a node that is dev or optional on its own is not the overlap
+        if (v.devOptional && (v.dev || v.optional))
+            v.devOptional = false;
+
+        if (v.dev) flags.dev[p] = true;
+        if (v.optional) flags.optional[p] = true;
+        if (v.devOptional) flags.devOptional[p] = true;
+        if (v.peer) flags.peer[p] = true;
     });
 
     return flags;
@@ -723,6 +821,13 @@ function resolve(tree, opts) {
                     // an optional dependency that cannot be fetched is not a failure:
                     // that is what optional means
                     if (e.field === 'optionalDependencies')
+                        continue;
+
+                    // A caller that is only *comparing* trees cannot stop the whole
+                    // run over an edge it could not place: that edge is the finding,
+                    // and the rest of the tree is what it has to be compared against.
+                    // `strict` is the default, so an install still refuses to continue
+                    if (o.strict === false)
                         continue;
 
                     throw new Error(`[install] cannot resolve '${e.name}@${e.spec}' ` +
@@ -1322,6 +1427,19 @@ function build_ideal(opts) {
 
         tree.get(link_path).from_workspace = true;
 
+        // A member is reached from the project through an edge, the way npm models it:
+        // `#loadWorkspaces` makes one typed `workspace` with the spec `file:<path>`, and
+        // that is what a flag walk follows to get from the root into a member's tree.
+        // Without it the member is a node nobody reaches, so everything it needs for
+        // production looked dev-only — `@types/node` and `d3-array` came out dev because
+        // only the root's own `devDependencies` mentioned them.
+        //
+        // It is a *prod* edge for this purpose and not a separate kind: a member's
+        // dependencies are installed like the project's, and `calc_flags` only knows the
+        // four kinds npm unsets by
+        if (!root.edges.dependencies[m.name])
+            root.edges.dependencies[m.name] = 'file:' + target_path;
+
         // the directory it points at: it is not installed, and its own dependencies
         // are what an install of that project would read
         tree.set(target_path, make_target(target_path, {
@@ -1657,167 +1775,301 @@ function trim_to_reachable(tree, dropped) {
 
 // ---------------------- serialization :start ------------------------- //
 
+
+// ---------------------- from a resolved snapshot :start ------------------------- //
+
 /**
- * @description one lockfile entry for one node. This is the inverse of
- *              `load_virtual`, and like it, it reads the tree and nothing else.
+ * @description the resolved snapshot — the nested `node_modules` maps the walk builds —
+ *              as the path table this module's passes speak.
  *
- *              The fields are npm's: only what differs from what a reader can infer is
- *              written. `name` only where the directory and the package disagree (an
- *              alias), a source only where there is one, a flag only where it says
- *              something. npm's file is a *projection of the ideal tree*, and that is
- *              why `npm ci` accepts what `npm install` wrote: both describe the same
- *              nodes.
- * @param node
- * @param p its path
- * @param opts { previous, hidden_source(p, version) }
+ *              The two shapes hold the same information, and the installer has both at
+ *              different moments: the walk builds the nested one, while `resolve`,
+ *              `diff` and `calc_flags` need the flat one. Projecting here rather than
+ *              inside each of them is what keeps there being one answer to "where is
+ *              this node": a second projection is a second place for the two to drift,
+ *              which is exactly how a prune came to disagree with a write back.
+ * @param rootsnap the snapshot root: `{ name, version, dep_vs, node_modules, ... }`
+ * @param opts { root }
+ * @returns Map<path, node>
  */
-function to_entry(node, p, opts) {
+function snapshot_to_tree(rootsnap, opts) {
     const o = opts || {};
-    const has = obj => obj && Object.keys(obj).length > 0;
-    const local = node.type === LINK;
+    const root = o.root || process.cwd();
+    const tree = new Map();
 
-    // the directory a link points at, and the manifest it has there
-    const local_path = local ? node.local_path : undefined;
+    const relative = dir => {
+        const rel = require('path').relative(root, dir).replace(/\\/g, '/');
 
-    let resolved = local ? undefined : node.resolved;
-    let integrity = local ? undefined : node.integrity;
+        return rel === '' ? '' : rel.replace(/\/+$/, '');
+    };
 
-    // a directory carries a version and nothing else, and an entry with a version but
-    // no source is one a frozen install refuses. npm answers the question from the
-    // note it leaves inside node_modules, and from the `_resolved` / `_integrity`
-    // fields npm 6 left behind in installed manifests
-    if (!local && node.type !== BUNDLE && (!resolved || !integrity)) {
-        const hint = o.hidden_source ? o.hidden_source(p, node.version) : null;
-        const manifest = node.manifest;
+    function node_of(info, p) {
+        const local = info.local_package === true || info.workspace_package === true;
+        const local_path = local ? (info.local_path || info.workspace_path) : undefined;
 
-        if (hint) {
-            resolved = resolved || hint.resolved;
-            integrity = integrity || hint.integrity;
-        }
+        return {
+            path: p,
+            name: info.name,
+            version: info.version,
 
-        if (manifest) {
-            if (!resolved && typeof manifest._resolved === 'string')
-                resolved = manifest._resolved;
-            if (!integrity && typeof manifest._integrity === 'string')
-                integrity = manifest._integrity;
-        }
+            type: local ? LINK : (info.in_bundle ? BUNDLE : REGISTRY),
+            resolved: local
+                ? relative(local_path)
+                : (info.dist && info.dist.tarball),
+            integrity: local ? undefined : (info.dist && info.dist.integrity),
+            local_path: local_path,
+            target_only: false,
+
+            edges: {
+                // the *declared* ranges, which is what a placement works from
+                dependencies: (info.declared && info.declared.dep_vs) || info.dep_vs || {},
+                devDependencies: {},
+                optionalDependencies: (info.declared && info.declared.opt_dep_vs) || info.opt_dep_vs || {},
+                peerDependencies: (info.declared && info.declared.peer_dep_vs) || info.peer_dep_vs || {},
+            },
+
+            flags: {
+                dev: info.dev_only === true,
+                optional: info.optional_only === true,
+                devOptional: info.dev_optional === true,
+                peer: info.peer_only === true,
+            },
+
+            from_workspace: info.workspace_package === true,
+            from_local: info.local_package === true,
+
+            // "this run put it there", which is what tells a node a previous install
+            // left behind from one the resolve just arrived at
+            new_module: info.new_module === true,
+        };
     }
 
-    const declared = (field, fallback) => {
-        const src = (node.declared && node.declared[field]) || fallback;
+    tree.set('', {
+        path: '',
+        name: rootsnap.name,
+        version: rootsnap.version,
+        type: REGISTRY,
+        target_only: false,
+        edges: {
+            dependencies: (rootsnap.declared && rootsnap.declared.dep_vs) || rootsnap.dep_vs || {},
+            devDependencies: (rootsnap.declared && rootsnap.declared.dev_dep_vs) || rootsnap.dev_dep_vs || {},
+            optionalDependencies: (rootsnap.declared && rootsnap.declared.opt_dep_vs) || rootsnap.opt_dep_vs || {},
+            peerDependencies: (rootsnap.declared && rootsnap.declared.peer_dep_vs) || rootsnap.peer_dep_vs || {},
+        },
+        flags: {},
+    });
 
-        return has(src) ? src : undefined;
-    };
+    (function walk(info, prefix) {
+        Object.keys(info.node_modules || {}).forEach(name => {
+            const child = info.node_modules[name];
+            const p = prefix + 'node_modules/' + name;
+            const local = child.local_package === true || child.workspace_package === true;
 
-    const entry = {
-        // npm writes `name` only where the directory and the package disagree, which
-        // is how an alias is recorded
-        name: node.real_name || node.name,
-        version: node.version,
-        resolved: resolved,
-        integrity: integrity,
-        link: local ? true : undefined,
-        in_bundle: node.type === BUNDLE ? true : undefined,
-        dependencies: declared('dependencies', node.edges && node.edges.dependencies),
-        optionalDependencies: declared('optionalDependencies', node.edges && node.edges.optionalDependencies),
-        peerDependencies: declared('peerDependencies', node.edges && node.edges.peerDependencies),
-        bin: node.bin,
-        os: node.platform && node.platform.os,
-        cpu: node.platform && node.platform.cpu,
-        libc: node.platform && node.platform.libc,
-        license: node.license,
-        engines: node.engines,
-        funding: node.funding,
-        has_install_script: node.has_install_script === true ? true : undefined,
-        // a directory a link points at: nothing is installed at that path, and the
-        // entry exists so that the package's own dependencies are described
-        target_only: node.target_only === true ? undefined : undefined,
-    };
+            tree.set(p, node_of(child, p));
 
-    // the flags. npm writes `dev` and `optional` for the overlap and the flag alone
-    // only where the other is not set
-    const flags = node.flags || {};
+            // a link's own edges are installed inside the directory it points at, and
+            // that directory is a node of its own
+            const target = local ? relative(child.local_path || child.workspace_path) : null;
 
-    if (flags.dev)
-        entry.dev = true;
-    if (flags.optional)
-        entry.optional = true;
+            if (target && !tree.has(target)) {
+                tree.set(target, {
+                    path: target,
+                    name: child.name,
+                    version: child.version,
+                    type: REGISTRY,
+                    target_only: true,
+                    edges: {
+                        dependencies: (child.declared && child.declared.dep_vs) || child.dep_vs || {},
+                        devDependencies: {},
+                        optionalDependencies: (child.declared && child.declared.opt_dep_vs) || child.opt_dep_vs || {},
+                        peerDependencies: (child.declared && child.declared.peer_dep_vs) || child.peer_dep_vs || {},
+                    },
+                    flags: {},
+                    from_workspace: child.workspace_package === true,
+                    from_local: child.local_package === true,
+                });
+            }
 
-    return entry;
+            walk(child, target ? target + '/' : p + '/');
+        });
+    })(rootsnap, '');
+
+    return tree;
 }
 
-/**
- * @description the tree as the lockfile's path table (npm's `packages` object), and as
- *              the note it keeps inside `node_modules`. Both are the same projection;
- *              the note differs only in which paths it covers and in carrying the
- *              sources the disk cannot say
- *
- *              This is the *only* place a lockfile is produced from, which is what
- *              makes "what the file says" and "what the tree is" the same fact rather
- *              than two that have to be kept in agreement.
- * @param tree Map<path, node>
- * @param opts { root_manifest, hidden_source, include(p, node) }
- * @returns { [path]: entry }
- */
-function serialize(tree, opts) {
-    const o = opts || {};
-    const packages = {};
+// ---------------------- to a resolved snapshot :start ------------------------- //
 
-    // the root entry mirrors package.json. npm's `packages['']` is that manifest
-    // projected: a reader of the file takes the declared ranges from here
-    if (o.root_manifest)
-        packages[''] = root_entry(o.root_manifest);
+/**
+ * @description the path table as the nested maps the resolver walks — the inverse of
+ *              `snapshot_to_tree`, and the direction that lets the installer stop
+ *              seeding its whole pass from what happens to be on the disk.
+ *
+ *              The two shapes hold the same graph; only the shape differs. A node's
+ *              location decides where it goes: `node_modules/a` is a child of the
+ *              project, `node_modules/a/node_modules/b` a child of `a`, and a link's
+ *              target directory (`packages/member`) is a root of its own whose children
+ *              are `packages/member/node_modules/*`.
+ *
+ *              A link is recorded with `local_package` / `local_path`, because that is
+ *              what the rest of the installer means by one: it is not fetched, and its
+ *              own directory is where its dependencies are installed.
+ * @param tree Map<path, node>
+ * @param opts { root, manifest_of(p, node) }
+ * @returns the snapshot root: `{ name, version, dep_vs, node_modules, ... }`
+ */
+function tree_to_snapshot(tree, opts) {
+    const o = opts || {};
+    const root = tree.get('');
+
+    const snapshot = {
+        name: root ? root.name : undefined,
+        version: root ? root.version : undefined,
+
+        dep_vs: (root && root.edges && root.edges.dependencies) || {},
+        dev_dep_vs: (root && root.edges && root.edges.devDependencies) || {},
+        opt_dep_vs: (root && root.edges && root.edges.optionalDependencies) || {},
+        peer_dep_vs: (root && root.edges && root.edges.peerDependencies) || {},
+
+        node_modules: {},
+    };
+
+    // where each path lives, so a child is attached to the node that holds it rather
+    // than to whatever was visited last
+    const holder_of = p => {
+        const idx = p.lastIndexOf('/node_modules/');
+
+        if (idx >= 0) {
+            const holder = p.slice(0, idx);
+
+            // A member's own dependencies are installed in its directory, and the
+            // snapshot records them under the *link* — `read_module` reads
+            // `node_modules/member/node_modules/x` into `node_modules.member`. So a
+            // path under a link's target hangs off the link, not off the target: the
+            // target has no entry of its own in the snapshot, it is the directory.
+            const link_of_target = targets.get(holder);
+
+            return link_of_target === undefined ? holder : link_of_target;
+        }
+
+        if (p.indexOf('node_modules/') === 0)
+            return '';
+
+        // a directory that is not under a node_modules is a project of its own: its
+        // children hang off it directly
+        return null;
+    };
+
+    // target path -> the link that installs it, so a member's children can be attached
+    // to the link the way the snapshot records them
+    const targets = new Map();
+
+    tree.forEach((node, p) => {
+        if (node.type === LINK && node.resolved)
+            targets.set(node.resolved, p);
+    });
+
+    // a node's own container: the snapshot node it is recorded under
+    const containers = new Map();
+    containers.set('', snapshot);
+
+    // two passes: record every node, then attach the children, so a child whose
+    // parent comes later in the table still finds it
+    const entries = [];
 
     tree.forEach((node, p) => {
         if (p === '')
             return;
 
-        if (o.include && !o.include(p, node))
-            return;
-
-        const entry = to_entry(node, p, o);
-
-        packages[p] = entry;
+        entries.push([p, node]);
     });
 
-    return packages;
-}
+    // shallowest first, which is what makes a parent exist before its children
+    const depth = p => p.split('/node_modules/').length;
 
-/**
- * @description the fields npm keeps from package.json in `packages['']`
- */
-function root_entry(manifest) {
-    const out = {
-        name: manifest.name,
-        version: manifest.version,
-    };
+    entries.sort((a, b) => depth(a[0]) - depth(b[0]));
 
-    if (manifest.license)
-        out.license = typeof manifest.license === 'object'
-            ? manifest.license.type : manifest.license;
+    entries.forEach(([p, node]) => {
+        // A link is a child of whatever holds it, like any other node; it is the
+        // *directory* it points at that is a root of its own. Treating the link as the
+        // root is how its entry went missing from the project's own `node_modules`.
+        const holder = node.type === LINK ? parent_location(p) : holder_of(p);
 
-    if (manifest.dependencies && Object.keys(manifest.dependencies).length)
-        out.dependencies = Object.assign({}, manifest.dependencies);
+        const named = p.slice(p.lastIndexOf('node_modules/') + 'node_modules/'.length);
 
-    if (manifest.devDependencies && Object.keys(manifest.devDependencies).length)
-        out.devDependencies = Object.assign({}, manifest.devDependencies);
+        const info = {
+            name: named,
+            real_name: node.real_name && node.real_name !== named ? node.real_name : undefined,
+            version: node.version,
+            lock_path: p,
 
-    if (manifest.optionalDependencies && Object.keys(manifest.optionalDependencies).length)
-        out.optionalDependencies = Object.assign({}, manifest.optionalDependencies);
+            dep_vs: (node.edges && node.edges.dependencies) || {},
+            dev_dep_vs: {},
+            opt_dep_vs: (node.edges && node.edges.optionalDependencies) || {},
+            peer_dep_vs: (node.edges && node.edges.peerDependencies) || {},
 
-    if (manifest.peerDependencies && Object.keys(manifest.peerDependencies).length)
-        out.peerDependencies = Object.assign({}, manifest.peerDependencies);
+            bundle_deps: node.bundled || undefined,
+            manifest: o.manifest_of ? o.manifest_of(p, node) : node.manifest,
 
-    if (manifest.bin)
-        out.bin = manifest.bin;
-    if (manifest.engines)
-        out.engines = manifest.engines;
-    if (manifest.workspaces)
-        out.workspaces = manifest.workspaces;
-    if (manifest.funding)
-        out.funding = manifest.funding;
+            os: node.platform && node.platform.os,
+            cpu: node.platform && node.platform.cpu,
+            libc: node.platform && node.platform.libc,
+            bin: node.bin,
+            license: node.license,
+            engines: node.engines,
+            funding: node.funding,
 
-    return out;
+            node_modules: {},
+        };
+
+        // the flags, which is what `omit` and the write back read
+        const flags = node.flags || {};
+
+        info.dev_only = flags.dev === true;
+        info.optional_only = flags.optional === true;
+        info.dev_optional = flags.devOptional === true;
+        info.peer_only = flags.peer === true;
+
+        // a link is not installed: the directory it points at is where the package
+        // lives, and that directory has a node of its own
+        if (node.type === LINK) {
+            info.local_package = true;
+            info.local_path = node.local_path;
+        }
+
+        if (node.type === BUNDLE)
+            info.in_bundle = true;
+
+        // a link's flags are its target's, the way npm copies them across
+        const container = holder === null ? null : containers.get(holder);
+
+        if (container) {
+            container.node_modules[named] = info;
+            containers.set(p, info);
+        } else if (holder === null) {
+            // the directory a link points at: a project of its own, whose children are
+            // the ones installed inside it
+            const target_root = {
+                name: node.name,
+                version: node.version,
+                lock_path: p,
+                workspace_package: node.from_workspace === true,
+                local_package: node.from_local === true,
+                local_path: node.local_path,
+                workspace_path: node.local_path,
+
+                dep_vs: (node.edges && node.edges.dependencies) || {},
+                dev_dep_vs: {},
+                opt_dep_vs: (node.edges && node.edges.optionalDependencies) || {},
+                peer_dep_vs: (node.edges && node.edges.peerDependencies) || {},
+
+                node_modules: {},
+            };
+
+            containers.set(p, target_root);
+        }
+    });
+
+    return snapshot;
 }
 
 // ---------------------- exports :start ------------------------- //
@@ -1861,11 +2113,11 @@ module.exports = {
     action_for,
     diff,
 
+    snapshot_to_tree,
+    tree_to_snapshot,
+
     load_actual,
     load_virtual,
     build_ideal,
 
-    to_entry,
-    serialize,
-    root_entry,
 };

@@ -142,20 +142,60 @@ describe('tree helper', function () {
                 'b is only reachable through a dev edge');
         });
 
-        it('marks the overlap of the dev and optional trees', function () {
+        it('marks a node a dev edge and an optional edge both reach as the overlap', function () {
+            // the same node, two dependents: one production, one optional. Removing
+            // dev or optional alone still leaves an edge that needs it
             var t = build(
-                { devDependencies: { host: '1.0.0' } },
+                { dependencies: { prod: '1.0.0' }, optionalDependencies: { opt: '1.0.0' } },
                 [node({
-                    name: 'host', path: 'node_modules/host',
-                    edges: { optionalDependencies: { opt: '1.0.0' } },
+                    name: 'prod', path: 'node_modules/prod',
+                    edges: { dependencies: { shared: '1.0.0' } },
                 }),
-                node({ name: 'opt', path: 'node_modules/opt' })]
+                node({
+                    name: 'opt', path: 'node_modules/opt',
+                    edges: { optionalDependencies: { shared: '1.0.0' } },
+                }),
+                node({ name: 'shared', path: 'node_modules/shared' })]
             );
 
             var f = tree.calc_flags(t, ['']);
 
-            assert.equal(f.devOptional['node_modules/opt'], true,
-                'opt sits in both trees');
+            assert.equal(f.dev['node_modules/shared'], undefined, 'production reaches it');
+            assert.equal(f.optional['node_modules/shared'], undefined, 'and so does production');
+        });
+
+        it('gives a link the flags of the directory it installs', function () {
+            // The link is the symlink; the directory is the package. `diff` asks whether
+            // the *link* is wanted, so it has to carry the directory's answer — without
+            // that a dev-only member dependency came out with no flags on the link,
+            // its target was correctly dev, and `--omit=dev` kept the symlink
+            var t = new Map();
+
+            t.set('', tree.make_node('', {
+                name: 'p', version: '1.0.0',
+                edges: tree.edges_of({ devDependencies: { m: 'file:m' } }),
+            }));
+
+            t.set('node_modules/m', tree.make_node('node_modules/m', {
+                name: 'm', version: '1.0.0', type: tree.LINK, resolved: 'm',
+            }));
+
+            t.set('m', tree.make_target('m', {
+                name: 'm', version: '1.0.0',
+                edges: tree.edges_of({ dependencies: { need: '1.0.0' } }),
+            }));
+
+            t.set('node_modules/need', tree.make_node('node_modules/need', {
+                name: 'need', version: '1.0.0',
+            }));
+
+            var f = tree.calc_flags(t, ['']);
+
+            assert.equal(f.dev['m'], true, 'the directory is dev');
+            assert.equal(f.dev['node_modules/m'], true,
+                'and the link that installs it says so too');
+            assert.equal(f.dev['node_modules/need'], true,
+                'and so does what it depends on');
         });
 
         it('treats a source the walk does not reach as neither', function () {
