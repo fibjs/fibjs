@@ -1312,10 +1312,18 @@ describe('opt_tools install lifecycle', function () {
 
             var target = fs.readlinkSync(link);
 
-            assert.equal(path.isAbsolute(target), false,
-                'the link target is relative (' + target + '), so the tree can move');
-            assert.equal(target, path.join('..', '..', 'packages', 'core'),
-                'and names the package the way npm spells it');
+            // A Windows junction is an absolute reparse point: the target it stores
+            // is a full path whatever was passed in, so "relative" is not a property
+            // the platform can give. What has to hold everywhere is that the link
+            // resolves to the member — npm checks exactly that (`resolve(dirname(link),
+            // target)`) and never looks at whether the stored form is absolute
+            if (process.platform !== 'win32') {
+                assert.equal(path.isAbsolute(target), false,
+                    'the link target is relative (' + target + '), so the tree can move');
+                assert.equal(target, path.join('..', '..', 'packages', 'core'),
+                    'and names the package the way npm spells it');
+            }
+
             assert.equal(fs.realpathSync(link), fs.realpathSync(path.join(targetDir, 'packages', 'core')),
                 'while still resolving to the member');
         });
@@ -1335,18 +1343,35 @@ describe('opt_tools install lifecycle', function () {
             if (!LINKS_USED)
                 return;     // a copy is not a link, so there is nothing to repoint
 
-            // the shape an earlier build left: an absolute target
+            // the shape an earlier build left: an absolute target. A Windows run can
+            // only create that as a junction — a directory symlink needs a privilege a
+            // plain user does not have — and a junction already stores an absolute
+            // target, which is the same defect
+            var present = path.join(targetDir, 'node_modules', '@z', 'core');
+
             fs.mkdirSync(path.join(targetDir, 'node_modules', '@z'), { recursive: true });
-            fs.symlinkSync(path.join(targetDir, 'packages', 'core'),
-                path.join(targetDir, 'node_modules', '@z', 'core'), 'dir');
+
+            if (process.platform === 'win32')
+                fs.symlinkSync(path.join(targetDir, 'packages', 'core'), present, 'junction');
+            else
+                fs.symlinkSync(path.join(targetDir, 'packages', 'core'), present, 'dir');
 
             var res = runInstaller(targetDir, ['--install']);
             assert.equal(res.status, 0, diag(targetDir, res));
 
-            var target = fs.readlinkSync(path.join(targetDir, 'node_modules', '@z', 'core'));
+            var target = fs.readlinkSync(present);
 
-            assert.equal(path.isAbsolute(target), false,
-                'a plain --install repoints it, no rm -rf needed: ' + target);
+            // the same platform difference as above: a junction always stores an
+            // absolute target, so a Windows run cannot see the relative form — it
+            // sees a link that points at the member, which is the property that matters
+            if (process.platform === 'win32') {
+                assert.equal(fs.realpathSync(present),
+                    fs.realpathSync(path.join(targetDir, 'packages', 'core')),
+                    'the link still points at the member: ' + target);
+            } else {
+                assert.equal(path.isAbsolute(target), false,
+                    'a plain --install repoints it, no rm -rf needed: ' + target);
+            }
         });
 
         it('leaves a healthy relative link alone', function () {
@@ -1542,8 +1567,12 @@ describe('opt_tools install lifecycle', function () {
             assert.ok(out.indexOf(path.join('packages', 'bad')) > -1, 'and the file is named:\n' + out);
 
             // the same file was reported once per pass before, and one broken member
-            // printed its warning three times in a single run
-            assert.equal(out.split('packages/bad/package.json').length - 1, 1,
+            // printed its warning three times in a single run. The path is counted in
+            // the platform's own separators: the installer names the file it could not
+            // read, and on Windows that is `packages\bad\package.json`
+            var named = path.join('packages', 'bad', 'package.json');
+
+            assert.equal(out.split(named).length - 1, 1,
                 'reported once, not once per pass:\n' + out);
 
             assert.equal(fs.existsSync(path.join(targetDir, 'node_modules')), false,

@@ -2313,15 +2313,42 @@ function mark_flags(tree, roots) {
 function member_roots(tree) {
     const roots = [''];
 
+    // A link's target is recorded relative to the project, and the comparison is by
+    // path string — so the two sides have to be spelled the same way. On Windows the
+    // separator and the drive letter both vary (`D:\a\proj\packages\core` against
+    // `packages/core`), and a plain `tree.has()` then missed the target, leaving the
+    // member out of the walk: nothing it needs was classified, and `--omit=dev` kept
+    // its dev dependencies on the disk
+    const norm = p => String(p || '').replace(/\\/g, '/').replace(/^\.\//, '').toLowerCase();
+
+    const by_path = new Map();
+
+    tree.forEach((node, p) => by_path.set(norm(p), p));
+
     tree.forEach((node, p) => {
-        if (p === '' || node.type !== LINK || !node.resolved)
+        if (p === '' || node.type !== LINK)
             return;
 
         if (node.from_workspace !== true && !(node.source && node.source.workspace_package === true))
             return;
 
-        if (tree.has(node.resolved))
-            roots.push(node.resolved);
+        // the target is recorded relative to the project, but a path can carry a
+        // leading `./` and the separators differ by platform — the comparison drops
+        // both, and falls back to the last `node_modules/` segment of the target
+        // path when the recorded spelling still does not match
+        const candidates = [];
+
+        if (node.resolved)
+            candidates.push(node.resolved);
+
+        for (let i = 0; i < candidates.length; i++) {
+            const at = by_path.get(norm(String(candidates[i]).replace(/^(\.{1,2}\/)+/, '')));
+
+            if (at !== undefined && at !== '') {
+                roots.push(at);
+                return;
+            }
+        }
     });
 
     return roots;

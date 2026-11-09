@@ -735,5 +735,29 @@ describe('tree helper', function () {
             assert.equal(t.get('packages/m/node_modules/x').flags.dev, false,
                 'what a member needs for production is not a dev package');
         });
+
+        it('finds a member whose target is spelled the Windows way', function () {
+            // the comparison is on the path string, and on Windows the separator is a
+            // backslash. Missing the target left the member out of the walk, so nothing
+            // it needed was classified and `--omit=dev` kept its dev dependencies on the
+            // disk — the only platform-dependent part of the flag calculation
+            var t = new Map();
+            t.set('', node('', { name: 'root' }));
+
+            var link = node('node_modules/m', {
+                name: 'm', type: tree.LINK, resolved: 'packages\\m',
+            });
+
+            link.from_workspace = true;
+            t.set('node_modules/m', link);
+            t.set('packages/m', node('packages/m', {
+                name: 'm', target_only: true,
+                edges: { dependencies: { x: '^1' } },
+            }));
+            t.set('packages/m/node_modules/x', node('packages/m/node_modules/x', { name: 'x' }));
+
+            assert.ok(tree.member_roots(t).indexOf('packages/m') > -1,
+                'a backslash is the same path as a slash');
+        });
     });
 });
