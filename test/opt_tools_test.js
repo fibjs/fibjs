@@ -3497,12 +3497,24 @@ describe('opt_tools install lifecycle', function () {
             }, null, 2));
             fs.writeFileSync(path.join(conflictDir, '.npmrc'), 'registry=http://127.0.0.1:' + port + '/\n');
 
+            // the same peer with a root copy that does not answer it is npm's
+            // `ERESOLVE`: `peer-host` needs `core@^2.0.0` and the project pinned
+            // `1.0.0`, so the tree installs and then fails at run time. npm refuses
+            // it, and an installer that writes the lockfile anyway produces one
+            // `npm ci` rejects — so this is a failure, not a warning
             var conflict = runInstaller(conflictDir, ['--install'], offline());
             var conflict_out = outputOf(conflict);
 
-            assert.equal(conflict.status, 0, diag(conflictDir, conflict) + '\n' + conflict_out);
-            assert.ok(conflict_out.indexOf('is not satisfied by the installed 1.0.0') > -1,
-                'a peer the copy above does not answer is still reported:\n' + conflict_out);
+            assert.notEqual(conflict.status, 0,
+                'a peer the copy above does not answer is npm\'s ERESOLVE:\n' + conflict_out);
+            assert.ok(conflict_out.indexOf('core') > -1 &&
+                conflict_out.indexOf('^2.0.0') > -1,
+                'the conflict names the edge:\n' + conflict_out);
+
+            // and the two flags npm offers are the way through it
+            var forced = runInstaller(conflictDir, ['--install', '--legacy-peer-deps'], offline());
+
+            assert.equal(forced.status, 0, diag(conflictDir, forced));
         });
     });
 

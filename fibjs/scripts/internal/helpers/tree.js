@@ -335,17 +335,30 @@ function calc_flags(tree, roots) {
     // itself about nothing
     const state = new Map();
 
+    // Every node starts in all four trees, which is npm's `resetDepFlags` — applied to
+    // the root as well. It is easy to read `calc-dep-flags` and conclude otherwise,
+    // because the root *is* visited and its flags are not looked at; but npm's tree is
+    // reset before the walk, so the root starts `true` like everything else.
+    //
+    // Only `dev` and `optional` are cleared on the root here, and the reason is where a
+    // flag comes from. `dev` and `optional` are cleared by an edge *out* of a node that
+    // is not dev/optional, so a root holding them true would mark the whole tree dev —
+    // nothing would ever unset it, and `--omit=dev` would install nothing. `peer` is
+    // the other direction: npm's rule unsets it only when the subject is not peer *and*
+    // the edge is not peer, so a root holding `peer: true` is exactly what marks a
+    // package reached only by a peer edge (`react`, pulled in by `react-dom`'s
+    // peerDependency) as `peer: true` in the lockfile. Clearing it on the root made
+    // every such entry come out with no flag at all
     tree.forEach((node, p) => {
         state.set(p, p === ''
             ? { dev: false, optional: false, devOptional: false, peer: false }
             : { dev: true, optional: true, devOptional: true, peer: true });
     });
 
-    // Every root starts clean, not only the project. A root is a node the walk begins
-    // at, so nothing reaches it and nothing has a chance to unset its flags — leaving
-    // them at the initial `true` marked a member dev *and* optional *and* peer, and
-    // everything below it inherited that. npm has the same rule by construction: its
-    // `#rootNodeFromPackage` builds every root with the flags cleared.
+    // Every root starts clean for `dev` and `optional` for the same reason, and a
+    // member is a root: nothing reaches it, so nothing would unset the initial `true`
+    // and everything below it came out dev *and* optional. npm has the rule by
+    // construction — its root nodes are built with those flags cleared
     (roots || []).forEach(r => {
         if (r === '' || !state.has(r))
             return;

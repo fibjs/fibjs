@@ -281,6 +281,8 @@ function normalize_entry(entry, p, legacy) {
         link: entry.link === true,
         dev: entry.dev === true,
         optional: entry.optional === true,
+        dev_optional: entry.devOptional === true,
+        peer: entry.peer === true,
         in_bundle: entry.inBundle === true,
         bundle_dependencies: entry.bundleDependencies !== undefined ? entry.bundleDependencies
             : entry.bundledDependencies,
@@ -1283,6 +1285,8 @@ function lock_entry(entry, p) {
         // as belonging to only one of the two trees
         devOptional: entry.dev_optional && !entry.dev && !entry.optional
             ? true : undefined,
+        // a package nothing but a peer edge reaches, which is what npm records
+        peer: entry.peer ? true : undefined,
         bundleDependencies: entry.bundle_dependencies,
         inBundle: bundled ? true : undefined,
         dependencies: entry.dependencies,
@@ -1719,6 +1723,8 @@ function hidden_lock(name, version, packages, root) {
             // a file it wrote
             devOptional: entry.dev_optional && !entry.dev && !entry.optional
                 ? true : undefined,
+            // a package nothing but a peer edge reaches
+            peer: entry.peer ? true : undefined,
             bundleDependencies: entry.bundle_dependencies,
             inBundle: entry.inBundle === true ? true : undefined,
             dependencies: entry.dependencies,

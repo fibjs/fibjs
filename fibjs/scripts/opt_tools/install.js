@@ -351,6 +351,48 @@ function node_satisfies(node, spec) {
         return !range || semver.satisfies(node.version, range);
     }
 
+    // A spec that does not name a version is answered by the *directory* it names, not
+    // by any installed copy: two `file:` specs name two different directories, and
+    // treating them as interchangeable let a member's `file:../../member-pkg` be
+    // answered by the root's `file:root-pkg` — same name, different package
+    //
+    // npm's `depValid` compares the resolved path. The comparison here is on the
+    // resolved directory, which is what both sides already carry
+    if (spec.indexOf('file:') === 0 || spec.indexOf('link:') === 0 || spec.indexOf('portal:') === 0) {
+        if (node.local_package !== true && node.workspace_package !== true)
+            return false;
+
+        const wanted = spec.replace(/^(file|link|portal):/, '');
+
+        if (!wanted || wanted === '.')
+            return true;
+
+        const have = node.local_path || node.workspace_path;
+
+        if (!have)
+            return false;
+
+        // the spec is relative to the package that declared it, which the caller knows
+        // and this function does not — so the comparison is on the directory's tail,
+        // which is enough to tell `root-pkg` from `member-pkg` and needs no base
+        const want_tail = wanted.replace(/\\/g, '/').replace(/^(?:\.{1,2}\/)+/, '');
+
+        if (!want_tail)
+            return true;
+
+        return String(have).replace(/\\/g, '/').endsWith('/' + want_tail) ||
+            String(have).replace(/\\/g, '/').endsWith(want_tail);
+    }
+
+    if (spec.indexOf('workspace:') === 0)
+        return node.workspace_package === true || node.local_package === true;
+
+    // a git spec names a repository, and the node that came from one is the answer
+    if (spec.indexOf('git+') === 0 || spec.indexOf('git://') === 0 ||
+        /^(github|gitlab|bitbucket|gist):/.test(spec) ||
+        /^[\w.~-]+\/[\w.~-]+(#.*)?$/.test(spec))
+        return node.pkg_install_typeinfo ? node.pkg_install_typeinfo.type === 'git' : true;
+
     return semver.satisfies(node.version, spec);
 }
 
@@ -1324,6 +1366,19 @@ const pkg_githubtype_module_infos = {};
  * @description fetch the snapshot of a dependency, from the registry/git or from disk
  * @param base_dir - directory a relative local path is resolved against, see walkthrough_deps
  */
+/**
+ * @description the `resolved` npm records for a git dependency:
+ *              `git+<origin><repository path>.git#<reference>`
+ */
+function git_resolved_of(typeinfo) {
+    const origin = typeinfo.git_origin || CST.DEFAULT_GIT_ORIGIN;
+    const repo = String(typeinfo.git_path || '').replace(/^\/+/, '');
+    const ref = typeinfo.git_reference ? '#' + typeinfo.git_reference : '';
+
+    return 'git+' + helpers_string.ensure_suffx(origin) +
+        (repo.endsWith('.git') ? repo : repo + '.git') + ref;
+}
+
 function fetch_leveled_module_info(m, v, parent, base_dir) {
     const pkg_install_typeinfo = helpers_pkg.parse_pkg_installname(m, v, base_dir);
 
@@ -1493,9 +1548,17 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
                 dev_dep_vs: util.extend({}, pkgjson_info.devDependencies),
                 opt_dep_vs: util.extend({}, pkgjson_info.optionalDependencies),
                 peer_dep_vs: read_peer_dep_vs(pkgjson_info),
+                // a git dependency's source *is* the repository: npm records
+                // `git+<origin><path>.git#<ref>`. Leaving it unset made the entry look
+                // like a registry package with no source, and the fill step then asked
+                // the registry for a tarball of the same name and version
+                dist: {
+                    tarball: git_resolved_of(pkg_install_typeinfo),
+                    integrity: null,
+                    shasum: null,
+                },
                 node_modules: {},
                 parent: parent,
-                dist: null,
                 pkg_install_typeinfo,
                 new_module: true
             }
@@ -1820,6 +1883,23 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                 try {
                     resolve_dep(dname);
                 } catch (e) {
+                    // An optional dependency that cannot be resolved is not a failure:
+                    // that is what optional means, and it is npm's answer too (`npm
+                    // install` with an optionalDependency that does not exist skips it
+                    // and exits 0). Collecting it with the rest made one missing
+                    // optional package abort the whole install, which is the opposite
+                    // of the reason it is optional
+                    if (dep_type === 'opt_dep_vs') {
+                        ctx.optional_skips = (ctx.optional_skips || 0) + 1;
+
+                        if (ctx.verbose)
+                            install_log('skip optional (unresolvable):', dname, '-',
+                                String(e && e.message || e).split('\n')[0]);
+
+                        delete level_info.node_modules[dname];
+                        return;
+                    }
+
                     dep_failures.push({
                         name: dname,
                         spec: deps_of_type[dname],
@@ -1905,9 +1985,62 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                         // to. One that meets it is npm's ordinary placement — a hoisted
                         // peer — and saying "not satisfied" about it is what printed two
                         // hundred and sixty warnings over a healthy install
-                        if (!node_satisfies(provided, v))
-                            console.warn(`[install] peer ${dname}@${v} is not satisfied by the installed ` +
-                                `${provided.version} (${describe_require_chain(level_info)}) - keeping it`);
+                        if (!node_satisfies(provided, v)) {
+                            // The tree already holds a copy that does not meet the peer
+                            // range. Two very different situations look like this:
+                            //
+                            //   - the peer's range overlaps what the tree can hold, so a
+                            //     version exists that satisfies both. npm picks it and
+                            //     keeps one copy; this walk arrived at the copy first, and
+                            //     the range it declares is the root's. Nesting another
+                            //     copy is what broke a module-level singleton downstream,
+                            //     so the tree's answer stands — `semver.intersects` is the
+                            //     test that separates this from a real conflict
+                            //   - nothing satisfies both: `react-dom@18` wants
+                            //     `react@^18` and the project pinned `react@17`. npm
+                            //     refuses (`ERESOLVE`); warning and continuing wrote a
+                            //     lockfile `npm ci` then rejected
+                            // the range the *project* asks for, walked outwards: a
+                            // nested level's parent is not the root, and the range that
+                            // has to hold the peer is whichever ancestor declared the name
+                            let declared = null;
+
+                            for (let up = level_info.parent || level_info; up; up = up.parent) {
+                                // the *declared* range, not the version this walk
+                                // replaced it with — `dep_vs` is rewritten as each level
+                                // resolves, and the original is what a peer has to
+                                // intersect
+                                const spec = (up.declared && up.declared.dep_vs && up.declared.dep_vs[dname]) ||
+                                    (up.dep_vs && up.dep_vs[dname]);
+
+                                if (typeof spec === 'string') {
+                                    declared = spec;
+                                    break;
+                                }
+                            }
+
+                            let reconcilable = true;
+
+                            try {
+                                reconcilable = !declared || typeof declared !== 'string' ||
+                                    semver.intersects(declared, v);
+                            } catch (e) {
+                                reconcilable = true;
+                            }
+
+                            if (!reconcilable) {
+                                ctx.peer_conflicts = ctx.peer_conflicts || [];
+                                ctx.peer_conflicts.push({
+                                    name: dname,
+                                    wanted: v,
+                                    found: provided.version,
+                                    from: describe_require_chain(level_info),
+                                });
+                            } else if (ctx.verbose) {
+                                console.warn(`[install] peer ${dname}@${v} is not satisfied by the installed ` +
+                                    `${provided.version} (${describe_require_chain(level_info)}) - keeping it`);
+                            }
+                        }
 
                         _deps[dname] = provided.version;
                         return;
@@ -2019,7 +2152,47 @@ function move_up(level_info, parent) {
     // resolve just created, on the other hand, has to bubble up as far as its version
     // allows — that is what keeps one instance of a package instead of a copy per
     // dependent
-    if (parent !== undefined)
+    //
+    // One pass is not enough: a package is hoisted into the parent that holds it *now*,
+    // and the level below is walked straight afterwards — before the package it was
+    // moved under has itself reached its final place. `is-even` reaches the root at
+    // depth 2, and its own children were still measured against `is-even`'s old level,
+    // so `is-buffer` and `kind-of` stayed nested under it while npm puts them at the
+    // root. Running until a pass moves nothing is the same rule applied to a tree that
+    // is still settling; each pass lifts at least one node or lifts none, and the tree
+    // is finite, so it ends
+    let moved = 0;
+
+    do {
+        moved = move_up_once(level_info, parent);
+    } while (moved > 0);
+}
+
+/**
+ * @description one hoisting pass; returns how many nodes it lifted
+ */
+function move_up_once(level_info, parent) {
+    let moved = 0;
+
+    // A link (a workspace member or a `file:` package) is a project of its own: its
+    // dependencies are installed in the directory it points at, and npm records them at
+    // `<target>/node_modules/x`. What must not happen is one of them being lifted *out*
+    // of the link into the project's own `node_modules` — the root would then hold a
+    // version the link's package needs, and the link's directory would be empty.
+    // Hoisting *within* the link is the operation every other level gets
+    // A node inside a link must not leave it: the link installs a directory of the
+    // project, its dependencies belong in that directory, and lifting one to the
+    // project's own `node_modules` both puts a version the project did not ask for at
+    // the root and leaves the link's directory empty. `parent` is the place the node
+    // would move *to*, so it is the parent that has to be checked
+    // A node inside a link must not leave it — the link installs a directory of the
+    // project and its dependencies belong there. The check is on the *place* the node
+    // would go, so it is made when a level is about to hand something to `parent`; a
+    // level that is itself a link hands its contents to the link and stops there
+    const parent_is_link = parent !== undefined &&
+        (parent.local_package === true || parent.workspace_package === true);
+
+    if (parent !== undefined && !parent_is_link)
         for (let k in level_info.node_modules) {
             const m = level_info.node_modules[k];
             if (m.new_module && !m.workspace_package) { // don't move workspace packages
@@ -2034,13 +2207,16 @@ function move_up(level_info, parent) {
                     m.parent = parent;
 
                     parent.module_list.push(k);
+                    moved++;
                 }
             }
         }
 
     level_info.module_list = Object.keys(level_info.node_modules);
     for (let i = 0; i < level_info.module_list.length; i++)
-        move_up(level_info.node_modules[level_info.module_list[i]], level_info);
+        moved += move_up_once(level_info.node_modules[level_info.module_list[i]], level_info);
+
+    return moved;
 }
 
 /**
@@ -2175,6 +2351,60 @@ function ensure_declared_deps_visible(rootsnap) {
     }
 
     return total;
+}
+
+/**
+ * @description refuse a tree whose peer edges nothing satisfies, the way npm does.
+ *
+ *              A peer edge is a requirement the *consumer* has to meet, so an unmet one
+ *              is not a placement detail: `react-dom@18` needs `react@^18`, and a tree
+ *              holding `react@17` installs and then fails at run time. npm answers
+ *              `ERESOLVE` and refuses; this installer warned and continued, which is
+ *              how it came to write a lockfile that `npm ci` then rejected.
+ *
+ *              `--force` and `--legacy-peer-deps` are npm's two escape hatches: install
+ *              anyway, knowing the peer edges are not met.
+ */
+function assert_peers_satisfied(conflicts) {
+    if (!conflicts || !conflicts.length)
+        return [];
+
+    const seen = {};
+
+    const unique = conflicts.filter(c => {
+        const key = c.name + '@' + c.wanted + '<' + c.found + c.from;
+
+        if (seen[key])
+            return false;
+
+        seen[key] = true;
+        return true;
+    });
+
+    if (ctx.legacy_peer_deps || ctx.force) {
+        install_log(`[install] ${unique.length} peer ` +
+            `dependenc${unique.length === 1 ? 'y is' : 'ies are'} not satisfied: ` +
+            'installing anyway');
+
+        return unique;
+    }
+
+    const lines = unique.slice(0, 8).map(c =>
+        `  peer ${c.name}@"${c.wanted}" from ${c.from}\n` +
+        `  found ${c.name}@${c.found}`);
+
+    const more = unique.length > 8 ? `\n  … and ${unique.length - 8} more` : '';
+
+    const err = new Error(
+        '[install] ERESOLVE unable to resolve dependency tree\n\n' +
+        lines.join('\n\n') + more + '\n\n' +
+        '  Fix the upstream dependency conflict, or retry this command with ' +
+        '--force or --legacy-peer-deps\n' +
+        '  to accept an incorrect (and potentially broken) dependency resolution.');
+
+    err.code = 'ERESOLVE';
+
+    throw err;
 }
 
 /**
@@ -3472,7 +3702,11 @@ function git_run(args) {
 function is_git_entry(entry) {
     const resolved = entry.resolved || '';
 
-    return resolved.indexOf('git+') === 0 || resolved.indexOf('git://') === 0;
+    // `git+<transport>` is what npm records; the bare `git://` form, an `ssh://`
+    // remote and a plain scp-style `git@host:path` are what an older lockfile or a
+    // hand-written one carries
+    return resolved.indexOf('git+') === 0 || resolved.indexOf('git://') === 0 ||
+        resolved.indexOf('git@') === 0 || resolved.indexOf('ssh://') === 0;
 }
 
 /**
@@ -4546,6 +4780,10 @@ function tree_entry(node, p) {
         // npm writes the overlap of the two trees as `dev` plus `optional`, and the
         // flag on its own only where neither of those is set
         dev_optional: node.dev_optional === true && !node.dev_only && !node.optional_only,
+        // a package reached only by a peer edge — `react`, pulled in by
+        // `react-dom`'s peerDependency — is marked `peer` in npm's file. The flag
+        // existed on the node the whole time and was never projected
+        peer: node.peer_only === true,
         dependencies: declared('dep_vs', node.dep_vs),
         optionalDependencies: declared('opt_dep_vs', node.opt_dep_vs),
         peerDependencies: declared('peer_dep_vs', node.peer_dep_vs),
@@ -5193,6 +5431,12 @@ function complete_lock_sources(lock) {
             return;
         if (e.link || e.inBundle)
             return;
+        // a git dependency's source *is* the repository it came from, and that is
+        // what `resolved` holds. Asking the registry for a tarball of its name and
+        // version answered with some published package of the same coordinates — the
+        // entry then named bytes nobody installed, which is worse than no source
+        if (e.resolved && is_git_entry({ resolved: e.resolved }))
+            return;
         if (e.resolved && e.integrity)
             return;
         if (!e.version || !/^\d/.test(String(e.version)))
@@ -5551,7 +5795,13 @@ const ARG_SPECS = [
     // because fibjs reads the same arguments now. Mapped where fibjs has the same
     // concept, ignored with a notice where it has none.
     { names: ['--production'], flag: 'omit_dev', alias: '--omit=dev' },
-    { names: ['--no-audit', '--no-fund', '--force', '--legacy-peer-deps', '--silent'], flag: 'npm_ignored' },
+    // npm's two escape hatches from a peer conflict. Ignoring them while also
+    // refusing the tree would leave a project that npm installs with
+    // `--legacy-peer-deps` with no way to install it here at all
+    { names: ['--force'], flag: 'force' },
+    { names: ['--legacy-peer-deps'], flag: 'legacy_peer_deps' },
+
+    { names: ['--no-audit', '--no-fund', '--silent'], flag: 'npm_ignored' },
 
     // list every sync error instead of the first screenful
     { names: ['--verbose'], flag: 'verbose' },
@@ -5775,6 +6025,10 @@ let ignore_scripts = args.flags.ignore_scripts === true;
 
 // how much of a sync failure to print (see print_sync_errors)
 ctx.verbose = args.flags.verbose === true;
+
+// npm's two answers to a peer conflict
+ctx.force = args.flags.force === true;
+ctx.legacy_peer_deps = args.flags.legacy_peer_deps === true;
 
 // the precedence has always been --save > --save-dev > --target
 if (args.flags.save) {
@@ -6123,6 +6377,11 @@ ctx.lock_packages = lock ? lockfile.to_path_map(lock) : null;
 // packages land on disk is `ctx.omit`'s business.
 //
 walkthrough_deps(rootsnap, true);
+
+// A tree whose peer edges nothing satisfies is one npm refuses, and it refuses before
+// writing anything
+assert_peers_satisfied(ctx.peer_conflicts);
+
 move_up(rootsnap);
 
 // the counts, not the lines: a big project skips a hundred of these, and one line
