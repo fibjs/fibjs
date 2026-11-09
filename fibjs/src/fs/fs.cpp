@@ -771,6 +771,47 @@ result_t fs_base::readTextFile(exlib::string fname, exlib::string& retVal,
     return buf->toString(retVal);
 }
 
+/**
+ * @description open a directory for reading, which every platform refuses and Node
+ *              reports as EISDIR.
+ *
+ *              libuv's answer differs by platform: POSIX returns UV_EISDIR from
+ *              `open(2)`, while Windows returns UV_EACCES — `CreateFileW` on a
+ *              directory without FILE_FLAG_BACKUP_SEMANTICS is a sharing/permission
+ *              failure there, not a type error. Passing that through gave Windows
+ *              `EPERM` for `readFileSync(dir)` and for a read stream over one, while
+ *              Linux gave `EISDIR`; the code is part of the public contract, so the
+ *              translation belongs where the open fails.
+ *
+ *              Only the reading flags are translated: `open(dir, 'w')` is a different
+ *              failure and Node does not call it EISDIR.
+ */
+static result_t as_directory_open_error(result_t hr, const exlib::string& fname,
+    const exlib::string& flag)
+{
+    if (!hr.is_system_error())
+        return hr;
+
+    int32_t code = -hr.errno_value();
+
+    if (code != UV_EACCES && code != UV_EPERM)
+        return hr;
+
+    // the flag names what the caller asked for: anything with `w`, `a` or `+` writes
+    if (flag.find('w') != exlib::string::npos || flag.find('a') != exlib::string::npos
+        || flag.find('+') != exlib::string::npos)
+        return hr;
+
+    return result_t::make(UV_EISDIR)
+        .with_type_name("SystemError")
+        .with_code("EISDIR")
+        .with_errno(-EISDIR)
+        .with_syscall("open")
+        .with_path(fname)
+        .with_format("EISDIR: illegal operation on a directory, open '%s'",
+            fname.c_str());
+}
+
 static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::string encoding,
     Variant& retVal, AsyncHandle ac)
 {
@@ -789,7 +830,7 @@ static result_t read_file_ext(exlib::string fname, exlib::string flag, exlib::st
 
     hr = fs_base::openFile(fname, flag, f, std::move(ac));
     if (hr.failed())
-        return hr;
+        return as_directory_open_error(hr, fname, flag);
 
     // Fast path for utf8: read directly to string to avoid Buffer intermediate
     if (encoding == "utf8" || encoding == "utf-8") {
@@ -3397,7 +3438,7 @@ result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> op
     obj_ptr<SeekableStream_base> stm;
     result_t hr = openFile(fname, flags, stm, std::move(ac));
     if (hr.failed())
-        return stream_open_error(fname, flags, hr, retVal);
+        return stream_open_error(fname, flags, as_directory_open_error(hr, fname, flags), retVal);
 
     if (start >= 0 || end >= 0) {
         int64_t sz;
