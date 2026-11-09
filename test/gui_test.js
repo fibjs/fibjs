@@ -114,6 +114,35 @@ describe(gui_env, () => {
             assert.equal(html, '<html><head></head><body>hello</body></html>');
         });
 
+        it("getHtml while the document is being replaced", () => {
+            // Reading the document mid-navigation used to return a JSON null
+            // from the injected script.  On Windows that null reached
+            // get<std::string>() and threw out of a COM callback, which killed
+            // the process instead of failing the call.
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            win.setHtml("hello");
+
+            for (var i = 0; i < 10; i++)
+                assert.equal(typeof win.getHtml(), "string");
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(10);
+                if (win.getHtml().indexOf('hello') != -1) {
+                    break;
+                }
+            }
+
+            const html = win.getHtml();
+            win.close();
+
+            assert.equal(html, '<html><head></head><body>hello</body></html>');
+        });
+
         it("isReady", () => {
             const win = gui.open();
             wins.push(win);

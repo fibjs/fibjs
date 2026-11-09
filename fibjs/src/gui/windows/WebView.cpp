@@ -119,12 +119,24 @@ result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
     webView->ExecuteScript(L"document.documentElement.outerHTML.toString()",
         Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
             [&retVal, h](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
-                if (SUCCEEDED(errorCode)) {
-                    std::string resultStr = utf16to8String((const char16_t*)resultObjectAsJson);
-                    nlohmann::json jsonResult = nlohmann::json::parse(resultStr);
+                // A page with no document yet (about:blank, a navigation still
+                // in flight, a window being torn down) makes the script return
+                // JSON null. get<std::string>() on that throws nlohmann's
+                // type_error, and an exception escaping a COM callback is an
+                // unhandled C++ exception: the process takes a minidump. The
+                // other platforms leave retVal untouched when the script fails,
+                // so do the same here instead of reporting an empty document.
+                if (SUCCEEDED(errorCode) && resultObjectAsJson != nullptr) {
+                    try {
+                        std::string resultStr = utf16to8String((const char16_t*)resultObjectAsJson);
+                        nlohmann::json jsonResult = nlohmann::json::parse(resultStr, nullptr, false);
 
-                    retVal = jsonResult.get<std::string>();
+                        if (jsonResult.is_string())
+                            retVal = jsonResult.get<std::string>();
+                    } catch (const std::exception&) {
+                    }
                 }
+
                 h->post();
                 return S_OK;
             })
