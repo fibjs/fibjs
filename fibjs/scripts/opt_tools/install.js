@@ -136,6 +136,12 @@ function read_module(p, parent) {
                     cpu: minfo.cpu,
                     libc: minfo.libc,
                     bin: minfo.bin,
+                    // npm records this for every package whose manifest has a
+                    // `preinstall`/`install`/`postinstall`, and a reader of the
+                    // lockfile uses it to know what it will have to run. The field
+                    // exists on the entry the whole time; it was never filled here,
+                    // so a package with an install script was written without one
+                    has_install_script: tree.has_install_script(minfo),
                     license: minfo.license && typeof minfo.license === 'object'
                         ? minfo.license.type : minfo.license,
                     engines: minfo.engines,
@@ -1439,6 +1445,10 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
                 os: minfo.os,
                 cpu: minfo.cpu,
                 libc: minfo.libc,
+                // what npm projects from the manifest of the package itself: the
+                // field a reader of the lockfile uses to know an install has a script
+                // to run
+                has_install_script: tree.has_install_script(minfo),
                 node_modules: {},
                 parent: parent,
                 dist: minfo.dist,
