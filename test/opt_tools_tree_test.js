@@ -736,59 +736,64 @@ describe('tree helper', function () {
                 'what a member needs for production is not a dev package');
         });
 
-        it('finds a member whose target is spelled the Windows way', function () {
-            // the comparison is on the path string, and on Windows the separator is a
-            // backslash. Missing the target left the member out of the walk, so nothing
-            // it needed was classified and `--omit=dev` kept its dev dependencies on the
-            // disk — the only platform-dependent part of the flag calculation
-            var t = new Map();
-            t.set('', node('', { name: 'root' }));
-
-            var link = node('node_modules/m', {
-                name: 'm', type: tree.LINK, resolved: 'packages\\m',
-            });
-
-            link.from_workspace = true;
-            t.set('node_modules/m', link);
-            t.set('packages/m', node('packages/m', {
-                name: 'm', target_only: true,
-                edges: { dependencies: { x: '^1' } },
-            }));
-            t.set('packages/m/node_modules/x', node('packages/m/node_modules/x', { name: 'x' }));
-
-            assert.ok(tree.member_roots(t).indexOf('packages/m') > -1,
-                'a backslash is the same path as a slash');
-        });
-
-        it('finds a member whose target is an absolute path', function () {
-            // a tree built from a snapshot records the target relative to the project,
-            // but a link read back from disk can carry the absolute path — and an
-            // absolute one has the project prefix in front of the key, so a plain
-            // `tree.has()` misses it and the member drops out of the flag walk
-            function roots_for(resolved) {
-                var t = new Map();
-                t.set('', node('', { name: 'root' }));
-
-                var link = node('node_modules/m', {
-                    name: 'm', type: tree.LINK, resolved: resolved,
-                });
-
-                link.from_workspace = true;
-                t.set('node_modules/m', link);
-                t.set('packages/m', node('packages/m', { name: 'm', target_only: true }));
-
-                return tree.member_roots(t);
-            }
-
+        it('finds a member by the marker on its target, not by the spelling of a path', function () {
+            // A member is two nodes: the link in `node_modules`, and the directory it
+            // installs, which carries `from_workspace`. The flag walk has to start at
+            // the directory, and finding it by matching the link's `resolved` against
+            // the tree's keys tied the answer to how the path was spelled — a relative
+            // target on a snapshot-built tree, an absolute one (`D:\a\proj\packages\m`)
+            // on a tree read back from disk, where no key carries the project prefix.
+            // Each spelling that was missed dropped the member out of the walk, and
+            // `--omit=dev` kept its dev dependencies
             [
                 'packages/m',
+                'packages\\m',
                 'D:\\a\\proj\\packages\\m',
                 '/home/u/proj/packages/m',
                 '../../packages/m',
             ].forEach(function (spelling) {
-                assert.ok(roots_for(spelling).indexOf('packages/m') > -1,
-                    'the member is found from ' + spelling);
+                var t = new Map();
+                t.set('', node('', { name: 'root' }));
+
+                var link = node('node_modules/m', {
+                    name: 'm', type: tree.LINK, resolved: spelling,
+                });
+
+                link.from_workspace = true;
+                t.set('node_modules/m', link);
+
+                var target = node('packages/m', {
+                    name: 'm', target_only: true,
+                    edges: { dependencies: { x: '^1' } },
+                });
+
+                target.from_workspace = true;
+                t.set('packages/m', target);
+                t.set('packages/m/node_modules/x', node('packages/m/node_modules/x', { name: 'x' }));
+
+                assert.ok(tree.member_roots(t).indexOf('packages/m') > -1,
+                    'the member is a root whatever its link says: ' + spelling);
             });
+        });
+
+        it('marks a member target so the walk does not have to guess', function () {
+            // the snapshot says `workspace_package`, and the projection has to carry it
+            // onto the target node — that is the marker `member_roots` reads
+            var snap = {
+                name: 'root', version: '1.0.0', node_modules: {},
+            };
+
+            snap.node_modules.m = {
+                name: 'm', version: '1.0.0', workspace_package: true,
+                workspace_path: '/proj/packages/m', node_modules: {},
+            };
+
+            var t = tree.snapshot_to_tree(snap, { root: '/proj' });
+
+            assert.equal(t.get('packages/m').target_only, true);
+            assert.equal(t.get('packages/m').from_workspace, true,
+                'the target says it is a member');
+            assert.ok(tree.member_roots(t).indexOf('packages/m') > -1);
         });
     });
 });

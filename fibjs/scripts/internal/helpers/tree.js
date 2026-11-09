@@ -2313,58 +2313,44 @@ function mark_flags(tree, roots) {
 function member_roots(tree) {
     const roots = [''];
 
-    // A link's target is recorded relative to the project, and the comparison is by
-    // path string — so the two sides have to be spelled the same way. On Windows the
-    // separator and the drive letter both vary (`D:\a\proj\packages\core` against
-    // `packages/core`), and a plain `tree.has()` then missed the target, leaving the
-    // member out of the walk: nothing it needs was classified, and `--omit=dev` kept
-    // its dev dependencies on the disk
-    const norm = p => String(p || '').replace(/\\/g, '/').replace(/^\.\//, '').toLowerCase();
-
-    const by_path = new Map();
-
-    tree.forEach((node, p) => by_path.set(norm(p), p));
-
-    // the target a link records can be a relative path (`packages/member`, `../m`) or
-    // an absolute one, and an absolute one carries the project prefix that no tree key
-    // has — so the search also accepts "a key that is the tail of this path", deepest
-    // first. That is what makes a Windows target (`D:\a\proj\packages\member`) find
-    // `packages/member`
-    function find_by_target(target) {
-        const wanted = norm(String(target).replace(/^(\.{1,2}\/)+/, ''));
-
-        if (!wanted)
-            return undefined;
-
-        if (by_path.has(wanted))
-            return by_path.get(wanted);
-
-        let best;
-
-        by_path.forEach((at, key) => {
-            if (wanted === key || wanted.endsWith('/' + key))
-                if (best === undefined || key.length > best.key.length)
-                    best = { at: at, key: key };
-        });
-
-        return best ? best.at : undefined;
-    }
-
+    // A workspace member is two nodes: the link in `node_modules`, and the directory
+    // it installs, which is a root of its own. The directory is the one the flag walk
+    // has to start at, and it carries `from_workspace` — set by `snapshot_to_tree` from
+    // the snapshot's `workspace_package` — so it is found by what it *is*, not by where
+    // it sits.
+    //
+    // Matching the link's `resolved` against the tree's keys is what this did before,
+    // and it depended on both sides being spelled the same way: a relative target on a
+    // snapshot-built tree, an absolute one (`D:\a\proj\packages\member`) on a tree read
+    // back from a link, where no key carries the project prefix. Each spelling that was
+    // missed dropped a member out of the walk, and `--omit=dev` kept its dev
+    // dependencies
     tree.forEach((node, p) => {
-        if (p === '' || node.type !== LINK)
+        if (p === '' || node.type !== REGISTRY || node.target_only !== true)
             return;
 
-        if (node.from_workspace !== true && !(node.source && node.source.workspace_package === true))
+        if (node.from_workspace !== true)
             return;
 
-        if (!node.resolved)
-            return;
-
-        const at = find_by_target(node.resolved);
-
-        if (at !== undefined && at !== '')
-            roots.push(at);
+        roots.push(p);
     });
+
+    // a snapshot that predates the marker still has the link's own spelling, so the
+    // link is the fallback rather than the rule
+    if (roots.length === 1) {
+        tree.forEach((node, p) => {
+            if (p === '' || node.type !== LINK)
+                return;
+
+            if (node.from_workspace !== true && !(node.source && node.source.workspace_package === true))
+                return;
+
+            const at = node.resolved && tree.has(node.resolved) ? node.resolved : undefined;
+
+            if (at)
+                roots.push(at);
+        });
+    }
 
     return roots;
 }
