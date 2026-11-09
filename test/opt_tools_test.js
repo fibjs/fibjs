@@ -1630,6 +1630,36 @@ describe('opt_tools install lifecycle', function () {
                 'nothing was installed' + diag(targetDir, res));
         });
 
+        it('refuses a project whose own package.json does not parse', function () {
+            // the whole file was read as "no package.json", which is the *other*
+            // state: a project with nothing declared. A comment in the manifest then
+            // installed nothing and exited 0 with a lockfile saying `0 packages` —
+            // a legitimate-looking empty install, and one `--ci` accepted. npm answers
+            // EJSONPARSE and exits nonzero
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json',
+                '{\n  // project name\n  "name": "broken-root",\n' +
+                '  "dependencies": { "is-number": "^7.0.0" }\n}\n');
+
+            var res = runInstaller(targetDir, ['--install']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, 'a root manifest that cannot be read stops the install' + diag(targetDir, res));
+            assert.ok(out.indexOf('is not valid JSON') > -1, out);
+            assert.ok(out.indexOf('position') > -1, 'the message names where:\n' + out);
+
+            assert.equal(fs.existsSync(path.join(targetDir, 'package-lock.json')), false,
+                'no lockfile was written: ' + listDir(targetDir));
+            assert.equal(fs.existsSync(path.join(targetDir, 'node_modules')), false,
+                'and nothing was installed: ' + listDir(targetDir));
+
+            // the same run with `--ci`, which used to certify the emptiness
+            var ci = runInstaller(targetDir, ['--install', '--ci']);
+
+            assert.notEqual(ci.status, 0, 'and --ci refuses it too:\n' + outputOf(ci));
+        });
+
         it('refuses a workspace member whose name cannot be a directory', function () {
             // a link at `node_modules/@t10/has space` is a directory nothing can
             // require, and the install said nothing about it

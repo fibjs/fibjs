@@ -1598,20 +1598,81 @@ function fetch_leveled_module_info(m, v, parent, base_dir) {
     }
 }
 
+/**
+ * @description npm's answer for a manifest that does not parse: the position, and the
+ *              line it is on. V8's message already carries the offset ("at position
+ *              4"); this turns it into the line and column a person can act on, and
+ *              says what npm says when it says nothing useful (a BOM or a trailing
+ *              comma in a file that otherwise looks fine)
+ */
+function describe_json_error(raw, error) {
+    const message = String(error && error.message || error);
+
+    // a byte-order mark is the one broken manifest whose message names nothing a
+    // person can act on: the parser reports the first character as unreadable, and
+    // the fix (save without a BOM) is not something the message suggests
+    if (String(raw || '').charCodeAt(0) === 0xFEFF)
+        return 'the file starts with a byte-order mark (BOM), which JSON does not ' +
+            'allow — save it as UTF-8 without a BOM';
+
+    const at = /position (\d+)/.exec(message);
+
+    if (!at)
+        return message;
+
+    const offset = Number(at[1]);
+    const before = String(raw || '').slice(0, offset);
+    const line = before.split('\n').length;
+    const column = offset - (before.lastIndexOf('\n') + 1) + 1;
+
+    // the byte at the offset is what the parser could not use, and naming it is what
+    // tells a trailing comma from a missing quote
+    const ch = String(raw || '').charAt(offset);
+    const what = ch === '' ? 'end of file'
+        : ch === '}' ? "'}'"
+            : ch === ',' ? "',' — a trailing comma is not JSON"
+                : JSON.stringify(ch);
+
+    return `Expected property name or '}' at position ${offset} (line ${line}, ` +
+        `column ${column}), found ${what}`;
+}
+
 function get_root_snapshot() {
     const pwd = process.cwd();
     let root_is_new = true;
 
     let pkgjson = {};
-    try {
-        const pkgjson_path = path.join(pwd, 'package.json');
-        pkgjson = JSON.parse(
-            fs.readTextFile(pkgjson_path)
-        );
-        root_is_new = false;
-    } catch (e) {
-        // package.json doesn't exist, create default
-        pkgjson = {};
+    const pkgjson_path = path.join(pwd, 'package.json');
+
+    if (fs.exists(pkgjson_path)) {
+        // A file that exists and does not parse is not an empty project: it is a
+        // project the installer cannot describe. Reading both cases as "no
+        // package.json" made a comment in the manifest, a trailing comma or a BOM
+        // install *nothing* and exit 0 — a lockfile saying `0 packages`, which looks
+        // like a legitimate empty install and passes `--ci`. npm answers
+        // `EJSONPARSE` and exits nonzero, and a member's broken manifest is already
+        // treated the same way here
+        let raw;
+
+        try {
+            raw = fs.readTextFile(pkgjson_path);
+        } catch (e) {
+            console.error(`[install] ${pkgjson_path} cannot be read:`);
+            console.error(`    ${String(e && e.message || e).split('\n')[0]}`);
+            console.error('  fix the file and run `fibjs --install` again');
+            process.exit(1);
+        }
+
+        try {
+            pkgjson = JSON.parse(raw);
+            root_is_new = false;
+        } catch (e) {
+            console.error(`[install] ${pkgjson_path} is not valid JSON:`);
+            console.error(`    ${describe_json_error(raw, e)}`);
+            console.error('  a project manifest the installer cannot read is a project it cannot install');
+            console.error('  fix the file and run `fibjs --install` again');
+            process.exit(1);
+        }
     }
     pkgjson.name = pkgjson.name || (path.basename(pwd, path.extname(pwd))).toLowerCase();
     pkgjson.version = pkgjson.version || '1.0.0';
