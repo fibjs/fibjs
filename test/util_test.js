@@ -2251,18 +2251,37 @@ describe('util', () => {
     });
 
     describe('system error names', () => {
+        // The numeric key is platform-dependent: libuv encodes a POSIX errno as
+        // its negative value only off Windows, and on Windows the table uses its
+        // own numbering (ENOENT is -4058). os.constants.errno reports the host
+        // <errno.h> value, so `-os.constants.errno.ENOENT` is not a table key
+        // there. The only portable route is to look the name up in the map.
+        const keyOf = (name) => {
+            let found = null;
+            util.getSystemErrorMap().forEach((value, key) => {
+                if (value[0] === name)
+                    found = key;
+            });
+            return found;
+        };
+
         it('names the common POSIX codes', () => {
-            assert.strictEqual(util.getSystemErrorName(-2), 'ENOENT');
-            assert.strictEqual(util.getSystemErrorName(-13), 'EACCES');
-            assert.strictEqual(util.getSystemErrorName(-98), 'EADDRINUSE');
+            ['ENOENT', 'EACCES', 'EADDRINUSE'].forEach((name) => {
+                const key = keyOf(name);
+                assert.notStrictEqual(key, null, 'no key for ' + name);
+                assert.strictEqual(util.getSystemErrorName(key), name);
+            });
         });
 
         it('describes the common POSIX codes', () => {
-            assert.strictEqual(util.getSystemErrorMessage(-2), 'no such file or directory');
-            assert.strictEqual(util.getSystemErrorMessage(-98), 'address already in use');
+            assert.strictEqual(util.getSystemErrorMessage(keyOf('ENOENT')),
+                'no such file or directory');
+            assert.strictEqual(util.getSystemErrorMessage(keyOf('EADDRINUSE')),
+                'address already in use');
         });
 
         it('covers the resolver codes that os.constants omits', () => {
+            // The EAI_* block uses the same negative values on every platform.
             assert.strictEqual(util.getSystemErrorName(-3008), 'EAI_NONAME');
             assert.strictEqual(util.getSystemErrorMessage(-3008), 'unknown node or service');
             assert.strictEqual('EAI_NONAME' in require('os').constants.errno, false);
@@ -2275,6 +2294,9 @@ describe('util', () => {
         });
 
         it('reports an unknown negative code instead of throwing', () => {
+            // -4096 is outside every named range: UV__EOF is -4095 and
+            // UV__UNKNOWN is -4094, and neither is a UV_ERRNO_MAP entry, so no
+            // platform can name -4096.
             assert.strictEqual(util.getSystemErrorName(-4096), 'Unknown system error -4096');
             assert.strictEqual(util.getSystemErrorMessage(-4096), 'Unknown system error -4096');
         });
@@ -2285,27 +2307,37 @@ describe('util', () => {
 
             assert.ok(m1 instanceof Map);
             assert.notStrictEqual(m1, m2);
-            assert.deepStrictEqual(m1.get(-2), ['ENOENT', 'no such file or directory']);
+            assert.deepStrictEqual(m1.get(keyOf('ENOENT')),
+                ['ENOENT', 'no such file or directory']);
 
             // The map follows libuv's errno table, so it covers exactly what
             // util.getSystemErrorName can name. Node behaves the same way, and
             // both tables omit a handful of POSIX codes that os.constants still
             // exports (EBADMSG, ECHILD, EDOM, ...). The contract is therefore
             // "whatever the map holds round-trips", not "every errno name is
-            // present".
-            assert.ok(m1.size >= 85, 'map size ' + m1.size);
+            // present", and the entry count itself is platform-dependent (85 on
+            // Linux, 84 on macOS, fewer on Windows where there are no POSIX
+            // aliases), so it is not asserted.
+            assert.ok(m1.size > 0, 'the map must not be empty, saw ' + m1.size);
+
+            var seen = new Set();
             m1.forEach((value, key) => {
                 assert.ok(key < 0, 'key must be negative: ' + key);
+                assert.ok(!seen.has(key), 'duplicate key: ' + key);
+                seen.add(key);
+
+                assert.equal(value.length, 2, 'entry must be [name, message]');
+                assert.equal(typeof value[0], 'string');
+                assert.equal(typeof value[1], 'string');
                 assert.strictEqual(util.getSystemErrorName(key), value[0]);
                 assert.strictEqual(util.getSystemErrorMessage(key), value[1]);
             });
 
             // The codes a program actually branches on are all there.
-            ['ENOENT', 'EACCES', 'EEXIST', 'ENOTDIR', 'EISDIR', 'EMFILE',
+            ['ENOENT', 'EACCES', 'EEXIST', 'EISDIR', 'EMFILE',
                 'ENOSPC', 'EPIPE', 'ETIMEDOUT', 'ECONNREFUSED', 'ECONNRESET'].forEach((name) => {
-                    var errno = require('os').constants.errno;
-                    assert.ok(m1.get(-errno[name]), 'missing entry for ' + name);
-                });
+                assert.notStrictEqual(keyOf(name), null, 'missing entry for ' + name);
+            });
         });
 
         it('round-trips the errno of a real failure', () => {
@@ -2317,7 +2349,41 @@ describe('util', () => {
                 err = e;
             }
             assert.ok(err);
+
+            // err.errno is already the negative libuv-domain value on every
+            // platform, so it has to name the same code that err.code reports.
+            // This is what broke on Windows: LastError() returned the raw Win32
+            // code (-3) instead of the libuv value (-4058), so the table had no
+            // entry for it.
+            assert.ok(err.errno < 0, 'errno must be negative, saw ' + err.errno);
             assert.strictEqual(util.getSystemErrorName(err.errno), err.code);
+            assert.strictEqual(util.getSystemErrorMap().get(err.errno)[0], err.code);
+        });
+
+        // Several independent failure paths, so the errno domain is checked from
+        // more than one direction (open, readdir, spawn).
+        it('every real system error names itself', () => {
+            var fs = require('fs');
+            var attempts = [
+                () => fs.readFileSync('/definitely/missing/file'),
+                () => fs.readdirSync('/definitely/missing/dir'),
+                () => fs.statSync('/definitely/missing/stat'),
+                () => fs.unlinkSync('/definitely/missing/unlink')
+            ];
+
+            attempts.forEach((attempt, i) => {
+                var err = null;
+                try {
+                    attempt();
+                } catch (e) {
+                    err = e;
+                }
+
+                assert.ok(err, 'attempt ' + i + ' should fail');
+                assert.ok(err.errno < 0, 'attempt ' + i + ' errno ' + err.errno);
+                assert.strictEqual(util.getSystemErrorName(err.errno), err.code,
+                    'attempt ' + i + ': errno ' + err.errno + ' vs code ' + err.code);
+            });
         });
     });
 

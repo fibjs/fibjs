@@ -2401,11 +2401,14 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle 
 
         if (S_ISDIR(req.statbuf.st_mode)) {
             uv_fs_req_cleanup(&req);
-            // Node.js: SystemError + ERR_FS_EISDIR, errno is the raw value
+            // Node.js: SystemError + ERR_FS_EISDIR, errno is the negative POSIX
+            // value (-21 on Linux). The host <errno.h> constant is the portable
+            // source: libuv's UV_EISDIR is already negative, so negating it gave a
+            // positive number, and on Windows it is not a POSIX value at all.
             return result_t::make(UV_EISDIR)
                 .with_type_name("SystemError")
                 .with_code("ERR_FS_EISDIR")
-                .with_errno(-UV_EISDIR)
+                .with_errno(-EISDIR)
                 .with_syscall("rm")
                 .with_path(path)
                 .with_format("Path is a directory: rm returned EISDIR (is a directory) %s", path.c_str());
@@ -2968,11 +2971,12 @@ public:
             ret = 0;
 
         if (ret == UV_EEXIST && pThis->m_errorOnExist) {
-            // Node.js: SystemError + ERR_FS_CP_EEXIST
+            // Node.js: SystemError + ERR_FS_CP_EEXIST; errno is the negative POSIX
+            // value, so the host constant is used (see the EISDIR site above).
             pThis->m_ac.apost(result_t::make(ret)
                 .with_type_name("SystemError")
                 .with_code("ERR_FS_CP_EEXIST")
-                .with_errno(-UV_EEXIST)
+                .with_errno(-EEXIST)
                 .with_syscall("cp")
                 .with_path(pThis->m_dest)
                 .with_format("Target already exists: cp returned EEXIST (%s already exists) %s",

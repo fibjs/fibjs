@@ -1353,10 +1353,17 @@ inline v8::Local<v8::Value> ThrowEvalError(exlib::string msg)
 // The raw errno-domain code, not yet a value: the code stays int32_t until the
 // enrichment overload below constructs the result_t (single-shot creation, at
 // the failing layer -- upper layers forward, they do not rebuild).
+//
+// The value is always in libuv's errno domain, because that is what
+// util.getSystemErrorName/getSystemErrorMessage and the error table are built
+// from. On Windows the raw GetLastError() code is a Win32 constant
+// (ERROR_FILE_NOT_FOUND is 2), which libuv maps to its own numbering
+// (UV_ENOENT is -4058); returning it untranslated made err.errno disagree with
+// os.constants.errno and with the name table.
 inline int32_t LastError()
 {
 #ifdef _WIN32
-    return -(int32_t)GetLastError();
+    return uv_translate_sys_error((int32_t)GetLastError());
 #else
     return -errno;
 #endif
