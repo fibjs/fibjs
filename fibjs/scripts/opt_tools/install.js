@@ -792,12 +792,28 @@ function assert_installable_workspace_names(workspace_packages) {
  *              name then went to the registry
  */
 function find_workspace_packages(root_path, workspaces_config) {
-    if (!workspaces_config || !Array.isArray(workspaces_config)) {
+    if (!workspaces_config)
         return [];
+
+    // npm reads the field two ways: an array of patterns, or an object with a
+    // `packages` array (`@npmcli/map-workspaces`). Anything else is refused with
+    // `EWORKSPACESCONFIG` — and treating it as "no workspaces" is the worst of the
+    // answers, because a project that meant to declare members installs none of them
+    // and says nothing. A single member written as a string (`"workspaces":
+    // "packages/*"`) is the mistake people actually make
+    const declaration = Array.isArray(workspaces_config.packages)
+        ? workspaces_config.packages
+        : workspaces_config;
+
+    if (!Array.isArray(declaration)) {
+        console.error('[install] EWORKSPACESCONFIG: workspaces config expects an Array');
+        console.error(`    package.json declares \`"workspaces": ${JSON.stringify(workspaces_config)}\``);
+        console.error('    write it as an array of patterns, e.g. `"workspaces": ["packages/*"]`');
+        process.exit(1);
     }
 
     const workspace_packages = [];
-    const split = split_workspace_patterns(workspaces_config);
+    const split = split_workspace_patterns(declaration);
 
     // a bare `!pattern` list selects nothing, and npm says so by installing nothing
     if (!split.patterns.length)
@@ -1637,6 +1653,24 @@ function describe_json_error(raw, error) {
         `column ${column}), found ${what}`;
 }
 
+/**
+ * @description what a parsed manifest turned out to be, in the words a person would
+ *              use — `null`, a string, an array and a number all parse as JSON and none
+ *              of them is a manifest
+ */
+function describe_json_value(value) {
+    if (value === null)
+        return '`null`';
+
+    if (Array.isArray(value))
+        return `an array of ${value.length} item${value.length === 1 ? '' : 's'}`;
+
+    if (typeof value === 'object')
+        return 'an object';
+
+    return `a ${typeof value} (${JSON.stringify(value)})`;
+}
+
 function get_root_snapshot() {
     const pwd = process.cwd();
     let root_is_new = true;
@@ -1670,6 +1704,18 @@ function get_root_snapshot() {
             console.error(`[install] ${pkgjson_path} is not valid JSON:`);
             console.error(`    ${describe_json_error(raw, e)}`);
             console.error('  a project manifest the installer cannot read is a project it cannot install');
+            console.error('  fix the file and run `fibjs --install` again');
+            process.exit(1);
+        }
+
+        // `null`, a string, a number and an array all parse, and none of them is a
+        // manifest. Reading one as a project produced an internal TypeError from deep
+        // inside the installer — the same class of input that "not valid JSON" already
+        // gets a proper message for, and the answer has to come from the same place
+        if (pkgjson === null || typeof pkgjson !== 'object' || Array.isArray(pkgjson)) {
+            console.error(`[install] ${pkgjson_path} is not a JSON object:`);
+            console.error(`    the file contains ${describe_json_value(pkgjson)}`);
+            console.error('  package.json is an object: `{ "name": "…", "version": "…" }`');
             console.error('  fix the file and run `fibjs --install` again');
             process.exit(1);
         }

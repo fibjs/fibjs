@@ -1660,6 +1660,71 @@ describe('opt_tools install lifecycle', function () {
             assert.notEqual(ci.status, 0, 'and --ci refuses it too:\n' + outputOf(ci));
         });
 
+        it('refuses a package.json that is valid JSON but not an object', function () {
+            // `null`, a string, a number and an array all parse, and none of them is a
+            // manifest. Reading one as a project produced an internal TypeError from
+            // deep inside the installer — the file that does not parse already got a
+            // proper message, and this is the same class of input
+            ['null', '"hello"', '123', 'true', '[1, 2]'].forEach(function (body) {
+                var targetDir = makeTargetDir();
+
+                writeFile(targetDir, 'package.json', body);
+
+                var res = runInstaller(targetDir, ['--install']);
+                var out = outputOf(res);
+
+                assert.notEqual(res.status, 0, body + ' is not a manifest' + diag(targetDir, res));
+                assert.ok(out.indexOf('is not a JSON object') > -1, body + ':\n' + out);
+                assert.equal(out.indexOf('TypeError'), -1,
+                    'and the message is the installer\'s, not a stack: ' + body + '\n' + out);
+                assert.equal(out.indexOf('--install.cjs'), -1,
+                    'no source location leaks: ' + body + '\n' + out);
+            });
+        });
+
+        it('refuses a workspaces declaration that is not an array', function () {
+            // npm answers `EWORKSPACESCONFIG`. Reading it as "no workspaces" installs
+            // none of the members and says nothing — and writing a single member as a
+            // string is the mistake people actually make
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'ws-string-proj', version: '1.0.0', private: true,
+                workspaces: 'packages/*',
+            }, null, 2));
+            writeFile(targetDir, 'packages/lib/package.json', JSON.stringify({
+                name: '@c/lib', version: '1.0.0', private: true,
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, 'a string is not a workspaces list' + diag(targetDir, res));
+            assert.ok(out.indexOf('EWORKSPACESCONFIG') > -1, out);
+            assert.equal(fs.existsSync(path.join(targetDir, 'package-lock.json')), false,
+                'and nothing was written: ' + listDir(targetDir));
+        });
+
+        it('accepts workspaces as an object with a packages array', function () {
+            // npm reads both spellings (`@npmcli/map-workspaces`); the object form was
+            // being dropped, which is the same silent-no-members failure as the string
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'ws-object-proj', version: '1.0.0', private: true,
+                workspaces: { packages: ['packages/*'] },
+            }, null, 2));
+            writeFile(targetDir, 'packages/lib/package.json', JSON.stringify({
+                name: '@c/lib', version: '1.0.0', private: true,
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.ok(lockOf(targetDir).packages['packages/lib'],
+                'the member is described: ' + Object.keys(lockOf(targetDir).packages).join(', '));
+        });
+
         it('refuses a workspace member whose name cannot be a directory', function () {
             // a link at `node_modules/@t10/has space` is a directory nothing can
             // require, and the install said nothing about it
