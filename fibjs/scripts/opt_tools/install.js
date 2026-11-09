@@ -2034,27 +2034,6 @@ function move_up(level_info, parent) {
 }
 
 /**
- * @description is that dependency served from where the node sits now? Its own
- *              `node_modules` first, then every ancestor's
- */
-function dep_provided(level_info, name, spec) {
-    let cur = level_info;
-
-    while (cur !== undefined) {
-        const info = cur.node_modules[name];
-
-        // a link is materialized at the root and is visible from anywhere
-        if (info !== undefined)
-            return info.local_package === true || info.workspace_package === true ||
-                node_satisfies(info, spec);
-
-        cur = cur.parent;
-    }
-
-    return false;
-}
-
-/**
  * @description an installed copy somewhere in the tree that could serve that spec. The
  *              copy to nest under a node is a copy of it, so it has to be something the
  *              installer put there (registry or git) and something this platform can
@@ -2128,42 +2107,64 @@ function copy_node_under(donor, parent) {
  *              nested under it when nothing above can serve it, which is the shape
  *              npm's ideal tree arrives at as well
  */
-function ensure_declared_deps_visible(level_info) {
-    const declared = level_info.declared;
+function ensure_declared_deps_visible(rootsnap) {
+    // The question is this tree's, not the nested maps': "does the copy a declared
+    // edge can see satisfy it" is a lookup along a path chain, and `serving_path`
+    // answers it against the one shape every other pass reads. Asking it of the maps
+    // meant each pass carried its own way of walking a chain — the removed one looked
+    // only for a copy of the right *name* and accepted a wrong version, because a
+    // name lookup is what the hoisting needed, not what an edge needs.
+    //
+    // The copies are inserted as they are decided, and the projection is taken again
+    // after each round: a copy nested for a parent declares dependencies of its own,
+    // and those may need a copy too. One pass over a fixed tree left them alone —
+    // which is the difference between this and the recursion it replaces.
+    //
+    // Rounds are bounded: each one nests at least one copy at a path that was empty,
+    // so the tree grows and the loop cannot repeat a decision it already made.
+    const placed = new Set();
+    let total = 0;
 
-    if (declared) {
-        [
-            ['dep_vs', declared.dep_vs],
-            ['opt_dep_vs', declared.opt_dep_vs],
-            ['peer_dep_vs', declared.peer_dep_vs],
-        ].forEach(([field, deps]) => {
-            Object.keys(deps || {}).forEach(name => {
-                // a peer the tree does not satisfy is npm's invalid peer: the resolver
-                // keeps the copy it warned about, it does not duplicate it here
-                if (field === 'peer_dep_vs' && find_provided_node(name, level_info))
-                    return;
+    for (let round = 0; round < 64; round++) {
+        const projected = tree.snapshot_to_tree(rootsnap, { root: process.cwd() });
 
-                // what the package ships inside its own tarball needs no nesting
-                if (level_info.bundle_deps && level_info.bundle_deps[name])
-                    return;
-
-                const spec = deps[name];
-
-                if (dep_provided(level_info, name, spec))
-                    return;
-
-                const donor = find_installable_node(name, spec);
-
-                if (!donor)
-                    return;
-
-                level_info.node_modules[name] = copy_node_under(donor, level_info);
-                install_log('nest:', name, '@', donor.version, '(the copy it was resolved against is out of reach)');
-            });
+        const nestings = tree.nest_unserved(projected, {
+            donor_of: (name, spec) => find_installable_node(name, spec),
+            seen: at => placed.has(at),
         });
+
+        if (!nestings.length)
+            break;
+
+        // The shape the rest of the installer reads is the nested maps, so the decision
+        // is put back into it there — one projection in, one out, and the decision made
+        // once in the middle
+        let inserted = 0;
+
+        nestings.forEach(n => {
+            const holder = find_snapshot_level(rootsnap, n.from);
+
+            if (!holder || !holder.node_modules)
+                return;
+
+            if (holder.node_modules[n.name])
+                return;
+
+            holder.node_modules[n.name] = copy_node_under(n.donor, holder);
+            placed.add(n.at);
+
+            install_log('nest:', n.name, '@', n.donor.version, '(the copy it was resolved against is out of reach)');
+            inserted++;
+        });
+
+        total += inserted;
+
+        // nothing new could be inserted, so another round would decide the same
+        if (!inserted)
+            break;
     }
 
-    Object.keys(level_info.node_modules).forEach(k => ensure_declared_deps_visible(level_info.node_modules[k]));
+    return total;
 }
 
 /**
@@ -2193,41 +2194,24 @@ function ensure_declared_deps_visible(level_info) {
 function mark_reachability(rootsnap) {
     const projected = tree.snapshot_to_tree(rootsnap, { root: process.cwd() });
 
-    // The same roots npm walks from: the project, and every *workspace member*. A
-    // member's dependencies are installed like the root's, so what it needs for
-    // production is not a dev package.
-    //
-    // A `file:` dependency is not a root, and treating it as one is how a member's dev
-    // dependency came to be installed under `--omit=dev`: the link pointed at a
-    // directory of the project, its `devDependencies` were read as the project's, and
-    // the edge that should have marked the package dev was a root edge instead.
-    const roots = [''];
-
-    projected.forEach((node, p) => {
-        if (p === '' || node.type !== tree.LINK)
-            return;
-
-        // `from_workspace` is what `build_ideal` sets for a member, and what the
-        // snapshot says with `workspace_package`
-        if (node.from_workspace !== true && node.source && node.source.workspace_package !== true)
-            return;
-
-        if (node.resolved && projected.has(node.resolved))
-            roots.push(node.resolved);
-    });
-
-    const flags = tree.calc_flags(projected, roots);
+    // The answer is written onto the tree, and the snapshot reads it back through the
+    // node each path came from — so the flags `omit`, the diff and the serializer see
+    // are one computation, not three that agree by luck. Both halves of that live in
+    // `tree.js` now: the walk (`calc_flags`), and the roots it starts at, which is a
+    // fact about the projection rather than about the installer.
+    tree.mark_flags(projected, tree.member_roots(projected));
 
     projected.forEach((node, p) => {
         if (p === '' || node.target_only || !node.source)
             return;
 
         const info = node.source;
+        const flags = node.flags || {};
 
-        info.dev_only = flags.dev[p] === true;
-        info.optional_only = flags.optional[p] === true;
-        info.dev_optional = flags.devOptional[p] === true;
-        info.peer_only = flags.peer[p] === true;
+        info.dev_only = flags.dev === true;
+        info.optional_only = flags.optional === true;
+        info.dev_optional = flags.devOptional === true;
+        info.peer_only = flags.peer === true;
     });
 }
 
@@ -4971,27 +4955,30 @@ function sync_lock_to_tree(ideal, lock) {
  *              would put on the disk
  */
 function tree_to_path_map(rootsnap, root) {
+    // The paths come from the tree, not from the nested maps: a path *is* the answer
+    // "where does this node sit", and that is what the tree models. Flattening the
+    // maps re-derived every one of them from the shape, which is where a member's
+    // children came to be written at `node_modules/member/node_modules/x` — a path
+    // that reads as "nested under the symlink" — instead of the directory the
+    // package actually lives in.
+    const projected = tree.snapshot_to_tree(rootsnap, { root: root || process.cwd() });
     const paths = {};
 
-    (function flatten(node, prefix) {
-        Object.keys(node.node_modules || {}).forEach(name => {
-            const child = node.node_modules[name];
-            const p = prefix + 'node_modules/' + name;
+    projected.forEach((node, p) => {
+        if (p === '' || node.target_only)
+            return;
 
-            paths[p] = tree_entry(child, p);
+        // the entry describes the package, and the package is the snapshot node the
+        // tree kept on the way in — a tree node carries position and the manifest, and
+        // the rest (where the bytes are, what the directory ships inside itself) is
+        // only ever on the original
+        const info = node.source;
 
-            // what a link depends on is installed inside the directory it points at
-            // — the same directory on disk, and the path npm records
-            // (`packages/member/node_modules/x`, never
-            // `node_modules/member/node_modules/x`, which a reader of the lockfile
-            // would look for in vain)
-            const target = child.local_package || child.workspace_package
-                ? (child.local_path || child.workspace_path)
-                : null;
+        if (!info)
+            return;
 
-            flatten(child, target ? lockfile.relative_target(root, target) + '/' : p + '/');
-        });
-    })(rootsnap, '');
+        paths[p] = tree_entry(info, p);
+    });
 
     return paths;
 }

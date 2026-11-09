@@ -273,6 +273,31 @@ function resolve_path(tree, name, from) {
     return null;
 }
 
+/**
+ * @description the path that serves a dependency declared at `from`, or null when the
+ *              copy `require()` would find does not satisfy the spec.
+ *
+ *              The nearest entry wins and the walk stops there: that is what
+ *              `require()` does, so a further-out copy of a satisfying version is *not*
+ *              an answer — the nearer one is what the dependent gets, the tree is
+ *              `invalid`, and the repair has to place a copy where the dependent can
+ *              see it. Continuing outwards and finding the satisfying copy made the
+ *              repair believe an invalid edge was served, which is how `is-odd@0.1.2`
+ *              came to depend on a root `is-number@7.0.0`.
+ * @param tree Map<path, node>
+ * @param name the package name
+ * @param spec the declared range
+ * @param from the path the requirement is read from
+ */
+function serving_path(tree, name, spec, from) {
+    const at = resolve_path(tree, name, from);
+
+    if (!at)
+        return null;
+
+    return satisfies_node(tree.get(at), spec) ? at : null;
+}
+
 // ---------------------- the graph :start ------------------------- //
 
 // the edge kinds, and what a node reached only through them is
@@ -314,6 +339,18 @@ function calc_flags(tree, roots) {
         state.set(p, p === ''
             ? { dev: false, optional: false, devOptional: false, peer: false }
             : { dev: true, optional: true, devOptional: true, peer: true });
+    });
+
+    // Every root starts clean, not only the project. A root is a node the walk begins
+    // at, so nothing reaches it and nothing has a chance to unset its flags — leaving
+    // them at the initial `true` marked a member dev *and* optional *and* peer, and
+    // everything below it inherited that. npm has the same rule by construction: its
+    // `#rootNodeFromPackage` builds every root with the flags cleared.
+    (roots || []).forEach(r => {
+        if (r === '' || !state.has(r))
+            return;
+
+        state.set(r, { dev: false, optional: false, devOptional: false, peer: false });
     });
 
     const seen = new Set();
@@ -2109,6 +2146,174 @@ function tree_to_snapshot(tree, opts) {
     return snapshot;
 }
 
+// ---------------------- repair :start ------------------------- //
+
+/**
+ * @description give a node the copy of its dependency that it can actually see.
+ *
+ *              Where a node sits is what its edges resolve against, and moving a node
+ *              is what changes that: a package hoisted out of a member's own
+ *              `node_modules` can no longer be served by a copy that stayed beside the
+ *              member. npm never has this problem because it decides the position of
+ *              every node once, while placing it; a tree that resolves and then moves
+ *              has to look again.
+ *
+ *              The check is per declared edge and asks the second question, not the
+ *              first: not "where would `require()` find this name" but "does the copy
+ *              `require()` finds satisfy what was declared". A copy of the right name
+ *              at the wrong version makes the tree `invalid`, and this is what npm's
+ *              placement avoids by never putting it there.
+ *
+ *              A copy is only ever nested, never moved: the donor is an installed node
+ *              (a link is visible from everywhere and needs no copy), and nesting is
+ *              the placement a dependent that cannot see the hoisted copy requires.
+ * @param tree Map<path, node>
+ * @param opts { donor_of(name, spec, from) } — an installed copy to nest
+ * @returns [{ from, name, spec, at, donor, base }] — the copies that have to be
+ *          nested. Nothing is inserted here: the decision is this tree's, and the
+ *          caller owns the shape it keeps
+ */
+function nest_unserved(tree, opts, done) {
+    const o = opts || {};
+    const nestings = [];
+
+    // What the caller has already acted on, from an earlier round of this same pass.
+    // A nested copy is a node like any other and declares dependencies of its own, so
+    // the repair has to be run again after inserting one — which is what the recursive
+    // version got for free, and what a single pass over a fixed tree does not.
+    const known = done || [];
+
+    // A member's directory is a node of its own, and its edges are read from there —
+    // so the walk covers it like any other node, and the project's own path is the
+    // one it starts at
+    const order = [];
+
+    tree.forEach((node, p) => {
+        if (node.target_only || node.platform_skip)
+            return;
+        if (node.type === LINK)
+            return;
+
+        order.push(p);
+    });
+
+    // shallowest first: a copy nested for a parent is visible to its children, and a
+    // child that needs it finds it instead of nesting another one
+    order.sort((a, b) => ancestors(null, a).length - ancestors(null, b).length);
+
+    order.forEach(p => {
+        const node = tree.get(p);
+
+        if (!node || node.type === LINK)
+            return;
+
+        const edges = node.edges || {};
+
+        ['dependencies', 'optionalDependencies', 'peerDependencies'].forEach(field => {
+            const map = edges[field];
+
+            if (!map)
+                return;
+
+            Object.keys(map).forEach(name => {
+                const spec = map[name];
+
+                // what the node ships inside its own tarball arrives with it
+                if (node.bundled && node.bundled[name])
+                    return;
+
+                // a peer the tree does not satisfy is npm's invalid peer: the copy is
+                // kept where it is and the installer reports it, it is not duplicated
+                // here — duplicating it is what put two instances of a module with a
+                // singleton in it on disk
+                if (field === 'peerDependencies' && resolve_path(tree, name, p))
+                    return;
+
+                const base = node_resolution_base(tree, p, node);
+
+                if (serving_path(tree, name, spec, base))
+                    return;
+
+                const donor = o.donor_of ? o.donor_of(name, spec) : null;
+
+                if (!donor)
+                    return;
+
+                const at = place_path(p, name);
+
+                if (tree.has(at))
+                    return;
+
+                // the same copy nested twice would be the same decision reported again
+                if (o.seen && o.seen(at))
+                    return;
+
+                nestings.push({ from: p, name: name, spec: spec, at: at, donor: donor, base: base });
+            });
+        });
+    });
+
+    return nestings;
+}
+
+/**
+ * @description write the edge kind onto every node, from the tree's own graph.
+ *
+ *              This is `calc_flags` applied in place, so that what `omit`, the diff and
+ *              the serializer read is one answer computed once. The alternative — each
+ *              of them asking its own question — is what let a node be dev for the disk
+ *              and production for the lockfile in the same run.
+ * @param tree Map<path, node>
+ * @param roots the paths the walk begins at (the project, and every member)
+ * @returns the tree, so a caller can chain it
+ */
+function mark_flags(tree, roots) {
+    const flags = calc_flags(tree, roots);
+
+    tree.forEach((node, p) => {
+        if (p === '' || node.target_only)
+            return;
+
+        node.flags = {
+            dev: flags.dev[p] === true,
+            optional: flags.optional[p] === true,
+            devOptional: flags.devOptional[p] === true,
+            peer: flags.peer[p] === true,
+        };
+    });
+
+    return flags;
+}
+
+/**
+ * @description the roots a flag walk starts at: the project, and every link target
+ *              that is a project of its own.
+ *
+ *              A member is a root because npm's tree has an edge for it (the
+ *              `workspaces` field) and this projection of a snapshot does not: the
+ *              member's own tree hangs off the link, with nothing from the project
+ *              reaching it. Naming it is what stands in for that edge, and it is why
+ *              what a member needs for production is not read as something only the
+ *              root's devDependencies wanted.
+ * @param tree Map<path, node>
+ */
+function member_roots(tree) {
+    const roots = [''];
+
+    tree.forEach((node, p) => {
+        if (p === '' || node.type !== LINK || !node.resolved)
+            return;
+
+        if (node.from_workspace !== true && !(node.source && node.source.workspace_package === true))
+            return;
+
+        if (tree.has(node.resolved))
+            roots.push(node.resolved);
+    });
+
+    return roots;
+}
+
 // ---------------------- exports :start ------------------------- //
 
 module.exports = {
@@ -2135,6 +2340,7 @@ module.exports = {
     ancestors,
     lookup_paths,
     resolve_path,
+    serving_path,
 
     OK,
     KEEP,
@@ -2147,6 +2353,9 @@ module.exports = {
     place_path,
 
     calc_flags,
+    mark_flags,
+    member_roots,
+    nest_unserved,
     action_for,
     diff,
 

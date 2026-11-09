@@ -615,4 +615,125 @@ describe('tree helper', function () {
                 'a shipped copy is never an ADD');
         });
     });
+
+    describe('repair', function () {
+        function node(p, fields) {
+            return tree.make_node(p, Object.assign({
+                name: tree.name_from_path(p), version: '1.0.0',
+            }, fields));
+        }
+
+        it('treats a nearer copy at the wrong version as unserved', function () {
+            // `require()` stops at the nearest copy, so a satisfying copy further out
+            // is not an answer: the dependent gets the near one, and the tree is
+            // `invalid`. Finding the far copy made the repair believe the edge was
+            // served, which is how a nested copy of the wrong version stayed in place
+            var t = new Map();
+            t.set('', node('', { name: 'root' }));
+            t.set('node_modules/dep', node('node_modules/dep', {
+                edges: { dependencies: { x: '^3.0.0' } },
+            }));
+            t.set('node_modules/dep/node_modules/x', node('node_modules/dep/node_modules/x', { name: 'x', version: '1.0.0' }));
+            t.set('node_modules/x', node('node_modules/x', { name: 'x', version: '3.0.0' }));
+
+            assert.equal(tree.serving_path(t, 'x', '^3.0.0', 'node_modules/dep'), null,
+                'the near copy decides, and it does not satisfy the spec');
+
+            var nestings = tree.nest_unserved(t, {
+                donor_of: function () { return node('donor', { name: 'x', version: '3.0.0' }); },
+            });
+
+            assert.equal(nestings.length, 0,
+                'a copy at that path is already there, so nothing is nested on top of it');
+        });
+
+        it('nests a copy where the dependent can see it', function () {
+            var t = new Map();
+            t.set('', node('', { name: 'root' }));
+            t.set('node_modules/dep', node('node_modules/dep', {
+                edges: { dependencies: { x: '^3.0.0' } },
+            }));
+            t.set('node_modules/x', node('node_modules/x', { name: 'x', version: '1.0.0' }));
+
+            var nestings = tree.nest_unserved(t, {
+                donor_of: function () { return node('donor', { name: 'x', version: '3.0.0' }); },
+            });
+
+            assert.equal(nestings.length, 1);
+            assert.equal(nestings[0].at, 'node_modules/dep/node_modules/x');
+        });
+
+        it('leaves an edge alone when the nearest copy satisfies it', function () {
+            var t = new Map();
+            t.set('', node('', { name: 'root' }));
+            t.set('node_modules/dep', node('node_modules/dep', {
+                edges: { dependencies: { x: '^1.0.0' } },
+            }));
+            t.set('node_modules/x', node('node_modules/x', { name: 'x', version: '1.9.0' }));
+
+            assert.deepEqual(tree.nest_unserved(t, { donor_of: function () { return null; } }), []);
+        });
+
+        it('does not duplicate a peer the tree does not satisfy', function () {
+            // npm keeps the copy it warned about and reports the edge; nesting a second
+            // one is what puts two instances of a module with a singleton in it on disk
+            var t = new Map();
+            t.set('', node('', { name: 'root' }));
+            t.set('node_modules/dep', node('node_modules/dep', {
+                edges: { peerDependencies: { x: '^3.0.0' } },
+            }));
+            t.set('node_modules/x', node('node_modules/x', { name: 'x', version: '1.0.0' }));
+
+            assert.deepEqual(tree.nest_unserved(t, {
+                donor_of: function () { return node('donor', { name: 'x', version: '3.0.0' }); },
+            }), []);
+        });
+
+        it('writes the flags onto the tree from one walk', function () {
+            var t = new Map();
+            t.set('', node('', {
+                name: 'root',
+                edges: { dependencies: { prod: '^1' }, devDependencies: { only_dev: '^1' } },
+            }));
+            t.set('node_modules/prod', node('node_modules/prod', { name: 'prod' }));
+            t.set('node_modules/only_dev', node('node_modules/only_dev', { name: 'only_dev' }));
+
+            tree.mark_flags(t, tree.member_roots(t));
+
+            assert.equal(t.get('node_modules/only_dev').flags.dev, true);
+            assert.equal(t.get('node_modules/prod').flags.dev, false,
+                'what only a production edge reaches is not dev');
+        });
+
+        it('starts the flag walk at every member', function () {
+            // a member's own dependencies are installed like the root's. Starting the
+            // walk at the project alone left them unclassified, and an unclassified
+            // node is not marked dev — so `--omit=dev` kept it on the disk
+            var t = new Map();
+            t.set('', node('', { name: 'root' }));
+            var link = node('node_modules/m', {
+                name: 'm', type: tree.LINK, resolved: 'packages/m',
+                local_path: '/tmp/packages/m',
+            });
+
+            // `from_workspace` is what the snapshot projection attaches, not a field
+            // `make_node` models — a link says it is a member one way or the other
+            link.from_workspace = true;
+            t.set('node_modules/m', link);
+            t.set('packages/m', node('packages/m', {
+                name: 'm', target_only: true,
+                edges: { dependencies: { x: '^1' } },
+            }));
+            t.set('packages/m/node_modules/x', node('packages/m/node_modules/x', { name: 'x' }));
+
+            var roots = tree.member_roots(t);
+
+            assert.ok(roots.indexOf('packages/m') > -1, 'the member is a root');
+
+            tree.mark_flags(t, roots);
+
+            assert.equal(t.get('packages/m/node_modules/x').flags.dev, false,
+                'what a member needs for production is not a dev package');
+        });
+    });
 });
