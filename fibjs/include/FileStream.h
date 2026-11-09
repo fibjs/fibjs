@@ -171,7 +171,9 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
         // CreateFileW refuses a directory with ERROR_ACCESS_DENIED, so the path
         // itself has to tell whether that is what happened; any other failure
         // (an existing directory with 'wx' is EEXIST) keeps its own error.
-        if (err == -ERROR_ACCESS_DENIED) {
+        // err is in libuv's domain (LastError translates it), so it is compared
+        // against UV_EACCES rather than the raw Win32 constant.
+        if (err == UV_EACCES) {
             DWORD attrs = GetFileAttributesW(UTF8_W(fname));
             if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
                 return result_t::from_system(UV_EISDIR).with_syscall("open").with_path(fname);
@@ -251,7 +253,9 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
         // CreateFileW refuses a directory with ERROR_ACCESS_DENIED, so the path
         // itself has to tell whether that is what happened; any other failure
         // (an existing directory with 'wx' is EEXIST) keeps its own error.
-        if (err == -ERROR_ACCESS_DENIED) {
+        // err is in libuv's domain (LastError translates it), so it is compared
+        // against UV_EACCES rather than the raw Win32 constant.
+        if (err == UV_EACCES) {
             DWORD attrs = GetFileAttributesW(UTF8_W(fname));
             if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
                 return result_t::from_system(UV_EISDIR).with_syscall("open").with_path(fname);

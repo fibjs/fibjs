@@ -3046,7 +3046,18 @@ describe('fs', () => {
                 } catch (e) {
                     err = e;
                 }
+
                 assert.equal(err.code, 'EISDIR');
+
+                // The errno has to be in libuv's domain, i.e. the value
+                // util.getSystemErrorName can name. The numeric value differs by
+                // platform (UV_EISDIR is -21 on POSIX and -4068 on Windows), so
+                // the name is asserted rather than the number. On Windows the
+                // check that turns a directory into EISDIR compares against
+                // UV_EACCES; written against the raw Win32 constant it matched
+                // nothing and the open reported EPERM instead.
+                assert.equal(require('util').getSystemErrorName(err.errno), 'EISDIR');
+                assert.equal(err.syscall, 'open');
             });
 
             it("accessSync rejects an out of range mode", () => {
@@ -3125,14 +3136,34 @@ describe('fs', () => {
                 return code;
             }
 
+            // same, but keeps the error object for the assertions that need it
+            function waitForError(stm) {
+                var err;
+                stm.on('error', (e) => {
+                    err = e;
+                });
+
+                var waited = 0;
+                while (err === undefined && waited < 2000) {
+                    coroutine.sleep(10);
+                    waited += 10;
+                }
+                return err;
+            }
+
             it("createReadStream on a missing file emits ENOENT", () => {
                 var stm = fs.createReadStream(path.join(sbase, 'nope.txt'));
                 assert.equal(waitForCode(stm), 'ENOENT');
             });
 
             it("createReadStream on a directory emits EISDIR", () => {
-                var stm = fs.createReadStream(sbase);
-                assert.equal(waitForCode(stm), 'EISDIR');
+                var err = waitForError(fs.createReadStream(sbase));
+
+                assert.ok(err, 'the stream must emit an error');
+                assert.equal(err.code, 'EISDIR');
+                // the same domain check as readFileSync: the name has to resolve
+                // (the number differs by platform)
+                assert.equal(require('util').getSystemErrorName(err.errno), 'EISDIR');
             });
 
             it("createWriteStream with flags 'wx' emits EEXIST", () => {

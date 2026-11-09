@@ -1397,7 +1397,9 @@ inline int32_t ReadError()
     if (err == ERROR_ACCESS_DENIED)
         return UV_EBADF;
 
-    return -(int32_t)err;
+    // the same translation LastError applies, so err.errno stays in the domain
+    // the system-error table is built from
+    return uv_translate_sys_error((int32_t)err);
 #else
     return -errno;
 #endif
