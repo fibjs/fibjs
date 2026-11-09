@@ -866,6 +866,17 @@ function find_workspace_packages(root_path, workspaces_config) {
                         throw err;
                     }
 
+                    // its dependency fields are read the same way the root's are, and
+                    // they have to be maps for the same reason. A throw here is
+                    // collected with the unreadable members, so one run names them all
+                    ctx.collect_manifest_errors = true;
+
+                    try {
+                        assert_dep_fields(pkg_info, pkg_json_path);
+                    } finally {
+                        ctx.collect_manifest_errors = false;
+                    }
+
                     // a directory two patterns both name is one member, not two: npm
                     // keys members by path, so `packages/*` and `packages/core` naming
                     // the same directory is not a duplicate
@@ -1682,6 +1693,90 @@ function describe_json_error(raw, error) {
 }
 
 /**
+ * @description the four dependency fields, and the shape each has to have.
+ *
+ *              npm reads them as maps of name → range. A list, a string, a number and
+ *              `null` are all valid JSON and all describe nothing: the list and `null`
+ *              were silently read as "no dependencies", so an install that meant to
+ *              declare them installed nothing; the others reached
+ *              `util.extend({}, 42)` and threw an internal `TypeError` with a source
+ *              line. That is the same class as the manifest and `workspaces` checks —
+ *              the container is valid and the content is not.
+ * @returns the field and the value that is not a map, or null when every field is
+ */
+function first_malformed_dep_field(manifest) {
+    const fields = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
+
+    for (let i = 0; i < fields.length; i++) {
+        const value = manifest[fields[i]];
+
+        // a field that is absent, or explicitly `null`, says nothing: npm reads both
+        // as "none declared", and a generated manifest often writes `null`
+        if (value === undefined || value === null)
+            continue;
+
+        if (typeof value !== 'object' || Array.isArray(value))
+            return { field: fields[i], value: value };
+
+        // the values inside are ranges, and a non-string there is the same mistake one
+        // level in — `{"is-number": 42}` would reach `semver.satisfies` with a number
+        const names = Object.keys(value);
+
+        for (let j = 0; j < names.length; j++) {
+            const spec = value[names[j]];
+
+            if (spec !== null && typeof spec !== 'string')
+                return { field: fields[i], key: names[j], value: spec };
+        }
+    }
+
+    return null;
+}
+
+/**
+ * @description what is wrong with a manifest's dependency fields, in one sentence, or
+ *              null when every field is a map of name to range
+ */
+function describe_dep_field_error(bad) {
+    if (bad.key !== undefined)
+        return `\`${bad.field}.${bad.key}\` is ${describe_json_value(bad.value)}, ` +
+            'not a version range';
+
+    return `\`${bad.field}\` is ${describe_json_value(bad.value)}, ` +
+        'not an object of name \u2192 range';
+}
+
+/**
+ * @description refuse a manifest whose dependency fields are not maps, naming the file,
+ *              the field and what is there instead
+ *
+ *              The root manifest stops the run here. A member throws instead, so the
+ *              workspace scan can collect every broken member and report them together
+ *              — the same shape as an unreadable one
+ */
+function assert_dep_fields(manifest, manifest_path) {
+    const bad = first_malformed_dep_field(manifest);
+
+    if (!bad)
+        return;
+
+    const why = describe_dep_field_error(bad);
+
+    if (ctx.collect_manifest_errors) {
+        const err = new Error(why);
+
+        err.code = 'EJSONPARSE';
+        throw err;
+    }
+
+    console.error(`[install] ${manifest_path} has a malformed dependency field:`);
+    console.error(`    ${why}`);
+    console.error('  write it as `{ "some-package": "^1.0.0" }`');
+    console.error('  fix the file and run `fibjs --install` again');
+    process.exit(1);
+}
+
+/**
  * @description what a parsed manifest turned out to be, in the words a person would
  *              use — `null`, a string, an array and a number all parse as JSON and none
  *              of them is a manifest
@@ -1750,6 +1845,10 @@ function get_root_snapshot() {
     }
     pkgjson.name = pkgjson.name || (path.basename(pwd, path.extname(pwd))).toLowerCase();
     pkgjson.version = pkgjson.version || '1.0.0';
+
+    // the four fields are read as maps below, and each of them can be valid JSON and
+    // still not be one
+    assert_dep_fields(pkgjson, pkgjson_path);
 
     const dep_vs = util.extend({}, pkgjson.dependencies);
     const dev_dep_vs = util.extend({}, pkgjson.devDependencies);

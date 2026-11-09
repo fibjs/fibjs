@@ -1756,6 +1756,78 @@ describe('opt_tools install lifecycle', function () {
             });
         });
 
+        it('refuses dependency fields that are not maps', function () {
+            // each of the four is read as name -> range. A list and a number are valid
+            // JSON and describe nothing: the list was silently read as "no
+            // dependencies", so the install put in nothing it was asked to; the number
+            // reached `util.extend({}, 42)` and threw a TypeError with a source line
+            ['[]', '42', '"is-number"', 'true'].forEach(function (body) {
+                var targetDir = makeTargetDir();
+
+                writeFile(targetDir, 'package.json',
+                    '{"name": "depshape-proj", "version": "1.0.0", "dependencies": ' + body + '}');
+
+                var res = runInstaller(targetDir, ['--install']);
+                var out = outputOf(res);
+
+                assert.notEqual(res.status, 0, 'dependencies=' + body + diag(targetDir, res));
+                assert.ok(out.indexOf('malformed dependency field') > -1, body + ':\n' + out);
+                assert.equal(out.indexOf('TypeError'), -1,
+                    'the message is the installer\'s, not a stack: ' + body + '\n' + out);
+                assert.equal(out.indexOf('--install.cjs'), -1,
+                    'no source location leaks: ' + body + '\n' + out);
+                assert.equal(fs.existsSync(path.join(targetDir, 'package-lock.json')), false,
+                    'and nothing was written: ' + listDir(targetDir));
+            });
+
+            // `null` says nothing, and npm reads it that way too — a generated manifest
+            // often writes it
+            var ok = makeTargetDir();
+
+            writeFile(ok, 'package.json',
+                '{"name": "depnull-proj", "version": "1.0.0", "dependencies": null}');
+
+            assert.equal(runInstaller(ok, ['--install']).status, 0, 'null is "none declared"');
+        });
+
+        it('refuses a dependency range that is not a string', function () {
+            // the same mistake one level in: `{"is-number": 42}` reached
+            // `semver.satisfies` with a number. npm answers `must provide string spec`
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json',
+                '{"name": "deprange-proj", "version": "1.0.0", "dependencies": {"is-number": 42}}');
+
+            var res = runInstaller(targetDir, ['--install']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, diag(targetDir, res));
+            assert.ok(out.indexOf('dependencies.is-number') > -1, 'the entry is named:\n' + out);
+            assert.ok(out.indexOf('not a version range') > -1, out);
+        });
+
+        it('refuses a member with a malformed dependency field', function () {
+            // a member's fields are read the same way, and the report is the one the
+            // workspace scan already produces — the member is named once
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'bad-dep-member-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/bad/package.json',
+                '{"name": "bad", "version": "1.0.0", "dependencies": []}');
+
+            var res = runInstaller(targetDir, ['--install']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, diag(targetDir, res));
+            assert.ok(out.indexOf('cannot be used') > -1, out);
+            assert.ok(out.indexOf('not an object of name') > -1, out);
+            assert.equal(fs.existsSync(path.join(targetDir, 'node_modules')), false,
+                'no link was made for it: ' + listDir(targetDir));
+        });
+
         it('accepts workspaces as an object with a packages array', function () {
             // npm reads both spellings (`@npmcli/map-workspaces`); the object form was
             // being dropped, which is the same silent-no-members failure as the string
