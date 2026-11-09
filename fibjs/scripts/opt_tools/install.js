@@ -5152,23 +5152,68 @@ function sync_lock_to_tree(ideal, lock) {
         }
     });
 
-    // 2. what the tree describes and the file lacks
+    // 2. the entries of the directories the project's links install. This is not the
+    //    same question as "what the file lacks": a member's entry *is* its current
+    //    manifest projected, so a version, a name, a `license` or a dependency list
+    //    that changed in `packages/lib/package.json` belongs in the file. Rewriting
+    //    only the missing ones left every member entry at whatever the first install
+    //    wrote — and `--ci` then reported a lockfile in sync with a package.json that
+    //    said something else
+    const project_manifest_keys = p => {
+        const node = ideal.tree.get(p);
+
+        if (!node || !node.target_only)
+            return null;
+
+        // the directory's own package.json is the answer, and it is read fresh: the
+        // projection the tree carries was taken when the tree was built, and this
+        // runs after whatever changed package.json did
+        let manifest = node.manifest;
+
+        try {
+            const file = path.join(process.cwd(), p, 'package.json');
+
+            if (fs.exists(file))
+                manifest = JSON.parse(fs.readTextFile(file));
+        } catch (e) {
+            // an unreadable member is reported by the workspace scan, not here
+        }
+
+        return lockfile.project_manifest(manifest, p);
+    };
+
     ideal.tree.forEach((node, p) => {
-        if (p === '' || lock.raw.packages[p])
+        if (p === '')
             return;
 
         // the directory a link points at: its entry is the manifest projected, so a
-        // renamed member is described by the name it has now. It is tested before the
-        // link below because a target node is not a link — it is the directory that is
-        // not installed, not the link to it
+        // renamed member is described by the name it has now
         if (node.target_only) {
-            lock.raw.packages[p] = node.manifest
-                ? lockfile.project_manifest(node.manifest, p)
-                : lockfile.entry_order({ name: node.name, version: node.version });
 
-            changed++;
+            const fresh = project_manifest_keys(p);
+            const present = lock.raw.packages[p];
+
+
+            // the flags belong to the target node, and npm copies them there
+            if (node.flags) {
+                if (node.flags.dev)
+                    fresh.dev = true;
+                if (node.flags.optional)
+                    fresh.optional = true;
+                if (node.flags.devOptional && !node.flags.dev && !node.flags.optional)
+                    fresh.devOptional = true;
+            }
+
+            if (!present || lockfile.stringify_lock(present, 2) !== lockfile.stringify_lock(fresh, 2)) {
+                lock.raw.packages[p] = lockfile.entry_order(fresh);
+                changed++;
+            }
+
             return;
         }
+
+        if (lock.raw.packages[p])
+            return;
 
         if (node.type === tree.LINK) {
             lock.raw.packages[p] = lockfile.entry_order({
@@ -5206,6 +5251,19 @@ function sync_lock_to_tree(ideal, lock) {
  *              that what the write back produces is what an install of the file
  *              would put on the disk
  */
+/**
+ * @description the current package.json of a directory in the project, or null
+ */
+function read_target_manifest(root, p) {
+    try {
+        const file = path.join(root, p, 'package.json');
+
+        return fs.exists(file) ? JSON.parse(fs.readTextFile(file)) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
 function tree_to_path_map(rootsnap, root) {
     // The paths come from the tree, not from the nested maps: a path *is* the answer
     // "where does this node sit", and that is what the tree models. Flattening the
@@ -5217,8 +5275,45 @@ function tree_to_path_map(rootsnap, root) {
     const paths = {};
 
     projected.forEach((node, p) => {
-        if (p === '' || node.target_only)
+        if (p === '')
             return;
+
+        // the directory a link points at has an entry of its own: its manifest
+        // projected, which is what npm writes and what a reader of the file uses to
+        // find the member's dependencies. Leaving it out sent `to_lock` to the entry
+        // the *file* already had, so a member's version, name and license stayed at
+        // whatever the first install wrote
+        if (node.target_only) {
+            const manifest = read_target_manifest(root || process.cwd(), p) || node.manifest;
+
+            // the directory the link installs, spelled the way the file records it
+            const target = lockfile.relative_target(root || process.cwd(),
+                path.join(root || process.cwd(), p));
+
+            if (manifest)
+                paths[p] = tree_entry({
+                    name: manifest.name || node.name,
+                    version: manifest.version || node.version,
+                    manifest: manifest,
+                    // the directory is not a link and not a registry package: it is
+                    // an installed project directory, and `local_path` is what tells
+                    // the projection to describe it from its manifest. `local_package`
+                    // would make it a link entry, which is the *other* path
+                    local_path: target,
+                    declared: {
+                        dep_vs: (manifest.dependencies) || {},
+                        opt_dep_vs: (manifest.optionalDependencies) || {},
+                        peer_dep_vs: (manifest.peerDependencies) || {},
+                        dev_dep_vs: (manifest.devDependencies) || {},
+                    },
+                    dev_only: node.flags && node.flags.dev === true,
+                    optional_only: node.flags && node.flags.optional === true,
+                    dev_optional: node.flags && node.flags.devOptional === true,
+                    peer_only: node.flags && node.flags.peer === true,
+                }, p);
+
+            return;
+        }
 
         // the entry describes the package, and the package is the snapshot node the
         // tree kept on the way in — a tree node carries position and the manifest, and

@@ -1328,6 +1328,57 @@ describe('opt_tools install lifecycle', function () {
                 'while still resolving to the member');
         });
 
+        it('rewrites a member entry when its package.json changed', function () {
+            // a member's entry in the file *is* its current manifest projected. Writing
+            // only the entries the file lacked left every member at whatever the first
+            // install saw — a version, a name or a `license` that changed afterwards
+            // never reached the file, and `--ci` then reported a lockfile in sync with a
+            // package.json that said something else
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'member-refresh-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+            writeFile(targetDir, 'packages/member/package.json', JSON.stringify({
+                name: '@r/old', version: '0.1.0',
+                dependencies: { 'is-odd': '3.0.1' },
+            }, null, 2));
+
+            var first = runInstaller(targetDir, ['--install']);
+            assert.equal(first.status, 0, diag(targetDir, first));
+
+            var before = lockOf(targetDir).packages['packages/member'];
+
+            assert.equal(before.version, '0.1.0');
+            assert.equal(before.name, '@r/old');
+
+            writeFile(targetDir, 'packages/member/package.json', JSON.stringify({
+                name: '@r/new', version: '0.2.0', license: 'MIT',
+                dependencies: { 'is-odd': '3.0.1' },
+            }, null, 2));
+
+            var again = runInstaller(targetDir, ['--install']);
+            assert.equal(again.status, 0, diag(targetDir, again));
+
+            var after = lockOf(targetDir).packages['packages/member'];
+
+            assert.equal(after.version, '0.2.0', 'the version follows package.json');
+            assert.equal(after.name, '@r/new', 'so does the name');
+            assert.equal(after.license, 'MIT', 'and every other manifest field npm projects');
+
+            // nothing of the installer's own bookkeeping may reach the file: an entry
+            // that carries `target_only` or `raw_entry` is not something npm can read
+            ['target_only', 'raw_entry', 'legacy', 'path', 'link', 'dev_optional',
+                'in_bundle', 'peer', 'has_install_script'].forEach(k => {
+                    assert.equal(after[k], undefined, 'the entry is a lockfile entry, not a node: ' + k);
+                });
+
+            assert.equal(lockOf(targetDir).packages['node_modules/@r/old'], undefined,
+                'and the link the old name made is gone: ' +
+                Object.keys(lockOf(targetDir).packages).join(', '));
+        });
+
         it('repoints a link an older install wrote with an absolute target', function () {
             var targetDir = makeTargetDir();
 
