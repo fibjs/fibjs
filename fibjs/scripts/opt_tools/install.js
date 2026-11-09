@@ -812,6 +812,20 @@ function find_workspace_packages(root_path, workspaces_config) {
         process.exit(1);
     }
 
+    // The container being an array is not the whole check: each element has to be a
+    // p attern string. `String(123)` produced the pattern `"123"`, which matches no
+    // directory, so `"workspaces": [123]` installed no members and said nothing —
+    // the same failure as the string form, one level in
+    const not_string = declaration.find(p => typeof p !== 'string');
+
+    if (not_string !== undefined) {
+        console.error('[install] EWORKSPACESCONFIG: workspaces config expects an Array of strings');
+        console.error(`    package.json declares \`"workspaces": ${JSON.stringify(workspaces_config)}\``);
+        console.error(`    element ${declaration.indexOf(not_string)} is ` +
+            `${describe_json_value(not_string)}, not a pattern`);
+        process.exit(1);
+    }
+
     const workspace_packages = [];
     const split = split_workspace_patterns(declaration);
 
@@ -837,6 +851,20 @@ function find_workspace_packages(root_path, workspaces_config) {
                         return;
 
                     const pkg_info = JSON.parse(fs.readTextFile(pkg_json_path));
+
+                    // `42`, `"hello"`, `null` and `[]` all parse, and none of them is
+                    // a manifest. Reading one as "a member with no name" invented the
+                    // name from the directory and linked that — `require('bad')` then
+                    // failed with MODULE_NOT_FOUND, and the bad entry went into the
+                    // lockfile. The root manifest already refuses this; a member is the
+                    // same question and gets the same answer
+                    if (pkg_info === null || typeof pkg_info !== 'object' || Array.isArray(pkg_info)) {
+                        const err = new Error(`the file contains ${describe_json_value(pkg_info)}, ` +
+                            'not a package manifest');
+
+                        err.code = 'EJSONPARSE';
+                        throw err;
+                    }
 
                     // a directory two patterns both name is one member, not two: npm
                     // keys members by path, so `packages/*` and `packages/core` naming
@@ -877,8 +905,9 @@ function find_workspace_packages(root_path, workspaces_config) {
 }
 
 /**
- * @description a workspace member whose package.json cannot be read is a member the
- *              project has and the installer cannot describe: its dependencies would
+ * @description a workspace member whose package.json cannot be read — or reads as
+ *              something that is not a manifest (`42`, `null`, an array) — is a member
+ *              the project has and the installer cannot describe: its dependencies would
  *              be resolved from nothing and its link would point at a directory the
  *              tree knows no name for. npm stops (`EJSONPARSE`); this collects the
  *              failures and refuses the install once the whole list has been read, so
@@ -910,7 +939,7 @@ function throw_workspace_failures() {
         return;
 
     console.error(`[install] ${failures.length} workspace member${failures.length === 1 ? '' : 's'} ` +
-        'cannot be read:');
+        'cannot be used:');
 
     failures.forEach(f => {
         console.error(`  ${f.path}`);

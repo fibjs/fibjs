@@ -1614,7 +1614,7 @@ describe('opt_tools install lifecycle', function () {
             var out = outputOf(res);
 
             assert.notEqual(res.status, 0, 'a member that cannot be read stops the install' + diag(targetDir, res));
-            assert.ok(out.indexOf('cannot be read') > -1, out);
+            assert.ok(out.indexOf('cannot be used') > -1, out);
             assert.ok(out.indexOf(path.join('packages', 'bad')) > -1, 'and the file is named:\n' + out);
 
             // the same file was reported once per pass before, and one broken member
@@ -1703,6 +1703,57 @@ describe('opt_tools install lifecycle', function () {
             assert.ok(out.indexOf('EWORKSPACESCONFIG') > -1, out);
             assert.equal(fs.existsSync(path.join(targetDir, 'package-lock.json')), false,
                 'and nothing was written: ' + listDir(targetDir));
+        });
+
+        it('refuses a workspaces element that is not a pattern string', function () {
+            // the container being an array is not the whole check: `String(123)` produced
+            // the pattern `"123"`, which matches no directory — so `[123]` installed no
+            // members and said nothing, the same failure as the string form one level in
+            var targetDir = makeTargetDir();
+
+            writeFile(targetDir, 'package.json', JSON.stringify({
+                name: 'ws-number-proj', version: '1.0.0', private: true,
+                workspaces: [123],
+            }, null, 2));
+            writeFile(targetDir, 'packages/lib/package.json', JSON.stringify({
+                name: '@c/lib', version: '1.0.0', private: true,
+            }, null, 2));
+
+            var res = runInstaller(targetDir, ['--install']);
+            var out = outputOf(res);
+
+            assert.notEqual(res.status, 0, 'a number is not a pattern' + diag(targetDir, res));
+            assert.ok(out.indexOf('EWORKSPACESCONFIG') > -1, out);
+            assert.ok(out.indexOf('element 0') > -1, 'and the element is named:\n' + out);
+            assert.equal(fs.existsSync(path.join(targetDir, 'package-lock.json')), false,
+                'and nothing was written: ' + listDir(targetDir));
+        });
+
+        it('refuses a member whose package.json is not an object', function () {
+            // `42` parses, and reading it as "a member with no name" invented the name
+            // from the directory and linked that: `require('bad')` then failed with
+            // MODULE_NOT_FOUND and the bad entry went into the lockfile. The root
+            // manifest already refuses this; a member is the same question
+            ['42', 'null', '"x"', '[1]'].forEach(function (body) {
+                var targetDir = makeTargetDir();
+
+                writeFile(targetDir, 'package.json', JSON.stringify({
+                    name: 'bad-member-proj', version: '1.0.0', private: true,
+                    workspaces: ['packages/*'],
+                }, null, 2));
+                writeFile(targetDir, 'packages/bad/package.json', body);
+
+                var res = runInstaller(targetDir, ['--install']);
+                var out = outputOf(res);
+
+                assert.notEqual(res.status, 0, body + ' is not a manifest' + diag(targetDir, res));
+                assert.ok(out.indexOf('cannot be used') > -1, body + ':\n' + out);
+                assert.ok(out.indexOf('not a package manifest') > -1, body + ':\n' + out);
+                assert.equal(fs.existsSync(path.join(targetDir, 'node_modules')), false,
+                    'no link was made for it: ' + listDir(targetDir));
+                assert.equal(fs.existsSync(path.join(targetDir, 'package-lock.json')), false,
+                    'and no lockfile either: ' + listDir(targetDir));
+            });
         });
 
         it('accepts workspaces as an object with a packages array', function () {
