@@ -805,7 +805,11 @@ static result_t as_directory_open_error(result_t hr, const exlib::string& fname,
     return result_t::make(UV_EISDIR)
         .with_type_name("SystemError")
         .with_code("EISDIR")
-        .with_errno(-EISDIR)
+        // `UV_EISDIR` is already the negative code libuv uses — `UV__ERR(EISDIR)`, so
+        // -21 on POSIX, and -4068 on Windows. The POSIX header constant is a different
+        // number, and on Windows it is not one libuv knows at all:
+        // `util.getSystemErrorName(-21)` answered "Unknown system error -21"
+        .with_errno(UV_EISDIR)
         .with_syscall("open")
         .with_path(fname)
         .with_format("EISDIR: illegal operation on a directory, open '%s'",
