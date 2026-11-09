@@ -759,5 +759,36 @@ describe('tree helper', function () {
             assert.ok(tree.member_roots(t).indexOf('packages/m') > -1,
                 'a backslash is the same path as a slash');
         });
+
+        it('finds a member whose target is an absolute path', function () {
+            // a tree built from a snapshot records the target relative to the project,
+            // but a link read back from disk can carry the absolute path — and an
+            // absolute one has the project prefix in front of the key, so a plain
+            // `tree.has()` misses it and the member drops out of the flag walk
+            function roots_for(resolved) {
+                var t = new Map();
+                t.set('', node('', { name: 'root' }));
+
+                var link = node('node_modules/m', {
+                    name: 'm', type: tree.LINK, resolved: resolved,
+                });
+
+                link.from_workspace = true;
+                t.set('node_modules/m', link);
+                t.set('packages/m', node('packages/m', { name: 'm', target_only: true }));
+
+                return tree.member_roots(t);
+            }
+
+            [
+                'packages/m',
+                'D:\\a\\proj\\packages\\m',
+                '/home/u/proj/packages/m',
+                '../../packages/m',
+            ].forEach(function (spelling) {
+                assert.ok(roots_for(spelling).indexOf('packages/m') > -1,
+                    'the member is found from ' + spelling);
+            });
+        });
     });
 });

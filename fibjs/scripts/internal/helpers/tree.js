@@ -2325,6 +2325,31 @@ function member_roots(tree) {
 
     tree.forEach((node, p) => by_path.set(norm(p), p));
 
+    // the target a link records can be a relative path (`packages/member`, `../m`) or
+    // an absolute one, and an absolute one carries the project prefix that no tree key
+    // has — so the search also accepts "a key that is the tail of this path", deepest
+    // first. That is what makes a Windows target (`D:\a\proj\packages\member`) find
+    // `packages/member`
+    function find_by_target(target) {
+        const wanted = norm(String(target).replace(/^(\.{1,2}\/)+/, ''));
+
+        if (!wanted)
+            return undefined;
+
+        if (by_path.has(wanted))
+            return by_path.get(wanted);
+
+        let best;
+
+        by_path.forEach((at, key) => {
+            if (wanted === key || wanted.endsWith('/' + key))
+                if (best === undefined || key.length > best.key.length)
+                    best = { at: at, key: key };
+        });
+
+        return best ? best.at : undefined;
+    }
+
     tree.forEach((node, p) => {
         if (p === '' || node.type !== LINK)
             return;
@@ -2332,23 +2357,13 @@ function member_roots(tree) {
         if (node.from_workspace !== true && !(node.source && node.source.workspace_package === true))
             return;
 
-        // the target is recorded relative to the project, but a path can carry a
-        // leading `./` and the separators differ by platform — the comparison drops
-        // both, and falls back to the last `node_modules/` segment of the target
-        // path when the recorded spelling still does not match
-        const candidates = [];
+        if (!node.resolved)
+            return;
 
-        if (node.resolved)
-            candidates.push(node.resolved);
+        const at = find_by_target(node.resolved);
 
-        for (let i = 0; i < candidates.length; i++) {
-            const at = by_path.get(norm(String(candidates[i]).replace(/^(\.{1,2}\/)+/, '')));
-
-            if (at !== undefined && at !== '') {
-                roots.push(at);
-                return;
-            }
-        }
+        if (at !== undefined && at !== '')
+            roots.push(at);
     });
 
     return roots;

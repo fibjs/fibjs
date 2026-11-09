@@ -286,9 +286,27 @@ exports.get_git_raw_url = function (rawpath, pkg_type_info, { git_base = '' } = 
     if (typeof pkg_type_info === 'string')
         pkg_type_info = parse_pkg_installname(pkg_type_info)
 
+    // the doc comment says the path must not start with `/`, and every caller passes
+    // one anyway — so the separator is added here and a leading slash dropped, which
+    // accepts both and gives one URL
+    rawpath = '/' + String(rawpath).replace(/^\/+/, '');
+
     git_base = helpers_string.ensure_suffx(git_base || 'https://github.com/')
+
+    // GitHub retired the `/<owner>/<repo>/raw/<ref>/<file>` path — it answers 504
+    // now, not a redirect — and raw content lives on its own host. Every other
+    // forge (GitLab, Gitea, a GitHub Enterprise install) keeps the path form, so
+    // only github.com is rewritten
+    const is_github = /^(?:https?:\/\/)?(?:www\.)?github\.com\/?$/.test(git_base);
+
+    if (is_github)
+        /**
+         * @sample https://raw.githubusercontent.com/[PKG_NAME]/[GIT_REFERENCE]/[rawpath]
+         */
+        return `https://raw.githubusercontent.com/${pkg_type_info.git_path}/${pkg_type_info.git_reference}${rawpath}`;
+
     /**
-     * @sample https://github.com/[PKG_NAME]/raw/[GIT_REFERENCE]/[rawpath]
+     * @sample https://[GIT_HOST]/[PKG_NAME]/raw/[GIT_REFERENCE]/[rawpath]
      */
     return `${git_base}${pkg_type_info.git_path}/raw/${pkg_type_info.git_reference}${rawpath}`
 }
