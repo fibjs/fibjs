@@ -1312,11 +1312,11 @@ describe('opt_tools install lifecycle', function () {
 
             var target = fs.readlinkSync(link);
 
-            // A Windows junction is an absolute reparse point: the target it stores
-            // is a full path whatever was passed in, so "relative" is not a property
-            // the platform can give. What has to hold everywhere is that the link
-            // resolves to the member — npm checks exactly that (`resolve(dirname(link),
-            // target)`) and never looks at whether the stored form is absolute
+            // A Windows junction stores an absolute target and cannot store anything
+            // else: libuv refuses a relative one (`UV_EINVAL`). npm passes the relative
+            // form and still ends up with an absolute one there, because Node's
+            // `fs.symlink` resolves it before the junction is written. The property
+            // that has to hold everywhere is that the link resolves to the member
             if (process.platform !== 'win32') {
                 assert.equal(path.isAbsolute(target), false,
                     'the link target is relative (' + target + '), so the tree can move');

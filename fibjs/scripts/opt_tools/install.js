@@ -996,17 +996,16 @@ function link_or_copy_dir(src_path, dest_path) {
     var link_error = null;
 
     try {
-        // npm writes `symlink(relative(dir, target), path, 'junction')` on every
-        // platform — the relative form is what makes the tree portable, and libuv
-        // resolves it against the link's own directory when the junction is created.
-        // Passing the absolute path here produced a link that broke as soon as the
-        // project directory was renamed or copied
-        var rel = path.relative(path.dirname(dest_path), src_path);
-
+        // A Windows junction is a reparse point whose target is stored absolute, and
+        // libuv refuses a relative one outright (`UV_EINVAL` — "Not supporting
+        // relative paths"). npm passes the relative form and looks portable because
+        // Node's `fs.symlink` resolves it before the junction is written; libuv does
+        // not, so the platform that needs the absolute path is the platform that
+        // also needs the junction
         if (process.platform === 'win32')
-            fs.symlink(rel, dest_path, 'junction');
+            fs.symlink(src_path, dest_path, 'junction');
         else
-            fs.symlink(rel, dest_path);
+            fs.symlink(path.relative(path.dirname(dest_path), src_path), dest_path);
 
         install_log('link:', src_path, '→', dest_path);
         return;
