@@ -269,15 +269,15 @@ describe("webcrypto", () => {
 
                     await assert.rejects(async () => {
                         await global.crypto.subtle.digest("INVALID_ALGO_12345", data);
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'TypeError', number: 20004 });
 
                     await assert.rejects(async () => {
                         await global.crypto.subtle.digest("SHA-999", data);
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'TypeError', number: 20004 });
 
                     await assert.rejects(async () => {
                         await global.crypto.subtle.digest("", data);
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'TypeError', number: 20004 });
                 });
 
                 it("should handle unusual but valid input types", async () => {
@@ -386,7 +386,7 @@ describe("webcrypto", () => {
                         true,
                         ["sign", "verify"]
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("should throw if unsupported curve", async () => {
@@ -399,7 +399,7 @@ describe("webcrypto", () => {
                         true,
                         ["sign", "verify"]
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("should throw if unsupported key usage", async () => {
@@ -409,7 +409,7 @@ describe("webcrypto", () => {
                         true,
                         ["sign", "verify", "encrypt"]
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("should throw if 'sign' is not included in keyUsages", async () => {
@@ -419,7 +419,7 @@ describe("webcrypto", () => {
                         true,
                         ["verify"]
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("should accept Uint8Array as keydata", async () => {
@@ -535,7 +535,7 @@ describe("webcrypto", () => {
                         name: "RSA-PSS",
                         namedCurve: "P-256"
                     }, true, ["verify"]);
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("should throw if namedCurve is not matching", async () => {
@@ -552,7 +552,7 @@ describe("webcrypto", () => {
                         name: "ECDSA",
                         namedCurve: "P-384"
                     }, true, ["verify"]);
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("should throw if key type and usage mismatch", async () => {
@@ -568,12 +568,12 @@ describe("webcrypto", () => {
                 // Public key cannot be used for signing
                 await assert.rejects(async () => {
                     await global.crypto.subtle.importKey("jwk", jwkPublic, keyParams, true, ["sign"]);
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
 
                 // Private key cannot be used for verification
                 await assert.rejects(async () => {
                     await global.crypto.subtle.importKey("jwk", jwkPrivate, keyParams, true, ["verify"]);
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("should sign and verify data", async () => {
@@ -785,17 +785,17 @@ describe("webcrypto", () => {
                     // Invalid: empty usages
                     await assert.rejects(async () => {
                         await global.crypto.subtle.generateKey(keyParams, true, []);
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'TypeError', number: 20004 });
 
                     // Invalid: unsupported usage
                     await assert.rejects(async () => {
                         await global.crypto.subtle.generateKey(keyParams, true, ["encrypt"]);
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'TypeError', number: 20004 });
 
                     // Invalid: mixed usages from different algorithms
                     await assert.rejects(async () => {
                         await global.crypto.subtle.generateKey(keyParams, true, ["sign", "deriveKey"]);
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'TypeError', number: 20004 });
                 });
 
                 it("should handle malformed signatures gracefully", async () => {
@@ -1171,7 +1171,7 @@ describe("webcrypto", () => {
                         publicKey,
                         Ed25519.data
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
 
                 // Try to verify with private key
                 await assert.rejects(async () => {
@@ -1181,7 +1181,7 @@ describe("webcrypto", () => {
                         Ed25519.signature,
                         Ed25519.data
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("should throw with unsupported algorithm", async () => {
@@ -1193,7 +1193,7 @@ describe("webcrypto", () => {
                         true,
                         ["sign", "verify"]
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             describe("Edge Cases", () => {
@@ -1277,7 +1277,7 @@ describe("webcrypto", () => {
                             true,
                             ["sign"]
                         );
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'Error', number: 20020 });
 
                     // Test with corrupted SPKI
                     const corruptedSpki = Buffer.from(Ed25519.spki, 'hex');
@@ -1290,7 +1290,7 @@ describe("webcrypto", () => {
                             true,
                             ["verify"]
                         );
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'Error', number: 20020 });
                 });
 
                 it("should handle edge cases in JWK format", async () => {
@@ -1513,7 +1513,7 @@ describe("webcrypto", () => {
                         true,
                         ["deriveKey", "deriveBits"]
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("should throw for invalid key usages", async () => {
@@ -1526,7 +1526,7 @@ describe("webcrypto", () => {
                         true,
                         ["sign", "verify"]
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("should import ECDH keys from test vectors", async () => {
@@ -2041,7 +2041,7 @@ describe("webcrypto", () => {
                             keyPair.privateKey,
                             256
                         );
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'TypeError', number: 20004 });
 
                     // Test with wrong algorithm name
                     await assert.rejects(async () => {
@@ -2050,7 +2050,7 @@ describe("webcrypto", () => {
                             keyPair.privateKey,
                             256
                         );
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'TypeError', number: 20004 });
                 });
             });
         });
@@ -2879,14 +2879,14 @@ describe("webcrypto", () => {
                 await assert.rejects(
                     global.crypto.subtle.deriveBits('ECDH', pair.privateKey, 128),
                     (e) => {
-                        assert.strictEqual(e.number, 20024);
+                        assert.strictEqual(e.number, 20004);
                         assert.match(e.message, /public/);
                         return true;
                     });
 
                 await assert.rejects(
                     global.crypto.subtle.deriveBits({ name: 'ECDH' }, pair.privateKey, 128),
-                    (e) => e.number === 20024);
+                    (e) => e.number === 20004);
             });
 
             it("should still derive the same bits with a complete algorithm", async () => {
@@ -2934,7 +2934,7 @@ describe("webcrypto", () => {
                 await assert.rejects(
                     global.crypto.subtle.generateKey(
                         { name: 'HMAC', hash: 'SHA-256', length: -8 }, true, ['sign']),
-                    (e) => e.number === 20024);
+                    (e) => e.number === 20004);
             });
         });
 
@@ -3530,7 +3530,7 @@ describe("webcrypto", () => {
                         true,
                         ["verify"]
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'Error', number: 20020 });
 
                 // Test with truncated SPKI data
                 const truncatedSpki = new Uint8Array([48, 59, 48, 19]); // Invalid ASN.1
@@ -3542,7 +3542,7 @@ describe("webcrypto", () => {
                         true,
                         ["verify"]
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'Error', number: 20020 });
             });
         });
 
@@ -3569,7 +3569,7 @@ describe("webcrypto", () => {
                         ecdsaKey.privateKey,
                         data
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
 
                 // Try to use Ed25519 key with ECDSA algorithm
                 await assert.rejects(async () => {
@@ -3578,7 +3578,7 @@ describe("webcrypto", () => {
                         ed25519Key.privateKey,
                         data
                     );
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'TypeError', number: 20004 });
             });
 
             it("should handle algorithm parameter variations", async () => {

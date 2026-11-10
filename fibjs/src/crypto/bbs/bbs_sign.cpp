@@ -23,7 +23,9 @@ namespace fibjs {
 result_t get_index(std::vector<int32_t>& index, size_t msg_len, std::vector<int32_t>& idx_i, std::vector<int32_t>& idx_j)
 {
     if (index.size() > msg_len)
-        return result_t::make(CALL_E_EXCEPTION).with_message("crypto: index array length must be less than or equal to messages length");
+        return result_t::make(CALL_E_INVALIDARG)
+            .with_code("ERR_INVALID_ARG_VALUE")
+            .with_message("crypto: index array length must be less than or equal to messages length");
 
     idx_i.reserve(index.size());
     idx_j.reserve(msg_len - index.size());
@@ -33,9 +35,13 @@ result_t get_index(std::vector<int32_t>& index, size_t msg_len, std::vector<int3
     for (size_t i = 0; i < index.size(); i++) {
         int32_t n = index[i];
         if (n < pos_j)
-            return result_t::make(CALL_E_EXCEPTION).with_message("crypto: index array must be sorted");
+            return result_t::make(CALL_E_INVALIDARG)
+                .with_code("ERR_INVALID_ARG_VALUE")
+                .with_message("crypto: index array must be sorted");
         if (n >= msg_len)
-            return result_t::make(CALL_E_EXCEPTION).with_message("crypto: index array must be less than messages length");
+            return result_t::make(CALL_E_INVALIDARG)
+                .with_code("ERR_INVALID_ARG_VALUE")
+                .with_message("crypto: index array must be less than messages length");
 
         while (pos_j < n)
             idx_j.push_back(pos_j++);
@@ -227,7 +233,9 @@ static result_t proofGen_(Buffer_base* signature, std::vector<obj_ptr<Buffer_bas
 
     Signature s;
     if (!s.parse(signature))
-        return result_t::make(CALL_E_EXCEPTION).with_message("crypto: invalid signature");
+        return result_t::make(CALL_E_INVALID_DATA)
+            .with_code("ERR_CRYPTO_INVALID_SIGNATURE")
+            .with_message("crypto: invalid signature");
 
     blst_p2 pk = get_pk(ac.ctxv()[0].object());
     int suite = ac.ctxv()[1].intVal();

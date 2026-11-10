@@ -154,7 +154,7 @@ result_t KeyObject::ImportJWKRsaKey(NObject* key, KeyType type)
 
     if (type == kKeyTypePrivate)
         if (m_pkey->ameth->pkey_check(m_pkey) != 1)
-            return result_t::make(CALL_E_EXCEPTION).with_message("Invalid private key");
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_OSSL_UNSUPPORTED").with_message("Invalid private key");
 
     m_keyType = type;
 
@@ -185,7 +185,7 @@ result_t KeyObject::ImportJWKEcKey(NObject* key, KeyType type)
 
     int nid = GetCurveFromName(crv_name.c_str());
     if (nid == NID_undef)
-        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid JWK EC key: unsupported curve '%s'.", crv_name.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_OSSL_UNSUPPORTED").with_format("Invalid JWK EC key: unsupported curve '%s'.", crv_name.c_str());
 
     BignumPointer x;
     BignumPointer y;
@@ -228,7 +228,7 @@ result_t KeyObject::ImportJWKEcKey(NObject* key, KeyType type)
 
     if (type == kKeyTypePrivate)
         if (m_pkey->ameth->pkey_check(m_pkey) != 1)
-            return result_t::make(CALL_E_EXCEPTION).with_message("Invalid private key");
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_OSSL_UNSUPPORTED").with_message("Invalid private key");
 
     m_keyType = type;
 
@@ -246,7 +246,7 @@ result_t KeyObject::ImportJWKOKPKey(NObject* key, KeyType type)
 
     int nid = okp_curve_nid(crv_name.c_str());
     if (nid == NID_undef)
-        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid JWK OKP key: unsupported curve '%s'.", crv_name.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_OSSL_UNSUPPORTED").with_format("Invalid JWK OKP key: unsupported curve '%s'.", crv_name.c_str());
 
     if (type == kKeyTypeUnknown) {
         exlib::string d;
@@ -471,7 +471,7 @@ result_t KeyObject::export_json(Variant& retVal)
             return ExportJWKEcKey(retVal);
         }
 
-    return result_t::make(CALL_E_EXCEPTION).with_format("Not supported key type: %d.", EVP_PKEY_id(m_pkey));
+    return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Not supported key type: %d.", EVP_PKEY_id(m_pkey));
 }
 
 }

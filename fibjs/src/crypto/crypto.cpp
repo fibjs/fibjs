@@ -33,7 +33,7 @@ result_t openssl_error(const char* arg_name, const exlib::string& arg_value)
         }
     }
 
-    result_t::builder b = result_t::make(CALL_E_EXCEPTION).with_message(ERR_error_string(err, NULL));
+    result_t::builder b = result_t::make(CALL_E_INTERNAL).with_message(ERR_error_string(err, NULL));
 
     if (!code.empty())
         b = std::move(b).with_code(code);

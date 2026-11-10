@@ -612,7 +612,7 @@ result_t X509Certificate::checkEmail(exlib::string email, v8::Local<v8::Object> 
     else if (subject == "never")
         flags = X509_CHECK_FLAG_NEVER_CHECK_SUBJECT;
     else if (subject != "default")
-        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid subject option: '%s', expected 'default', 'always' or 'never'.", subject.c_str());
+        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid subject option: '%s', expected 'default', 'always' or 'never'.", subject.c_str());
 
     switch (X509_check_email(m_cert, email.c_str(), email.length(), flags)) {
     case 1:
@@ -621,7 +621,7 @@ result_t X509Certificate::checkEmail(exlib::string email, v8::Local<v8::Object> 
     case 0:
         return result_t::return_undefined();
     case -2:
-        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid email address");
+        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid email address");
     default:
         return openssl_error();
     }
@@ -642,7 +642,7 @@ result_t X509Certificate::checkHost(exlib::string name, v8::Local<v8::Object> op
     else if (subject == "never")
         flags = X509_CHECK_FLAG_NEVER_CHECK_SUBJECT;
     else if (subject != "default")
-        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid subject option: '%s', expected 'default', 'always' or 'never'.", subject.c_str());
+        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid subject option: '%s', expected 'default', 'always' or 'never'.", subject.c_str());
 
     bool wildcards = true;
     hr = GetConfigValue(options, "wildcards", wildcards, true);
@@ -683,7 +683,7 @@ result_t X509Certificate::checkHost(exlib::string name, v8::Local<v8::Object> op
     case 0:
         return result_t::return_undefined();
     case -2:
-        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid host name");
+        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid host name");
     default:
         return openssl_error();
     }
@@ -700,7 +700,7 @@ result_t X509Certificate::checkIP(exlib::string ip, exlib::string& retVal)
     case 0:
         return result_t::return_undefined();
     case -2:
-        return result_t::make(CALL_E_EXCEPTION).with_message("Invalid IP address");
+        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid IP address");
     default:
         return openssl_error();
     }
@@ -735,7 +735,7 @@ result_t X509Certificate::checkPrivateKey(KeyObject_base* privateKey, bool& retV
 {
     KeyObject* key = (KeyObject*)privateKey;
     if (key->type() != KeyObject::kKeyTypePrivate)
-        return result_t::make(CALL_E_EXCEPTION).with_message("checkPrivateKey: key must be a private key.").with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("checkPrivateKey: key must be a private key.").with_result(result_t::invalid_arg());
 
     retVal = X509_check_private_key(m_cert, key->pkey()) != 0;
     return result_t();
@@ -745,7 +745,7 @@ result_t X509Certificate::verify(KeyObject_base* publicKey, bool& retVal)
 {
     KeyObject* key = (KeyObject*)publicKey;
     if (key->type() != KeyObject::kKeyTypePublic)
-        return result_t::make(CALL_E_EXCEPTION).with_message("verify: key must be a public key.").with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("verify: key must be a public key.").with_result(result_t::invalid_arg());
 
     retVal = X509_verify(m_cert, key->pkey()) == 1;
     return result_t();
