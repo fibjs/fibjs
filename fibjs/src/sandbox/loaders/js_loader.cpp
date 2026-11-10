@@ -31,10 +31,10 @@ result_t js_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
 
         // If CJS compilation failed, check if the source uses ESM syntax
         // and retry as ESM (supporting require(esm) like Node.js v22.12+).
-        // CALL_E_EXCEPTION indicates a stored description (syntax error), as
-        // opposed to CALL_E_JAVASCRIPT (pending V8 exception at runtime). The
-        // description rides with the value.
-        if (hr.is_exception()) {
+        // A value with a description means a stored syntax error, as opposed to
+        // CALL_E_JAVASCRIPT (a pending V8 exception at runtime). The guard is
+        // has_payload(): the description is the signal, not the code (A0.3).
+        if (hr.has_payload()) {
             const ErrorPayload* p = hr.payload();
             exlib::string err_msg = p ? p->message : exlib::string();
 

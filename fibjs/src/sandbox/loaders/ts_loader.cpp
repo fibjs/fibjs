@@ -31,7 +31,9 @@ result_t ts_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
         // TypeScript file written as an ES module fails to load unless the
         // nearest package.json happens to say "type": "module" - which is what
         // Node.js does too, but Node reaches the same conclusion by itself.
-        if (hr.is_exception()) {
+        // has_payload(): the description is the signal (a stored syntax error),
+        // not which code carries it (A0.3).
+        if (hr.has_payload()) {
             const ErrorPayload* p = hr.payload();
             exlib::string err_msg = p ? p->message : exlib::string();
 

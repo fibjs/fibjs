@@ -387,7 +387,9 @@ private:
 
             if (info.type == SandBox::ModuleType::kCommonJS) {
                 hr = m_sb->installScript(id, data, mod, false);
-                if (hr.is_exception()) {
+                // has_payload(): the description is the signal (a stored syntax
+                // error), not which code carries it (A0.3).
+                if (hr.has_payload()) {
                     const ErrorPayload* p = hr.payload();
                     exlib::string err_msg = p ? p->message : exlib::string();
                     // If the file uses ESM syntax but was detected as CJS (e.g., .js
@@ -445,7 +447,9 @@ private:
 
             if (info.type == SandBox::ModuleType::kCommonJS) {
                 hr = m_sb->installScript(id, data, mod, false);
-                if (hr.is_exception()) {
+                // has_payload(): the description is the signal (a stored syntax
+                // error), not which code carries it (A0.3).
+                if (hr.has_payload()) {
                     const ErrorPayload* p = hr.payload();
                     exlib::string err_msg = p ? p->message : exlib::string();
                     // If the file uses ESM syntax but was detected as CJS (e.g., .js

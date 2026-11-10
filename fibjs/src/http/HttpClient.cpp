@@ -3246,7 +3246,9 @@ public:
         exlib::string type_name;
         exlib::string msg;
 
-        if (v.is_exception()) {
+        // has_payload(), not is_exception(): the description is what matters,
+        // not which code carries it (A0.2).
+        if (v.has_payload()) {
             const ErrorPayload* p = v.payload();
 
             if (p) {

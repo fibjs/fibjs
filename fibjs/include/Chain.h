@@ -67,10 +67,10 @@ public:
                 m_next = m_hdrs[m_pos++];
             }
 
-            if (m_hr.is_exception()) {
-                // The description rides with the value; a bare sentinel takes
-                // the message captured from the JS exception (the state read
-                // in js_invoke consumed it).
+            // has_payload(): the description rides with the value; a bare
+            // value takes the message captured from the JS exception (the state
+            // read in js_invoke consumed it). A0.2.
+            if (m_hr.has_payload()) {
                 const ErrorPayload* p = m_hr.payload();
 
                 if (!p || p->empty())
@@ -104,7 +104,8 @@ public:
                 JSFiber::EnterJsScope s;
 
                 m_hr = js_run();
-                if (m_hr.is_exception()) {
+                // has_payload(): the description is the signal, not the code (A0.2).
+                if (m_hr.has_payload()) {
                     const ErrorPayload* p = m_hr.payload();
                     m_message = p ? p->message : exlib::string();
                 }

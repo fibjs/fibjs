@@ -124,12 +124,14 @@ static const char* getDefaultErrorTypeName(result_t hr)
 
 exlib::string getResultMessage(result_t hr)
 {
-    if (hr.is_param_missing()) {
-        const ErrorPayload* p = hr.payload();
+    // The payload owns the message (A0.4 of
+    // plans/call-e-exception-retirement-2026-11-10.md). The code table below is
+    // a fallback for values that carry no description -- it must never win over
+    // a message the producer wrote, whatever the code happens to be.
+    const ErrorPayload* p = hr.payload();
 
-        if (p && !p->message.empty())
-            return p->message; // the producer renders "property X is not optional."
-    }
+    if (p && !p->message.empty())
+        return p->message;
 
     const char* info = getErrorInfoMessage(hr);
     if (info)
@@ -534,11 +536,15 @@ static bool is_fd_syscall(const exlib::string& syscall)
 // the payload (the overload retry band would read a band code in the value as
 // "this variant did not apply" and try the next one), so the boundary reads it
 // back here, as data -- the value itself is never rewritten.
+//
+// The guard is has_payload(), not is_exception(): the description is what makes
+// the payload meaningful, and the code that carries it is incidental (A0.1 of
+// plans/call-e-exception-retirement-2026-11-10.md).
 static result_t effective_error(result_t hr)
 {
     const ErrorPayload* p = hr.payload();
 
-    if (p && hr.is_exception() && !p->result_code.has_value())
+    if (p && hr.has_payload() && !p->result_code.has_value())
         return p->result_code;
 
     return hr;
@@ -601,8 +607,10 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
             e->Set(context, isolate->NewString("hostname"), isolate->NewString(payload->hostname)).IsJust();
 
         // A module that wrote the full text (fs cp / rm style Node errors) wins
-        // over the text derived from code + syscall below.
-        if (!payload->message.empty())
+        // over the text derived from code + syscall below. The caller-supplied
+        // msg (FillError(hr, msg)) is already in `msg` and stays authoritative:
+        // only a non-empty payload message replaces an empty one.
+        if (!payload->message.empty() && msg.empty())
             msg = payload->message;
 
         // Node.js renders a system error as "<CODE>: <text>, <syscall> '<path>'"
@@ -684,7 +692,9 @@ static v8::Local<v8::Value> BuildError(Isolate* isolate, result_t hr, exlib::str
 
 static void resolveException(result_t hr, exlib::string& type_name, exlib::string& msg)
 {
-    if (hr.is_exception()) {
+    // has_payload(), not is_exception(): the description rides with the value,
+    // and the code that happens to carry it is not part of the contract (A0.1).
+    if (hr.has_payload()) {
         const ErrorPayload* p = hr.payload();
 
         if (p && !p->empty()) {
