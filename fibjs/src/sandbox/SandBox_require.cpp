@@ -110,6 +110,8 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     if (hr.failed())
         return hr;
 
+    // addScript compiles CommonJS source only (installScript rejects ESM
+    // syntax), so there is no namespace to build a facade from.
     return wait_module(mod, retVal);
 }
 
@@ -142,13 +144,13 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
             return result_t::make(CALL_E_EXCEPTION).with_code("MODULE_NOT_FOUND").with_message("Cannot find module '" + id + "'");
         return hr;
     } else if (!IsEmpty(mod))
-        return wait_module(mod, retVal);
+        return wait_module(mod, retVal, true);
 
     hr = installScript(id, data, mod, in_cjs);
     if (hr.failed())
         return hr;
 
-    return wait_module(mod, retVal);
+    return wait_module(mod, retVal, true);
 }
 
 result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal, bool in_cjs)

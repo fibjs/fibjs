@@ -71,7 +71,104 @@ int32_t SandBox::file_type(exlib::string fname)
     return result;
 }
 
-result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>& retVal)
+// Every binding of the require() facade reads through to the namespace, so the
+// facade stays current after the module mutates its own state. Copying the
+// values once would freeze them at the moment require() ran - Node's facade is
+// live (it forwards to the namespace the same way), and a CommonJS consumer
+// that requires once and reads later relies on that.
+static void facade_getter(v8::Local<v8::Name> name,
+    const v8::PropertyCallbackInfo<v8::Value>& info)
+{
+    Isolate* isolate = Isolate::current(info);
+    v8::Local<v8::Context> _context = isolate->context();
+    v8::Local<v8::Object> ns_obj = info.Data().As<v8::Object>();
+
+    info.GetReturnValue().Set(
+        ns_obj->Get(_context, name).FromMaybe(v8::Local<v8::Value>()));
+}
+
+// A write to the facade must not shadow the live binding. The namespace it
+// forwards to is read-only, so the assignment is dropped and the next read
+// still reports the module's value.
+static void facade_setter(v8::Local<v8::Name>,
+    v8::Local<v8::Value>,
+    const v8::PropertyCallbackInfo<void>&)
+{
+}
+
+// The CJS-interop facade of an ES module: an object holding the same bindings
+// plus __esModule=true, so transpiled _interopRequireDefault() helpers
+// recognise it and do not wrap the namespace again.
+//
+// Only require() may see it. import() has to keep getting the module
+// namespace: a facade is not a namespace - it is a plain object, so handing it
+// to import() would break what a namespace promises (a second import() of a
+// module is the same object, its bindings are read-only, and its tag is
+// [object Module]).
+//
+// Built once and cached on the module record, because require() promises
+// identity too (Node's createRequiredModuleFacade does the same).
+static v8::Local<v8::Value> getRequireFacade(Isolate* isolate, v8::Local<v8::Object> module,
+    v8::Local<v8::Value> exports)
+{
+    v8::Local<v8::Context> _context = isolate->context();
+
+    if (!exports->IsModuleNamespaceObject())
+        return exports;
+
+    // A transpiled CommonJS module already declares the marker; nothing to add.
+    v8::Local<v8::Object> ns_obj = exports.As<v8::Object>();
+    v8::Local<v8::String> strEsModule = isolate->NewString("__esModule");
+    if (ns_obj->Has(_context, strEsModule).FromMaybe(false))
+        return exports;
+
+    // Without a default export there is nothing the marker would protect:
+    // the namespace is already what require() should return.
+    v8::Local<v8::String> strDefault = isolate->NewString("default");
+    if (!ns_obj->Has(_context, strDefault).FromMaybe(false))
+        return exports;
+
+    v8::Local<v8::Private> strFacade = v8::Private::ForApi(
+        isolate->m_isolate, isolate->NewString("requireFacade"));
+    JSValue cached = module->GetPrivate(_context, strFacade);
+    if (!cached.IsEmpty() && cached->IsObject())
+        return cached;
+
+    v8::Local<v8::Object> wrapper = v8::Object::New(isolate->m_isolate);
+
+    v8::Local<v8::Array> names = ns_obj->GetOwnPropertyNames(_context)
+        .FromMaybe(v8::Local<v8::Array>());
+    if (!names.IsEmpty()) {
+        for (uint32_t i = 0, count = names->Length(); i < count; i++) {
+            v8::Local<v8::Value> key = names->Get(_context, i)
+                .FromMaybe(v8::Local<v8::Value>());
+            if (key.IsEmpty() || !key->IsName())
+                continue;
+            // SetNativeDataProperty takes the namespace as the getter's data,
+            // so the accessor needs nothing else to resolve the binding.
+            if (wrapper->SetNativeDataProperty(_context, key.As<v8::Name>(),
+                    facade_getter, facade_setter, ns_obj)
+                    .IsNothing()) {
+                // Leaving the binding out would silently drop an export, so
+                // fail loudly instead: a namespace property is always
+                // configurable, which is the case this API rejects.
+                exlib::string err_msg = "SandBox: cannot expose '";
+                err_msg.append(ToString(isolate->m_isolate, key));
+                err_msg.append("' on the module.exports facade.");
+                isolate->ThrowError(err_msg.c_str());
+                return v8::Local<v8::Value>();
+            }
+        }
+    }
+    wrapper->Set(_context, strEsModule, v8::True(isolate->m_isolate)).IsJust();
+
+    module->SetPrivate(_context, strFacade, wrapper).IsJust();
+
+    return wrapper;
+}
+
+result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>& retVal,
+    bool for_require)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> _context = isolate->context();
@@ -97,38 +194,20 @@ result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>
 
     retVal = module->Get(_context, strExports).FromMaybe(v8::Local<v8::Value>());
 
-    // CJS-ESM interop: when any caller retrieves exports of an ESM module
-    // that has a default export but no __esModule marker, wrap the namespace
-    // with a plain-object facade that adds __esModule=true. This ensures
-    // transpiled _interopRequireDefault() helpers do not double-wrap, and
-    // works regardless of whether the module was first loaded via require()
-    // or import(). compile_module() detects __esModule and handles both paths.
-    v8::Local<v8::Private> strIsModule = v8::Private::ForApi(
-        isolate->m_isolate, isolate->NewString("isModule"));
-    JSValue isModuleVal = module->GetPrivate(_context, strIsModule);
-    if (!isModuleVal.IsEmpty() && isModuleVal->IsTrue()
-        && !retVal.IsEmpty() && retVal->IsModuleNamespaceObject()) {
-        v8::Local<v8::Object> ns_obj = retVal.As<v8::Object>();
-        v8::Local<v8::String> strDefault = isolate->NewString("default");
-        v8::Local<v8::String> strEsModule = isolate->NewString("__esModule");
-        if (!ns_obj->Has(_context, strEsModule).FromMaybe(false)
-            && ns_obj->Has(_context, strDefault).FromMaybe(false)) {
-            v8::Local<v8::Object> wrapper = v8::Object::New(isolate->m_isolate);
-            v8::Local<v8::Array> names = ns_obj->GetOwnPropertyNames(_context)
-                .FromMaybe(v8::Local<v8::Array>());
-            if (!names.IsEmpty()) {
-                for (uint32_t i = 0; i < names->Length(); i++) {
-                    v8::Local<v8::Value> key = names->Get(_context, i)
-                        .FromMaybe(v8::Local<v8::Value>());
-                    if (key.IsEmpty()) continue;
-                    v8::Local<v8::Value> val = ns_obj->Get(_context, key)
-                        .FromMaybe(v8::Local<v8::Value>());
-                    if (val.IsEmpty()) continue;
-                    wrapper->Set(_context, key, val).IsJust();
-                }
-            }
-            wrapper->Set(_context, strEsModule, v8::True(isolate->m_isolate)).IsJust();
-            retVal = wrapper;
+    // Only require() gets the facade. import() keeps the namespace itself, so
+    // that identity and live bindings survive a second import().
+    if (for_require) {
+        v8::Local<v8::Private> strIsModule = v8::Private::ForApi(
+            isolate->m_isolate, isolate->NewString("isModule"));
+        JSValue isModuleVal = module->GetPrivate(_context, strIsModule);
+        if (!isModuleVal.IsEmpty() && isModuleVal->IsTrue() && !retVal.IsEmpty()) {
+            v8::Local<v8::Value> facade = getRequireFacade(isolate, module, retVal);
+            // An empty result means the facade could not be built and a V8
+            // exception is already pending; report it rather than handing the
+            // caller a namespace where a facade was promised.
+            if (facade.IsEmpty())
+                return result_t(CALL_E_JAVASCRIPT);
+            retVal = facade;
         }
     }
 

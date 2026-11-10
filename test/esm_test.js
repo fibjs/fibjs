@@ -138,6 +138,126 @@ describe('ECMAScript modules', () => {
             assert.equal(mod.moduleId, 'esm');
         });
 
+        // ------------------------------------------------------------------
+        // import() must hand back the module namespace, never a copy of it.
+        //
+        // A module that has a default export used to be wrapped in a plain
+        // object on every retrieval (a stale CJS-interop facade), so a second
+        // import() was a different object, its live bindings were frozen at
+        // the values they had when the facade was built, and its exports
+        // became writable. The wrapping was meant for require(esm) only.
+        // ------------------------------------------------------------------
+        it("import esm - repeated import returns the same namespace", async () => {
+            var a = await import('./esm_files/interop_state/live.mjs');
+            var b = await import('./esm_files/interop_state/live.mjs');
+
+            assert.equal(a, b, 'repeated import() must return the very same object');
+        });
+
+        it("import esm - namespace is a real module namespace", async () => {
+            var ns = await import('./esm_files/interop_state/live.mjs');
+
+            assert.equal(Object.prototype.toString.call(ns), '[object Module]',
+                'import() must expose a module namespace, not a plain object');
+            assert.equal(Object.getPrototypeOf(ns), null,
+                'a module namespace has a null prototype');
+        });
+
+        it("import esm - exports stay live across import() calls", async () => {
+            var a = await import('./esm_files/interop_state/live.mjs');
+            var b = await import('./esm_files/interop_state/live.mjs');
+
+            var before = b.counter;
+            a.bump();
+
+            assert.equal(b.counter, before + 1,
+                'a facade snapshot would freeze counter at its old value');
+            assert.equal(a.counter, b.counter,
+                'both imports must observe the same live binding');
+        });
+
+        it("import esm - exports are read-only", async () => {
+            var ns = await import('./esm_files/interop_state/live.mjs');
+
+            // A module namespace is frozen: writing to a binding is a no-op
+            // (sloppy mode) instead of quietly replacing it. The old facade
+            // was an ordinary writable object, so the writes took effect.
+            var counter = ns.counter;
+            ns.counter = 999;
+            ns.default = 'CHANGED';
+
+            assert.equal(ns.counter, counter, 'a namespace binding must not be writable');
+            assert.equal(ns.default, 'DEFAULT', 'the default binding must not be writable');
+        });
+
+        // require(esm) still needs its __esModule facade, but the facade has to
+        // be built once: Node hands the same object back on every require, and
+        // so must fibjs.
+        it("require(esm) - repeated require returns the same facade", () => {
+            var a = require('./esm_files/interop_state/live.mjs');
+            var b = require('./esm_files/interop_state/live.mjs');
+
+            assert.equal(a, b, 'repeated require() must return the very same object');
+            assert.equal(a.__esModule, true, 'the facade must still carry __esModule');
+        });
+
+        // The facade must not be shared with import(): Node keeps them apart.
+        it("require(esm) - facade is not the import() namespace", async () => {
+            var ns = await import('./esm_files/interop_state/live.mjs');
+            var req = require('./esm_files/interop_state/live.mjs');
+
+            assert.notEqual(ns, req, 'require() and import() must not alias one another');
+            assert.equal(Object.prototype.toString.call(ns), '[object Module]');
+            assert.equal(ns.__esModule, undefined,
+                'the import() namespace must not inherit the require() facade marker');
+        });
+
+        // Loading a module through require() first must not poison the
+        // namespace that a later import() gets. The facade built for require()
+        // is cached on the module record, and import() has to ignore it.
+        it("import esm - require() first does not degrade the namespace", async () => {
+            // require() first: builds and caches the CJS facade on the record
+            var req = require('./esm_files/interop_state/order_require_first.js');
+            assert.equal(req.__esModule, true, 'require(esm) must carry the facade marker');
+            assert.equal(typeof req.bump, 'function');
+
+            // import() afterwards must still see a real module namespace
+            var ns = await import('./esm_files/interop_state/order_require_first.js');
+            assert.equal(Object.prototype.toString.call(ns), '[object Module]',
+                'import() must not return the require() facade');
+            assert.equal(Object.getPrototypeOf(ns), null);
+
+            ns.bump();
+            assert.equal(ns.counter, 1, 'the import() namespace keeps its live bindings');
+        });
+
+        // The mirrored order: import() first, then require(). The facade must
+        // be complete and identical to the one a cold require() would build.
+        it("require(esm) - facade is complete after import()", async () => {
+            await import('./esm_files/interop_state/order_import_first.js');
+            var a = require('./esm_files/interop_state/order_import_first.js');
+            var b = require('./esm_files/interop_state/order_import_first.js');
+
+            assert.equal(a, b, 'repeated require() must return the very same facade');
+            assert.equal(a.__esModule, true);
+            assert.equal(typeof a.bump, 'function');
+            assert.equal(a.default, 'DEFAULT');
+        });
+
+        // The facade is cached for identity, but it must still read through to
+        // the module. Copying the values once would freeze them at the state
+        // the module had when require() ran.
+        it("require(esm) - facade stays current after the module mutates", () => {
+            var mod = require('./esm_files/interop_state/order_freshness.js');
+
+            assert.equal(mod.counter, 0);
+            mod.bump();
+            assert.equal(mod.counter, 1,
+                'the facade must forward to the namespace, not hold a snapshot');
+            mod.bump();
+            assert.equal(mod.counter, 2);
+        });
+
         it("throw when file not exists", async () => {
             await assert.rejects(async () => {
                 await import('./esm_files/not_exists.mjs');

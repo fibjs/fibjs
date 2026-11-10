@@ -94,7 +94,10 @@ public:
     }
 
     v8::Local<v8::Object> get_module(v8::Local<v8::Object> mods, exlib::string id);
-    result_t wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>& retVal);
+    // for_require: the caller is require(), which takes the CJS-interop facade
+    // of an ES module. import() passes false and gets the module namespace.
+    result_t wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>& retVal,
+        bool for_require = false);
 
     void installBuffer();
     void attachBuffer();
