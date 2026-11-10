@@ -2392,6 +2392,182 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
     }
 }
 
+/**
+ * @description the level holding the copy that serves a name from somewhere a level
+ *              can see it, walking outwards. `find_provided_node` answers the same
+ *              question for the resolver, which asks it *before* deciding to
+ *              materialize anything; a promotion needs the level itself, because that
+ *              is where the newer copy has to be written
+ * @returns the level, or null
+ */
+function provided_copy_level(level_info, name) {
+    for (let cur = level_info; cur; cur = cur.parent) {
+        if (cur.node_modules && cur.node_modules[name])
+            return cur;
+    }
+
+    return null;
+}
+
+/**
+ * @description the range a level declares for a name, from whichever field declared
+ *              it. The `declared` map is the one to read: `dep_vs` is rewritten to
+ *              whichever version this walk chose, so a range measured against it
+ *              would always agree with itself
+ */
+function find_declared_spec(level_info, name) {
+    const fields = ['dep_vs', 'dev_dep_vs', 'opt_dep_vs', 'peer_dep_vs'];
+
+    for (let i = 0; i < fields.length; i++) {
+        const field = fields[i];
+        const declared = level_info.declared && level_info.declared[field];
+        const spec = (declared && declared[name]) || (level_info[field] && level_info[field][name]);
+
+        if (typeof spec === 'string')
+            return spec;
+    }
+
+    return undefined;
+}
+
+/**
+ * @description would replacing the copy at `holder` with `incoming` leave every
+ *              dependent that resolves to it satisfied? npm's `canReplace`, asked of
+ *              the maps the walk built: every level whose nearest copy of that name
+ *              *is* the one being replaced has to accept the new version — the level
+ *              that asked for it included, whose own range is checked like any other.
+ *
+ *              Only declared ranges are asked, never chosen versions: the question is
+ *              what the manifests say the project may have, and the walk has already
+ *              turned every declaration into a version
+ */
+function promotion_is_safe(levels, name, holder, incoming) {
+    for (let i = 0; i < levels.length; i++) {
+        const level_info = levels[i];
+
+        if (provided_copy_level(level_info, name) !== holder)
+            continue;
+
+        const spec = find_declared_spec(level_info, name);
+
+        if (spec !== undefined && !node_satisfies(incoming, spec))
+            return false;
+    }
+
+    return true;
+}
+
+/**
+ * @description a copy a dependent nested because the project's own copy was older,
+ *              moved up into that copy's place when every dependent still accepts it.
+ *
+ *              npm never leaves the two behind: its `PlaceDep` looks for the highest
+ *              slot whose *neighbours* all survive the swap, so a workspace member
+ *              moving from `x@3.0.0` to `x@3.0.1` upgrades the shared copy while the
+ *              project's own range allows it. This walk resolved first and nested the
+ *              newer copy beside the member instead, which is two versions of one
+ *              package on one machine — the thing a hoisted tree exists to avoid, and
+ *              what a member's dependency bump used to leave in the lockfile.
+ *
+ *              A pinned copy is not fair game: `promotion_is_safe` refuses the swap as
+ *              soon as any declared range stops accepting the newer version, which is
+ *              exactly when npm nests one too.
+ *
+ *              Everything happens after the walk, so no edge is resolved twice and
+ *              nothing races. The node moves with its own `node_modules`, and the
+ *              copies it carries are hoisted by `move_up` afterwards like any other
+ * @returns how many copies moved
+ */
+function promote_nested_copies(rootsnap) {
+    const levels = [];
+
+    // where each level sits, so a decision about one shared place can be remembered
+    // for the next dependent that would promote into it
+    const path_of = new Map();
+
+    (function collect(level_info, p) {
+        levels.push(level_info);
+        path_of.set(level_info, p);
+
+        Object.keys(level_info.node_modules || {}).forEach(name => {
+            collect(level_info.node_modules[name], (p ? p + '/' : '') + 'node_modules/' + name);
+        });
+    })(rootsnap, '');
+
+    // the answer per shared place is the same for every dependent asking about the
+    // same version, and asking it means walking every level: a project with thousands
+    // of packages would repeat that walk once per nested copy
+    const decided = new Map();
+
+    function promotes_into(holder, name, copy) {
+        const key = path_of.get(holder) + '\u0000' + name + '\u0000' + copy.version;
+
+        if (!decided.has(key))
+            decided.set(key, promotion_is_safe(levels, name, holder, copy));
+
+        return decided.get(key);
+    }
+
+    let promoted = 0;
+
+    // deepest first: a member's own copy is settled before the level above it is
+    // measured, so a promotion cannot be undone by the pass that follows it
+    for (let i = levels.length - 1; i >= 0; i--) {
+        const level_info = levels[i];
+
+        Object.keys(level_info.node_modules || {}).forEach(name => {
+            const copy = level_info.node_modules[name];
+
+            // a link is a directory of the project, and a bundled copy came out of its
+            // parent's tarball: neither is a version this can swap
+            if (!copy || copy.workspace_package || copy.local_package || copy.in_bundle)
+                return;
+
+            // only a copy this run resolved. A tree that is already on disk was shaped
+            // by whoever wrote it, and re-shaping it here would have two installers
+            // rewriting each other's answer; a bump is exactly the case where this run
+            // chose the newer version itself
+            if (copy.new_module !== true)
+                return;
+
+            // a copy for another platform was never installed: promoting it would put
+            // a directory that is not there where a working copy used to be
+            if (copy.platform_mismatch === true)
+                return;
+
+            // the copy the dependent would have found if it had been the one to ask
+            const holder = provided_copy_level(level_info.parent, name);
+
+            if (!holder)
+                return;
+
+            const old = holder.node_modules[name];
+
+            // nothing to promote: the shared place already holds this node, or it holds
+            // the version the dependent asked for (the walk would not have nested then)
+            if (!old || old === copy || old.version === copy.version)
+                return;
+
+            if (old.workspace_package || old.local_package || old.in_bundle)
+                return;
+
+            if (!promotes_into(holder, name, copy))
+                return;
+
+            holder.node_modules[name] = copy;
+            copy.parent = holder;
+
+            delete level_info.node_modules[name];
+
+            install_log('promote:', name, '@', copy.version,
+                '(the shared copy moves up from', old.version + ')');
+            promoted++;
+        });
+    }
+
+    return promoted;
+}
+
 function move_up(level_info, parent) {
     // only what this run produced is hoisted; a package that was already on disk stays
     // where npm put it, and the tree is not reshaped around it. A node a repair or a
@@ -6769,6 +6945,13 @@ walkthrough_deps(rootsnap, true);
 // A tree whose peer edges nothing satisfies is one npm refuses, and it refuses before
 // writing anything
 assert_peers_satisfied(ctx.peer_conflicts);
+
+// Before anything is hoisted: a copy a dependent nested only because the shared one
+// was older goes into that place when every dependent still accepts it. npm arrives at
+// this shape by placement rather than by moving anything, so doing it here — on the
+// maps the walk produced, before `move_up` reshapes them — is the same decision taken
+// at the last moment it can still be taken (see `promote_nested_copies`)
+promote_nested_copies(rootsnap);
 
 move_up(rootsnap);
 

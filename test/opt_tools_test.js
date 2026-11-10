@@ -2716,6 +2716,105 @@ describe('opt_tools install lifecycle', function () {
 
         // a registry is needed for the rest of them: they install real packages
 
+        /**
+         * A workspace member's range moving past the copy the project already has is
+         * not a reason for a second copy: the root's own range still allows the newer
+         * version, so the copy the member would have nested can be the copy everybody
+         * shares. npm does exactly that (`PlaceDep` picks the highest slot whose
+         * neighbours all survive the swap), and the nested copy this used to leave
+         * behind was two versions of one package on one machine — the thing a hoisted
+         * tree exists to avoid.
+         */
+        it('promotes the shared copy when only a member asks for the newer version', NET, function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'ws-promote-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'], dependencies: { 'is-odd': '3.0.0' },
+            });
+            writeJSON(targetDir, 'packages/member/package.json', {
+                name: 'member', version: '0.1.0', dependencies: { 'is-odd': '3.0.0' },
+            });
+
+            var first = runInstaller(targetDir, ['--install']);
+            assert.equal(first.status, 0, diag(targetDir, first));
+
+            assert.equal(versionAt(targetDir, 'node_modules/is-odd'), '3.0.0', 'one copy to start with');
+
+            // the member moves past it, and the root's range is widened so the newer
+            // version is allowed at the top as well
+            writeJSON(targetDir, 'package.json', {
+                name: 'ws-promote-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'], dependencies: { 'is-odd': '^3.0.0' },
+            });
+            writeJSON(targetDir, 'packages/member/package.json', {
+                name: 'member', version: '0.1.0', dependencies: { 'is-odd': '^3.0.1' },
+            });
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var lock = lockOf(targetDir).packages;
+
+            assert.equal(versionAt(targetDir, 'node_modules/is-odd'), '3.0.1',
+                'the shared copy moved up instead of a second one appearing');
+            assert.ok(!fs.existsSync(path.join(targetDir, 'packages/member/node_modules/is-odd')),
+                'and nothing was nested under the member: ' +
+                listDir(path.join(targetDir, 'packages/member', 'node_modules')));
+
+            assert.equal(lock['node_modules/is-odd'].version, '3.0.1', 'the lockfile says the same');
+            assert.equal(lock['packages/member/node_modules/is-odd'], undefined,
+                'with no copy of its own: ' + Object.keys(lock).filter(function (k) {
+                    return k.indexOf('is-odd') > -1;
+                }).join(', '));
+
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            assert.equal(ci.status, 0, 'the lockfile it wrote is in sync:\n' + outputOf(ci));
+
+            // and npm agrees with the shape: the tree has to be one npm would build
+            var npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+            var problems = String(child_process.spawnSync(npm, ['ls', '--all'], {
+                cwd: targetDir, stdio: 'pipe', shell: process.platform === 'win32',
+            }).stdout || '');
+
+            assert.equal(problems.indexOf('invalid') < 0, true, 'npm ls finds nothing invalid:\n' + problems);
+            assert.equal(problems.indexOf('missing') < 0, true, 'nor anything missing:\n' + problems);
+        });
+
+        /**
+         * The other side of the same rule: a copy the project pinned exactly is not
+         * fair game. Every edge that resolves to it today has to survive the swap, so
+         * the member gets a copy of its own instead — which is what npm does as well.
+         */
+        it('keeps a copy the project pinned when a member needs another version', NET, function () {
+            var targetDir = makeTargetDir();
+
+            writeJSON(targetDir, 'package.json', {
+                name: 'ws-pinned-proj', version: '1.0.0', private: true,
+                workspaces: ['packages/*'], dependencies: { 'is-odd': '3.0.0' },
+            });
+            writeJSON(targetDir, 'packages/member/package.json', {
+                name: 'member', version: '0.1.0', dependencies: { 'is-odd': '^3.0.1' },
+            });
+
+            var res = runInstaller(targetDir, ['--install']);
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            assert.equal(versionAt(targetDir, 'node_modules/is-odd'), '3.0.0',
+                'the pinned copy stays where the project asked for it');
+            assert.equal(versionAt(targetDir, 'packages/member/node_modules/is-odd'), '3.0.1',
+                'and the member gets its own: ' +
+                listDir(path.join(targetDir, 'packages/member', 'node_modules')));
+
+            var lock = lockOf(targetDir).packages;
+
+            assert.equal(lock['node_modules/is-odd'].version, '3.0.0');
+            assert.equal(lock['packages/member/node_modules/is-odd'].version, '3.0.1');
+
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run']);
+            assert.equal(ci.status, 0, 'the lockfile it wrote is in sync:\n' + outputOf(ci));
+        });
+
         it('refreshes a registry dependency without fetching a workspace sibling', NET, function () {
             var targetDir = makeTargetDir();
 
