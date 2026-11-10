@@ -5196,6 +5196,10 @@ function prune_ideal(rootsnap, root) {
         unioned.set(p, resolved.has(p) ? resolved.get(p) : node);
     });
 
+    // the copies a tarball ships, held back until it is known the package that carries
+    // them stays: see below
+    const bundled = [];
+
     // What this run *resolved* is also wanted, even where the inputs could not say so:
     // on a first install there is no lockfile, and a dependency the manifest names has
     // nothing in `from_inputs` to match against.
@@ -5216,6 +5220,24 @@ function prune_ideal(rootsnap, root) {
             return;
         }
 
+        // A copy a parent's tarball ships is not something this run *resolved*: the
+        // resolver stepped over it on purpose (the parent's `bundleDependencies` is
+        // the parent's business), no manifest of the project names it, and nothing
+        // gave it `new_module`. It is on the disk because unpacking the parent put
+        // it there, and that is the whole of its provenance.
+        //
+        // npm makes exactly this exception when it diffs the disk against the ideal
+        // tree — `bundled meta-deps are copied over to the ideal tree when we visit
+        // it` (`arborist/lib/diff.js`) — and without it the prune deleted the copies
+        // out of the tarball's own `node_modules` while the parent stayed. The
+        // lockfile it then wrote declared a parent whose dependencies the file did
+        // not contain (`npm@2` contributes 71 of them), so the project's own next
+        // `--ci` refused a file its own `--install` had just written.
+        if (node.type === tree.BUNDLE) {
+            bundled.push({ path: p, node: node });
+            return;
+        }
+
         // A node on the disk the manifest names is wanted even when the inputs could not
         // describe *which* version: with no lockfile there is nothing to pin, and the
         // directory is the only record of what the project resolved to. Dropping it
@@ -5223,6 +5245,31 @@ function prune_ideal(rootsnap, root) {
         if (declared_by_the_root(rootsnap, p) || node.from_lock === true || node.new_module === true)
             unioned.set(p, node);
     });
+
+    // A bundled copy is wanted exactly when the package that carries it is: on its own
+    // it is debris like anything else. A copy can be inside another copy (a tarball
+    // ships its own `node_modules`, which ships its own), so the decision is repeated
+    // until nothing new qualifies rather than sorted and assumed
+    if (bundled.length) {
+        let added = true;
+
+        while (added) {
+            added = false;
+
+            bundled.forEach(b => {
+                if (unioned.has(b.path))
+                    return;
+
+                const holder = tree.parent_location(b.path);
+
+                if (holder === null || !unioned.has(holder))
+                    return;
+
+                unioned.set(b.path, b.node);
+                added = true;
+            });
+        }
+    }
 
     return { tree: unioned, dropped: [] };
 }

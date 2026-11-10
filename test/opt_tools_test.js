@@ -3597,6 +3597,69 @@ describe('opt_tools install lifecycle', function () {
             assert.equal(disagreeing.length, 0, 'the tree and the lockfile agree: ' + disagreeing.join(', '));
         });
 
+        /**
+         * A copy a tarball ships is reached through nothing but its parent: the
+         * project never names it, no other package asks for it, and the resolver
+         * walked past it on purpose. So the only thing that can say it belongs on
+         * the disk — and in the lockfile — is the parent's `bundleDependencies`,
+         * which is what npm reads too (`Node#getBundler`).
+         *
+         * Getting this wrong is not a cosmetic lockfile difference: the prune
+         * deletes the copies out of the tarball's own `node_modules`, and the
+         * lockfile it writes then declares a parent whose dependencies the file
+         * does not contain — so the project's own next `--ci` refuses a file its
+         * own `--install` just wrote (`npm@2` is the real-world case: 71 names).
+         */
+        it('keeps a bundled dependency the project never names', function () {
+            var targetDir = makeTargetDir();
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'bundle-only-proj', version: '1.0.0',
+                dependencies: { 'bundler-pkg': '1.0.0' },
+            }, null, 2));
+            fs.writeFileSync(path.join(targetDir, '.npmrc'), 'registry=http://127.0.0.1:' + port + '/\n');
+
+            var res = runInstaller(targetDir, ['--install'], offline());
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + out);
+
+            var nested = 'node_modules/bundler-pkg/node_modules/helper';
+
+            assert.equal(versionOnDisk(targetDir, nested), '1.0.0',
+                'the copy the tarball ships stays on the disk: ' +
+                listDir(path.join(targetDir, 'node_modules/bundler-pkg/node_modules')));
+
+            var lock = JSON.parse(fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8'));
+
+            assert.ok(lock.packages[nested], 'and the lockfile describes it: ' +
+                JSON.stringify(Object.keys(lock.packages)));
+            assert.equal(lock.packages[nested].version, '1.0.0', JSON.stringify(lock.packages[nested]));
+            assert.equal(lock.packages[nested].inBundle, true, 'as bundled, the way npm records it: ' +
+                JSON.stringify(lock.packages[nested]));
+
+            // the file this install wrote has to be one this install accepts
+            var ci = runInstaller(targetDir, ['--install', '--ci', '--dry-run'], offline());
+
+            assert.equal(ci.status, 0, 'the lockfile it wrote is in sync with itself: ' +
+                diag(targetDir, ci) + '\n' + outputOf(ci));
+
+            // and a second install has nothing left to do: the copy is not debris to
+            // be pruned, so the tree it finds is the tree it describes
+            var again = runInstaller(targetDir, ['--install'], offline());
+            var again_out = outputOf(again);
+
+            assert.equal(again.status, 0, diag(targetDir, again) + '\n' + again_out);
+            assert.equal(versionOnDisk(targetDir, nested), '1.0.0',
+                'the second install kept it: ' +
+                listDir(path.join(targetDir, 'node_modules/bundler-pkg/node_modules')));
+            assert.ok(again_out.indexOf('prune:') < 0, 'nothing was pruned:\n' + again_out);
+
+            assert.deepEqual(
+                JSON.parse(fs.readFileSync(path.join(targetDir, 'package-lock.json'), 'utf8')).packages,
+                lock.packages, 'and the lockfile is unchanged');
+        });
+
         it('installs a lockfile whose bundled entries carry no source', function () {
             var targetDir = makeTargetDir();
 
