@@ -155,11 +155,11 @@ describe('ws', () => {
             it("throw", () => {
                 assert.throws(() => {
                     load_msg([0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c])
-                }, { number: 20024 });
+                }, { number: 20011 });
 
                 assert.throws(() => {
                     load_msg([0x01, 0x03, 0x48, 0x65, 0x6c]);
-                }, { number: 20024 });
+                }, { number: 20011 });
             });
         });
 
@@ -514,7 +514,7 @@ describe('ws', () => {
 
             assert.throws(() => {
                 msg.readFrom(s);
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             s.close();
         });
@@ -905,21 +905,21 @@ describe('ws', () => {
             // duplicated protocol
             assert.throws(() => {
                 new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", ["test", "test"]);
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             // invalid protocol
             assert.throws(() => {
                 new WebSocket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
                     protocols: ["bad,proto"]
                 });
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             assert.throws(() => {
                 WebSocket.upgrade({
                     protocols: [" test ", "test"]
                 }, () => {
                 });
-            }, { number: 20024 });
+            }, { number: 20011 });
         });
 
         it('send/on("message")', () => {

@@ -467,7 +467,7 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
     }
 
     if (m_readyState != sse_base::C_SENDER) {
-        return result_t::make(CALL_E_EXCEPTION).with_message("EventSource.send: can only be called when readyState is sse.SENDER");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("EventSource.send: can only be called when readyState is sse.SENDER");
     }
 
     result_t ctx_hr = ac.ctx(0);
@@ -498,7 +498,7 @@ result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, in
     int32_t retry_len = 0;
     if (opts->retry.has_value()) {
         if (*opts->retry < 0)
-            return result_t::make(CALL_E_EXCEPTION).with_message("EventSource.send: retry must be a positive integer.");
+            return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_message("EventSource.send: retry must be a positive integer.");
         retry_len = snprintf(retry_str, sizeof(retry_str), "%d", *opts->retry);
         buf_size += retry_len + 8; // "retry: \n"
     }

@@ -797,19 +797,19 @@ describe("http", () => {
             // malformed cookie text -> HttpCookie error (CALL_E_EXCEPTION, 20024)
             assert.throws(() => {
                 new http.Cookie().parse("");
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             assert.throws(() => {
                 new http.Cookie().parse("aaa");
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             assert.throws(() => {
                 new http.Cookie().parse("=");
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             assert.throws(() => {
                 new http.Cookie().parse(";");
-            }, { number: 20024 });
+            }, { number: 20011 });
         });
 
         it("parseRaw keeps %XX verbatim (RFC 6265)", () => {
@@ -991,7 +991,7 @@ describe("http", () => {
                 // malformed request text -> HttpMessage error (20024)
                 assert.throws(() => {
                     get_request(u);
-                }, { number: 20024 });
+                }, { number: 20011 });
             }
 
             bad_reqs.forEach(readreq);
@@ -1001,27 +1001,27 @@ describe("http", () => {
             // malformed response text -> HttpMessage error (20024)
             assert.throws(() => {
                 get_response("HTTP/1.0\r\n\r\n");
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             assert.throws(() => {
                 get_response("HTTP/1.0 \r\n\r\n");
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             assert.throws(() => {
                 get_response("HTTP/1.0,200\r\n\r\n");
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             assert.throws(() => {
                 get_response("HTTP/1.0 1\r\n\r\n");
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             assert.throws(() => {
                 get_response("HTTP/1.0 1111\r\n\r\n");
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             assert.throws(() => {
                 get_response("HTTP/1.0 asd\r\n\r\n");
-            }, { number: 20024 });
+            }, { number: 20011 });
         });
 
         it("proxy request", () => {
@@ -1432,7 +1432,7 @@ describe("http", () => {
                     get_response(get_data(1024 * 1024 + 1), {
                         maxBodySize: 1
                     });
-                }, { number: 20024 });
+                }, { number: 20013 });
             });
 
             it("no limit", () => {
@@ -1514,11 +1514,11 @@ describe("http", () => {
         // json() without a json content type -> HttpMessage error (20024)
         assert.throws(() => {
             req.json();
-        }, { number: 20024 });
+        }, { number: 20011 });
         req.setHeader('Content-Type', "application/jso");
         assert.throws(() => {
             req.json();
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         req.json(v);
         assert.equal(req.firstHeader('Content-Type'), "application/json");
@@ -1535,11 +1535,11 @@ describe("http", () => {
 
         assert.throws(() => {
             rep.json();
-        }, { number: 20024 });
+        }, { number: 20011 });
         req.setHeader('Content-Type', "application/jso");
         assert.throws(() => {
             req.json();
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         rep.json(v);
         assert.equal(rep.firstHeader('Content-Type'), "application/json");
@@ -1623,11 +1623,11 @@ describe("http", () => {
         // pack() without an msgpack content type -> HttpMessage error (20024)
         assert.throws(() => {
             req.pack();
-        }, { number: 20024 });
+        }, { number: 20011 });
         req.setHeader('Content-Type', "application/msg");
         assert.throws(() => {
             req.pack();
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         req.pack(v);
         assert.equal(req.firstHeader('Content-Type'), "application/msgpack");
@@ -1641,11 +1641,11 @@ describe("http", () => {
 
         assert.throws(() => {
             rep.pack();
-        }, { number: 20024 });
+        }, { number: 20011 });
         req.setHeader('Content-Type', "application/jso");
         assert.throws(() => {
             req.pack();
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         rep.pack(v);
         assert.equal(rep.firstHeader('Content-Type'), "application/msgpack");
@@ -3322,7 +3322,7 @@ describe("http", () => {
                 // redirect loop -> TypeError from HttpClient (20024)
                 assert.throws(() => {
                     http.requestSync("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect1")
-                }, { name: 'TypeError', number: 20024 });
+                }, { name: 'TypeError', number: 20011 });
             });
 
             it("urlencode", () => {
@@ -4692,7 +4692,7 @@ describe("http", () => {
                 assert.equal(cookie_for['_'], "root=value2; request=value; request1=value");
                 assert.throws(() => {
                     client.requestSync("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect1")
-                }, { name: 'TypeError', number: 20024 });
+                }, { name: 'TypeError', number: 20011 });
             });
 
             it("check cookie validity", () => {
@@ -5014,7 +5014,7 @@ describe("http", () => {
 
                 assert.equal(syncErr.name, "TimeoutError");
                 assert.equal(syncErr.code, "TIMEOUT_ERR");
-                assert.equal(syncErr.number, 20024);
+                assert.equal(syncErr.number, 20021);
                 assert.equal(syncErr.message, "The operation timed out.");
 
                 var req = http.get("http://127.0.0.1:" + abortPort + "/timeout", {
@@ -5047,7 +5047,7 @@ describe("http", () => {
                     done(() => {
                         assert.equal(err.name, "AbortError");
                         assert.equal(err.code, "ABORT_ERR");
-                        assert.equal(err.number, 20024);
+                        assert.equal(err.number, 20022);
                         assert.equal(err.message, "The operation was aborted.");
                     });
                 });
@@ -5429,31 +5429,31 @@ describe("http", () => {
             it("not allow empty hostname", () => {
                 assert.throws(() => {
                     new http.Repeater('/test');
-                }, { number: 20024 });
+                }, { number: 20011 });
 
                 assert.throws(() => {
                     new http.Repeater(['/test']);
-                }, { number: 20024 });
+                }, { number: 20011 });
             });
 
             it("not allow query", () => {
                 assert.throws(() => {
                     new http.Repeater('http://127.0.0.1/test?test');
-                }, { number: 20024 });
+                }, { number: 20011 });
 
                 assert.throws(() => {
                     new http.Repeater(['http://127.0.0.1/test?test']);
-                }, { number: 20024 });
+                }, { number: 20011 });
             });
 
             it("not allow hash", () => {
                 assert.throws(() => {
                     new http.Repeater('http://127.0.0.1/test#test');
-                }, { number: 20024 });
+                }, { number: 20011 });
 
                 assert.throws(() => {
                     new http.Repeater(['http://127.0.0.1/test#test']);
-                }, { number: 20024 });
+                }, { number: 20011 });
             });
 
             it("check client config", () => {
@@ -5487,7 +5487,7 @@ describe("http", () => {
                         'http://127.0.0.1/test?test',
                         "http://127.0.0.1/test2"
                     ]);
-                }, { number: 20024 });
+                }, { number: 20011 });
 
                 assert.deepEqual(hr.urls, [
                     "http://127.0.0.1/"
@@ -7506,9 +7506,9 @@ describe("http", () => {
 
         it('rejects a non-redirect status', () => {
             assert.throws(() => new http.Response().redirect(200, '/x'),
-                { number: 20024 });
+                { number: 20011 });
             assert.throws(() => new http.Response().redirect(304, '/x'),
-                { number: 20024 });
+                { number: 20011 });
         });
 
         it('303 See Other reaches the client as a redirect', () => {

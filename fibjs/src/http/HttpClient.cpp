@@ -57,8 +57,8 @@ static result_t setAbortError(AbortSignal_base* signal, const char* method = nul
     AbortSignal* s = signal ? static_cast<AbortSignal*>(signal) : NULL;
 
     result_t::builder b = (s && s->is_timeout_abort())
-        ? result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTimeoutError).with_message("The operation timed out.")
-        : result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kAbortError).with_message("The operation was aborted.");
+        ? result_t::make(CALL_E_TIMEOUT).with_type_name(errtype::kTimeoutError).with_code("TIMEOUT_ERR").with_message("The operation timed out.")
+        : result_t::make(CALL_E_ABORT).with_type_name(errtype::kAbortError).with_code("ABORT_ERR").with_message("The operation was aborted.");
 
     if (method && *method)
         b = std::move(b).arg("method", method);
@@ -98,7 +98,7 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
         method[i] = (char)toupper((unsigned char)method[i]);
 
     if (method != "GET" && method != "HEAD")
-        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("fetch(file:): only GET and HEAD are supported");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("fetch(file:): only GET and HEAD are supported");
 
     FileStream file;
     hr = file.open(path, "r");
@@ -640,10 +640,10 @@ result_t HttpClient::set_http_proxy(exlib::string newVal)
 
         exlib::string protocol = u->protocol();
         if (protocol != "https:" && protocol != "http:" && protocol != "socks5:")
-            return result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_PROTOCOL").with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str());
 
         if (u->host().empty())
-            return result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host");
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("HttpClient: unknown host");
 
         m_http_proxy = newVal;
     }
@@ -677,10 +677,10 @@ result_t HttpClient::set_https_proxy(exlib::string newVal)
 
         exlib::string protocol = u->protocol();
         if (protocol != "https:" && protocol != "http:" && protocol != "socks5:")
-            return result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_PROTOCOL").with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str());
 
         if (u->host().empty())
-            return result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host");
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("HttpClient: unknown host");
 
         m_https_proxy = newVal;
     }
@@ -1437,10 +1437,10 @@ public:
                 m_connUrl = "tcp://";
             }
         } else
-            return result_t::make(CALL_E_EXCEPTION).with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_PROTOCOL").with_format("HttpClient: unknown protocol: '%s'.", protocol.c_str());
 
         if (host.empty())
-            return result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: unknown host");
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("HttpClient: unknown host");
 
         m_connUrl.append(host);
 
@@ -1682,13 +1682,13 @@ public:
     ON_STATE(asyncRequest, socks_connect)
     {
         if (n.is_return_null())
-            return result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server.");
+            return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ECONNRESET").with_message("HttpClient: connection reset by socks 5 server.");
 
         exlib::string strBuffer;
 
         m_buffer->toString(strBuffer);
         if (strBuffer.length() != 2 || strBuffer[0] != 5 || strBuffer[1] != 0)
-            return result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: socks 5 handshake failed.");
+            return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ECONNRESET").with_message("HttpClient: socks 5 handshake failed.");
 
         obj_ptr<Url> u = new Url();
         u->parse(m_connUrl);
@@ -1724,12 +1724,12 @@ public:
     ON_STATE(asyncRequest, socks_connect_res_5_bytes)
     {
         if (n.is_return_null())
-            return result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server.");
+            return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ECONNRESET").with_message("HttpClient: connection reset by socks 5 server.");
 
         Buffer* buf = Buffer::Cast(m_buffer);
         const uint8_t* p = buf->data();
         if (buf->length() != 5 || p[0] != 5 || p[1] != 0)
-            return result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: socks 5 connect failed.");
+            return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ECONNRESET").with_message("HttpClient: socks 5 connect failed.");
 
         uint8_t len = 0;
 
@@ -1747,7 +1747,7 @@ public:
     ON_STATE(asyncRequest, socks_connected)
     {
         if (n.is_return_null())
-            return result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: connection reset by socks 5 server.");
+            return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ECONNRESET").with_message("HttpClient: connection reset by socks 5 server.");
 
         // discard socks server response
 
@@ -1774,7 +1774,7 @@ public:
             exlib::string msg;
 
             resp->get_statusMessage(msg);
-            return result_t::make(CALL_E_EXCEPTION).with_message("HttpClient: " + msg);
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_message("HttpClient: " + msg);
         }
 
         m_reqConn.Release();
@@ -1881,7 +1881,7 @@ public:
             m_h2session->m_remote_settings_event.wait();
 
         if (m_h2session->m_closed || m_h2session->m_destroyed)
-            return result_t::make(CALL_E_EXCEPTION).with_message("Http2Session: session closed during SETTINGS exchange");
+            return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ERR_HTTP2_INVALID_SESSION").with_message("Http2Session: session closed during SETTINGS exchange");
 
         return next(h2_request);
     }
@@ -2007,7 +2007,7 @@ public:
 
         if (stream_id < 0) {
             m_h2session->m_request_lock.unlock();
-            return result_t::make(CALL_E_EXCEPTION).with_message(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
+            return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ERR_HTTP2_INVALID_SESSION").with_message(exlib::string("Http2Session: submit request failed: ") + nghttp2_strerror(stream_id));
         }
 
         m_h2stream = stream;
@@ -2215,7 +2215,7 @@ public:
 
         // Fetch API redirect mode takes precedence over HttpClient autoRedirect
         if (m_o->redirect == "error")
-            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("fetch: redirect not allowed");
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("fetch: redirect not allowed");
         if (m_o->redirect == "manual")
             return complete(); // return redirect response as-is
         if (!m_hc->m_autoRedirect)
@@ -2231,7 +2231,7 @@ public:
         m_o->u->toString(m_url);
 
         if (m_urls.find(m_url) != m_urls.end())
-            return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message("HttpClient: redirect cycle");
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_type_name(errtype::kTypeError).with_message("HttpClient: redirect cycle");
 
         // 303: per spec force GET and clear request body
         if (status == 303) {
@@ -3260,10 +3260,14 @@ public:
         if (msg.empty())
             msg = getResultMessage(v);
 
+        // Fetch re-packages the failure with its own vocabulary: an abort keeps
+        // its AbortError/TimeoutError DOMException, everything else becomes a
+        // TypeError (per spec). The value code must stay OUT of the overload
+        // retry band, so CALL_E_TYPEMISMATCH/INVALIDARG are not usable here.
         if (type_name == errtype::kAbortError || type_name == errtype::kTimeoutError)
-            return result_t::make(CALL_E_EXCEPTION).with_type_name(type_name.c_str()).with_message(msg);
+            return result_t::make(CALL_E_ABORT).with_type_name(type_name.c_str()).with_message(msg);
 
-        return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_message(msg);
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_message(msg);
     }
 
     ON_STATE(asyncFetch, do_request)
