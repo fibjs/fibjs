@@ -133,8 +133,12 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
 
     hr = resolve(base, id, data, mod);
     if (hr.failed()) {
-        // Node.js reports a failed module lookup as MODULE_NOT_FOUND.
-        if (hr.is(CALL_E_FILE_NOT_FOUND))
+        // Node.js reports a failed module lookup as MODULE_NOT_FOUND. A resolve
+        // failure is in libuv's domain (a stat/open that found nothing) as often as
+        // it is the internal sentinel, so the family predicate decides -- comparing
+        // CALL_E_FILE_NOT_FOUND alone missed it on Windows, where the sentinel is
+        // the raw Win32 constant and libuv reports UV_ENOENT.
+        if (hr.is_not_found())
             return result_t::make(CALL_E_EXCEPTION).with_code("MODULE_NOT_FOUND").with_message("Cannot find module '" + id + "'");
         return hr;
     } else if (!IsEmpty(mod))

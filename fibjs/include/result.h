@@ -20,6 +20,13 @@
 #include <stdint.h>
 #include <vector>
 
+// uv/errno.h is the header uv.h builds its enum from; it needs errno.h only,
+// so the libuv numbers are available here without the platform headers uv.h
+// pulls in. `UV__ERR` is #undef-ed at the end of uv.h while the UV__*E* macros
+// still mention it, so the restore below makes the names expand regardless of
+// whether uv.h came before this header or after it.
+#include <uv/include/uv/errno.h>
+
 #include "qstring.h"
 #include "obj_ptr.h"
 
@@ -27,7 +34,48 @@
 #include <windows.h>
 #endif
 
+// Leave the preprocessor exactly as uv.h leaves it: the helper is restored only
+// long enough to materialise the two numbers this header needs.
+#ifndef UV__ERR
+#if EDOM > 0
+#define UV__ERR(x) (-(x))
+#else
+#define UV__ERR(x) (x)
+#endif
+#define FIBJS_RESULT_RESTORED_UV_ERR
+#endif
+
 namespace fibjs {
+
+// ---------------------------------------------------------------------------
+// The "not found" code sets this runtime has to recognise.
+//
+// A failed filesystem probe arrives in one of three domains, and which one
+// depends on who produced it:
+//
+//   * the internal sentinels (CALL_E_FILE_NOT_FOUND / CALL_E_PATH_NOT_FOUND),
+//     below -- a probe that found nothing and reported that as a value;
+//   * libuv's own numbering, which is what an actual stat / lstat / open
+//     failure carries. On POSIX those coincide with the sentinels (-ENOENT),
+//     on Windows they do not: the sentinels are the raw Win32 constants (-2)
+//     and libuv reports its own (UV_ENOENT is -4058);
+//   * the plain errno values, for the few producers that fail without libuv.
+//
+// Comparing only the sentinels therefore worked on POSIX and silently failed
+// on Windows -- a probe's description was dropped because the failure it
+// carried was `UV_ENOENT` rather than the sentinel, and the caller then
+// reported the Win32 text of -2 ("The system cannot find the file specified.")
+// instead of the path that was missing.
+// ---------------------------------------------------------------------------
+enum : int32_t {
+    kUV_ENOENT = UV__ENOENT,
+    kUV_ENOTDIR = UV__ENOTDIR,
+};
+
+#ifdef FIBJS_RESULT_RESTORED_UV_ERR
+#undef UV__ERR
+#undef FIBJS_RESULT_RESTORED_UV_ERR
+#endif
 
 class ErrorPayload;
 class Variant;
@@ -362,13 +410,34 @@ public:
         return m_code == CALL_E_PARAMNOTOPTIONAL;
     }
 
-    // The "no such file" family: on POSIX both macros are -ENOENT, on Windows
-    // they are distinct codes, so the family is their union. A check for one
-    // of the two codes must stay `is(CALL_E_...)`: using this predicate there
-    // would accept the other code as well on Windows.
+    // The "no such file" family. Three code sets mean it, and all three have to
+    // be accepted or the answer depends on which layer produced the failure:
+    //
+    //   - the internal CALL_E_FILE_NOT_FOUND / CALL_E_PATH_NOT_FOUND sentinels;
+    //   - libuv's own UV_ENOENT / UV_ENOTDIR, which is what an actual open / stat
+    //     failure carries (they coincide with the sentinels on POSIX, and are
+    //     -4058 / -4052 on Windows);
+    //   - the plain POSIX errno values, for producers that do not go through
+    //     libuv.
+    //
+    // A check that has to stay on one specific spelling keeps using is(...).
     bool is_not_found() const
     {
-        return m_code == CALL_E_FILE_NOT_FOUND || m_code == CALL_E_PATH_NOT_FOUND;
+        if (m_code == CALL_E_FILE_NOT_FOUND || m_code == CALL_E_PATH_NOT_FOUND)
+            return true;
+
+        if (m_code == kUV_ENOENT || m_code == kUV_ENOTDIR)
+            return true;
+
+#ifndef _WIN32
+        // On POSIX this repeats the sentinels (CALL_E_FILE_NOT_FOUND is -ENOENT),
+        // which is harmless and covers the producers that never reach libuv. On
+        // Windows it must not be consulted: -ENOTDIR there is -20, a raw Win32
+        // code (ERROR_BAD_UNIT) that has nothing to do with a missing path.
+        return m_code == -ENOENT || m_code == -ENOTDIR;
+#else
+        return false;
+#endif
     }
 
     // The value could not be converted to the type the API asked for.
