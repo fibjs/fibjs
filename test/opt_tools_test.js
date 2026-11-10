@@ -1003,6 +1003,34 @@ describe('opt_tools install lifecycle', function () {
                 'the member describes what it depends on: ' + JSON.stringify(member));
             assert.equal(member.name, '@repro/alpha', 'and the name its path does not imply');
             assert.equal(member.version, '0.1.0');
+
+            // A member whose manifest moved is written by a second, *resolving* install,
+            // and that is the run that used to describe the member with the installer's
+            // own bookkeeping: `to_path_map` adds `path`, `target_only`, `raw_entry`
+            // and the boolean flags, `target_entry` kept every one of them, and
+            // `raw_entry` was a snapshot of the file *before* this run — so the old
+            // dependency range stayed inside the entry next to the new one
+            writeFile(targetDir, 'packages/alpha/package.json', JSON.stringify({
+                name: '@repro/alpha', version: '0.2.0', private: true,
+                dependencies: { linkpkg2: 'file:../../linkpkg2' },
+            }, null, 2));
+            writeFile(targetDir, 'linkpkg2/package.json', JSON.stringify({ name: 'linkpkg2', version: '1.0.0' }, null, 2));
+
+            var moved = runInstaller(targetDir, ['--install']);
+            assert.equal(moved.status, 0, diag(targetDir, moved));
+
+            member = lockOf(targetDir).packages['packages/alpha'];
+
+            // npm's entry for a member is *the manifest* and nothing else
+            var keys = Object.keys(member);
+
+            assert.deepEqual(keys.filter(k => ['path', 'target_only', 'raw_entry',
+                'link', 'in_bundle', 'legacy', 'peer', 'dev_optional',
+                'has_install_script'].indexOf(k) > -1), [],
+                'nothing but npm fields: ' + keys.join(', '));
+            assert.deepEqual(member.dependencies, { linkpkg2: 'file:../../linkpkg2' },
+                'and the manifest is the one the directory has now: ' + JSON.stringify(member));
+            assert.equal(member.version, '0.2.0', 'with its version: ' + JSON.stringify(member));
         });
 
         it('names a workspace member the way npm does when its manifest has no name', function () {

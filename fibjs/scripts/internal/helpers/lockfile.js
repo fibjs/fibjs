@@ -1552,7 +1552,15 @@ function to_lock(paths, root_pkgjson, opts) {
             return;
 
         const target = relative_target(o.root, entry.local_path);
-        packages[target] = target_entry(entry, old[target], target, entry);
+
+        // what the file had for that directory, as *the file* had it: `to_path_map`
+        // adds the installer's own fields (`path`, `target_only`, `raw_entry`, the
+        // boolean flags) and `target_entry` would keep every one of them, so a
+        // rewritten lockfile came out carrying them — and `raw_entry` was a snapshot
+        // of the previous run, which is how a member whose dependency range had moved
+        // kept the old range inside its own entry
+        packages[target] = target_entry(entry, o.previous && o.previous.packages &&
+            o.previous.packages[target], target, entry);
     });
 
     packages[''] = root_entry(root_pkgjson, o.previous ? o.previous.root : null);
