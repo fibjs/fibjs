@@ -621,8 +621,18 @@ function graph_flags(packages, root_entry, opts) {
     const manifests = {};
 
     (o.workspaces || []).forEach(w => {
-        if (w && w.path)
-            manifests[String(w.path).replace(/\/+$/, '')] = w.pkgjson || {};
+        if (!w || !w.path)
+            return;
+
+        // The key has to be the lockfile's spelling of the path: the table is keyed
+        // with `/` on every platform, and a caller on Windows passes what
+        // `path.relative` answered (`packages\member`). A miss here is silent and
+        // expensive — the member's manifest is what its edges are read from, so
+        // falling back to the lockfile entry dropped its devDependencies entirely and
+        // `--omit=dev` then kept them on the disk.
+        const key = String(w.path).replace(/\\/g, '/').replace(/\/+$/, '');
+
+        manifests[key] = w.pkgjson || {};
     });
 
     const entry_at = p => {

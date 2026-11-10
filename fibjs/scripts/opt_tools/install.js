@@ -890,7 +890,15 @@ function find_workspace_packages(root_path, workspaces_config) {
                         // that apart from a member at 1.0.0
                         version: pkg_info.version,
                         path: pkg_dir,
-                        relative_path: path.relative(root_path, pkg_dir),
+                        // `relative_path` is a *lockfile* path, not a platform path: it
+                        // is used as a key into the lockfile's path table (`packages/
+                        // member`) and compared against link targets written the same
+                        // way, so it always uses `/`. On Windows `path.relative` answers
+                        // `packages\member`, which matched no lockfile entry at all --
+                        // `graph_flags` then never saw the member's devDependencies and
+                        // `--omit=dev` kept them on the disk. `path` (absolute, native)
+                        // is what the filesystem calls use.
+                        relative_path: path.relative(root_path, pkg_dir).replace(/\\/g, '/'),
                         package_json: pkg_info
                     });
                 } catch (e) {
