@@ -269,10 +269,10 @@ inline void Http2Session_base::s_request(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(Http2Session_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "headers");
 
-    ARG(v8::Local<v8::Object>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Object>, 0, "headers");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->request(v0, v1, vr);
 
@@ -286,8 +286,8 @@ inline void Http2Session_base::s_goaway(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "code");
+    OPT_ARG_NAMED(int32_t, 1, 0, "lastStreamId");
 
     hr = pInst->goaway(v0, v1);
 
@@ -316,9 +316,9 @@ inline void Http2Session_base::s_settings(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(Http2Session_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "settings");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "settings");
 
     hr = pInst->settings(v0);
 
@@ -373,7 +373,7 @@ inline void Http2Session_base::s_set_onstream(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onstream");
 
     hr = pInst->setListener("stream", v0);
 
@@ -401,7 +401,7 @@ inline void Http2Session_base::s_set_ongoaway(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "ongoaway");
 
     hr = pInst->setListener("goaway", v0);
 
@@ -429,7 +429,7 @@ inline void Http2Session_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onerror");
 
     hr = pInst->setListener("error", v0);
 

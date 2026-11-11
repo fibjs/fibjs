@@ -107,7 +107,7 @@ inline void subtle_base::s_static_digest(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("subtle.digest");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "data");
 
     ARG(Union_digest_algorithm, 0);
     ARG(Union_digest_data, 1);
@@ -126,10 +126,10 @@ inline void subtle_base::s_static_exportKey(const v8::FunctionCallbackInfo<v8::V
 
     ASYNC_METHOD_ENTER("subtle.exportKey");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "key");
 
-    ARG(exlib::string, 0);
-    ARG(obj_ptr<CryptoKey_base>, 1);
+    ARG_NAMED(exlib::string, 0, "format");
+    ARG_NAMED(obj_ptr<CryptoKey_base>, 1, "key");
 
     if (!cb.IsEmpty())
         hr = acb_exportKey(v0, v1.get(), cb, args);
@@ -145,11 +145,11 @@ inline void subtle_base::s_static_generateKey(const v8::FunctionCallbackInfo<v8:
 
     ASYNC_METHOD_ENTER("subtle.generateKey");
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "usages");
 
     ARG(Union_generateKey_algorithm, 0);
-    ARG(bool, 1);
-    ARG(v8::Local<v8::Array>, 2);
+    ARG_NAMED(bool, 1, "extractable");
+    ARG_NAMED(v8::Local<v8::Array>, 2, "usages");
 
     if (!cb.IsEmpty())
         hr = acb_generateKey(v0, v1, v2, cb, args);
@@ -165,13 +165,13 @@ inline void subtle_base::s_static_importKey(const v8::FunctionCallbackInfo<v8::V
 
     ASYNC_METHOD_ENTER("subtle.importKey");
 
-    METHOD_OVER(5, 5);
+    METHOD_OVER_NAMED(5, 5, "usages");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    ARG_NAMED(exlib::string, 0, "format");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "keyData");
     ARG(Union_importKey_algorithm, 2);
-    ARG(bool, 3);
-    ARG(v8::Local<v8::Array>, 4);
+    ARG_NAMED(bool, 3, "extractable");
+    ARG_NAMED(v8::Local<v8::Array>, 4, "usages");
 
     if (!cb.IsEmpty())
         hr = acb_importKey(v0, v1, v2, v3, v4, cb, args);
@@ -187,10 +187,10 @@ inline void subtle_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("subtle.sign");
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "data");
 
     ARG(Union_sign_algorithm, 0);
-    ARG(obj_ptr<CryptoKey_base>, 1);
+    ARG_NAMED(obj_ptr<CryptoKey_base>, 1, "key");
     ARG(Union_sign_data, 2);
 
     if (!cb.IsEmpty())
@@ -207,10 +207,10 @@ inline void subtle_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("subtle.verify");
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(4, 4, "data");
 
     ARG(Union_verify_algorithm, 0);
-    ARG(obj_ptr<CryptoKey_base>, 1);
+    ARG_NAMED(obj_ptr<CryptoKey_base>, 1, "key");
     ARG(Union_verify_signature, 2);
     ARG(Union_verify_data, 3);
 
@@ -228,11 +228,11 @@ inline void subtle_base::s_static_deriveBits(const v8::FunctionCallbackInfo<v8::
 
     ASYNC_METHOD_ENTER("subtle.deriveBits");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "baseKey");
 
     ARG(Union_deriveBits_algorithm, 0);
-    ARG(obj_ptr<CryptoKey_base>, 1);
-    OPT_ARG(int32_t, 2, -1);
+    ARG_NAMED(obj_ptr<CryptoKey_base>, 1, "baseKey");
+    OPT_ARG_NAMED(int32_t, 2, -1, "length");
 
     if (!cb.IsEmpty())
         hr = acb_deriveBits(v0, v1.get(), v2, cb, args);

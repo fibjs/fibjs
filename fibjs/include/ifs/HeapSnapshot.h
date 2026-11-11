@@ -88,9 +88,9 @@ inline void HeapSnapshot_base::s_diff(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(HeapSnapshot_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "before");
 
-    ARG(obj_ptr<HeapSnapshot_base>, 0);
+    ARG_NAMED(obj_ptr<HeapSnapshot_base>, 0, "before");
 
     hr = pInst->diff(v0.get(), vr);
 
@@ -104,9 +104,9 @@ inline void HeapSnapshot_base::s_getNodeById(const v8::FunctionCallbackInfo<v8::
     METHOD_INSTANCE(HeapSnapshot_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "id");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "id");
 
     hr = pInst->getNodeById(v0, vr);
 
@@ -118,9 +118,9 @@ inline void HeapSnapshot_base::s_save(const v8::FunctionCallbackInfo<v8::Value>&
     ASYNC_METHOD_INSTANCE(HeapSnapshot_base);
     ASYNC_METHOD_ENTER("HeapSnapshot.save");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fname");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "fname");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_save(v0, cb, args);

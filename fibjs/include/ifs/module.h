@@ -74,9 +74,9 @@ inline void module_base::s_static_createRequire(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "base");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "base");
 
     hr = createRequire(v0, vr);
 
@@ -104,7 +104,7 @@ inline void module_base::s_static_isBuiltin(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "id");
 
     hr = isBuiltin(v0, vr);
 
@@ -119,7 +119,7 @@ inline void module_base::s_static_enableCompileCache(const v8::FunctionCallbackI
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "cacheDir");
 
     hr = enableCompileCache(v0, vr);
 

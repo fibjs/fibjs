@@ -187,18 +187,18 @@ inline void child_process_base::s_static_spawn(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "args");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "args");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = spawn(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "command");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = spawn(v0, v1, vr);
 
@@ -211,10 +211,10 @@ inline void child_process_base::s_static_exec(const v8::FunctionCallbackInfo<v8:
 
     ASYNC_METHOD_ENTER("child_process.exec");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "command");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = acb_exec(v0, v1, cb, args);
@@ -230,21 +230,21 @@ inline void child_process_base::s_static_execFile(const v8::FunctionCallbackInfo
 
     ASYNC_METHOD_ENTER("child_process.execFile");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "args");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "args");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = acb_execFile(v0, v1, v2, cb, args);
     else
         hr = ac_execFile(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "command");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = acb_execFile(v0, v1, cb, args);
@@ -260,18 +260,18 @@ inline void child_process_base::s_static_spawnSync(const v8::FunctionCallbackInf
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "args");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "args");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = spawnSync(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "command");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = spawnSync(v0, v1, vr);
 
@@ -284,10 +284,10 @@ inline void child_process_base::s_static_execSync(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "command");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = execSync(v0, v1, vr);
 
@@ -300,18 +300,18 @@ inline void child_process_base::s_static_execFileSync(const v8::FunctionCallback
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "args");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "args");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = execFileSync(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "command");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = execFileSync(v0, v1, vr);
 
@@ -324,18 +324,18 @@ inline void child_process_base::s_static_fork(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "args");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "module");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "args");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = fork(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "module");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "module");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = fork(v0, v1, vr);
 
@@ -348,21 +348,21 @@ inline void child_process_base::s_static_run(const v8::FunctionCallbackInfo<v8::
 
     ASYNC_METHOD_ENTER("child_process.run");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "args");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "args");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = acb_run(v0, v1, v2, cb, args);
     else
         hr = ac_run(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "command");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "command");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = acb_run(v0, v1, cb, args);
@@ -378,9 +378,9 @@ inline void child_process_base::s_static_sh(const v8::FunctionCallbackInfo<v8::V
 
     ASYNC_METHOD_ENTER("child_process.sh");
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "strings");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "strings");
     ARG_LIST(1);
 
     if (!cb.IsEmpty())
@@ -397,10 +397,10 @@ inline void child_process_base::s_static_ssh(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "host");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "host");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = ssh(v0, v1, vr);
 

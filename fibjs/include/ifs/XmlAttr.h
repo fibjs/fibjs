@@ -121,7 +121,7 @@ inline void XmlAttr_base::s_set_value(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "value");
 
     hr = pInst->set_value(v0);
 
@@ -177,7 +177,7 @@ inline void XmlAttr_base::s_set_prefix(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "prefix");
 
     hr = pInst->set_prefix(v0);
 
@@ -219,7 +219,7 @@ inline void XmlAttr_base::s_set_nodeValue(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "nodeValue");
 
     hr = pInst->set_nodeValue(v0);
 

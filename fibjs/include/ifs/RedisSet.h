@@ -91,9 +91,9 @@ inline void RedisSet_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(RedisSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "members");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "members");
 
     hr = pInst->add(v0, vr);
 
@@ -113,9 +113,9 @@ inline void RedisSet_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(RedisSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "members");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "members");
 
     hr = pInst->remove(v0, vr);
 
@@ -149,7 +149,7 @@ inline void RedisSet_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(RedisSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "member");
 
     ARG(Union_exists_member, 0);
 
@@ -197,9 +197,9 @@ inline void RedisSet_base::s_randMember(const v8::FunctionCallbackInfo<v8::Value
 
     hr = pInst->randMember(vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "count");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "count");
 
     hr = pInst->randMember(v0, vr);
 

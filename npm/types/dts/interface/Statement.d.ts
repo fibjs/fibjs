@@ -84,7 +84,7 @@ declare class Class_Statement extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:
@@ -117,7 +117,7 @@ declare class Class_Statement extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:
@@ -150,7 +150,7 @@ declare class Class_Statement extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:
@@ -578,7 +578,7 @@ declare class Class_StatementPromise extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:
@@ -611,7 +611,7 @@ declare class Class_StatementPromise extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:
@@ -644,7 +644,7 @@ declare class Class_StatementPromise extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:

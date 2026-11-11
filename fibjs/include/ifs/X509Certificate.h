@@ -147,13 +147,13 @@ inline void X509Certificate_base::__new(const v8::FunctionCallbackInfo<v8::Value
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "cert");
 
     ARG(Union_X509Certificate_cert, 0);
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "certs");
 
     ARG(std::vector<Union_X509Certificate_certs>, 0);
 
@@ -168,13 +168,13 @@ inline result_t X509Certificate_base::load(v8::Local<v8::Value> v, obj_ptr<X509C
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "cert");
 
     ARG(Union_X509Certificate_cert, 0);
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "certs");
 
     ARG(std::vector<Union_X509Certificate_certs>, 0);
 
@@ -442,10 +442,10 @@ inline void X509Certificate_base::s_checkEmail(const v8::FunctionCallbackInfo<v8
     METHOD_INSTANCE(X509Certificate_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "email");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "email");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->checkEmail(v0, v1, vr);
 
@@ -459,10 +459,10 @@ inline void X509Certificate_base::s_checkHost(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(X509Certificate_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "name");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "name");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->checkHost(v0, v1, vr);
 
@@ -476,9 +476,9 @@ inline void X509Certificate_base::s_checkIP(const v8::FunctionCallbackInfo<v8::V
     METHOD_INSTANCE(X509Certificate_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "ip");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "ip");
 
     hr = pInst->checkIP(v0, vr);
 
@@ -492,7 +492,7 @@ inline void X509Certificate_base::s_checkIssued(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(X509Certificate_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "issuer");
 
     ARG(Union_checkIssued_issuer, 0);
 
@@ -508,9 +508,9 @@ inline void X509Certificate_base::s_checkPrivateKey(const v8::FunctionCallbackIn
     METHOD_INSTANCE(X509Certificate_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "privateKey");
 
-    ARG(obj_ptr<KeyObject_base>, 0);
+    ARG_NAMED(obj_ptr<KeyObject_base>, 0, "privateKey");
 
     hr = pInst->checkPrivateKey(v0.get(), vr);
 
@@ -524,9 +524,9 @@ inline void X509Certificate_base::s_verify(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(X509Certificate_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "publicKey");
 
-    ARG(obj_ptr<KeyObject_base>, 0);
+    ARG_NAMED(obj_ptr<KeyObject_base>, 0, "publicKey");
 
     hr = pInst->verify(v0.get(), vr);
 

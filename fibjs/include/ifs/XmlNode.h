@@ -228,7 +228,7 @@ inline void XmlNode_base::s_set_nodeValue(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "nodeValue");
 
     hr = pInst->set_nodeValue(v0);
 
@@ -452,7 +452,7 @@ inline void XmlNode_base::s_set_textContent(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "textContent");
 
     hr = pInst->set_textContent(v0);
 
@@ -480,7 +480,7 @@ inline void XmlNode_base::s_cloneNode(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(bool, 0, true);
+    OPT_ARG_NAMED(bool, 0, true, "deep");
 
     hr = pInst->cloneNode(v0, vr);
 
@@ -494,9 +494,9 @@ inline void XmlNode_base::s_lookupPrefix(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(XmlNode_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "namespaceURI");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "namespaceURI");
 
     hr = pInst->lookupPrefix(v0, vr);
 
@@ -510,9 +510,9 @@ inline void XmlNode_base::s_lookupNamespaceURI(const v8::FunctionCallbackInfo<v8
     METHOD_INSTANCE(XmlNode_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "prefix");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "prefix");
 
     hr = pInst->lookupNamespaceURI(v0, vr);
 
@@ -526,10 +526,10 @@ inline void XmlNode_base::s_insertBefore(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(XmlNode_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "refChild");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
-    ARG(obj_ptr<XmlNode_base>, 1);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "newChild");
+    ARG_NAMED(obj_ptr<XmlNode_base>, 1, "refChild");
 
     hr = pInst->insertBefore(v0.get(), v1.get(), vr);
 
@@ -543,10 +543,10 @@ inline void XmlNode_base::s_insertAfter(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(XmlNode_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "refChild");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
-    ARG(obj_ptr<XmlNode_base>, 1);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "newChild");
+    ARG_NAMED(obj_ptr<XmlNode_base>, 1, "refChild");
 
     hr = pInst->insertAfter(v0.get(), v1.get(), vr);
 
@@ -560,9 +560,9 @@ inline void XmlNode_base::s_appendChild(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(XmlNode_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "newChild");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "newChild");
 
     hr = pInst->appendChild(v0.get(), vr);
 
@@ -576,10 +576,10 @@ inline void XmlNode_base::s_replaceChild(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(XmlNode_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "oldChild");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
-    ARG(obj_ptr<XmlNode_base>, 1);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "newChild");
+    ARG_NAMED(obj_ptr<XmlNode_base>, 1, "oldChild");
 
     hr = pInst->replaceChild(v0.get(), v1.get(), vr);
 
@@ -593,9 +593,9 @@ inline void XmlNode_base::s_removeChild(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(XmlNode_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "oldChild");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "oldChild");
 
     hr = pInst->removeChild(v0.get(), vr);
 
@@ -665,9 +665,9 @@ inline void XmlNode_base::s_contains(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(XmlNode_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "node");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "node");
 
     hr = pInst->contains(v0.get(), vr);
 
@@ -709,9 +709,9 @@ inline void XmlNode_base::s_compareDocumentPosition(const v8::FunctionCallbackIn
     METHOD_INSTANCE(XmlNode_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "other");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "other");
 
     hr = pInst->compareDocumentPosition(v0.get(), vr);
 
@@ -725,9 +725,9 @@ inline void XmlNode_base::s_isEqualNode(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(XmlNode_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "other");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "other");
 
     hr = pInst->isEqualNode(v0.get(), vr);
 
@@ -741,9 +741,9 @@ inline void XmlNode_base::s_isSameNode(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(XmlNode_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "other");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "other");
 
     hr = pInst->isSameNode(v0.get(), vr);
 

@@ -108,7 +108,7 @@ inline void SQLite_base::s_set_timeout(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "timeout");
 
     hr = pInst->set_timeout(v0);
 
@@ -120,9 +120,9 @@ inline void SQLite_base::s_backup(const v8::FunctionCallbackInfo<v8::Value>& arg
     ASYNC_METHOD_INSTANCE(SQLite_base);
     ASYNC_METHOD_ENTER("SQLite.backup");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fileName");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "fileName");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_backup(v0, cb, args);

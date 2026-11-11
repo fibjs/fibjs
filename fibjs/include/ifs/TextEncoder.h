@@ -99,8 +99,8 @@ inline void TextEncoder_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(exlib::string, 0, "utf8");
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(exlib::string, 0, "utf8", "codec");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -115,8 +115,8 @@ inline result_t TextEncoder_base::load(v8::Local<v8::Value> v, obj_ptr<TextEncod
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(exlib::string, 0, "utf8");
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(exlib::string, 0, "utf8", "codec");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -132,8 +132,8 @@ inline void TextEncoder_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(exlib::string, 0, "");
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(exlib::string, 0, "", "data");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = pInst->encode(v0, v1, vr);
 
@@ -147,10 +147,10 @@ inline void TextEncoder_base::s_encodeInto(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(TextEncoder_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "destination");
 
-    ARG(exlib::string, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG_NAMED(exlib::string, 0, "source");
+    ARG_NAMED(obj_ptr<Buffer_base>, 1, "destination");
 
     hr = pInst->encodeInto(v0, v1.get(), vr);
 

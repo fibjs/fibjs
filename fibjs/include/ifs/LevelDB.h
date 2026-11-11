@@ -126,7 +126,7 @@ inline void LevelDB_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
     ASYNC_METHOD_INSTANCE(LevelDB_base);
     ASYNC_METHOD_ENTER("LevelDB.has");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_has_key, 0);
 
@@ -145,7 +145,7 @@ inline void LevelDB_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
     ASYNC_METHOD_INSTANCE(LevelDB_base);
     ASYNC_METHOD_ENTER("LevelDB.get");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_get_key, 0);
 
@@ -164,9 +164,9 @@ inline void LevelDB_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(LevelDB_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "keys");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "keys");
 
     hr = pInst->mget(v0, vr);
 
@@ -178,7 +178,7 @@ inline void LevelDB_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     ASYNC_METHOD_INSTANCE(LevelDB_base);
     ASYNC_METHOD_ENTER("LevelDB.set");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
     ARG(Union_set_key, 0);
     ARG(Union_set_value, 1);
@@ -196,9 +196,9 @@ inline void LevelDB_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(LevelDB_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->mset(v0);
 
@@ -210,9 +210,9 @@ inline void LevelDB_base::s_mremove(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(LevelDB_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "keys");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "keys");
 
     hr = pInst->mremove(v0);
 
@@ -224,7 +224,7 @@ inline void LevelDB_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& ar
     ASYNC_METHOD_INSTANCE(LevelDB_base);
     ASYNC_METHOD_ENTER("LevelDB.remove");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_remove_key, 0);
 
@@ -275,48 +275,48 @@ inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(LevelDB_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "func");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "func");
 
     hr = pInst->forEach(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
     ARG(Union_forEach_from, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->forEach(v0, v1);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "opt");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->forEach(v0, v1);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "func");
 
     ARG(Union_forEach_from, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opt");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "func");
 
     hr = pInst->forEach(v0, v1, v2);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "func");
 
     ARG(Union_forEach_from, 0);
     ARG(Union_forEach_to, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(v8::Local<v8::Function>, 2, "func");
 
     hr = pInst->forEach(v0, v1, v2);
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(4, 4, "func");
 
     ARG(Union_forEach_from, 0);
     ARG(Union_forEach_to, 1);
-    ARG(v8::Local<v8::Object>, 2);
-    ARG(v8::Local<v8::Function>, 3);
+    ARG_NAMED(v8::Local<v8::Object>, 2, "opt");
+    ARG_NAMED(v8::Local<v8::Function>, 3, "func");
 
     hr = pInst->forEach(v0, v1, v2, v3);
 

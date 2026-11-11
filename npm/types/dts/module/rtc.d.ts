@@ -239,7 +239,7 @@ declare module 'rtc' {
      *      console.log('released');
      *      ```
      *
-     *      Throws 20024 when a PeerConnection was already created, when the mux is already bound, or
+     *      Throws ERR_INVALID_STATE when a PeerConnection was already created, when the mux is already bound, or
      *      when the address or port cannot be used.
      *
      *      @param bind_address binding address, empty to listen on all interfaces
@@ -359,7 +359,7 @@ declare module 'rtc' {
      *
      *      Gets or sets the log level of the underlying WebRTC library; the new level takes effect
      *      immediately. The following levels are accepted: `none` (the default, no output), `error`,
-     *      `warning`, `info`, `debug`, `verbose` and `fatal`. An unknown value throws 20024 and leaves
+     *      `warning`, `info`, `debug`, `verbose` and `fatal`. An unknown value throws ERR_INVALID_STATE and leaves
      *      the previous level unchanged.
      *
      *      Example — raise the level, then reject an unknown value:

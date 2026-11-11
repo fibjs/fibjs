@@ -25,7 +25,7 @@
  *    the application cannot request it at a chosen queue level.
  *  - **Life cycle**: a channel exists before the transport is ready, opens only after ICE and DTLS
  *    complete, and closes by `close()`, by the peer, or by closing the connection. Sending outside
- *    the open state throws 20024, and the `close` event reports either side closing.
+ *    the open state throws ERR_INVALID_STATE, and the `close` event reports either side closing.
  *
  *  Obtained from:
  *  - `RTCPeerConnection#createDataChannel` — the local side creates the channel;
@@ -147,8 +147,8 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      *      A `Buffer` is sent as binary data and a `String` is encoded as utf8 and sent as text data;
      *      the peer receives the same kind in the `data` property of the `message` event. The message is
      *      queued on the channel and the call returns immediately; `bufferedAmount` reports how much is
-     *      still queued. Sending before the channel is open throws 20024 (`DataChannel not open`),
-     *      sending after it is closed throws 20024 (`DataChannel is closed`), and an argument of any
+     *      still queued. Sending before the channel is open throws ERR_INVALID_STATE (`DataChannel not open`),
+     *      sending after it is closed throws ERR_INVALID_STATE (`DataChannel is closed`), and an argument of any
      *      other type throws 20005.
      *
      *      Example — walk the states of a fresh channel:
@@ -181,7 +181,7 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      * @description closes the channel
      *
      *      Closes the channel in both directions: data already queued may still be delivered, the peer
-     *      sees its `close` event and afterwards `send` throws 20024. Closing an already closed channel
+     *      sees its `close` event and afterwards `send` throws ERR_INVALID_STATE. Closing an already closed channel
      *      is a no-op, and closing a channel does not close its connection or the other channels.
      *
      */
@@ -307,7 +307,7 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      * @description channel close event, emitted when the channel is closed
      *
      *      Fired when the channel is closed, whether by the local `close()` call or by the peer. The
-     *      event carries no payload; after it, `send` throws 20024.
+     *      event carries no payload; after it, `send` throws ERR_INVALID_STATE.
      *
      */
     on(event: "close", listener: ()=>void): this;
@@ -332,7 +332,7 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      * @description channel close event, emitted when the channel is closed
      *
      *      Fired when the channel is closed, whether by the local `close()` call or by the peer. The
-     *      event carries no payload; after it, `send` throws 20024.
+     *      event carries no payload; after it, `send` throws ERR_INVALID_STATE.
      *
      */
     onclose: (()=>void) | null;

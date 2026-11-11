@@ -197,7 +197,7 @@
  *    response arrives.
  *  - `maxChunkSize` (default 2 MB) limits one chunk of a chunked message; `maxBodySize` (default -1)
  *    limits the whole body in MB and `maxHeadersCount`/`maxHeaderSize` limit the request headers.
- *    A body that exceeds `maxBodySize` fails with error 20024.
+ *    A body that exceeds `maxBodySize` fails with ERR_INVALID_STATE.
  *  - `http.cookies`, the module properties and the module-level request functions all operate on one
  *    hidden global client, so `http.cookies` only contains the cookies collected through them.
  *  - `fileHandler` generates `Cache-Control`, `Last-Modified` and the gzip variants of files when
@@ -517,7 +517,7 @@ declare module 'http' {
     /**
      * @description Queries and sets the maximum body size in MB, default -1, no size limit
      *
-     *      A response whose body exceeds the limit fails with error number 20024; 0 rejects every
+     *      A response whose body exceeds the limit fails with ERR_INVALID_STATE; 0 rejects every
      *      body. Requests with a body larger than the limit are also rejected. A HEAD response is
      *      exempt because it has no body.
      *

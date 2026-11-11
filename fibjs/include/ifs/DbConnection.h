@@ -150,9 +150,9 @@ inline void DbConnection_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(DbConnection_base);
     ASYNC_METHOD_ENTER("DbConnection.use");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "dbName");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "dbName");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_use(v0, cb, args);
@@ -186,9 +186,9 @@ inline void DbConnection_base::s_getTableInfo(const v8::FunctionCallbackInfo<v8:
     ASYNC_METHOD_INSTANCE(DbConnection_base);
     ASYNC_METHOD_ENTER("DbConnection.getTableInfo");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "tableName");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "tableName");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_getTableInfo(v0, cb, args);
@@ -205,7 +205,7 @@ inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "point");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_begin(v0, cb, args);
@@ -222,7 +222,7 @@ inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "point");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_commit(v0, cb, args);
@@ -239,7 +239,7 @@ inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "point");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_rollback(v0, cb, args);
@@ -256,16 +256,16 @@ inline void DbConnection_base::s_trans(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "func");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "func");
 
     hr = pInst->trans(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "point");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->trans(v0, v1, vr);
 
@@ -279,18 +279,18 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
     ASYNC_METHOD_INSTANCE(DbConnection_base);
     ASYNC_METHOD_ENTER("DbConnection.execute");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "sql");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "sql");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_execute(v0, cb, args);
     else
         hr = pInst->ac_execute(v0, vr);
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "sql");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "sql");
     ARG_LIST(1);
 
     if (!cb.IsEmpty())
@@ -308,9 +308,9 @@ inline void DbConnection_base::s_format(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "sql");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "sql");
     ARG_LIST(1);
 
     hr = pInst->format(v0, v1, vr);
@@ -325,9 +325,9 @@ inline void DbConnection_base::s_prepare(const v8::FunctionCallbackInfo<v8::Valu
     ASYNC_METHOD_INSTANCE(DbConnection_base);
     ASYNC_METHOD_ENTER("DbConnection.prepare");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "sql");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "sql");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_prepare(v0, cb, args);
@@ -344,9 +344,9 @@ inline void DbConnection_base::s_iterate(const v8::FunctionCallbackInfo<v8::Valu
     ASYNC_METHOD_INSTANCE(DbConnection_base);
     ASYNC_METHOD_ENTER("DbConnection.iterate");
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "sql");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "sql");
     ARG_LIST(1);
 
     if (!cb.IsEmpty())

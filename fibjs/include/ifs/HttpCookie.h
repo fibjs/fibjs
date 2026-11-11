@@ -110,15 +110,15 @@ inline void HttpCookie_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "value");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(exlib::string, 1, "value");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, v2, vr, args.This());
 
@@ -133,7 +133,7 @@ inline result_t HttpCookie_base::load(v8::Local<v8::Value> v, obj_ptr<HttpCookie
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, vr, args.This());
 
@@ -145,9 +145,9 @@ inline void HttpCookie_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(HttpCookie_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "header");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "header");
 
     hr = pInst->parse(v0);
 
@@ -159,9 +159,9 @@ inline void HttpCookie_base::s_parseRaw(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(HttpCookie_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "header");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "header");
 
     hr = pInst->parseRaw(v0);
 
@@ -175,9 +175,9 @@ inline void HttpCookie_base::s_match(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(HttpCookie_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "url");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "url");
 
     hr = pInst->match(v0, vr);
 
@@ -205,7 +205,7 @@ inline void HttpCookie_base::s_set_name(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->set_name(v0);
 
@@ -233,7 +233,7 @@ inline void HttpCookie_base::s_set_value(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "value");
 
     hr = pInst->set_value(v0);
 
@@ -261,7 +261,7 @@ inline void HttpCookie_base::s_set_domain(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "domain");
 
     hr = pInst->set_domain(v0);
 
@@ -289,7 +289,7 @@ inline void HttpCookie_base::s_set_path(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     hr = pInst->set_path(v0);
 
@@ -317,7 +317,7 @@ inline void HttpCookie_base::s_set_expires(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(date_t, 0);
+    ARG_NAMED(date_t, 0, "expires");
 
     hr = pInst->set_expires(v0);
 
@@ -345,7 +345,7 @@ inline void HttpCookie_base::s_set_httpOnly(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "httpOnly");
 
     hr = pInst->set_httpOnly(v0);
 
@@ -373,7 +373,7 @@ inline void HttpCookie_base::s_set_secure(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "secure");
 
     hr = pInst->set_secure(v0);
 

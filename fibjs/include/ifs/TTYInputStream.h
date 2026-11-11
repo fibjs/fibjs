@@ -84,10 +84,10 @@ inline void TTYInputStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fd");
 
     ARG(Union_TTYInputStream_fd, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -100,10 +100,10 @@ inline result_t TTYInputStream_base::load(v8::Local<v8::Value> v, obj_ptr<TTYInp
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fd");
 
     ARG(Union_TTYInputStream_fd, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -159,9 +159,9 @@ inline void TTYInputStream_base::s_setRawMode(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(TTYInputStream_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "isRawMode");
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "isRawMode");
 
     hr = pInst->setRawMode(v0, vr);
 

@@ -253,17 +253,17 @@ inline void SecureContext_base::s_setSNIContext(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(SecureContext_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "context");
 
-    ARG(exlib::string, 0);
-    ARG(obj_ptr<SecureContext_base>, 1);
+    ARG_NAMED(exlib::string, 0, "servername");
+    ARG_NAMED(obj_ptr<SecureContext_base>, 1, "context");
 
     hr = pInst->setSNIContext(v0, v1.get());
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "options");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG_NAMED(exlib::string, 0, "servername");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
 
     hr = pInst->setSNIContext(v0, v1);
 
@@ -277,10 +277,10 @@ inline void SecureContext_base::s_getSNIContext(const v8::FunctionCallbackInfo<v
     ASYNC_METHOD_INSTANCE(SecureContext_base);
     ASYNC_METHOD_ENTER("SecureContext.getSNIContext");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "servername");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(bool, 1, false);
+    ARG_NAMED(exlib::string, 0, "servername");
+    OPT_ARG_NAMED(bool, 1, false, "auto_resolve");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_getSNIContext(v0, v1, cb, args);
@@ -295,9 +295,9 @@ inline void SecureContext_base::s_removeSNIContext(const v8::FunctionCallbackInf
     METHOD_INSTANCE(SecureContext_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "servername");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "servername");
 
     hr = pInst->removeSNIContext(v0);
 

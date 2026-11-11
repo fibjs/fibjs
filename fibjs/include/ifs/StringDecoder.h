@@ -107,7 +107,7 @@ inline void StringDecoder_base::__new(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "utf8");
+    OPT_ARG_NAMED(exlib::string, 0, "utf8", "encoding");
 
     hr = _new(v0, vr, args.This());
 
@@ -122,7 +122,7 @@ inline result_t StringDecoder_base::load(v8::Local<v8::Value> v, obj_ptr<StringD
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "utf8");
+    OPT_ARG_NAMED(exlib::string, 0, "utf8", "encoding");
 
     hr = _new(v0, vr, args.This());
 
@@ -138,7 +138,7 @@ inline void StringDecoder_base::s_end(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(Union_end_buf, 0, exlib::string(""));
+    OPT_ARG_NAMED(Union_end_buf, 0, exlib::string(""), "buf");
 
     hr = pInst->end(v0, vr);
 
@@ -152,7 +152,7 @@ inline void StringDecoder_base::s_write(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(StringDecoder_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "buf");
 
     ARG(Union_write_buf, 0);
 
@@ -168,10 +168,10 @@ inline void StringDecoder_base::s_text(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(StringDecoder_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "offset");
 
     ARG(Union_text_buf, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 1, "offset");
 
     hr = pInst->text(v0, v1, vr);
 
@@ -185,7 +185,7 @@ inline void StringDecoder_base::s_fillLast(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(StringDecoder_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "buf");
 
     ARG(Union_fillLast_buf, 0);
 
@@ -215,7 +215,7 @@ inline void StringDecoder_base::s_set_lastNeed(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "lastNeed");
 
     hr = pInst->set_lastNeed(v0);
 
@@ -243,7 +243,7 @@ inline void StringDecoder_base::s_set_lastTotal(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "lastTotal");
 
     hr = pInst->set_lastTotal(v0);
 
@@ -271,7 +271,7 @@ inline void StringDecoder_base::s_set_lastChar(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "lastChar");
 
     hr = pInst->set_lastChar(v0);
 
@@ -299,7 +299,7 @@ inline void StringDecoder_base::s_set_encoding(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "encoding");
 
     hr = pInst->set_encoding(v0);
 

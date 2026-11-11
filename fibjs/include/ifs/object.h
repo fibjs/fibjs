@@ -82,7 +82,7 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "key");
 
     hr = pInst->toJSON(v0, vr);
 

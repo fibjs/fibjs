@@ -98,10 +98,10 @@ inline void Worker_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "path");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -114,10 +114,10 @@ inline result_t Worker_base::load(v8::Local<v8::Value> v, obj_ptr<Worker_base>& 
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "path");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -143,16 +143,16 @@ inline void Worker_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(Worker_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "data");
 
     hr = pInst->postMessage(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "transfer");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Array>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "data");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "transfer");
 
     hr = pInst->postMessage(v0, v1);
 
@@ -221,7 +221,7 @@ inline void Worker_base::s_set_ononline(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "ononline");
 
     hr = pInst->setListener("online", v0);
 
@@ -249,7 +249,7 @@ inline void Worker_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onmessage");
 
     hr = pInst->setListener("message", v0);
 
@@ -277,7 +277,7 @@ inline void Worker_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onerror");
 
     hr = pInst->setListener("error", v0);
 
@@ -305,7 +305,7 @@ inline void Worker_base::s_set_onexit(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onexit");
 
     hr = pInst->setListener("exit", v0);
 

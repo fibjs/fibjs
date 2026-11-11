@@ -111,9 +111,9 @@ inline void encoding_base::s_static_isEncoding(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "codec");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "codec");
 
     hr = isEncoding(v0, vr);
 
@@ -126,10 +126,10 @@ inline void encoding_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_encode_data, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "codec");
 
     hr = encode(v0, v1, vr);
 
@@ -142,10 +142,10 @@ inline void encoding_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "str");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    ARG_NAMED(exlib::string, 0, "str");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "codec");
 
     hr = decode(v0, v1, vr);
 
@@ -158,10 +158,10 @@ inline void encoding_base::s_static_jsstr(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "str");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(bool, 1, false);
+    ARG_NAMED(exlib::string, 0, "str");
+    OPT_ARG_NAMED(bool, 1, false, "json");
 
     hr = jsstr(v0, v1, vr);
 
@@ -174,9 +174,9 @@ inline void encoding_base::s_static_encodeURI(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "url");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "url");
 
     hr = encodeURI(v0, vr);
 
@@ -189,10 +189,10 @@ inline void encoding_base::s_static_encodeURIComponent(const v8::FunctionCallbac
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(bool, 1, false);
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(bool, 1, false, "formEncoded");
 
     hr = encodeURIComponent(v0, v1, vr);
 
@@ -205,9 +205,9 @@ inline void encoding_base::s_static_decodeURI(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "url");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "url");
 
     hr = decodeURI(v0, vr);
 

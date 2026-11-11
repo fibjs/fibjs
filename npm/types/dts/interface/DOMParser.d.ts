@@ -19,14 +19,14 @@
  *  - **MIME gate**: only the exact strings text/html, text/xml, application/xml,
  *    application/xhtml+xml and image/svg+xml are accepted (the four XML variants parse
  *    identically as XML). The comparison is case-sensitive and rejects parameters, so 'TEXT/XML'
- *    or 'text/xml; charset=utf-8' throw Error [20024].
- *  - **Parse errors**: an XML syntax error throws Error [20024] with the parser location
+ *    or 'text/xml; charset=utf-8' throw Error [ERR_INVALID_STATE].
+ *  - **Parse errors**: an XML syntax error throws Error [ERR_INVALID_STATE] with the parser location
  *    ("XmlParser: error on line N at column M: ..."), where browsers instead return a document
  *    containing a parsererror element. HTML parsing is tolerant and rarely fails.
  *  - **Parse limits**: the third options argument is an extension over the two-argument MDN
  *    signature; it accepts maxElementDepth (default 1000) and maxNodeCount (default 1000000),
  *    exactly like xml.parse. A value of 0, a negative value or Infinity disables the limit,
- *    exceeding one throws Error [20024], and a non-numeric option throws TypeError [20004].
+ *    exceeding one throws Error [ERR_INVALID_STATE], and a non-numeric option throws TypeError [20004].
  *
  *  Obtained from:
  *  - `new DOMParser()` — the constructor takes no arguments; the global also lets code recognize
@@ -66,7 +66,8 @@
  *  try {
  *      parser.parseFromString('<a><b/></a>', 'text/xml', { maxElementDepth: 1 });
  *  } catch (e) {
- *      console.log(e.number); // 20024
+ *      console.log(e.code);  // ERR_OUT_OF_RANGE
+ *      console.log(e.number); // 20013
  *  }
  *  ```
  *
@@ -92,7 +93,7 @@ declare class Class_DOMParser extends Class_object {
      * @description Parses a string into a DOM document
      *
      *      The MIME type selects the parser and must be one of the five exact strings listed by the
-     *      class description; invalid values throw Error [20024]. Invalid XML throws Error [20024]
+     *      class description; invalid values throw Error [ERR_INVALID_STATE]. Invalid XML throws Error [ERR_INVALID_STATE]
      *      with the parser location as well. The optional options argument is a fibjs extension that
      *      overrides the parse limits of xml.parse.
      *

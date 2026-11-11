@@ -87,9 +87,9 @@ inline void sse_base::s_static_upgrade(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "accept");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "accept");
 
     hr = upgrade(v0, vr);
 

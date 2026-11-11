@@ -143,10 +143,10 @@ inline void ConsoleObject_base::__new(const v8::FunctionCallbackInfo<v8::Value>&
 
     hr = _new(vr, args.This());
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "out");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "out");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "err");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -159,10 +159,10 @@ inline result_t ConsoleObject_base::load(v8::Local<v8::Value> v, obj_ptr<Console
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "out");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "out");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "err");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -370,10 +370,10 @@ inline void ConsoleObject_base::s_dir(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "obj");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "obj");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->dir(v0, v1);
 
@@ -385,16 +385,16 @@ inline void ConsoleObject_base::s_table(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(ConsoleObject_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "obj");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "obj");
 
     hr = pInst->table(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "fields");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Array>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "obj");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "fields");
 
     hr = pInst->table(v0, v1);
 
@@ -408,7 +408,7 @@ inline void ConsoleObject_base::s_time(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "time");
+    OPT_ARG_NAMED(exlib::string, 0, "time", "label");
 
     hr = pInst->time(v0);
 
@@ -422,7 +422,7 @@ inline void ConsoleObject_base::s_timeElapse(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "time");
+    OPT_ARG_NAMED(exlib::string, 0, "time", "label");
 
     hr = pInst->timeElapse(v0);
 
@@ -436,7 +436,7 @@ inline void ConsoleObject_base::s_timeEnd(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "time");
+    OPT_ARG_NAMED(exlib::string, 0, "time", "label");
 
     hr = pInst->timeEnd(v0);
 
@@ -450,7 +450,7 @@ inline void ConsoleObject_base::s_timeLog(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(-1, 0);
 
-    OPT_ARG(exlib::string, 0, "time");
+    OPT_ARG_NAMED(exlib::string, 0, "time", "label");
     ARG_LIST(1);
 
     hr = pInst->timeLog(v0, v1);
@@ -465,7 +465,7 @@ inline void ConsoleObject_base::s_count(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "default");
+    OPT_ARG_NAMED(exlib::string, 0, "default", "label");
 
     hr = pInst->count(v0);
 
@@ -479,7 +479,7 @@ inline void ConsoleObject_base::s_countReset(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "default");
+    OPT_ARG_NAMED(exlib::string, 0, "default", "label");
 
     hr = pInst->countReset(v0);
 

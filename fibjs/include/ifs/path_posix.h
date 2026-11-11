@@ -142,9 +142,9 @@ inline void path_posix_base::s_static_normalize(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     hr = normalize(v0, vr);
 
@@ -157,10 +157,10 @@ inline void path_posix_base::s_static_basename(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "path");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(exlib::string, 1, "", "ext");
 
     hr = basename(v0, v1, vr);
 
@@ -173,9 +173,9 @@ inline void path_posix_base::s_static_extname(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     hr = extname(v0, vr);
 
@@ -188,9 +188,9 @@ inline void path_posix_base::s_static_format(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "pathObject");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "pathObject");
 
     hr = format(v0, vr);
 
@@ -203,9 +203,9 @@ inline void path_posix_base::s_static_parse(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     hr = parse(v0, vr);
 
@@ -218,9 +218,9 @@ inline void path_posix_base::s_static_dirname(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     hr = dirname(v0, vr);
 
@@ -233,9 +233,9 @@ inline void path_posix_base::s_static_fullpath(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     hr = fullpath(v0, vr);
 
@@ -248,10 +248,10 @@ inline void path_posix_base::s_static_matchesGlob(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "pattern");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(exlib::string, 1, "pattern");
 
     hr = matchesGlob(v0, v1, vr);
 
@@ -264,9 +264,9 @@ inline void path_posix_base::s_static_isAbsolute(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     hr = isAbsolute(v0, vr);
 
@@ -309,10 +309,10 @@ inline void path_posix_base::s_static_relative(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "to");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "_from");
+    ARG_NAMED(exlib::string, 1, "to");
 
     hr = relative(v0, v1, vr);
 
@@ -327,7 +327,7 @@ inline void path_posix_base::s_static_toNamespacedPath(const v8::FunctionCallbac
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "path");
 
     hr = toNamespacedPath(v0, vr);
 

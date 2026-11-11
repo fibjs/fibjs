@@ -85,11 +85,11 @@ inline void io_base::s_static_copyStream(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("io.copyStream");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "to");
 
-    ARG(obj_ptr<Stream_base>, 0);
-    ARG(obj_ptr<Stream_base>, 1);
-    OPT_ARG(int64_t, 2, -1);
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "from");
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "to");
+    OPT_ARG_NAMED(int64_t, 2, -1, "bytes");
 
     if (!cb.IsEmpty())
         hr = acb_copyStream(v0.get(), v1.get(), v2, cb, args);
@@ -103,10 +103,10 @@ inline void io_base::s_static_bridge(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER("io.bridge");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "stm2");
 
-    ARG(obj_ptr<Stream_base>, 0);
-    ARG(obj_ptr<Stream_base>, 1);
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "stm1");
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm2");
 
     if (!cb.IsEmpty())
         hr = acb_bridge(v0.get(), v1.get(), cb, args);

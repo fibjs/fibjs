@@ -133,7 +133,7 @@ inline void StreamReader_base::s_cancel(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "reason");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_cancel(v0, cb, args);

@@ -176,9 +176,9 @@ inline void FileHandle_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fd");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "fd");
 
     hr = _new(v0, vr, args.This());
 
@@ -191,9 +191,9 @@ inline result_t FileHandle_base::load(v8::Local<v8::Value> v, obj_ptr<FileHandle
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fd");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "fd");
 
     hr = _new(v0, vr, args.This());
 
@@ -219,9 +219,9 @@ inline void FileHandle_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(FileHandle_base);
     ASYNC_METHOD_ENTER("FileHandle.chmod");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "mode");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "mode");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_chmod(v0, cb, args);
@@ -255,21 +255,21 @@ inline void FileHandle_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& a
     ASYNC_METHOD_INSTANCE(FileHandle_base);
     ASYNC_METHOD_ENTER("FileHandle.read");
 
-    METHOD_OVER(4, 1);
+    METHOD_OVER_NAMED(4, 1, "buffer");
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, 0);
-    OPT_ARG(int32_t, 3, -1);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "buffer");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 2, 0, "length");
+    OPT_ARG_NAMED(int32_t, 3, -1, "position");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_read(v0.get(), v1, v2, v3, cb, args);
     else
         hr = pInst->ac_read(v0.get(), v1, v2, v3, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_read(v0, cb, args);
@@ -286,23 +286,23 @@ inline void FileHandle_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(FileHandle_base);
     ASYNC_METHOD_ENTER("FileHandle.write");
 
-    METHOD_OVER(4, 1);
+    METHOD_OVER_NAMED(4, 1, "buffer");
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
-    OPT_ARG(int32_t, 3, -1);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "buffer");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 2, -1, "length");
+    OPT_ARG_NAMED(int32_t, 3, -1, "position");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_write(v0.get(), v1, v2, v3, cb, args);
     else
         hr = pInst->ac_write(v0.get(), v1, v2, v3, vr);
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "string");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, -1);
-    OPT_ARG(exlib::string, 2, "utf8");
+    ARG_NAMED(exlib::string, 0, "string");
+    OPT_ARG_NAMED(int32_t, 1, -1, "position");
+    OPT_ARG_NAMED(exlib::string, 2, "utf8", "encoding");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_write(v0, v1, v2, cb, args);
@@ -321,7 +321,7 @@ inline void FileHandle_base::s_readFile(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(Union_readFile_options, 0, exlib::string(""));
+    OPT_ARG_NAMED(Union_readFile_options, 0, exlib::string(""), "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_readFile(v0, cb, args);
@@ -338,10 +338,10 @@ inline void FileHandle_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Valu
     ASYNC_METHOD_INSTANCE(FileHandle_base);
     ASYNC_METHOD_ENTER("FileHandle.writeFile");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_writeFile_data, 0);
-    OPT_ARG(Union_writeFile_opt, 1, exlib::string("utf8"));
+    OPT_ARG_NAMED(Union_writeFile_opt, 1, exlib::string("utf8"), "opt");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_writeFile(v0, v1, cb, args);
@@ -356,10 +356,10 @@ inline void FileHandle_base::s_utimes(const v8::FunctionCallbackInfo<v8::Value>&
     ASYNC_METHOD_INSTANCE(FileHandle_base);
     ASYNC_METHOD_ENTER("FileHandle.utimes");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "mtime");
 
-    ARG(Variant, 0);
-    ARG(Variant, 1);
+    ARG_NAMED(Variant, 0, "atime");
+    ARG_NAMED(Variant, 1, "mtime");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_utimes(v0, v1, cb, args);
@@ -374,10 +374,10 @@ inline void FileHandle_base::s_chown(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(FileHandle_base);
     ASYNC_METHOD_ENTER("FileHandle.chown");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "gid");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "uid");
+    ARG_NAMED(int32_t, 1, "gid");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_chown(v0, v1, cb, args);
@@ -424,7 +424,7 @@ inline void FileHandle_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "len");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_truncate(v0, cb, args);
@@ -441,7 +441,7 @@ inline void FileHandle_base::s_appendFile(const v8::FunctionCallbackInfo<v8::Val
     ASYNC_METHOD_INSTANCE(FileHandle_base);
     ASYNC_METHOD_ENTER("FileHandle.appendFile");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
     ARG(Union_appendFile_data, 0);
 

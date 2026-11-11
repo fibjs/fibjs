@@ -1131,7 +1131,7 @@ declare module 'util' {
      *
      *      Flattens nested arrays (and array-like objects) into a single-level array at
      *      any depth; shallow = true flattens one level only. Circular references
-     *      throw error 20024 ("util: circular reference object.") and non-objects throw
+     *      throw ERR_INVALID_STATE ("util: circular reference object.") and non-objects throw
      *      TypeError 20004.
      *
      *      @param arr the array to convert

@@ -79,7 +79,7 @@ inline void Headers_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     hr = _new(vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "init");
 
     ARG(Union_Headers_init, 0);
 
@@ -94,7 +94,7 @@ inline result_t Headers_base::load(v8::Local<v8::Value> v, obj_ptr<Headers_base>
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "init");
 
     ARG(Union_Headers_init_load, 0);
 

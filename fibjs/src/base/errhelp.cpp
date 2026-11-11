@@ -122,5 +122,182 @@ result_t closed(const char* code, const char* message)
         .with_message(message);
 }
 
+result_t from_conversion(result_t hr, const char* name, const Variant& received,
+    bool strict)
+{
+    // Only the three conversion outcomes are relabelled. Anything else (a
+    // getter that threw, a null dereference inside the conversion) keeps its
+    // own diagnosis instead of being reported as a bad argument.
+    const bool type_bad = hr.is_type_mismatch() || hr.is_bad_var_type();
+    const bool range_bad = hr.is(CALL_E_OUTRANGE) || hr.is(CALL_E_OVERFLOW);
+    const bool missing = hr.is_param_missing() || hr.is(CALL_E_BADPARAMCOUNT);
+
+    if (!type_bad && !range_bad && !missing)
+        return hr;
+
+    // A missing argument is only an argument error in the strict pass; the
+    // lenient pass exists to let another overload claim the call.
+    if (missing && !strict)
+        return hr;
+
+    // The value code stays in the overload retry band on purpose -- see the
+    // header. `with_result` carries the real code for `number` and the name
+    // for the message; it is not the retired sentinel trick, it is the only
+    // way to describe a failure whose value code must stay ambiguous.
+    result_t::builder b = result_t::make(CALL_E_TYPEMISMATCH).with_result(hr);
+
+    if (range_bad) {
+        b = std::move(b)
+                .with_type_name(errtype::kRangeError)
+                .with_code("ERR_OUT_OF_RANGE")
+                .with_format("The value of \"%s\" is out of range. Received %s",
+                    name, describe_received(received).c_str());
+    } else if (missing) {
+        b = std::move(b)
+                .with_type_name(errtype::kTypeError)
+                .with_code("ERR_INVALID_ARG_TYPE")
+                .with_format("The \"%s\" argument is required. Received %s",
+                    name, describe_received(received).c_str());
+    } else {
+        b = std::move(b)
+                .with_type_name(errtype::kTypeError)
+                .with_code("ERR_INVALID_ARG_TYPE")
+                .with_format("The \"%s\" argument has the wrong type. Received %s",
+                    name, describe_received(received).c_str());
+    }
+
+    return result_t(std::move(b).arg("name", name));
+}
+
+result_t from_conversion(result_t hr, const char* name, bool strict)
+{
+    return from_conversion(hr, name, Variant(), strict);
+}
+
+// ---------------------------------------------------------------------------
+// Expected-type phrases
+//
+// The wording is Node's ("must be of type string", "must be an instance of
+// Buffer"), because that is what a program porting from Node already matches
+// on, and what a developer reading the message expects.
+// ---------------------------------------------------------------------------
+
+exlib::string describe_expected_string()
+{
+    return "must be of type string";
+}
+
+exlib::string describe_expected_buffer()
+{
+    return "must be an instance of Buffer or Uint8Array";
+}
+
+exlib::string describe_expected_object(const char* class_name)
+{
+    if (class_name && *class_name)
+        return exlib::string("must be an instance of ") + class_name;
+    return "must be of type object";
+}
+
+exlib::string describe_expected_number()
+{
+    return "must be of type number";
+}
+
+exlib::string describe_expected_boolean()
+{
+    return "must be of type boolean";
+}
+
+exlib::string describe_expected_function()
+{
+    return "must be of type function";
+}
+
+exlib::string describe_expected_date()
+{
+    return "must be an instance of Date";
+}
+
+exlib::string describe_expected_array(const char* element)
+{
+    if (element && *element)
+        return exlib::string("must be an instance of Array of ") + element;
+    return "must be an instance of Array";
+}
+
+result_t from_value(result_t hr, const char* name, const Variant& received,
+    const char* expected)
+{
+    // Only the conversion outcomes are described. A getter that threw, or an
+    // allocation failure, keeps its own diagnosis.
+    const bool type_bad = hr.is_type_mismatch() || hr.is_bad_var_type();
+    const bool range_bad = hr.is(CALL_E_OUTRANGE) || hr.is(CALL_E_OVERFLOW);
+    const bool missing = hr.is_param_missing() || hr.is(CALL_E_BADPARAMCOUNT);
+
+    if (!type_bad && !range_bad && !missing)
+        return hr;
+
+    result_t::builder b = result_t::make(hr.code());
+
+    if (range_bad) {
+        b = std::move(b)
+                .with_type_name(errtype::kRangeError)
+                .with_code("ERR_OUT_OF_RANGE")
+                .with_format("The value of \"%s\" is out of range.",
+                    name ? name : "argument");
+    } else if (missing) {
+        b = std::move(b)
+                .with_type_name(errtype::kTypeError)
+                .with_code("ERR_INVALID_ARG_TYPE")
+                .with_format("The \"%s\" argument is required. Received %s",
+                    name ? name : "argument",
+                    describe_received(received).c_str());
+    } else if (expected && *expected) {
+        // The useful case: the overload knows what it wanted, so the message
+        // names the expected type instead of saying "wrong type".
+        b = std::move(b)
+                .with_type_name(errtype::kTypeError)
+                .with_code("ERR_INVALID_ARG_TYPE")
+                .with_format("The \"%s\" argument %s. Received %s",
+                    name ? name : "argument", expected,
+                    describe_received(received).c_str());
+    } else {
+        b = std::move(b)
+                .with_type_name(errtype::kTypeError)
+                .with_code("ERR_INVALID_ARG_TYPE")
+                .with_format("The \"%s\" argument has the wrong type. Received %s",
+                    name ? name : "argument",
+                    describe_received(received).c_str());
+    }
+
+    if (name && *name)
+        return result_t(std::move(b).arg("name", name));
+    return result_t(std::move(b));
+}
+
+result_t from_value(result_t hr, const char* name, const char* expected)
+{
+    return from_value(hr, name, Variant(), expected);
+}
+
+result_t missing_required_arg(const char* name, int32_t argc, int32_t required)
+{
+    // Value code stays ambiguous on purpose: METHOD_OVER must still be able to
+    // treat this as "this variant does not apply" and try the next one.
+    result_t::builder b = result_t::make(CALL_E_PARAMNOTOPTIONAL)
+                              .with_type_name(errtype::kTypeError)
+                              .with_code("ERR_INVALID_ARG_TYPE");
+
+    if (name && *name) {
+        b = std::move(b).with_format("The \"%s\" argument is required. %d argument(s) were passed, %d required.",
+            name, argc, required);
+        return result_t(std::move(b).arg("name", name));
+    }
+
+    return result_t(std::move(b).with_format("%d argument(s) were passed, %d required.",
+        argc, required));
+}
+
 } // namespace errhelp
 } // namespace fibjs

@@ -77,10 +77,10 @@ inline void Verify_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Verify_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_update_data, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "codec");
 
     hr = pInst->update(v0, v1, vr);
 
@@ -94,11 +94,11 @@ inline void Verify_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Verify_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "signature");
 
     ARG(Union_verify_privateKey, 0);
     ARG(Union_verify_signature, 1);
-    OPT_ARG(exlib::string, 2, "buffer");
+    OPT_ARG_NAMED(exlib::string, 2, "buffer", "encoding");
 
     hr = pInst->verify(v0, v1, v2, vr);
 

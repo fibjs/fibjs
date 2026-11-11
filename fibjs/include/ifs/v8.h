@@ -262,9 +262,9 @@ inline void v8_base::s_static_saveSnapshot(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fname");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "fname");
 
     hr = saveSnapshot(v0);
 
@@ -277,9 +277,9 @@ inline void v8_base::s_static_loadSnapshot(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fname");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "fname");
 
     hr = loadSnapshot(v0, vr);
 
@@ -305,9 +305,9 @@ inline void v8_base::s_static_diff(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "test");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "test");
 
     hr = diff(v0, vr);
 
@@ -320,11 +320,11 @@ inline void v8_base::s_static_start(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "fname");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 60000);
-    OPT_ARG(int32_t, 2, 100);
+    ARG_NAMED(exlib::string, 0, "fname");
+    OPT_ARG_NAMED(int32_t, 1, 60000, "time");
+    OPT_ARG_NAMED(int32_t, 2, 100, "interval");
 
     hr = start(v0, v1, v2, vr);
 
@@ -337,9 +337,9 @@ inline void v8_base::s_static_serialize(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "value");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "value");
 
     hr = serialize(v0, vr);
 
@@ -352,7 +352,7 @@ inline void v8_base::s_static_deserialize(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
     ARG(Union_deserialize_data, 0);
 

@@ -78,10 +78,10 @@ inline void MessageEvent_base::__new(const v8::FunctionCallbackInfo<v8::Value>& 
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "type");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "type");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "eventInitDict");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -94,10 +94,10 @@ inline result_t MessageEvent_base::load(v8::Local<v8::Value> v, obj_ptr<MessageE
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "type");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "type");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "eventInitDict");
 
     hr = _new(v0, v1, vr, args.This());
 

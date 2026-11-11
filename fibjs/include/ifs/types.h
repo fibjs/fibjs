@@ -230,9 +230,9 @@ inline void types_base::s_static_isEmpty(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isEmpty(v0, vr);
 
@@ -245,9 +245,9 @@ inline void types_base::s_static_isArray(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isArray(v0, vr);
 
@@ -260,9 +260,9 @@ inline void types_base::s_static_isBoolean(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBoolean(v0, vr);
 
@@ -275,9 +275,9 @@ inline void types_base::s_static_isNull(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isNull(v0, vr);
 
@@ -290,9 +290,9 @@ inline void types_base::s_static_isNullOrUndefined(const v8::FunctionCallbackInf
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isNullOrUndefined(v0, vr);
 
@@ -305,9 +305,9 @@ inline void types_base::s_static_isNumber(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isNumber(v0, vr);
 
@@ -320,9 +320,9 @@ inline void types_base::s_static_isBigInt(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBigInt(v0, vr);
 
@@ -335,9 +335,9 @@ inline void types_base::s_static_isString(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isString(v0, vr);
 
@@ -350,9 +350,9 @@ inline void types_base::s_static_isUndefined(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isUndefined(v0, vr);
 
@@ -365,9 +365,9 @@ inline void types_base::s_static_isRegExp(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isRegExp(v0, vr);
 
@@ -380,9 +380,9 @@ inline void types_base::s_static_isObject(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isObject(v0, vr);
 
@@ -395,9 +395,9 @@ inline void types_base::s_static_isDate(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isDate(v0, vr);
 
@@ -410,9 +410,9 @@ inline void types_base::s_static_isNativeError(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isNativeError(v0, vr);
 
@@ -425,9 +425,9 @@ inline void types_base::s_static_isPrimitive(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isPrimitive(v0, vr);
 
@@ -440,9 +440,9 @@ inline void types_base::s_static_isSymbol(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isSymbol(v0, vr);
 
@@ -455,9 +455,9 @@ inline void types_base::s_static_isDataView(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isDataView(v0, vr);
 
@@ -470,9 +470,9 @@ inline void types_base::s_static_isExternal(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isExternal(v0, vr);
 
@@ -485,9 +485,9 @@ inline void types_base::s_static_isMap(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isMap(v0, vr);
 
@@ -500,9 +500,9 @@ inline void types_base::s_static_isMapIterator(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isMapIterator(v0, vr);
 
@@ -515,9 +515,9 @@ inline void types_base::s_static_isPromise(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isPromise(v0, vr);
 
@@ -530,9 +530,9 @@ inline void types_base::s_static_isAsyncFunction(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isAsyncFunction(v0, vr);
 
@@ -545,9 +545,9 @@ inline void types_base::s_static_isSet(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isSet(v0, vr);
 
@@ -560,9 +560,9 @@ inline void types_base::s_static_isSetIterator(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isSetIterator(v0, vr);
 
@@ -575,9 +575,9 @@ inline void types_base::s_static_isTypedArray(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isTypedArray(v0, vr);
 
@@ -590,9 +590,9 @@ inline void types_base::s_static_isFloat32Array(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isFloat32Array(v0, vr);
 
@@ -605,9 +605,9 @@ inline void types_base::s_static_isFloat64Array(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isFloat64Array(v0, vr);
 
@@ -620,9 +620,9 @@ inline void types_base::s_static_isInt8Array(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isInt8Array(v0, vr);
 
@@ -635,9 +635,9 @@ inline void types_base::s_static_isInt16Array(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isInt16Array(v0, vr);
 
@@ -650,9 +650,9 @@ inline void types_base::s_static_isInt32Array(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isInt32Array(v0, vr);
 
@@ -665,9 +665,9 @@ inline void types_base::s_static_isUint8Array(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isUint8Array(v0, vr);
 
@@ -680,9 +680,9 @@ inline void types_base::s_static_isUint8ClampedArray(const v8::FunctionCallbackI
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isUint8ClampedArray(v0, vr);
 
@@ -695,9 +695,9 @@ inline void types_base::s_static_isUint16Array(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isUint16Array(v0, vr);
 
@@ -710,9 +710,9 @@ inline void types_base::s_static_isUint32Array(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isUint32Array(v0, vr);
 
@@ -725,9 +725,9 @@ inline void types_base::s_static_isFunction(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isFunction(v0, vr);
 
@@ -740,9 +740,9 @@ inline void types_base::s_static_isBuffer(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBuffer(v0, vr);
 
@@ -755,9 +755,9 @@ inline void types_base::s_static_isBigIntObject(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBigIntObject(v0, vr);
 
@@ -770,9 +770,9 @@ inline void types_base::s_static_isBooleanObject(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBooleanObject(v0, vr);
 
@@ -785,9 +785,9 @@ inline void types_base::s_static_isNumberObject(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isNumberObject(v0, vr);
 
@@ -800,9 +800,9 @@ inline void types_base::s_static_isStringObject(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isStringObject(v0, vr);
 
@@ -815,9 +815,9 @@ inline void types_base::s_static_isSymbolObject(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isSymbolObject(v0, vr);
 
@@ -830,9 +830,9 @@ inline void types_base::s_static_isWeakMap(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isWeakMap(v0, vr);
 
@@ -845,9 +845,9 @@ inline void types_base::s_static_isWeakSet(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isWeakSet(v0, vr);
 
@@ -860,9 +860,9 @@ inline void types_base::s_static_isArrayBuffer(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isArrayBuffer(v0, vr);
 
@@ -875,9 +875,9 @@ inline void types_base::s_static_isArrayBufferView(const v8::FunctionCallbackInf
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isArrayBufferView(v0, vr);
 
@@ -890,9 +890,9 @@ inline void types_base::s_static_isBigInt64Array(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBigInt64Array(v0, vr);
 
@@ -905,9 +905,9 @@ inline void types_base::s_static_isBigUint64Array(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBigUint64Array(v0, vr);
 
@@ -920,9 +920,9 @@ inline void types_base::s_static_isFloat16Array(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isFloat16Array(v0, vr);
 
@@ -935,9 +935,9 @@ inline void types_base::s_static_isAnyArrayBuffer(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isAnyArrayBuffer(v0, vr);
 
@@ -950,9 +950,9 @@ inline void types_base::s_static_isSharedArrayBuffer(const v8::FunctionCallbackI
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isSharedArrayBuffer(v0, vr);
 
@@ -965,9 +965,9 @@ inline void types_base::s_static_isArgumentsObject(const v8::FunctionCallbackInf
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isArgumentsObject(v0, vr);
 
@@ -980,9 +980,9 @@ inline void types_base::s_static_isBoxedPrimitive(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBoxedPrimitive(v0, vr);
 
@@ -995,9 +995,9 @@ inline void types_base::s_static_isGeneratorFunction(const v8::FunctionCallbackI
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isGeneratorFunction(v0, vr);
 
@@ -1010,9 +1010,9 @@ inline void types_base::s_static_isGeneratorObject(const v8::FunctionCallbackInf
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isGeneratorObject(v0, vr);
 
@@ -1025,9 +1025,9 @@ inline void types_base::s_static_isProxy(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isProxy(v0, vr);
 
@@ -1040,9 +1040,9 @@ inline void types_base::s_static_isModuleNamespaceObject(const v8::FunctionCallb
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isModuleNamespaceObject(v0, vr);
 
@@ -1055,9 +1055,9 @@ inline void types_base::s_static_isCryptoKey(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isCryptoKey(v0, vr);
 
@@ -1070,9 +1070,9 @@ inline void types_base::s_static_isKeyObject(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isKeyObject(v0, vr);
 

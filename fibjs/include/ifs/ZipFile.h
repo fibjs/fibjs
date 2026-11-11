@@ -242,9 +242,9 @@ inline void ZipFile_base::s_getinfo(const v8::FunctionCallbackInfo<v8::Value>& a
     ASYNC_METHOD_INSTANCE(ZipFile_base);
     ASYNC_METHOD_ENTER("ZipFile.getinfo");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "member");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "member");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_getinfo(v0, cb, args);
@@ -261,10 +261,10 @@ inline void ZipFile_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
     ASYNC_METHOD_INSTANCE(ZipFile_base);
     ASYNC_METHOD_ENTER("ZipFile.read");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "member");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+    ARG_NAMED(exlib::string, 0, "member");
+    OPT_ARG_NAMED(exlib::string, 1, "", "password");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_read(v0, v1, cb, args);
@@ -283,7 +283,7 @@ inline void ZipFile_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "password");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_readAll(v0, cb, args);
@@ -298,22 +298,22 @@ inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& a
     ASYNC_METHOD_INSTANCE(ZipFile_base);
     ASYNC_METHOD_ENTER("ZipFile.extract");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "strm");
 
-    ARG(exlib::string, 0);
-    ARG(obj_ptr<SeekableStream_base>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(exlib::string, 0, "member");
+    ARG_NAMED(obj_ptr<SeekableStream_base>, 1, "strm");
+    OPT_ARG_NAMED(exlib::string, 2, "", "password");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_extract(v0, v1.get(), v2, cb, args);
     else
         hr = pInst->ac_extract(v0, v1.get(), v2);
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "path");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(exlib::string, 0, "member");
+    ARG_NAMED(exlib::string, 1, "path");
+    OPT_ARG_NAMED(exlib::string, 2, "", "password");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_extract(v0, v1, v2, cb, args);
@@ -328,10 +328,10 @@ inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>
     ASYNC_METHOD_INSTANCE(ZipFile_base);
     ASYNC_METHOD_ENTER("ZipFile.extractAll");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "path");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(exlib::string, 1, "", "password");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_extractAll(v0, v1, cb, args);
@@ -346,33 +346,33 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
     ASYNC_METHOD_INSTANCE(ZipFile_base);
     ASYNC_METHOD_ENTER("ZipFile.write");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "inZipName");
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_write(v0.get(), v1, v2, cb, args);
-    else
-        hr = pInst->ac_write(v0.get(), v1, v2);
-
-    METHOD_OVER(3, 2);
-
-    ARG(obj_ptr<SeekableStream_base>, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "data");
+    ARG_NAMED(exlib::string, 1, "inZipName");
+    OPT_ARG_NAMED(exlib::string, 2, "", "password");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_write(v0.get(), v1, v2, cb, args);
     else
         hr = pInst->ac_write(v0.get(), v1, v2);
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "inZipName");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(obj_ptr<SeekableStream_base>, 0, "strm");
+    ARG_NAMED(exlib::string, 1, "inZipName");
+    OPT_ARG_NAMED(exlib::string, 2, "", "password");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_write(v0.get(), v1, v2, cb, args);
+    else
+        hr = pInst->ac_write(v0.get(), v1, v2);
+
+    METHOD_OVER_NAMED(3, 2, "inZipName");
+
+    ARG_NAMED(exlib::string, 0, "filename");
+    ARG_NAMED(exlib::string, 1, "inZipName");
+    OPT_ARG_NAMED(exlib::string, 2, "", "password");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_write(v0, v1, v2, cb, args);

@@ -89,9 +89,9 @@ inline void MemoryStream_base::s_setTime(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(MemoryStream_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "d");
 
-    ARG(date_t, 0);
+    ARG_NAMED(date_t, 0, "d");
 
     hr = pInst->setTime(v0);
 

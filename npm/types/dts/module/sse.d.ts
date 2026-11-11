@@ -136,7 +136,7 @@ declare module 'sse' {
      *
      *      fibjs extension, not part of MDN EventSource: the state of the EventSource object
      *      delivered to the accept callback of `upgrade`. Only a sender may call `send`; a client
-     *      EventSource raises error 20024 when send is called. See the EventSource definition.
+     *      EventSource raises ERR_INVALID_STATE when send is called. See the EventSource definition.
      *
      */
     export const SENDER: 3;

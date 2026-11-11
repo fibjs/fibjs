@@ -80,9 +80,9 @@ inline void zip_base::s_static_isZipFile(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("zip.isZipFile");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "filename");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "filename");
 
     if (!cb.IsEmpty())
         hr = acb_isZipFile(v0, cb, args);
@@ -98,11 +98,11 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ASYNC_METHOD_ENTER("zip.open");
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "data");
 
     ARG(Union_open_data, 0);
-    OPT_ARG(exlib::string, 1, "r");
-    OPT_ARG(exlib::string, 2, "utf8");
+    OPT_ARG_NAMED(exlib::string, 1, "r", "mod");
+    OPT_ARG_NAMED(exlib::string, 2, "utf8", "codec");
 
     if (!cb.IsEmpty())
         hr = acb_open(v0, v1, v2, cb, args);

@@ -83,7 +83,7 @@ inline void Event_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(bool, 0, false);
+    OPT_ARG_NAMED(bool, 0, false, "value");
 
     hr = _new(v0, vr, args.This());
 
@@ -98,7 +98,7 @@ inline result_t Event_base::load(v8::Local<v8::Value> v, obj_ptr<Event_base>& re
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(bool, 0, false);
+    OPT_ARG_NAMED(bool, 0, false, "value");
 
     hr = _new(v0, vr, args.This());
 

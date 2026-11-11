@@ -148,7 +148,7 @@ declare class Class_HttpCookie extends Class_object {
      *      `+` stays a `+`; this matches the encoding that toString performs and keeps the two
      *      round-tripping. The attributes expires, domain, path, secure and HttpOnly are read;
      *      any other attribute, including Max-Age and SameSite, is ignored. A header without a
-     *      name or without `=` throws `HttpCookie: bad cookie format.` (20024). Parsing into an
+     *      name or without `=` throws `HttpCookie: bad cookie format.` (ERR_INVALID_STATE). Parsing into an
      *      existing object only overwrites the fields present in the header, so use parseRaw for
      *      a remote Set-Cookie value whose %XX sequences must stay as written.
      *

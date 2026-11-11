@@ -120,7 +120,7 @@ inline void MenuItem_base::s_set_id(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "id");
 
     hr = pInst->set_id(v0);
 
@@ -162,7 +162,7 @@ inline void MenuItem_base::s_set_icon(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "icon");
 
     hr = pInst->set_icon(v0);
 
@@ -190,7 +190,7 @@ inline void MenuItem_base::s_set_label(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "label");
 
     hr = pInst->set_label(v0);
 
@@ -218,7 +218,7 @@ inline void MenuItem_base::s_set_tooltip(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "tooltip");
 
     hr = pInst->set_tooltip(v0);
 
@@ -246,7 +246,7 @@ inline void MenuItem_base::s_set_enabled(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "enabled");
 
     hr = pInst->set_enabled(v0);
 
@@ -274,7 +274,7 @@ inline void MenuItem_base::s_set_checked(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "checked");
 
     hr = pInst->set_checked(v0);
 
@@ -316,7 +316,7 @@ inline void MenuItem_base::s_set_onclick(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onclick");
 
     hr = pInst->setListener("click", v0);
 

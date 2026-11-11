@@ -198,7 +198,7 @@ declare module 'encoding' {
      *      re-represented; for a charset codec the bytes are decoded from that charset into
      *      Unicode text. A string argument is first converted to its utf8 bytes, so pass a
      *      Buffer when the input is not utf8 text. An unknown codec throws an Error with
-     *      number 20024.
+     *      ERR_INVALID_STATE.
      *
      *      Example — the same bytes under several codecs:
      *      ```JavaScript
@@ -226,7 +226,7 @@ declare module 'encoding' {
      *      the textual representation is parsed back into the bytes it stands for; with a
      *      charset codec the text is encoded into that charset, which is the way to prepare
      *      data for a legacy system. The textual codecs are lenient about trailing or invalid
-     *      characters. An unknown codec throws an Error with number 20024.
+     *      characters. An unknown codec throws an Error with ERR_INVALID_STATE.
      *
      *      Example — text back to bytes, including a charset:
      *      ```JavaScript

@@ -191,8 +191,8 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      ```JavaScript
      *      // fragment: options
      *      ({
-     *          "certificateType": "ecdsa",  // 'default' | 'ecdsa' (default) | 'rsa'; unknown -> 20024
-     *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> 20024
+     *          "certificateType": "ecdsa",  // 'default' | 'ecdsa' (default) | 'rsa'; unknown -> ERR_INVALID_STATE
+     *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> ERR_INVALID_STATE
      *          "iceServers": [],             // [{ urls: 'stun:host:port', username: '', credential: '' }]
      *          "maxMessageSize": 262144,     // largest SCTP message accepted from the peer
      *          "enableIceUdpMux": false,     // multiplex ICE and DTLS on one UDP port (rtc.listen)
@@ -310,7 +310,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -329,7 +329,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -348,7 +348,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -366,7 +366,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until `close()` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -384,7 +384,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until `close()` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -402,7 +402,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until `close()` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -417,7 +417,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,
@@ -436,7 +436,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,
@@ -455,7 +455,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,
@@ -1270,8 +1270,8 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      ```JavaScript
      *      // fragment: options
      *      ({
-     *          "certificateType": "ecdsa",  // 'default' | 'ecdsa' (default) | 'rsa'; unknown -> 20024
-     *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> 20024
+     *          "certificateType": "ecdsa",  // 'default' | 'ecdsa' (default) | 'rsa'; unknown -> ERR_INVALID_STATE
+     *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> ERR_INVALID_STATE
      *          "iceServers": [],             // [{ urls: 'stun:host:port', username: '', credential: '' }]
      *          "maxMessageSize": 262144,     // largest SCTP message accepted from the peer
      *          "enableIceUdpMux": false,     // multiplex ICE and DTLS on one UDP port (rtc.listen)
@@ -1389,7 +1389,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -1408,7 +1408,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -1427,7 +1427,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      candidates, and the `sdp` field of the argument is not re-parsed. An `answer` or `pranswer`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -1445,7 +1445,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until `close()` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -1463,7 +1463,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until `close()` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -1481,7 +1481,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until `close()` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      `type` and `sdp` fields, which is converted through the RTCSessionDescription constructor
@@ -1496,7 +1496,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,
@@ -1515,7 +1515,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,
@@ -1534,7 +1534,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the `icecandidate` event are accepted; the latter already carry `transport`,

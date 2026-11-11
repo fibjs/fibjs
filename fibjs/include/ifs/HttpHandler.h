@@ -102,7 +102,7 @@ inline void HttpHandler_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlr");
 
     ARG(Union_HttpHandler_hdlr, 0);
 
@@ -117,7 +117,7 @@ inline result_t HttpHandler_base::load(v8::Local<v8::Value> v, obj_ptr<HttpHandl
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlr");
 
     ARG(Union_HttpHandler_hdlr, 0);
 
@@ -133,7 +133,7 @@ inline void HttpHandler_base::s_enableCrossOrigin(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "Content-Type");
+    OPT_ARG_NAMED(exlib::string, 0, "Content-Type", "allowHeaders");
 
     hr = pInst->enableCrossOrigin(v0);
 
@@ -161,7 +161,7 @@ inline void HttpHandler_base::s_set_maxHeadersCount(const v8::FunctionCallbackIn
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxHeadersCount");
 
     hr = pInst->set_maxHeadersCount(v0);
 
@@ -189,7 +189,7 @@ inline void HttpHandler_base::s_set_maxHeaderSize(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxHeaderSize");
 
     hr = pInst->set_maxHeaderSize(v0);
 
@@ -217,7 +217,7 @@ inline void HttpHandler_base::s_set_maxBodySize(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxBodySize");
 
     hr = pInst->set_maxBodySize(v0);
 
@@ -245,7 +245,7 @@ inline void HttpHandler_base::s_set_enableEncoding(const v8::FunctionCallbackInf
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "enableEncoding");
 
     hr = pInst->set_enableEncoding(v0);
 
@@ -273,7 +273,7 @@ inline void HttpHandler_base::s_set_serverName(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "serverName");
 
     hr = pInst->set_serverName(v0);
 
@@ -301,7 +301,7 @@ inline void HttpHandler_base::s_set_handler(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG_NAMED(obj_ptr<Handler_base>, 0, "handler");
 
     hr = pInst->set_handler(v0);
 

@@ -93,7 +93,7 @@ inline void Lock_base::s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(bool, 0, true);
+    OPT_ARG_NAMED(bool, 0, true, "blocking");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_acquire(v0, cb, args);

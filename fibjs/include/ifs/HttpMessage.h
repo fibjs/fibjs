@@ -173,7 +173,7 @@ inline void HttpMessage_base::s_set_protocol(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "protocol");
 
     hr = pInst->set_protocol(v0);
 
@@ -215,7 +215,7 @@ inline void HttpMessage_base::s_set_keepAlive(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "keepAlive");
 
     hr = pInst->set_keepAlive(v0);
 
@@ -243,7 +243,7 @@ inline void HttpMessage_base::s_set_upgrade(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "upgrade");
 
     hr = pInst->set_upgrade(v0);
 
@@ -271,7 +271,7 @@ inline void HttpMessage_base::s_set_maxHeadersCount(const v8::FunctionCallbackIn
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxHeadersCount");
 
     hr = pInst->set_maxHeadersCount(v0);
 
@@ -299,7 +299,7 @@ inline void HttpMessage_base::s_set_maxHeaderSize(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxHeaderSize");
 
     hr = pInst->set_maxHeaderSize(v0);
 
@@ -327,7 +327,7 @@ inline void HttpMessage_base::s_set_maxChunkSize(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxChunkSize");
 
     hr = pInst->set_maxChunkSize(v0);
 
@@ -355,7 +355,7 @@ inline void HttpMessage_base::s_set_maxBodySize(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxBodySize");
 
     hr = pInst->set_maxBodySize(v0);
 
@@ -383,9 +383,9 @@ inline void HttpMessage_base::s_hasHeader(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->hasHeader(v0, vr);
 
@@ -399,9 +399,9 @@ inline void HttpMessage_base::s_firstHeader(const v8::FunctionCallbackInfo<v8::V
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->firstHeader(v0, vr);
 
@@ -417,7 +417,7 @@ inline void HttpMessage_base::s_allHeader(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "name");
 
     hr = pInst->allHeader(v0, vr);
 
@@ -431,29 +431,29 @@ inline void HttpMessage_base::s_appendHeader(const v8::FunctionCallbackInfo<v8::
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->appendHeader(v0, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "headers");
 
-    ARG(obj_ptr<Headers_base>, 0);
+    ARG_NAMED(obj_ptr<Headers_base>, 0, "headers");
 
     hr = pInst->appendHeader(v0.get(), vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "values");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "values");
 
     hr = pInst->appendHeader(v0, v1, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
-    ARG(exlib::string, 0);
-    ARG(Variant, 1);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(Variant, 1, "value");
 
     hr = pInst->appendHeader(v0, v1, vr);
 
@@ -467,29 +467,29 @@ inline void HttpMessage_base::s_setHeader(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->setHeader(v0, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "headers");
 
-    ARG(obj_ptr<Headers_base>, 0);
+    ARG_NAMED(obj_ptr<Headers_base>, 0, "headers");
 
     hr = pInst->setHeader(v0.get(), vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "values");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "values");
 
     hr = pInst->setHeader(v0, v1, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
-    ARG(exlib::string, 0);
-    ARG(Variant, 1);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(Variant, 1, "value");
 
     hr = pInst->setHeader(v0, v1, vr);
 
@@ -501,9 +501,9 @@ inline void HttpMessage_base::s_removeHeader(const v8::FunctionCallbackInfo<v8::
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->removeHeader(v0);
 
@@ -517,9 +517,9 @@ inline void HttpMessage_base::s_getHeader(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->getHeader(v0, vr);
 
@@ -573,9 +573,9 @@ inline void HttpMessage_base::s_addTrailers(const v8::FunctionCallbackInfo<v8::V
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "headers");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "headers");
 
     hr = pInst->addTrailers(v0);
 

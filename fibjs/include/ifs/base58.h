@@ -74,16 +74,16 @@ inline void base58_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
     ARG(Union_encode_data, 0);
 
     hr = encode(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "chk_ver");
 
     ARG(Union_encode_data, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 1, "chk_ver");
 
     hr = encode(v0, v1, vr);
 
@@ -96,16 +96,16 @@ inline void base58_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "data");
 
     hr = decode(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "chk_ver");
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(exlib::string, 0, "data");
+    ARG_NAMED(int32_t, 1, "chk_ver");
 
     hr = decode(v0, v1, vr);
 

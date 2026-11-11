@@ -159,7 +159,7 @@ inline void Iterator_base::s__return(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "value");
 
     hr = pInst->_return(v0, vr);
 

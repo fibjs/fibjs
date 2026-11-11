@@ -31,7 +31,7 @@
  *    XmlNode class comment for the node type table and the tree rules, and the XmlElement /
  *    XmlDocument class comments for the element and document APIs.
  *  - **Parsing modes**: `text/xml` (the default) is strict, case-sensitive and reports syntax
- *    errors as Error 20024 with the line and column; `text/html` uses a tolerant HTML tree
+ *    errors as ERR_INVALID_STATE with the line and column; `text/html` uses a tolerant HTML tree
  *    builder with upper-cased parsed tag names, case-insensitive tag matching and automatic
  *    html/head/body wrapping of fragments. The mode is chosen per document and cannot be
  *    changed later. A string source is taken as utf8; a Buffer keeps its bytes and (in HTML
@@ -41,7 +41,7 @@
  *    `maxNodeCount` (default 1000000, counting elements, attributes, text, comments, CDATA,
  *    processing instructions and the doctype). A value of 0, a negative value or Infinity
  *    disables the limit; a non-number throws a TypeError (20004), and exceeding a limit throws
- *    an Error (20024).
+ *    an Error (ERR_INVALID_STATE).
  *  - **Serialization**: `serialize(node)` is `node.toString()`; it works on any node - a
  *    document, an element, a text or comment node, a fragment - and returns the markup for
  *    that node, escaping text and attribute values. XML documents close empty elements as
@@ -236,7 +236,7 @@ declare module 'xml' {
      *
      *      source may be a string (encoded as utf8) or a Buffer. The type selects the parsing mode
      *      and is case-sensitive: `text/xml` (the default) is strict and reports syntax errors as
-     *      an Error (20024) carrying the line and column; `text/html` uses the tolerant HTML tree
+     *      an Error (ERR_INVALID_STATE) carrying the line and column; `text/html` uses the tolerant HTML tree
      *      builder, wraps fragments in html/head/body and upper-cases the parsed tag names. Any
      *      other MIME type throws an Error (20004). A Buffer in HTML mode has its charset detected
      *      from a meta tag before parsing (see XmlDocument.inputEncoding). Every call returns a
@@ -253,7 +253,7 @@ declare module 'xml' {
      *      ```
      *
      *      A non-number option throws a TypeError (20004); exceeding a limit throws an Error
-     *      (20024). A source that is neither a string nor a Buffer throws a TypeError (20005).
+     *      (ERR_INVALID_STATE). A source that is neither a string nor a Buffer throws a TypeError (20005).
      *
      *      ```JavaScript
      *      const xml = require('xml');

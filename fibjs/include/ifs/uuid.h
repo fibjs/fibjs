@@ -146,9 +146,9 @@ inline void uuid_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "uuid");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "uuid");
 
     hr = parse(v0, vr);
 
@@ -161,10 +161,10 @@ inline void uuid_base::s_static_stringify(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "arr");
 
     ARG(Union_stringify_arr, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = stringify(v0, v1, vr);
 
@@ -179,7 +179,7 @@ inline void uuid_base::s_static_v1(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = v1(v0, vr);
 
@@ -192,9 +192,9 @@ inline void uuid_base::s_static_v3(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "ns");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
     ARG(Union_v3_ns, 1);
 
     hr = v3(v0, v1, vr);
@@ -210,7 +210,7 @@ inline void uuid_base::s_static_v4(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = v4(v0, vr);
 
@@ -223,9 +223,9 @@ inline void uuid_base::s_static_v5(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "ns");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
     ARG(Union_v5_ns, 1);
 
     hr = v5(v0, v1, vr);
@@ -239,9 +239,9 @@ inline void uuid_base::s_static_version(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "uuid");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "uuid");
 
     hr = version(v0, vr);
 
@@ -256,7 +256,7 @@ inline void uuid_base::s_static_v6(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = v6(v0, vr);
 
@@ -271,7 +271,7 @@ inline void uuid_base::s_static_v7(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = v7(v0, vr);
 
@@ -284,9 +284,9 @@ inline void uuid_base::s_static_v1ToV6(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "uuid");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "uuid");
 
     hr = v1ToV6(v0, vr);
 
@@ -299,9 +299,9 @@ inline void uuid_base::s_static_v6ToV1(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "uuid");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "uuid");
 
     hr = v6ToV1(v0, vr);
 
@@ -314,9 +314,9 @@ inline void uuid_base::s_static_validate(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "uuid");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "uuid");
 
     hr = validate(v0, vr);
 
@@ -342,10 +342,10 @@ inline void uuid_base::s_static_md5(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "name");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(int32_t, 0, "ns");
+    ARG_NAMED(exlib::string, 1, "name");
 
     hr = md5(v0, v1, vr);
 
@@ -371,10 +371,10 @@ inline void uuid_base::s_static_sha1(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "name");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(int32_t, 0, "ns");
+    ARG_NAMED(exlib::string, 1, "name");
 
     hr = sha1(v0, v1, vr);
 
@@ -413,7 +413,7 @@ inline void uuid_base::s_static_set_hostID(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "hostID");
 
     hr = set_hostID(v0);
 

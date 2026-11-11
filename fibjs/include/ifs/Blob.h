@@ -92,15 +92,15 @@ inline void Blob_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate));
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate), "blobParts");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "blobData");
 
     ARG(Union_Blob_blobData, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -115,15 +115,15 @@ inline result_t Blob_base::load(v8::Local<v8::Value> v, obj_ptr<Blob_base>& retV
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate));
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate), "blobParts");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "blobData");
 
     ARG(Union_Blob_blobData, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -167,9 +167,9 @@ inline void Blob_base::s_slice(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(3, 0);
 
-    OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(int32_t, 1, -1);
-    OPT_ARG(exlib::string, 2, "");
+    OPT_ARG_NAMED(int32_t, 0, 0, "start");
+    OPT_ARG_NAMED(int32_t, 1, -1, "end");
+    OPT_ARG_NAMED(exlib::string, 2, "", "contentType");
 
     hr = pInst->slice(v0, v1, v2, vr);
 

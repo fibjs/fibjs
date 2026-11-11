@@ -73,9 +73,9 @@ inline void PerformanceObserver_base::__new(const v8::FunctionCallbackInfo<v8::V
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
 
     hr = _new(v0, vr, args.This());
 
@@ -88,9 +88,9 @@ inline result_t PerformanceObserver_base::load(v8::Local<v8::Value> v, obj_ptr<P
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
 
     hr = _new(v0, vr, args.This());
 
@@ -102,9 +102,9 @@ inline void PerformanceObserver_base::s_observe(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(PerformanceObserver_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
 
     hr = pInst->observe(v0);
 

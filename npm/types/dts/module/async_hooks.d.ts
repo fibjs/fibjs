@@ -72,7 +72,7 @@
  *
  *  - The two classes are only reachable through this module; they are not global
  *    variables and do not have their own module names, so
- *    `require('AsyncLocalStorage')` fails with error 20024.
+ *    `require('AsyncLocalStorage')` fails with ERR_INVALID_STATE.
  *  - The context-tracking API of both classes is complete; the remaining gaps are limited to
  *    diagnostics (ids, missing hook callbacks, ignored options) and are
  *    documented in the class definitions.

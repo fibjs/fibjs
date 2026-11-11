@@ -72,10 +72,10 @@ inline void multibase_base::s_static_encode(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "codec");
 
     ARG(Union_encode_data, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 1, "codec");
 
     hr = encode(v0, v1, vr);
 
@@ -88,9 +88,9 @@ inline void multibase_base::s_static_decode(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "data");
 
     hr = decode(v0, vr);
 

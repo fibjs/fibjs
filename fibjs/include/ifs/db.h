@@ -109,9 +109,9 @@ inline void db_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ASYNC_METHOD_ENTER("db.open");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "connString");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "connString");
 
     if (!cb.IsEmpty())
         hr = acb_open(v0, cb, args);
@@ -127,9 +127,9 @@ inline void db_base::s_static_openMySQL(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_ENTER("db.openMySQL");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "connString");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "connString");
 
     if (!cb.IsEmpty())
         hr = acb_openMySQL(v0, cb, args);
@@ -145,9 +145,9 @@ inline void db_base::s_static_openSQLite(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("db.openSQLite");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "connString");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "connString");
 
     if (!cb.IsEmpty())
         hr = acb_openSQLite(v0, cb, args);
@@ -163,9 +163,9 @@ inline void db_base::s_static_openOdbc(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("db.openOdbc");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "connString");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "connString");
 
     if (!cb.IsEmpty())
         hr = acb_openOdbc(v0, cb, args);
@@ -181,9 +181,9 @@ inline void db_base::s_static_openMSSQL(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_ENTER("db.openMSSQL");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "connString");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "connString");
 
     if (!cb.IsEmpty())
         hr = acb_openMSSQL(v0, cb, args);
@@ -199,9 +199,9 @@ inline void db_base::s_static_openDM(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ASYNC_METHOD_ENTER("db.openDM");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "connString");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "connString");
 
     if (!cb.IsEmpty())
         hr = acb_openDM(v0, cb, args);
@@ -217,9 +217,9 @@ inline void db_base::s_static_openPSQL(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("db.openPSQL");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "connString");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "connString");
 
     if (!cb.IsEmpty())
         hr = acb_openPSQL(v0, cb, args);
@@ -235,9 +235,9 @@ inline void db_base::s_static_openLevelDB(const v8::FunctionCallbackInfo<v8::Val
 
     ASYNC_METHOD_ENTER("db.openLevelDB");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "connString");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "connString");
 
     if (!cb.IsEmpty())
         hr = acb_openLevelDB(v0, cb, args);
@@ -253,9 +253,9 @@ inline void db_base::s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_ENTER("db.openRedis");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "connString");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "connString");
 
     if (!cb.IsEmpty())
         hr = acb_openRedis(v0, cb, args);

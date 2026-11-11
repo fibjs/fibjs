@@ -114,11 +114,11 @@ inline void xml_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "source");
 
     ARG(Union_parse_source, 0);
-    OPT_ARG(exlib::string, 1, "text/xml");
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(exlib::string, 1, "text/xml", "type");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = parse(v0, v1, v2, vr);
 
@@ -131,9 +131,9 @@ inline void xml_base::s_static_serialize(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "node");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "node");
 
     hr = serialize(v0.get(), vr);
 

@@ -75,6 +75,9 @@ typedef int32_t SOCKET;
 #include "qstring.h"
 
 #include "result.h"
+// ARG_NAMED / OPT_ARG_NAMED describe a failed conversion; errhelp.h only needs
+// result.h, so including it here does not create a cycle.
+#include "errhelp.h"
 
 #include <v8.h>
 #include "v8_api.h"
@@ -158,7 +161,13 @@ enum {
     do {                                                    \
         do {
 
-#define METHOD_OVER(c, o)                                                                             \
+// METHOD_OVER(accepts, requires) or METHOD_OVER_NAMED(accepts, requires, "name").
+//
+// The third argument names the last REQUIRED parameter, taken from the IDL. It
+// only describes an arity failure ("the \"path\" argument is required"); the
+// retry protocol still reads the value code, so whether it is passed cannot
+// change which overload gets chosen.
+#define METHOD_OVER_NAMED(c, o, aname)                                                                             \
     }                                                                                                 \
     while (0)                                                                                         \
         ;                                                                                             \
@@ -183,13 +192,17 @@ enum {
             }                                                                                         \
             if ((o) > 0 && argc < (o)) {                                                              \
                 if (hr_prev.is(0) || hr_prev.is(CALL_E_BADPARAMCOUNT) || hr_prev.is(CALL_E_PARAMNOTOPTIONAL)) { \
-                    hr = setRuntimeError(CALL_E_PARAMNOTOPTIONAL);                                    \
+                    hr = errhelp::missing_required_arg(aname, argc, (o));                                    \
                     hr_argc = result_t(CALL_E_PARAMNOTOPTIONAL);                                                \
                 } else                                                                                \
                     hr = hr_prev;                                                                     \
                 break;                                                                                \
             }                                                                                         \
 
+
+// The two-argument spelling the hand-written wrappers still use: it reports the
+// arity failure without naming the parameter.
+#define METHOD_OVER(c, o) METHOD_OVER_NAMED(c, o, nullptr)
 
 #define METHOD_ENTER()                                      \
     Isolate* isolate = Isolate::current(args.GetIsolate()); \
@@ -416,6 +429,18 @@ enum {
     if (hr.failed())                                             \
         break;
 
+// The named form, emitted by the code generator (tools/util/gen_code.js).
+// The bare ARG above stays for the hand-written call sites; both produce the
+// same value code, only the description differs (see errhelp.h).
+#define ARG_NAMED(t, n, aname)                                      \
+    t v##n;                                                         \
+    hr = GetArgumentValue(isolate, args[n], v##n, bStrict);         \
+    if (hr.failed()) {                                              \
+        hr = errhelp::from_value(hr, aname, args[n],                 \
+            errhelp::expected_of<t>::get());                         \
+        break;                                                      \
+    }
+
 #define STRICT_ARG(t, n)                                 \
     t v##n;                                              \
     hr = GetArgumentValue(isolate, args[n], v##n, true); \
@@ -428,6 +453,17 @@ enum {
         hr = GetArgumentValue(isolate, args[n], v##n, bStrict);         \
         if (hr.failed())                                                     \
             break;                                                      \
+    }
+
+#define OPT_ARG_NAMED(t, n, d, aname)                                   \
+    t v##n = (d);                                                       \
+    if ((n) < argc && !(args[n]->IsUndefined() || args[n]->IsNull())) { \
+        hr = GetArgumentValue(isolate, args[n], v##n, bStrict);         \
+        if (hr.failed()) {                                              \
+            hr = errhelp::from_value(hr, aname, args[n],                 \
+                errhelp::expected_of<t>::get());                         \
+            break;                                                      \
+        }                                                               \
     }
 
 #define ARG_LIST(n) OptArgs v##n(args, n, argc1);
@@ -698,6 +734,19 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::strin
 // argument conversion above serves the String parameters and takes real
 // strings on purpose
 result_t GetDOMStringValue(v8::Local<v8::Value> v, exlib::string& retVal);
+
+// v8::Local<T> as a parameter type: the object-ish form the IDL uses for
+// `Object` options. errhelp.h cannot see v8, so the specialisations that make
+// it describe "must be of type object" live here, next to the macros that
+// need them.
+namespace errhelp {
+namespace detail {
+template <typename T>
+struct is_object_holder<v8::Local<T>> : std::true_type {
+};
+} // namespace detail
+
+} // namespace errhelp
 
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, double& n, bool bStrict = false)
 {

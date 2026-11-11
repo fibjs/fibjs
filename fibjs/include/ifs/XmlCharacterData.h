@@ -103,7 +103,7 @@ inline void XmlCharacterData_base::s_set_data(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "data");
 
     hr = pInst->set_data(v0);
 
@@ -131,10 +131,10 @@ inline void XmlCharacterData_base::s_substringData(const v8::FunctionCallbackInf
     METHOD_INSTANCE(XmlCharacterData_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "count");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "offset");
+    ARG_NAMED(int32_t, 1, "count");
 
     hr = pInst->substringData(v0, v1, vr);
 
@@ -146,9 +146,9 @@ inline void XmlCharacterData_base::s_appendData(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(XmlCharacterData_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "arg");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "arg");
 
     hr = pInst->appendData(v0);
 
@@ -160,10 +160,10 @@ inline void XmlCharacterData_base::s_insertData(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(XmlCharacterData_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "arg");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(int32_t, 0, "offset");
+    ARG_NAMED(exlib::string, 1, "arg");
 
     hr = pInst->insertData(v0, v1);
 
@@ -175,10 +175,10 @@ inline void XmlCharacterData_base::s_deleteData(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(XmlCharacterData_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "count");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "offset");
+    ARG_NAMED(int32_t, 1, "count");
 
     hr = pInst->deleteData(v0, v1);
 
@@ -190,11 +190,11 @@ inline void XmlCharacterData_base::s_replaceData(const v8::FunctionCallbackInfo<
     METHOD_INSTANCE(XmlCharacterData_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "arg");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
-    ARG(exlib::string, 2);
+    ARG_NAMED(int32_t, 0, "offset");
+    ARG_NAMED(int32_t, 1, "count");
+    ARG_NAMED(exlib::string, 2, "arg");
 
     hr = pInst->replaceData(v0, v1, v2);
 

@@ -87,9 +87,9 @@ inline void FileStream_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(FileStream_base);
     ASYNC_METHOD_ENTER("FileStream.chmod");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "mode");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "mode");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_chmod(v0, cb, args);

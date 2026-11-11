@@ -76,10 +76,10 @@ inline void Script_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "code");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "code");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -92,10 +92,10 @@ inline result_t Script_base::load(v8::Local<v8::Value> v, obj_ptr<Script_base>& 
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "code");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "code");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -109,10 +109,10 @@ inline void Script_base::s_runInContext(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(Script_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "contextifiedObject");
 
-    ARG(v8::Local<v8::Object>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Object>, 0, "contextifiedObject");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = pInst->runInContext(v0, v1, vr);
 
@@ -128,8 +128,8 @@ inline void Script_base::s_runInNewContext(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "contextObject");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = pInst->runInNewContext(v0, v1, vr);
 
@@ -145,7 +145,7 @@ inline void Script_base::s_runInThisContext(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = pInst->runInThisContext(v0, vr);
 

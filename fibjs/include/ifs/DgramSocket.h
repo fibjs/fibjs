@@ -162,17 +162,17 @@ inline void DgramSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG_NAMED(int32_t, 0, 0, "port");
+    OPT_ARG_NAMED(exlib::string, 1, "", "addr");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_bind(v0, v1, cb, args);
     else
         hr = pInst->ac_bind(v0, v1, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "opts");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_bind(v0, cb, args);
@@ -189,24 +189,24 @@ inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(DgramSocket_base);
     ASYNC_METHOD_ENTER("DgramSocket.send");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "port");
 
     ARG(Union_send_msg, 0);
-    ARG(int32_t, 1);
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(int32_t, 1, "port");
+    OPT_ARG_NAMED(exlib::string, 2, "", "address");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_send(v0, v1, v2, cb, args);
     else
         hr = pInst->ac_send(v0, v1, v2, vr);
 
-    METHOD_OVER(5, 4);
+    METHOD_OVER_NAMED(5, 4, "port");
 
     ARG(Union_send_msg, 0);
-    ARG(int32_t, 1);
-    ARG(int32_t, 2);
-    ARG(int32_t, 3);
-    OPT_ARG(exlib::string, 4, "");
+    ARG_NAMED(int32_t, 1, "offset");
+    ARG_NAMED(int32_t, 2, "length");
+    ARG_NAMED(int32_t, 3, "port");
+    OPT_ARG_NAMED(exlib::string, 4, "", "address");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_send(v0, v1, v2, v3, v4, cb, args);
@@ -241,9 +241,9 @@ inline void DgramSocket_base::s_close(const v8::FunctionCallbackInfo<v8::Value>&
 
     hr = pInst->close(vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
 
     hr = pInst->close(v0, vr);
 
@@ -283,10 +283,10 @@ inline void DgramSocket_base::s_addMembership(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "multicastAddress");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+    ARG_NAMED(exlib::string, 0, "multicastAddress");
+    OPT_ARG_NAMED(exlib::string, 1, "", "multicastInterface");
 
     hr = pInst->addMembership(v0, v1);
 
@@ -298,10 +298,10 @@ inline void DgramSocket_base::s_dropMembership(const v8::FunctionCallbackInfo<v8
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "multicastAddress");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+    ARG_NAMED(exlib::string, 0, "multicastAddress");
+    OPT_ARG_NAMED(exlib::string, 1, "", "multicastInterface");
 
     hr = pInst->dropMembership(v0, v1);
 
@@ -313,9 +313,9 @@ inline void DgramSocket_base::s_setMulticastTTL(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "ttl");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "ttl");
 
     hr = pInst->setMulticastTTL(v0);
 
@@ -327,9 +327,9 @@ inline void DgramSocket_base::s_setRecvBufferSize(const v8::FunctionCallbackInfo
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "size");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "size");
 
     hr = pInst->setRecvBufferSize(v0);
 
@@ -341,9 +341,9 @@ inline void DgramSocket_base::s_setSendBufferSize(const v8::FunctionCallbackInfo
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "size");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "size");
 
     hr = pInst->setSendBufferSize(v0);
 
@@ -355,9 +355,9 @@ inline void DgramSocket_base::s_setBroadcast(const v8::FunctionCallbackInfo<v8::
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "flag");
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "flag");
 
     hr = pInst->setBroadcast(v0);
 
@@ -385,7 +385,7 @@ inline void DgramSocket_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onclose");
 
     hr = pInst->setListener("close", v0);
 
@@ -413,7 +413,7 @@ inline void DgramSocket_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onerror");
 
     hr = pInst->setListener("error", v0);
 
@@ -441,7 +441,7 @@ inline void DgramSocket_base::s_set_onlistening(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onlistening");
 
     hr = pInst->setListener("listening", v0);
 
@@ -469,7 +469,7 @@ inline void DgramSocket_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onmessage");
 
     hr = pInst->setListener("message", v0);
 

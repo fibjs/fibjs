@@ -154,14 +154,14 @@ inline void UrlObject_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "args");
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(Union_UrlObject_base, 1, exlib::string(""));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(Union_UrlObject_base, 1, exlib::string(""), "base");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -176,14 +176,14 @@ inline result_t UrlObject_base::load(v8::Local<v8::Value> v, obj_ptr<UrlObject_b
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "args");
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(Union_UrlObject_base, 1, exlib::string(""));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(Union_UrlObject_base, 1, exlib::string(""), "base");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -196,10 +196,10 @@ inline void UrlObject_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(exlib::string, 1, "", "base");
 
     hr = parse(v0, v1, vr);
 
@@ -212,10 +212,10 @@ inline void UrlObject_base::s_static_canParse(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(exlib::string, 1, "", "base");
 
     hr = canParse(v0, v1, vr);
 
@@ -229,9 +229,9 @@ inline void UrlObject_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(UrlObject_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "url");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "url");
 
     hr = pInst->resolve(v0, vr);
 
@@ -259,7 +259,7 @@ inline void UrlObject_base::s_set_href(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "href");
 
     hr = pInst->set_href(v0);
 
@@ -287,7 +287,7 @@ inline void UrlObject_base::s_set_protocol(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "protocol");
 
     hr = pInst->set_protocol(v0);
 
@@ -315,7 +315,7 @@ inline void UrlObject_base::s_set_slashes(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "slashes");
 
     hr = pInst->set_slashes(v0);
 
@@ -371,7 +371,7 @@ inline void UrlObject_base::s_set_username(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "username");
 
     hr = pInst->set_username(v0);
 
@@ -399,7 +399,7 @@ inline void UrlObject_base::s_set_password(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "password");
 
     hr = pInst->set_password(v0);
 
@@ -427,7 +427,7 @@ inline void UrlObject_base::s_set__host(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "host");
 
     hr = pInst->set__host(v0);
 
@@ -455,7 +455,7 @@ inline void UrlObject_base::s_set_hostname(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "hostname");
 
     hr = pInst->set_hostname(v0);
 
@@ -483,7 +483,7 @@ inline void UrlObject_base::s_set_port(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "port");
 
     hr = pInst->set_port(v0);
 
@@ -525,7 +525,7 @@ inline void UrlObject_base::s_set_pathname(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pathname");
 
     hr = pInst->set_pathname(v0);
 
@@ -553,7 +553,7 @@ inline void UrlObject_base::s_set_search(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "search");
 
     hr = pInst->set_search(v0);
 
@@ -581,7 +581,7 @@ inline void UrlObject_base::s_set_query(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "query");
 
     hr = pInst->set_query(v0);
 
@@ -609,7 +609,7 @@ inline void UrlObject_base::s_set_hash(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "hash");
 
     hr = pInst->set_hash(v0);
 

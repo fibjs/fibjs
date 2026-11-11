@@ -166,7 +166,7 @@ inline void XmlDocument_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "text/xml");
+    OPT_ARG_NAMED(exlib::string, 0, "text/xml", "type");
 
     hr = _new(v0, vr, args.This());
 
@@ -181,7 +181,7 @@ inline result_t XmlDocument_base::load(v8::Local<v8::Value> v, obj_ptr<XmlDocume
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "text/xml");
+    OPT_ARG_NAMED(exlib::string, 0, "text/xml", "type");
 
     hr = _new(v0, vr, args.This());
 
@@ -193,10 +193,10 @@ inline void XmlDocument_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "source");
 
     ARG(Union_load_source, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->load(v0, v1);
 
@@ -238,7 +238,7 @@ inline void XmlDocument_base::s_set_xmlStandalone(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "xmlStandalone");
 
     hr = pInst->set_xmlStandalone(v0);
 
@@ -266,7 +266,7 @@ inline void XmlDocument_base::s_set_xmlVersion(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "xmlVersion");
 
     hr = pInst->set_xmlVersion(v0);
 
@@ -350,9 +350,9 @@ inline void XmlDocument_base::s_getElementsByTagName(const v8::FunctionCallbackI
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "tagName");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "tagName");
 
     hr = pInst->getElementsByTagName(v0, vr);
 
@@ -366,10 +366,10 @@ inline void XmlDocument_base::s_getElementsByTagNameNS(const v8::FunctionCallbac
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "localName");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "namespaceURI");
+    ARG_NAMED(exlib::string, 1, "localName");
 
     hr = pInst->getElementsByTagNameNS(v0, v1, vr);
 
@@ -383,9 +383,9 @@ inline void XmlDocument_base::s_getElementById(const v8::FunctionCallbackInfo<v8
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "id");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "id");
 
     hr = pInst->getElementById(v0, vr);
 
@@ -399,9 +399,9 @@ inline void XmlDocument_base::s_getElementsByClassName(const v8::FunctionCallbac
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "className");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "className");
 
     hr = pInst->getElementsByClassName(v0, vr);
 
@@ -415,9 +415,9 @@ inline void XmlDocument_base::s_createElement(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "tagName");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "tagName");
 
     hr = pInst->createElement(v0, vr);
 
@@ -431,10 +431,10 @@ inline void XmlDocument_base::s_createElementNS(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "qualifiedName");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "namespaceURI");
+    ARG_NAMED(exlib::string, 1, "qualifiedName");
 
     hr = pInst->createElementNS(v0, v1, vr);
 
@@ -448,9 +448,9 @@ inline void XmlDocument_base::s_createTextNode(const v8::FunctionCallbackInfo<v8
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "data");
 
     hr = pInst->createTextNode(v0, vr);
 
@@ -464,9 +464,9 @@ inline void XmlDocument_base::s_createComment(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "data");
 
     hr = pInst->createComment(v0, vr);
 
@@ -480,9 +480,9 @@ inline void XmlDocument_base::s_createCDATASection(const v8::FunctionCallbackInf
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "data");
 
     hr = pInst->createCDATASection(v0, vr);
 
@@ -496,10 +496,10 @@ inline void XmlDocument_base::s_createProcessingInstruction(const v8::FunctionCa
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "data");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "target");
+    ARG_NAMED(exlib::string, 1, "data");
 
     hr = pInst->createProcessingInstruction(v0, v1, vr);
 
@@ -527,10 +527,10 @@ inline void XmlDocument_base::s_importNode(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "importedNode");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
-    OPT_ARG(bool, 1, true);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "importedNode");
+    OPT_ARG_NAMED(bool, 1, true, "deep");
 
     hr = pInst->importNode(v0.get(), v1, vr);
 
@@ -544,9 +544,9 @@ inline void XmlDocument_base::s_adoptNode(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "adoptedNode");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "adoptedNode");
 
     hr = pInst->adoptNode(v0.get(), vr);
 
@@ -560,9 +560,9 @@ inline void XmlDocument_base::s_querySelector(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "selectors");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "selectors");
 
     hr = pInst->querySelector(v0, vr);
 
@@ -576,9 +576,9 @@ inline void XmlDocument_base::s_querySelectorAll(const v8::FunctionCallbackInfo<
     METHOD_INSTANCE(XmlDocument_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "selectors");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "selectors");
 
     hr = pInst->querySelectorAll(v0, vr);
 

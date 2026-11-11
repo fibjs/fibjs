@@ -87,16 +87,16 @@ inline void MessagePort_base::s_postMessage(const v8::FunctionCallbackInfo<v8::V
     METHOD_INSTANCE(MessagePort_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "data");
 
     hr = pInst->postMessage(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "transfer");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Array>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "data");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "transfer");
 
     hr = pInst->postMessage(v0, v1);
 
@@ -172,7 +172,7 @@ inline void MessagePort_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onmessage");
 
     hr = pInst->setListener("message", v0);
 
@@ -200,7 +200,7 @@ inline void MessagePort_base::s_set_onmessageerror(const v8::FunctionCallbackInf
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onmessageerror");
 
     hr = pInst->setListener("messageerror", v0);
 

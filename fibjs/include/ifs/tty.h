@@ -78,7 +78,7 @@ inline void tty_base::s_static_isatty(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fd");
 
     ARG(Union_isatty_fd, 0);
 

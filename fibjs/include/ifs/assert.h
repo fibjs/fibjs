@@ -257,8 +257,8 @@ inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = _function(v0, v1);
 
@@ -271,7 +271,7 @@ inline void assert_base::s_static_fail(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = fail(v0);
 
@@ -282,10 +282,10 @@ inline void assert_base::s_static_notOk(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notOk(v0, v1);
 
@@ -296,11 +296,11 @@ inline void assert_base::s_static_equal(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = equal(v0, v1, v2);
 
@@ -311,11 +311,11 @@ inline void assert_base::s_static_notEqual(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notEqual(v0, v1, v2);
 
@@ -326,11 +326,11 @@ inline void assert_base::s_static_strictEqual(const v8::FunctionCallbackInfo<v8:
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = strictEqual(v0, v1, v2);
 
@@ -341,11 +341,11 @@ inline void assert_base::s_static_notStrictEqual(const v8::FunctionCallbackInfo<
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notStrictEqual(v0, v1, v2);
 
@@ -356,11 +356,11 @@ inline void assert_base::s_static_deepEqual(const v8::FunctionCallbackInfo<v8::V
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = deepEqual(v0, v1, v2);
 
@@ -371,11 +371,11 @@ inline void assert_base::s_static_notDeepEqual(const v8::FunctionCallbackInfo<v8
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notDeepEqual(v0, v1, v2);
 
@@ -386,11 +386,11 @@ inline void assert_base::s_static_deepStrictEqual(const v8::FunctionCallbackInfo
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = deepStrictEqual(v0, v1, v2);
 
@@ -401,11 +401,11 @@ inline void assert_base::s_static_notDeepStrictEqual(const v8::FunctionCallbackI
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notDeepStrictEqual(v0, v1, v2);
 
@@ -416,11 +416,11 @@ inline void assert_base::s_static_match(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::RegExp>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "actual");
+    ARG_NAMED(v8::Local<v8::RegExp>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = match(v0, v1, v2);
 
@@ -431,11 +431,11 @@ inline void assert_base::s_static_doesNotMatch(const v8::FunctionCallbackInfo<v8
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::RegExp>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "actual");
+    ARG_NAMED(v8::Local<v8::RegExp>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = doesNotMatch(v0, v1, v2);
 
@@ -446,12 +446,12 @@ inline void assert_base::s_static_closeTo(const v8::FunctionCallbackInfo<v8::Val
 {
     METHOD_ENTER();
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "delta");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    ARG_NAMED(v8::Local<v8::Value>, 2, "delta");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = closeTo(v0, v1, v2, v3);
 
@@ -462,12 +462,12 @@ inline void assert_base::s_static_notCloseTo(const v8::FunctionCallbackInfo<v8::
 {
     METHOD_ENTER();
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "delta");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    ARG_NAMED(v8::Local<v8::Value>, 2, "delta");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notCloseTo(v0, v1, v2, v3);
 
@@ -478,11 +478,11 @@ inline void assert_base::s_static_lessThan(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = lessThan(v0, v1, v2);
 
@@ -493,11 +493,11 @@ inline void assert_base::s_static_notLessThan(const v8::FunctionCallbackInfo<v8:
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notLessThan(v0, v1, v2);
 
@@ -508,11 +508,11 @@ inline void assert_base::s_static_greaterThan(const v8::FunctionCallbackInfo<v8:
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = greaterThan(v0, v1, v2);
 
@@ -523,11 +523,11 @@ inline void assert_base::s_static_notGreaterThan(const v8::FunctionCallbackInfo<
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notGreaterThan(v0, v1, v2);
 
@@ -538,10 +538,10 @@ inline void assert_base::s_static_exist(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = exist(v0, v1);
 
@@ -552,10 +552,10 @@ inline void assert_base::s_static_notExist(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notExist(v0, v1);
 
@@ -566,10 +566,10 @@ inline void assert_base::s_static_isTrue(const v8::FunctionCallbackInfo<v8::Valu
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isTrue(v0, v1);
 
@@ -580,10 +580,10 @@ inline void assert_base::s_static_isNotTrue(const v8::FunctionCallbackInfo<v8::V
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isNotTrue(v0, v1);
 
@@ -594,10 +594,10 @@ inline void assert_base::s_static_isFalse(const v8::FunctionCallbackInfo<v8::Val
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isFalse(v0, v1);
 
@@ -608,10 +608,10 @@ inline void assert_base::s_static_isNotFalse(const v8::FunctionCallbackInfo<v8::
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isNotFalse(v0, v1);
 
@@ -622,10 +622,10 @@ inline void assert_base::s_static_isNull(const v8::FunctionCallbackInfo<v8::Valu
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isNull(v0, v1);
 
@@ -636,10 +636,10 @@ inline void assert_base::s_static_isNotNull(const v8::FunctionCallbackInfo<v8::V
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isNotNull(v0, v1);
 
@@ -650,10 +650,10 @@ inline void assert_base::s_static_isUndefined(const v8::FunctionCallbackInfo<v8:
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isUndefined(v0, v1);
 
@@ -664,10 +664,10 @@ inline void assert_base::s_static_isDefined(const v8::FunctionCallbackInfo<v8::V
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isDefined(v0, v1);
 
@@ -678,10 +678,10 @@ inline void assert_base::s_static_isFunction(const v8::FunctionCallbackInfo<v8::
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isFunction(v0, v1);
 
@@ -692,10 +692,10 @@ inline void assert_base::s_static_isNotFunction(const v8::FunctionCallbackInfo<v
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isNotFunction(v0, v1);
 
@@ -706,10 +706,10 @@ inline void assert_base::s_static_isObject(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isObject(v0, v1);
 
@@ -720,10 +720,10 @@ inline void assert_base::s_static_isNotObject(const v8::FunctionCallbackInfo<v8:
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isNotObject(v0, v1);
 
@@ -734,10 +734,10 @@ inline void assert_base::s_static_isArray(const v8::FunctionCallbackInfo<v8::Val
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isArray(v0, v1);
 
@@ -748,10 +748,10 @@ inline void assert_base::s_static_isNotArray(const v8::FunctionCallbackInfo<v8::
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isNotArray(v0, v1);
 
@@ -762,10 +762,10 @@ inline void assert_base::s_static_isString(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isString(v0, v1);
 
@@ -776,10 +776,10 @@ inline void assert_base::s_static_isNotString(const v8::FunctionCallbackInfo<v8:
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isNotString(v0, v1);
 
@@ -790,10 +790,10 @@ inline void assert_base::s_static_isNumber(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isNumber(v0, v1);
 
@@ -804,10 +804,10 @@ inline void assert_base::s_static_isNotNumber(const v8::FunctionCallbackInfo<v8:
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isNotNumber(v0, v1);
 
@@ -818,10 +818,10 @@ inline void assert_base::s_static_isBoolean(const v8::FunctionCallbackInfo<v8::V
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isBoolean(v0, v1);
 
@@ -832,10 +832,10 @@ inline void assert_base::s_static_isNotBoolean(const v8::FunctionCallbackInfo<v8
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "actual");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = isNotBoolean(v0, v1);
 
@@ -846,11 +846,11 @@ inline void assert_base::s_static_typeOf(const v8::FunctionCallbackInfo<v8::Valu
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "type");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(exlib::string, 1, "type");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = typeOf(v0, v1, v2);
 
@@ -861,11 +861,11 @@ inline void assert_base::s_static_notTypeOf(const v8::FunctionCallbackInfo<v8::V
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "type");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(exlib::string, 1, "type");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notTypeOf(v0, v1, v2);
 
@@ -876,11 +876,11 @@ inline void assert_base::s_static_property(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "prop");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "object");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "prop");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = property(v0, v1, v2);
 
@@ -891,11 +891,11 @@ inline void assert_base::s_static_notProperty(const v8::FunctionCallbackInfo<v8:
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "prop");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "object");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "prop");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notProperty(v0, v1, v2);
 
@@ -906,11 +906,11 @@ inline void assert_base::s_static_deepProperty(const v8::FunctionCallbackInfo<v8
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "prop");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "object");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "prop");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = deepProperty(v0, v1, v2);
 
@@ -921,11 +921,11 @@ inline void assert_base::s_static_notDeepProperty(const v8::FunctionCallbackInfo
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "prop");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "object");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "prop");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = notDeepProperty(v0, v1, v2);
 
@@ -936,12 +936,12 @@ inline void assert_base::s_static_propertyVal(const v8::FunctionCallbackInfo<v8:
 {
     METHOD_ENTER();
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "value");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "object");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "prop");
+    ARG_NAMED(v8::Local<v8::Value>, 2, "value");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = propertyVal(v0, v1, v2, v3);
 
@@ -952,12 +952,12 @@ inline void assert_base::s_static_propertyNotVal(const v8::FunctionCallbackInfo<
 {
     METHOD_ENTER();
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "value");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "object");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "prop");
+    ARG_NAMED(v8::Local<v8::Value>, 2, "value");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = propertyNotVal(v0, v1, v2, v3);
 
@@ -968,12 +968,12 @@ inline void assert_base::s_static_deepPropertyVal(const v8::FunctionCallbackInfo
 {
     METHOD_ENTER();
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "value");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "object");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "prop");
+    ARG_NAMED(v8::Local<v8::Value>, 2, "value");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = deepPropertyVal(v0, v1, v2, v3);
 
@@ -984,12 +984,12 @@ inline void assert_base::s_static_deepPropertyNotVal(const v8::FunctionCallbackI
 {
     METHOD_ENTER();
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "value");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "object");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "prop");
+    ARG_NAMED(v8::Local<v8::Value>, 2, "value");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = deepPropertyNotVal(v0, v1, v2, v3);
 
@@ -1000,18 +1000,18 @@ inline void assert_base::s_static_throws(const v8::FunctionCallbackInfo<v8::Valu
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "error");
 
-    ARG(v8::Local<v8::Function>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Function>, 0, "block");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "error");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = throws(v0, v1, v2);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "block");
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Function>, 0, "block");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = throws(v0, v1);
 
@@ -1022,10 +1022,10 @@ inline void assert_base::s_static_doesNotThrow(const v8::FunctionCallbackInfo<v8
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "block");
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Function>, 0, "block");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = doesNotThrow(v0, v1);
 
@@ -1038,33 +1038,33 @@ inline void assert_base::s_static_rejects(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "error");
 
-    ARG(v8::Local<v8::Function>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Function>, 0, "block");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "error");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = rejects(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "block");
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Function>, 0, "block");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = rejects(v0, v1, vr);
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "error");
 
-    ARG(v8::Local<v8::Promise>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Promise>, 0, "result");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "error");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = rejects(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "result");
 
-    ARG(v8::Local<v8::Promise>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Promise>, 0, "result");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = rejects(v0, v1, vr);
 
@@ -1077,18 +1077,18 @@ inline void assert_base::s_static_doesNotReject(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "error");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "block");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "error");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = doesNotReject(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "block");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "block");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = doesNotReject(v0, v1, vr);
 
@@ -1099,11 +1099,11 @@ inline void assert_base::s_static_partialDeepStrictEqual(const v8::FunctionCallb
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "msg");
 
     hr = partialDeepStrictEqual(v0, v1, v2);
 
@@ -1116,7 +1116,7 @@ inline void assert_base::s_static_ifError(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "object");
 
     hr = ifError(v0);
 

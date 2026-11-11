@@ -65,9 +65,9 @@ inline void json_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "data");
 
     hr = encode(v0, vr);
 
@@ -80,9 +80,9 @@ inline void json_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "data");
 
     hr = decode(v0, vr);
 

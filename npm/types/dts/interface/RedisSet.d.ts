@@ -29,7 +29,7 @@
  *    without removing. The count form caps a positive count at the set size, repeats members
  *    for a negative count and returns an empty array for a missing key.
  *  - **Type conflicts**: a member called on a key that holds another type fails with the
- *    server error (number 20024).
+ *    server error (ERR_INVALID_STATE).
  *
  *  Obtained from:
  *  - `rdb.getSet(key)` — the only factory, where rdb is the Redis object returned by

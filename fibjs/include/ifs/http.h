@@ -272,13 +272,13 @@ inline void http_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlr");
 
     ARG(Union_createServer_hdlr, 0);
 
     hr = createServer(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
     ARG(Union_createServer_options, 0);
     ARG(Union_createServer_hdlr, 1);
@@ -346,7 +346,7 @@ inline void http_base::s_static_set_keepAlive(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "keepAlive");
 
     hr = set_keepAlive(v0);
 
@@ -372,7 +372,7 @@ inline void http_base::s_static_set_timeout(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "timeout");
 
     hr = set_timeout(v0);
 
@@ -398,7 +398,7 @@ inline void http_base::s_static_set_enableCookie(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "enableCookie");
 
     hr = set_enableCookie(v0);
 
@@ -424,7 +424,7 @@ inline void http_base::s_static_set_autoRedirect(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "autoRedirect");
 
     hr = set_autoRedirect(v0);
 
@@ -450,7 +450,7 @@ inline void http_base::s_static_set_enableEncoding(const v8::FunctionCallbackInf
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "enableEncoding");
 
     hr = set_enableEncoding(v0);
 
@@ -476,7 +476,7 @@ inline void http_base::s_static_set_enableH2(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "enableH2");
 
     hr = set_enableH2(v0);
 
@@ -502,7 +502,7 @@ inline void http_base::s_static_set_maxHeadersCount(const v8::FunctionCallbackIn
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxHeadersCount");
 
     hr = set_maxHeadersCount(v0);
 
@@ -528,7 +528,7 @@ inline void http_base::s_static_set_maxHeaderSize(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxHeaderSize");
 
     hr = set_maxHeaderSize(v0);
 
@@ -554,7 +554,7 @@ inline void http_base::s_static_set_maxChunkSize(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxChunkSize");
 
     hr = set_maxChunkSize(v0);
 
@@ -580,7 +580,7 @@ inline void http_base::s_static_set_maxBodySize(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxBodySize");
 
     hr = set_maxBodySize(v0);
 
@@ -606,7 +606,7 @@ inline void http_base::s_static_set_userAgent(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "userAgent");
 
     hr = set_userAgent(v0);
 
@@ -632,7 +632,7 @@ inline void http_base::s_static_set_poolTimeout(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "poolTimeout");
 
     hr = set_poolTimeout(v0);
 
@@ -658,7 +658,7 @@ inline void http_base::s_static_set_maxFreeSockets(const v8::FunctionCallbackInf
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxFreeSockets");
 
     hr = set_maxFreeSockets(v0);
 
@@ -671,17 +671,17 @@ inline void http_base::s_static_fileHandler(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "root");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(bool, 1, false);
+    ARG_NAMED(exlib::string, 0, "root");
+    OPT_ARG_NAMED(bool, 1, false, "autoIndex");
 
     hr = fileHandler(v0, v1, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "root");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "root");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = fileHandler(v0, v1, vr);
 
@@ -694,70 +694,70 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "req");
 
-    ARG(obj_ptr<Stream_base>, 0);
-    ARG(obj_ptr<HttpRequest_base>, 1);
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "conn");
+    ARG_NAMED(obj_ptr<HttpRequest_base>, 1, "req");
 
     hr = request(v0.get(), v1.get(), vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "opts");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "opts");
 
     hr = request(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    hr = request(v0, v1, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = request(v0, v1, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = request(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
-    hr = request(v0, v1, v2, vr);
+    hr = request(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    ARG(v8::Local<v8::Function>, 2);
-
-    hr = request(v0, v1, v2, vr);
-
-    METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = request(v0, v1, v2, vr);
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    ARG(v8::Local<v8::Object>, 2);
-    ARG(v8::Local<v8::Function>, 3);
+    ARG_NAMED(exlib::string, 0, "method");
+    ARG_NAMED(exlib::string, 1, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
+
+    hr = request(v0, v1, v2, vr);
+
+    METHOD_OVER_NAMED(3, 2, "url");
+
+    ARG_NAMED(exlib::string, 0, "method");
+    ARG_NAMED(exlib::string, 1, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "opts");
+
+    hr = request(v0, v1, v2, vr);
+
+    METHOD_OVER_NAMED(4, 4, "callback");
+
+    ARG_NAMED(exlib::string, 0, "method");
+    ARG_NAMED(exlib::string, 1, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 2, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 3, "callback");
 
     hr = request(v0, v1, v2, v3, vr);
 
@@ -770,30 +770,30 @@ inline void http_base::s_static_requestSync(const v8::FunctionCallbackInfo<v8::V
 
     ASYNC_METHOD_ENTER("http.requestSync");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "opts");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "opts");
 
     if (!cb.IsEmpty())
         hr = acb_requestSync(v0, cb, args);
     else
         hr = ac_requestSync(v0, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_requestSync(v0, v1, cb, args);
     else
         hr = ac_requestSync(v0, v1, vr);
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "url");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "method");
+    ARG_NAMED(exlib::string, 1, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_requestSync(v0, v1, v2, cb, args);
@@ -809,10 +809,10 @@ inline void http_base::s_static_getSync(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_ENTER("http.getSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_getSync(v0, v1, cb, args);
@@ -828,25 +828,25 @@ inline void http_base::s_static_get(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = get(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = get(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = get(v0, v1, vr);
 
@@ -859,10 +859,10 @@ inline void http_base::s_static_postSync(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("http.postSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_postSync(v0, v1, cb, args);
@@ -878,25 +878,25 @@ inline void http_base::s_static_post(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = post(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = post(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = post(v0, v1, vr);
 
@@ -909,10 +909,10 @@ inline void http_base::s_static_delSync(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_ENTER("http.delSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_delSync(v0, v1, cb, args);
@@ -928,25 +928,25 @@ inline void http_base::s_static_del(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = del(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = del(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = del(v0, v1, vr);
 
@@ -959,10 +959,10 @@ inline void http_base::s_static_putSync(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_ENTER("http.putSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_putSync(v0, v1, cb, args);
@@ -978,25 +978,25 @@ inline void http_base::s_static_put(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = put(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = put(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = put(v0, v1, vr);
 
@@ -1009,10 +1009,10 @@ inline void http_base::s_static_patchSync(const v8::FunctionCallbackInfo<v8::Val
 
     ASYNC_METHOD_ENTER("http.patchSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_patchSync(v0, v1, cb, args);
@@ -1028,25 +1028,25 @@ inline void http_base::s_static_patch(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = patch(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = patch(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = patch(v0, v1, vr);
 
@@ -1059,10 +1059,10 @@ inline void http_base::s_static_headSync(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("http.headSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_headSync(v0, v1, cb, args);
@@ -1078,25 +1078,25 @@ inline void http_base::s_static_head(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = head(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = head(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = head(v0, v1, vr);
 
@@ -1111,7 +1111,7 @@ inline void http_base::s_static_setGlobalProxyFromEnv(const v8::FunctionCallback
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "proxyEnv");
 
     hr = setGlobalProxyFromEnv(v0, vr);
 
@@ -1124,10 +1124,10 @@ inline void http_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>&
 
     ASYNC_METHOD_ENTER("http.fetch");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "request");
 
     ARG(Union_fetch_request, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_fetch(v0, v1, cb, args);

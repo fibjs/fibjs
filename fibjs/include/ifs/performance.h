@@ -91,7 +91,7 @@ inline void performance_base::s_static_clearMarks(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "name");
 
     hr = clearMarks(v0);
 
@@ -104,7 +104,7 @@ inline void performance_base::s_static_clearMeasures(const v8::FunctionCallbackI
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "name");
 
     hr = clearMeasures(v0);
 
@@ -115,10 +115,10 @@ inline void performance_base::s_static_mark(const v8::FunctionCallbackInfo<v8::V
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "name");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "name");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = mark(v0, v1);
 
@@ -129,18 +129,18 @@ inline void performance_base::s_static_measure(const v8::FunctionCallbackInfo<v8
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "name");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "name");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = measure(v0, v1);
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "name");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(exlib::string, 0, "name");
+    OPT_ARG_NAMED(exlib::string, 1, "", "startMark");
+    OPT_ARG_NAMED(exlib::string, 2, "", "endMark");
 
     hr = measure(v0, v1, v2);
 
@@ -166,9 +166,9 @@ inline void performance_base::s_static_getEntriesByType(const v8::FunctionCallba
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "type");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "type");
 
     hr = getEntriesByType(v0, vr);
 
@@ -181,10 +181,10 @@ inline void performance_base::s_static_getEntriesByName(const v8::FunctionCallba
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "name");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+    ARG_NAMED(exlib::string, 0, "name");
+    OPT_ARG_NAMED(exlib::string, 1, "", "type");
 
     hr = getEntriesByName(v0, v1, vr);
 
@@ -195,15 +195,15 @@ inline void performance_base::s_static_markResourceTiming(const v8::FunctionCall
 {
     METHOD_ENTER();
 
-    METHOD_OVER(7, 7);
+    METHOD_OVER_NAMED(7, 7, "responseStatus");
 
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(exlib::string, 1);
-    ARG(exlib::string, 2);
-    ARG(v8::Local<v8::Value>, 3);
-    ARG(exlib::string, 4);
-    ARG(v8::Local<v8::Object>, 5);
-    ARG(int32_t, 6);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "timingInfo");
+    ARG_NAMED(exlib::string, 1, "requestedUrl");
+    ARG_NAMED(exlib::string, 2, "initiatorType");
+    ARG_NAMED(v8::Local<v8::Value>, 3, "global");
+    ARG_NAMED(exlib::string, 4, "cacheState");
+    ARG_NAMED(v8::Local<v8::Object>, 5, "bodyInfo");
+    ARG_NAMED(int32_t, 6, "responseStatus");
 
     hr = markResourceTiming(v0, v1, v2, v3, v4, v5, v6);
 

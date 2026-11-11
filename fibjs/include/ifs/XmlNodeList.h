@@ -110,9 +110,9 @@ inline void XmlNodeList_base::s_item(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(XmlNodeList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "index");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "index");
 
     hr = pInst->item(v0, vr);
 
@@ -152,9 +152,9 @@ inline void XmlNodeList_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(XmlNodeList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
 
     hr = pInst->forEach(v0);
 

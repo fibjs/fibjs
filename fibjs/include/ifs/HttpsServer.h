@@ -84,33 +84,33 @@ inline void HttpsServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "hdlr");
 
-    ARG(obj_ptr<SecureContext_base>, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(obj_ptr<SecureContext_base>, 0, "context");
+    ARG_NAMED(int32_t, 1, "port");
     ARG(Union_HttpsServer_hdlr, 2);
 
     hr = _new(v0.get(), v1, v2, vr, args.This());
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(4, 4, "hdlr");
 
-    ARG(obj_ptr<SecureContext_base>, 0);
-    ARG(exlib::string, 1);
-    ARG(int32_t, 2);
+    ARG_NAMED(obj_ptr<SecureContext_base>, 0, "context");
+    ARG_NAMED(exlib::string, 1, "addr");
+    ARG_NAMED(int32_t, 2, "port");
     ARG(Union_HttpsServer_hdlr, 3);
 
     hr = _new(v0.get(), v1, v2, v3, vr, args.This());
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
     ARG(Union_HttpsServer_hdlr, 1);
 
     hr = _new(v0, v1, vr, args.This());
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(obj_ptr<SecureContext_base>, 0);
+    ARG_NAMED(obj_ptr<SecureContext_base>, 0, "context");
     ARG(Union_HttpsServer_hdlr, 1);
 
     hr = _new(v0.get(), v1, vr, args.This());
@@ -142,15 +142,15 @@ inline void HttpsServer_base::s_setSecureContext(const v8::FunctionCallbackInfo<
     METHOD_INSTANCE(HttpsServer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "context");
 
-    ARG(obj_ptr<SecureContext_base>, 0);
+    ARG_NAMED(obj_ptr<SecureContext_base>, 0, "context");
 
     hr = pInst->setSecureContext(v0.get());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
 
     hr = pInst->setSecureContext(v0);
 

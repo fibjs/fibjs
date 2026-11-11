@@ -96,13 +96,13 @@ inline void ECDH_base::s_static_convertKey(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(5, 2);
+    METHOD_OVER_NAMED(5, 2, "curve");
 
     ARG(Union_convertKey_key, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "hex");
-    OPT_ARG(exlib::string, 3, "hex");
-    OPT_ARG(exlib::string, 4, "uncompressed");
+    ARG_NAMED(exlib::string, 1, "curve");
+    OPT_ARG_NAMED(exlib::string, 2, "hex", "inputEncoding");
+    OPT_ARG_NAMED(exlib::string, 3, "hex", "outputEncoding");
+    OPT_ARG_NAMED(exlib::string, 4, "uncompressed", "format");
 
     hr = convertKey(v0, v1, v2, v3, v4, vr);
 
@@ -116,11 +116,11 @@ inline void ECDH_base::s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(ECDH_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "otherPublicKey");
 
     ARG(Union_computeSecret_otherPublicKey, 0);
-    OPT_ARG(exlib::string, 1, "hex");
-    OPT_ARG(exlib::string, 2, "buffer");
+    OPT_ARG_NAMED(exlib::string, 1, "hex", "inputEncoding");
+    OPT_ARG_NAMED(exlib::string, 2, "buffer", "outputEncoding");
 
     hr = pInst->computeSecret(v0, v1, v2, vr);
 
@@ -136,8 +136,8 @@ inline void ECDH_base::s_generateKeys(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(exlib::string, 0, "buffer");
-    OPT_ARG(exlib::string, 1, "uncompressed");
+    OPT_ARG_NAMED(exlib::string, 0, "buffer", "outputEncoding");
+    OPT_ARG_NAMED(exlib::string, 1, "uncompressed", "format");
 
     hr = pInst->generateKeys(v0, v1, vr);
 
@@ -167,7 +167,7 @@ inline void ECDH_base::s_getPrivateKey(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "buffer");
+    OPT_ARG_NAMED(exlib::string, 0, "buffer", "encoding");
 
     hr = pInst->getPrivateKey(v0, vr);
 
@@ -183,8 +183,8 @@ inline void ECDH_base::s_getPublicKey(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(exlib::string, 0, "buffer");
-    OPT_ARG(exlib::string, 1, "uncompressed");
+    OPT_ARG_NAMED(exlib::string, 0, "buffer", "encoding");
+    OPT_ARG_NAMED(exlib::string, 1, "uncompressed", "format");
 
     hr = pInst->getPublicKey(v0, v1, vr);
 
@@ -196,10 +196,10 @@ inline void ECDH_base::s_setPrivateKey(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(ECDH_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "privateKey");
 
     ARG(Union_setPrivateKey_privateKey, 0);
-    OPT_ARG(exlib::string, 1, "hex");
+    OPT_ARG_NAMED(exlib::string, 1, "hex", "encoding");
 
     hr = pInst->setPrivateKey(v0, v1);
 
@@ -211,10 +211,10 @@ inline void ECDH_base::s_setPublicKey(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(ECDH_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "publicKey");
 
     ARG(Union_setPublicKey_publicKey, 0);
-    OPT_ARG(exlib::string, 1, "hex");
+    OPT_ARG_NAMED(exlib::string, 1, "hex", "encoding");
 
     hr = pInst->setPublicKey(v0, v1);
 

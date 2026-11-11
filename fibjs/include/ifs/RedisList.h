@@ -110,9 +110,9 @@ inline void RedisList_base::s_push(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(RedisList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "values");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "values");
 
     hr = pInst->push(v0, vr);
 
@@ -146,9 +146,9 @@ inline void RedisList_base::s_rpush(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(RedisList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "values");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "values");
 
     hr = pInst->rpush(v0, vr);
 
@@ -180,9 +180,9 @@ inline void RedisList_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(RedisList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "index");
     ARG(Union_set_value, 1);
 
     hr = pInst->set(v0, v1);
@@ -197,9 +197,9 @@ inline void RedisList_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(RedisList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "index");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "index");
 
     hr = pInst->get(v0, vr);
 
@@ -213,7 +213,7 @@ inline void RedisList_base::s_insertBefore(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(RedisList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
     ARG(Union_insertBefore_pivot, 0);
     ARG(Union_insertBefore_value, 1);
@@ -230,7 +230,7 @@ inline void RedisList_base::s_insertAfter(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(RedisList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
     ARG(Union_insertAfter_pivot, 0);
     ARG(Union_insertAfter_value, 1);
@@ -247,9 +247,9 @@ inline void RedisList_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(RedisList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "count");
     ARG(Union_remove_value, 1);
 
     hr = pInst->remove(v0, v1, vr);
@@ -262,10 +262,10 @@ inline void RedisList_base::s_trim(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(RedisList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "stop");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "start");
+    ARG_NAMED(int32_t, 1, "stop");
 
     hr = pInst->trim(v0, v1);
 
@@ -293,10 +293,10 @@ inline void RedisList_base::s_range(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(RedisList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "stop");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "start");
+    ARG_NAMED(int32_t, 1, "stop");
 
     hr = pInst->range(v0, v1, vr);
 

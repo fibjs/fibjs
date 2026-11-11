@@ -86,9 +86,9 @@ inline void XMLSerializer_base::s_serializeToString(const v8::FunctionCallbackIn
     METHOD_INSTANCE(XMLSerializer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "node");
 
-    ARG(obj_ptr<XmlNode_base>, 0);
+    ARG_NAMED(obj_ptr<XmlNode_base>, 0, "node");
 
     hr = pInst->serializeToString(v0.get(), vr);
 

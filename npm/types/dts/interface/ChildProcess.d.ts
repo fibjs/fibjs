@@ -21,7 +21,7 @@
  *    `stdout`, `stderr` and the `stdio` array; 'ignore' and 'inherit' descriptors are null. Read
  *    the output streams to drain them, otherwise the child can block on a full pipe buffer.
  *  - **Terminal (pty)**: with `stdio: 'pty'` stdin and stdout are a pseudo terminal; `cols`, `rows`
- *    and `resize` are available in this mode and throw Error 20024 for other children.
+ *    and `resize` are available in this mode and throw ERR_INVALID_STATE for other children.
  *  - **IPC**: a fork child, or a spawn with an 'ipc' stdio entry, gets a message channel;
  *    `connected`, `send` and `disconnect` operate on it and incoming messages are delivered to the
  *    'message' event. Only one 'ipc' entry is allowed per child (ERR_IPC_ONE_PIPE).
@@ -179,7 +179,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      * @description Closes the ipc pipe to the child process
      *
      *       After the call `connected` is false and send fails; the disconnect event is emitted when
-     *       the channel closes. Calling it when no channel is connected throws Error 20024 ("IPC
+     *       the channel closes. Calling it when no channel is connected throws ERR_INVALID_STATE ("IPC
      *       channel is already disconnected").
      *
      */
@@ -201,7 +201,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     /**
      * @description Resizes the terminal of the current child process
      *
-     *       Only available when the child runs in 'pty' mode; otherwise it throws Error 20024
+     *       Only available when the child runs in 'pty' mode; otherwise it throws ERR_INVALID_STATE
      *       ("resize() only available in PTY mode"). Both dimensions must be positive, otherwise
      *       Error 20004; the default size is 80 columns by 24 rows.
      *
@@ -214,7 +214,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     /**
      * @description Number of terminal columns of the child process
      *
-     *       Only available in 'pty' mode; reading it for a non-pty child throws Error 20024 ("cols
+     *       Only available in 'pty' mode; reading it for a non-pty child throws ERR_INVALID_STATE ("cols
      *       property only available in PTY mode"). The default is 80 and resize updates it.
      *
      */
@@ -223,7 +223,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     /**
      * @description Number of terminal rows of the child process
      *
-     *       Only available in 'pty' mode; reading it for a non-pty child throws Error 20024 ("rows
+     *       Only available in 'pty' mode; reading it for a non-pty child throws ERR_INVALID_STATE ("rows
      *       property only available in PTY mode"). The default is 24 and resize updates it.
      *
      */
@@ -647,7 +647,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      * @description Closes the ipc pipe to the child process
      *
      *       After the call `connected` is false and send fails; the disconnect event is emitted when
-     *       the channel closes. Calling it when no channel is connected throws Error 20024 ("IPC
+     *       the channel closes. Calling it when no channel is connected throws ERR_INVALID_STATE ("IPC
      *       channel is already disconnected").
      *
      */
@@ -669,7 +669,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
     /**
      * @description Resizes the terminal of the current child process
      *
-     *       Only available when the child runs in 'pty' mode; otherwise it throws Error 20024
+     *       Only available when the child runs in 'pty' mode; otherwise it throws ERR_INVALID_STATE
      *       ("resize() only available in PTY mode"). Both dimensions must be positive, otherwise
      *       Error 20004; the default size is 80 columns by 24 rows.
      *
@@ -682,7 +682,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
     /**
      * @description Number of terminal columns of the child process
      *
-     *       Only available in 'pty' mode; reading it for a non-pty child throws Error 20024 ("cols
+     *       Only available in 'pty' mode; reading it for a non-pty child throws ERR_INVALID_STATE ("cols
      *       property only available in PTY mode"). The default is 80 and resize updates it.
      *
      */
@@ -691,7 +691,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
     /**
      * @description Number of terminal rows of the child process
      *
-     *       Only available in 'pty' mode; reading it for a non-pty child throws Error 20024 ("rows
+     *       Only available in 'pty' mode; reading it for a non-pty child throws ERR_INVALID_STATE ("rows
      *       property only available in PTY mode"). The default is 24 and resize updates it.
      *
      */

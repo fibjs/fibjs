@@ -143,7 +143,7 @@ declare module 'url' {
      *
      *      An absolute URL is normalized component by component; a string without a scheme is
      *      treated as a relative reference and normalized as an absolute path. An invalid
-     *      absolute URL throws a type error (20024).
+     *      absolute URL throws a type error (ERR_INVALID_STATE).
      *
      *      @param href URL string to normalize
      *      @return the normalized URL string
@@ -160,7 +160,7 @@ declare module 'url' {
      *      URLSearchParams built from the query. The slashesDenoteHost argument is accepted for
      *      compatibility but ignored, so a protocol-relative reference such as `//host/path` is
      *      parsed with `host` as the host. Invalid percent-encoding throws `url: URI malformed`
-     *      and an unparsable URL throws `url: Invalid URL '<input>'.` (20024).
+     *      and an unparsable URL throws `url: Invalid URL '<input>'.` (ERR_INVALID_STATE).
      *
      *      Example — legacy parse with and without query parsing:
      *      ```JavaScript
@@ -187,7 +187,7 @@ declare module 'url' {
      *      The two arguments are `from` (the base URL) and `to` (the reference); the result is
      *      normalized with the WHATWG algorithm. An empty base resolves the reference on its own,
      *      so a rooted path stays a path and a relative path is returned as a relative path. An
-     *      unparsable input throws `url: Invalid URL '<input>'.` (20024).
+     *      unparsable input throws `url: Invalid URL '<input>'.` (ERR_INVALID_STATE).
      *
      *      Example — resolve against a file base:
      *      ```JavaScript

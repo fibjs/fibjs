@@ -70,9 +70,9 @@ inline void Chain_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlrs");
 
-    ARG(std::vector<obj_ptr<Handler_base>>, 0);
+    ARG_NAMED(std::vector<obj_ptr<Handler_base>>, 0, "hdlrs");
 
     hr = _new(v0, vr, args.This());
 
@@ -85,9 +85,9 @@ inline result_t Chain_base::load(v8::Local<v8::Value> v, obj_ptr<Chain_base>& re
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlrs");
 
-    ARG(std::vector<obj_ptr<Handler_base>>, 0);
+    ARG_NAMED(std::vector<obj_ptr<Handler_base>>, 0, "hdlrs");
 
     hr = _new(v0, vr, args.This());
 
@@ -99,13 +99,13 @@ inline void Chain_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Chain_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlrs");
 
-    ARG(std::vector<obj_ptr<Handler_base>>, 0);
+    ARG_NAMED(std::vector<obj_ptr<Handler_base>>, 0, "hdlrs");
 
     hr = pInst->append(v0);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlr");
 
     ARG(Union_append_hdlr, 0);
 

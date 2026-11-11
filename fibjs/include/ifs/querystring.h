@@ -75,9 +75,9 @@ inline void querystring_base::s_static_escape(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "str");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "str");
 
     hr = escape(v0, vr);
 
@@ -90,9 +90,9 @@ inline void querystring_base::s_static_unescape(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "str");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "str");
 
     hr = unescape(v0, vr);
 
@@ -105,12 +105,12 @@ inline void querystring_base::s_static_parse(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(4, 1);
+    METHOD_OVER_NAMED(4, 1, "str");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "&");
-    OPT_ARG(exlib::string, 2, "=");
-    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "str");
+    OPT_ARG_NAMED(exlib::string, 1, "&", "sep");
+    OPT_ARG_NAMED(exlib::string, 2, "=", "eq");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate), "opt");
 
     hr = parse(v0, v1, v2, v3, vr);
 
@@ -123,12 +123,12 @@ inline void querystring_base::s_static_stringify(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(4, 1);
+    METHOD_OVER_NAMED(4, 1, "obj");
 
-    ARG(v8::Local<v8::Object>, 0);
-    OPT_ARG(exlib::string, 1, "&");
-    OPT_ARG(exlib::string, 2, "=");
-    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Object>, 0, "obj");
+    OPT_ARG_NAMED(exlib::string, 1, "&", "sep");
+    OPT_ARG_NAMED(exlib::string, 2, "=", "eq");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate), "opt");
 
     hr = stringify(v0, v1, v2, v3, vr);
 

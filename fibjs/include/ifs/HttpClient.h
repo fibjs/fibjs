@@ -274,7 +274,7 @@ inline void HttpClient_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     hr = _new(vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "options");
 
     ARG(Union_HttpClient_options, 0);
 
@@ -289,7 +289,7 @@ inline result_t HttpClient_base::load(v8::Local<v8::Value> v, obj_ptr<HttpClient
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "options");
 
     ARG(Union_HttpClient_options, 0);
 
@@ -333,7 +333,7 @@ inline void HttpClient_base::s_set_keepAlive(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "keepAlive");
 
     hr = pInst->set_keepAlive(v0);
 
@@ -361,7 +361,7 @@ inline void HttpClient_base::s_set_timeout(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "timeout");
 
     hr = pInst->set_timeout(v0);
 
@@ -389,7 +389,7 @@ inline void HttpClient_base::s_set_enableCookie(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "enableCookie");
 
     hr = pInst->set_enableCookie(v0);
 
@@ -417,7 +417,7 @@ inline void HttpClient_base::s_set_autoRedirect(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "autoRedirect");
 
     hr = pInst->set_autoRedirect(v0);
 
@@ -445,7 +445,7 @@ inline void HttpClient_base::s_set_enableEncoding(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "enableEncoding");
 
     hr = pInst->set_enableEncoding(v0);
 
@@ -473,7 +473,7 @@ inline void HttpClient_base::s_set_enableH2(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "enableH2");
 
     hr = pInst->set_enableH2(v0);
 
@@ -501,7 +501,7 @@ inline void HttpClient_base::s_set_maxHeadersCount(const v8::FunctionCallbackInf
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxHeadersCount");
 
     hr = pInst->set_maxHeadersCount(v0);
 
@@ -529,7 +529,7 @@ inline void HttpClient_base::s_set_maxHeaderSize(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxHeaderSize");
 
     hr = pInst->set_maxHeaderSize(v0);
 
@@ -557,7 +557,7 @@ inline void HttpClient_base::s_set_maxChunkSize(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxChunkSize");
 
     hr = pInst->set_maxChunkSize(v0);
 
@@ -585,7 +585,7 @@ inline void HttpClient_base::s_set_maxBodySize(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxBodySize");
 
     hr = pInst->set_maxBodySize(v0);
 
@@ -613,7 +613,7 @@ inline void HttpClient_base::s_set_userAgent(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "userAgent");
 
     hr = pInst->set_userAgent(v0);
 
@@ -641,7 +641,7 @@ inline void HttpClient_base::s_set_poolTimeout(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "poolTimeout");
 
     hr = pInst->set_poolTimeout(v0);
 
@@ -669,7 +669,7 @@ inline void HttpClient_base::s_set_proxyEnv(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "proxyEnv");
 
     hr = pInst->set_proxyEnv(v0);
 
@@ -697,7 +697,7 @@ inline void HttpClient_base::s_set_maxSockets(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxSockets");
 
     hr = pInst->set_maxSockets(v0);
 
@@ -725,7 +725,7 @@ inline void HttpClient_base::s_set_maxTotalSockets(const v8::FunctionCallbackInf
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxTotalSockets");
 
     hr = pInst->set_maxTotalSockets(v0);
 
@@ -753,7 +753,7 @@ inline void HttpClient_base::s_set_maxFreeSockets(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxFreeSockets");
 
     hr = pInst->set_maxFreeSockets(v0);
 
@@ -781,7 +781,7 @@ inline void HttpClient_base::s_set_defaultPort(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "defaultPort");
 
     hr = pInst->set_defaultPort(v0);
 
@@ -809,7 +809,7 @@ inline void HttpClient_base::s_set_protocol(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "protocol");
 
     hr = pInst->set_protocol(v0);
 
@@ -867,7 +867,7 @@ inline void HttpClient_base::s_getName(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->getName(v0, vr);
 
@@ -893,70 +893,70 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "req");
 
-    ARG(obj_ptr<Stream_base>, 0);
-    ARG(obj_ptr<HttpRequest_base>, 1);
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "conn");
+    ARG_NAMED(obj_ptr<HttpRequest_base>, 1, "req");
 
     hr = pInst->request(v0.get(), v1.get(), vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "opts");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "opts");
 
     hr = pInst->request(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    hr = pInst->request(v0, v1, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = pInst->request(v0, v1, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = pInst->request(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
-    hr = pInst->request(v0, v1, v2, vr);
+    hr = pInst->request(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    ARG(v8::Local<v8::Function>, 2);
-
-    hr = pInst->request(v0, v1, v2, vr);
-
-    METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = pInst->request(v0, v1, v2, vr);
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    ARG(v8::Local<v8::Object>, 2);
-    ARG(v8::Local<v8::Function>, 3);
+    ARG_NAMED(exlib::string, 0, "method");
+    ARG_NAMED(exlib::string, 1, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
+
+    hr = pInst->request(v0, v1, v2, vr);
+
+    METHOD_OVER_NAMED(3, 2, "url");
+
+    ARG_NAMED(exlib::string, 0, "method");
+    ARG_NAMED(exlib::string, 1, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "opts");
+
+    hr = pInst->request(v0, v1, v2, vr);
+
+    METHOD_OVER_NAMED(4, 4, "callback");
+
+    ARG_NAMED(exlib::string, 0, "method");
+    ARG_NAMED(exlib::string, 1, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 2, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 3, "callback");
 
     hr = pInst->request(v0, v1, v2, v3, vr);
 
@@ -970,30 +970,30 @@ inline void HttpClient_base::s_requestSync(const v8::FunctionCallbackInfo<v8::Va
     ASYNC_METHOD_INSTANCE(HttpClient_base);
     ASYNC_METHOD_ENTER("HttpClient.requestSync");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "opts");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_requestSync(v0, cb, args);
     else
         hr = pInst->ac_requestSync(v0, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_requestSync(v0, v1, cb, args);
     else
         hr = pInst->ac_requestSync(v0, v1, vr);
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "url");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "method");
+    ARG_NAMED(exlib::string, 1, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_requestSync(v0, v1, v2, cb, args);
@@ -1010,10 +1010,10 @@ inline void HttpClient_base::s_getSync(const v8::FunctionCallbackInfo<v8::Value>
     ASYNC_METHOD_INSTANCE(HttpClient_base);
     ASYNC_METHOD_ENTER("HttpClient.getSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_getSync(v0, v1, cb, args);
@@ -1030,25 +1030,25 @@ inline void HttpClient_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = pInst->get(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = pInst->get(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = pInst->get(v0, v1, vr);
 
@@ -1062,10 +1062,10 @@ inline void HttpClient_base::s_postSync(const v8::FunctionCallbackInfo<v8::Value
     ASYNC_METHOD_INSTANCE(HttpClient_base);
     ASYNC_METHOD_ENTER("HttpClient.postSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_postSync(v0, v1, cb, args);
@@ -1082,25 +1082,25 @@ inline void HttpClient_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = pInst->post(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = pInst->post(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = pInst->post(v0, v1, vr);
 
@@ -1114,10 +1114,10 @@ inline void HttpClient_base::s_delSync(const v8::FunctionCallbackInfo<v8::Value>
     ASYNC_METHOD_INSTANCE(HttpClient_base);
     ASYNC_METHOD_ENTER("HttpClient.delSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_delSync(v0, v1, cb, args);
@@ -1134,25 +1134,25 @@ inline void HttpClient_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = pInst->del(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = pInst->del(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = pInst->del(v0, v1, vr);
 
@@ -1166,10 +1166,10 @@ inline void HttpClient_base::s_putSync(const v8::FunctionCallbackInfo<v8::Value>
     ASYNC_METHOD_INSTANCE(HttpClient_base);
     ASYNC_METHOD_ENTER("HttpClient.putSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_putSync(v0, v1, cb, args);
@@ -1186,25 +1186,25 @@ inline void HttpClient_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = pInst->put(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = pInst->put(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = pInst->put(v0, v1, vr);
 
@@ -1218,10 +1218,10 @@ inline void HttpClient_base::s_patchSync(const v8::FunctionCallbackInfo<v8::Valu
     ASYNC_METHOD_INSTANCE(HttpClient_base);
     ASYNC_METHOD_ENTER("HttpClient.patchSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_patchSync(v0, v1, cb, args);
@@ -1238,25 +1238,25 @@ inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = pInst->patch(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = pInst->patch(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = pInst->patch(v0, v1, vr);
 
@@ -1270,10 +1270,10 @@ inline void HttpClient_base::s_headSync(const v8::FunctionCallbackInfo<v8::Value
     ASYNC_METHOD_INSTANCE(HttpClient_base);
     ASYNC_METHOD_ENTER("HttpClient.headSync");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_headSync(v0, v1, cb, args);
@@ -1290,25 +1290,25 @@ inline void HttpClient_base::s_head(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = pInst->head(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = pInst->head(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = pInst->head(v0, v1, vr);
 
@@ -1322,10 +1322,10 @@ inline void HttpClient_base::s_fetch(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(HttpClient_base);
     ASYNC_METHOD_ENTER("HttpClient.fetch");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "request");
 
     ARG(Union_fetch_request, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_fetch(v0, v1, cb, args);

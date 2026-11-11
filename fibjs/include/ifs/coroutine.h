@@ -110,9 +110,9 @@ inline void coroutine_base::s_static_start(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "func");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "func");
     ARG_LIST(1);
 
     hr = start(v0, v1, vr);
@@ -126,26 +126,26 @@ inline void coroutine_base::s_static_parallel(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "funcs");
 
-    ARG(v8::Local<v8::Array>, 0);
-    OPT_ARG(int32_t, 1, -1);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "funcs");
+    OPT_ARG_NAMED(int32_t, 1, -1, "fibers");
 
     hr = parallel(v0, v1, vr);
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "func");
 
-    ARG(v8::Local<v8::Array>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-    OPT_ARG(int32_t, 2, -1);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "datas");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
+    OPT_ARG_NAMED(int32_t, 2, -1, "fibers");
 
     hr = parallel(v0, v1, v2, vr);
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "num");
 
-    ARG(v8::Local<v8::Function>, 0);
-    ARG(int32_t, 1);
-    OPT_ARG(int32_t, 2, -1);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "func");
+    ARG_NAMED(int32_t, 1, "num");
+    OPT_ARG_NAMED(int32_t, 2, -1, "fibers");
 
     hr = parallel(v0, v1, v2, vr);
 
@@ -177,7 +177,7 @@ inline void coroutine_base::s_static_sleep(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "ms");
 
     if (!cb.IsEmpty())
         hr = acb_sleep(v0, cb, args);
@@ -219,7 +219,7 @@ inline void coroutine_base::s_static_set_spareFibers(const v8::FunctionCallbackI
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "spareFibers");
 
     hr = set_spareFibers(v0);
 

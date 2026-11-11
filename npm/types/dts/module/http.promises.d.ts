@@ -327,7 +327,7 @@ declare module 'http/promises' {
     /**
      * @description Queries and sets the maximum body size in MB, default -1, no size limit
      *
-     *      A response whose body exceeds the limit fails with error number 20024; 0 rejects every
+     *      A response whose body exceeds the limit fails with ERR_INVALID_STATE; 0 rejects every
      *      body. Requests with a body larger than the limit are also rejected. A HEAD response is
      *      exempt because it has no body.
      *

@@ -145,26 +145,26 @@ inline void WebSocket_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "protocols");
 
-    ARG(exlib::string, 0);
-    ARG(std::vector<exlib::string>, 1);
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(std::vector<exlib::string>, 1, "protocols");
+    OPT_ARG_NAMED(exlib::string, 2, "", "origin");
 
     hr = _new(v0, v1, v2, vr, args.This());
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "opts");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG_NAMED(exlib::string, 0, "url");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(exlib::string, 1, "", "protocol");
+    OPT_ARG_NAMED(exlib::string, 2, "", "origin");
 
     hr = _new(v0, v1, v2, vr, args.This());
 
@@ -177,11 +177,11 @@ inline result_t WebSocket_base::load(v8::Local<v8::Value> v, obj_ptr<WebSocket_b
 
     LOAD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(exlib::string, 1, "", "protocol");
+    OPT_ARG_NAMED(exlib::string, 2, "", "origin");
 
     hr = _new(v0, v1, v2, vr, args.This());
 
@@ -251,8 +251,8 @@ inline void WebSocket_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(int32_t, 0, 1000);
-    OPT_ARG(exlib::string, 1, "");
+    OPT_ARG_NAMED(int32_t, 0, 1000, "code");
+    OPT_ARG_NAMED(exlib::string, 1, "", "reason");
 
     hr = pInst->close(v0, v1);
 
@@ -264,9 +264,9 @@ inline void WebSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(WebSocket_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "data");
 
     hr = pInst->send(v0);
 
@@ -294,7 +294,7 @@ inline void WebSocket_base::s_set_onopen(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onopen");
 
     hr = pInst->setListener("open", v0);
 
@@ -322,7 +322,7 @@ inline void WebSocket_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onmessage");
 
     hr = pInst->setListener("message", v0);
 
@@ -350,7 +350,7 @@ inline void WebSocket_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onclose");
 
     hr = pInst->setListener("close", v0);
 
@@ -378,7 +378,7 @@ inline void WebSocket_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onerror");
 
     hr = pInst->setListener("error", v0);
 
@@ -419,16 +419,16 @@ inline void WebSocket_base::s_static_upgrade(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "accept");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "accept");
 
     hr = upgrade(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "accept");
 
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "opts");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "accept");
 
     hr = upgrade(v0, v1, vr);
 

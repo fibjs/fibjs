@@ -116,10 +116,10 @@ inline void registry_base::s_static_listSubKey(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "key");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
 
     hr = listSubKey(v0, v1, vr);
 
@@ -132,10 +132,10 @@ inline void registry_base::s_static_listValue(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "key");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
 
     hr = listValue(v0, v1, vr);
 
@@ -148,18 +148,18 @@ inline void registry_base::s_static_get(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "key");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
 
     hr = get(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "name");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(exlib::string, 2);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
+    ARG_NAMED(exlib::string, 2, "name");
 
     hr = get(v0, v1, v2, vr);
 
@@ -170,75 +170,75 @@ inline void registry_base::s_static_set(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "value");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(double, 2);
-    OPT_ARG(int32_t, 3, C_DWORD);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
+    ARG_NAMED(double, 2, "value");
+    OPT_ARG_NAMED(int32_t, 3, C_DWORD, "type");
 
     hr = set(v0, v1, v2, v3);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "values");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(std::vector<exlib::string>, 2);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
+    ARG_NAMED(std::vector<exlib::string>, 2, "values");
 
     hr = set(v0, v1, v2);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "value");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(obj_ptr<Buffer_base>, 2);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
+    ARG_NAMED(obj_ptr<Buffer_base>, 2, "value");
 
     hr = set(v0, v1, v2.get());
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "value");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(exlib::string, 2);
-    OPT_ARG(int32_t, 3, C_SZ);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
+    ARG_NAMED(exlib::string, 2, "value");
+    OPT_ARG_NAMED(int32_t, 3, C_SZ, "type");
 
     hr = set(v0, v1, v2, v3);
 
-    METHOD_OVER(5, 4);
+    METHOD_OVER_NAMED(5, 4, "value");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(exlib::string, 2);
-    ARG(double, 3);
-    OPT_ARG(int32_t, 4, C_DWORD);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
+    ARG_NAMED(exlib::string, 2, "name");
+    ARG_NAMED(double, 3, "value");
+    OPT_ARG_NAMED(int32_t, 4, C_DWORD, "type");
 
     hr = set(v0, v1, v2, v3, v4);
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(4, 4, "values");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(exlib::string, 2);
-    ARG(std::vector<exlib::string>, 3);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
+    ARG_NAMED(exlib::string, 2, "name");
+    ARG_NAMED(std::vector<exlib::string>, 3, "values");
 
     hr = set(v0, v1, v2, v3);
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(4, 4, "value");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(exlib::string, 2);
-    ARG(obj_ptr<Buffer_base>, 3);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
+    ARG_NAMED(exlib::string, 2, "name");
+    ARG_NAMED(obj_ptr<Buffer_base>, 3, "value");
 
     hr = set(v0, v1, v2, v3.get());
 
-    METHOD_OVER(5, 4);
+    METHOD_OVER_NAMED(5, 4, "value");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(exlib::string, 2);
-    ARG(exlib::string, 3);
-    OPT_ARG(int32_t, 4, C_SZ);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
+    ARG_NAMED(exlib::string, 2, "name");
+    ARG_NAMED(exlib::string, 3, "value");
+    OPT_ARG_NAMED(int32_t, 4, C_SZ, "type");
 
     hr = set(v0, v1, v2, v3, v4);
 
@@ -251,18 +251,18 @@ inline void registry_base::s_static_has(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "key");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
 
     hr = has(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "name");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(exlib::string, 2);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
+    ARG_NAMED(exlib::string, 2, "name");
 
     hr = has(v0, v1, v2, vr);
 
@@ -273,18 +273,18 @@ inline void registry_base::s_static_del(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "key");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
 
     hr = del(v0, v1);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "name");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(exlib::string, 2);
+    ARG_NAMED(int32_t, 0, "root");
+    ARG_NAMED(exlib::string, 1, "key");
+    ARG_NAMED(exlib::string, 2, "name");
 
     hr = del(v0, v1, v2);
 

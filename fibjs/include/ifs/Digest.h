@@ -79,10 +79,10 @@ inline void Digest_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_update_data, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "codec");
 
     hr = pInst->update(v0, v1, vr);
 
@@ -98,7 +98,7 @@ inline void Digest_base::s_digest(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "buffer");
+    OPT_ARG_NAMED(exlib::string, 0, "buffer", "codec");
 
     hr = pInst->digest(v0, vr);
 

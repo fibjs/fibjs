@@ -71,9 +71,9 @@ inline void punycode_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "domain");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "domain");
 
     hr = encode(v0, vr);
 
@@ -86,9 +86,9 @@ inline void punycode_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "domain");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "domain");
 
     hr = decode(v0, vr);
 
@@ -101,9 +101,9 @@ inline void punycode_base::s_static_toASCII(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "domain");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "domain");
 
     hr = toASCII(v0, vr);
 
@@ -116,9 +116,9 @@ inline void punycode_base::s_static_toUnicode(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "domain");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "domain");
 
     hr = toUnicode(v0, vr);
 

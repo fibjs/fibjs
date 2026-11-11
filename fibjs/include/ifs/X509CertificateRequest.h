@@ -179,9 +179,9 @@ inline void X509CertificateRequest_base::s_checkPrivateKey(const v8::FunctionCal
     METHOD_INSTANCE(X509CertificateRequest_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "privateKey");
 
-    ARG(obj_ptr<KeyObject_base>, 0);
+    ARG_NAMED(obj_ptr<KeyObject_base>, 0, "privateKey");
 
     hr = pInst->checkPrivateKey(v0.get(), vr);
 
@@ -195,9 +195,9 @@ inline void X509CertificateRequest_base::s_issue(const v8::FunctionCallbackInfo<
     METHOD_INSTANCE(X509CertificateRequest_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
 
     hr = pInst->issue(v0, vr);
 

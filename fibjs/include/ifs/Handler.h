@@ -72,27 +72,27 @@ inline void Handler_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlrs");
 
-    ARG(std::vector<obj_ptr<Handler_base>>, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(std::vector<obj_ptr<Handler_base>>, 0, "hdlrs");
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "hdlr");
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER_NAMED(1, 1, "hdlr");
+
+    ARG_NAMED(exlib::string, 0, "hdlr");
 
     hr = _new(v0, vr, args.This());
 
@@ -105,27 +105,27 @@ inline result_t Handler_base::load(v8::Local<v8::Value> v, obj_ptr<Handler_base>
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlrs");
 
-    ARG(std::vector<obj_ptr<Handler_base>>, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(std::vector<obj_ptr<Handler_base>>, 0, "hdlrs");
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "hdlr");
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER_NAMED(1, 1, "hdlr");
+
+    ARG_NAMED(exlib::string, 0, "hdlr");
 
     hr = _new(v0, vr, args.This());
 
@@ -153,9 +153,9 @@ inline void Handler_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& ar
     ASYNC_METHOD_INSTANCE(Handler_base);
     ASYNC_METHOD_ENTER("Handler.invoke");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(obj_ptr<object_base>, 0);
+    ARG_NAMED(obj_ptr<object_base>, 0, "v");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_invoke(v0.get(), cb, args);

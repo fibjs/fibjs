@@ -85,8 +85,8 @@ inline void TextDecoder_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(exlib::string, 0, "utf8");
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(exlib::string, 0, "utf8", "codec");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -101,8 +101,8 @@ inline result_t TextDecoder_base::load(v8::Local<v8::Value> v, obj_ptr<TextDecod
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(exlib::string, 0, "utf8");
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(exlib::string, 0, "utf8", "codec");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -116,10 +116,10 @@ inline void TextDecoder_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(TextDecoder_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_decode_data, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = pInst->decode(v0, v1, vr);
 

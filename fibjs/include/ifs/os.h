@@ -394,7 +394,7 @@ inline void os_base::s_static_userInfo(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = userInfo(v0, vr);
 
@@ -435,7 +435,7 @@ inline void os_base::s_static_time(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "tmString");
 
     hr = time(v0, vr);
 
@@ -448,11 +448,11 @@ inline void os_base::s_static_dateAdd(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "part");
 
-    ARG(date_t, 0);
-    ARG(int32_t, 1);
-    ARG(exlib::string, 2);
+    ARG_NAMED(date_t, 0, "d");
+    ARG_NAMED(int32_t, 1, "num");
+    ARG_NAMED(exlib::string, 2, "part");
 
     hr = dateAdd(v0, v1, v2, vr);
 

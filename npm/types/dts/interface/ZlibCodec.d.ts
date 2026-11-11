@@ -130,7 +130,7 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
      *      try {
      *          gzip._processChunk('hello', C.Z_FINISH);
      *      } catch (e) {
-     *          console.log(e.code, e.number); // ERR_ZLIB_BINDING_CLOSED 20024
+     *          console.log(e.code, e.number); // ERR_ZLIB_BINDING_CLOSED ERR_INVALID_STATE
      *      }
      *      ```
      *

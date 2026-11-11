@@ -103,29 +103,29 @@ inline void HttpServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "port");
     ARG(Union_HttpServer_hdlr, 1);
 
     hr = _new(v0, v1, vr, args.This());
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "hdlr");
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(exlib::string, 0, "addr");
+    ARG_NAMED(int32_t, 1, "port");
     ARG(Union_HttpServer_hdlr, 2);
 
     hr = _new(v0, v1, v2, vr, args.This());
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "addr");
     ARG(Union_HttpServer_hdlr, 1);
 
     hr = _new(v0, v1, vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlr");
 
     ARG(Union_HttpServer_hdlr, 0);
 
@@ -140,7 +140,7 @@ inline result_t HttpServer_base::load(v8::Local<v8::Value> v, obj_ptr<HttpServer
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "hdlr");
 
     ARG(Union_HttpServer_hdlr, 0);
 
@@ -156,7 +156,7 @@ inline void HttpServer_base::s_enableCrossOrigin(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "Content-Type");
+    OPT_ARG_NAMED(exlib::string, 0, "Content-Type", "allowHeaders");
 
     hr = pInst->enableCrossOrigin(v0);
 
@@ -184,7 +184,7 @@ inline void HttpServer_base::s_set_maxHeadersCount(const v8::FunctionCallbackInf
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxHeadersCount");
 
     hr = pInst->set_maxHeadersCount(v0);
 
@@ -212,7 +212,7 @@ inline void HttpServer_base::s_set_maxHeaderSize(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxHeaderSize");
 
     hr = pInst->set_maxHeaderSize(v0);
 
@@ -240,7 +240,7 @@ inline void HttpServer_base::s_set_maxBodySize(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxBodySize");
 
     hr = pInst->set_maxBodySize(v0);
 
@@ -268,7 +268,7 @@ inline void HttpServer_base::s_set_enableEncoding(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "enableEncoding");
 
     hr = pInst->set_enableEncoding(v0);
 
@@ -296,7 +296,7 @@ inline void HttpServer_base::s_set_serverName(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "serverName");
 
     hr = pInst->set_serverName(v0);
 

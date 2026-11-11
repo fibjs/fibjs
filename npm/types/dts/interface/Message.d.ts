@@ -17,7 +17,7 @@
  *  - **Buffered and streaming bodies**: a locally built message (write/text/json/pack) buffers its
  *    body in a seekable MemoryStream, so it can be read from the beginning more than once; a
  *    message read from a socket may expose a streaming body that can be consumed only once (a
- *    second consume throws TypeError 20024 "body has already been consumed"). `bodyUsed` reports
+ *    second consume throws TypeERR_INVALID_STATE "body has already been consumed"). `bodyUsed` reports
  *    whether a consume method ran, `length` is the size of a buffered body (0 for a streaming
  *    one), and `body` is null when the message has no body or the buffered body is empty.
  *  - **Writing**: `write` appends to the buffered body and encodes a string as utf8; `text`,
@@ -182,7 +182,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Set by the consuming readers (text, json, pack, bytes, arrayBuffer, blob and, on an
      *      HttpMessage, formData). A buffered body can still be read again after the flag is set; a
-     *      streaming body rejects a second consume with TypeError 20024 "body has already been
+     *      streaming body rejects a second consume with TypeERR_INVALID_STATE "body has already been
      *      consumed". read and readAll do not set the flag.
      *
      */
@@ -423,7 +423,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -436,7 +436,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -447,7 +447,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -457,7 +457,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -470,7 +470,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -481,7 +481,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -530,7 +530,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -542,7 +542,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -552,7 +552,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -598,7 +598,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -612,7 +612,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -624,7 +624,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -671,7 +671,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -685,7 +685,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -697,7 +697,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -999,7 +999,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
@@ -1014,7 +1014,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
@@ -1027,7 +1027,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
@@ -1383,7 +1383,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Set by the consuming readers (text, json, pack, bytes, arrayBuffer, blob and, on an
      *      HttpMessage, formData). A buffered body can still be read again after the flag is set; a
-     *      streaming body rejects a second consume with TypeError 20024 "body has already been
+     *      streaming body rejects a second consume with TypeERR_INVALID_STATE "body has already been
      *      consumed". read and readAll do not set the flag.
      *
      */
@@ -1616,7 +1616,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -1627,7 +1627,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -1638,7 +1638,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -1648,7 +1648,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -1659,7 +1659,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -1670,7 +1670,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -1717,7 +1717,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -1727,7 +1727,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -1737,7 +1737,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -1781,7 +1781,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -1793,7 +1793,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -1805,7 +1805,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -1850,7 +1850,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -1862,7 +1862,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -1874,7 +1874,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -2166,7 +2166,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
@@ -2179,7 +2179,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
@@ -2192,7 +2192,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options

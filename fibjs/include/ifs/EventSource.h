@@ -104,10 +104,10 @@ inline void EventSource_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -120,10 +120,10 @@ inline result_t EventSource_base::load(v8::Local<v8::Value> v, obj_ptr<EventSour
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -152,10 +152,10 @@ inline void EventSource_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(EventSource_base);
     ASYNC_METHOD_ENTER("EventSource.send");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "data");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_send(v0, v1, cb, args);
@@ -242,7 +242,7 @@ inline void EventSource_base::s_set_onopen(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onopen");
 
     hr = pInst->setListener("open", v0);
 
@@ -270,7 +270,7 @@ inline void EventSource_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onerror");
 
     hr = pInst->setListener("error", v0);
 
@@ -298,7 +298,7 @@ inline void EventSource_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onmessage");
 
     hr = pInst->setListener("message", v0);
 
@@ -326,7 +326,7 @@ inline void EventSource_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onclose");
 
     hr = pInst->setListener("close", v0);
 

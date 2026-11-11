@@ -353,7 +353,7 @@ declare module 'process' {
      *
      *      The mask removes permission bits from newly created files and directories. A string
      *      mask is read as an octal number ("0664" and "664" are the same); any character
-     *      outside '0'-'7' makes the call throw Error 20024 ("process: invalid octal string"),
+     *      outside '0'-'7' makes the call throw ERR_INVALID_STATE ("process: invalid octal string"),
      *      while a numeric mask is used as it is. The previous mask is returned and the new mask
      *      applies to the whole process.
      *      @param mask the new mask: a number, or an octal string (e.g: "0664")
@@ -780,8 +780,8 @@ declare module 'process' {
      *
      *      pid is an operating system process id; signal is a number or a signal name such as
      *      'SIGTERM' (the default), 'SIGKILL' or 'SIGUSR1'. Signal 0 only checks whether the
-     *      process exists. An unknown name throws Error 20024 ("process: Unknown signal: ..."),
-     *      and a failed delivery also throws Error 20024 with the operating system message. On
+     *      process exists. An unknown name throws ERR_INVALID_STATE ("process: Unknown signal: ..."),
+     *      and a failed delivery also throws ERR_INVALID_STATE with the operating system message. On
      *      Windows only the signals the platform can emulate (SIGINT/SIGTERM/SIGKILL and 0)
      *      work, and the pid must be positive.
      *
@@ -793,7 +793,7 @@ declare module 'process' {
      *      try {
      *          process.kill(process.pid, 'NOT_A_SIGNAL');
      *      } catch (e) {
-     *          console.log(e.number, e.message); // 20024 process: Unknown signal: NOT_A_SIGNAL
+     *          console.log(e.number, e.message); // ERR_INVALID_STATE process: Unknown signal: NOT_A_SIGNAL
      *      }
      *      ```
      *      @param pid specifies the process id
@@ -817,7 +817,7 @@ declare module 'process' {
      *
      *      Available only in a child with an IPC channel. The `disconnect` event is emitted,
      *      `connected` becomes false and further `send` calls throw; calling it when no channel
-     *      is open throws Error 20024. The child itself keeps running after the channel closes.
+     *      is open throws ERR_INVALID_STATE. The child itself keeps running after the channel closes.
      *
      */
     function disconnect(): void;

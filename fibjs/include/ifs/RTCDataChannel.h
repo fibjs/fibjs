@@ -104,7 +104,7 @@ inline void RTCDataChannel_base::s_send(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(RTCDataChannel_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
     ARG(Union_send_data, 0);
 
@@ -202,7 +202,7 @@ inline void RTCDataChannel_base::s_set_onopen(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onopen");
 
     hr = pInst->setListener("open", v0);
 
@@ -230,7 +230,7 @@ inline void RTCDataChannel_base::s_set_onmessage(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onmessage");
 
     hr = pInst->setListener("message", v0);
 
@@ -258,7 +258,7 @@ inline void RTCDataChannel_base::s_set_onclose(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onclose");
 
     hr = pInst->setListener("close", v0);
 
@@ -286,7 +286,7 @@ inline void RTCDataChannel_base::s_set_onerror(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onerror");
 
     hr = pInst->setListener("error", v0);
 
@@ -314,7 +314,7 @@ inline void RTCDataChannel_base::s_set_onbufferedamountlow(const v8::FunctionCal
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onbufferedamountlow");
 
     hr = pInst->setListener("bufferedamountlow", v0);
 

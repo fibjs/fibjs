@@ -105,7 +105,7 @@ inline void FSWatcher_base::s_set_onchange(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onchange");
 
     hr = pInst->setListener("change", v0);
 
@@ -133,7 +133,7 @@ inline void FSWatcher_base::s_set_onchangeonly(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onchangeonly");
 
     hr = pInst->setListener("changeonly", v0);
 
@@ -161,7 +161,7 @@ inline void FSWatcher_base::s_set_onrenameonly(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onrenameonly");
 
     hr = pInst->setListener("renameonly", v0);
 
@@ -189,7 +189,7 @@ inline void FSWatcher_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onclose");
 
     hr = pInst->setListener("close", v0);
 
@@ -217,7 +217,7 @@ inline void FSWatcher_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onerror");
 
     hr = pInst->setListener("error", v0);
 

@@ -343,10 +343,10 @@ inline void util_base::s_static_formatWithOptions(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 2);
+    METHOD_OVER_NAMED(-1, 2, "fmt");
 
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "fmt");
     ARG_LIST(2);
 
     hr = formatWithOptions(v0, v1, v2, vr);
@@ -358,10 +358,10 @@ inline void util_base::s_static_inherits(const v8::FunctionCallbackInfo<v8::Valu
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "superConstructor");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "constructor");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "superConstructor");
 
     hr = inherits(v0, v1);
 
@@ -374,9 +374,9 @@ inline void util_base::s_static_parseEnv(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "content");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "content");
 
     hr = parseEnv(v0, vr);
 
@@ -389,10 +389,10 @@ inline void util_base::s_static_inspect(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "obj");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "obj");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = inspect(v0, v1, vr);
 
@@ -405,17 +405,17 @@ inline void util_base::s_static_styleText(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "text");
 
-    ARG(std::vector<exlib::string>, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(std::vector<exlib::string>, 0, "format");
+    ARG_NAMED(exlib::string, 1, "text");
 
     hr = styleText(v0, v1, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "text");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "format");
+    ARG_NAMED(exlib::string, 1, "text");
 
     hr = styleText(v0, v1, vr);
 
@@ -428,16 +428,16 @@ inline void util_base::s_static_debuglog(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "section");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "section");
 
     hr = debuglog(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "fn");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "section");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "fn");
 
     hr = debuglog(v0, v1, vr);
 
@@ -450,16 +450,16 @@ inline void util_base::s_static_debug(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "section");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "section");
 
     hr = debug(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "fn");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "section");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "fn");
 
     hr = debug(v0, v1, vr);
 
@@ -472,11 +472,11 @@ inline void util_base::s_static_deprecate(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "msg");
 
-    ARG(v8::Local<v8::Function>, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(v8::Local<v8::Function>, 0, "fn");
+    ARG_NAMED(exlib::string, 1, "msg");
+    OPT_ARG_NAMED(exlib::string, 2, "", "code");
 
     hr = deprecate(v0, v1, v2, vr);
 
@@ -489,9 +489,9 @@ inline void util_base::s_static_isEmpty(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isEmpty(v0, vr);
 
@@ -504,9 +504,9 @@ inline void util_base::s_static_isArray(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isArray(v0, vr);
 
@@ -519,9 +519,9 @@ inline void util_base::s_static_isBoolean(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBoolean(v0, vr);
 
@@ -534,9 +534,9 @@ inline void util_base::s_static_isNull(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isNull(v0, vr);
 
@@ -549,9 +549,9 @@ inline void util_base::s_static_isNullOrUndefined(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isNullOrUndefined(v0, vr);
 
@@ -564,9 +564,9 @@ inline void util_base::s_static_isNumber(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isNumber(v0, vr);
 
@@ -579,9 +579,9 @@ inline void util_base::s_static_isBigInt(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBigInt(v0, vr);
 
@@ -594,9 +594,9 @@ inline void util_base::s_static_isString(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isString(v0, vr);
 
@@ -609,9 +609,9 @@ inline void util_base::s_static_isUndefined(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isUndefined(v0, vr);
 
@@ -624,9 +624,9 @@ inline void util_base::s_static_isRegExp(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isRegExp(v0, vr);
 
@@ -639,9 +639,9 @@ inline void util_base::s_static_isObject(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isObject(v0, vr);
 
@@ -654,9 +654,9 @@ inline void util_base::s_static_isDate(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isDate(v0, vr);
 
@@ -669,9 +669,9 @@ inline void util_base::s_static_isNativeError(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isNativeError(v0, vr);
 
@@ -684,9 +684,9 @@ inline void util_base::s_static_isPrimitive(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isPrimitive(v0, vr);
 
@@ -699,9 +699,9 @@ inline void util_base::s_static_isSymbol(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isSymbol(v0, vr);
 
@@ -714,9 +714,9 @@ inline void util_base::s_static_isDataView(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isDataView(v0, vr);
 
@@ -729,9 +729,9 @@ inline void util_base::s_static_isExternal(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isExternal(v0, vr);
 
@@ -744,9 +744,9 @@ inline void util_base::s_static_isMap(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isMap(v0, vr);
 
@@ -759,9 +759,9 @@ inline void util_base::s_static_isMapIterator(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isMapIterator(v0, vr);
 
@@ -774,9 +774,9 @@ inline void util_base::s_static_isPromise(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isPromise(v0, vr);
 
@@ -789,9 +789,9 @@ inline void util_base::s_static_isAsyncFunction(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isAsyncFunction(v0, vr);
 
@@ -804,9 +804,9 @@ inline void util_base::s_static_isSet(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isSet(v0, vr);
 
@@ -819,9 +819,9 @@ inline void util_base::s_static_isSetIterator(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isSetIterator(v0, vr);
 
@@ -834,9 +834,9 @@ inline void util_base::s_static_isTypedArray(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isTypedArray(v0, vr);
 
@@ -849,9 +849,9 @@ inline void util_base::s_static_isUint8Array(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isUint8Array(v0, vr);
 
@@ -864,9 +864,9 @@ inline void util_base::s_static_isFunction(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isFunction(v0, vr);
 
@@ -879,9 +879,9 @@ inline void util_base::s_static_isBuffer(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBuffer(v0, vr);
 
@@ -894,9 +894,9 @@ inline void util_base::s_static_isFloat16Array(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isFloat16Array(v0, vr);
 
@@ -909,9 +909,9 @@ inline void util_base::s_static_isAnyArrayBuffer(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isAnyArrayBuffer(v0, vr);
 
@@ -924,9 +924,9 @@ inline void util_base::s_static_isSharedArrayBuffer(const v8::FunctionCallbackIn
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isSharedArrayBuffer(v0, vr);
 
@@ -939,9 +939,9 @@ inline void util_base::s_static_isArgumentsObject(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isArgumentsObject(v0, vr);
 
@@ -954,9 +954,9 @@ inline void util_base::s_static_isBoxedPrimitive(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBoxedPrimitive(v0, vr);
 
@@ -969,9 +969,9 @@ inline void util_base::s_static_isGeneratorFunction(const v8::FunctionCallbackIn
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isGeneratorFunction(v0, vr);
 
@@ -984,9 +984,9 @@ inline void util_base::s_static_isGeneratorObject(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isGeneratorObject(v0, vr);
 
@@ -999,9 +999,9 @@ inline void util_base::s_static_isProxy(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isProxy(v0, vr);
 
@@ -1014,9 +1014,9 @@ inline void util_base::s_static_isModuleNamespaceObject(const v8::FunctionCallba
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isModuleNamespaceObject(v0, vr);
 
@@ -1029,9 +1029,9 @@ inline void util_base::s_static_isCryptoKey(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isCryptoKey(v0, vr);
 
@@ -1044,9 +1044,9 @@ inline void util_base::s_static_isKeyObject(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isKeyObject(v0, vr);
 
@@ -1059,10 +1059,10 @@ inline void util_base::s_static_isDeepEqual(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
 
     hr = isDeepEqual(v0, v1, vr);
 
@@ -1075,10 +1075,10 @@ inline void util_base::s_static_isDeepStrictEqual(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "expected");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "actual");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "expected");
 
     hr = isDeepStrictEqual(v0, v1, vr);
 
@@ -1091,10 +1091,10 @@ inline void util_base::s_static_has(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "key");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
+    ARG_NAMED(exlib::string, 1, "key");
 
     hr = has(v0, v1, vr);
 
@@ -1107,9 +1107,9 @@ inline void util_base::s_static_keys(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = keys(v0, vr);
 
@@ -1122,9 +1122,9 @@ inline void util_base::s_static_values(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = values(v0, vr);
 
@@ -1137,9 +1137,9 @@ inline void util_base::s_static_clone(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = clone(v0, vr);
 
@@ -1150,9 +1150,9 @@ inline void util_base::s_static_deepFreeze(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = deepFreeze(v0);
 
@@ -1165,9 +1165,9 @@ inline void util_base::s_static_extend(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
     ARG_LIST(1);
 
     hr = extend(v0, v1, vr);
@@ -1181,9 +1181,9 @@ inline void util_base::s_static__extend(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
     ARG_LIST(1);
 
     hr = _extend(v0, v1, vr);
@@ -1197,9 +1197,9 @@ inline void util_base::s_static_pick(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
     ARG_LIST(1);
 
     hr = pick(v0, v1, vr);
@@ -1213,9 +1213,9 @@ inline void util_base::s_static_omit(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
     ARG_LIST(1);
 
     hr = omit(v0, v1, vr);
@@ -1229,16 +1229,16 @@ inline void util_base::s_static_first(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = first(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "n");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
+    ARG_NAMED(int32_t, 1, "n");
 
     hr = first(v0, v1, vr);
 
@@ -1251,16 +1251,16 @@ inline void util_base::s_static_last(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = last(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "n");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
+    ARG_NAMED(int32_t, 1, "n");
 
     hr = last(v0, v1, vr);
 
@@ -1273,10 +1273,10 @@ inline void util_base::s_static_unique(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(bool, 1, false);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
+    OPT_ARG_NAMED(bool, 1, false, "sorted");
 
     hr = unique(v0, v1, vr);
 
@@ -1319,10 +1319,10 @@ inline void util_base::s_static_flatten(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "arr");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(bool, 1, false);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "arr");
+    OPT_ARG_NAMED(bool, 1, false, "shallow");
 
     hr = flatten(v0, v1, vr);
 
@@ -1335,9 +1335,9 @@ inline void util_base::s_static_without(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "arr");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "arr");
     ARG_LIST(1);
 
     hr = without(v0, v1, vr);
@@ -1351,9 +1351,9 @@ inline void util_base::s_static_difference(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "list");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "list");
     ARG_LIST(1);
 
     hr = difference(v0, v1, vr);
@@ -1367,11 +1367,11 @@ inline void util_base::s_static_each(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "iterator");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "list");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "iterator");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "context");
 
     hr = each(v0, v1, v2, vr);
 
@@ -1384,11 +1384,11 @@ inline void util_base::s_static_map(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "iterator");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "list");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "iterator");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "context");
 
     hr = map(v0, v1, v2, vr);
 
@@ -1401,12 +1401,12 @@ inline void util_base::s_static_reduce(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "memo");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-    ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "list");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "iterator");
+    ARG_NAMED(v8::Local<v8::Value>, 2, "memo");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate), "context");
 
     hr = reduce(v0, v1, v2, v3, vr);
 
@@ -1419,9 +1419,9 @@ inline void util_base::s_static_parseArgs(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "command");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "command");
 
     hr = parseArgs(v0, vr);
 
@@ -1434,11 +1434,11 @@ inline void util_base::s_static_compile(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "script");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(int32_t, 2, 0);
+    ARG_NAMED(exlib::string, 0, "srcname");
+    ARG_NAMED(exlib::string, 1, "script");
+    OPT_ARG_NAMED(int32_t, 2, 0, "mode");
 
     hr = compile(v0, v1, v2, vr);
 
@@ -1451,10 +1451,10 @@ inline void util_base::s_static_sync(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "func");
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(bool, 1, false);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "func");
+    OPT_ARG_NAMED(bool, 1, false, "async_func");
 
     hr = sync(v0, v1, vr);
 
@@ -1467,9 +1467,9 @@ inline void util_base::s_static_promisify(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "func");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "func");
 
     hr = promisify(v0, vr);
 
@@ -1482,9 +1482,9 @@ inline void util_base::s_static_callbackify(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "func");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "func");
 
     hr = callbackify(v0, vr);
 
@@ -1510,9 +1510,9 @@ inline void util_base::s_static_stripTypeScript(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "code");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "code");
 
     hr = stripTypeScript(v0, vr);
 
@@ -1525,9 +1525,9 @@ inline void util_base::s_static_getStringWidth(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "str");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "str");
 
     hr = getStringWidth(v0, vr);
 
@@ -1540,9 +1540,9 @@ inline void util_base::s_static_getSystemErrorName(const v8::FunctionCallbackInf
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "err");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "err");
 
     hr = getSystemErrorName(v0, vr);
 
@@ -1555,9 +1555,9 @@ inline void util_base::s_static_getSystemErrorMessage(const v8::FunctionCallback
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "err");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "err");
 
     hr = getSystemErrorMessage(v0, vr);
 
@@ -1583,9 +1583,9 @@ inline void util_base::s_static_stripVTControlCharacters(const v8::FunctionCallb
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "str");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "str");
 
     hr = stripVTControlCharacters(v0, vr);
 

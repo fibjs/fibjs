@@ -29,7 +29,7 @@
  *    bytes, so the order is byte order, not the locale or numeric order of the text.
  *  - **One directory, one writer**: the store is a directory of LevelDB files, created when
  *    missing. Only one process may open a directory at a time - a second open fails with
- *    the LevelDB lock error (number 20024) - and close releases the lock. The store is
+ *    the LevelDB lock error (ERR_INVALID_STATE) - and close releases the lock. The store is
  *    durable across process restarts; a write is atomic, and the default write options
  *    leave it in the operating system buffer until the log is flushed, so only a system
  *    level crash can lose recent writes.
@@ -456,7 +456,7 @@ declare class Class_LevelDB extends Class_object {
      *      })
      *      ```
      *
-     *      A limit explicitly set to 0 is rejected with error 20024 ("limit must be greater
+     *      A limit explicitly set to 0 is rejected with ERR_INVALID_STATE ("limit must be greater
      *      than 0"); a negative limit means no limit. from and to are Buffer|String unions and
      *      a Buffer bound is used byte-for-byte. With reverse the walk starts at from
      *      (included) and descends to the smallest key; to is compared only against the
@@ -969,7 +969,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      })
      *      ```
      *
-     *      A limit explicitly set to 0 is rejected with error 20024 ("limit must be greater
+     *      A limit explicitly set to 0 is rejected with ERR_INVALID_STATE ("limit must be greater
      *      than 0"); a negative limit means no limit. from and to are Buffer|String unions and
      *      a Buffer bound is used byte-for-byte. With reverse the walk starts at from
      *      (included) and descends to the smallest key; to is compared only against the

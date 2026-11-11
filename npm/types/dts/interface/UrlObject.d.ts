@@ -113,7 +113,7 @@ declare class Class_UrlObject extends Class_object {
      *      serialized as `key=value` pairs. `new URL({})` yields an empty URL whose
      *      href is `''`; the assembled string is parsed like the string constructor,
      *      so a malformed protocol or host throws `url: Invalid URL '<input>'.`
-     *      ([20024]). See the class definition for a components example.
+     *      ([ERR_INVALID_STATE]). See the class definition for a components example.
      *
      *      @param args components object holding the URL fields
      *
@@ -129,7 +129,7 @@ declare class Class_UrlObject extends Class_object {
      *      `/a/b`, and a typo such as `ht tp://h/` silently becomes the path
      *      `/ht%20tp://h/`. A malformed
      *      absolute input (`http://`, an out-of-range port, an invalid IPv6 host)
-     *      throws `url: Invalid URL '<input>'.` ([20024]); null and undefined yield
+     *      throws `url: Invalid URL '<input>'.` ([ERR_INVALID_STATE]); null and undefined yield
      *      an empty URL, while other non-string values throw a type error ([20005]).
      *
      *      Example — resolve a relative reference against a base:
@@ -150,7 +150,7 @@ declare class Class_UrlObject extends Class_object {
      * @description Parses a URL string and returns a URL object
      *
      *      Aliases the string constructor and accepts base as a URL string. An invalid input throws
-     *      `url: Invalid URL '<input>'.` ([20024]), while `URL.parse('')` returns an object whose
+     *      `url: Invalid URL '<input>'.` ([ERR_INVALID_STATE]), while `URL.parse('')` returns an object whose
      *      href is `''`; a relative string without a base is accepted as a rooted path, and a
      *      non-string value throws a type error ([20005]).
      *
@@ -162,7 +162,7 @@ declare class Class_UrlObject extends Class_object {
      *      try {
      *          URL.parse('http://');
      *      } catch (err) {
-     *          console.log(err.number); // 20024
+     *          console.log(err.number); // ERR_INVALID_STATE
      *      }
      *      ```
      *
@@ -205,7 +205,7 @@ declare class Class_UrlObject extends Class_object {
      *      WHATWG algorithm and returned as a new UrlObject. An empty url returns a
      *      copy of the receiver, an absolute url replaces it and a reference such as
      *      `../c` walks the base path. An unparsable url throws
-     *      `url: Invalid URL '<input>'.` ([20024]).
+     *      `url: Invalid URL '<input>'.` ([ERR_INVALID_STATE]).
      *
      *      Example — resolve against a base with a path:
      *      ```JavaScript

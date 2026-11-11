@@ -109,7 +109,7 @@ inline void AbortController_base::s_abort(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(Union_abort_reason, 0, exlib::string("AbortError"));
+    OPT_ARG_NAMED(Union_abort_reason, 0, exlib::string("AbortError"), "reason");
 
     hr = pInst->abort(v0);
 

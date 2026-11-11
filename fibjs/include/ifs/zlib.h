@@ -224,7 +224,7 @@ inline void zlib_base::s_static_createDeflate(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
 
     hr = createDeflate(v0.get(), vr);
 
@@ -239,7 +239,7 @@ inline void zlib_base::s_static_createDeflateRaw(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
 
     hr = createDeflateRaw(v0.get(), vr);
 
@@ -254,8 +254,8 @@ inline void zlib_base::s_static_createGunzip(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
-    OPT_ARG(int32_t, 1, -1);
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
+    OPT_ARG_NAMED(int32_t, 1, -1, "maxSize");
 
     hr = createGunzip(v0.get(), v1, vr);
 
@@ -270,7 +270,7 @@ inline void zlib_base::s_static_createGzip(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
 
     hr = createGzip(v0.get(), vr);
 
@@ -285,8 +285,8 @@ inline void zlib_base::s_static_createInflate(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
-    OPT_ARG(int32_t, 1, -1);
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
+    OPT_ARG_NAMED(int32_t, 1, -1, "maxSize");
 
     hr = createInflate(v0.get(), v1, vr);
 
@@ -301,8 +301,8 @@ inline void zlib_base::s_static_createInflateRaw(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
-    OPT_ARG(int32_t, 1, -1);
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
+    OPT_ARG_NAMED(int32_t, 1, -1, "maxSize");
 
     hr = createInflateRaw(v0.get(), v1, vr);
 
@@ -315,10 +315,10 @@ inline void zlib_base::s_static_deflate(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_ENTER("zlib.deflate");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_deflate_data, 0);
-    OPT_ARG(Union_deflate_level, 1, C_DEFAULT_COMPRESSION);
+    OPT_ARG_NAMED(Union_deflate_level, 1, C_DEFAULT_COMPRESSION, "level");
 
     if (!cb.IsEmpty())
         hr = acb_deflate(v0, v1, cb, args);
@@ -332,11 +332,11 @@ inline void zlib_base::s_static_deflateTo(const v8::FunctionCallbackInfo<v8::Val
 {
     ASYNC_METHOD_ENTER("zlib.deflateTo");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "stm");
 
     ARG(Union_deflateTo_data, 0);
-    ARG(obj_ptr<Stream_base>, 1);
-    OPT_ARG(int32_t, 2, C_DEFAULT_COMPRESSION);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
+    OPT_ARG_NAMED(int32_t, 2, C_DEFAULT_COMPRESSION, "level");
 
     if (!cb.IsEmpty())
         hr = acb_deflateTo(v0, v1.get(), v2, cb, args);
@@ -352,10 +352,10 @@ inline void zlib_base::s_static_inflate(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_ENTER("zlib.inflate");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_inflate_data, 0);
-    OPT_ARG(Union_inflate_maxSize, 1, -1);
+    OPT_ARG_NAMED(Union_inflate_maxSize, 1, -1, "maxSize");
 
     if (!cb.IsEmpty())
         hr = acb_inflate(v0, v1, cb, args);
@@ -369,11 +369,11 @@ inline void zlib_base::s_static_inflateTo(const v8::FunctionCallbackInfo<v8::Val
 {
     ASYNC_METHOD_ENTER("zlib.inflateTo");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "stm");
 
     ARG(Union_inflateTo_data, 0);
-    ARG(obj_ptr<Stream_base>, 1);
-    OPT_ARG(int32_t, 2, -1);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
+    OPT_ARG_NAMED(int32_t, 2, -1, "maxSize");
 
     if (!cb.IsEmpty())
         hr = acb_inflateTo(v0, v1.get(), v2, cb, args);
@@ -389,10 +389,10 @@ inline void zlib_base::s_static_gzip(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ASYNC_METHOD_ENTER("zlib.gzip");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_gzip_data, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = acb_gzip(v0, v1, cb, args);
@@ -406,10 +406,10 @@ inline void zlib_base::s_static_gzipTo(const v8::FunctionCallbackInfo<v8::Value>
 {
     ASYNC_METHOD_ENTER("zlib.gzipTo");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "stm");
 
     ARG(Union_gzipTo_data, 0);
-    ARG(obj_ptr<Stream_base>, 1);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
 
     if (!cb.IsEmpty())
         hr = acb_gzipTo(v0, v1.get(), cb, args);
@@ -425,10 +425,10 @@ inline void zlib_base::s_static_gunzip(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("zlib.gunzip");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_gunzip_data, 0);
-    OPT_ARG(Union_gunzip_maxSize, 1, -1);
+    OPT_ARG_NAMED(Union_gunzip_maxSize, 1, -1, "maxSize");
 
     if (!cb.IsEmpty())
         hr = acb_gunzip(v0, v1, cb, args);
@@ -442,11 +442,11 @@ inline void zlib_base::s_static_gunzipTo(const v8::FunctionCallbackInfo<v8::Valu
 {
     ASYNC_METHOD_ENTER("zlib.gunzipTo");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "stm");
 
     ARG(Union_gunzipTo_data, 0);
-    ARG(obj_ptr<Stream_base>, 1);
-    OPT_ARG(int32_t, 2, -1);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
+    OPT_ARG_NAMED(int32_t, 2, -1, "maxSize");
 
     if (!cb.IsEmpty())
         hr = acb_gunzipTo(v0, v1.get(), v2, cb, args);
@@ -462,10 +462,10 @@ inline void zlib_base::s_static_deflateRaw(const v8::FunctionCallbackInfo<v8::Va
 
     ASYNC_METHOD_ENTER("zlib.deflateRaw");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_deflateRaw_data, 0);
-    OPT_ARG(Union_deflateRaw_level, 1, C_DEFAULT_COMPRESSION);
+    OPT_ARG_NAMED(Union_deflateRaw_level, 1, C_DEFAULT_COMPRESSION, "level");
 
     if (!cb.IsEmpty())
         hr = acb_deflateRaw(v0, v1, cb, args);
@@ -479,11 +479,11 @@ inline void zlib_base::s_static_deflateRawTo(const v8::FunctionCallbackInfo<v8::
 {
     ASYNC_METHOD_ENTER("zlib.deflateRawTo");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "stm");
 
     ARG(Union_deflateRawTo_data, 0);
-    ARG(obj_ptr<Stream_base>, 1);
-    OPT_ARG(int32_t, 2, C_DEFAULT_COMPRESSION);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
+    OPT_ARG_NAMED(int32_t, 2, C_DEFAULT_COMPRESSION, "level");
 
     if (!cb.IsEmpty())
         hr = acb_deflateRawTo(v0, v1.get(), v2, cb, args);
@@ -499,10 +499,10 @@ inline void zlib_base::s_static_inflateRaw(const v8::FunctionCallbackInfo<v8::Va
 
     ASYNC_METHOD_ENTER("zlib.inflateRaw");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_inflateRaw_data, 0);
-    OPT_ARG(Union_inflateRaw_maxSize, 1, -1);
+    OPT_ARG_NAMED(Union_inflateRaw_maxSize, 1, -1, "maxSize");
 
     if (!cb.IsEmpty())
         hr = acb_inflateRaw(v0, v1, cb, args);
@@ -516,11 +516,11 @@ inline void zlib_base::s_static_inflateRawTo(const v8::FunctionCallbackInfo<v8::
 {
     ASYNC_METHOD_ENTER("zlib.inflateRawTo");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "stm");
 
     ARG(Union_inflateRawTo_data, 0);
-    ARG(obj_ptr<Stream_base>, 1);
-    OPT_ARG(int32_t, 2, -1);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
+    OPT_ARG_NAMED(int32_t, 2, -1, "maxSize");
 
     if (!cb.IsEmpty())
         hr = acb_inflateRawTo(v0, v1.get(), v2, cb, args);
@@ -538,8 +538,8 @@ inline void zlib_base::s_static_createZip(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
-    OPT_ARG(int32_t, 1, C_DEFAULT_COMPRESSION);
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
+    OPT_ARG_NAMED(int32_t, 1, C_DEFAULT_COMPRESSION, "level");
 
     hr = createZip(v0.get(), v1, vr);
 
@@ -554,8 +554,8 @@ inline void zlib_base::s_static_createUnzip(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
-    OPT_ARG(int32_t, 1, -1);
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
+    OPT_ARG_NAMED(int32_t, 1, -1, "maxSize");
 
     hr = createUnzip(v0.get(), v1, vr);
 
@@ -568,10 +568,10 @@ inline void zlib_base::s_static_zip(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ASYNC_METHOD_ENTER("zlib.zip");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_zip_data, 0);
-    OPT_ARG(Union_zip_level, 1, C_DEFAULT_COMPRESSION);
+    OPT_ARG_NAMED(Union_zip_level, 1, C_DEFAULT_COMPRESSION, "level");
 
     if (!cb.IsEmpty())
         hr = acb_zip(v0, v1, cb, args);
@@ -585,11 +585,11 @@ inline void zlib_base::s_static_zipTo(const v8::FunctionCallbackInfo<v8::Value>&
 {
     ASYNC_METHOD_ENTER("zlib.zipTo");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "stm");
 
     ARG(Union_zipTo_data, 0);
-    ARG(obj_ptr<Stream_base>, 1);
-    OPT_ARG(int32_t, 2, C_DEFAULT_COMPRESSION);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
+    OPT_ARG_NAMED(int32_t, 2, C_DEFAULT_COMPRESSION, "level");
 
     if (!cb.IsEmpty())
         hr = acb_zipTo(v0, v1.get(), v2, cb, args);
@@ -605,10 +605,10 @@ inline void zlib_base::s_static_unzip(const v8::FunctionCallbackInfo<v8::Value>&
 
     ASYNC_METHOD_ENTER("zlib.unzip");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_unzip_data, 0);
-    OPT_ARG(Union_unzip_maxSize, 1, -1);
+    OPT_ARG_NAMED(Union_unzip_maxSize, 1, -1, "maxSize");
 
     if (!cb.IsEmpty())
         hr = acb_unzip(v0, v1, cb, args);
@@ -622,11 +622,11 @@ inline void zlib_base::s_static_unzipTo(const v8::FunctionCallbackInfo<v8::Value
 {
     ASYNC_METHOD_ENTER("zlib.unzipTo");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "stm");
 
     ARG(Union_unzipTo_data, 0);
-    ARG(obj_ptr<Stream_base>, 1);
-    OPT_ARG(int32_t, 2, -1);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
+    OPT_ARG_NAMED(int32_t, 2, -1, "maxSize");
 
     if (!cb.IsEmpty())
         hr = acb_unzipTo(v0, v1.get(), v2, cb, args);

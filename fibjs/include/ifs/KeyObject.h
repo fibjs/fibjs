@@ -139,7 +139,7 @@ inline void KeyObject_base::s__export(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->_export(v0, vr);
 
@@ -153,9 +153,9 @@ inline void KeyObject_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(KeyObject_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "otherKey");
 
-    ARG(obj_ptr<KeyObject_base>, 0);
+    ARG_NAMED(obj_ptr<KeyObject_base>, 0, "otherKey");
 
     hr = pInst->equals(v0.get(), vr);
 

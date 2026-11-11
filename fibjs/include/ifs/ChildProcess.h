@@ -142,7 +142,7 @@ inline void ChildProcess_base::s_kill(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(Union_kill_signal, 0, exlib::string("SIGTERM"));
+    OPT_ARG_NAMED(Union_kill_signal, 0, exlib::string("SIGTERM"), "signal");
 
     hr = pInst->kill(v0);
 
@@ -197,9 +197,9 @@ inline void ChildProcess_base::s_send(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(ChildProcess_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "msg");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "msg");
 
     hr = pInst->send(v0);
 
@@ -211,10 +211,10 @@ inline void ChildProcess_base::s_resize(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(ChildProcess_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "rows");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "cols");
+    ARG_NAMED(int32_t, 1, "rows");
 
     hr = pInst->resize(v0, v1);
 
@@ -382,7 +382,7 @@ inline void ChildProcess_base::s_set_onexit(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onexit");
 
     hr = pInst->setListener("exit", v0);
 
@@ -410,7 +410,7 @@ inline void ChildProcess_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onmessage");
 
     hr = pInst->setListener("message", v0);
 
@@ -438,7 +438,7 @@ inline void ChildProcess_base::s_set_onspawn(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onspawn");
 
     hr = pInst->setListener("spawn", v0);
 
@@ -466,7 +466,7 @@ inline void ChildProcess_base::s_set_ondisconnect(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "ondisconnect");
 
     hr = pInst->setListener("disconnect", v0);
 

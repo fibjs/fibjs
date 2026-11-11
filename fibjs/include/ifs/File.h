@@ -77,25 +77,25 @@ inline void File_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "name");
 
-    ARG(v8::Local<v8::Array>, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Array>, 0, "blobParts");
+    ARG_NAMED(exlib::string, 1, "name");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, v2, vr, args.This());
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "name");
 
     ARG(Union_File_blobData, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 1, "name");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, v2, vr, args.This());
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, vr, args.This());
 
@@ -110,7 +110,7 @@ inline result_t File_base::load(v8::Local<v8::Value> v, obj_ptr<File_base>& retV
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, vr, args.This());
 

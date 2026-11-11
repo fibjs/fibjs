@@ -27,7 +27,7 @@
  *    "\r\n" is preferred, a lone "\n" is accepted, a lone "\r" is not. Assign
  *    "\n", "\r\n" or "\r" to fix it; any other non-empty value throws [20004].
  *  - **maxlen**: the maxlen argument of readLine/readUntil is a byte budget that
- *    includes the separator; exceeding it throws [20024]. A value of 0 or less
+ *    includes the separator; exceeding it throws [ERR_INVALID_STATE]. A value of 0 or less
  *    means unlimited (note that this differs from readText where the size is
  *    mandatory and non-positive sizes read nothing).
  *  - **Writes and close**: writes go straight to the wrapped stream, so nothing
@@ -199,7 +199,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      "\r\n" or a lone "\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -230,7 +230,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      "\r\n" or a lone "\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -259,7 +259,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      "\r\n" or a lone "\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -318,7 +318,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      ```JavaScript
@@ -350,7 +350,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      ```JavaScript
@@ -380,7 +380,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      ```JavaScript
@@ -773,7 +773,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      "\r\n" or a lone "\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -802,7 +802,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      "\r\n" or a lone "\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -831,7 +831,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      "\r\n" or a lone "\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -890,7 +890,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      ```JavaScript
@@ -920,7 +920,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      ```JavaScript
@@ -950,7 +950,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      ```JavaScript

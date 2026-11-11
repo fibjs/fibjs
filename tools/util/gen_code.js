@@ -326,9 +326,22 @@ function gen_code(cls, def, baseFolder, allDefs) {
                                     else
                                         defValue = 'C_' + p.default.const;
 
-                                    params.push(`    OPT_ARG(${vt + ', ' + params.length}, ` + defValue + `);`);
-                                } else {
+                                    // The argument name rides along so a
+                                    // rejected value says which parameter it
+                                    // was (P2 of
+                                    // plans/error-type-detail-plan-2026-11-10.md).
+                                    params.push(`    OPT_ARG_NAMED(${vt + ', ' + params.length}, ` + defValue + `, "${p.name}");`);
+                                } else if (isUnion(p.type)) {
+                                    // A union's conversion failure says nothing
+                                    // definite: the value may be a perfectly
+                                    // good member of a type the function then
+                                    // rejects for its own reason (a URL that
+                                    // is not a file URL, for instance). Those
+                                    // functions report the precise problem, so
+                                    // the glue leaves the code alone here.
                                     params.push(`    ARG(${vt + ', ' + params.length});`);
+                                } else {
+                                    params.push(`    ARG_NAMED(${vt + ', ' + params.length}, "${p.name}");`);
                                 }
                             });
                         }
@@ -355,7 +368,14 @@ function gen_code(cls, def, baseFolder, allDefs) {
                             }
                         }
 
-                        sink.push(`    METHOD_OVER(${argc}, ${opts});\n`);
+                        // The last required parameter's IDL name, so an arity failure can say
+                        // which argument is missing (P2). Empty when the
+                        // overload requires nothing.
+                        var _reqName = (opts > 0 && ov.params && ov.params[opts - 1])
+                            ? ov.params[opts - 1].name : null;
+                        sink.push(_reqName
+                            ? `    METHOD_OVER_NAMED(${argc}, ${opts}, "${_reqName}");\n`
+                            : `    METHOD_OVER(${argc}, ${opts});\n`);
                         if (params.length)
                             sink.push(params.join('\n') + '\n');
 
@@ -580,7 +600,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}set_${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
                     if (!fstatic)
                         txts.push(`    METHOD_INSTANCE(${cls}_base);`);
-                    txts.push(`    METHOD_ENTER();\n\n    METHOD_OVER(1, 1);\n\n    ARG(${get_vtype(fn)}, 0);\n`);
+                    txts.push(`    METHOD_ENTER();\n\n    METHOD_OVER(1, 1);\n\n    ARG_NAMED(${get_vtype(fn)}, 0, "${fname}");\n`);
 
                     if (fn.deprecated)
                         txts.push(`    DEPRECATED_SOON("${cls}.${fn.symbol}${fname}");\n`);
@@ -622,7 +642,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                 if (!fn.readonly) {
                     txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}set_on${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
                     txts.push(`    METHOD_INSTANCE(${cls}_base);`);
-                    txts.push(`    METHOD_ENTER();\n\n    METHOD_OVER(1, 1);\n\n    ARG(${get_rtype("Function")}, 0);\n`);
+                    txts.push(`    METHOD_ENTER();\n\n    METHOD_OVER(1, 1);\n\n    ARG_NAMED(${get_rtype("Function")}, 0, "on${fname}");\n`);
 
                     if (fn.deprecated)
                         txts.push(`    DEPRECATED_SOON("${cls}.set_on${fname}");\n`);

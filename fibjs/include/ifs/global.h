@@ -243,9 +243,9 @@ inline void global_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>&
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fname");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "fname");
 
     hr = run(v0);
 
@@ -258,9 +258,9 @@ inline void global_base::s_static_require(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "id");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "id");
 
     hr = require(v0, vr);
 
@@ -273,10 +273,10 @@ inline void global_base::s_static_setTimeout(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(double, 1, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
+    OPT_ARG_NAMED(double, 1, 1, "timeout");
     ARG_LIST(2);
 
     hr = setTimeout(v0, v1, v2, vr);
@@ -288,9 +288,9 @@ inline void global_base::s_static_clearTimeout(const v8::FunctionCallbackInfo<v8
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "t");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "t");
 
     hr = clearTimeout(v0);
 
@@ -303,10 +303,10 @@ inline void global_base::s_static_setInterval(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 2);
+    METHOD_OVER_NAMED(-1, 2, "timeout");
 
-    ARG(v8::Local<v8::Function>, 0);
-    ARG(double, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
+    ARG_NAMED(double, 1, "timeout");
     ARG_LIST(2);
 
     hr = setInterval(v0, v1, v2, vr);
@@ -318,9 +318,9 @@ inline void global_base::s_static_clearInterval(const v8::FunctionCallbackInfo<v
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "t");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "t");
 
     hr = clearInterval(v0);
 
@@ -333,10 +333,10 @@ inline void global_base::s_static_setHrInterval(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 2);
+    METHOD_OVER_NAMED(-1, 2, "timeout");
 
-    ARG(v8::Local<v8::Function>, 0);
-    ARG(double, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
+    ARG_NAMED(double, 1, "timeout");
     ARG_LIST(2);
 
     hr = setHrInterval(v0, v1, v2, vr);
@@ -348,9 +348,9 @@ inline void global_base::s_static_clearHrInterval(const v8::FunctionCallbackInfo
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "t");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "t");
 
     hr = clearHrInterval(v0);
 
@@ -363,9 +363,9 @@ inline void global_base::s_static_setImmediate(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
     ARG_LIST(1);
 
     hr = setImmediate(v0, v1, vr);
@@ -377,9 +377,9 @@ inline void global_base::s_static_clearImmediate(const v8::FunctionCallbackInfo<
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "t");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "t");
 
     hr = clearImmediate(v0);
 
@@ -392,9 +392,9 @@ inline void global_base::s_static_btoa(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "data");
 
     hr = btoa(v0, vr);
 
@@ -407,9 +407,9 @@ inline void global_base::s_static_atob(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "data");
 
     hr = atob(v0, vr);
 
@@ -422,10 +422,10 @@ inline void global_base::s_static_structuredClone(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "value");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = structuredClone(v0, v1, vr);
 
@@ -438,10 +438,10 @@ inline void global_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_ENTER("global.fetch");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "request");
 
     ARG(Union_fetch_request, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_fetch(v0, v1, cb, args);
@@ -455,9 +455,9 @@ inline void global_base::s_static_queueMicrotask(const v8::FunctionCallbackInfo<
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
 
     hr = queueMicrotask(v0);
 

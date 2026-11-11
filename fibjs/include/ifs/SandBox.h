@@ -118,29 +118,29 @@ inline void SandBox_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "mods");
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "require");
 
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    hr = _new(v0, v1, vr, args.This());
-
-    METHOD_OVER(2, 2);
-
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "mods");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "require");
 
     hr = _new(v0, v1, vr, args.This());
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(2, 2, "global");
 
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-    ARG(v8::Local<v8::Object>, 2);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "mods");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "global");
+
+    hr = _new(v0, v1, vr, args.This());
+
+    METHOD_OVER_NAMED(3, 3, "global");
+
+    ARG_NAMED(v8::Local<v8::Object>, 0, "mods");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "require");
+    ARG_NAMED(v8::Local<v8::Object>, 2, "global");
 
     hr = _new(v0, v1, v2, vr, args.This());
 
@@ -155,7 +155,7 @@ inline result_t SandBox_base::load(v8::Local<v8::Value> v, obj_ptr<SandBox_base>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "mods");
 
     hr = _new(v0, vr, args.This());
 
@@ -179,16 +179,16 @@ inline void SandBox_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "mod");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    ARG_NAMED(exlib::string, 0, "id");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "mod");
 
     hr = pInst->add(v0, v1);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "mods");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "mods");
 
     hr = pInst->add(v0);
 
@@ -202,9 +202,9 @@ inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "script");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "srcname");
     ARG(Union_addScript_script, 1);
 
     hr = pInst->addScript(v0, v1, vr);
@@ -217,9 +217,9 @@ inline void SandBox_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "id");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "id");
 
     hr = pInst->remove(v0);
 
@@ -233,9 +233,9 @@ inline void SandBox_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "id");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "id");
 
     hr = pInst->has(v0, vr);
 
@@ -273,9 +273,9 @@ inline void SandBox_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fname");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "fname");
 
     hr = pInst->run(v0);
 
@@ -289,10 +289,10 @@ inline void SandBox_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "base");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "id");
+    ARG_NAMED(exlib::string, 1, "base");
 
     hr = pInst->resolve(v0, v1, vr);
 
@@ -306,10 +306,10 @@ inline void SandBox_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "base");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "id");
+    ARG_NAMED(exlib::string, 1, "base");
 
     hr = pInst->require(v0, v1, vr);
 
@@ -323,10 +323,10 @@ inline void SandBox_base::s_import(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "base");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "id");
+    ARG_NAMED(exlib::string, 1, "base");
 
     hr = pInst->import(v0, v1, vr);
 
@@ -338,10 +338,10 @@ inline void SandBox_base::s_setModuleCompiler(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "compiler");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "extname");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "compiler");
 
     hr = pInst->setModuleCompiler(v0, v1);
 

@@ -93,18 +93,18 @@ inline void rtc_base::s_static_listen(const v8::FunctionCallbackInfo<v8::Value>&
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "cb");
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "bind_address");
+    ARG_NAMED(int32_t, 1, "local_port");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "cb");
 
     hr = listen(v0, v1, v2);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "cb");
 
-    ARG(int32_t, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(int32_t, 0, "local_port");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "cb");
 
     hr = listen(v0, v1);
 
@@ -115,16 +115,16 @@ inline void rtc_base::s_static_stopListen(const v8::FunctionCallbackInfo<v8::Val
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "local_port");
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(exlib::string, 0, "bind_address");
+    ARG_NAMED(int32_t, 1, "local_port");
 
     hr = stopListen(v0, v1);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "local_port");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "local_port");
 
     hr = stopListen(v0);
 
@@ -135,9 +135,9 @@ inline void rtc_base::s_static_startServer(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "config");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "config");
 
     hr = startServer(v0);
 
@@ -148,9 +148,9 @@ inline void rtc_base::s_static_setSctpSettings(const v8::FunctionCallbackInfo<v8
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "settings");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "settings");
 
     hr = setSctpSettings(v0);
 
@@ -176,7 +176,7 @@ inline void rtc_base::s_static_set_loglevel(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "loglevel");
 
     hr = set_loglevel(v0);
 

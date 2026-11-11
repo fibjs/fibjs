@@ -259,7 +259,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description Sends a redirect with an explicit status code
      *
      *      301, 302, 303, 307 and 308 are accepted, the set the Web standard and Node.js
-     *      allow; any other code throws error 20024 ("Invalid statusCode ..., expected 301,
+     *      allow; any other code throws ERR_INVALID_STATE ("Invalid statusCode ..., expected 301,
      *      302, 303, 307, or 308."). 303 turns a POST into a GET and 308 keeps the method,
      *      which is the usual pair for the two non-permanent redirects.
      *
@@ -392,7 +392,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result
@@ -406,7 +406,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result
@@ -418,7 +418,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result
@@ -626,7 +626,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      * @description Sends a redirect with an explicit status code
      *
      *      301, 302, 303, 307 and 308 are accepted, the set the Web standard and Node.js
-     *      allow; any other code throws error 20024 ("Invalid statusCode ..., expected 301,
+     *      allow; any other code throws ERR_INVALID_STATE ("Invalid statusCode ..., expected 301,
      *      302, 303, 307, or 308."). 303 turns a POST into a GET and 308 keeps the method,
      *      which is the usual pair for the two non-permanent redirects.
      *
@@ -757,7 +757,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result
@@ -769,7 +769,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result
@@ -781,7 +781,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result

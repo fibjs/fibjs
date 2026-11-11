@@ -92,7 +92,7 @@ inline void AbortSignal_base::s_static_abort(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(Union_abort_reason, 0, exlib::string("AbortError"));
+    OPT_ARG_NAMED(Union_abort_reason, 0, exlib::string("AbortError"), "reason");
 
     hr = abort(v0, vr);
 
@@ -105,9 +105,9 @@ inline void AbortSignal_base::s_static_timeout(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "ms");
 
-    ARG(double, 0);
+    ARG_NAMED(double, 0, "ms");
 
     hr = timeout(v0, vr);
 
@@ -120,9 +120,9 @@ inline void AbortSignal_base::s_static_any(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "signals");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "signals");
 
     hr = any(v0, vr);
 
@@ -190,7 +190,7 @@ inline void AbortSignal_base::s_set_onabort(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onabort");
 
     hr = pInst->setListener("abort", v0);
 

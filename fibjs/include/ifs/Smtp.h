@@ -126,9 +126,9 @@ inline void Smtp_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args
     ASYNC_METHOD_INSTANCE(Smtp_base);
     ASYNC_METHOD_ENTER("Smtp.connect");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "url");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "url");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0, cb, args);
@@ -145,10 +145,10 @@ inline void Smtp_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& args
     ASYNC_METHOD_INSTANCE(Smtp_base);
     ASYNC_METHOD_ENTER("Smtp.command");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "arg");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "cmd");
+    ARG_NAMED(exlib::string, 1, "arg");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_command(v0, v1, cb, args);
@@ -165,7 +165,7 @@ inline void Smtp_base::s_hello(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "localhost");
+    OPT_ARG_NAMED(exlib::string, 0, "localhost", "hostname");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_hello(v0, cb, args);
@@ -180,10 +180,10 @@ inline void Smtp_base::s_login(const v8::FunctionCallbackInfo<v8::Value>& args)
     ASYNC_METHOD_INSTANCE(Smtp_base);
     ASYNC_METHOD_ENTER("Smtp.login");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "password");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "username");
+    ARG_NAMED(exlib::string, 1, "password");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_login(v0, v1, cb, args);
@@ -198,9 +198,9 @@ inline void Smtp_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
     ASYNC_METHOD_INSTANCE(Smtp_base);
     ASYNC_METHOD_ENTER("Smtp.from");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "address");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "address");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_from(v0, cb, args);
@@ -215,9 +215,9 @@ inline void Smtp_base::s_to(const v8::FunctionCallbackInfo<v8::Value>& args)
     ASYNC_METHOD_INSTANCE(Smtp_base);
     ASYNC_METHOD_ENTER("Smtp.to");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "address");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "address");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_to(v0, cb, args);
@@ -232,9 +232,9 @@ inline void Smtp_base::s_data(const v8::FunctionCallbackInfo<v8::Value>& args)
     ASYNC_METHOD_INSTANCE(Smtp_base);
     ASYNC_METHOD_ENTER("Smtp.data");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "txt");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "txt");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_data(v0, cb, args);
@@ -280,7 +280,7 @@ inline void Smtp_base::s_set_timeout(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "timeout");
 
     hr = pInst->set_timeout(v0);
 

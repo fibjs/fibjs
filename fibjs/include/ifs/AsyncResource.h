@@ -81,10 +81,10 @@ inline void AsyncResource_base::__new(const v8::FunctionCallbackInfo<v8::Value>&
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "type");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(Union_AsyncResource_triggerAsyncId, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "type");
+    OPT_ARG_NAMED(Union_AsyncResource_triggerAsyncId, 1, v8::Object::New(isolate->m_isolate), "triggerAsyncId");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -97,10 +97,10 @@ inline result_t AsyncResource_base::load(v8::Local<v8::Value> v, obj_ptr<AsyncRe
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "type");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(Union_AsyncResource_triggerAsyncId, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "type");
+    OPT_ARG_NAMED(Union_AsyncResource_triggerAsyncId, 1, v8::Object::New(isolate->m_isolate), "triggerAsyncId");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -142,10 +142,10 @@ inline void AsyncResource_base::s_runInAsyncScope(const v8::FunctionCallbackInfo
     METHOD_INSTANCE(AsyncResource_base);
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "fn");
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Function>, 0, "fn");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "thisArg");
     ARG_LIST(2);
 
     hr = pInst->runInAsyncScope(v0, v1, v2, vr);
@@ -174,10 +174,10 @@ inline void AsyncResource_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(AsyncResource_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fn");
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Function>, 0, "fn");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "thisArg");
 
     hr = pInst->bind(v0, v1, vr);
 
@@ -190,11 +190,11 @@ inline void AsyncResource_base::s_static_bind(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "fn");
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(exlib::string, 1, "bound-anonymous-fn");
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Function>, 0, "fn");
+    OPT_ARG_NAMED(exlib::string, 1, "bound-anonymous-fn", "type");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate), "thisArg");
 
     hr = bind(v0, v1, v2, vr);
 

@@ -127,7 +127,7 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description protocol version information, the allowed format is: HTTP/#.#
      *
-     *      Default HTTP/1.1. The setter validates the form and throws error 20024 for anything else;
+     *      Default HTTP/1.1. The setter validates the form and throws ERR_INVALID_STATE for anything else;
      *      a version above 1.0 enables keepAlive and 1.0 disables it. A parsed message sets the
      *      version from its start line.
      *
@@ -181,7 +181,7 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description queries and sets the maximum number of request headers, default is 128
      *
-     *      The parser fails with error 20024 when a message carries more header lines than this; it
+     *      The parser fails with ERR_INVALID_STATE when a message carries more header lines than this; it
      *      is used when reading requests. A negative value throws a RangeError (20006).
      *
      */
@@ -191,7 +191,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets the maximum request header length, default is 8192
      *
      *      The maximum size in bytes of one header line accepted by the parser; a longer line fails
-     *      with error 20024. A negative value throws a RangeError (20006).
+     *      with ERR_INVALID_STATE. A negative value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -200,7 +200,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets the maximum chunk size in MB, default is 2
      *
      *      Bounds a single chunk of a chunked body while it is parsed: a larger chunk fails with
-     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted.
+     *      ERR_INVALID_STATE ("HttpMessage: chunk is too huge."). 0 is accepted.
      *
      */
     maxChunkSize: number;
@@ -208,7 +208,7 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description queries and sets the maximum body size in MB, default is 64
      *
-     *      While parsing, a Content-Length or chunked body larger than this fails with error 20024
+     *      While parsing, a Content-Length or chunked body larger than this fails with ERR_INVALID_STATE
      *      ("HttpMessage: body is too huge."); -1 disables the limit and 0 reads no body at all. Set
      *      it before readFrom.
      *
@@ -465,7 +465,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;
@@ -494,7 +494,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;
@@ -521,7 +521,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;
@@ -559,7 +559,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
     /**
      * @description protocol version information, the allowed format is: HTTP/#.#
      *
-     *      Default HTTP/1.1. The setter validates the form and throws error 20024 for anything else;
+     *      Default HTTP/1.1. The setter validates the form and throws ERR_INVALID_STATE for anything else;
      *      a version above 1.0 enables keepAlive and 1.0 disables it. A parsed message sets the
      *      version from its start line.
      *
@@ -613,7 +613,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
     /**
      * @description queries and sets the maximum number of request headers, default is 128
      *
-     *      The parser fails with error 20024 when a message carries more header lines than this; it
+     *      The parser fails with ERR_INVALID_STATE when a message carries more header lines than this; it
      *      is used when reading requests. A negative value throws a RangeError (20006).
      *
      */
@@ -623,7 +623,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets the maximum request header length, default is 8192
      *
      *      The maximum size in bytes of one header line accepted by the parser; a longer line fails
-     *      with error 20024. A negative value throws a RangeError (20006).
+     *      with ERR_INVALID_STATE. A negative value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -632,7 +632,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets the maximum chunk size in MB, default is 2
      *
      *      Bounds a single chunk of a chunked body while it is parsed: a larger chunk fails with
-     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted.
+     *      ERR_INVALID_STATE ("HttpMessage: chunk is too huge."). 0 is accepted.
      *
      */
     maxChunkSize: number;
@@ -640,7 +640,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
     /**
      * @description queries and sets the maximum body size in MB, default is 64
      *
-     *      While parsing, a Content-Length or chunked body larger than this fails with error 20024
+     *      While parsing, a Content-Length or chunked body larger than this fails with ERR_INVALID_STATE
      *      ("HttpMessage: body is too huge."); -1 disables the limit and 0 reads no body at all. Set
      *      it before readFrom.
      *
@@ -897,7 +897,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;
@@ -924,7 +924,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;
@@ -951,7 +951,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;

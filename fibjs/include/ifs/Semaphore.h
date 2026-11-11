@@ -77,7 +77,7 @@ inline void Semaphore_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 1);
+    OPT_ARG_NAMED(int32_t, 0, 1, "value");
 
     hr = _new(v0, vr, args.This());
 
@@ -92,7 +92,7 @@ inline result_t Semaphore_base::load(v8::Local<v8::Value> v, obj_ptr<Semaphore_b
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 1);
+    OPT_ARG_NAMED(int32_t, 0, 1, "value");
 
     hr = _new(v0, vr, args.This());
 
@@ -108,7 +108,7 @@ inline void Semaphore_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, -1);
+    OPT_ARG_NAMED(int32_t, 0, -1, "timeout");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_wait(v0, cb, args);

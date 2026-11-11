@@ -205,9 +205,9 @@ inline void WebView_base::s_loadUrl(const v8::FunctionCallbackInfo<v8::Value>& a
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER("WebView.loadUrl");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "url");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "url");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_loadUrl(v0, cb, args);
@@ -222,9 +222,9 @@ inline void WebView_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER("WebView.loadFile");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "file");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "file");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_loadFile(v0, cb, args);
@@ -256,9 +256,9 @@ inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& a
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER("WebView.setHtml");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "html");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "html");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_setHtml(v0, cb, args);
@@ -309,7 +309,7 @@ inline void WebView_base::s_waitFor(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "url");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_waitFor(v0, cb, args);
@@ -371,9 +371,9 @@ inline void WebView_base::s_eval(const v8::FunctionCallbackInfo<v8::Value>& args
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER("WebView.eval");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "code");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "code");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_eval(v0, cb, args);
@@ -388,9 +388,9 @@ inline void WebView_base::s_setTitle(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER("WebView.setTitle");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "title");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "title");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_setTitle(v0, cb, args);
@@ -469,10 +469,10 @@ inline void WebView_base::s_setSize(const v8::FunctionCallbackInfo<v8::Value>& a
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER("WebView.setSize");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "height");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "width");
+    ARG_NAMED(int32_t, 1, "height");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_setSize(v0, v1, cb, args);
@@ -504,10 +504,10 @@ inline void WebView_base::s_setPosition(const v8::FunctionCallbackInfo<v8::Value
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER("WebView.setPosition");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "top");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "left");
+    ARG_NAMED(int32_t, 1, "top");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_setPosition(v0, v1, cb, args);
@@ -589,7 +589,7 @@ inline void WebView_base::s_takeScreenshot(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(bool, 0, false);
+    OPT_ARG_NAMED(bool, 0, false, "fullPage");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_takeScreenshot(v0, cb, args);
@@ -619,9 +619,9 @@ inline void WebView_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER("WebView.postMessage");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "msg");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "msg");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_postMessage(v0, cb, args);
@@ -652,7 +652,7 @@ inline void WebView_base::s_set_onloading(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onloading");
 
     hr = pInst->setListener("loading", v0);
 
@@ -680,7 +680,7 @@ inline void WebView_base::s_set_onload(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onload");
 
     hr = pInst->setListener("load", v0);
 
@@ -708,7 +708,7 @@ inline void WebView_base::s_set_onmove(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onmove");
 
     hr = pInst->setListener("move", v0);
 
@@ -736,7 +736,7 @@ inline void WebView_base::s_set_onresize(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onresize");
 
     hr = pInst->setListener("resize", v0);
 
@@ -764,7 +764,7 @@ inline void WebView_base::s_set_onfocus(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onfocus");
 
     hr = pInst->setListener("focus", v0);
 
@@ -792,7 +792,7 @@ inline void WebView_base::s_set_onblur(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onblur");
 
     hr = pInst->setListener("blur", v0);
 
@@ -820,7 +820,7 @@ inline void WebView_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onclose");
 
     hr = pInst->setListener("close", v0);
 
@@ -848,7 +848,7 @@ inline void WebView_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onmessage");
 
     hr = pInst->setListener("message", v0);
 

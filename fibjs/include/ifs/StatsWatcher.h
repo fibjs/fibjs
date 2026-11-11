@@ -96,7 +96,7 @@ inline void StatsWatcher_base::s_set_onchange(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onchange");
 
     hr = pInst->setListener("change", v0);
 

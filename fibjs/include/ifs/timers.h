@@ -90,10 +90,10 @@ inline void timers_base::s_static_setTimeout(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(double, 1, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
+    OPT_ARG_NAMED(double, 1, 1, "timeout");
     ARG_LIST(2);
 
     hr = setTimeout(v0, v1, v2, vr);
@@ -105,9 +105,9 @@ inline void timers_base::s_static_clearTimeout(const v8::FunctionCallbackInfo<v8
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "t");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "t");
 
     hr = clearTimeout(v0);
 
@@ -120,10 +120,10 @@ inline void timers_base::s_static_setInterval(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
-    OPT_ARG(double, 1, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
+    OPT_ARG_NAMED(double, 1, 1, "timeout");
     ARG_LIST(2);
 
     hr = setInterval(v0, v1, v2, vr);
@@ -135,9 +135,9 @@ inline void timers_base::s_static_clearInterval(const v8::FunctionCallbackInfo<v
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "t");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "t");
 
     hr = clearInterval(v0);
 
@@ -150,10 +150,10 @@ inline void timers_base::s_static_setHrInterval(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 2);
+    METHOD_OVER_NAMED(-1, 2, "timeout");
 
-    ARG(v8::Local<v8::Function>, 0);
-    ARG(double, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
+    ARG_NAMED(double, 1, "timeout");
     ARG_LIST(2);
 
     hr = setHrInterval(v0, v1, v2, vr);
@@ -165,9 +165,9 @@ inline void timers_base::s_static_clearHrInterval(const v8::FunctionCallbackInfo
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "t");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "t");
 
     hr = clearHrInterval(v0);
 
@@ -180,9 +180,9 @@ inline void timers_base::s_static_setImmediate(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
     ARG_LIST(1);
 
     hr = setImmediate(v0, v1, vr);
@@ -194,9 +194,9 @@ inline void timers_base::s_static_clearImmediate(const v8::FunctionCallbackInfo<
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "t");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "t");
 
     hr = clearImmediate(v0);
 
@@ -209,10 +209,10 @@ inline void timers_base::s_static_call(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 2);
+    METHOD_OVER_NAMED(-1, 2, "timeout");
 
-    ARG(v8::Local<v8::Function>, 0);
-    ARG(double, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "func");
+    ARG_NAMED(double, 1, "timeout");
     ARG_LIST(2);
 
     hr = call(v0, v1, v2, vr);

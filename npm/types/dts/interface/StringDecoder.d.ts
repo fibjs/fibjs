@@ -10,7 +10,7 @@
  *
  *  - **Character boundaries**: a JavaScript string is a sequence of Unicode code points, but a UTF-8 character occupies one to four bytes (and a UTF-16 surrogate pair four bytes). A chunk boundary can fall in the middle of a character, and the bytes seen so far are meaningless until the character is complete; the decoder remembers them (`lastNeed`, `lastTotal` and `lastChar` expose that state) and prepends them to the next chunk.
  *  - **Per-encoding state**: `utf8` holds at most three bytes; `utf16le`/`ucs2` holds an odd byte or a high surrogate; `base64` holds one or two bytes and adds the missing padding on end; `hex`, `latin1`, `ascii` and the other pass-through codecs have no state at all, so their write is just a per-chunk `Buffer#toString`.
- *  - **Error behavior**: a malformed UTF-8 sequence yields U+FFFD for the offending part instead of throwing; an unsupported encoding name is rejected by the constructor with an Error (number 20024), and a non-string argument with a TypeError (number 20005).
+ *  - **Error behavior**: a malformed UTF-8 sequence yields U+FFFD for the offending part instead of throwing; an unsupported encoding name is rejected by the constructor with an Error (ERR_INVALID_STATE), and a non-string argument with a TypeError (number 20005).
  *
  *  Obtained from:
  *  - `new StringDecoder(encoding)` — create a decoder for one byte stream;
@@ -64,7 +64,7 @@
  *
  *  Notes:
  *
- *  - The class follows the `string_decoder.StringDecoder` semantics for the supported encodings and the chunk semantics. An unknown encoding throws an Error with number 20024, and `end` does not clear the pending state, so calling it twice returns the flush text twice.
+ *  - The class follows the `string_decoder.StringDecoder` semantics for the supported encodings and the chunk semantics. An unknown encoding throws an Error with ERR_INVALID_STATE, and `end` does not clear the pending state, so calling it twice returns the flush text twice.
  *  - `base32`, `base58` and `base64url` are rejected by the constructor even though `encoding.isEncoding` accepts them: they have no incremental decoder here.
  *
  */
@@ -72,7 +72,7 @@ declare class Class_StringDecoder extends Class_object {
     /**
      * @description Creates a decoder for the given encoding
      *
-     *      The accepted names are `utf8`/`utf-8`, `utf16le`/`utf-16le`/`ucs2`, `base64`, `hex`, `latin1`/`binary` and `ascii`; the name is normalized (for example `ucs-2` becomes `utf16le`) and the canonical form is exposed by the `encoding` property. A name outside that list throws an Error with number 20024, even when `encoding.isEncoding` reports it as supported, because there is no incremental decoder for it; a non-string argument throws a TypeError with number 20005.
+     *      The accepted names are `utf8`/`utf-8`, `utf16le`/`utf-16le`/`ucs2`, `base64`, `hex`, `latin1`/`binary` and `ascii`; the name is normalized (for example `ucs-2` becomes `utf16le`) and the canonical form is exposed by the `encoding` property. A name outside that list throws an Error with ERR_INVALID_STATE, even when `encoding.isEncoding` reports it as supported, because there is no incremental decoder for it; a non-string argument throws a TypeError with number 20005.
      *      @param encoding the encoding of the byte stream: "utf8", "utf16le", "ucs2", "base64", "hex", "latin1", "binary" or "ascii", default "utf8"
      *
      */

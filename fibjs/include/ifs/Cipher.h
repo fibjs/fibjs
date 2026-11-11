@@ -87,10 +87,10 @@ inline void Cipher_base::s_setAuthTag(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(Cipher_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "buffer");
 
     ARG(Union_setAuthTag_buffer, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "encoding");
 
     hr = pInst->setAuthTag(v0, v1, vr);
 
@@ -118,10 +118,10 @@ inline void Cipher_base::s_setAAD(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Cipher_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "buffer");
 
     ARG(Union_setAAD_buffer, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->setAAD(v0, v1, vr);
 
@@ -137,7 +137,7 @@ inline void Cipher_base::s_setAutoPadding(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(bool, 0, true);
+    OPT_ARG_NAMED(bool, 0, true, "autoPadding");
 
     hr = pInst->setAutoPadding(v0, vr);
 
@@ -151,11 +151,11 @@ inline void Cipher_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Cipher_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "data");
 
     ARG(Union_update_data, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
-    OPT_ARG(exlib::string, 2, "buffer");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "inputEncoding");
+    OPT_ARG_NAMED(exlib::string, 2, "buffer", "outputEncoding");
 
     hr = pInst->update(v0, v1, v2, vr);
 
@@ -171,7 +171,7 @@ inline void Cipher_base::s_final(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "buffer");
+    OPT_ARG_NAMED(exlib::string, 0, "buffer", "outputEncoding");
 
     hr = pInst->final(v0, vr);
 

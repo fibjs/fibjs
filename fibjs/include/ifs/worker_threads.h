@@ -152,9 +152,9 @@ inline void worker_threads_base::s_static_receiveMessageOnPort(const v8::Functio
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "port");
 
-    ARG(obj_ptr<MessagePort_base>, 0);
+    ARG_NAMED(obj_ptr<MessagePort_base>, 0, "port");
 
     hr = receiveMessageOnPort(v0.get(), vr);
 
@@ -165,9 +165,9 @@ inline void worker_threads_base::s_static_markAsUncloneable(const v8::FunctionCa
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "object");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "object");
 
     hr = markAsUncloneable(v0);
 
@@ -178,9 +178,9 @@ inline void worker_threads_base::s_static_markAsUntransferable(const v8::Functio
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "object");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "object");
 
     hr = markAsUntransferable(v0);
 
@@ -193,9 +193,9 @@ inline void worker_threads_base::s_static_isMarkedAsUntransferable(const v8::Fun
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "object");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "object");
 
     hr = isMarkedAsUntransferable(v0, vr);
 

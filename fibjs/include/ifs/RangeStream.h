@@ -74,25 +74,25 @@ inline void RangeStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "range");
 
-    ARG(obj_ptr<SeekableStream_base>, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(obj_ptr<SeekableStream_base>, 0, "stm");
+    ARG_NAMED(exlib::string, 1, "range");
 
     hr = _new(v0.get(), v1, vr, args.This());
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "end");
 
-    ARG(obj_ptr<SeekableStream_base>, 0);
-    ARG(int64_t, 1);
-    ARG(int64_t, 2);
+    ARG_NAMED(obj_ptr<SeekableStream_base>, 0, "stm");
+    ARG_NAMED(int64_t, 1, "begin");
+    ARG_NAMED(int64_t, 2, "end");
 
     hr = _new(v0.get(), v1, v2, vr, args.This());
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "end");
 
-    ARG(obj_ptr<Stream_base>, 0);
-    ARG(int64_t, 1);
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "stm");
+    ARG_NAMED(int64_t, 1, "end");
 
     hr = _new(v0.get(), v1, vr, args.This());
 

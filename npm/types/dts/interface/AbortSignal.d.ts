@@ -190,7 +190,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      `AbortError`, code `ABORT_ERR`, message "The operation was aborted.") or a TimeoutError
      *      (name `TimeoutError`, code `TIMEOUT_ERR`, message "The operation timed out."); a custom
      *      string reason is not preserved and also throws the generic AbortError, and any other
-     *      reason value throws a generic Error (20024) instead of the value itself; read `AbortSignal.reason` when the
+     *      reason value throws a generic Error (ERR_INVALID_STATE) instead of the value itself; read `AbortSignal.reason` when the
      *      original value matters.
      *
      *      Example — a no-op while active, an AbortError after the abort:

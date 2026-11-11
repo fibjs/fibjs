@@ -293,7 +293,7 @@ inline void XmlElement_base::s_set_prefix(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "prefix");
 
     hr = pInst->set_prefix(v0);
 
@@ -349,7 +349,7 @@ inline void XmlElement_base::s_set_id(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "id");
 
     hr = pInst->set_id(v0);
 
@@ -377,7 +377,7 @@ inline void XmlElement_base::s_set_src(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "src");
 
     hr = pInst->set_src(v0);
 
@@ -405,7 +405,7 @@ inline void XmlElement_base::s_set_alt(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "alt");
 
     hr = pInst->set_alt(v0);
 
@@ -433,7 +433,7 @@ inline void XmlElement_base::s_set_href(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "href");
 
     hr = pInst->set_href(v0);
 
@@ -461,7 +461,7 @@ inline void XmlElement_base::s_set_title(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "title");
 
     hr = pInst->set_title(v0);
 
@@ -489,7 +489,7 @@ inline void XmlElement_base::s_set_value(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "value");
 
     hr = pInst->set_value(v0);
 
@@ -517,7 +517,7 @@ inline void XmlElement_base::s_set_name(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->set_name(v0);
 
@@ -545,7 +545,7 @@ inline void XmlElement_base::s_set_type(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "type");
 
     hr = pInst->set_type(v0);
 
@@ -573,7 +573,7 @@ inline void XmlElement_base::s_set_rel(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "rel");
 
     hr = pInst->set_rel(v0);
 
@@ -601,7 +601,7 @@ inline void XmlElement_base::s_set_target(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "target");
 
     hr = pInst->set_target(v0);
 
@@ -629,7 +629,7 @@ inline void XmlElement_base::s_set_placeholder(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "placeholder");
 
     hr = pInst->set_placeholder(v0);
 
@@ -657,7 +657,7 @@ inline void XmlElement_base::s_set_innerHTML(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "innerHTML");
 
     hr = pInst->set_innerHTML(v0);
 
@@ -685,7 +685,7 @@ inline void XmlElement_base::s_set_outerHTML(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "outerHTML");
 
     hr = pInst->set_outerHTML(v0);
 
@@ -713,7 +713,7 @@ inline void XmlElement_base::s_set_className(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "className");
 
     hr = pInst->set_className(v0);
 
@@ -811,9 +811,9 @@ inline void XmlElement_base::s_getAttribute(const v8::FunctionCallbackInfo<v8::V
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->getAttribute(v0, vr);
 
@@ -827,10 +827,10 @@ inline void XmlElement_base::s_getAttributeNS(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "localName");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "namespaceURI");
+    ARG_NAMED(exlib::string, 1, "localName");
 
     hr = pInst->getAttributeNS(v0, v1, vr);
 
@@ -844,9 +844,9 @@ inline void XmlElement_base::s_getAttributeNode(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->getAttributeNode(v0, vr);
 
@@ -860,10 +860,10 @@ inline void XmlElement_base::s_getAttributeNodeNS(const v8::FunctionCallbackInfo
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "localName");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "namespaceURI");
+    ARG_NAMED(exlib::string, 1, "localName");
 
     hr = pInst->getAttributeNodeNS(v0, v1, vr);
 
@@ -875,10 +875,10 @@ inline void XmlElement_base::s_setAttribute(const v8::FunctionCallbackInfo<v8::V
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(exlib::string, 1, "value");
 
     hr = pInst->setAttribute(v0, v1);
 
@@ -890,11 +890,11 @@ inline void XmlElement_base::s_setAttributeNS(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "value");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    ARG(exlib::string, 2);
+    ARG_NAMED(exlib::string, 0, "namespaceURI");
+    ARG_NAMED(exlib::string, 1, "qualifiedName");
+    ARG_NAMED(exlib::string, 2, "value");
 
     hr = pInst->setAttributeNS(v0, v1, v2);
 
@@ -908,9 +908,9 @@ inline void XmlElement_base::s_setAttributeNode(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "attr");
 
-    ARG(obj_ptr<XmlAttr_base>, 0);
+    ARG_NAMED(obj_ptr<XmlAttr_base>, 0, "attr");
 
     hr = pInst->setAttributeNode(v0.get(), vr);
 
@@ -922,9 +922,9 @@ inline void XmlElement_base::s_removeAttribute(const v8::FunctionCallbackInfo<v8
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->removeAttribute(v0);
 
@@ -936,10 +936,10 @@ inline void XmlElement_base::s_removeAttributeNS(const v8::FunctionCallbackInfo<
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "localName");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "namespaceURI");
+    ARG_NAMED(exlib::string, 1, "localName");
 
     hr = pInst->removeAttributeNS(v0, v1);
 
@@ -953,9 +953,9 @@ inline void XmlElement_base::s_removeAttributeNode(const v8::FunctionCallbackInf
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "attr");
 
-    ARG(obj_ptr<XmlAttr_base>, 0);
+    ARG_NAMED(obj_ptr<XmlAttr_base>, 0, "attr");
 
     hr = pInst->removeAttributeNode(v0.get(), vr);
 
@@ -969,9 +969,9 @@ inline void XmlElement_base::s_hasAttribute(const v8::FunctionCallbackInfo<v8::V
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->hasAttribute(v0, vr);
 
@@ -985,10 +985,10 @@ inline void XmlElement_base::s_hasAttributeNS(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "localName");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "namespaceURI");
+    ARG_NAMED(exlib::string, 1, "localName");
 
     hr = pInst->hasAttributeNS(v0, v1, vr);
 
@@ -1002,9 +1002,9 @@ inline void XmlElement_base::s_getElementsByTagName(const v8::FunctionCallbackIn
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "tagName");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "tagName");
 
     hr = pInst->getElementsByTagName(v0, vr);
 
@@ -1018,10 +1018,10 @@ inline void XmlElement_base::s_getElementsByTagNameNS(const v8::FunctionCallback
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "localName");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "namespaceURI");
+    ARG_NAMED(exlib::string, 1, "localName");
 
     hr = pInst->getElementsByTagNameNS(v0, v1, vr);
 
@@ -1035,9 +1035,9 @@ inline void XmlElement_base::s_getElementById(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "id");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "id");
 
     hr = pInst->getElementById(v0, vr);
 
@@ -1051,9 +1051,9 @@ inline void XmlElement_base::s_getElementsByClassName(const v8::FunctionCallback
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "className");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "className");
 
     hr = pInst->getElementsByClassName(v0, vr);
 
@@ -1067,9 +1067,9 @@ inline void XmlElement_base::s_querySelector(const v8::FunctionCallbackInfo<v8::
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "selectors");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "selectors");
 
     hr = pInst->querySelector(v0, vr);
 
@@ -1083,9 +1083,9 @@ inline void XmlElement_base::s_querySelectorAll(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "selectors");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "selectors");
 
     hr = pInst->querySelectorAll(v0, vr);
 
@@ -1099,9 +1099,9 @@ inline void XmlElement_base::s_matches(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "selectors");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "selectors");
 
     hr = pInst->matches(v0, vr);
 
@@ -1115,9 +1115,9 @@ inline void XmlElement_base::s_closest(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "selectors");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "selectors");
 
     hr = pInst->closest(v0, vr);
 
@@ -1173,10 +1173,10 @@ inline void XmlElement_base::s_insertAdjacentElement(const v8::FunctionCallbackI
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "element");
 
-    ARG(exlib::string, 0);
-    ARG(obj_ptr<XmlElement_base>, 1);
+    ARG_NAMED(exlib::string, 0, "position");
+    ARG_NAMED(obj_ptr<XmlElement_base>, 1, "element");
 
     hr = pInst->insertAdjacentElement(v0, v1.get(), vr);
 
@@ -1188,10 +1188,10 @@ inline void XmlElement_base::s_insertAdjacentHTML(const v8::FunctionCallbackInfo
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "html");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "position");
+    ARG_NAMED(exlib::string, 1, "html");
 
     hr = pInst->insertAdjacentHTML(v0, v1);
 
@@ -1203,10 +1203,10 @@ inline void XmlElement_base::s_insertAdjacentText(const v8::FunctionCallbackInfo
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "text");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "position");
+    ARG_NAMED(exlib::string, 1, "text");
 
     hr = pInst->insertAdjacentText(v0, v1);
 
@@ -1220,16 +1220,16 @@ inline void XmlElement_base::s_toggleAttribute(const v8::FunctionCallbackInfo<v8
     METHOD_INSTANCE(XmlElement_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->toggleAttribute(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "force");
 
-    ARG(exlib::string, 0);
-    ARG(bool, 1);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(bool, 1, "force");
 
     hr = pInst->toggleAttribute(v0, v1, vr);
 

@@ -66,9 +66,9 @@ inline void XmlText_base::s_splitText(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(XmlText_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "offset");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "offset");
 
     hr = pInst->splitText(v0, vr);
 

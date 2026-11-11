@@ -112,7 +112,7 @@ inline void CSSStyleDeclaration_base::s_set_cssText(const v8::FunctionCallbackIn
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "cssText");
 
     hr = pInst->set_cssText(v0);
 
@@ -140,9 +140,9 @@ inline void CSSStyleDeclaration_base::s_item(const v8::FunctionCallbackInfo<v8::
     METHOD_INSTANCE(CSSStyleDeclaration_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "index");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "index");
 
     hr = pInst->item(v0, vr);
 
@@ -156,9 +156,9 @@ inline void CSSStyleDeclaration_base::s_getPropertyValue(const v8::FunctionCallb
     METHOD_INSTANCE(CSSStyleDeclaration_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "property");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "property");
 
     hr = pInst->getPropertyValue(v0, vr);
 
@@ -172,9 +172,9 @@ inline void CSSStyleDeclaration_base::s_getPropertyPriority(const v8::FunctionCa
     METHOD_INSTANCE(CSSStyleDeclaration_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "property");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "property");
 
     hr = pInst->getPropertyPriority(v0, vr);
 
@@ -186,11 +186,11 @@ inline void CSSStyleDeclaration_base::s_setProperty(const v8::FunctionCallbackIn
     METHOD_INSTANCE(CSSStyleDeclaration_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "value");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(exlib::string, 0, "property");
+    ARG_NAMED(exlib::string, 1, "value");
+    OPT_ARG_NAMED(exlib::string, 2, "", "priority");
 
     hr = pInst->setProperty(v0, v1, v2);
 
@@ -204,9 +204,9 @@ inline void CSSStyleDeclaration_base::s_removeProperty(const v8::FunctionCallbac
     METHOD_INSTANCE(CSSStyleDeclaration_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "property");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "property");
 
     hr = pInst->removeProperty(v0, vr);
 

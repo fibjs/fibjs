@@ -108,11 +108,11 @@ inline void Service_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "worker");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "worker");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "event");
 
     hr = _new(v0, v1, v2, vr, args.This());
 
@@ -160,7 +160,7 @@ inline void Service_base::s_set_name(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->set_name(v0);
 
@@ -188,7 +188,7 @@ inline void Service_base::s_set_onstop(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onstop");
 
     hr = pInst->setListener("stop", v0);
 
@@ -216,7 +216,7 @@ inline void Service_base::s_set_onpause(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onpause");
 
     hr = pInst->setListener("pause", v0);
 
@@ -244,7 +244,7 @@ inline void Service_base::s_set_oncontinue(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "oncontinue");
 
     hr = pInst->setListener("continue", v0);
 
@@ -255,12 +255,12 @@ inline void Service_base::s_static_install(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(4, 2);
+    METHOD_OVER_NAMED(4, 2, "cmd");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
-    OPT_ARG(exlib::string, 3, "");
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(exlib::string, 1, "cmd");
+    OPT_ARG_NAMED(exlib::string, 2, "", "displayName");
+    OPT_ARG_NAMED(exlib::string, 3, "", "description");
 
     hr = install(v0, v1, v2, v3);
 
@@ -271,9 +271,9 @@ inline void Service_base::s_static_remove(const v8::FunctionCallbackInfo<v8::Val
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = remove(v0);
 
@@ -284,9 +284,9 @@ inline void Service_base::s_static_start(const v8::FunctionCallbackInfo<v8::Valu
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = start(v0);
 
@@ -297,9 +297,9 @@ inline void Service_base::s_static_stop(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = stop(v0);
 
@@ -310,9 +310,9 @@ inline void Service_base::s_static_restart(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = restart(v0);
 
@@ -325,9 +325,9 @@ inline void Service_base::s_static_isInstalled(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = isInstalled(v0, vr);
 
@@ -340,9 +340,9 @@ inline void Service_base::s_static_isRunning(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = isRunning(v0, vr);
 

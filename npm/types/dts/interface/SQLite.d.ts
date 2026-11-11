@@ -107,7 +107,7 @@ declare class Class_SQLite extends Class_DbConnection {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (`sqlite:path`, `sqlite://path` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      ```JavaScript
@@ -143,7 +143,7 @@ declare class Class_SQLite extends Class_DbConnection {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (`sqlite:path`, `sqlite://path` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      ```JavaScript
@@ -177,7 +177,7 @@ declare class Class_SQLite extends Class_DbConnection {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (`sqlite:path`, `sqlite://path` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      ```JavaScript
@@ -253,7 +253,7 @@ declare class Class_SQLitePromise extends Class_DbConnectionPromise {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (`sqlite:path`, `sqlite://path` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      ```JavaScript
@@ -287,7 +287,7 @@ declare class Class_SQLitePromise extends Class_DbConnectionPromise {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (`sqlite:path`, `sqlite://path` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      ```JavaScript
@@ -321,7 +321,7 @@ declare class Class_SQLitePromise extends Class_DbConnectionPromise {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (`sqlite:path`, `sqlite://path` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      ```JavaScript

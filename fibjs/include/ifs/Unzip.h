@@ -62,7 +62,7 @@ inline void Unzip_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, vr, args.This());
 
@@ -77,7 +77,7 @@ inline result_t Unzip_base::load(v8::Local<v8::Value> v, obj_ptr<Unzip_base>& re
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, vr, args.This());
 

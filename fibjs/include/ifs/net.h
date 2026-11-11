@@ -185,7 +185,7 @@ inline void net_base::s_static_set_use_uv_socket(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "use_uv_socket");
 
     hr = set_use_uv_socket(v0);
 
@@ -211,10 +211,10 @@ inline void net_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("net.resolve");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "name");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, C_AF_INET);
+    ARG_NAMED(exlib::string, 0, "name");
+    OPT_ARG_NAMED(int32_t, 1, C_AF_INET, "family");
 
     if (!cb.IsEmpty())
         hr = acb_resolve(v0, v1, cb, args);
@@ -230,9 +230,9 @@ inline void net_base::s_static_ip(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ASYNC_METHOD_ENTER("net.ip");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     if (!cb.IsEmpty())
         hr = acb_ip(v0, cb, args);
@@ -248,9 +248,9 @@ inline void net_base::s_static_ipv6(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ASYNC_METHOD_ENTER("net.ipv6");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     if (!cb.IsEmpty())
         hr = acb_ipv6(v0, cb, args);
@@ -266,74 +266,74 @@ inline void net_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER_FUNC("net.connect");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, cb, args);
     else
         hr = ac_connect(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "connectListener");
 
     ARG(Union_connect_options, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 1, "connectListener");
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, v1, cb, args);
     else
         hr = ac_connect(v0, v1, vr);
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "port");
 
-    ARG(int32_t, 0);
-    OPT_ARG(exlib::string, 1, "localhost");
-    OPT_ARG(int32_t, 2, 0);
+    ARG_NAMED(int32_t, 0, "port");
+    OPT_ARG_NAMED(exlib::string, 1, "localhost", "host");
+    OPT_ARG_NAMED(int32_t, 2, 0, "timeout");
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, v1, v2, cb, args);
     else
         hr = ac_connect(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(int32_t, 1, 0, "timeout");
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, v1, cb, args);
     else
         hr = ac_connect(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "connectListener");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(int32_t, 0, "port");
+    ARG_NAMED(exlib::string, 1, "host");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "connectListener");
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, v1, v2, cb, args);
     else
         hr = ac_connect(v0, v1, v2, vr);
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(4, 4, "connectListener");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(int32_t, 2);
-    ARG(v8::Local<v8::Function>, 3);
+    ARG_NAMED(int32_t, 0, "port");
+    ARG_NAMED(exlib::string, 1, "host");
+    ARG_NAMED(int32_t, 2, "timeout");
+    ARG_NAMED(v8::Local<v8::Function>, 3, "connectListener");
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, v1, v2, v3, cb, args);
     else
         hr = ac_connect(v0, v1, v2, v3, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "connectListener");
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(int32_t, 1, "timeout");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "connectListener");
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, v1, v2, cb, args);
@@ -349,10 +349,10 @@ inline void net_base::s_static_openSmtp(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_ENTER("net.openSmtp");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(int32_t, 1, 0, "timeout");
 
     if (!cb.IsEmpty())
         hr = acb_openSmtp(v0, v1, cb, args);
@@ -368,14 +368,14 @@ inline void net_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "listener");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
     ARG(Union_createServer_listener, 1);
 
     hr = createServer(v0, v1, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "listener");
 
     ARG(Union_createServer_listener, 0);
 
@@ -405,7 +405,7 @@ inline void net_base::s_static_isIP(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "ip");
 
     hr = isIP(v0, vr);
 
@@ -420,7 +420,7 @@ inline void net_base::s_static_isIPv4(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "ip");
 
     hr = isIPv4(v0, vr);
 
@@ -435,7 +435,7 @@ inline void net_base::s_static_isIPv6(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "ip");
 
     hr = isIPv6(v0, vr);
 
@@ -459,9 +459,9 @@ inline void net_base::s_static_setDefaultAutoSelectFamily(const v8::FunctionCall
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "enabled");
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "enabled");
 
     hr = setDefaultAutoSelectFamily(v0);
 
@@ -485,9 +485,9 @@ inline void net_base::s_static_setDefaultAutoSelectFamilyAttemptTimeout(const v8
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "milliseconds");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "milliseconds");
 
     hr = setDefaultAutoSelectFamilyAttemptTimeout(v0);
 

@@ -87,10 +87,10 @@ inline void PerformanceObserverEntryList_base::s_getEntriesByName(const v8::Func
     METHOD_INSTANCE(PerformanceObserverEntryList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "name");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+    ARG_NAMED(exlib::string, 0, "name");
+    OPT_ARG_NAMED(exlib::string, 1, "", "entryType");
 
     hr = pInst->getEntriesByName(v0, v1, vr);
 
@@ -104,9 +104,9 @@ inline void PerformanceObserverEntryList_base::s_getEntriesByType(const v8::Func
     METHOD_INSTANCE(PerformanceObserverEntryList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "entryType");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "entryType");
 
     hr = pInst->getEntriesByType(v0, vr);
 

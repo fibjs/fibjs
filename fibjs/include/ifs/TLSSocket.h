@@ -121,16 +121,16 @@ inline void TLSSocket_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     hr = _new(vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "context");
 
-    ARG(obj_ptr<SecureContext_base>, 0);
+    ARG_NAMED(obj_ptr<SecureContext_base>, 0, "context");
 
     hr = _new(v0.get(), vr, args.This());
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "options");
 
-    ARG(v8::Local<v8::Object>, 0);
-    OPT_ARG(bool, 1, false);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    OPT_ARG_NAMED(bool, 1, false, "isServer");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -143,16 +143,16 @@ inline result_t TLSSocket_base::load(v8::Local<v8::Value> v, obj_ptr<TLSSocket_b
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "context");
 
-    ARG(obj_ptr<SecureContext_base>, 0);
+    ARG_NAMED(obj_ptr<SecureContext_base>, 0, "context");
 
     hr = _new(v0.get(), vr, args.This());
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "options");
 
-    ARG(v8::Local<v8::Object>, 0);
-    OPT_ARG(bool, 1, false);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    OPT_ARG_NAMED(bool, 1, false, "isServer");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -164,31 +164,31 @@ inline void TLSSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>&
     ASYNC_METHOD_INSTANCE(TLSSocket_base);
     ASYNC_METHOD_ENTER_FUNC("TLSSocket.connect");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "socket");
 
-    ARG(obj_ptr<Stream_base>, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_connect(v0.get(), v1, cb, args);
-    else
-        hr = pInst->ac_connect(v0.get(), v1);
-
-    METHOD_OVER(2, 2);
-
-    ARG(obj_ptr<Stream_base>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "socket");
+    OPT_ARG_NAMED(exlib::string, 1, "", "server_name");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0.get(), v1, cb, args);
     else
         hr = pInst->ac_connect(v0.get(), v1);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(2, 2, "connectListener");
 
-    ARG(obj_ptr<Stream_base>, 0);
-    ARG(exlib::string, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "socket");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "connectListener");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_connect(v0.get(), v1, cb, args);
+    else
+        hr = pInst->ac_connect(v0.get(), v1);
+
+    METHOD_OVER_NAMED(3, 3, "connectListener");
+
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "socket");
+    ARG_NAMED(exlib::string, 1, "server_name");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "connectListener");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0.get(), v1, v2, cb, args);
@@ -203,9 +203,9 @@ inline void TLSSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(TLSSocket_base);
     ASYNC_METHOD_ENTER("TLSSocket.accept");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "socket");
 
-    ARG(obj_ptr<Stream_base>, 0);
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "socket");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_accept(v0.get(), cb, args);

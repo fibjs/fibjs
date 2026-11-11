@@ -99,7 +99,7 @@ inline void XmlProcessingInstruction_base::s_set_data(const v8::FunctionCallback
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "data");
 
     hr = pInst->set_data(v0);
 

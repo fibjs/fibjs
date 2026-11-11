@@ -149,7 +149,7 @@ declare class Class_TLSSocket extends Class_Stream {
      * @description Creates a TLSSocket from the options of tls.createSecureContext
      *
      *      The options are validated and converted into a context immediately, so invalid PEM material
-     *      throws error 20024 here and not at handshake time. isServer selects the context defaults
+     *      throws ERR_INVALID_STATE here and not at handshake time. isServer selects the context defaults
      *      (rejectUnauthorized false, SNI callback installed) and does not perform any handshake:
      *      connect() or accept() still has to run. new tls.TLSSocket({key, cert}) is a client socket
      *      that presents a client certificate, while new tls.TLSSocket({key, cert}, true) is a server
@@ -602,7 +602,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      * @description Creates a TLSSocket from the options of tls.createSecureContext
      *
      *      The options are validated and converted into a context immediately, so invalid PEM material
-     *      throws error 20024 here and not at handshake time. isServer selects the context defaults
+     *      throws ERR_INVALID_STATE here and not at handshake time. isServer selects the context defaults
      *      (rejectUnauthorized false, SNI callback installed) and does not perform any handshake:
      *      connect() or accept() still has to run. new tls.TLSSocket({key, cert}) is a client socket
      *      that presents a client certificate, while new tls.TLSSocket({key, cert}, true) is a server

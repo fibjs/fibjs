@@ -24,7 +24,7 @@
  *    returns null for a missing field, and incr starts from 0 for a missing field. len counts
  *    the fields and exists tests one of them.
  *  - **Type conflicts**: a member called on a key that holds another type fails with the
- *    server error (number 20024).
+ *    server error (ERR_INVALID_STATE).
  *
  *  Obtained from:
  *  - `rdb.getHash(key)` — the only factory, where rdb is the Redis object returned by

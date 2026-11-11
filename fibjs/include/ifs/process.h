@@ -315,7 +315,7 @@ inline void process_base::s_static_set_argv(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "argv");
 
     hr = set_argv(v0);
 
@@ -510,7 +510,7 @@ inline void process_base::s_static_set_exitCode(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "exitCode");
 
     hr = set_exitCode(v0);
 
@@ -523,7 +523,7 @@ inline void process_base::s_static_umask(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "mask");
 
     ARG(Union_umask_mask, 0);
 
@@ -544,7 +544,7 @@ inline void process_base::s_static_hrtime(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate), "diff");
 
     hr = hrtime(v0, vr);
 
@@ -559,9 +559,9 @@ inline void process_base::s_static_exit(const v8::FunctionCallbackInfo<v8::Value
 
     hr = exit();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "code");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "code");
 
     hr = exit(v0);
 
@@ -585,11 +585,11 @@ inline void process_base::s_static_dlopen(const v8::FunctionCallbackInfo<v8::Val
 {
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "filename");
 
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(int32_t, 2, 1);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "module");
+    ARG_NAMED(exlib::string, 1, "filename");
+    OPT_ARG_NAMED(int32_t, 2, 1, "flags");
 
     hr = dlopen(v0, v1, v2);
 
@@ -600,9 +600,9 @@ inline void process_base::s_static_chdir(const v8::FunctionCallbackInfo<v8::Valu
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "directory");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "directory");
 
     hr = chdir(v0);
 
@@ -615,7 +615,7 @@ inline void process_base::s_static_loadEnvFile(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "path");
 
     hr = loadEnvFile(v0);
 
@@ -643,7 +643,7 @@ inline void process_base::s_static_cpuUsage(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "previousValue");
 
     hr = cpuUsage(v0, vr);
 
@@ -680,9 +680,9 @@ inline void process_base::s_static_nextTick(const v8::FunctionCallbackInfo<v8::V
 {
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "func");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "func");
     ARG_LIST(1);
 
     hr = nextTick(v0, v1);
@@ -696,9 +696,9 @@ inline void process_base::s_static_binding(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = binding(v0, vr);
 
@@ -711,9 +711,9 @@ inline void process_base::s_static_getBuiltinModule(const v8::FunctionCallbackIn
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "id");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "id");
 
     hr = getBuiltinModule(v0, vr);
 
@@ -750,9 +750,9 @@ inline void process_base::s_static_setgid(const v8::FunctionCallbackInfo<v8::Val
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "id");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "id");
 
     hr = setgid(v0);
 
@@ -763,9 +763,9 @@ inline void process_base::s_static_setuid(const v8::FunctionCallbackInfo<v8::Val
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "id");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "id");
 
     hr = setuid(v0);
 
@@ -776,18 +776,18 @@ inline void process_base::s_static_emitWarning(const v8::FunctionCallbackInfo<v8
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "options");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "warning");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
 
     hr = emitWarning(v0, v1);
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "warning");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "Warning");
-    OPT_ARG(exlib::string, 2, "");
+    ARG_NAMED(v8::Local<v8::Value>, 0, "warning");
+    OPT_ARG_NAMED(exlib::string, 1, "Warning", "type");
+    OPT_ARG_NAMED(exlib::string, 2, "", "code");
 
     hr = emitWarning(v0, v1, v2);
 
@@ -798,10 +798,10 @@ inline void process_base::s_static_kill(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "pid");
 
-    ARG(int32_t, 0);
-    OPT_ARG(Union_kill_signal, 1, exlib::string("SIGTERM"));
+    ARG_NAMED(int32_t, 0, "pid");
+    OPT_ARG_NAMED(Union_kill_signal, 1, exlib::string("SIGTERM"), "signal");
 
     hr = kill(v0, v1);
 
@@ -836,9 +836,9 @@ inline void process_base::s_static_send(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "msg");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "msg");
 
     hr = send(v0);
 

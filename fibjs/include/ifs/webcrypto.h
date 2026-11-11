@@ -76,9 +76,9 @@ inline void webcrypto_base::s_static_getRandomValues(const v8::FunctionCallbackI
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(v8::Local<v8::TypedArray>, 0);
+    ARG_NAMED(v8::Local<v8::TypedArray>, 0, "data");
 
     hr = getRandomValues(v0, vr);
 

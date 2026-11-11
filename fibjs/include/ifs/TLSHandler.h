@@ -85,16 +85,16 @@ inline void TLSHandler_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "handler");
 
-    ARG(obj_ptr<SecureContext_base>, 0);
+    ARG_NAMED(obj_ptr<SecureContext_base>, 0, "context");
     ARG(Union_TLSHandler_handler, 1);
 
     hr = _new(v0.get(), v1, vr, args.This());
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "handler");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
     ARG(Union_TLSHandler_handler, 1);
 
     hr = _new(v0, v1, vr, args.This());
@@ -126,15 +126,15 @@ inline void TLSHandler_base::s_setSecureContext(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(TLSHandler_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "context");
 
-    ARG(obj_ptr<SecureContext_base>, 0);
+    ARG_NAMED(obj_ptr<SecureContext_base>, 0, "context");
 
     hr = pInst->setSecureContext(v0.get());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
 
     hr = pInst->setSecureContext(v0);
 
@@ -162,7 +162,7 @@ inline void TLSHandler_base::s_set_handler(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<Handler_base>, 0);
+    ARG_NAMED(obj_ptr<Handler_base>, 0, "handler");
 
     hr = pInst->set_handler(v0);
 

@@ -90,10 +90,10 @@ inline void ZlibCodec_base::s__processChunk(const v8::FunctionCallbackInfo<v8::V
     METHOD_INSTANCE(ZlibCodec_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "flushFlag");
 
     ARG(Union__processChunk_chunk, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 1, "flushFlag");
 
     hr = pInst->_processChunk(v0, v1, vr);
 
@@ -145,7 +145,7 @@ inline void ZlibCodec_base::s_set__handle(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "_handle");
 
     hr = pInst->set__handle(v0);
 
@@ -157,10 +157,10 @@ inline void ZlibCodec_base::s_params(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(ZlibCodec_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "strategy");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "level");
+    ARG_NAMED(int32_t, 1, "strategy");
 
     hr = pInst->params(v0, v1);
 

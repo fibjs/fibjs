@@ -163,7 +163,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      options is passed to tls.createSecureContext in server mode; in addition the keys
      *      address (optional, "" listens on all addresses) and port (optional) are read by the
      *      server. When port is omitted, listen() must be called to bind; invalid certificate
-     *      material throws error 20024 here. The handler contract is the one of HttpServer.
+     *      material throws ERR_INVALID_STATE here. The handler contract is the one of HttpServer.
      *      @param options the options needed to create a secure context with tls.createSecureContext
      *      @param hdlr the request handler
      *
@@ -227,7 +227,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *
      *      Creates a server-mode context from the options accepted by tls.createSecureContext
      *      (cert, key, ca, passphrase, minVersion, ...) and installs it, so new handshakes use
-     *      the new material without a restart. Invalid material throws error 20024.
+     *      the new material without a restart. Invalid material throws ERR_INVALID_STATE.
      *
      *      Example — install a context built from TLS options:
      *      ```JavaScript
@@ -306,7 +306,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      options is passed to tls.createSecureContext in server mode; in addition the keys
      *      address (optional, "" listens on all addresses) and port (optional) are read by the
      *      server. When port is omitted, listen() must be called to bind; invalid certificate
-     *      material throws error 20024 here. The handler contract is the one of HttpServer.
+     *      material throws ERR_INVALID_STATE here. The handler contract is the one of HttpServer.
      *      @param options the options needed to create a secure context with tls.createSecureContext
      *      @param hdlr the request handler
      *
@@ -370,7 +370,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *
      *      Creates a server-mode context from the options accepted by tls.createSecureContext
      *      (cert, key, ca, passphrase, minVersion, ...) and installs it, so new handshakes use
-     *      the new material without a restart. Invalid material throws error 20024.
+     *      the new material without a restart. Invalid material throws ERR_INVALID_STATE.
      *
      *      Example — install a context built from TLS options:
      *      ```JavaScript

@@ -58,7 +58,7 @@
  *  try {
  *      req.checkPrivateKey(publicKey);
  *  } catch (e) {
- *      console.log(e.name, e.number);                                   // Error 20024
+ *      console.log(e.name, e.number);                                   // ERR_INVALID_STATE
  *  }
  *
  *  // The PEM round-trips through the parser and the DER body matches
@@ -105,7 +105,7 @@ declare class Class_X509CertificateRequest extends Class_object {
      *
      *      One RDN per line in RFC 2253 form, for example `C=CN\nO=Example\nCN=example.com`, in
      *      the order the entries were passed to createCertificateRequest. A request created
-     *      without a subject is valid, but reading this member then throws error 20024, so pass a
+     *      without a subject is valid, but reading this member then throws ERR_INVALID_STATE, so pass a
      *      subject when the name will be read.
      *
      */
@@ -168,7 +168,7 @@ declare class Class_X509CertificateRequest extends Class_object {
      *
      *      Returns true when privateKey is the private half of the public key in the request,
      *      false for another private key. The argument must be a private KeyObject: a public or
-     *      secret KeyObject throws Error [20024] with the message "key must be a private
+     *      secret KeyObject throws Error [ERR_INVALID_STATE] with the message "key must be a private
      *      KeyObject.", and a value that is not a KeyObject fails the argument type check with a
      *      TypeError [20005] (X509Certificate#checkPrivateKey raises TypeError [20004] instead).
      *      A CA uses this check to confirm that the applicant owns the key before issuing.
@@ -187,7 +187,7 @@ declare class Class_X509CertificateRequest extends Class_object {
      *      try {
      *          req.checkPrivateKey(publicKey);
      *      } catch (e) {
-     *          console.log(e.name, e.number);                  // Error 20024
+     *          console.log(e.name, e.number);                  // ERR_INVALID_STATE
      *      }
      *      ```
      *      @param privateKey the private key to check
@@ -206,7 +206,7 @@ declare class Class_X509CertificateRequest extends Class_object {
      *      the certificate are copied from the request; every other field comes from this object:
      *      - issuer: the issuer subject as key/value pairs, for example
      *        `{ C: 'CN', O: 'Example', CN: 'Demo CA' }`; when omitted the issuer name is empty
-     *        and reading the issued certificate's issuer throws error 20024;
+     *        and reading the issued certificate's issuer throws ERR_INVALID_STATE;
      *      - ca: mark the certificate as a CA. Default: false;
      *      - pathlen: maximum number of intermediate CAs below this one, -1 for no constraint.
      *        Default: -1;

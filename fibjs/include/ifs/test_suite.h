@@ -65,18 +65,18 @@ inline void test_suite_base::s__function(const v8::FunctionCallbackInfo<v8::Valu
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "block");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "block");
 
     hr = _function(v0, v1);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "block");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "block");
 
     hr = _function(v0, v1, v2);
 
@@ -87,10 +87,10 @@ inline void test_suite_base::s_static_skip(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "block");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "block");
 
     hr = skip(v0, v1);
 
@@ -101,10 +101,10 @@ inline void test_suite_base::s_static_only(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "block");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "block");
 
     hr = only(v0, v1);
 
@@ -115,18 +115,18 @@ inline void test_suite_base::s_static_todo(const v8::FunctionCallbackInfo<v8::Va
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "block");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "block");
 
     hr = todo(v0, v1);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "block");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "block");
 
     hr = todo(v0, v1, v2);
 

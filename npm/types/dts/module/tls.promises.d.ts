@@ -70,7 +70,7 @@ declare module 'tls/promises' {
      *
      *      A context is validated while it is created: an unknown version name, a conflicting
      *      secureProtocol/minVersion combination and unparsable or mismatching certificate material
-     *      fail here instead of at handshake time (invalid PEM material reports error 20024). Without
+     *      fail here instead of at handshake time (invalid PEM material reports ERR_INVALID_STATE). Without
      *      options an empty context is built. With isServer false (the default) the context behaves as
      *      a client: it inherits the default Mozilla trust store and requires a verified server
      *      certificate, while a server context has no CA of its own and does not require a client

@@ -91,7 +91,7 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
      *      - an object's own enumerable properties become pairs in enumeration order, with the
      *        values converted to strings;
      *      - an array must contain [name, value] pairs of exactly two elements; any other element
-     *        throws `TypeError [20024] Failed to construct 'URLSearchParams': sequence elements must
+     *        throws `TypeError [ERR_INVALID_STATE] Failed to construct 'URLSearchParams': sequence elements must
      *        be pairs.`;
      *      - another URLSearchParams copies every pair into an independent collection;
      *      - any other iterable of pairs (a Map, a Headers, a FormData) is materialized with

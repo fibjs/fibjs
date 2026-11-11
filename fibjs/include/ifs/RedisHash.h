@@ -107,7 +107,7 @@ inline void RedisHash_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
     ARG(Union_set_field, 0);
     ARG(Union_set_value, 1);
@@ -122,7 +122,7 @@ inline void RedisHash_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
     ARG(Union_setNX_field, 0);
     ARG(Union_setNX_value, 1);
@@ -137,9 +137,9 @@ inline void RedisHash_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "kvs");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "kvs");
 
     hr = pInst->mset(v0);
 
@@ -159,7 +159,7 @@ inline void RedisHash_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "field");
 
     ARG(Union_get_field, 0);
 
@@ -175,9 +175,9 @@ inline void RedisHash_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fields");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "fields");
 
     hr = pInst->mget(v0, vr);
 
@@ -197,10 +197,10 @@ inline void RedisHash_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "field");
 
     ARG(Union_incr_field, 0);
-    OPT_ARG(int64_t, 1, 1);
+    OPT_ARG_NAMED(int64_t, 1, 1, "num");
 
     hr = pInst->incr(v0, v1, vr);
 
@@ -256,7 +256,7 @@ inline void RedisHash_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "field");
 
     ARG(Union_exists_field, 0);
 
@@ -272,9 +272,9 @@ inline void RedisHash_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fields");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "fields");
 
     hr = pInst->del(v0, vr);
 

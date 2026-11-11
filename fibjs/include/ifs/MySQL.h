@@ -87,7 +87,7 @@ inline void MySQL_base::s_set_rxBufferSize(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "rxBufferSize");
 
     hr = pInst->set_rxBufferSize(v0);
 
@@ -115,7 +115,7 @@ inline void MySQL_base::s_set_txBufferSize(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "txBufferSize");
 
     hr = pInst->set_txBufferSize(v0);
 

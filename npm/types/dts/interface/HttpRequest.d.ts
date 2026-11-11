@@ -137,7 +137,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      member present in options overrides it. An explicit headers value replaces the whole
      *      header set of the copy (an empty object clears it) while undefined members keep the
      *      source values, following WebIDL. A GET or HEAD result must not carry a body and
-     *      throws a TypeError (20024); a body is cloneable only when it is a seekable stream.
+     *      throws a TypeError (ERR_INVALID_STATE); a body is cloneable only when it is a seekable stream.
      *      Matches the WHATWG `new Request(request, init)` form.
      *
      *      @param request the existing HttpRequest object
@@ -154,7 +154,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      or Headers), body, json, pack, keepAlive, timeout, redirect, signal, streaming and
      *      agent. A string body defaults to text/plain;charset=UTF-8 here, while the http
      *      client functions use application/x-www-form-urlencoded for strings. A body with GET
-     *      or HEAD throws a TypeError (20024). Hand the request to http.fetch() or a Client.
+     *      or HEAD throws a TypeError (ERR_INVALID_STATE). Hand the request to http.fetch() or a Client.
      *
      *      @param url the request URL
      *      @param options the request options; see the detail for the keys that are read
@@ -275,7 +275,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      Parsed on first access according to Content-Type: application/x-www-form-urlencoded
      *      and multipart/form-data (with a boundary) are accepted. A missing Content-Type
      *      throws "Content-Type is missing", another type throws "unknown form format" and an
-     *      empty body gives an empty FormData (error 20024). The parse rewinds the seekable
+     *      empty body gives an empty FormData (ERR_INVALID_STATE). The parse rewinds the seekable
      *      body and does not set bodyUsed, so the body remains readable afterwards.
      *
      *      Example — read an urlencoded form posted to a server:
@@ -347,7 +347,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      member present in options overrides it. An explicit headers value replaces the whole
      *      header set of the copy (an empty object clears it) while undefined members keep the
      *      source values, following WebIDL. A GET or HEAD result must not carry a body and
-     *      throws a TypeError (20024); a body is cloneable only when it is a seekable stream.
+     *      throws a TypeError (ERR_INVALID_STATE); a body is cloneable only when it is a seekable stream.
      *      Matches the WHATWG `new Request(request, init)` form.
      *
      *      @param request the existing HttpRequest object
@@ -364,7 +364,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      or Headers), body, json, pack, keepAlive, timeout, redirect, signal, streaming and
      *      agent. A string body defaults to text/plain;charset=UTF-8 here, while the http
      *      client functions use application/x-www-form-urlencoded for strings. A body with GET
-     *      or HEAD throws a TypeError (20024). Hand the request to http.fetch() or a Client.
+     *      or HEAD throws a TypeError (ERR_INVALID_STATE). Hand the request to http.fetch() or a Client.
      *
      *      @param url the request URL
      *      @param options the request options; see the detail for the keys that are read
@@ -485,7 +485,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      Parsed on first access according to Content-Type: application/x-www-form-urlencoded
      *      and multipart/form-data (with a boundary) are accepted. A missing Content-Type
      *      throws "Content-Type is missing", another type throws "unknown form format" and an
-     *      empty body gives an empty FormData (error 20024). The parse rewinds the seekable
+     *      empty body gives an empty FormData (ERR_INVALID_STATE). The parse rewinds the seekable
      *      body and does not set bodyUsed, so the body remains readable afterwards.
      *
      *      Example — read an urlencoded form posted to a server:

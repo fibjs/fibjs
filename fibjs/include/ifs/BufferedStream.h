@@ -104,9 +104,9 @@ inline void BufferedStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "stm");
 
-    ARG(obj_ptr<Stream_base>, 0);
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "stm");
 
     hr = _new(v0.get(), vr, args.This());
 
@@ -119,9 +119,9 @@ inline result_t BufferedStream_base::load(v8::Local<v8::Value> v, obj_ptr<Buffer
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "stm");
 
-    ARG(obj_ptr<Stream_base>, 0);
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "stm");
 
     hr = _new(v0.get(), vr, args.This());
 
@@ -135,9 +135,9 @@ inline void BufferedStream_base::s_readText(const v8::FunctionCallbackInfo<v8::V
     ASYNC_METHOD_INSTANCE(BufferedStream_base);
     ASYNC_METHOD_ENTER("BufferedStream.readText");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "size");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "size");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_readText(v0, cb, args);
@@ -156,7 +156,7 @@ inline void BufferedStream_base::s_readLine(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, -1);
+    OPT_ARG_NAMED(int32_t, 0, -1, "maxlen");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_readLine(v0, cb, args);
@@ -175,7 +175,7 @@ inline void BufferedStream_base::s_readLines(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, -1);
+    OPT_ARG_NAMED(int32_t, 0, -1, "maxlines");
 
     hr = pInst->readLines(v0, vr);
 
@@ -189,10 +189,10 @@ inline void BufferedStream_base::s_readUntil(const v8::FunctionCallbackInfo<v8::
     ASYNC_METHOD_INSTANCE(BufferedStream_base);
     ASYNC_METHOD_ENTER("BufferedStream.readUntil");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "mk");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, -1);
+    ARG_NAMED(exlib::string, 0, "mk");
+    OPT_ARG_NAMED(int32_t, 1, -1, "maxlen");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_readUntil(v0, v1, cb, args);
@@ -209,9 +209,9 @@ inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::
     ASYNC_METHOD_INSTANCE(BufferedStream_base);
     ASYNC_METHOD_ENTER("BufferedStream.writeText");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "txt");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "txt");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_writeText(v0, cb, args);
@@ -228,9 +228,9 @@ inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::
     ASYNC_METHOD_INSTANCE(BufferedStream_base);
     ASYNC_METHOD_ENTER("BufferedStream.writeLine");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "txt");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "txt");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_writeLine(v0, cb, args);
@@ -275,7 +275,7 @@ inline void BufferedStream_base::s_set_charset(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "charset");
 
     hr = pInst->set_charset(v0);
 
@@ -303,7 +303,7 @@ inline void BufferedStream_base::s_set_EOL(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "EOL");
 
     hr = pInst->set_EOL(v0);
 

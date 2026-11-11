@@ -246,7 +246,7 @@ inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, -1);
+    OPT_ARG_NAMED(int32_t, 0, -1, "bytes");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_read(v0, cb, args);
@@ -265,7 +265,7 @@ inline void Stream_base::s_readBuffer(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, -1);
+    OPT_ARG_NAMED(int32_t, 0, -1, "bytes");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_readBuffer(v0, cb, args);
@@ -299,9 +299,9 @@ inline void Stream_base::s_setEncoding(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(Stream_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "encoding");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "encoding");
 
     hr = pInst->setEncoding(v0, vr);
 
@@ -313,18 +313,18 @@ inline void Stream_base::s_writeBuffer(const v8::FunctionCallbackInfo<v8::Value>
     ASYNC_METHOD_INSTANCE(Stream_base);
     ASYNC_METHOD_ENTER("Stream.writeBuffer");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "data");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_writeBuffer(v0.get(), cb, args);
     else
         hr = pInst->ac_writeBuffer(v0.get());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "data");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_writeBuffer(v0, cb, args);
@@ -341,29 +341,29 @@ inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args
     ASYNC_METHOD_INSTANCE(Stream_base);
     ASYNC_METHOD_ENTER("Stream.write");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "data");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_write(v0.get(), cb, args);
     else
         hr = pInst->ac_write(v0.get(), vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "encoding");
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "data");
+    ARG_NAMED(exlib::string, 1, "encoding");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_write(v0.get(), v1, cb, args);
     else
         hr = pInst->ac_write(v0.get(), v1, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    ARG_NAMED(exlib::string, 0, "data");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "encoding");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_write(v0, v1, cb, args);
@@ -408,10 +408,10 @@ inline void Stream_base::s_pipe(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Stream_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "destination");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "destination");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->pipe(v0, v1, vr);
 
@@ -425,7 +425,7 @@ inline void Stream_base::s_unpipe(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(obj_ptr<Stream_base>, 0, NULL);
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "destination");
 
     hr = pInst->unpipe(v0.get());
 
@@ -446,29 +446,29 @@ inline void Stream_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_end(vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "data");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_end(v0.get(), cb, args);
     else
         hr = pInst->ac_end(v0.get(), vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "encoding");
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "data");
+    ARG_NAMED(exlib::string, 1, "encoding");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_end(v0.get(), v1, cb, args);
     else
         hr = pInst->ac_end(v0.get(), v1, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    ARG_NAMED(exlib::string, 0, "data");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "encoding");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_end(v0, v1, cb, args);
@@ -515,10 +515,10 @@ inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& arg
     ASYNC_METHOD_INSTANCE(Stream_base);
     ASYNC_METHOD_ENTER("Stream.copyTo");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "stm");
 
-    ARG(obj_ptr<Stream_base>, 0);
-    OPT_ARG(int64_t, 1, -1);
+    ARG_NAMED(obj_ptr<Stream_base>, 0, "stm");
+    OPT_ARG_NAMED(int64_t, 1, -1, "bytes");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_copyTo(v0.get(), v1, cb, args);
@@ -549,7 +549,7 @@ inline void Stream_base::s_set_ondata(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "ondata");
 
     hr = pInst->setListener("data", v0);
 
@@ -577,7 +577,7 @@ inline void Stream_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onclose");
 
     hr = pInst->setListener("close", v0);
 
@@ -605,7 +605,7 @@ inline void Stream_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onerror");
 
     hr = pInst->setListener("error", v0);
 
@@ -663,7 +663,7 @@ inline void Stream_base::s_destroy(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "err");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_destroy(v0, cb, args);

@@ -153,7 +153,7 @@ inline void Socket_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, net_base::C_AF_INET);
+    OPT_ARG_NAMED(int32_t, 0, net_base::C_AF_INET, "family");
 
     hr = _new(v0, vr, args.This());
 
@@ -168,7 +168,7 @@ inline result_t Socket_base::load(v8::Local<v8::Value> v, obj_ptr<Socket_base>& 
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, net_base::C_AF_INET);
+    OPT_ARG_NAMED(int32_t, 0, net_base::C_AF_INET, "family");
 
     hr = _new(v0, vr, args.This());
 
@@ -266,7 +266,7 @@ inline void Socket_base::s_set_timeout(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "timeout");
 
     hr = pInst->set_timeout(v0);
 
@@ -280,94 +280,94 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
     ASYNC_METHOD_INSTANCE(Socket_base);
     ASYNC_METHOD_ENTER_FUNC("Socket.connect");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0, cb, args);
     else
         hr = pInst->ac_connect(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "connectListener");
 
-    ARG(v8::Local<v8::Object>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_connect(v0, v1, cb, args);
-    else
-        hr = pInst->ac_connect(v0, v1, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(int32_t, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "connectListener");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0, v1, cb, args);
     else
         hr = pInst->ac_connect(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(2, 2, "connectListener");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(int32_t, 0, "port");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "connectListener");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_connect(v0, v1, cb, args);
+    else
+        hr = pInst->ac_connect(v0, v1, vr);
+
+    METHOD_OVER_NAMED(3, 3, "connectListener");
+
+    ARG_NAMED(int32_t, 0, "port");
+    ARG_NAMED(exlib::string, 1, "host");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "connectListener");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0, v1, v2, cb, args);
     else
         hr = pInst->ac_connect(v0, v1, v2, vr);
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(4, 4, "connectListener");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    ARG(int32_t, 2);
-    ARG(v8::Local<v8::Function>, 3);
+    ARG_NAMED(int32_t, 0, "port");
+    ARG_NAMED(exlib::string, 1, "host");
+    ARG_NAMED(int32_t, 2, "timeout");
+    ARG_NAMED(v8::Local<v8::Function>, 3, "connectListener");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0, v1, v2, v3, cb, args);
     else
         hr = pInst->ac_connect(v0, v1, v2, v3, vr);
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "port");
 
-    ARG(int32_t, 0);
-    OPT_ARG(exlib::string, 1, "localhost");
-    OPT_ARG(int32_t, 2, 0);
+    ARG_NAMED(int32_t, 0, "port");
+    OPT_ARG_NAMED(exlib::string, 1, "localhost", "host");
+    OPT_ARG_NAMED(int32_t, 2, 0, "timeout");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0, v1, v2, cb, args);
     else
         hr = pInst->ac_connect(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "path");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_connect(v0, v1, cb, args);
-    else
-        hr = pInst->ac_connect(v0, v1, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(int32_t, 1, 0, "timeout");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0, v1, cb, args);
     else
         hr = pInst->ac_connect(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(2, 2, "connectListener");
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "connectListener");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_connect(v0, v1, cb, args);
+    else
+        hr = pInst->ac_connect(v0, v1, vr);
+
+    METHOD_OVER_NAMED(3, 3, "connectListener");
+
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(int32_t, 1, "timeout");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "connectListener");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0, v1, v2, cb, args);
@@ -382,18 +382,18 @@ inline void Socket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "port");
 
-    ARG(int32_t, 0);
-    OPT_ARG(bool, 1, true);
+    ARG_NAMED(int32_t, 0, "port");
+    OPT_ARG_NAMED(bool, 1, true, "allowIPv4");
 
     hr = pInst->bind(v0, v1);
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "addr");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(bool, 2, true);
+    ARG_NAMED(exlib::string, 0, "addr");
+    OPT_ARG_NAMED(int32_t, 1, 0, "port");
+    OPT_ARG_NAMED(bool, 2, true, "allowIPv4");
 
     hr = pInst->bind(v0, v1, v2);
 
@@ -407,7 +407,7 @@ inline void Socket_base::s_listen(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 120);
+    OPT_ARG_NAMED(int32_t, 0, 120, "backlog");
 
     hr = pInst->listen(v0);
 
@@ -440,8 +440,8 @@ inline void Socket_base::s_setKeepAlive(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(bool, 0, false);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG_NAMED(bool, 0, false, "enable");
+    OPT_ARG_NAMED(int32_t, 1, 0, "initialDelay");
 
     hr = pInst->setKeepAlive(v0, v1, vr);
 
@@ -457,7 +457,7 @@ inline void Socket_base::s_setNoDelay(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(bool, 0, true);
+    OPT_ARG_NAMED(bool, 0, true, "noDelay");
 
     hr = pInst->setNoDelay(v0, vr);
 
@@ -487,7 +487,7 @@ inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, -1);
+    OPT_ARG_NAMED(int32_t, 0, -1, "bytes");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_recv(v0, cb, args);
@@ -504,7 +504,7 @@ inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
     ASYNC_METHOD_INSTANCE(Socket_base);
     ASYNC_METHOD_ENTER("Socket.send");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
     ARG(Union_send_data, 0);
 
@@ -535,16 +535,16 @@ inline void Socket_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "timeout");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "timeout");
 
     hr = pInst->setTimeout(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(int32_t, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(int32_t, 0, "timeout");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = pInst->setTimeout(v0, v1, vr);
 

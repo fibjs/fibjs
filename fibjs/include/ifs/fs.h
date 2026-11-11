@@ -408,19 +408,19 @@ inline void fs_base::s_static_exists(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ASYNC_METHOD_ENTER("fs.exists");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     if (!cb.IsEmpty())
         hr = acb_exists(v0, cb, args);
     else
         hr = ac_exists(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "options");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
 
     if (!cb.IsEmpty())
         hr = acb_exists(v0, v1, cb, args);
@@ -434,10 +434,10 @@ inline void fs_base::s_static_access(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER("fs.access");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "path");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(int32_t, 1, 0, "mode");
 
     if (!cb.IsEmpty())
         hr = acb_access(v0, v1, cb, args);
@@ -451,10 +451,10 @@ inline void fs_base::s_static_link(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     ASYNC_METHOD_ENTER("fs.link");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "newPath");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "oldPath");
+    ARG_NAMED(exlib::string, 1, "newPath");
 
     if (!cb.IsEmpty())
         hr = acb_link(v0, v1, cb, args);
@@ -468,9 +468,9 @@ inline void fs_base::s_static_unlink(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER("fs.unlink");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     if (!cb.IsEmpty())
         hr = acb_unlink(v0, cb, args);
@@ -486,10 +486,10 @@ inline void fs_base::s_static_mkdir(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ASYNC_METHOD_ENTER("fs.mkdir");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "path");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(Union_mkdir_mode, 1, 0777);
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(Union_mkdir_mode, 1, 0777, "mode");
 
     if (!cb.IsEmpty())
         hr = acb_mkdir(v0, v1, cb, args);
@@ -505,9 +505,9 @@ inline void fs_base::s_static_mkdtemp(const v8::FunctionCallbackInfo<v8::Value>&
 
     ASYNC_METHOD_ENTER("fs.mkdtemp");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "prefix");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "prefix");
 
     if (!cb.IsEmpty())
         hr = acb_mkdtemp(v0, cb, args);
@@ -521,10 +521,10 @@ inline void fs_base::s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     ASYNC_METHOD_ENTER("fs.rmdir");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "path");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opt");
 
     if (!cb.IsEmpty())
         hr = acb_rmdir(v0, v1, cb, args);
@@ -538,10 +538,10 @@ inline void fs_base::s_static_rm(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     ASYNC_METHOD_ENTER("fs.rm");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "path");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opt");
 
     if (!cb.IsEmpty())
         hr = acb_rm(v0, v1, cb, args);
@@ -555,10 +555,10 @@ inline void fs_base::s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER("fs.rename");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "to");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "from");
+    ARG_NAMED(exlib::string, 1, "to");
 
     if (!cb.IsEmpty())
         hr = acb_rename(v0, v1, cb, args);
@@ -572,11 +572,11 @@ inline void fs_base::s_static_copyFile(const v8::FunctionCallbackInfo<v8::Value>
 {
     ASYNC_METHOD_ENTER("fs.copyFile");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "to");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(int32_t, 2, 0);
+    ARG_NAMED(exlib::string, 0, "from");
+    ARG_NAMED(exlib::string, 1, "to");
+    OPT_ARG_NAMED(int32_t, 2, 0, "mode");
 
     if (!cb.IsEmpty())
         hr = acb_copyFile(v0, v1, v2, cb, args);
@@ -590,11 +590,11 @@ inline void fs_base::s_static_cp(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     ASYNC_METHOD_ENTER("fs.cp");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "dest");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "src");
+    ARG_NAMED(exlib::string, 1, "dest");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_cp(v0, v1, v2, cb, args);
@@ -608,9 +608,9 @@ inline void fs_base::s_static_chmod(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     ASYNC_METHOD_ENTER("fs.chmod");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "mode");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
     ARG(Union_chmod_mode, 1);
 
     if (!cb.IsEmpty())
@@ -625,9 +625,9 @@ inline void fs_base::s_static_lchmod(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER("fs.lchmod");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "mode");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
     ARG(Union_lchmod_mode, 1);
 
     if (!cb.IsEmpty())
@@ -642,11 +642,11 @@ inline void fs_base::s_static_chown(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     ASYNC_METHOD_ENTER("fs.chown");
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "gid");
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-    ARG(int32_t, 2);
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(int32_t, 1, "uid");
+    ARG_NAMED(int32_t, 2, "gid");
 
     if (!cb.IsEmpty())
         hr = acb_chown(v0, v1, v2, cb, args);
@@ -660,11 +660,11 @@ inline void fs_base::s_static_lchown(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER("fs.lchown");
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "gid");
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-    ARG(int32_t, 2);
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(int32_t, 1, "uid");
+    ARG_NAMED(int32_t, 2, "gid");
 
     if (!cb.IsEmpty())
         hr = acb_lchown(v0, v1, v2, cb, args);
@@ -678,11 +678,11 @@ inline void fs_base::s_static_utimes(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER("fs.utimes");
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "mtime");
 
-    ARG(exlib::string, 0);
-    ARG(Variant, 1);
-    ARG(Variant, 2);
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(Variant, 1, "atime");
+    ARG_NAMED(Variant, 2, "mtime");
 
     if (!cb.IsEmpty())
         hr = acb_utimes(v0, v1, v2, cb, args);
@@ -696,11 +696,11 @@ inline void fs_base::s_static_lutimes(const v8::FunctionCallbackInfo<v8::Value>&
 {
     ASYNC_METHOD_ENTER("fs.lutimes");
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "mtime");
 
-    ARG(exlib::string, 0);
-    ARG(Variant, 1);
-    ARG(Variant, 2);
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(Variant, 1, "atime");
+    ARG_NAMED(Variant, 2, "mtime");
 
     if (!cb.IsEmpty())
         hr = acb_lutimes(v0, v1, v2, cb, args);
@@ -716,19 +716,19 @@ inline void fs_base::s_static_stat(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ASYNC_METHOD_ENTER("fs.stat");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     if (!cb.IsEmpty())
         hr = acb_stat(v0, cb, args);
     else
         hr = ac_stat(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "options");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
 
     if (!cb.IsEmpty())
         hr = acb_stat(v0, v1, cb, args);
@@ -744,19 +744,19 @@ inline void fs_base::s_static_lstat(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ASYNC_METHOD_ENTER("fs.lstat");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     if (!cb.IsEmpty())
         hr = acb_lstat(v0, cb, args);
     else
         hr = ac_lstat(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "options");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
 
     if (!cb.IsEmpty())
         hr = acb_lstat(v0, v1, cb, args);
@@ -772,7 +772,7 @@ inline void fs_base::s_static_fstat(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ASYNC_METHOD_ENTER("fs.fstat");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fd");
 
     ARG(Union_fstat_fd, 0);
 
@@ -781,10 +781,10 @@ inline void fs_base::s_static_fstat(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = ac_fstat(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "options");
 
     ARG(Union_fstat_fd, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
 
     if (!cb.IsEmpty())
         hr = acb_fstat(v0, v1, cb, args);
@@ -800,18 +800,18 @@ inline void fs_base::s_static_readlink(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("fs.readlink");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     if (!cb.IsEmpty())
         hr = acb_readlink(v0, cb, args);
     else
         hr = ac_readlink(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "options");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
     ARG(Union_readlink_options, 1);
 
     if (!cb.IsEmpty())
@@ -828,18 +828,18 @@ inline void fs_base::s_static_realpath(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("fs.realpath");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     if (!cb.IsEmpty())
         hr = acb_realpath(v0, cb, args);
     else
         hr = ac_realpath(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "options");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
     ARG(Union_realpath_options, 1);
 
     if (!cb.IsEmpty())
@@ -854,11 +854,11 @@ inline void fs_base::s_static_symlink(const v8::FunctionCallbackInfo<v8::Value>&
 {
     ASYNC_METHOD_ENTER("fs.symlink");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "linkpath");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "file");
+    ARG_NAMED(exlib::string, 0, "target");
+    ARG_NAMED(exlib::string, 1, "linkpath");
+    OPT_ARG_NAMED(exlib::string, 2, "file", "type");
 
     if (!cb.IsEmpty())
         hr = acb_symlink(v0, v1, v2, cb, args);
@@ -872,10 +872,10 @@ inline void fs_base::s_static_truncate(const v8::FunctionCallbackInfo<v8::Value>
 {
     ASYNC_METHOD_ENTER("fs.truncate");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "len");
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(exlib::string, 0, "path");
+    ARG_NAMED(int32_t, 1, "len");
 
     if (!cb.IsEmpty())
         hr = acb_truncate(v0, v1, cb, args);
@@ -891,13 +891,13 @@ inline void fs_base::s_static_read(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ASYNC_METHOD_ENTER("fs.read");
 
-    METHOD_OVER(5, 2);
+    METHOD_OVER_NAMED(5, 2, "buffer");
 
     ARG(Union_read_fd, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-    OPT_ARG(int32_t, 2, 0);
-    OPT_ARG(int32_t, 3, 0);
-    OPT_ARG(int32_t, 4, -1);
+    ARG_NAMED(obj_ptr<Buffer_base>, 1, "buffer");
+    OPT_ARG_NAMED(int32_t, 2, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 3, 0, "length");
+    OPT_ARG_NAMED(int32_t, 4, -1, "position");
 
     if (!cb.IsEmpty())
         hr = acb_read(v0, v1.get(), v2, v3, v4, cb, args);
@@ -911,10 +911,10 @@ inline void fs_base::s_static_fchmod(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER("fs.fchmod");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "mode");
 
     ARG(Union_fchmod_fd, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 1, "mode");
 
     if (!cb.IsEmpty())
         hr = acb_fchmod(v0, v1, cb, args);
@@ -928,11 +928,11 @@ inline void fs_base::s_static_fchown(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER("fs.fchown");
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "gid");
 
     ARG(Union_fchown_fd, 0);
-    ARG(int32_t, 1);
-    ARG(int32_t, 2);
+    ARG_NAMED(int32_t, 1, "uid");
+    ARG_NAMED(int32_t, 2, "gid");
 
     if (!cb.IsEmpty())
         hr = acb_fchown(v0, v1, v2, cb, args);
@@ -946,11 +946,11 @@ inline void fs_base::s_static_futimes(const v8::FunctionCallbackInfo<v8::Value>&
 {
     ASYNC_METHOD_ENTER("fs.futimes");
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "mtime");
 
     ARG(Union_futimes_fd, 0);
-    ARG(Variant, 1);
-    ARG(Variant, 2);
+    ARG_NAMED(Variant, 1, "atime");
+    ARG_NAMED(Variant, 2, "mtime");
 
     if (!cb.IsEmpty())
         hr = acb_futimes(v0, v1, v2, cb, args);
@@ -964,7 +964,7 @@ inline void fs_base::s_static_fdatasync(const v8::FunctionCallbackInfo<v8::Value
 {
     ASYNC_METHOD_ENTER("fs.fdatasync");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fd");
 
     ARG(Union_fdatasync_fd, 0);
 
@@ -980,7 +980,7 @@ inline void fs_base::s_static_fsync(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     ASYNC_METHOD_ENTER("fs.fsync");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fd");
 
     ARG(Union_fsync_fd, 0);
 
@@ -996,10 +996,10 @@ inline void fs_base::s_static_ftruncate(const v8::FunctionCallbackInfo<v8::Value
 {
     ASYNC_METHOD_ENTER("fs.ftruncate");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fd");
 
     ARG(Union_ftruncate_fd, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG_NAMED(int32_t, 1, 0, "len");
 
     if (!cb.IsEmpty())
         hr = acb_ftruncate(v0, v1, cb, args);
@@ -1015,9 +1015,9 @@ inline void fs_base::s_static_statfs(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ASYNC_METHOD_ENTER("fs.statfs");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     if (!cb.IsEmpty())
         hr = acb_statfs(v0, cb, args);
@@ -1033,19 +1033,19 @@ inline void fs_base::s_static_readdir(const v8::FunctionCallbackInfo<v8::Value>&
 
     ASYNC_METHOD_ENTER("fs.readdir");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     if (!cb.IsEmpty())
         hr = acb_readdir(v0, cb, args);
     else
         hr = ac_readdir(v0, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "path");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(Union_readdir_opts, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(Union_readdir_opts, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_readdir(v0, v1, cb, args);
@@ -1061,9 +1061,9 @@ inline void fs_base::s_static_opendir(const v8::FunctionCallbackInfo<v8::Value>&
 
     ASYNC_METHOD_ENTER("fs.opendir");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     if (!cb.IsEmpty())
         hr = acb_opendir(v0, cb, args);
@@ -1079,20 +1079,20 @@ inline void fs_base::s_static_glob(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ASYNC_METHOD_ENTER("fs.glob");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "pattern");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "pattern");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_glob(v0, v1, cb, args);
     else
         hr = ac_glob(v0, v1, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "patterns");
 
-    ARG(std::vector<exlib::string>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(std::vector<exlib::string>, 0, "patterns");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_glob(v0, v1, cb, args);
@@ -1108,10 +1108,10 @@ inline void fs_base::s_static_createReadStream(const v8::FunctionCallbackInfo<v8
 
     ASYNC_METHOD_ENTER("fs.createReadStream");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fname");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "fname");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = acb_createReadStream(v0, v1, cb, args);
@@ -1127,10 +1127,10 @@ inline void fs_base::s_static_createWriteStream(const v8::FunctionCallbackInfo<v
 
     ASYNC_METHOD_ENTER("fs.createWriteStream");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fname");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "fname");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = acb_createWriteStream(v0, v1, cb, args);
@@ -1146,10 +1146,10 @@ inline void fs_base::s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("fs.openFile");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fname");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(Union_openFile_flags, 1, exlib::string("r"));
+    ARG_NAMED(exlib::string, 0, "fname");
+    OPT_ARG_NAMED(Union_openFile_flags, 1, exlib::string("r"), "flags");
 
     if (!cb.IsEmpty())
         hr = acb_openFile(v0, v1, cb, args);
@@ -1165,33 +1165,33 @@ inline void fs_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ASYNC_METHOD_ENTER("fs.open");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "flags");
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-    OPT_ARG(int32_t, 2, 0666);
-
-    if (!cb.IsEmpty())
-        hr = acb_open(v0, v1, v2, cb, args);
-    else
-        hr = ac_open(v0, v1, v2, vr);
-
-    METHOD_OVER(3, 3);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    ARG(Variant, 2);
+    ARG_NAMED(exlib::string, 0, "fname");
+    ARG_NAMED(int32_t, 1, "flags");
+    OPT_ARG_NAMED(int32_t, 2, 0666, "mode");
 
     if (!cb.IsEmpty())
         hr = acb_open(v0, v1, v2, cb, args);
     else
         hr = ac_open(v0, v1, v2, vr);
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 3, "mode");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "r");
-    OPT_ARG(int32_t, 2, 0666);
+    ARG_NAMED(exlib::string, 0, "fname");
+    ARG_NAMED(exlib::string, 1, "flags");
+    ARG_NAMED(Variant, 2, "mode");
+
+    if (!cb.IsEmpty())
+        hr = acb_open(v0, v1, v2, cb, args);
+    else
+        hr = ac_open(v0, v1, v2, vr);
+
+    METHOD_OVER_NAMED(3, 1, "fname");
+
+    ARG_NAMED(exlib::string, 0, "fname");
+    OPT_ARG_NAMED(exlib::string, 1, "r", "flags");
+    OPT_ARG_NAMED(int32_t, 2, 0666, "mode");
 
     if (!cb.IsEmpty())
         hr = acb_open(v0, v1, v2, cb, args);
@@ -1205,7 +1205,7 @@ inline void fs_base::s_static_close(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     ASYNC_METHOD_ENTER("fs.close");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fd");
 
     ARG(Union_close_fd, 0);
 
@@ -1223,10 +1223,10 @@ inline void fs_base::s_static_openTextStream(const v8::FunctionCallbackInfo<v8::
 
     ASYNC_METHOD_ENTER("fs.openTextStream");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fname");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "r");
+    ARG_NAMED(exlib::string, 0, "fname");
+    OPT_ARG_NAMED(exlib::string, 1, "r", "flags");
 
     if (!cb.IsEmpty())
         hr = acb_openTextStream(v0, v1, cb, args);
@@ -1242,9 +1242,9 @@ inline void fs_base::s_static_readTextFile(const v8::FunctionCallbackInfo<v8::Va
 
     ASYNC_METHOD_ENTER("fs.readTextFile");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fname");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "fname");
 
     if (!cb.IsEmpty())
         hr = acb_readTextFile(v0, cb, args);
@@ -1260,10 +1260,10 @@ inline void fs_base::s_static_readFile(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("fs.readFile");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fname");
 
     ARG(Union_readFile_fname, 0);
-    OPT_ARG(Union_readFile_options, 1, exlib::string(""));
+    OPT_ARG_NAMED(Union_readFile_options, 1, exlib::string(""), "options");
 
     if (!cb.IsEmpty())
         hr = acb_readFile(v0, v1, cb, args);
@@ -1279,10 +1279,10 @@ inline void fs_base::s_static_readLines(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fname");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, -1);
+    ARG_NAMED(exlib::string, 0, "fname");
+    OPT_ARG_NAMED(int32_t, 1, -1, "maxlines");
 
     hr = readLines(v0, v1, vr);
 
@@ -1295,25 +1295,25 @@ inline void fs_base::s_static_write(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ASYNC_METHOD_ENTER("fs.write");
 
-    METHOD_OVER(5, 2);
+    METHOD_OVER_NAMED(5, 2, "buffer");
 
     ARG(Union_write_fd, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-    OPT_ARG(int32_t, 2, 0);
-    OPT_ARG(int32_t, 3, -1);
-    OPT_ARG(int32_t, 4, -1);
+    ARG_NAMED(obj_ptr<Buffer_base>, 1, "buffer");
+    OPT_ARG_NAMED(int32_t, 2, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 3, -1, "length");
+    OPT_ARG_NAMED(int32_t, 4, -1, "position");
 
     if (!cb.IsEmpty())
         hr = acb_write(v0, v1.get(), v2, v3, v4, cb, args);
     else
         hr = ac_write(v0, v1.get(), v2, v3, v4, vr);
 
-    METHOD_OVER(4, 2);
+    METHOD_OVER_NAMED(4, 2, "string");
 
     ARG(Union_write_fd, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(int32_t, 2, -1);
-    OPT_ARG(exlib::string, 3, "utf8");
+    ARG_NAMED(exlib::string, 1, "string");
+    OPT_ARG_NAMED(int32_t, 2, -1, "position");
+    OPT_ARG_NAMED(exlib::string, 3, "utf8", "encoding");
 
     if (!cb.IsEmpty())
         hr = acb_write(v0, v1, v2, v3, cb, args);
@@ -1329,10 +1329,10 @@ inline void fs_base::s_static_writeTextFile(const v8::FunctionCallbackInfo<v8::V
 
     ASYNC_METHOD_ENTER("fs.writeTextFile");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "txt");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "fname");
+    ARG_NAMED(exlib::string, 1, "txt");
 
     if (!cb.IsEmpty())
         hr = acb_writeTextFile(v0, v1, cb, args);
@@ -1348,11 +1348,11 @@ inline void fs_base::s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_ENTER("fs.writeFile");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "data");
 
     ARG(Union_writeFile_fname, 0);
     ARG(Union_writeFile_data, 1);
-    OPT_ARG(Union_writeFile_opt, 2, exlib::string("utf8"));
+    OPT_ARG_NAMED(Union_writeFile_opt, 2, exlib::string("utf8"), "opt");
 
     if (!cb.IsEmpty())
         hr = acb_writeFile(v0, v1, v2, cb, args);
@@ -1368,11 +1368,11 @@ inline void fs_base::s_static_appendFile(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("fs.appendFile");
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "data");
 
     ARG(Union_appendFile_fname, 0);
     ARG(Union_appendFile_data, 1);
-    OPT_ARG(Union_appendFile_options, 2, exlib::string(""));
+    OPT_ARG_NAMED(Union_appendFile_options, 2, exlib::string(""), "options");
 
     if (!cb.IsEmpty())
         hr = acb_appendFile(v0, v1, v2, cb, args);
@@ -1386,9 +1386,9 @@ inline void fs_base::s_static_setZipFS(const v8::FunctionCallbackInfo<v8::Value>
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "data");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "fname");
     ARG(Union_setZipFS_data, 1);
 
     hr = setZipFS(v0, v1);
@@ -1402,7 +1402,7 @@ inline void fs_base::s_static_clearZipFS(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "fname");
 
     hr = clearZipFS(v0);
 
@@ -1415,31 +1415,31 @@ inline void fs_base::s_static_watch(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fname");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "fname");
 
     hr = watch(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
-
-    hr = watch(v0, v1, vr);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG_NAMED(exlib::string, 0, "fname");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = watch(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(2, 2, "options");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "fname");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
+
+    hr = watch(v0, v1, vr);
+
+    METHOD_OVER_NAMED(3, 3, "callback");
+
+    ARG_NAMED(exlib::string, 0, "fname");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = watch(v0, v1, v2, vr);
 
@@ -1452,18 +1452,18 @@ inline void fs_base::s_static_watchFile(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "fname");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = watchFile(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    ARG(v8::Local<v8::Function>, 2);
+    ARG_NAMED(exlib::string, 0, "fname");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
+    ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = watchFile(v0, v1, v2, vr);
 
@@ -1474,16 +1474,16 @@ inline void fs_base::s_static_unwatchFile(const v8::FunctionCallbackInfo<v8::Val
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fname");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "fname");
 
     hr = unwatchFile(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "callback");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "fname");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
 
     hr = unwatchFile(v0, v1);
 

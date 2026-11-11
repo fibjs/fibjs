@@ -292,7 +292,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      code is an HTTP/2 error code (NGHTTP2_NO_ERROR, NGHTTP2_CANCEL, ...; see
      *      http2_constants). The stream ends immediately: the peer's read() throws (the current
      *      implementation leaves the remote error payload empty, `[0] Success`), and a local
-     *      read() still waiting for data throws `Http2Stream: stream reset` (number 20024).
+     *      read() still waiting for data throws `Http2Stream: stream reset` (ERR_INVALID_STATE).
      *      Throws when the stream is already destroyed.
      *
      *      Example — cancel a stream instead of answering it:
@@ -693,7 +693,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      code is an HTTP/2 error code (NGHTTP2_NO_ERROR, NGHTTP2_CANCEL, ...; see
      *      http2_constants). The stream ends immediately: the peer's read() throws (the current
      *      implementation leaves the remote error payload empty, `[0] Success`), and a local
-     *      read() still waiting for data throws `Http2Stream: stream reset` (number 20024).
+     *      read() still waiting for data throws `Http2Stream: stream reset` (ERR_INVALID_STATE).
      *      Throws when the stream is already destroyed.
      *
      *      Example — cancel a stream instead of answering it:

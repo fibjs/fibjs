@@ -144,9 +144,9 @@ inline void HttpCollection_base::s_has(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->has(v0, vr);
 
@@ -160,9 +160,9 @@ inline void HttpCollection_base::s_first(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->first(v0, vr);
 
@@ -176,9 +176,9 @@ inline void HttpCollection_base::s_get(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->get(v0, vr);
 
@@ -194,7 +194,7 @@ inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "name");
 
     hr = pInst->all(v0, vr);
 
@@ -208,9 +208,9 @@ inline void HttpCollection_base::s_getAll(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->getAll(v0, vr);
 
@@ -222,22 +222,22 @@ inline void HttpCollection_base::s_append(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->append(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
     ARG(Union_append_value, 1);
 
     hr = pInst->append(v0, v1);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "entries");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "entries");
 
     hr = pInst->append(v0);
 
@@ -249,15 +249,15 @@ inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->set(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
     ARG(Union_set_value, 1);
 
     hr = pInst->set(v0, v1);
@@ -270,9 +270,9 @@ inline void HttpCollection_base::s_remove(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->remove(v0);
 
@@ -284,9 +284,9 @@ inline void HttpCollection_base::s__delete(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "name");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "name");
 
     hr = pInst->_delete(v0);
 
@@ -310,16 +310,16 @@ inline void HttpCollection_base::s_forEach(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
 
     hr = pInst->forEach(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "thisArg");
 
-    ARG(v8::Local<v8::Function>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "thisArg");
 
     hr = pInst->forEach(v0, v1);
 

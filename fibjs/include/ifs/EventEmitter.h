@@ -145,7 +145,7 @@ inline void EventEmitter_base::__new(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, vr, args.This());
 
@@ -160,7 +160,7 @@ inline result_t EventEmitter_base::load(v8::Local<v8::Value> v, obj_ptr<EventEmi
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, vr, args.This());
 
@@ -186,7 +186,7 @@ inline void EventEmitter_base::s_static_set_defaultMaxListeners(const v8::Functi
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "defaultMaxListeners");
 
     hr = set_defaultMaxListeners(v0);
 
@@ -200,16 +200,16 @@ inline void EventEmitter_base::s_on(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->on(v0, v1, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->on(v0, vr);
 
@@ -223,16 +223,16 @@ inline void EventEmitter_base::s_addListener(const v8::FunctionCallbackInfo<v8::
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->addListener(v0, v1, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->addListener(v0, vr);
 
@@ -246,11 +246,11 @@ inline void EventEmitter_base::s_addEventListener(const v8::FunctionCallbackInfo
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "func");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->addEventListener(v0, v1, v2, vr);
 
@@ -264,16 +264,16 @@ inline void EventEmitter_base::s_prependListener(const v8::FunctionCallbackInfo<
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->prependListener(v0, v1, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->prependListener(v0, vr);
 
@@ -287,16 +287,16 @@ inline void EventEmitter_base::s_once(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->once(v0, v1, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->once(v0, vr);
 
@@ -310,16 +310,16 @@ inline void EventEmitter_base::s_prependOnceListener(const v8::FunctionCallbackI
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->prependOnceListener(v0, v1, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->prependOnceListener(v0, vr);
 
@@ -333,22 +333,22 @@ inline void EventEmitter_base::s_off(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->off(v0, v1, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "ev");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
 
     hr = pInst->off(v0, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->off(v0, vr);
 
@@ -362,22 +362,22 @@ inline void EventEmitter_base::s_removeListener(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->removeListener(v0, v1, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "ev");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
 
     hr = pInst->removeListener(v0, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->removeListener(v0, vr);
 
@@ -391,11 +391,11 @@ inline void EventEmitter_base::s_removeEventListener(const v8::FunctionCallbackI
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "func");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->removeEventListener(v0, v1, v2, vr);
 
@@ -409,15 +409,15 @@ inline void EventEmitter_base::s_removeAllListeners(const v8::FunctionCallbackIn
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "ev");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
 
     hr = pInst->removeAllListeners(v0, vr);
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate), "evs");
 
     hr = pInst->removeAllListeners(v0, vr);
 
@@ -431,10 +431,10 @@ inline void EventEmitter_base::s_setMaxListeners(const v8::FunctionCallbackInfo<
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "n");
 
-    ARG(int32_t, 0);
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
+    ARG_NAMED(int32_t, 0, "n");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "event");
 
     hr = pInst->setMaxListeners(v0, v1, vr);
 
@@ -450,7 +450,7 @@ inline void EventEmitter_base::s_getMaxListeners(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "event");
 
     hr = pInst->getMaxListeners(v0, vr);
 
@@ -464,9 +464,9 @@ inline void EventEmitter_base::s_listeners(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "ev");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
 
     hr = pInst->listeners(v0, vr);
 
@@ -480,9 +480,9 @@ inline void EventEmitter_base::s_rawListeners(const v8::FunctionCallbackInfo<v8:
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "ev");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
 
     hr = pInst->rawListeners(v0, vr);
 
@@ -496,16 +496,16 @@ inline void EventEmitter_base::s_listenerCount(const v8::FunctionCallbackInfo<v8
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "ev");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
 
     hr = pInst->listenerCount(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "ev");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Value>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "o");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "ev");
 
     hr = pInst->listenerCount(v0, v1, vr);
 
@@ -533,9 +533,9 @@ inline void EventEmitter_base::s_emit(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "ev");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "ev");
     ARG_LIST(1);
 
     hr = pInst->emit(v0, v1, vr);
@@ -549,10 +549,10 @@ inline void EventEmitter_base::s_static_addAbortListener(const v8::FunctionCallb
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(obj_ptr<EventEmitter_base>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(obj_ptr<EventEmitter_base>, 0, "signal");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = addAbortListener(v0.get(), v1, vr);
 
@@ -565,11 +565,11 @@ inline void EventEmitter_base::s_static_once(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "ev");
 
-    ARG(obj_ptr<EventEmitter_base>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(obj_ptr<EventEmitter_base>, 0, "emitter");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "ev");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = once(v0.get(), v1, v2, vr);
 
@@ -582,11 +582,11 @@ inline void EventEmitter_base::s_static_on(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "ev");
 
-    ARG(obj_ptr<EventEmitter_base>, 0);
-    ARG(v8::Local<v8::Value>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(obj_ptr<EventEmitter_base>, 0, "emitter");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "ev");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = on(v0.get(), v1, v2, vr);
 

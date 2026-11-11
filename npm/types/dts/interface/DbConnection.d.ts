@@ -138,7 +138,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Sends `USE <dbName>` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -153,7 +153,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Sends `USE <dbName>` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -166,7 +166,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Sends `USE <dbName>` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -350,7 +350,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Without an argument the current transaction is committed with `COMMIT`; with `point`
      *      the named savepoint is released through `RELEASE SAVEPOINT point`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -364,7 +364,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Without an argument the current transaction is committed with `COMMIT`; with `point`
      *      the named savepoint is released through `RELEASE SAVEPOINT point`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -376,7 +376,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Without an argument the current transaction is committed with `COMMIT`; with `point`
      *      the named savepoint is released through `RELEASE SAVEPOINT point`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -391,7 +391,7 @@ declare class Class_DbConnection extends Class_object {
      *      `ROLLBACK TO` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -408,7 +408,7 @@ declare class Class_DbConnection extends Class_object {
      *      `ROLLBACK TO` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -423,7 +423,7 @@ declare class Class_DbConnection extends Class_object {
      *      `ROLLBACK TO` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -504,7 +504,7 @@ declare class Class_DbConnection extends Class_object {
      *      `insertId`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -539,7 +539,7 @@ declare class Class_DbConnection extends Class_object {
      *      `insertId`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -572,7 +572,7 @@ declare class Class_DbConnection extends Class_object {
      *      `insertId`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -682,7 +682,7 @@ declare class Class_DbConnection extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement
@@ -717,7 +717,7 @@ declare class Class_DbConnection extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement
@@ -750,7 +750,7 @@ declare class Class_DbConnection extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement
@@ -942,7 +942,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Sends `USE <dbName>` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -955,7 +955,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Sends `USE <dbName>` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -968,7 +968,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Sends `USE <dbName>` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -1146,7 +1146,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Without an argument the current transaction is committed with `COMMIT`; with `point`
      *      the named savepoint is released through `RELEASE SAVEPOINT point`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -1158,7 +1158,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Without an argument the current transaction is committed with `COMMIT`; with `point`
      *      the named savepoint is released through `RELEASE SAVEPOINT point`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -1170,7 +1170,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Without an argument the current transaction is committed with `COMMIT`; with `point`
      *      the named savepoint is released through `RELEASE SAVEPOINT point`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -1185,7 +1185,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      `ROLLBACK TO` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -1200,7 +1200,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      `ROLLBACK TO` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -1215,7 +1215,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      `ROLLBACK TO` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -1296,7 +1296,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      `insertId`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -1329,7 +1329,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      `insertId`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -1362,7 +1362,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      `insertId`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -1472,7 +1472,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement
@@ -1505,7 +1505,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement
@@ -1538,7 +1538,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement

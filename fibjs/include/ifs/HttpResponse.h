@@ -140,10 +140,10 @@ inline void HttpResponse_base::__new(const v8::FunctionCallbackInfo<v8::Value>& 
 
     hr = _new(vr, args.This());
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "body");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "body");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -156,10 +156,10 @@ inline result_t HttpResponse_base::load(v8::Local<v8::Value> v, obj_ptr<HttpResp
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "body");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "body");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -187,7 +187,7 @@ inline void HttpResponse_base::s_set_statusCode(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "statusCode");
 
     hr = pInst->set_statusCode(v0);
 
@@ -215,7 +215,7 @@ inline void HttpResponse_base::s_set_statusMessage(const v8::FunctionCallbackInf
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "statusMessage");
 
     hr = pInst->set_statusMessage(v0);
 
@@ -243,7 +243,7 @@ inline void HttpResponse_base::s_set_statusText(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "statusText");
 
     hr = pInst->set_statusText(v0);
 
@@ -271,7 +271,7 @@ inline void HttpResponse_base::s_set_status(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "status");
 
     hr = pInst->set_status(v0);
 
@@ -299,18 +299,18 @@ inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(HttpResponse_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "statusCode");
 
-    ARG(int32_t, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(int32_t, 0, "statusCode");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "headers");
 
     hr = pInst->writeHead(v0, v1, vr);
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "statusMessage");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(int32_t, 0, "statusCode");
+    ARG_NAMED(exlib::string, 1, "statusMessage");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "headers");
 
     hr = pInst->writeHead(v0, v1, v2, vr);
 
@@ -336,7 +336,7 @@ inline void HttpResponse_base::s_addCookie(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(HttpResponse_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "cookie");
 
     ARG(Union_addCookie_cookie, 0);
 
@@ -350,16 +350,16 @@ inline void HttpResponse_base::s_redirect(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(HttpResponse_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "url");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "url");
 
     hr = pInst->redirect(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "url");
 
-    ARG(int32_t, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(int32_t, 0, "statusCode");
+    ARG_NAMED(exlib::string, 1, "url");
 
     hr = pInst->redirect(v0, v1);
 
@@ -415,10 +415,10 @@ inline void HttpResponse_base::s_json(const v8::FunctionCallbackInfo<v8::Value>&
     ASYNC_METHOD_INSTANCE(HttpResponse_base);
     ASYNC_METHOD_ENTER("HttpResponse.json");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "data");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_json(v0, v1, cb, args);
@@ -441,10 +441,10 @@ inline void HttpResponse_base::s_static_json(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "data");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = json(v0, v1, vr);
 
@@ -457,10 +457,10 @@ inline void HttpResponse_base::s_static_redirect(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 302);
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(int32_t, 1, 302, "status");
 
     hr = redirect(v0, v1, vr);
 

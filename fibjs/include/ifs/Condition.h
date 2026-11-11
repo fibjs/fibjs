@@ -80,9 +80,9 @@ inline void Condition_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     hr = _new(vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "lock");
 
-    ARG(obj_ptr<Lock_base>, 0);
+    ARG_NAMED(obj_ptr<Lock_base>, 0, "lock");
 
     hr = _new(v0.get(), vr, args.This());
 
@@ -95,9 +95,9 @@ inline result_t Condition_base::load(v8::Local<v8::Value> v, obj_ptr<Condition_b
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "lock");
 
-    ARG(obj_ptr<Lock_base>, 0);
+    ARG_NAMED(obj_ptr<Lock_base>, 0, "lock");
 
     hr = _new(v0.get(), vr, args.This());
 
@@ -113,7 +113,7 @@ inline void Condition_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, -1);
+    OPT_ARG_NAMED(int32_t, 0, -1, "timeout");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_wait(v0, cb, args);

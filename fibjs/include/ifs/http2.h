@@ -129,7 +129,7 @@ inline void http2_base::s_static_createServer(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
     ARG(Union_createServer_options, 0);
     ARG(Union_createServer_hdlr, 1);
@@ -145,10 +145,10 @@ inline void http2_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("http2.connect");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "authority");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "authority");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, v1, cb, args);

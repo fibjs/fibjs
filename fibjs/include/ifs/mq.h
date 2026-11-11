@@ -102,10 +102,10 @@ inline void mq_base::s_static_invoke(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER("mq.invoke");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "v");
 
     ARG(Union_invoke_hdlr, 0);
-    ARG(obj_ptr<object_base>, 1);
+    ARG_NAMED(obj_ptr<object_base>, 1, "v");
 
     if (!cb.IsEmpty())
         hr = acb_invoke(v0, v1.get(), cb, args);

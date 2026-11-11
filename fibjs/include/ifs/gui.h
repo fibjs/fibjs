@@ -108,16 +108,16 @@ inline void gui_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opt");
 
     hr = open(v0, v1, vr);
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "opt");
 
     hr = open(v0, vr);
 
@@ -130,10 +130,10 @@ inline void gui_base::s_static_openFile(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "file");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "file");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opt");
 
     hr = openFile(v0, v1, vr);
 
@@ -148,7 +148,7 @@ inline void gui_base::s_static_createMenu(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(std::vector<v8::Local<v8::Object>>, 0, std::vector<v8::Local<v8::Object>>());
+    OPT_ARG_NAMED(std::vector<v8::Local<v8::Object>>, 0, std::vector<v8::Local<v8::Object>>(), "items");
 
     hr = createMenu(v0, vr);
 
@@ -163,7 +163,7 @@ inline void gui_base::s_static_createTray(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "opt");
 
     hr = createTray(v0, vr);
 
@@ -174,19 +174,19 @@ inline void gui_base::s_static_alert(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER("gui.alert");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "message");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "message");
 
     if (!cb.IsEmpty())
         hr = acb_alert(v0, cb, args);
     else
         hr = ac_alert(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "message");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "title");
+    ARG_NAMED(exlib::string, 1, "message");
 
     if (!cb.IsEmpty())
         hr = acb_alert(v0, v1, cb, args);
@@ -202,19 +202,19 @@ inline void gui_base::s_static_confirm(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("gui.confirm");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "message");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "message");
 
     if (!cb.IsEmpty())
         hr = acb_confirm(v0, cb, args);
     else
         hr = ac_confirm(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "message");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "title");
+    ARG_NAMED(exlib::string, 1, "message");
 
     if (!cb.IsEmpty())
         hr = acb_confirm(v0, v1, cb, args);
@@ -230,21 +230,21 @@ inline void gui_base::s_static_input(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ASYNC_METHOD_ENTER("gui.input");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "message");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(bool, 1, false);
+    ARG_NAMED(exlib::string, 0, "message");
+    OPT_ARG_NAMED(bool, 1, false, "password");
 
     if (!cb.IsEmpty())
         hr = acb_input(v0, v1, cb, args);
     else
         hr = ac_input(v0, v1, vr);
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "message");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(bool, 2, false);
+    ARG_NAMED(exlib::string, 0, "title");
+    ARG_NAMED(exlib::string, 1, "message");
+    OPT_ARG_NAMED(bool, 2, false, "password");
 
     if (!cb.IsEmpty())
         hr = acb_input(v0, v1, v2, cb, args);
@@ -260,9 +260,9 @@ inline void gui_base::s_static_chooseFile(const v8::FunctionCallbackInfo<v8::Val
 
     ASYNC_METHOD_ENTER("gui.chooseFile");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
 
     if (!cb.IsEmpty())
         hr = acb_chooseFile(v0, cb, args);

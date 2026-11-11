@@ -86,10 +86,10 @@ inline void WebSocketMessage_base::__new(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(4, 0);
 
-    OPT_ARG(int32_t, 0, WebSocket_base::C_BINARY);
-    OPT_ARG(bool, 1, true);
-    OPT_ARG(bool, 2, false);
-    OPT_ARG(int32_t, 3, 67108864);
+    OPT_ARG_NAMED(int32_t, 0, WebSocket_base::C_BINARY, "type");
+    OPT_ARG_NAMED(bool, 1, true, "masked");
+    OPT_ARG_NAMED(bool, 2, false, "compress");
+    OPT_ARG_NAMED(int32_t, 3, 67108864, "maxSize");
 
     hr = _new(v0, v1, v2, v3, vr, args.This());
 
@@ -104,10 +104,10 @@ inline result_t WebSocketMessage_base::load(v8::Local<v8::Value> v, obj_ptr<WebS
 
     METHOD_OVER(4, 0);
 
-    OPT_ARG(int32_t, 0, WebSocket_base::C_BINARY);
-    OPT_ARG(bool, 1, true);
-    OPT_ARG(bool, 2, false);
-    OPT_ARG(int32_t, 3, 67108864);
+    OPT_ARG_NAMED(int32_t, 0, WebSocket_base::C_BINARY, "type");
+    OPT_ARG_NAMED(bool, 1, true, "masked");
+    OPT_ARG_NAMED(bool, 2, false, "compress");
+    OPT_ARG_NAMED(int32_t, 3, 67108864, "maxSize");
 
     hr = _new(v0, v1, v2, v3, vr, args.This());
 
@@ -135,7 +135,7 @@ inline void WebSocketMessage_base::s_set_masked(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "masked");
 
     hr = pInst->set_masked(v0);
 
@@ -163,7 +163,7 @@ inline void WebSocketMessage_base::s_set_compress(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 1);
 
-    ARG(bool, 0);
+    ARG_NAMED(bool, 0, "compress");
 
     hr = pInst->set_compress(v0);
 
@@ -191,7 +191,7 @@ inline void WebSocketMessage_base::s_set_maxSize(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "maxSize");
 
     hr = pInst->set_maxSize(v0);
 

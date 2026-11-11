@@ -115,14 +115,14 @@ inline void Routing_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "map");
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "map");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG_NAMED(exlib::string, 0, "method");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "map");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -137,7 +137,7 @@ inline result_t Routing_base::load(v8::Local<v8::Value> v, obj_ptr<Routing_base>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "map");
 
     hr = _new(v0, vr, args.This());
 
@@ -151,29 +151,29 @@ inline void Routing_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "route");
 
-    ARG(obj_ptr<Routing_base>, 0);
+    ARG_NAMED(obj_ptr<Routing_base>, 0, "route");
 
     hr = pInst->append(v0.get(), vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->append(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pattern");
     ARG(Union_append_hdlr, 1);
 
     hr = pInst->append(v0, v1, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "hdlr");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "method");
+    ARG_NAMED(exlib::string, 1, "pattern");
     ARG(Union_append_hdlr, 2);
 
     hr = pInst->append(v0, v1, v2, vr);
@@ -188,15 +188,15 @@ inline void Routing_base::s__host(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->_host(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pattern");
     ARG(Union_host_hdlr, 1);
 
     hr = pInst->_host(v0, v1, vr);
@@ -211,15 +211,15 @@ inline void Routing_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->all(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pattern");
     ARG(Union_all_hdlr, 1);
 
     hr = pInst->all(v0, v1, vr);
@@ -234,15 +234,15 @@ inline void Routing_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->get(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pattern");
     ARG(Union_get_hdlr, 1);
 
     hr = pInst->get(v0, v1, vr);
@@ -257,15 +257,15 @@ inline void Routing_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->post(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pattern");
     ARG(Union_post_hdlr, 1);
 
     hr = pInst->post(v0, v1, vr);
@@ -280,15 +280,15 @@ inline void Routing_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->del(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pattern");
     ARG(Union_del_hdlr, 1);
 
     hr = pInst->del(v0, v1, vr);
@@ -303,15 +303,15 @@ inline void Routing_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->put(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pattern");
     ARG(Union_put_hdlr, 1);
 
     hr = pInst->put(v0, v1, vr);
@@ -326,15 +326,15 @@ inline void Routing_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->patch(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pattern");
     ARG(Union_patch_hdlr, 1);
 
     hr = pInst->patch(v0, v1, vr);
@@ -349,15 +349,15 @@ inline void Routing_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->find(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "hdlr");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pattern");
     ARG(Union_find_hdlr, 1);
 
     hr = pInst->find(v0, v1, vr);

@@ -91,10 +91,10 @@ inline void SeekableStream_base::s_seek(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(SeekableStream_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "offset");
 
-    ARG(int64_t, 0);
-    OPT_ARG(int32_t, 1, fs_base::C_SEEK_SET);
+    ARG_NAMED(int64_t, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 1, fs_base::C_SEEK_SET, "whence");
 
     hr = pInst->seek(v0, v1);
 
@@ -146,9 +146,9 @@ inline void SeekableStream_base::s_truncate(const v8::FunctionCallbackInfo<v8::V
     ASYNC_METHOD_INSTANCE(SeekableStream_base);
     ASYNC_METHOD_ENTER("SeekableStream.truncate");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "bytes");
 
-    ARG(int64_t, 0);
+    ARG_NAMED(int64_t, 0, "bytes");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_truncate(v0, cb, args);

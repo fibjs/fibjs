@@ -334,9 +334,9 @@ inline void crypto_base::s_static_createECDH(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "curve");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "curve");
 
     hr = createECDH(v0, vr);
 
@@ -349,9 +349,9 @@ inline void crypto_base::s_static_createHash(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "algo");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "algo");
 
     hr = createHash(v0, vr);
 
@@ -364,11 +364,11 @@ inline void crypto_base::s_static_createHmac(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "key");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "algo");
     ARG(Union_createHmac_key, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = createHmac(v0, v1, v2, vr);
 
@@ -394,10 +394,10 @@ inline void crypto_base::s_static_getCipherInfo(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "nameOrNid");
 
     ARG(Union_getCipherInfo_nameOrNid, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = getCipherInfo(v0, v1, vr);
 
@@ -410,11 +410,11 @@ inline void crypto_base::s_static_createCipher(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "key");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "algorithm");
     ARG(Union_createCipher_key, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = createCipher(v0, v1, v2, vr);
 
@@ -427,12 +427,12 @@ inline void crypto_base::s_static_createCipheriv(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "iv");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "algorithm");
     ARG(Union_createCipheriv_key, 1);
     ARG(Union_createCipheriv_iv, 2);
-    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate), "options");
 
     hr = createCipheriv(v0, v1, v2, v3, vr);
 
@@ -445,11 +445,11 @@ inline void crypto_base::s_static_createDecipher(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "key");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "algorithm");
     ARG(Union_createDecipher_key, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
     hr = createDecipher(v0, v1, v2, vr);
 
@@ -462,12 +462,12 @@ inline void crypto_base::s_static_createDecipheriv(const v8::FunctionCallbackInf
 
     METHOD_ENTER();
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "iv");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "algorithm");
     ARG(Union_createDecipheriv_key, 1);
     ARG(Union_createDecipheriv_iv, 2);
-    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate), "options");
 
     hr = createDecipheriv(v0, v1, v2, v3, vr);
 
@@ -493,7 +493,7 @@ inline void crypto_base::s_static_createPrivateKey(const v8::FunctionCallbackInf
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_createPrivateKey_key, 0);
 
@@ -508,7 +508,7 @@ inline void crypto_base::s_static_createPublicKey(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_createPublicKey_key, 0);
 
@@ -523,10 +523,10 @@ inline void crypto_base::s_static_createSign(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "algorithm");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "algorithm");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = createSign(v0, v1, vr);
 
@@ -539,10 +539,10 @@ inline void crypto_base::s_static_createVerify(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "algorithm");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "algorithm");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = createVerify(v0, v1, vr);
 
@@ -555,10 +555,10 @@ inline void crypto_base::s_static_createSecretKey(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "key");
 
     ARG(Union_createSecretKey_key, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "encoding");
 
     hr = createSecretKey(v0, v1, vr);
 
@@ -571,7 +571,7 @@ inline void crypto_base::s_static_createCertificateRequest(const v8::FunctionCal
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "csr");
 
     ARG(Union_createCertificateRequest_csr, 0);
 
@@ -586,9 +586,9 @@ inline void crypto_base::s_static_diffieHellman(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
 
     hr = diffieHellman(v0, vr);
 
@@ -601,11 +601,11 @@ inline void crypto_base::s_static_hash(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "data");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "algorithm");
     ARG(Union_hash_data, 1);
-    OPT_ARG(exlib::string, 2, "hex");
+    OPT_ARG_NAMED(exlib::string, 2, "hex", "outputEncoding");
 
     hr = hash(v0, v1, v2, vr);
 
@@ -620,7 +620,7 @@ inline void crypto_base::s_static_randomBytes(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 16);
+    OPT_ARG_NAMED(int32_t, 0, 16, "size");
 
     hr = randomBytes(v0, vr);
 
@@ -633,11 +633,11 @@ inline void crypto_base::s_static_randomFill(const v8::FunctionCallbackInfo<v8::
 
     ASYNC_METHOD_ENTER("crypto.randomFill");
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "buffer");
 
     ARG(Union_randomFill_buffer, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 2, -1, "size");
 
     if (!cb.IsEmpty())
         hr = acb_randomFill(v0, v1, v2, cb, args);
@@ -653,9 +653,9 @@ inline void crypto_base::s_static_getRandomValues(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "data");
 
-    ARG(v8::Local<v8::TypedArray>, 0);
+    ARG_NAMED(v8::Local<v8::TypedArray>, 0, "data");
 
     hr = getRandomValues(v0, vr);
 
@@ -670,7 +670,7 @@ inline void crypto_base::s_static_randomUUID(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = randomUUID(v0, vr);
 
@@ -683,10 +683,10 @@ inline void crypto_base::s_static_generateKeyPair(const v8::FunctionCallbackInfo
 
     ASYNC_METHOD_ENTER("crypto.generateKeyPair");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "type");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "type");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = acb_generateKeyPair(v0, v1, cb, args);
@@ -702,13 +702,13 @@ inline void crypto_base::s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("crypto.hkdf");
 
-    METHOD_OVER(5, 5);
+    METHOD_OVER_NAMED(5, 5, "size");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "algoName");
     ARG(Union_hkdf_password, 1);
     ARG(Union_hkdf_salt, 2);
     ARG(Union_hkdf_info, 3);
-    ARG(int32_t, 4);
+    ARG_NAMED(int32_t, 4, "size");
 
     if (!cb.IsEmpty())
         hr = acb_hkdf(v0, v1, v2, v3, v4, cb, args);
@@ -724,13 +724,13 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("crypto.pbkdf2");
 
-    METHOD_OVER(5, 5);
+    METHOD_OVER_NAMED(5, 5, "algoName");
 
     ARG(Union_pbkdf2_password, 0);
     ARG(Union_pbkdf2_salt, 1);
-    ARG(int32_t, 2);
-    ARG(int32_t, 3);
-    ARG(exlib::string, 4);
+    ARG_NAMED(int32_t, 2, "iterations");
+    ARG_NAMED(int32_t, 3, "size");
+    ARG_NAMED(exlib::string, 4, "algoName");
 
     if (!cb.IsEmpty())
         hr = acb_pbkdf2(v0, v1, v2, v3, v4, cb, args);
@@ -746,12 +746,12 @@ inline void crypto_base::s_static_scrypt(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("crypto.scrypt");
 
-    METHOD_OVER(4, 3);
+    METHOD_OVER_NAMED(4, 3, "keylen");
 
     ARG(Union_scrypt_password, 0);
     ARG(Union_scrypt_salt, 1);
-    ARG(int32_t, 2);
-    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(int32_t, 2, "keylen");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = acb_scrypt(v0, v1, v2, v3, cb, args);
@@ -767,7 +767,7 @@ inline void crypto_base::s_static_privateDecrypt(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "buffer");
 
     ARG(Union_privateDecrypt_privateKey, 0);
     ARG(Union_privateDecrypt_buffer, 1);
@@ -783,7 +783,7 @@ inline void crypto_base::s_static_privateEncrypt(const v8::FunctionCallbackInfo<
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "buffer");
 
     ARG(Union_privateEncrypt_privateKey, 0);
     ARG(Union_privateEncrypt_buffer, 1);
@@ -799,7 +799,7 @@ inline void crypto_base::s_static_publicDecrypt(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "buffer");
 
     ARG(Union_publicDecrypt_publicKey, 0);
     ARG(Union_publicDecrypt_buffer, 1);
@@ -815,7 +815,7 @@ inline void crypto_base::s_static_publicEncrypt(const v8::FunctionCallbackInfo<v
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "buffer");
 
     ARG(Union_publicEncrypt_publicKey, 0);
     ARG(Union_publicEncrypt_buffer, 1);
@@ -831,9 +831,9 @@ inline void crypto_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER("crypto.sign");
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "key");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "algorithm");
     ARG(Union_sign_data, 1);
     ARG(Union_sign_key, 2);
 
@@ -851,9 +851,9 @@ inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
 
     ASYNC_METHOD_ENTER("crypto.verify");
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(4, 4, "signature");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "algorithm");
     ARG(Union_verify_data, 1);
     ARG(Union_verify_key, 2);
     ARG(Union_verify_signature, 3);
@@ -872,7 +872,7 @@ inline void crypto_base::s_static_timingSafeEqual(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "b");
 
     ARG(Union_timingSafeEqual_a, 0);
     ARG(Union_timingSafeEqual_b, 1);
@@ -888,7 +888,7 @@ inline void crypto_base::s_static_bbsSign(const v8::FunctionCallbackInfo<v8::Val
 
     ASYNC_METHOD_ENTER("crypto.bbsSign");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "privateKey");
 
     ARG(std::vector<Union_bbsSign_messages>, 0);
     ARG(Union_bbsSign_privateKey, 1);
@@ -907,7 +907,7 @@ inline void crypto_base::s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::V
 
     ASYNC_METHOD_ENTER("crypto.bbsVerify");
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "signature");
 
     ARG(std::vector<Union_bbsVerify_messages>, 0);
     ARG(Union_bbsVerify_publicKey, 1);
@@ -927,11 +927,11 @@ inline void crypto_base::s_static_proofGen(const v8::FunctionCallbackInfo<v8::Va
 
     ASYNC_METHOD_ENTER("crypto.proofGen");
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(4, 4, "publicKey");
 
     ARG(Union_proofGen_signature, 0);
     ARG(std::vector<Union_proofGen_messages>, 1);
-    ARG(std::vector<int32_t>, 2);
+    ARG_NAMED(std::vector<int32_t>, 2, "index");
     ARG(Union_proofGen_publicKey, 3);
 
     if (!cb.IsEmpty())
@@ -948,10 +948,10 @@ inline void crypto_base::s_static_proofVerify(const v8::FunctionCallbackInfo<v8:
 
     ASYNC_METHOD_ENTER("crypto.proofVerify");
 
-    METHOD_OVER(4, 4);
+    METHOD_OVER_NAMED(4, 4, "proof");
 
     ARG(std::vector<Union_proofVerify_messages>, 0);
-    ARG(std::vector<int32_t>, 1);
+    ARG_NAMED(std::vector<int32_t>, 1, "index");
     ARG(Union_proofVerify_publicKey, 2);
     ARG(Union_proofVerify_proof, 3);
 

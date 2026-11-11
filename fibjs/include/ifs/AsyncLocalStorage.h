@@ -89,7 +89,7 @@ inline void AsyncLocalStorage_base::__new(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, vr, args.This());
 
@@ -104,7 +104,7 @@ inline result_t AsyncLocalStorage_base::load(v8::Local<v8::Value> v, obj_ptr<Asy
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, vr, args.This());
 
@@ -144,9 +144,9 @@ inline void AsyncLocalStorage_base::s_static_bind(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fn");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "fn");
 
     hr = bind(v0, vr);
 
@@ -184,9 +184,9 @@ inline void AsyncLocalStorage_base::s_enterWith(const v8::FunctionCallbackInfo<v
     METHOD_INSTANCE(AsyncLocalStorage_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "store");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "store");
 
     hr = pInst->enterWith(v0);
 
@@ -200,10 +200,10 @@ inline void AsyncLocalStorage_base::s_run(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(AsyncLocalStorage_base);
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 2);
+    METHOD_OVER_NAMED(-1, 2, "callback");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "store");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "callback");
     ARG_LIST(2);
 
     hr = pInst->run(v0, v1, v2, vr);
@@ -218,9 +218,9 @@ inline void AsyncLocalStorage_base::s_exit(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(AsyncLocalStorage_base);
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "callback");
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "callback");
     ARG_LIST(1);
 
     hr = pInst->exit(v0, v1, vr);

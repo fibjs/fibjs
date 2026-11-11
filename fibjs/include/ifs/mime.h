@@ -65,9 +65,9 @@ inline void mime_base::s_static_getType(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "fname");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "fname");
 
     hr = getType(v0, vr);
 
@@ -78,10 +78,10 @@ inline void mime_base::s_static_addType(const v8::FunctionCallbackInfo<v8::Value
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "type");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "ext");
+    ARG_NAMED(exlib::string, 1, "type");
 
     hr = addType(v0, v1);
 

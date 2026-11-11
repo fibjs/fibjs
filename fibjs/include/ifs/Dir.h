@@ -82,9 +82,9 @@ inline void Dir_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     hr = _new(v0, vr, args.This());
 
@@ -97,9 +97,9 @@ inline result_t Dir_base::load(v8::Local<v8::Value> v, obj_ptr<Dir_base>& retVal
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "path");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "path");
 
     hr = _new(v0, vr, args.This());
 

@@ -249,9 +249,9 @@ inline void Redis_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "cmd");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "cmd");
     ARG_LIST(1);
 
     hr = pInst->command(v0, v1, vr);
@@ -264,11 +264,11 @@ inline void Redis_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "value");
 
     ARG(Union_set_key, 0);
     ARG(Union_set_value, 1);
-    OPT_ARG(int64_t, 2, 0);
+    OPT_ARG_NAMED(int64_t, 2, 0, "ttl");
 
     hr = pInst->set(v0, v1, v2);
 
@@ -280,11 +280,11 @@ inline void Redis_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "value");
 
     ARG(Union_setNX_key, 0);
     ARG(Union_setNX_value, 1);
-    OPT_ARG(int64_t, 2, 0);
+    OPT_ARG_NAMED(int64_t, 2, 0, "ttl");
 
     hr = pInst->setNX(v0, v1, v2);
 
@@ -296,11 +296,11 @@ inline void Redis_base::s_setXX(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "value");
 
     ARG(Union_setXX_key, 0);
     ARG(Union_setXX_value, 1);
-    OPT_ARG(int64_t, 2, 0);
+    OPT_ARG_NAMED(int64_t, 2, 0, "ttl");
 
     hr = pInst->setXX(v0, v1, v2);
 
@@ -312,9 +312,9 @@ inline void Redis_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "kvs");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "kvs");
 
     hr = pInst->mset(v0);
 
@@ -332,9 +332,9 @@ inline void Redis_base::s_msetNX(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "kvs");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "kvs");
 
     hr = pInst->msetNX(v0);
 
@@ -354,7 +354,7 @@ inline void Redis_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
     ARG(Union_append_key, 0);
     ARG(Union_append_value, 1);
@@ -371,10 +371,10 @@ inline void Redis_base::s_setRange(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "value");
 
     ARG(Union_setRange_key, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 1, "offset");
     ARG(Union_setRange_value, 2);
 
     hr = pInst->setRange(v0, v1, v2, vr);
@@ -389,11 +389,11 @@ inline void Redis_base::s_getRange(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "end");
 
     ARG(Union_getRange_key, 0);
-    ARG(int32_t, 1);
-    ARG(int32_t, 2);
+    ARG_NAMED(int32_t, 1, "start");
+    ARG_NAMED(int32_t, 2, "end");
 
     hr = pInst->getRange(v0, v1, v2, vr);
 
@@ -407,7 +407,7 @@ inline void Redis_base::s_strlen(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_strlen_key, 0);
 
@@ -423,11 +423,11 @@ inline void Redis_base::s_bitcount(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "key");
 
     ARG(Union_bitcount_key, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
+    OPT_ARG_NAMED(int32_t, 1, 0, "start");
+    OPT_ARG_NAMED(int32_t, 2, -1, "end");
 
     hr = pInst->bitcount(v0, v1, v2, vr);
 
@@ -441,7 +441,7 @@ inline void Redis_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_get_key, 0);
 
@@ -457,9 +457,9 @@ inline void Redis_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "keys");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "keys");
 
     hr = pInst->mget(v0, vr);
 
@@ -479,7 +479,7 @@ inline void Redis_base::s_getset(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "value");
 
     ARG(Union_getset_key, 0);
     ARG(Union_getset_value, 1);
@@ -496,10 +496,10 @@ inline void Redis_base::s_decr(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "key");
 
     ARG(Union_decr_key, 0);
-    OPT_ARG(int64_t, 1, 1);
+    OPT_ARG_NAMED(int64_t, 1, 1, "num");
 
     hr = pInst->decr(v0, v1, vr);
 
@@ -513,10 +513,10 @@ inline void Redis_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "key");
 
     ARG(Union_incr_key, 0);
-    OPT_ARG(int64_t, 1, 1);
+    OPT_ARG_NAMED(int64_t, 1, 1, "num");
 
     hr = pInst->incr(v0, v1, vr);
 
@@ -530,11 +530,11 @@ inline void Redis_base::s_setBit(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "value");
 
     ARG(Union_setBit_key, 0);
-    ARG(int32_t, 1);
-    ARG(int32_t, 2);
+    ARG_NAMED(int32_t, 1, "offset");
+    ARG_NAMED(int32_t, 2, "value");
 
     hr = pInst->setBit(v0, v1, v2, vr);
 
@@ -548,10 +548,10 @@ inline void Redis_base::s_getBit(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "offset");
 
     ARG(Union_getBit_key, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 1, "offset");
 
     hr = pInst->getBit(v0, v1, vr);
 
@@ -565,7 +565,7 @@ inline void Redis_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_exists_key, 0);
 
@@ -581,7 +581,7 @@ inline void Redis_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_type_key, 0);
 
@@ -597,9 +597,9 @@ inline void Redis_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "pattern");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pattern");
 
     hr = pInst->keys(v0, vr);
 
@@ -613,9 +613,9 @@ inline void Redis_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "keys");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "keys");
 
     hr = pInst->del(v0, vr);
 
@@ -635,10 +635,10 @@ inline void Redis_base::s_expire(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "ttl");
 
     ARG(Union_expire_key, 0);
-    ARG(int64_t, 1);
+    ARG_NAMED(int64_t, 1, "ttl");
 
     hr = pInst->expire(v0, v1, vr);
 
@@ -652,7 +652,7 @@ inline void Redis_base::s_ttl(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_ttl_key, 0);
 
@@ -668,7 +668,7 @@ inline void Redis_base::s_persist(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_persist_key, 0);
 
@@ -682,7 +682,7 @@ inline void Redis_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "newkey");
 
     ARG(Union_rename_key, 0);
     ARG(Union_rename_newkey, 1);
@@ -699,7 +699,7 @@ inline void Redis_base::s_renameNX(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "newkey");
 
     ARG(Union_renameNX_key, 0);
     ARG(Union_renameNX_newkey, 1);
@@ -714,16 +714,16 @@ inline void Redis_base::s_sub(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
     ARG(Union_sub_channel, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->sub(v0, v1);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->sub(v0);
 
@@ -735,28 +735,28 @@ inline void Redis_base::s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "channel");
 
     ARG(Union_unsub_channel, 0);
 
     hr = pInst->unsub(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
     ARG(Union_unsub_channel, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->unsub(v0, v1);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "channels");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "channels");
 
     hr = pInst->unsub(v0);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->unsub(v0);
 
@@ -768,16 +768,16 @@ inline void Redis_base::s_psub(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "pattern");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->psub(v0, v1);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->psub(v0);
 
@@ -789,28 +789,28 @@ inline void Redis_base::s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "pattern");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "pattern");
 
     hr = pInst->unpsub(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Function>, 1);
+    ARG_NAMED(exlib::string, 0, "pattern");
+    ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
     hr = pInst->unpsub(v0, v1);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "patterns");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "patterns");
 
     hr = pInst->unpsub(v0);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
 
     hr = pInst->unpsub(v0);
 
@@ -838,7 +838,7 @@ inline void Redis_base::s_set_onsuberror(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onsuberror");
 
     hr = pInst->setListener("suberror", v0);
 
@@ -852,7 +852,7 @@ inline void Redis_base::s_pub(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "message");
 
     ARG(Union_pub_channel, 0);
     ARG(Union_pub_message, 1);
@@ -869,7 +869,7 @@ inline void Redis_base::s_getHash(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_getHash_key, 0);
 
@@ -885,7 +885,7 @@ inline void Redis_base::s_getList(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_getList_key, 0);
 
@@ -901,7 +901,7 @@ inline void Redis_base::s_getSet(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_getSet_key, 0);
 
@@ -917,7 +917,7 @@ inline void Redis_base::s_getSortedSet(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_getSortedSet_key, 0);
 
@@ -933,7 +933,7 @@ inline void Redis_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "key");
 
     ARG(Union_dump_key, 0);
 
@@ -947,11 +947,11 @@ inline void Redis_base::s_restore(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "data");
 
     ARG(Union_restore_key, 0);
     ARG(Union_restore_data, 1);
-    OPT_ARG(int64_t, 2, 0);
+    OPT_ARG_NAMED(int64_t, 2, 0, "ttl");
 
     hr = pInst->restore(v0, v1, v2);
 

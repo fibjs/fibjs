@@ -102,9 +102,9 @@ inline void RedisSortedSet_base::s_add(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "sms");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "sms");
 
     hr = pInst->add(v0, vr);
 
@@ -124,7 +124,7 @@ inline void RedisSortedSet_base::s_score(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "member");
 
     ARG(Union_score_member, 0);
 
@@ -140,10 +140,10 @@ inline void RedisSortedSet_base::s_incr(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "member");
 
     ARG(Union_incr_member, 0);
-    OPT_ARG(int64_t, 1, 1);
+    OPT_ARG_NAMED(int64_t, 1, 1, "num");
 
     hr = pInst->incr(v0, v1, vr);
 
@@ -157,9 +157,9 @@ inline void RedisSortedSet_base::s_remove(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "members");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "members");
 
     hr = pInst->remove(v0, vr);
 
@@ -193,10 +193,10 @@ inline void RedisSortedSet_base::s_count(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "max");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "min");
+    ARG_NAMED(int32_t, 1, "max");
 
     hr = pInst->count(v0, v1, vr);
 
@@ -210,11 +210,11 @@ inline void RedisSortedSet_base::s_range(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "stop");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
-    OPT_ARG(bool, 2, false);
+    ARG_NAMED(int32_t, 0, "start");
+    ARG_NAMED(int32_t, 1, "stop");
+    OPT_ARG_NAMED(bool, 2, false, "withScores");
 
     hr = pInst->range(v0, v1, v2, vr);
 
@@ -228,11 +228,11 @@ inline void RedisSortedSet_base::s_rangeRev(const v8::FunctionCallbackInfo<v8::V
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "stop");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
-    OPT_ARG(bool, 2, false);
+    ARG_NAMED(int32_t, 0, "start");
+    ARG_NAMED(int32_t, 1, "stop");
+    OPT_ARG_NAMED(bool, 2, false, "withScores");
 
     hr = pInst->rangeRev(v0, v1, v2, vr);
 
@@ -246,7 +246,7 @@ inline void RedisSortedSet_base::s_rank(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "member");
 
     ARG(Union_rank_member, 0);
 
@@ -262,7 +262,7 @@ inline void RedisSortedSet_base::s_rankRev(const v8::FunctionCallbackInfo<v8::Va
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "member");
 
     ARG(Union_rankRev_member, 0);
 

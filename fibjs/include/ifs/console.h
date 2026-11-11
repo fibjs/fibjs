@@ -231,7 +231,7 @@ inline void console_base::s_static_set_loglevel(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "loglevel");
 
     hr = set_loglevel(v0);
 
@@ -268,13 +268,13 @@ inline void console_base::s_static_add(const v8::FunctionCallbackInfo<v8::Value>
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "type");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "type");
 
     hr = add(v0);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "cfg");
 
     ARG(Union_add_cfg, 0);
 
@@ -287,13 +287,13 @@ inline void console_base::s_static_use(const v8::FunctionCallbackInfo<v8::Value>
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "type");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "type");
 
     hr = use(v0);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "cfg");
 
     ARG(Union_use_cfg, 0);
 
@@ -460,10 +460,10 @@ inline void console_base::s_static_dir(const v8::FunctionCallbackInfo<v8::Value>
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "obj");
 
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(v8::Local<v8::Value>, 0, "obj");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = dir(v0, v1);
 
@@ -474,16 +474,16 @@ inline void console_base::s_static_table(const v8::FunctionCallbackInfo<v8::Valu
 {
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "obj");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "obj");
 
     hr = table(v0);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "fields");
 
-    ARG(v8::Local<v8::Value>, 0);
-    ARG(v8::Local<v8::Array>, 1);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "obj");
+    ARG_NAMED(v8::Local<v8::Array>, 1, "fields");
 
     hr = table(v0, v1);
 
@@ -507,10 +507,10 @@ inline void console_base::s_static_moveTo(const v8::FunctionCallbackInfo<v8::Val
 {
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "column");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "row");
+    ARG_NAMED(int32_t, 1, "column");
 
     hr = moveTo(v0, v1);
 
@@ -558,7 +558,7 @@ inline void console_base::s_static_readLine(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "msg");
 
     if (!cb.IsEmpty())
         hr = acb_readLine(v0, cb, args);
@@ -576,7 +576,7 @@ inline void console_base::s_static_getpass(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "");
+    OPT_ARG_NAMED(exlib::string, 0, "", "msg");
 
     if (!cb.IsEmpty())
         hr = acb_getpass(v0, cb, args);
@@ -592,7 +592,7 @@ inline void console_base::s_static_time(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "time");
+    OPT_ARG_NAMED(exlib::string, 0, "time", "label");
 
     hr = time(v0);
 
@@ -605,7 +605,7 @@ inline void console_base::s_static_timeElapse(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "time");
+    OPT_ARG_NAMED(exlib::string, 0, "time", "label");
 
     hr = timeElapse(v0);
 
@@ -618,7 +618,7 @@ inline void console_base::s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "time");
+    OPT_ARG_NAMED(exlib::string, 0, "time", "label");
 
     hr = timeEnd(v0);
 
@@ -631,7 +631,7 @@ inline void console_base::s_static_timeLog(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(-1, 0);
 
-    OPT_ARG(exlib::string, 0, "time");
+    OPT_ARG_NAMED(exlib::string, 0, "time", "label");
     ARG_LIST(1);
 
     hr = timeLog(v0, v1);
@@ -645,7 +645,7 @@ inline void console_base::s_static_count(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "default");
+    OPT_ARG_NAMED(exlib::string, 0, "default", "label");
 
     hr = count(v0);
 
@@ -658,7 +658,7 @@ inline void console_base::s_static_countReset(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(exlib::string, 0, "default");
+    OPT_ARG_NAMED(exlib::string, 0, "default", "label");
 
     hr = countReset(v0);
 

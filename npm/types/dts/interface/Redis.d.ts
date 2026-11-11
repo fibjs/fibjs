@@ -35,7 +35,7 @@
  *  - **Replies and their types**: a status or bulk-string reply arrives as a Buffer, an
  *    integer reply as a Number, nil as null and an array as an Array whose elements follow
  *    the same rules. A server error reply throws an Error whose message is the server text
- *    and whose number is 20024.
+ *    and whose number is ERR_INVALID_STATE.
  *  - **Connection lifecycle**: db.openRedis connects before it returns, so an unreachable
  *    server throws the socket error (ECONNREFUSED with number 111, or a resolver error such
  *    as getaddrinfo ENOTFOUND) rather than a database error. close releases the connection
@@ -156,7 +156,7 @@ declare class Class_Redis extends Class_object {
      *      UTF-8 - use the typed members for binary data. The reply is the raw RESP value: a
      *      status or bulk string as a Buffer, an integer as a Number, nil as null and an array as
      *      an Array, with the same rules applied to nested elements. A server error reply throws
-     *      an Error whose message is the server text and whose number is 20024.
+     *      an Error whose message is the server text and whose number is ERR_INVALID_STATE.
      *
      *      Use it for commands with no dedicated member, such as SCAN or SORT.
      *
@@ -915,7 +915,7 @@ declare class Class_Redis extends Class_object {
      *
      *      RESTORE key ttl data. The ttl is in milliseconds and 0 keeps the key persistent; the
      *      payload is sent byte-for-byte, so a Buffer from dump round-trips unchanged. The server
-     *      rejects the command with error 20024 when the key already exists or when the payload
+     *      rejects the command with ERR_INVALID_STATE when the key already exists or when the payload
      *      is not a valid dump. No result is reported.
      *
      *      @param key the key to rebuild

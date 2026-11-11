@@ -284,18 +284,18 @@ inline void Buffer_base::s_static_alloc(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "size");
 
-    ARG(int32_t, 0);
-    OPT_ARG(Union_alloc_fill, 1, 0);
+    ARG_NAMED(int32_t, 0, "size");
+    OPT_ARG_NAMED(Union_alloc_fill, 1, 0, "fill");
 
     hr = alloc(v0, v1, vr);
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "size");
 
-    ARG(int32_t, 0);
-    OPT_ARG(exlib::string, 1, "");
-    OPT_ARG(exlib::string, 2, "utf8");
+    ARG_NAMED(int32_t, 0, "size");
+    OPT_ARG_NAMED(exlib::string, 1, "", "fill");
+    OPT_ARG_NAMED(exlib::string, 2, "utf8", "codec");
 
     hr = alloc(v0, v1, v2, vr);
 
@@ -308,9 +308,9 @@ inline void Buffer_base::s_static_allocUnsafe(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "size");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "size");
 
     hr = allocUnsafe(v0, vr);
 
@@ -323,9 +323,9 @@ inline void Buffer_base::s_static_allocUnsafeSlow(const v8::FunctionCallbackInfo
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "size");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "size");
 
     hr = allocUnsafeSlow(v0, vr);
 
@@ -338,32 +338,32 @@ inline void Buffer_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "datas");
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "datas");
 
     hr = from(v0, vr);
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "buffer");
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "buffer");
+    OPT_ARG_NAMED(int32_t, 1, 0, "byteOffset");
+    OPT_ARG_NAMED(int32_t, 2, -1, "length");
 
     hr = from(v0.get(), v1, v2, vr);
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "datas");
 
     ARG(Union_from_datas, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
+    OPT_ARG_NAMED(int32_t, 1, 0, "byteOffset");
+    OPT_ARG_NAMED(int32_t, 2, -1, "length");
 
     hr = from(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "str");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    ARG_NAMED(exlib::string, 0, "str");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "codec");
 
     hr = from(v0, v1, vr);
 
@@ -376,10 +376,10 @@ inline void Buffer_base::s_static_concat(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "buflist");
 
-    ARG(v8::Local<v8::Array>, 0);
-    OPT_ARG(int32_t, 1, -1);
+    ARG_NAMED(v8::Local<v8::Array>, 0, "buflist");
+    OPT_ARG_NAMED(int32_t, 1, -1, "cutLength");
 
     hr = concat(v0, v1, vr);
 
@@ -392,9 +392,9 @@ inline void Buffer_base::s_static_isBuffer(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "v");
 
-    ARG(v8::Local<v8::Value>, 0);
+    ARG_NAMED(v8::Local<v8::Value>, 0, "v");
 
     hr = isBuffer(v0, vr);
 
@@ -407,9 +407,9 @@ inline void Buffer_base::s_static_isEncoding(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "codec");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "codec");
 
     hr = isEncoding(v0, vr);
 
@@ -422,16 +422,16 @@ inline void Buffer_base::s_static_byteLength(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "str");
 
     ARG(Union_byteLength_str, 0);
 
     hr = byteLength(v0, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "str");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    ARG_NAMED(exlib::string, 0, "str");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "codec");
 
     hr = byteLength(v0, v1, vr);
 
@@ -444,10 +444,10 @@ inline void Buffer_base::s_static_compare(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "buf2");
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "buf1");
+    ARG_NAMED(obj_ptr<Buffer_base>, 1, "buf2");
 
     hr = compare(v0.get(), v1.get(), vr);
 
@@ -475,27 +475,27 @@ inline void Buffer_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(4, 1);
+    METHOD_OVER_NAMED(4, 1, "str");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
-    OPT_ARG(exlib::string, 3, "utf8");
+    ARG_NAMED(exlib::string, 0, "str");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 2, -1, "length");
+    OPT_ARG_NAMED(exlib::string, 3, "utf8", "codec");
 
     hr = pInst->write(v0, v1, v2, v3, vr);
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "str");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(exlib::string, 2, "utf8");
+    ARG_NAMED(exlib::string, 0, "str");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    OPT_ARG_NAMED(exlib::string, 2, "utf8", "codec");
 
     hr = pInst->write(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "str");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    ARG_NAMED(exlib::string, 0, "str");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "codec");
 
     hr = pInst->write(v0, v1, vr);
 
@@ -509,35 +509,35 @@ inline void Buffer_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "v");
 
     ARG(Union_fill_v, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 2, -1, "end");
 
     hr = pInst->fill(v0, v1, v2, vr);
 
-    METHOD_OVER(4, 1);
+    METHOD_OVER_NAMED(4, 1, "v");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
-    OPT_ARG(exlib::string, 3, "utf8");
+    ARG_NAMED(exlib::string, 0, "v");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 2, -1, "end");
+    OPT_ARG_NAMED(exlib::string, 3, "utf8", "codec");
 
     hr = pInst->fill(v0, v1, v2, v3, vr);
 
-    METHOD_OVER(3, 3);
+    METHOD_OVER_NAMED(3, 3, "codec");
 
-    ARG(exlib::string, 0);
-    ARG(int32_t, 1);
-    ARG(exlib::string, 2);
+    ARG_NAMED(exlib::string, 0, "v");
+    ARG_NAMED(int32_t, 1, "offset");
+    ARG_NAMED(exlib::string, 2, "codec");
 
     hr = pInst->fill(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "codec");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "v");
+    ARG_NAMED(exlib::string, 1, "codec");
 
     hr = pInst->fill(v0, v1, vr);
 
@@ -551,12 +551,12 @@ inline void Buffer_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(4, 1);
+    METHOD_OVER_NAMED(4, 1, "targetBuffer");
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, 0);
-    OPT_ARG(int32_t, 3, -1);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "targetBuffer");
+    OPT_ARG_NAMED(int32_t, 1, 0, "targetStart");
+    OPT_ARG_NAMED(int32_t, 2, 0, "sourceStart");
+    OPT_ARG_NAMED(int32_t, 3, -1, "sourceEnd");
 
     hr = pInst->copy(v0.get(), v1, v2, v3, vr);
 
@@ -570,10 +570,10 @@ inline void Buffer_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "start");
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "src");
+    ARG_NAMED(int32_t, 1, "start");
 
     hr = pInst->set(v0.get(), v1, vr);
 
@@ -589,7 +589,7 @@ inline void Buffer_base::s_readUInt8(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readUInt8(v0, vr);
 
@@ -605,7 +605,7 @@ inline void Buffer_base::s_readUInt16LE(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readUInt16LE(v0, vr);
 
@@ -621,7 +621,7 @@ inline void Buffer_base::s_readUInt16BE(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readUInt16BE(v0, vr);
 
@@ -637,7 +637,7 @@ inline void Buffer_base::s_readUInt32LE(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readUInt32LE(v0, vr);
 
@@ -653,7 +653,7 @@ inline void Buffer_base::s_readUInt32BE(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readUInt32BE(v0, vr);
 
@@ -669,8 +669,8 @@ inline void Buffer_base::s_readUIntLE(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(int32_t, 1, 6);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 1, 6, "byteLength");
 
     hr = pInst->readUIntLE(v0, v1, vr);
 
@@ -686,8 +686,8 @@ inline void Buffer_base::s_readUIntBE(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(int32_t, 1, 6);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 1, 6, "byteLength");
 
     hr = pInst->readUIntBE(v0, v1, vr);
 
@@ -703,7 +703,7 @@ inline void Buffer_base::s_readInt64LE(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readInt64LE(v0, vr);
 
@@ -719,7 +719,7 @@ inline void Buffer_base::s_readInt64BE(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readInt64BE(v0, vr);
 
@@ -735,7 +735,7 @@ inline void Buffer_base::s_readInt8(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readInt8(v0, vr);
 
@@ -751,7 +751,7 @@ inline void Buffer_base::s_readInt16LE(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readInt16LE(v0, vr);
 
@@ -767,7 +767,7 @@ inline void Buffer_base::s_readInt16BE(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readInt16BE(v0, vr);
 
@@ -783,7 +783,7 @@ inline void Buffer_base::s_readInt32LE(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readInt32LE(v0, vr);
 
@@ -799,7 +799,7 @@ inline void Buffer_base::s_readInt32BE(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readInt32BE(v0, vr);
 
@@ -815,8 +815,8 @@ inline void Buffer_base::s_readIntLE(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(int32_t, 1, 6);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 1, 6, "byteLength");
 
     hr = pInst->readIntLE(v0, v1, vr);
 
@@ -832,8 +832,8 @@ inline void Buffer_base::s_readIntBE(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(int32_t, 1, 6);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 1, 6, "byteLength");
 
     hr = pInst->readIntBE(v0, v1, vr);
 
@@ -849,7 +849,7 @@ inline void Buffer_base::s_readFloatLE(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readFloatLE(v0, vr);
 
@@ -865,7 +865,7 @@ inline void Buffer_base::s_readFloatBE(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readFloatBE(v0, vr);
 
@@ -881,7 +881,7 @@ inline void Buffer_base::s_readDoubleLE(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readDoubleLE(v0, vr);
 
@@ -897,7 +897,7 @@ inline void Buffer_base::s_readDoubleBE(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "offset");
 
     hr = pInst->readDoubleBE(v0, vr);
 
@@ -911,10 +911,10 @@ inline void Buffer_base::s_writeUInt8(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int32_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeUInt8(v0, v1, vr);
 
@@ -928,10 +928,10 @@ inline void Buffer_base::s_writeUInt16LE(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int32_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeUInt16LE(v0, v1, vr);
 
@@ -945,10 +945,10 @@ inline void Buffer_base::s_writeUInt16BE(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int32_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeUInt16BE(v0, v1, vr);
 
@@ -962,10 +962,10 @@ inline void Buffer_base::s_writeUInt32LE(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int64_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int64_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeUInt32LE(v0, v1, vr);
 
@@ -979,10 +979,10 @@ inline void Buffer_base::s_writeUInt32BE(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int64_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int64_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeUInt32BE(v0, v1, vr);
 
@@ -996,11 +996,11 @@ inline void Buffer_base::s_writeUIntLE(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "value");
 
-    ARG(int64_t, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, 6);
+    ARG_NAMED(int64_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 2, 6, "byteLength");
 
     hr = pInst->writeUIntLE(v0, v1, v2, vr);
 
@@ -1014,11 +1014,11 @@ inline void Buffer_base::s_writeUIntBE(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "value");
 
-    ARG(int64_t, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, 6);
+    ARG_NAMED(int64_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 2, 6, "byteLength");
 
     hr = pInst->writeUIntBE(v0, v1, v2, vr);
 
@@ -1032,10 +1032,10 @@ inline void Buffer_base::s_writeInt8(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int32_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeInt8(v0, v1, vr);
 
@@ -1049,10 +1049,10 @@ inline void Buffer_base::s_writeInt16LE(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int32_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeInt16LE(v0, v1, vr);
 
@@ -1066,10 +1066,10 @@ inline void Buffer_base::s_writeInt16BE(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int32_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeInt16BE(v0, v1, vr);
 
@@ -1083,10 +1083,10 @@ inline void Buffer_base::s_writeInt32LE(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int32_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeInt32LE(v0, v1, vr);
 
@@ -1100,10 +1100,10 @@ inline void Buffer_base::s_writeInt32BE(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int32_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeInt32BE(v0, v1, vr);
 
@@ -1117,10 +1117,10 @@ inline void Buffer_base::s_writeInt64LE(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int64_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int64_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeInt64LE(v0, v1, vr);
 
@@ -1134,10 +1134,10 @@ inline void Buffer_base::s_writeInt64BE(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "value");
 
-    ARG(int64_t, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(int64_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->writeInt64BE(v0, v1, vr);
 
@@ -1151,11 +1151,11 @@ inline void Buffer_base::s_writeIntLE(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "value");
 
-    ARG(int64_t, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, 6);
+    ARG_NAMED(int64_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 2, 6, "byteLength");
 
     hr = pInst->writeIntLE(v0, v1, v2, vr);
 
@@ -1169,11 +1169,11 @@ inline void Buffer_base::s_writeIntBE(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "value");
 
-    ARG(int64_t, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, 6);
+    ARG_NAMED(int64_t, 0, "value");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    OPT_ARG_NAMED(int32_t, 2, 6, "byteLength");
 
     hr = pInst->writeIntBE(v0, v1, v2, vr);
 
@@ -1187,10 +1187,10 @@ inline void Buffer_base::s_writeFloatLE(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "offset");
 
-    ARG(double, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(double, 0, "value");
+    ARG_NAMED(int32_t, 1, "offset");
 
     hr = pInst->writeFloatLE(v0, v1, vr);
 
@@ -1204,10 +1204,10 @@ inline void Buffer_base::s_writeFloatBE(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "offset");
 
-    ARG(double, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(double, 0, "value");
+    ARG_NAMED(int32_t, 1, "offset");
 
     hr = pInst->writeFloatBE(v0, v1, vr);
 
@@ -1221,10 +1221,10 @@ inline void Buffer_base::s_writeDoubleLE(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "offset");
 
-    ARG(double, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(double, 0, "value");
+    ARG_NAMED(int32_t, 1, "offset");
 
     hr = pInst->writeDoubleLE(v0, v1, vr);
 
@@ -1238,10 +1238,10 @@ inline void Buffer_base::s_writeDoubleBE(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "offset");
 
-    ARG(double, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(double, 0, "value");
+    ARG_NAMED(int32_t, 1, "offset");
 
     hr = pInst->writeDoubleBE(v0, v1, vr);
 
@@ -1255,10 +1255,10 @@ inline void Buffer_base::s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "v");
 
     ARG(Union_indexOf_v, 0);
-    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->indexOf(v0, v1, vr);
 
@@ -1272,10 +1272,10 @@ inline void Buffer_base::s_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "v");
 
     ARG(Union_lastIndexOf_v, 0);
-    OPT_ARG(int32_t, 1, -1);
+    OPT_ARG_NAMED(int32_t, 1, -1, "offset");
 
     hr = pInst->lastIndexOf(v0, v1, vr);
 
@@ -1291,14 +1291,14 @@ inline void Buffer_base::s_slice(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "start");
 
     hr = pInst->slice(v0, vr);
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "end");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "start");
+    ARG_NAMED(int32_t, 1, "end");
 
     hr = pInst->slice(v0, v1, vr);
 
@@ -1312,9 +1312,9 @@ inline void Buffer_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "expected");
 
-    ARG(obj_ptr<object_base>, 0);
+    ARG_NAMED(obj_ptr<object_base>, 0, "expected");
 
     hr = pInst->equals(v0.get(), vr);
 
@@ -1328,9 +1328,9 @@ inline void Buffer_base::s_compare(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "buf");
 
-    ARG(obj_ptr<Buffer_base>, 0);
+    ARG_NAMED(obj_ptr<Buffer_base>, 0, "buf");
 
     hr = pInst->compare(v0.get(), vr);
 
@@ -1344,18 +1344,18 @@ inline void Buffer_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "offset");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
-    ARG(int32_t, 2);
+    ARG_NAMED(exlib::string, 0, "codec");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
+    ARG_NAMED(int32_t, 2, "end");
 
     hr = pInst->toString(v0, v1, v2, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "codec");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
+    ARG_NAMED(exlib::string, 0, "codec");
+    OPT_ARG_NAMED(int32_t, 1, 0, "offset");
 
     hr = pInst->toString(v0, v1, vr);
 

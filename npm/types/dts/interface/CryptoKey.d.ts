@@ -111,7 +111,7 @@ declare class Class_CryptoKey extends Class_object {
      *
      *      Public keys are always extractable; private and secret keys are extractable only when
      *      the extractable argument of generateKey/importKey was true. Exporting a key whose
-     *      extractable is false rejects with `Key is not extractable` (Error 20024). The property
+     *      extractable is false rejects with `Key is not extractable` (ERR_INVALID_STATE). The property
      *      is read-only.
      *
      *      Example - a non-extractable secret key cannot be exported:

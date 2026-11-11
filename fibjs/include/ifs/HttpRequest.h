@@ -119,17 +119,17 @@ inline void HttpRequest_base::__new(const v8::FunctionCallbackInfo<v8::Value>& a
 
     hr = _new(vr, args.This());
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "request");
 
-    ARG(obj_ptr<HttpRequest_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(obj_ptr<HttpRequest_base>, 0, "request");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0.get(), v1, vr, args.This());
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -142,10 +142,10 @@ inline result_t HttpRequest_base::load(v8::Local<v8::Value> v, obj_ptr<HttpReque
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -187,7 +187,7 @@ inline void HttpRequest_base::s_set_method(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "method");
 
     hr = pInst->set_method(v0);
 
@@ -215,7 +215,7 @@ inline void HttpRequest_base::s_set_address(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "address");
 
     hr = pInst->set_address(v0);
 
@@ -243,7 +243,7 @@ inline void HttpRequest_base::s_set_url(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "url");
 
     hr = pInst->set_url(v0);
 
@@ -285,7 +285,7 @@ inline void HttpRequest_base::s_set_queryString(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER(1, 1);
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "queryString");
 
     hr = pInst->set_queryString(v0);
 

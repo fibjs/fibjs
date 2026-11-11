@@ -103,10 +103,10 @@ inline void TTYOutputStream_base::__new(const v8::FunctionCallbackInfo<v8::Value
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fd");
 
     ARG(Union_TTYOutputStream_fd, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -119,10 +119,10 @@ inline result_t TTYOutputStream_base::load(v8::Local<v8::Value> v, obj_ptr<TTYOu
 
     LOAD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "fd");
 
     ARG(Union_TTYOutputStream_fd, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -178,7 +178,7 @@ inline void TTYOutputStream_base::s_clearLine(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, 0);
+    OPT_ARG_NAMED(int32_t, 0, 0, "dir");
 
     hr = pInst->clearLine(v0);
 
@@ -202,10 +202,10 @@ inline void TTYOutputStream_base::s_cursorTo(const v8::FunctionCallbackInfo<v8::
     ASYNC_METHOD_INSTANCE(TTYOutputStream_base);
     ASYNC_METHOD_ENTER("TTYOutputStream.cursorTo");
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "x");
 
-    ARG(int32_t, 0);
-    OPT_ARG(int32_t, 1, -1);
+    ARG_NAMED(int32_t, 0, "x");
+    OPT_ARG_NAMED(int32_t, 1, -1, "y");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_cursorTo(v0, v1, cb, args);
@@ -220,10 +220,10 @@ inline void TTYOutputStream_base::s_moveCursor(const v8::FunctionCallbackInfo<v8
     ASYNC_METHOD_INSTANCE(TTYOutputStream_base);
     ASYNC_METHOD_ENTER("TTYOutputStream.moveCursor");
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "dy");
 
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
+    ARG_NAMED(int32_t, 0, "dx");
+    ARG_NAMED(int32_t, 1, "dy");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_moveCursor(v0, v1, cb, args);
@@ -268,7 +268,7 @@ inline void TTYOutputStream_base::s_set_onresize(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onresize");
 
     hr = pInst->setListener("resize", v0);
 

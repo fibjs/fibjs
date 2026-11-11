@@ -86,9 +86,9 @@ inline void Menu_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Menu_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "item");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "item");
 
     hr = pInst->append(v0);
 
@@ -100,10 +100,10 @@ inline void Menu_base::s_insert(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Menu_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "item");
 
-    ARG(int32_t, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    ARG_NAMED(int32_t, 0, "pos");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "item");
 
     hr = pInst->insert(v0, v1);
 
@@ -115,9 +115,9 @@ inline void Menu_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Menu_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "pos");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "pos");
 
     hr = pInst->remove(v0);
 
@@ -145,9 +145,9 @@ inline void Menu_base::s_getMenuItemById(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(Menu_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "id");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "id");
 
     hr = pInst->getMenuItemById(v0, vr);
 

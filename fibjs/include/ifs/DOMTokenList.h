@@ -141,9 +141,9 @@ inline void DOMTokenList_base::s_item(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_INSTANCE(DOMTokenList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "index");
 
-    ARG(int32_t, 0);
+    ARG_NAMED(int32_t, 0, "index");
 
     hr = pInst->item(v0, vr);
 
@@ -157,9 +157,9 @@ inline void DOMTokenList_base::s_contains(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(DOMTokenList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "token");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "token");
 
     hr = pInst->contains(v0, vr);
 
@@ -201,9 +201,9 @@ inline void DOMTokenList_base::s_toggle(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(DOMTokenList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(-1, 1);
+    METHOD_OVER_NAMED(-1, 1, "token");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "token");
     ARG_LIST(1);
 
     hr = pInst->toggle(v0, v1, vr);
@@ -218,10 +218,10 @@ inline void DOMTokenList_base::s_replace(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_INSTANCE(DOMTokenList_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "newToken");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "oldToken");
+    ARG_NAMED(exlib::string, 1, "newToken");
 
     hr = pInst->replace(v0, v1, vr);
 

@@ -97,22 +97,22 @@ inline void url_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "args");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "args");
 
     hr = format(v0, vr);
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "urlObject");
 
     ARG(Union_format_urlObject, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = format(v0, v1, vr);
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "href");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "href");
 
     hr = format(v0, vr);
 
@@ -125,11 +125,11 @@ inline void url_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "url");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(bool, 1, false);
-    OPT_ARG(bool, 2, false);
+    ARG_NAMED(exlib::string, 0, "url");
+    OPT_ARG_NAMED(bool, 1, false, "parseQueryString");
+    OPT_ARG_NAMED(bool, 2, false, "slashesDenoteHost");
 
     hr = parse(v0, v1, v2, vr);
 
@@ -142,10 +142,10 @@ inline void url_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 2);
+    METHOD_OVER_NAMED(2, 2, "to");
 
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
+    ARG_NAMED(exlib::string, 0, "_from");
+    ARG_NAMED(exlib::string, 1, "to");
 
     hr = resolve(v0, v1, vr);
 
@@ -158,10 +158,10 @@ inline void url_base::s_static_fileURLToPath(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "url");
 
     ARG(Union_fileURLToPath_url, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = fileURLToPath(v0, v1, vr);
 
@@ -174,10 +174,10 @@ inline void url_base::s_static_pathToFileURL(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "path");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pathToFileURL(v0, v1, vr);
 
@@ -190,9 +190,9 @@ inline void url_base::s_static_domainToASCII(const v8::FunctionCallbackInfo<v8::
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "domain");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "domain");
 
     hr = domainToASCII(v0, vr);
 
@@ -205,9 +205,9 @@ inline void url_base::s_static_domainToUnicode(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "domain");
 
-    ARG(exlib::string, 0);
+    ARG_NAMED(exlib::string, 0, "domain");
 
     hr = domainToUnicode(v0, vr);
 

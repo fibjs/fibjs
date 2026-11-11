@@ -160,7 +160,7 @@ inline void RTCPeerConnection_base::__new(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, vr, args.This());
 
@@ -175,7 +175,7 @@ inline result_t RTCPeerConnection_base::load(v8::Local<v8::Value> v, obj_ptr<RTC
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = _new(v0, vr, args.This());
 
@@ -189,10 +189,10 @@ inline void RTCPeerConnection_base::s_createDataChannel(const v8::FunctionCallba
     METHOD_INSTANCE(RTCPeerConnection_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "label");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "label");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->createDataChannel(v0, v1, vr);
 
@@ -211,7 +211,7 @@ inline void RTCPeerConnection_base::s_setLocalDescription(const v8::FunctionCall
     else
         hr = pInst->ac_setLocalDescription();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "description");
 
     ARG(Union_setLocalDescription_description, 0);
 
@@ -228,7 +228,7 @@ inline void RTCPeerConnection_base::s_setRemoteDescription(const v8::FunctionCal
     ASYNC_METHOD_INSTANCE(RTCPeerConnection_base);
     ASYNC_METHOD_ENTER("RTCPeerConnection.setRemoteDescription");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "description");
 
     ARG(Union_setRemoteDescription_description, 0);
 
@@ -245,7 +245,7 @@ inline void RTCPeerConnection_base::s_addIceCandidate(const v8::FunctionCallback
     ASYNC_METHOD_INSTANCE(RTCPeerConnection_base);
     ASYNC_METHOD_ENTER("RTCPeerConnection.addIceCandidate");
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "candidate");
 
     ARG(Union_addIceCandidate_candidate, 0);
 
@@ -266,7 +266,7 @@ inline void RTCPeerConnection_base::s_createOffer(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_createOffer(v0, cb, args);
@@ -285,7 +285,7 @@ inline void RTCPeerConnection_base::s_createAnswer(const v8::FunctionCallbackInf
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_createAnswer(v0, cb, args);
@@ -443,7 +443,7 @@ inline void RTCPeerConnection_base::s_set_onconnectionstatechange(const v8::Func
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onconnectionstatechange");
 
     hr = pInst->setListener("connectionstatechange", v0);
 
@@ -471,7 +471,7 @@ inline void RTCPeerConnection_base::s_set_ondatachannel(const v8::FunctionCallba
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "ondatachannel");
 
     hr = pInst->setListener("datachannel", v0);
 
@@ -499,7 +499,7 @@ inline void RTCPeerConnection_base::s_set_onicecandidate(const v8::FunctionCallb
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onicecandidate");
 
     hr = pInst->setListener("icecandidate", v0);
 
@@ -527,7 +527,7 @@ inline void RTCPeerConnection_base::s_set_oniceconnectionstatechange(const v8::F
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "oniceconnectionstatechange");
 
     hr = pInst->setListener("iceconnectionstatechange", v0);
 
@@ -555,7 +555,7 @@ inline void RTCPeerConnection_base::s_set_onicegatheringstatechange(const v8::Fu
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onicegatheringstatechange");
 
     hr = pInst->setListener("icegatheringstatechange", v0);
 
@@ -583,7 +583,7 @@ inline void RTCPeerConnection_base::s_set_onlocaldescription(const v8::FunctionC
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onlocaldescription");
 
     hr = pInst->setListener("localdescription", v0);
 
@@ -611,7 +611,7 @@ inline void RTCPeerConnection_base::s_set_onsignalingstatechange(const v8::Funct
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onsignalingstatechange");
 
     hr = pInst->setListener("signalingstatechange", v0);
 
@@ -639,7 +639,7 @@ inline void RTCPeerConnection_base::s_set_ontrack(const v8::FunctionCallbackInfo
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Function>, 0);
+    ARG_NAMED(v8::Local<v8::Function>, 0, "ontrack");
 
     hr = pInst->setListener("track", v0);
 

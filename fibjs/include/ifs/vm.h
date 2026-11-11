@@ -92,8 +92,8 @@ inline void vm_base::s_static_createContext(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "contextObject");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = createContext(v0, v1, vr);
 
@@ -106,9 +106,9 @@ inline void vm_base::s_static_isContext(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER_NAMED(1, 1, "contextObject");
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG_NAMED(v8::Local<v8::Object>, 0, "contextObject");
 
     hr = isContext(v0, vr);
 
@@ -121,11 +121,11 @@ inline void vm_base::s_static_runInContext(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER_NAMED(3, 2, "contextifiedObject");
 
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-    OPT_ARG(Union_runInContext_opts, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "code");
+    ARG_NAMED(v8::Local<v8::Object>, 1, "contextifiedObject");
+    OPT_ARG_NAMED(Union_runInContext_opts, 2, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = runInContext(v0, v1, v2, vr);
 
@@ -138,11 +138,11 @@ inline void vm_base::s_static_runInNewContext(const v8::FunctionCallbackInfo<v8:
 
     METHOD_ENTER();
 
-    METHOD_OVER(3, 1);
+    METHOD_OVER_NAMED(3, 1, "code");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
-    OPT_ARG(Union_runInNewContext_opts, 2, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "code");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "contextObject");
+    OPT_ARG_NAMED(Union_runInNewContext_opts, 2, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = runInNewContext(v0, v1, v2, vr);
 
@@ -155,10 +155,10 @@ inline void vm_base::s_static_runInThisContext(const v8::FunctionCallbackInfo<v8
 
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "code");
 
-    ARG(exlib::string, 0);
-    OPT_ARG(Union_runInThisContext_opts, 1, v8::Object::New(isolate->m_isolate));
+    ARG_NAMED(exlib::string, 0, "code");
+    OPT_ARG_NAMED(Union_runInThisContext_opts, 1, v8::Object::New(isolate->m_isolate), "opts");
 
     hr = runInThisContext(v0, v1, vr);
 

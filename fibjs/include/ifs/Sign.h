@@ -76,10 +76,10 @@ inline void Sign_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Sign_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_update_data, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "codec");
 
     hr = pInst->update(v0, v1, vr);
 
@@ -93,10 +93,10 @@ inline void Sign_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Sign_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER_NAMED(2, 1, "privateKey");
 
     ARG(Union_sign_privateKey, 0);
-    OPT_ARG(exlib::string, 1, "buffer");
+    OPT_ARG_NAMED(exlib::string, 1, "buffer", "encoding");
 
     hr = pInst->sign(v0, v1, vr);
 
