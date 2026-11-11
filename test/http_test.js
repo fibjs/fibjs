@@ -1455,7 +1455,7 @@ describe("http", () => {
                         get_response(get_chunk_data(1024 * 1024 + 1), {
                             maxBodySize: 1
                         });
-                    }, { number: 20024 });
+                    }, { number: 20013 });
                 });
 
                 it("no limit", () => {
@@ -1966,7 +1966,7 @@ describe("http", () => {
         it("should reject an invalid certificate", () => {
             assert.throws(() => http.createServer({ cert: "not-a-pem" },
                 (req) => req.response.write("ok")),
-                (e) => e.number === 20024);
+                (e) => e.number === 20011);
         });
     });
 
@@ -5691,9 +5691,12 @@ describe("http", () => {
             assert.throws(() => {
                 hc.getSync('https://www.baidu.com/');
             }, (err) => {
-                    // online: TLS verification fails against the mismatched CA (20024);
-                    // offline: the connection itself fails
-                    assert.ok(err.number === 20024 || err.code === 'ECONNREFUSED'
+                    // online: TLS verification fails against the mismatched CA.
+                    // A5 gave it a named code; the text is OpenSSL's and varies
+                    // by version, so both shapes are accepted. offline: the
+                    // connection itself fails.
+                    assert.ok(err.number === 20011 || /certificate|issuer/i.test(err.message || '')
+                        || err.code === 'ECONNREFUSED'
                         || err.code === 'ENETUNREACH' || err.code === 'EHOSTUNREACH',
                         'unexpected: ' + err);
                     return true;

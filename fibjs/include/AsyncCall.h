@@ -114,7 +114,7 @@ public:
     result_t ctx(size_t n)
     {
         if (m_ctx.size() <= n)
-            return result_t::make(CALL_E_EXCEPTION).with_format("the union parameter at ctx[%d] was not prepared: the sync phase of this entry did not run.", (int32_t)n).with_result(result_t::invalid_arg());
+            return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_UNION_NOT_PREPARED").with_format("the union parameter at ctx[%d] was not prepared: the sync phase of this entry did not run.", (int32_t)n).with_result(result_t::invalid_arg());
 
         return result_t();
     }

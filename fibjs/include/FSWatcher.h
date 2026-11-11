@@ -128,7 +128,7 @@ public:
     result_t start()
     {
         if (m_closed)
-            return result_t::make(CALL_E_EXCEPTION).with_message("watch: cannot re-start one closed FSWatcher.");
+            return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("watch: cannot re-start one closed FSWatcher.");
 
         if (m_started)
             return result_t();

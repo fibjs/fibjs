@@ -126,7 +126,7 @@ result_t handler_from_union(Variant& hdlr, obj_ptr<Handler_base>& retVal, AsyncH
         return result_t();
     }
 
-    return result_t::make(CALL_E_EXCEPTION).with_message("the handler union was not prepared: this entry requires the synchronous phase.").with_result(result_t::type_mismatch());
+    return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_UNION_NOT_PREPARED").with_message("the handler union was not prepared: this entry requires the synchronous phase.").with_result(result_t::type_mismatch());
 }
 
 // Unmigrated callers pass the raw continuation; borrowing it into a handle for
@@ -241,7 +241,7 @@ result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncHandle& 
         return result_t();
     }
 
-    return result_t::make(CALL_E_EXCEPTION).with_message("the object union was not prepared: this entry requires the synchronous phase.").with_result(result_t::type_mismatch());
+    return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_UNION_NOT_PREPARED").with_message("the object union was not prepared: this entry requires the synchronous phase.").with_result(result_t::type_mismatch());
 }
 
 // Raw-continuation bridge, same rule as handler_from_union above.

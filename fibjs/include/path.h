@@ -1477,7 +1477,7 @@ inline result_t _fullpath_win32(exlib::string path, exlib::string& retVal)
 
     return result_t();
 #else
-    return result_t::make(CALL_E_EXCEPTION).with_message("not supported on none Win32 platform !");
+    return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message("not supported on none Win32 platform !");
 #endif
 }
 

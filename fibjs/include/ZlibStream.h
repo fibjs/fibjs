@@ -73,9 +73,9 @@ private:
                     : (err == Z_MEM_ERROR ? "Z_MEM_ERROR" : nullptr));
 
                 if (code)
-                    return result_t::make(CALL_E_EXCEPTION).with_code(code).with_message(zError(err));
+                    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZLIB_ERROR").with_code(code).with_message(zError(err));
 
-                return result_t::make(CALL_E_EXCEPTION).with_message(zError(err));
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZLIB_ERROR").with_message(zError(err));
             }
 
             if (m_pThis->strm.avail_out == ZLIB_CHUNK)

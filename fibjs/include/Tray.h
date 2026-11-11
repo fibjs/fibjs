@@ -53,7 +53,7 @@ public:
         }
 
         if (!m_tray)
-            return result_t::make(CALL_E_EXCEPTION).with_message("Tray: tray is closed");
+            return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("Tray: tray is closed");
 
         return result_t();
     }

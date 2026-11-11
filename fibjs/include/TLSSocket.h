@@ -64,10 +64,10 @@ private:
     result_t is_ready()
     {
         if (!m_stream)
-            return result_t::make(CALL_E_EXCEPTION).with_message("socket not connected.");
+            return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SOCKET_NOT_CONNECTED").with_message("socket not connected.");
 
         if (m_closed)
-            return result_t::make(CALL_E_EXCEPTION).with_message("socket closed.");
+            return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("socket closed.");
 
         return result_t();
     }
@@ -75,7 +75,7 @@ private:
     result_t is_not_connected()
     {
         if (m_stream)
-            return result_t::make(CALL_E_EXCEPTION).with_message("socket already connected.");
+            return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SOCKET_ALREADY_CONNECTED").with_message("socket already connected.");
 
         return result_t();
     }

@@ -74,7 +74,7 @@ public:
                 const ErrorPayload* p = m_hr.payload();
 
                 if (!p || p->empty())
-                    m_hr = result_t::make(CALL_E_EXCEPTION).with_message(m_message);
+                    m_hr = result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message(m_message);
             }
 
             if (m_hr.failed())
