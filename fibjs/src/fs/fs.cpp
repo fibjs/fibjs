@@ -147,17 +147,9 @@ static result_t to_unix_timestamp(Variant& v, double& retVal)
     }
 }
 
-// Node.js validates an encoding before touching the file: an unknown label is
-// ERR_INVALID_ARG_VALUE. 'buffer' stays valid - it is a fibjs extension (the
-// API hands back raw Buffers instead of decoded strings).
-static result_t check_encoding(const exlib::string& encoding)
-{
-    if (encoding.empty() || encoding == "buffer"
-        || encoding_conv::is_buffer_codec(encoding) || encoding_conv::is_encoding(encoding))
-        return result_t();
-
-    return setInvalidArgValue("encoding", "is invalid encoding", "'" + encoding + "'");
-}
+// The label check lives in errhelp now: child_process validates the same
+// option with the same wording.
+using errhelp::check_encoding;
 
 // appends through an open descriptor: the flag and mode of an options object
 // do not apply, a descriptor writes where it is positioned

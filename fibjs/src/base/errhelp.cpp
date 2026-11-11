@@ -14,6 +14,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include "encoding_conv.h"
 
 namespace fibjs {
 namespace errhelp {
@@ -95,6 +96,16 @@ result_t invalid_arg_value(const char* name, const char* must_be)
     return invalid_arg_value(name, must_be, Variant());
 }
 
+result_t invalid_arg_value_text(const char* name, const char* must_be, const exlib::string& received)
+{
+    result_t::builder b = result_t::make(CALL_E_INVALID_DATA)
+                              .with_type_name(errtype::kTypeError)
+                              .with_code("ERR_INVALID_ARG_VALUE")
+                              .with_format("The argument '%s' %s. Received '%s'",
+                                  name, must_be, received.c_str());
+    return result_t(std::move(b).arg("name", name));
+}
+
 result_t out_of_range(const char* name, const char* range,
     const Variant& received)
 {
@@ -120,6 +131,15 @@ result_t closed(const char* code, const char* message)
         .with_type_name(errtype::kError)
         .with_code(code)
         .with_message(message);
+}
+
+result_t check_encoding(const exlib::string& encoding)
+{
+    if (encoding.empty() || encoding == "buffer"
+        || encoding_conv::is_buffer_codec(encoding) || encoding_conv::is_encoding(encoding))
+        return result_t();
+
+    return invalid_arg_value_text("encoding", "is invalid encoding", encoding);
 }
 
 result_t dom_error(const char* dom_name, const char* message, const char* code)

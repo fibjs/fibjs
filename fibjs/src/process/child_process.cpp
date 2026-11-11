@@ -10,6 +10,7 @@
 #include "ChildProcess.h"
 #include "MemoryStream.h"
 #include "encoding.h"
+#include "errhelp.h"
 #include "ifs/process.h"
 
 // The DYLD_ROOT_PATH workaround in exec() is an iOS simulator only concern:
@@ -106,7 +107,16 @@ static result_t execFile_prepare(exlib::string command, v8::Local<v8::Array> arg
     opts = opts_.As<v8::Object>();
 
     exlib::string codec("utf8");
-    GetConfigValue(opts, "encoding", codec);
+    // Node.js rejects an unknown label before spawning, so the child is never
+    // started for a call that can only fail.
+    {
+        result_t _e = GetConfigValue(opts, "encoding", codec, true);
+        if (_e.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return _e;
+        _e = errhelp::check_encoding(codec);
+        if (_e.failed())
+            return _e;
+    }
 
     // Extract input option (string or Buffer)
     obj_ptr<Buffer_base> input_buf;
@@ -621,8 +631,16 @@ result_t ChildProcess::async_spawn(exlib::string command, v8::Local<v8::Array> a
         opts = opts_.As<v8::Object>();
 
         exlib::string codec("buffer");
-        GetConfigValue(opts, "encoding", codec);
-
+    // Same rule as the exec form above: the label is checked before the child
+    // is created.
+    {
+        result_t _e = GetConfigValue(opts, "encoding", codec, true);
+        if (_e.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return _e;
+        _e = errhelp::check_encoding(codec);
+        if (_e.failed())
+            return _e;
+    }
         // Extract input option (string or Buffer)
         obj_ptr<Buffer_base> input_buf;
         {

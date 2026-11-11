@@ -59,6 +59,9 @@ result_t invalid_arg_type(const char* name, const char* expected);
 result_t invalid_arg_value(const char* name, const char* must_be,
     const Variant& received);
 result_t invalid_arg_value(const char* name, const char* must_be);
+// Same, for a caller that only has the rendered text of what it received (a
+// label it looked up, not a Variant it converted).
+result_t invalid_arg_value_text(const char* name, const char* must_be, const exlib::string& received);
 
 // The "is out of range" clause; the class is RangeError, matching the code.
 result_t out_of_range(const char* name, const char* range, const Variant& received);
@@ -82,6 +85,13 @@ result_t closed(const char* code, const char* message);
 // table, not a Node string code, so passing a string here would be wrong. It
 // is only there for a site that wants a fibjs-specific string as well.
 result_t dom_error(const char* dom_name, const char* message, const char* code = nullptr);
+
+// Node.js validates an encoding label BEFORE touching the resource, and
+// reports ERR_INVALID_ARG_VALUE for a label it does not know. 'buffer' stays
+// valid: it is a fibjs extension (the API hands back raw Buffers instead of
+// decoded strings). Returns success for an empty label, which callers treat as
+// "not specified".
+result_t check_encoding(const exlib::string& encoding);
 
 // Rewrite a failed ARG / OPT_ARG conversion into a described argument error.
 //
