@@ -107,7 +107,7 @@ public:
                 if (num >= 0 && num < console_base::C_NOTSET)
                     m_levels[num] = true;
                 else
-                    return result_t::make(CALL_E_EXCEPTION).with_message("console: too many logger.");
+                    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_message("console: too many logger.");
             }
 
             m_levels[console_base::C_PRINT] = true;

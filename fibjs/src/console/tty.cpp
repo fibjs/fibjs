@@ -66,7 +66,7 @@ result_t TTYInputStream_base::_new(Union_TTYInputStream_fd fd, v8::Local<v8::Obj
         return hr;
 
     if (!_tty)
-        return result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("fd %d is not a TTY.", _fd).with_result(result_t::invalid_arg());
 
     retVal = new TTYInputStream(_fd);
     return result_t();
@@ -108,7 +108,7 @@ result_t TTYOutputStream_base::_new(Union_TTYOutputStream_fd fd, v8::Local<v8::O
         return hr;
 
     if (!_tty)
-        return result_t::make(CALL_E_EXCEPTION).with_format("fd %d is not a TTY.", _fd).with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("fd %d is not a TTY.", _fd).with_result(result_t::invalid_arg());
 
     retVal = new TTYOutputStream(_fd);
     return result_t();
@@ -132,7 +132,7 @@ result_t TTYOutputStream::clearLine(int32_t dir)
         outLog(console_base::C_PRINT, kClearLine);
         break;
     default:
-        return result_t::make(CALL_E_EXCEPTION).with_format("clearLine: invalid direction %d, expected -1, 0, or 1.", dir).with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("clearLine: invalid direction %d, expected -1, 0, or 1.", dir).with_result(result_t::invalid_arg());
     }
 
     return result_t();
@@ -151,7 +151,7 @@ result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncHandle ac)
         return result_t::nosync();
 
     if (x < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("cursorTo: x must be non-negative, received %d.", x).with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_format("cursorTo: x must be non-negative, received %d.", x).with_result(result_t::invalid_arg());
 
     char numStr[64];
 

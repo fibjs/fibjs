@@ -243,7 +243,8 @@ describe('process', () => {
 
         // an unknown signal name reports the name, not a type error
         assert.throws(() => process.kill(pid, 'M13_NO_SUCH_SIGNAL'),
-            { number: 20024, message: /Unknown signal: M13_NO_SUCH_SIGNAL/ });
+            { name: 'TypeError', code: 'ERR_UNKNOWN_SIGNAL', number: 20011,
+              message: /Unknown signal: M13_NO_SUCH_SIGNAL/ });
 
         // a value that is neither a number nor a signal name keeps the type error
         assert.throws(() => process.kill(pid, {}), { number: 20005 });
@@ -392,13 +393,13 @@ describe('process', () => {
         it("throw on invalid signal name", () => {
             assert.throws(() => {
                 process.kill(process.pid, 'INVALID_SIGNAL');
-            }, { name: 'Error', number: 20024 });
+            }, { name: 'TypeError', code: 'ERR_UNKNOWN_SIGNAL', number: 20011 });
         });
 
         it("throw on invalid pid", () => {
             assert.throws(() => {
                 process.kill(-99999, 0);
-            }, { name: 'Error', number: 20024 });
+            }, { name: 'Error', code: 'ERR_PROCESS_KILL', number: 20009 });
         });
 
         it("kill a child process with SIGTERM", () => {
@@ -415,7 +416,7 @@ describe('process', () => {
             // verify the child is gone
             assert.throws(() => {
                 process.kill(pid, 0);
-            }, { name: 'Error', number: 20024 });
+            }, { name: 'Error', code: 'ERR_PROCESS_KILL', number: 20009 });
         });
 
         it("kill a child process with integer signal", () => {
@@ -428,7 +429,7 @@ describe('process', () => {
 
             assert.throws(() => {
                 process.kill(pid, 0);
-            }, { name: 'Error', number: 20024 });
+            }, { name: 'Error', code: 'ERR_PROCESS_KILL', number: 20009 });
         });
     });
 
@@ -582,7 +583,7 @@ describe('process', () => {
             const old = process.umask();
             try {
                 assert.throws(() => process.umask('nope'),
-                    { name: 'Error', number: 20024 });
+                    { name: 'TypeError', code: 'ERR_INVALID_ARG_VALUE', number: 20011 });
             } finally {
                 process.umask(old);
             }

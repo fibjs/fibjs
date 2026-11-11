@@ -2231,7 +2231,7 @@ public:
         m_o->u->toString(m_url);
 
         if (m_urls.find(m_url) != m_urls.end())
-            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_type_name(errtype::kTypeError).with_message("HttpClient: redirect cycle");
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_message("HttpClient: redirect cycle");
 
         // 303: per spec force GET and clear request body
         if (status == 303) {

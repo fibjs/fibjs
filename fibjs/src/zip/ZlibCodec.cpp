@@ -111,7 +111,7 @@ public:
                 const char* code = ret == Z_DATA_ERROR ? "Z_DATA_ERROR"
                     : (ret == Z_STREAM_ERROR ? "Z_STREAM_ERROR" : "Z_MEM_ERROR");
 
-                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZLIB_ERROR").with_code(code).with_message(msg);
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code(code).with_message(msg);
             }
 
             uInt have = ZLIB_CODEC_CHUNK - m_strm.avail_out;

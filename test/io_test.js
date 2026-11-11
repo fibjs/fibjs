@@ -165,7 +165,7 @@ describe('io', () => {
             it('NOT ALLOWED: over file size when use range string', () => {
                 assert.throws(() => {
                     new io.RangeStream(file, `0-${fsize}`);
-                }, { number: 20024 });
+                }, { name: 'TypeError', code: 'ERR_INVALID_RANGE', number: 20011 });
 
                 assert_error_msg(() => {
                     new io.RangeStream(file, `0-${fsize}`);

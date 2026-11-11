@@ -32,7 +32,7 @@ result_t addLogger(logger* lgr)
         ;
 
     if (n >= MAX_LOGGER)
-        return result_t::make(CALL_E_EXCEPTION).with_message("console: Too many items.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_message("console: Too many items.");
 
     s_logs[n] = lgr;
     return result_t();
@@ -120,11 +120,11 @@ static result_t console_add_object(v8::Local<v8::Object> cfg)
 
     type = cfg->Get(isolate->context(), isolate->NewString("type", 4));
     if (IsEmpty(type))
-        return result_t::make(CALL_E_EXCEPTION).with_message("console: Missing log type.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("console: Missing log type.");
 
     v8::String::Utf8Value s(isolate->m_isolate, type);
     if (!*s)
-        return result_t::make(CALL_E_EXCEPTION).with_message("console: Unknown log type.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("console: Unknown log type.");
 
     logger* lgr;
 
@@ -147,7 +147,7 @@ static result_t console_add_object(v8::Local<v8::Object> cfg)
     else if (!qstrcmp(*s, "file"))
         lgr = new file_logger();
     else
-        return result_t::make(CALL_E_EXCEPTION).with_message("console: Unknown log type.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("console: Unknown log type.");
 
     if (lgr) {
         result_t hr = lgr->config(isolate, cfg);

@@ -13,7 +13,7 @@ describe("console", () => {
             // win32-only case
             assert.throws(() => {
                 console.use("syslog");
-            }, { number: 20024 });
+            }, { number: 20011 });
         } else {
             console.use("syslog");
 
@@ -32,7 +32,7 @@ describe("console", () => {
 
         assert.throws(() => {
             console.use("console");
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         console.reset();
     });
@@ -63,7 +63,7 @@ describe("console", () => {
                 type: "console",
                 levels: [console.DEBUG, 100]
             });
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         console.reset();
     });
@@ -82,7 +82,7 @@ describe("console", () => {
             console.use({
                 type: "file"
             });
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         assert.throws(() => {
             console.use({
@@ -90,7 +90,7 @@ describe("console", () => {
                 path: "test_log",
                 count: 10
             });
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         assert.throws(() => {
             console.use({
@@ -98,7 +98,7 @@ describe("console", () => {
                 path: "test_log",
                 count: 1
             });
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         assert.throws(() => {
             console.use({
@@ -106,7 +106,7 @@ describe("console", () => {
                 path: "test_log",
                 count: 129
             });
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         console.use({
             type: "file",
@@ -162,7 +162,7 @@ describe("console", () => {
                 path: "test_log",
                 split: "100n"
             });
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         assert.throws(() => {
             console.use({
@@ -170,7 +170,7 @@ describe("console", () => {
                 path: "test_log",
                 split: "100n"
             });
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         assert.throws(() => {
             console.use({
@@ -178,7 +178,7 @@ describe("console", () => {
                 path: "test_log",
                 split: "1000k"
             });
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         assert.throws(() => {
             console.use({
@@ -186,7 +186,7 @@ describe("console", () => {
                 path: "test_log",
                 split: "k"
             });
-        }, { number: 20024 });
+        }, { number: 20011 });
 
         console.reset();
     });

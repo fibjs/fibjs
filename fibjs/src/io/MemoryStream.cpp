@@ -138,7 +138,7 @@ result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 result_t MemoryStream::seek(int64_t offset, int32_t whence)
 {
     if (whence < fs_base::C_SEEK_SET || whence > fs_base::C_SEEK_END)
-        return result_t::make(CALL_E_EXCEPTION).with_format("seek: invalid whence value %d.", whence).with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("seek: invalid whence value %d.", whence).with_result(result_t::invalid_arg());
 
     int64_t p = m_buffer.tellg();
     m_buffer.seekg(0, std::ios::end);

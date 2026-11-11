@@ -38,7 +38,7 @@ DECLARE_MODULE(fs);
 // ERR_OUT_OF_RANGE; the message keeps fibjs' own (more explicit) wording.
 static result_t setRangeError(const char* msg)
 {
-    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(result_t::out_of_range()).with_code("ERR_OUT_OF_RANGE").with_message(msg);
+    return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_result(result_t::out_of_range()).with_code("ERR_OUT_OF_RANGE").with_message(msg);
 }
 
 // Node prints NaN / Infinity by name, integers without a fractional part.
@@ -88,20 +88,20 @@ static exlib::string node_received_text(Variant& v)
 // Node.js ERR_OUT_OF_RANGE: RangeError with the "must be <range>" wording.
 static result_t setOutOfRange(const char* name, const char* range, exlib::string received)
 {
-    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kRangeError).with_result(result_t::out_of_range()).with_code("ERR_OUT_OF_RANGE").with_format("The value of \"%s\" is out of range. It must be %s. Received %s",
+    return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_result(result_t::out_of_range()).with_code("ERR_OUT_OF_RANGE").with_format("The value of \"%s\" is out of range. It must be %s. Received %s",
                 name, range, received.c_str());
 }
 
 // Node.js ERR_INVALID_ARG_VALUE: TypeError with the "must be ..." wording.
 static result_t setInvalidArgValue(const char* name, const char* must_be, exlib::string received)
 {
-    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_VALUE").with_format("The argument '%s' %s. Received %s", name, must_be, received.c_str());
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_VALUE").with_format("The argument '%s' %s. Received %s", name, must_be, received.c_str());
 }
 
 // Node.js ERR_INVALID_ARG_TYPE: TypeError with the "Received type ..." wording.
 static result_t setInvalidArgType(const char* name, const char* must_be, exlib::string received)
 {
-    return result_t::make(CALL_E_EXCEPTION).with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"%s\" argument must be %s. Received %s", name, must_be, received.c_str());
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"%s\" argument must be %s. Received %s", name, must_be, received.c_str());
 }
 
 // Node.js time argument: Date object | unix timestamp in seconds | date string
@@ -2918,7 +2918,7 @@ public:
                 // Node.js: a plain Error with ERR_FS_EISDIR and no errno (it is
                 // not a system error): the description rides with the sentinel
                 // instead of the raw uv code.
-                pThis->m_ac.apost(result_t::make(CALL_E_EXCEPTION)
+                pThis->m_ac.apost(result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError)
                     .with_code("ERR_FS_EISDIR")
                     .with_format("Recursive option not enabled, cannot copy a directory: %s/",
                         pThis->m_requestPath.c_str()));
@@ -3142,7 +3142,7 @@ result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object
 
         // Node.js: copying onto itself is refused up front.
         if (src == dest)
-            return result_t::make(CALL_E_EXCEPTION).with_code("ERR_FS_CP_EINVAL").with_format("src and dest cannot be the same %s", src.c_str());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_FS_CP_EINVAL").with_format("src and dest cannot be the same %s", src.c_str());
 
         bool recursive = false;
         GetConfigValue(opts, "recursive", recursive);
@@ -3322,7 +3322,7 @@ static result_t readdir_ext(exlib::string path, bool recursive, bool withFileTyp
     os_normalize(path, path, true);
 
     if (withFileTypes && encoding != "" && encoding != "utf8" && encoding != "utf-8")
-        return result_t::make(CALL_E_EXCEPTION).with_format("withFileTypes is not supported with encoding '%s'.", encoding.c_str()).with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("withFileTypes is not supported with encoding '%s'.", encoding.c_str()).with_result(result_t::invalid_arg());
 
     QuickArray<exlib::string> paths;
     retVal = new NArray();

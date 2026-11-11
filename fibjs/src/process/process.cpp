@@ -172,7 +172,7 @@ result_t process_base::umask(Union_umask_mask mask, int32_t& retVal)
             char c = str[i];
 
             if (c > '7' || c < '0')
-                return result_t::make(CALL_E_EXCEPTION).with_message("process: invalid octal string");
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("process: invalid octal string");
 
             oct *= 8;
             oct += c - '0';
@@ -212,7 +212,7 @@ result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& r
         // Node rejects a diff that is not a two-element tuple instead of
         // silently ignoring it, so a mistyped argument cannot turn into a
         // plausible-looking but wrong reading.
-        return result_t::make(CALL_E_EXCEPTION)
+        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError)
             .with_type_name(errtype::kRangeError)
             .with_code("ERR_OUT_OF_RANGE")
             .with_message("The value of \"time\" is out of range. It must be an Array of two numbers.");
@@ -704,7 +704,7 @@ result_t process_base::disconnect()
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_channel)
-        return result_t::make(CALL_E_EXCEPTION).with_message("process: IPC channel is already disconnected.");
+        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_IPC_DISCONNECTED").with_message("process: IPC channel is already disconnected.");
 
     obj_ptr<Stream_base> _channel = isolate->m_channel;
     isolate->m_channel.Release();
@@ -871,7 +871,7 @@ static result_t kill_numeric(int32_t pid, int32_t signal)
 
     int err = uv_kill(pid, signal);
     if (err)
-        return result_t::make(CALL_E_EXCEPTION).with_message("process: kill failed with error: " + exlib::string(uv_strerror(err)));
+        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_PROCESS_KILL").with_message("process: kill failed with error: " + exlib::string(uv_strerror(err)));
 
     return result_t();
 }
@@ -884,7 +884,7 @@ result_t process_base::kill(int32_t pid, Union_kill_signal signal)
     exlib::string name = std::get<exlib::string>(signal);
     int32_t signo = sig_name_to_number(name);
     if (signo < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_message("process: Unknown signal: " + name);
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_UNKNOWN_SIGNAL").with_message("process: Unknown signal: " + name);
 
     return kill_numeric(pid, signo);
 }
