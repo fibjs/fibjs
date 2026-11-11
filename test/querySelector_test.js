@@ -578,11 +578,11 @@ describe('querySelector', () => {
             selectorsThatShouldThrow.forEach(selector => {
                 assertDOMError(() => {
                     rootElement.querySelector(selector);
-                }, 'SyntaxError', { name: 'Error', number: 20024 });
+                }, 'SyntaxError', { name: 'SyntaxError', number: 20011 });
 
                 assertDOMError(() => {
                     rootElement.querySelectorAll(selector);
-                }, 'SyntaxError', { name: 'Error', number: 20024 });
+                }, 'SyntaxError', { name: 'SyntaxError', number: 20011 });
             });
 
             // Test selectors that might throw or return null/empty depending on implementation
@@ -873,12 +873,12 @@ describe('querySelector', () => {
             // Test selector list with empty parts - should throw error according to CSS spec
             assertDOMError(() => {
                 rootElement.querySelectorAll('header, , footer');
-            }, 'SyntaxError', { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'SyntaxError', number: 20011 });
 
             // Test selector list with whitespace-only selector - should throw error
             assertDOMError(() => {
                 rootElement.querySelectorAll('header,    , footer');
-            }, 'SyntaxError', { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'SyntaxError', number: 20011 });
         });
 
         it("should handle escaped characters in CSS identifiers", () => {
@@ -971,7 +971,7 @@ describe('querySelector', () => {
             // Test empty selector - should always throw in all implementations
             assertDOMError(() => {
                 rootElement.querySelector('');
-            }, 'SyntaxError', { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'SyntaxError', number: 20011 });
 
             // Test potentially malformed selectors - different implementations may handle these differently
             // Some might throw errors, others might return null or handle gracefully
@@ -1154,16 +1154,16 @@ describe('querySelector', () => {
             // Test selector list with extra commas at start/end - should throw
             assertDOMError(() => {
                 rootElement.querySelectorAll(',header, footer');
-            }, 'SyntaxError', { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'SyntaxError', number: 20011 });
 
             assertDOMError(() => {
                 rootElement.querySelectorAll('header, footer,');
-            }, 'SyntaxError', { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'SyntaxError', number: 20011 });
 
             // Test selector list with multiple consecutive commas - should throw
             assertDOMError(() => {
                 rootElement.querySelectorAll('header,, footer');
-            }, 'SyntaxError', { name: 'Error', number: 20024 });
+            }, 'SyntaxError', { name: 'SyntaxError', number: 20011 });
 
             // Test selector with complex spacing around commas
             const complexSpacing = rootElement.querySelectorAll('header    ,     footer    ,     main');

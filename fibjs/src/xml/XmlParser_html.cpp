@@ -151,17 +151,17 @@ result_t XmlParser::parseHtml(XmlDocument* doc, exlib::string source, const XmlP
     if (!output || !output->document) {
         if (output)
             gumbo_destroy_output(&options, output);
-        return result_t::make(CALL_E_EXCEPTION).with_message("XmlParser: unable to create gumbo parse tree.");
+        return result_t::make(CALL_E_INTERNAL).with_type_name(errtype::kError).with_code("ERR_XML_PARSER_UNAVAILABLE").with_message("XmlParser: unable to create gumbo parse tree.");
     }
 
     if (output->status == GUMBO_STATUS_DEPTH_LIMIT) {
         gumbo_destroy_output(&options, output);
-        return result_t::make(CALL_E_EXCEPTION).with_format("XmlParser: document is nested too deeply, maxElementDepth is %d", limits.max_element_depth);
+        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_format("XmlParser: document is nested too deeply, maxElementDepth is %d", limits.max_element_depth);
     }
 
     if (output->status == GUMBO_STATUS_NODE_LIMIT) {
         gumbo_destroy_output(&options, output);
-        return result_t::make(CALL_E_EXCEPTION).with_format("XmlParser: too many nodes, maxNodeCount is %lld", (long long)limits.max_node_count);
+        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_format("XmlParser: too many nodes, maxNodeCount is %lld", (long long)limits.max_node_count);
     }
 
     // The tree builder stops descending as soon as a limit trips, but gumbo has
@@ -170,8 +170,11 @@ result_t XmlParser::parseHtml(XmlDocument* doc, exlib::string source, const XmlP
     buildDocument(parser, output->document->v.document);
     gumbo_destroy_output(&options, output);
 
+    // buildDocument() stops descending when a limit trips, and only the two
+    // limit checks set m_aborted: this is an overflow of a limit, not a syntax
+    // error (the GUMBO_STATUS_* branches above already say the same).
     if (parser.m_aborted)
-        return result_t::make(CALL_E_EXCEPTION).with_message(parser.m_abort_msg);
+        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_message(parser.m_abort_msg);
 
     return result_t();
 }

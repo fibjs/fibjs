@@ -201,12 +201,12 @@ describe('xml', () => {
                 xdoc.appendChild(c);
                 assertDOMError(() => {
                     xdoc.appendChild(e1);
-                }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
+                }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
 
                 xdoc.replaceChild(e1, e);
                 assertDOMError(() => {
                     xdoc.replaceChild(e, c);
-                }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
+                }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
 
                 xdoc.removeChild(e1);
                 xdoc.appendChild(e);
@@ -867,7 +867,7 @@ describe('xml', () => {
 
                 assertDOMError(() => {
                     e3.appendChild(e);
-                }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
+                }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
             });
 
             it("removeChild", () => {
@@ -1458,7 +1458,7 @@ describe('xml', () => {
                 // Modern browsers throw error when trying to move owned attribute
                 assertDOMError(() => {
                     e2.setAttributeNode(attr);
-                }, 'InUseAttributeError', { name: 'Error', number: 20024 });
+                }, 'InUseAttributeError', { name: 'Error', number: 20011 });
             });
 
             it("setAttributeNode with cloned attribute", () => {
@@ -1597,7 +1597,7 @@ describe('xml', () => {
 
                 assertDOMError(() => {
                     elem.removeAttributeNode(attrNode);
-                }, 'NotFoundError', { name: 'Error', number: 20024 });
+                }, 'NotFoundError', { name: 'Error', number: 20011 });
             });
 
             it("getAttributeNodeNS", () => {
@@ -1795,7 +1795,7 @@ describe('xml', () => {
                 var e = hdoc.createElement("aaa");
                 assertDOMError(() => {
                     hdoc.appendChild(e);
-                }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
+                }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
             });
 
             it("clear after removeChild", () => {
@@ -1887,7 +1887,7 @@ describe('xml', () => {
                     // Adding second root element should throw error
                     assertDOMError(() => {
                         xdoc.appendChild(root2);
-                    }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
+                    }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
 
                     // Document should still have only one root
                     assert.equal(xdoc.childNodes.length, 1);
@@ -2845,7 +2845,7 @@ describe('xml', () => {
                     // Should throw error when trying to append element to document
                     assertDOMError(() => {
                         hdoc.appendChild(extraElement);
-                    }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
+                    }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
 
                     // Document may have DOCTYPE and HTML elements in browser
                     var initialChildCount = hdoc.childNodes.length;
@@ -3131,7 +3131,7 @@ describe('xml', () => {
             var e = hdoc.createElement("aaa");
             assertDOMError(() => {
                 hdoc.appendChild(e);
-            }, 'HierarchyRequestError', { name: 'Error', number: 20024 });
+            }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
         });
 
         it("clear after removeChild", () => {
@@ -3195,7 +3195,7 @@ describe('xml', () => {
             var hdoc = parseHtml("<html><body></body></html>");
             assertDOMError(() => {
                 hdoc.documentElement.outerHTML = "<p>new root</p>";
-            }, 'NoModificationAllowedError', { name: 'Error', number: 20024 });
+            }, 'NoModificationAllowedError', { name: 'Error', number: 20011 });
             // Same for XML documents: the root element's parent is the document.
             var xdoc = parse("<root/>");
             assertDOMError(() => {
@@ -3834,7 +3834,7 @@ describe('xml', () => {
                 // Test invalid XML parsing
                 assert.throws(() => {
                     parse("<invalid><unclosed>");
-                }, { name: 'Error', number: 20024 });
+                }, { name: 'SyntaxError', number: 20011 });
             });
 
             // Attribute toString method (fibjs specific)
@@ -4150,7 +4150,7 @@ describe('xml', () => {
 
                     assert.throws(() => {
                         doc2.importNode(doc1);
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'Error', number: 20011 });
                 });
 
                 it("adoptNode basic", () => {
@@ -4210,7 +4210,7 @@ describe('xml', () => {
 
                     assert.throws(() => {
                         doc2.adoptNode(doc1);
-                    }, { name: 'Error', number: 20024 });
+                    }, { name: 'Error', number: 20011 });
                 });
 
                 it("adoptNode on detached node", () => {
@@ -4965,14 +4965,14 @@ describe('xml', () => {
                 const parser = new DOMParser();
                 assertDOMError(() => {
                     parser.parseFromString('<root/>', 'invalid/type');
-                }, 'TypeError', { name: 'Error', number: 20024 });
+                }, 'TypeError', { name: 'TypeError', number: 20011 });
             });
 
             it('should throw on unsupported mimeType', () => {
                 const parser = new DOMParser();
                 assertDOMError(() => {
                     parser.parseFromString('<root/>', 'text/plain');
-                }, 'TypeError', { name: 'Error', number: 20024 });
+                }, 'TypeError', { name: 'TypeError', number: 20011 });
             });
 
             it('should serialize void elements correctly in HTML mode', () => {
@@ -5426,7 +5426,7 @@ describe('xml', () => {
             const depth = 5000;
             const text = '<root>' + '<d>'.repeat(depth) + '</d>'.repeat(depth) + '</root>';
 
-            assert.throws(() => parse(text), { name: 'Error', number: 20024 });
+            assert.throws(() => parse(text), { name: 'RangeError', number: 20013 });
 
             // 0 and negative values disable the limit, a larger one allows the
             // document through
@@ -5439,9 +5439,9 @@ describe('xml', () => {
         (isBrowser ? it.skip : it)('should reject a document with more nodes than maxNodeCount', () => {
             const text = '<root>' + '<i/>'.repeat(5000) + '</root>';
 
-            assert.throws(() => xml.parse(text, 'text/xml', { maxNodeCount: 1000 }), { name: 'Error', number: 20024 });
+            assert.throws(() => xml.parse(text, 'text/xml', { maxNodeCount: 1000 }), { name: 'RangeError', number: 20013 });
             // attributes count as nodes
-            assert.throws(() => xml.parse('<root>' + '<i a="1" b="2" c="3"/>'.repeat(100) + '</root>', 'text/xml', { maxNodeCount: 150 }), { name: 'Error', number: 20024 });
+            assert.throws(() => xml.parse('<root>' + '<i a="1" b="2" c="3"/>'.repeat(100) + '</root>', 'text/xml', { maxNodeCount: 150 }), { name: 'RangeError', number: 20013 });
             assert.equal(xml.parse(text, 'text/xml', { maxNodeCount: 0 }).getElementsByTagName('*').length, 5001);
             assert.equal(xml.parse(text, 'text/xml', {}).getElementsByTagName('*').length, 5001);
         });
@@ -5453,21 +5453,21 @@ describe('xml', () => {
 
         (isBrowser ? it.skip : it)('should apply the limits to the html parser and to load()', () => {
             const html = '<div>'.repeat(2000) + '</div>'.repeat(2000);
-            assert.throws(() => xml.parse(html, 'text/html'), { name: 'Error', number: 20024 });
-            assert.throws(() => new DOMParser().parseFromString(html, 'text/html'), { name: 'Error', number: 20024 });
+            assert.throws(() => xml.parse(html, 'text/html'), { name: 'RangeError', number: 20013 });
+            assert.throws(() => new DOMParser().parseFromString(html, 'text/html'), { name: 'RangeError', number: 20013 });
 
             // a rejected XML load leaves the partial tree behind (expat feeds
             // the document as it goes, and that partial tree then owns the
             // document element), so the accepted load needs its own document
             const rejected = newDoc();
-            assert.throws(() => rejected.load(html), { name: 'Error', number: 20024 });
+            assert.throws(() => rejected.load(html), { name: 'RangeError', number: 20013 });
 
             const doc = newDoc();
             doc.load(html, { maxElementDepth: 3000 });
             assert.equal(doc.getElementsByTagName('div').length, 2000);
 
             const htmlDoc = newHtmlDoc();
-            assert.throws(() => htmlDoc.load(html), { name: 'Error', number: 20024 });
+            assert.throws(() => htmlDoc.load(html), { name: 'RangeError', number: 20013 });
             htmlDoc.load(html, { maxElementDepth: 3000 });
             assert.equal(htmlDoc.getElementsByTagName('div').length, 2000);
         });
@@ -5475,11 +5475,11 @@ describe('xml', () => {
         (isBrowser ? it.skip : it)('should apply maxNodeCount to the html parser too', () => {
             const html = '<div data-x="1"></div>'.repeat(2000);
 
-            assert.throws(() => xml.parse(html, 'text/html', { maxNodeCount: 1000 }), { name: 'Error', number: 20024 });
-            assert.throws(() => new DOMParser().parseFromString(html, 'text/html', { maxNodeCount: 1000 }), { name: 'Error', number: 20024 });
+            assert.throws(() => xml.parse(html, 'text/html', { maxNodeCount: 1000 }), { name: 'RangeError', number: 20013 });
+            assert.throws(() => new DOMParser().parseFromString(html, 'text/html', { maxNodeCount: 1000 }), { name: 'RangeError', number: 20013 });
 
             const htmlDoc = newHtmlDoc();
-            assert.throws(() => htmlDoc.load(html, { maxNodeCount: 1000 }), { name: 'Error', number: 20024 });
+            assert.throws(() => htmlDoc.load(html, { maxNodeCount: 1000 }), { name: 'RangeError', number: 20013 });
             htmlDoc.load(html, { maxNodeCount: 10000 });
             assert.equal(htmlDoc.getElementsByTagName('div').length, 2000);
         });

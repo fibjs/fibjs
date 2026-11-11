@@ -256,7 +256,7 @@ result_t XmlParser::parse(XmlDocument* doc, exlib::string source, const XmlParse
 
     XML_Parser xml_parser = XML_ParserCreate(NULL);
     if (!xml_parser)
-        return result_t::make(CALL_E_EXCEPTION).with_message("XmlParser: unable to create Expat parser.");
+        return result_t::make(CALL_E_INTERNAL).with_type_name(errtype::kError).with_code("ERR_XML_PARSER_UNAVAILABLE").with_message("XmlParser: unable to create Expat parser.");
 
     parser.m_xml_parser = (XML_ParserStruct*)xml_parser;
 
@@ -283,11 +283,13 @@ result_t XmlParser::parse(XmlDocument* doc, exlib::string source, const XmlParse
         parser.m_xml_parser = NULL;
 
         // A limit aborted the parse; report the limit, not expat's "aborted"
-        // error code.
+        // error code. m_aborted is only ever set by the two limit checks
+        // (countNodes / OnStartElement depth), so this branch is an overflow of
+        // a limit and not a syntax error -- same shape as the HTML path.
         if (parser.m_aborted)
-            return result_t::make(CALL_E_EXCEPTION).with_message(parser.m_abort_msg);
+            return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_message(parser.m_abort_msg);
 
-        return result_t::make(CALL_E_EXCEPTION).with_message(msg);
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_XML_PARSE").with_message(msg);
     }
 
     XML_ParserFree(xml_parser);

@@ -178,7 +178,7 @@ result_t XmlNamedNodeMap::removeNode(XmlAttr_base* attr)
         }
     }
 
-    return result_t::make(CALL_E_EXCEPTION).with_message("The node provided is owned by another element.");
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("NotFoundError").with_message("The node provided is owned by another element.");
 }
 
 result_t XmlNamedNodeMap::setNamedItem(XmlAttr* newNode, obj_ptr<XmlAttr_base>& retVal)

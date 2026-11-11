@@ -331,16 +331,16 @@ describe("vm", () => {
         it("internal extname", () => {
             assert.throws(() => {
                 (new vm.SandBox({})).setModuleCompiler('.js', () => undefined);
-            }, { number: 20024 });
+            }, { number: 20011 });
             assert.throws(() => {
                 (new vm.SandBox({})).setModuleCompiler('.jsc', () => undefined);
-            }, { number: 20024 });
+            }, { number: 20011 });
             assert.throws(() => {
                 (new vm.SandBox({})).setModuleCompiler('.json', () => undefined);
-            }, { number: 20024 });
+            }, { number: 20011 });
             assert.throws(() => {
                 (new vm.SandBox({})).setModuleCompiler('.wasm', () => undefined);
-            }, { number: 20024 });
+            }, { number: 20011 });
 
             (new vm.SandBox({})).setModuleCompiler('.ts', () => undefined);
         })

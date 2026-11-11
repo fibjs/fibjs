@@ -263,7 +263,7 @@ result_t SandBox::addBuiltinModules()
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
 {
     if (is_relative(id))
-        return result_t::make(CALL_E_EXCEPTION).with_message("SandBox: does not accept relative path.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("SandBox: does not accept relative path.");
 
     path_base::normalize(id, id);
     util_base::clone(mod, mod);

@@ -101,7 +101,7 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     Scope _scope(this);
 
     if (is_relative(srcname))
-        return result_t::make(CALL_E_EXCEPTION).with_message("SandBox: AddScript does not accept relative path.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("SandBox: AddScript does not accept relative path.");
 
     path_base::normalize(srcname, srcname);
 
@@ -141,7 +141,7 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
         // CALL_E_FILE_NOT_FOUND alone missed it on Windows, where the sentinel is
         // the raw Win32 constant and libuv reports UV_ENOENT.
         if (hr.is_not_found())
-            return result_t::make(CALL_E_EXCEPTION).with_code("MODULE_NOT_FOUND").with_message("Cannot find module '" + id + "'");
+            return result_t::make(UV_ENOENT).with_code("MODULE_NOT_FOUND").with_message("Cannot find module '" + id + "'");
         return hr;
     } else if (!IsEmpty(mod))
         return wait_module(mod, retVal, true);

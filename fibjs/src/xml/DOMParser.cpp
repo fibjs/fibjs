@@ -31,7 +31,7 @@ result_t DOMParser::parseFromString(exlib::string str, exlib::string mimeType,
         || mimeType == "application/xhtml+xml" || mimeType == "image/svg+xml") {
         type = "text/xml";
     } else {
-        return result_t::make(CALL_E_EXCEPTION).with_message("DOMParser: Invalid MIME type: " + mimeType);
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_MIME_TYPE").with_message("DOMParser: Invalid MIME type: " + mimeType);
     }
 
     return xml_base::parse(str, type, options, retVal);

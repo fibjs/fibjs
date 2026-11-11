@@ -98,7 +98,7 @@ describe("module", () => {
         // Node uses SyntaxError (name gap recorded)
         assert.throws(() => {
             require('./module/require_bug');
-        }, { number: 20024 });
+        }, { number: 20011 });
     });
 
     it("share require", () => {
@@ -415,7 +415,7 @@ describe("module", () => {
                 // Node: ERR_PACKAGE_PATH_NOT_EXPORTED (code gap recorded)
                 assert.throws(() => {
                     require('sub_script3/script2.js');
-                }, { number: 20024 });
+                }, { number: 20008 });
             });
 
             it("pattern sub script", () => {
