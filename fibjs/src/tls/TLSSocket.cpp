@@ -168,7 +168,7 @@ static result_t tls_handshake_error(SSL* ssl, const exlib::string& server_name)
 
         // The SNI / verification host is this layer's own context: the failing
         // layer builds it into the value (there is no merge above).
-        result_t::builder b = result_t::make(CALL_E_EXCEPTION).with_code(final_code).with_message(reason);
+        result_t::builder b = result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code(final_code).with_message(reason);
 
         if (!server_name.empty())
             b = std::move(b).arg("servername", server_name);
@@ -276,7 +276,7 @@ public:
 
         // The handshake's own failure: the layer builds the servername into the
         // value (there is no merge above).
-        result_t::builder b = result_t::make(CALL_E_EXCEPTION).with_message("handshake failed");
+        result_t::builder b = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_TLS_HANDSHAKE").with_message("handshake failed");
 
         if (!m_server_name.empty())
             b = std::move(b).arg("servername", m_server_name);
@@ -317,7 +317,7 @@ public:
             return next(handshake);
         }
 
-        result_t::builder b = result_t::make(CALL_E_EXCEPTION).with_message("socket closed");
+        result_t::builder b = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("socket closed");
 
         if (!m_server_name.empty())
             b = std::move(b).arg("servername", m_server_name);
@@ -643,7 +643,7 @@ result_t TLSSocket::writeBuffer(Buffer_base* data, AsyncHandle ac)
             if (m_state == SSL_ERROR_NONE)
                 return next(write);
 
-            return result_t::make(CALL_E_EXCEPTION).with_message("write failed");
+            return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_STREAM_DESTROYED").with_message("write failed");
         }
 
         result_t lock(exlib::Locker& l, AsyncEvent* pThis)

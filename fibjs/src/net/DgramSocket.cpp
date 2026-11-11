@@ -37,7 +37,7 @@ static result_t create_socket_by_type(exlib::string type, obj_ptr<DgramSocket_ba
 {
     int32_t family = get_family(type);
     if (family < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(result_t::invalid_arg());
 
     obj_ptr<DgramSocket> s = new DgramSocket();
     result_t hr = s->create(family, 0);
@@ -90,7 +90,7 @@ static result_t create_socket_by_options(v8::Local<v8::Object> opts, obj_ptr<Dgr
 
     int32_t family = get_family(type);
     if (family < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("dgram: unknown socket type: '%s'.", type.c_str()).with_result(result_t::invalid_arg());
 
     obj_ptr<DgramSocket> s = new DgramSocket();
     hr = s->create(family, (reuseAddr ? UV_UDP_REUSEADDR : 0) | (ipv6Only ? UV_UDP_IPV6ONLY : 0));

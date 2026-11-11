@@ -62,7 +62,7 @@ result_t RTCDataChannel::send(Union_send_data data)
         try {
             m_dataChannel->send(std::string(std::get<exlib::string>(data)));
         } catch (std::exception& e) {
-            return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
         }
 
         return result_t();
@@ -73,7 +73,7 @@ result_t RTCDataChannel::send(Union_send_data data)
     try {
         m_dataChannel->send((const rtc::byte*)buffer->data(), buffer->length());
     } catch (std::exception& e) {
-        return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }
 
     return result_t();

@@ -26,7 +26,7 @@ result_t RTCIceCandidate_base::_new(v8::Local<v8::Object> description,
     try {
         retVal = new RTCIceCandidate(candidate, sdpMid);
     } catch (std::exception& e) {
-        return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }
 
     return result_t();

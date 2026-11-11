@@ -171,17 +171,19 @@ describe('tls', () => {
                 it('invalid PEM material is rejected instead of crashing', () => {
                     // a bad cert used to reach a null X509 and segfault
                     assert.throws(() => tls.createSecureContext({ cert: 'not-a-pem' }),
-                        (e) => e.number === 20024 && /valid X509Certificate/.test(e.message));
+                        (e) => e.number === 20011 && e.code === 'ERR_TLS_INVALID_CERT'
+                            && /valid X509Certificate/.test(e.message));
                     assert.throws(() => tls.createSecureContext({ key: 'not-a-pem' }),
-                        (e) => e.number === 20024);
+                        (e) => e.number === 20011 && e.code === 'ERR_INVALID_ARG_VALUE'
+                            && /Private key not recognized/.test(e.message));
                     assert.throws(() => tls.createSecureContext({ ca: 'not-a-pem' }),
-                        (e) => e.number === 20024);
+                        (e) => e.number === 20011 && e.code === 'ERR_TLS_INVALID_CERT');
                 });
 
                 it('invalid server material is rejected by createServer', () => {
                     const hdlr = (req) => req.response.write('ok');
                     assert.throws(() => tls.createServer({ cert: 'not-a-pem' }, hdlr),
-                        (e) => e.number === 20024);
+                        (e) => e.number === 20011 && e.code === 'ERR_TLS_INVALID_CERT');
                 });
 
                 it('accepts an empty options object and a SecureContext', () => {

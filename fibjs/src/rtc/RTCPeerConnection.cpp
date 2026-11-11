@@ -44,7 +44,7 @@ result_t RTCSessionDescription_base::_new(v8::Local<v8::Object> description,
     try {
         retVal = new RTCSessionDescription(sdp, type);
     } catch (std::exception& e) {
-        return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }
 
     return result_t();
@@ -239,7 +239,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
         dc = new RTCDataChannel(isolate, m_peerConnection->createDataChannel(label, init), false);
         retVal = dc;
     } catch (std::exception& e) {
-        return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }
 
     m_lock.lock();
@@ -271,7 +271,7 @@ result_t RTCPeerConnection::setLocalDescription(Union_setLocalDescription_descri
         try {
             m_peerConnection->setLocalDescription(rtc::Description::Type::Offer);
         } catch (std::exception& e) {
-            return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
         }
     }
 
@@ -297,7 +297,7 @@ result_t RTCPeerConnection::setRemoteDescription(Union_setRemoteDescription_desc
         isolate_ref();
     } catch (std::exception& e) {
         m_self.Release();
-        return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }
 
     return result_t();
@@ -317,7 +317,7 @@ result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate cand
     try {
         m_peerConnection->addRemoteCandidate(cand->m_candidate);
     } catch (std::exception& e) {
-        return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }
 
     return result_t();
@@ -683,7 +683,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
         else if (certificateType == "rsa")
             config.certificateType = rtc::CertificateType::Rsa;
         else
-            return result_t::make(CALL_E_EXCEPTION).with_format("Invalid certificateType: '%s'.", certificateType.c_str()).with_result(result_t::invalid_arg());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid certificateType: '%s'.", certificateType.c_str()).with_result(result_t::invalid_arg());
     }
 
     exlib::string iceTransportPolicy;
@@ -696,7 +696,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
         else if (iceTransportPolicy == "relay")
             config.iceTransportPolicy = rtc::TransportPolicy::Relay;
         else
-            return result_t::make(CALL_E_EXCEPTION).with_format("Invalid iceTransportPolicy: '%s'.", iceTransportPolicy.c_str()).with_result(result_t::invalid_arg());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid iceTransportPolicy: '%s'.", iceTransportPolicy.c_str()).with_result(result_t::invalid_arg());
     }
 
     v8::Local<v8::Array> iceServers;
@@ -758,7 +758,7 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
                 }
             }
         } catch (std::exception& e) {
-            return result_t::make(CALL_E_EXCEPTION).with_message(e.what());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
         }
     } else
         config.iceServers.push_back(rtc::IceServer("stun:stun.l.google.com:19302"));

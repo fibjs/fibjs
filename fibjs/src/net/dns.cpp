@@ -112,11 +112,11 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
             else if (family == "IPv6")
                 opt->family = 6;
             else
-                return result_t::make(CALL_E_EXCEPTION).with_type_name("TypeError").with_result(result_t::invalid_arg()).with_format("Invalid family: %s", family.c_str()).arg("family", family);
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name("TypeError").with_result(result_t::invalid_arg()).with_format("Invalid family: %s", family.c_str()).arg("family", family);
         } else {
             int32_t family = std::get<int32_t>(opt->family.value());
             if (family != 0 && family != 4 && family != 6)
-                return result_t::make(CALL_E_EXCEPTION).with_type_name("TypeError").with_result(result_t::invalid_arg()).with_format("Invalid family: %d", family).arg("family", family);
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name("TypeError").with_result(result_t::invalid_arg()).with_format("Invalid family: %d", family).arg("family", family);
         }
 
         ac.ctxv().resize(1);
@@ -196,7 +196,7 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
                 if (ptr != NULL)
                     resolver->_ac.post(result_t());
                 else
-                    resolver->_ac.post(result_t::make(CALL_E_EXCEPTION).with_message("No address found"));
+                    resolver->_ac.post(result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ENOTFOUND").with_message("No address found"));
             }
 
             uv_freeaddrinfo(res);
