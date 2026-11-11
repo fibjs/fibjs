@@ -27,7 +27,7 @@
  - **View semantics**: the key is not created by obtaining the view, and a missing key is
    not an error - len returns 0, range returns an empty array and score returns null.
    Writing members create the key when it is missing, and a key holding another type fails
-   with the server error (number 20024).
+   with the server error (ERR_INVALID_STATE).
 
  Obtained from:
  - `rdb.getSortedSet(key)` — the only factory, where rdb is the Redis object returned by

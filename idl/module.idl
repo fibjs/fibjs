@@ -106,7 +106,7 @@ module module
      against the current working directory. The returned
      function has `resolve(id)`, which returns the path that require would load (a built-in
      resolves to its name) without loading it, and reports a missing module with
-     MODULE_NOT_FOUND [20024]; it has no `main`, `extensions` or `cache`.
+     MODULE_NOT_FOUND [ERR_INVALID_STATE]; it has no `main`, `extensions` or `cache`.
 
      Example — resolve and load a module next to a known file:
      ```JavaScript

@@ -55,7 +55,7 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
             for (char& c : m_upper)
                 c = toupper((unsigned char)c);
             if (m_upper == "GET" || m_upper == "HEAD")
-                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Request: GET/HEAD requests cannot have a body");
+                return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Request: GET/HEAD requests cannot have a body");
         }
 
         hr = GetConfigValue(opts, "headers", headers);
@@ -301,7 +301,7 @@ result_t HttpRequest_base::_new(HttpRequest_base* request, v8::Local<v8::Object>
     if (method == "GET" || method == "HEAD") {
         obj_ptr<Stream_base> body;
         if (req->get_body(body).has_value())
-            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Request: GET/HEAD requests cannot have a body");
+            return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Request: GET/HEAD requests cannot have a body");
     }
 
     retVal = req;

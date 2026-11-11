@@ -151,7 +151,7 @@ result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncHandle ac)
         return result_t::nosync();
 
     if (x < 0)
-        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_format("cursorTo: x must be non-negative, received %d.", x).with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_format("cursorTo: x must be non-negative, received %d.", x).with_result(result_t::out_of_range());
 
     char numStr[64];
 

@@ -357,7 +357,7 @@ interface XmlNode : object
 
     /*! @brief Inserts a node before an existing child of this node
 
-     refChild must already be a child of this node, otherwise an Error (20024) is thrown.
+     refChild must already be a child of this node, otherwise an Error (ERR_INVALID_STATE) is thrown.
      If newChild already has a parent it is moved here (it leaves the old tree first), a
      DocumentFragment is spliced as its children, and a node owned by another document is
      adopted (its ownerDocument changes). Inserting a node into its own descendant is
@@ -374,7 +374,7 @@ interface XmlNode : object
 
      This member has no counterpart in the standard DOM (use insertBefore with the next
      sibling instead). It behaves like insertBefore, but the node is placed after refChild,
-     which must already be a child of this node (Error 20024 otherwise). Moving, fragment
+     which must already be a child of this node (ERR_INVALID_STATE otherwise). Moving, fragment
      splicing and cross-document adoption follow the same rules.
 
      @param newChild the node to insert
@@ -391,7 +391,7 @@ interface XmlNode : object
      processing instructions, comments and a fragment, but no text; an element accepts
      elements, text, CDATA, entity references, processing instructions, comments and
      fragments. A cycle (inserting an ancestor) or a disallowed node type throws an Error
-     (20024); a non-node argument throws a TypeError (20005).
+     (ERR_INVALID_STATE); a non-node argument throws a TypeError (20005).
 
      ```JavaScript
      const xml = require('xml');
@@ -412,7 +412,7 @@ interface XmlNode : object
 
     /*! @brief Replaces an existing child with another node
 
-     oldChild must be a child of this node (Error 20024 otherwise); it is detached and
+     oldChild must be a child of this node (ERR_INVALID_STATE otherwise); it is detached and
      returned. newChild is inserted at its position under the same rules as insertBefore,
      including fragment splicing, moving and cross-document adoption. When newChild equals
      oldChild the call is a no-op that returns the node.
@@ -425,7 +425,7 @@ interface XmlNode : object
 
     /*! @brief Removes a child node from this node
 
-     oldChild must be a child of this node, otherwise an Error (20024) is thrown; the child
+     oldChild must be a child of this node, otherwise an Error (ERR_INVALID_STATE) is thrown; the child
      is detached with its subtree intact and returned. Removing the document element from a
      document sets documentElement to null, after which another element may be appended. A
      non-node argument throws a TypeError (20005).

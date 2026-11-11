@@ -353,22 +353,22 @@ describe("child_process", () => {
                 });
 
                 // Test invalid resize parameters
-                // invalid resize -> TypeError (CALL_E_INVALIDARG, 20004)
+                // invalid resize -> RangeError (out of the value range)
                 assert.throws(() => {
                     bs.resize(0, 24);
-                }, { name: 'TypeError', number: 20004 });
+                }, { name: 'RangeError', code: 'ERR_OUT_OF_RANGE', number: 20013 });
 
                 assert.throws(() => {
                     bs.resize(80, 0);
-                }, { name: 'TypeError', number: 20004 });
+                }, { name: 'RangeError', code: 'ERR_OUT_OF_RANGE', number: 20013 });
 
                 assert.throws(() => {
                     bs.resize(-10, 24);
-                }, { name: 'TypeError', number: 20004 });
+                }, { name: 'RangeError', code: 'ERR_OUT_OF_RANGE', number: 20013 });
 
                 assert.throws(() => {
                     bs.resize(80, -5);
-                }, { name: 'TypeError', number: 20004 });
+                }, { name: 'RangeError', code: 'ERR_OUT_OF_RANGE', number: 20013 });
 
                 // Valid resize should work
                 assert.doesNotThrow(() => {
@@ -698,10 +698,10 @@ describe("child_process", () => {
             var ret = $`echo ${a}`;
             assert.equal(ret, '1 2 3');
 
-            // unknown command through the shell tag -> the shell's error surfaces (20024)
+            // unknown command through the shell tag -> the shell's error surfaces
             assert.throws(() => {
                 $`echo1 100`;
-            }, { number: 20024 });
+            }, { code: 'ERR_CHILD_PROCESS_STDIO', number: 20011 });
         });
 
         it("execSync with input", () => {

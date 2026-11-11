@@ -95,7 +95,7 @@ interface RangeStream : SeekableStream
      the end of the stream) or '-end' (the last end bytes). The string is
      resolved against the current size of stm when the constructor runs; a
      malformed string, a missing '-', a begin past the end or an end past the
-     size throws [20024]. The stored `end` is the parsed inclusive end plus
+     size throws [ERR_INVALID_STATE]. The stored `end` is the parsed inclusive end plus
      one, so it is exclusive like the numeric form; the equivalent call is
      RangeStream(stm, begin, end).
 

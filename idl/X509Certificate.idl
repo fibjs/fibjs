@@ -160,7 +160,7 @@ interface X509Certificate : object
 
      One RDN per line in RFC 2253 form with short attribute names, in the order they appear
      in the certificate, for example `C=US\nO=Example\nCN=example.com`. Reading an empty
-     subject throws error 20024 instead of returning an empty string.
+     subject throws ERR_INVALID_STATE instead of returning an empty string.
     */
     readonly String subject;
 
@@ -206,7 +206,7 @@ interface X509Certificate : object
      Same one-RDN-per-line format as subject, and equal to the subject for a self-signed
      certificate. The issuer is metadata of the signature: it says who signed the
      certificate, not whether the signer is trusted. Reading a certificate whose issuer
-     name is empty (an issue call without an issuer) throws error 20024.
+     name is empty (an issue call without an issuer) throws ERR_INVALID_STATE.
     */
     readonly String issuer;
 
@@ -319,7 +319,7 @@ interface X509Certificate : object
      subject as well, and 'never' disables the subject fallback (SAN entries are still
      matched). A non-matching address, even one that is not a valid mailbox, simply returns
      undefined; only an address holding an embedded NUL byte throws `Invalid email
-     address`. An unknown options.subject value throws error 20024.
+     address`. An unknown options.subject value throws ERR_INVALID_STATE.
 
      options supports the following properties:
      - subject: 'default', 'always' or 'never'. Default: 'default'.
@@ -363,9 +363,9 @@ interface X509Certificate : object
      - singleLabelSubdomains: restrict wildcards to one label, which is already the
        effective behavior. Default: false.
 
-     A name holding an embedded NUL byte throws `Invalid host name` (error 20024), while
+     A name holding an embedded NUL byte throws `Invalid host name` (ERR_INVALID_STATE), while
      other non-matching names, malformed or not, return undefined; an unknown subject
-     value throws error 20024. The boolean options reject non-boolean values with a
+     value throws ERR_INVALID_STATE. The boolean options reject non-boolean values with a
      TypeError [20005].
 
      Example: wildcard and partial wildcard matching:
@@ -400,7 +400,7 @@ interface X509Certificate : object
      never consulted, so a certificate that only carries a CN does not match any address and
      address checking always requires a certificate built with IP SAN entries. IPv4 and IPv6
      accept their usual text forms ('127.0.0.1', '::1'). Returns ip on a match and undefined
-     otherwise; a malformed address throws error 20024.
+     otherwise; a malformed address throws ERR_INVALID_STATE.
      @param ip the IPv4 or IPv6 address to match
      @return returns ip on a match, undefined otherwise
     */

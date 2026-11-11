@@ -95,7 +95,7 @@ interface ConsoleObject : object
      to `out`, otherwise it must be writable too. When the single argument is an
      object without a `write()` method it is read as an options object with
      `stdout` and `stderr` properties, where `stdout` is required and `stderr`
-     defaults to `out`. Invalid arguments throw Error 20024, for example
+     defaults to `out`. Invalid arguments throw ERR_INVALID_STATE, for example
      "ConsoleObject: stdout must have a write() method." or "ConsoleObject:
      options.stdout is required.". Each record is the formatted text plus a
      newline, written synchronously; the global logging system is not used.

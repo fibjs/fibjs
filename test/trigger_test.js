@@ -223,7 +223,7 @@ function evevt_test(name, e) {
             });
             assert.throws(() => {
                 e.emit('error');
-            }, { name: 'Error', number: 20024 });
+            }, { name: 'Error', number: 20011 });
             e.off('error');
         });
 
@@ -488,7 +488,7 @@ describe("Trigger/EventEmitter", () => {
             assert.equal(events.defaultMaxListeners, 13);
             assert.equal(events.EventEmitter.defaultMaxListeners, 13);
 
-            assert.throws(() => events.defaultMaxListeners = -1, { name: 'Error', number: 20024 });
+            assert.throws(() => events.defaultMaxListeners = -1, { name: 'RangeError', number: 20013 });
 
             events.defaultMaxListeners = 10;
         });

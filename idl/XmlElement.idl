@@ -277,7 +277,7 @@ interface XmlElement : XmlNode
      elements follow the document mode (`<b/>` in XML, `<b></b>` or a void tag such as
      `<br>` in HTML) and special characters are escaped. Assigning replaces every child
      node with the parsed content: in XML mode the fragment is parsed inside a temporary
-     root element, so it must be well-formed XML and a parse error (20024) leaves the
+     root element, so it must be well-formed XML and a parse error (ERR_INVALID_STATE) leaves the
      element unchanged; in HTML mode the fragment is parsed as HTML. Assigning a non-string
      throws a type error (20005), and an empty string only clears the children. For a
      `<template>` element in HTML mode, reading returns the serialization of the children
@@ -306,7 +306,7 @@ interface XmlElement : XmlNode
      an end tag (`<br>`) and empty non-void elements as `<tag></tag>`. Assigning parses the
      HTML fragment and replaces the element in its parent with the parsed nodes; when the
      element has no parent the assignment does nothing, and assigning to the document
-     element (a direct child of the document) throws an error (20024). XML mode has no
+     element (a direct child of the document) throws an error (ERR_INVALID_STATE). XML mode has no
      concept of HTML fragments, so both reading and writing throw an invalid-call error
      (20009); use toString or the XMLSerializer interface instead.
     */
@@ -544,7 +544,7 @@ interface XmlElement : XmlNode
      The attribute's name and namespace decide which attribute it replaces: when the element
      already has one with the same name, the replaced XmlAttr is returned, otherwise null is
      returned. The attribute must belong to no element or to this one; an attribute owned by
-     another element is rejected with an error (20024) — remove it there first — and passing
+     another element is rejected with an error (ERR_INVALID_STATE) — remove it there first — and passing
      one of the element's own attributes just returns it without changing anything.
      @param attr the XmlAttr object to set
      @return returns the replaced XmlAttr object, or NULL if nothing was replaced
@@ -576,7 +576,7 @@ interface XmlElement : XmlNode
      The XmlAttr object must currently belong to this element: the removed node is returned
      and becomes detached, so it can be attached to another element with setAttributeNode.
      An attribute owned by another element, or one that was already removed, throws an error
-     (20024), which is stricter than a browser's DOMException — check hasAttribute or
+     (ERR_INVALID_STATE), which is stricter than a browser's DOMException — check hasAttribute or
      getAttributeNode before calling.
      @param attr the XmlAttr object to remove
      @return returns the removed XmlAttr object
@@ -683,7 +683,7 @@ interface XmlElement : XmlNode
 
      The element itself is not a candidate and the first match in document order is
      returned; when nothing matches, null is returned. An empty selector throws an error
-     (20024); other malformed selectors either throw the same error or yield no match,
+     (ERR_INVALID_STATE); other malformed selectors either throw the same error or yield no match,
      depending on where the parse fails. Selector support: type, `#id`, `.class`, `[attr]`
      with `=`, `^=`, `$=`, `*=`, `~=`, `|=`, the descendant/`>`/`+`/`~` combinators and the
      `:first-child`, `:last-child`, `:nth-child()`, `:only-child`, `:not()`, `:is()`,
@@ -713,7 +713,7 @@ interface XmlElement : XmlNode
      The results are in document order and exclude the element itself; the list is a
      snapshot, so elements added after the call do not appear in it and nodes removed from
      the document stay reachable through it while it is referenced. The selector syntax and
-     error behavior are those of querySelector; an empty selector throws (20024). The list
+     error behavior are those of querySelector; an empty selector throws (ERR_INVALID_STATE). The list
      supports iteration, indexed access and a toString() that serializes the matched
      elements.
      @param selectors the CSS selector
@@ -726,7 +726,7 @@ interface XmlElement : XmlNode
      Unlike querySelector this method does not search the descendants: it answers whether
      the element would be selected by the selector, which makes it useful for conditional
      logic. Selector syntax and case rules match querySelector, and a pseudo-element
-     selector always returns false. An empty or malformed selector throws (20024), and only
+     selector always returns false. An empty or malformed selector throws (ERR_INVALID_STATE), and only
      a string is accepted — a non-string argument throws a type error (20005) instead of
      being converted. Use closest to find the nearest ancestor that matches.
 
@@ -754,7 +754,7 @@ interface XmlElement : XmlNode
      through parent elements until a match is found; null is returned when the root is
      reached without a match, and non-element ancestors (a document or document fragment)
      end the walk. The selector syntax and the error behavior are those of matches: an empty
-     selector throws (20024) and a non-string argument throws a type error (20005).
+     selector throws (ERR_INVALID_STATE) and a non-string argument throws a type error (20005).
      @param selectors the CSS selector
      @return returns the nearest matching ancestor element (possibly the element itself), or null if there is no match
     */
@@ -814,7 +814,7 @@ interface XmlElement : XmlNode
      and 'afterend' insert into the parent at the sibling position and return null when the
      element has no parent; 'afterbegin' and 'beforeend' insert as the first or last child.
      On success the inserted element is returned. An unknown position throws an error
-     (20024) and a non-element argument throws a type error (20005). Use insertAdjacentText
+     (ERR_INVALID_STATE) and a non-element argument throws a type error (20005). Use insertAdjacentText
      for text and insertAdjacentHTML for markup; the XmlNode methods before/after handle the
      general case.
      @param position the insertion position
@@ -830,9 +830,9 @@ interface XmlElement : XmlNode
      — with a detached element they do not return (fibjs limitation, avoid that call) —
      while 'afterbegin' and 'beforeend' always work. The markup is parsed according to the
      document mode: an XML document parses the fragment as well-formed XML (a parse error
-     throws 20024 and nothing is inserted) and an HTML document parses it as HTML, so
+     throws ERR_INVALID_STATE and nothing is inserted) and an HTML document parses it as HTML, so
      several top-level nodes and unclosed tags are accepted. The parsed nodes are inserted
-     in order. An empty string does nothing and an unknown position throws (20024) before
+     in order. An empty string does nothing and an unknown position throws (ERR_INVALID_STATE) before
      any parsing. Use insertAdjacentElement for one element object and insertAdjacentText
      for plain text.
 

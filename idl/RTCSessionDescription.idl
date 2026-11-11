@@ -98,7 +98,7 @@
 
  Notes:
 
- - fibjs has no string conversion for the class: converting an instance to a string throws 20024.
+ - fibjs has no string conversion for the class: converting an instance to a string throws ERR_INVALID_STATE.
  */
 interface RTCSessionDescription : object
 {
@@ -106,7 +106,7 @@ interface RTCSessionDescription : object
 
      The description object must contain both `type` (the kind of the description) and `sdp` (the
      SDP text, a string; another type throws 20005). A missing field throws TypeError 20002. The
-     text is parsed at construction, so text the library cannot parse may throw 20024, and an
+     text is parsed at construction, so text the library cannot parse may throw ERR_INVALID_STATE, and an
      unknown `type` is accepted and reported as `unspec` by the `type` member.
 
      Example — wrap a short description and read its type:

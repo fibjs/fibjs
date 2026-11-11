@@ -100,7 +100,7 @@
  - The timeline is per isolate: marks recorded inside a worker are not visible to the main isolate.
  - getEntries returns the marks in an unspecified order; sort the array when a stable order is
    needed.
- - A missing mark in measure fails with Error [20024] and messages such as
+ - A missing mark in measure fails with Error [ERR_INVALID_STATE] and messages such as
    "startMark 'x' not found".
  */
 module performance
@@ -174,7 +174,7 @@ module performance
      The second overload, measure(name, startMark, endMark), takes mark names directly: an empty
      startMark means timestamp 0 and an empty endMark means the current time. Both overloads
      compute duration as end - start; a negative duration is accepted. A string start or
-     end that names a missing mark fails with Error [20024] and "startMark 'x' not found" or
+     end that names a missing mark fails with Error [ERR_INVALID_STATE] and "startMark 'x' not found" or
      "endMark 'x' not found"; `duration` together with `end` fails with "end must not be specified
      when duration is specified"; a start or end that is neither string nor number fails with
      "start must be a string or number" or "end must be a string or number". Combining a
@@ -212,7 +212,7 @@ module performance
     /*! @brief Creates a measure between two mark names
 
      Calls measure(name, startMark, endMark) with mark names: both marks must exist in the timeline
-     or the call fails with Error [20024]. An empty startMark is interpreted as timestamp 0 and an
+     or the call fails with Error [ERR_INVALID_STATE]. An empty startMark is interpreted as timestamp 0 and an
      empty endMark as the current time, mirroring the first overload; see the options overload for
      the full duration rules and error messages.
 

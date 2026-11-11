@@ -98,7 +98,7 @@ static result_t build_file_fetch_response(HttpRequest::Options* o, obj_ptr<HttpR
         method[i] = (char)toupper((unsigned char)method[i]);
 
     if (method != "GET" && method != "HEAD")
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("fetch(file:): only GET and HEAD are supported");
+        return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("fetch(file:): only GET and HEAD are supported");
 
     FileStream file;
     hr = file.open(path, "r");
@@ -2215,7 +2215,7 @@ public:
 
         // Fetch API redirect mode takes precedence over HttpClient autoRedirect
         if (m_o->redirect == "error")
-            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("fetch: redirect not allowed");
+            return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("fetch: redirect not allowed");
         if (m_o->redirect == "manual")
             return complete(); // return redirect response as-is
         if (!m_hc->m_autoRedirect)
@@ -3264,8 +3264,12 @@ public:
         // its AbortError/TimeoutError DOMException, everything else becomes a
         // TypeError (per spec). The value code must stay OUT of the overload
         // retry band, so CALL_E_TYPEMISMATCH/INVALIDARG are not usable here.
-        if (type_name == errtype::kAbortError || type_name == errtype::kTimeoutError)
-            return result_t::make(CALL_E_ABORT).with_type_name(type_name.c_str()).with_message(msg);
+        // A timeout is its own code: collapsing it into CALL_E_ABORT would make
+        // the timeline read like an ordinary abort (`number` and `code` both).
+        if (type_name == errtype::kTimeoutError)
+            return result_t::make(CALL_E_TIMEOUT).with_type_name(type_name.c_str()).with_code("TIMEOUT_ERR").with_message(msg);
+        if (type_name == errtype::kAbortError)
+            return result_t::make(CALL_E_ABORT).with_type_name(type_name.c_str()).with_code("ABORT_ERR").with_message(msg);
 
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_message(msg);
     }

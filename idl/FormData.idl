@@ -163,7 +163,7 @@ interface FormData : HttpCollection
 
     /*! @brief Appends a Blob or File value under a name with an explicit file name
 
-     The value must be a Blob or a File; any other value throws `TypeError [20024] Failed to
+     The value must be a Blob or a File; any other value throws `TypeError [ERR_INVALID_STATE] Failed to
      execute 'append' on 'FormData': parameter 2 is not of type 'Blob'.` The entry is stored
      as a File with the given filename (it may be empty), the bytes and type of the value and
      the current time as lastModified. Use this form when the upload needs a specific name.
@@ -187,7 +187,7 @@ interface FormData : HttpCollection
 
      Like the filename form of append() but destructive: every existing value of name is
      removed first, then one File with the given filename is appended. A value that is not a
-     Blob or File throws `TypeError [20024] Failed to execute 'set' on 'FormData': parameter 2
+     Blob or File throws `TypeError [ERR_INVALID_STATE] Failed to execute 'set' on 'FormData': parameter 2
      is not of type 'Blob'.`
      @param name the field name
      @param value the Blob or File to set
@@ -201,13 +201,13 @@ interface FormData : HttpCollection
      accepted:
      - "application/x-www-form-urlencoded" (the default, also "urlencoded",
        "form-urlencoded", "www-form-urlencoded") serializes the entries as name=value&...
-       with percent escapes. A File entry makes the call fail with `[20024] FormData encode:
+       with percent escapes. A File entry makes the call fail with `[ERR_INVALID_STATE] FormData encode:
        field '<name>' contains non-string value (File/Blob), use multipart/form-data encoding
        instead`. Spaces are encoded as %20, not as `+` like the WHATWG urlencoded serializer.
      - "multipart/form-data" writes a complete multipart body and generates a random boundary
        when the type string carries none; the type of the returned Blob contains the boundary
        actually used ("multipart/form-data; boundary=...").
-     Any other type, including an empty string, throws `[20024] FormData encode: unsupported
+     Any other type, including an empty string, throws `[ERR_INVALID_STATE] FormData encode: unsupported
      content type: <type>`. The returned Blob holds the whole body; send it, write it to a
      stream or parse it back with `new FormData(blob, '')`.
 

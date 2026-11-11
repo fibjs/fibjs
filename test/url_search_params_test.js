@@ -430,7 +430,8 @@ describe("URLSearchParams Test Suite", () => {
 
         it("should reject a sequence element that is not a pair", () => {
             assert.throws(() => new URLSearchParams([1]), (e) =>
-                e.number === 20024 && /sequence elements must be pairs/.test(e.message));
+                e.number === 20011 && e.code === 'ERR_INVALID_ARG_VALUE'
+                && /sequence elements must be pairs/.test(e.message));
         });
 
         it("should keep an empty name", () => {

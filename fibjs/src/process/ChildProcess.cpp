@@ -910,7 +910,7 @@ result_t ChildProcess::resize(int32_t cols, int32_t rows)
         return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("resize() only available in PTY mode");
 
     if (cols <= 0 || rows <= 0)
-        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_format("resize: cols and rows must be positive, received %d x %d.", cols, rows).with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_format("resize: cols and rows must be positive, received %d x %d.", cols, rows);
 
     if (m_stdinfd == -1 && m_stdoutfd == -1)
         return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("PTY not available");

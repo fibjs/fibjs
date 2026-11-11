@@ -186,7 +186,7 @@ describe("atob/btoa API", () => {
             assert.throws(() => {
                 btoa(unicodeString);
             }, {
-                name: isFibjs ? 'Error' : 'InvalidCharacterError',
+                name: isFibjs ? 'TypeError' : 'InvalidCharacterError',
                 message: /Failed to execute 'btoa'|Invalid character/
             });
         });
@@ -197,7 +197,7 @@ describe("atob/btoa API", () => {
             assert.throws(() => {
                 btoa(invalidChar);
             }, {
-                name: isFibjs ? 'Error' : 'InvalidCharacterError'
+                name: isFibjs ? 'TypeError' : 'InvalidCharacterError'
             });
         });
 
@@ -217,7 +217,7 @@ describe("atob/btoa API", () => {
                 assert.throws(() => {
                     btoa(testCase);
                 }, {
-                    name: isFibjs ? 'Error' : 'InvalidCharacterError'
+                    name: isFibjs ? 'TypeError' : 'InvalidCharacterError'
                 }, `Should reject Unicode test case ${index}: "${testCase}"`);
             });
         });
@@ -248,7 +248,7 @@ describe("atob/btoa API", () => {
                 assert.throws(() => {
                     btoa(testCase);
                 }, {
-                    name: isFibjs ? 'Error' : 'InvalidCharacterError'
+                    name: isFibjs ? 'TypeError' : 'InvalidCharacterError'
                 }, `Should reject non-Latin1 test case ${index}: "${testCase}"`);
             });
         });
@@ -266,7 +266,7 @@ describe("atob/btoa API", () => {
                 assert.throws(() => {
                     btoa(testCase);
                 }, {
-                    name: isFibjs ? 'Error' : 'InvalidCharacterError'
+                    name: isFibjs ? 'TypeError' : 'InvalidCharacterError'
                 }, `Should reject mixed string ${index}: "${testCase}"`);
             });
         });
@@ -276,7 +276,7 @@ describe("atob/btoa API", () => {
             assert.throws(() => {
                 atob('invalid@base64!');
             }, {
-                name: isFibjs ? 'Error' : 'InvalidCharacterError',
+                name: isFibjs ? 'TypeError' : 'InvalidCharacterError',
                 message: /Failed to execute 'atob'|Invalid character/
             });
         });
@@ -316,7 +316,7 @@ describe("atob/btoa API", () => {
                     // If it doesn't throw, verify it's a case where the invalid chars are ignored
                     // Note: Some invalid characters are accepted (whitespace, etc.)
                 } catch (error) {
-                    assert.strictEqual(error.name, isFibjs ? 'Error' : 'InvalidCharacterError',
+                    assert.strictEqual(error.name, isFibjs ? 'TypeError' : 'InvalidCharacterError',
                         `Should throw InvalidCharacterError for case ${index}: "${testCase}"`);
                 }
             });
@@ -345,7 +345,7 @@ describe("atob/btoa API", () => {
                     const result = atob(testCase);
                     // If it succeeds, it's handled gracefully
                 } catch (error) {
-                    assert.strictEqual(error.name, isFibjs ? 'Error' : 'InvalidCharacterError',
+                    assert.strictEqual(error.name, isFibjs ? 'TypeError' : 'InvalidCharacterError',
                         `Should throw InvalidCharacterError for padding case ${index}: "${testCase}"`);
                 }
             });
@@ -417,7 +417,7 @@ describe("atob/btoa API", () => {
                     const result = atob(testCase);
                     // Length cases are handled gracefully
                 } catch (error) {
-                    assert.strictEqual(error.name, isFibjs ? 'Error' : 'InvalidCharacterError',
+                    assert.strictEqual(error.name, isFibjs ? 'TypeError' : 'InvalidCharacterError',
                         `Should throw InvalidCharacterError for length case ${index}: "${testCase}"`);
                 }
             });
@@ -484,7 +484,7 @@ describe("atob/btoa API", () => {
             assert.throws(() => {
                 btoa(String.fromCharCode(256)); // First invalid character
             }, {
-                name: isFibjs ? 'Error' : 'InvalidCharacterError'
+                name: isFibjs ? 'TypeError' : 'InvalidCharacterError'
             });
 
             // Test character code 0
@@ -504,7 +504,7 @@ describe("atob/btoa API", () => {
                     assert.throws(() => {
                         btoa(char);
                     }, {
-                        name: isFibjs ? 'Error' : 'InvalidCharacterError'
+                        name: isFibjs ? 'TypeError' : 'InvalidCharacterError'
                     }, `Should reject character code ${charCode}`);
                 }
             });
@@ -533,7 +533,7 @@ describe("atob/btoa API", () => {
                     }
                     // Other malformed cases are handled gracefully
                 } catch (error) {
-                    assert.strictEqual(error.name, isFibjs ? 'Error' : 'InvalidCharacterError',
+                    assert.strictEqual(error.name, isFibjs ? 'TypeError' : 'InvalidCharacterError',
                         `Should throw InvalidCharacterError for malformed case ${index}: "${testCase}"`);
                 }
             });

@@ -452,7 +452,7 @@ result_t FormData::encode(exlib::string type, obj_ptr<Blob_base>& retVal)
             } else {
                 obj_ptr<File_base> file = File_base::getInstance(_pair.second.object());
                 if (!file) {
-                    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_type_name(errtype::kTypeError).with_message("FormData encode: field '" + _pair.first + "' is not a valid file object");
+                    return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_STATE").with_type_name(errtype::kTypeError).with_message("FormData encode: field '" + _pair.first + "' is not a valid file object");
                 }
 
                 part.is_file = true;

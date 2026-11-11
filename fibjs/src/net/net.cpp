@@ -78,7 +78,7 @@ result_t net_base::resolve(exlib::string name, int32_t family,
         return result_t::nosync();
 
     if (family != net_base::C_AF_INET && family != net_base::C_AF_INET6)
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_format("resolve: invalid address family %d.", family);
+        return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_format("resolve: invalid address family %d.", family);
 
     class resolve_data : public uv_getaddrinfo_t {
     public:
@@ -190,7 +190,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         return result_t::nosync();
 
     if (qstrcmp(url.c_str(), "tcp:", 4) && qstrcmp(url.c_str(), "unix:", 5) && qstrcmp(url.c_str(), "pipe:", 5))
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_format("connect: unknown protocol in url '%s'.", url.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_format("connect: unknown protocol in url '%s'.", url.c_str());
 
     if (!qstrcmp(url.c_str(), "tcp:", 4)) {
         obj_ptr<Url> u = new Url();
@@ -201,7 +201,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
 
         exlib::string port = u->port();
         if (port.length() == 0)
-            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_format("connect: missing port in url '%s'.", url.c_str());
+            return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_format("connect: missing port in url '%s'.", url.c_str());
 
         int32_t nPort = atoi(port.c_str());
         int32_t family = u->isIPv6() ? net_base::C_AF_INET6 : net_base::C_AF_INET;

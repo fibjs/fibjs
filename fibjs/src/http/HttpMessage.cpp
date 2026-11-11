@@ -374,22 +374,22 @@ result_t HttpMessage::formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac)
     exlib::string strType;
 
     if (firstHeader("Content-Type", strType).is_return_null())
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': Content-Type is missing.");
+        return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': Content-Type is missing.");
 
     bool is_multipart = qstristr(strType.c_str(), "multipart/form-data") != NULL;
     bool is_urlencoded = qstristr(strType.c_str(), "urlencoded") != NULL;
 
     if (!is_multipart && !is_urlencoded)
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': the Content-Type is not a form type.");
+        return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': the Content-Type is not a form type.");
 
     if (is_multipart && qstristr(strType.c_str(), "boundary") == NULL)
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': the multipart Content-Type is missing a boundary.");
+        return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': the multipart Content-Type is missing a boundary.");
 
     return consumeBody([this, &retVal, strType, is_multipart](result_t n, obj_ptr<Buffer_base> data) -> result_t {
         m_bodyUsed = true;
 
         if (n.is_return_null() || !data)
-            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': the body is empty.");
+            return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_message("Failed to execute 'formData' on 'Body': the body is empty.");
 
         obj_ptr<FormData> form = new FormData();
         result_t hr;

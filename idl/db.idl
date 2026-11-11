@@ -136,7 +136,7 @@ module db
      guaranteed, use `type` to branch on the engine. `redis://` and `leveldb:` strings
      are rejected here: call openRedis / openLevelDB instead. A string without a known
      prefix fails with error number 20004; a failed connection reports the driver error
-     with number 20024.
+     with ERR_INVALID_STATE.
 
      Example — select the engine with the protocol prefix:
      ```JavaScript
@@ -161,7 +161,7 @@ module db
      database name is the URL path (may be empty) and the port defaults to 3306. The
      character set is fixed to utf8mb4 and query-string options are not read, so
      credentials must be part of the URL. A server that cannot be reached reports error
-     number 20024 ("Failed to connect to server"). Use close() to end the session.
+     ERR_INVALID_STATE ("Failed to connect to server"). Use close() to end the session.
 
      Example — connect and run a statement (needs a MySQL server):
      ```JavaScript
@@ -194,7 +194,7 @@ module db
      lose their data when the connection is closed. Every connection enables WAL
      journaling, `synchronous=normal` and `temp_store=memory`, and waits up to 5000 ms
      for a busy file (see SQLite.timeout). Failures such as a missing parent directory
-     report error number 20024 with the SQLite message.
+     report ERR_INVALID_STATE with the SQLite message.
 
      Example — create a database file in a temporary directory:
      ```JavaScript
@@ -223,7 +223,7 @@ module db
 
      Only `odbc://` strings are accepted; the driver name is required and is read from
      the `Driver` (or `driver`) query-string parameter: `odbc://user:pass@host/db?driver=MyDriver`.
-     Without it the call fails with error number 20024 ("odbc: no driver specified.").
+     Without it the call fails with ERR_INVALID_STATE ("odbc: no driver specified.").
      The URL is translated into an ODBC connection string with the Driver, Server,
      optional Port and Database, Uid and Pwd attributes; other ODBC attributes cannot be
      set from the URL. The returned object reports type `"odbc"`; install the driver
@@ -240,7 +240,7 @@ module db
      `libtdsodbc.so` on posix (freetds must be installed) or "SQL Server" on Windows.
      Append `?driver=msodbcsql17` (or another name/path) to use a different driver. The
      returned object reports type `"mssql"`; note that mssql does not provide `insertId`
-     in execution results. Connection failures report error number 20024 with the
+     in execution results. Connection failures report ERR_INVALID_STATE with the
      driver diagnostics.
 
      @param connString the database description, such as: mssql://user:pass@host/db

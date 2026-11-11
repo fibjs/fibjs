@@ -134,12 +134,12 @@ result_t global_base::structuredClone(v8::Local<v8::Value> value,
                         if (item->IsArrayBuffer()) {
                             transferList.push_back(v8::Local<v8::ArrayBuffer>::Cast(item));
                         } else {
-                            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name("TypeError").with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"options.transfer\" property must contain only ArrayBuffer objects");
+                            return result_t::make(CALL_E_INVALID_DATA).with_type_name("TypeError").with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"options.transfer\" property must contain only ArrayBuffer objects");
                         }
                     }
                 }
             } else if (!transferValue->IsUndefined()) {
-                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_type_name("TypeError").with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"options.transfer\" property must be an array");
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name("TypeError").with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"options.transfer\" property must be an array");
             }
         }
     }

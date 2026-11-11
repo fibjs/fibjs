@@ -31,7 +31,7 @@
    signature, unlike the DER encoding that `crypto.sign` uses by default (`dsaEncoding:
    'ieee-p1363'` makes the crypto module interoperate).
  - **Errors**: unsupported algorithms, names, curves, hashes or usages reject with an Error
-   whose `number` is 20024; wrong argument types throw a TypeError (20005).
+   whose `number` is ERR_INVALID_STATE; wrong argument types throw a TypeError (20005).
 
  Example 1 — SHA-256 digest of a fixed message:
  ```JavaScript
@@ -91,7 +91,7 @@ module subtle
      match case-insensitively. The data may be a Buffer, a typed array, an ArrayBuffer or a
      string (encoded as utf8). The result size follows the algorithm: 20 bytes for SHA-1,
      32 for SHA-256, 48 for SHA-384 and 64 for SHA-512. An unknown algorithm rejects with
-     Error 20024 and an unsupported data type throws a TypeError.
+     ERR_INVALID_STATE and an unsupported data type throws a TypeError.
 
      Example - an object algorithm and a typed array input:
      ```JavaScript
@@ -123,7 +123,7 @@ module subtle
        an `alg` field such as `HS256`.
 
      The key must be extractable, otherwise the promise rejects with `Key is not extractable`
-     (Error 20024); public keys are always extractable.
+     (ERR_INVALID_STATE); public keys are always extractable.
 
      Example - export an EC public key as JWK and re-import it:
      ```JavaScript
@@ -163,7 +163,7 @@ module subtle
      'verify' on the public key); ECDH needs 'deriveKey' or 'deriveBits'; HMAC accepts
      'sign' and/or 'verify'. An HMAC key generated without length uses the hash block size
      (512 bits for SHA-256), reported in `key.algorithm.length`. Unsupported names, curves,
-     hashes or usages reject with Error 20024.
+     hashes or usages reject with ERR_INVALID_STATE.
 
      Example 1 - generate an Ed25519 pair and use it:
      ```JavaScript
@@ -216,7 +216,7 @@ module subtle
      usages must be consistent with the key type: a private key needs 'sign' and must not
      have 'verify'; a public key needs 'verify' and must not have 'sign'; ECDH private keys
      need 'deriveKey' or 'deriveBits' while ECDH public keys must have no usages; HMAC keys
-     need 'sign' or 'verify'. Violations and malformed material reject with Error 20024.
+     need 'sign' or 'verify'. Violations and malformed material reject with ERR_INVALID_STATE.
 
      Example - import a fixed HMAC key and match the RFC 4231 test vector:
      ```JavaScript
@@ -287,7 +287,7 @@ module subtle
      for Ed25519, the key's hash for HMAC). A signature with the wrong length or corrupted
      bytes resolves to false instead of throwing, so callers normally do not need to catch;
      a key without the 'verify' usage, an unsupported algorithm or a key from a different
-     algorithm family rejects with Error 20024.
+     algorithm family rejects with ERR_INVALID_STATE.
 
      Example - a valid signature is true and a tampered one is false:
      ```JavaScript
@@ -328,7 +328,7 @@ module subtle
      shared secret is returned (32 bytes for P-256, 66 bytes for P-521). A positive length
      truncates the result to length / 8 bytes and masks the trailing bits when length is
      not a multiple of 8, as the standard requires; a length larger than the secret, a
-     missing public key or a peer key on another curve rejects with Error 20024.
+     missing public key or a peer key on another curve rejects with ERR_INVALID_STATE.
 
      Example - the full secret and a truncated half share the same prefix:
      ```JavaScript

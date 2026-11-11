@@ -128,7 +128,7 @@ interface XmlDocument : XmlNode
      })
      ```
 
-     Exceeding a limit throws an Error (20024); malformed XML throws the same error with the
+     Exceeding a limit throws an Error (ERR_INVALID_STATE); malformed XML throws the same error with the
      line and column in the message. A non-number option throws a TypeError (20004), and a
      source that is neither string nor Buffer throws a TypeError (20005). The member returns
      nothing.
@@ -186,7 +186,7 @@ interface XmlDocument : XmlNode
      `childNodes[0]` when the declaration comes first). An HTML document parsed from
      `<!DOCTYPE html>` keeps it as well; a document built with the create* factories has
      none. A document accepts at most one doctype - appending a second throws an Error
-     (20024). removeChild clears the slot, while XmlNode.remove() and adoptNode() detach the
+     (ERR_INVALID_STATE). removeChild clears the slot, while XmlNode.remove() and adoptNode() detach the
      node without clearing it, so this property then keeps reporting the detached doctype.
     */
     readonly XmlDocumentType doctype;
@@ -194,7 +194,7 @@ interface XmlDocument : XmlNode
     /*! @brief Returns the document element, or null when the document has no root element
 
      A document holds at most one element; appendChild/insertBefore/replaceChild reject a
-     second one with an Error (20024). removeChild (and replaceChild) release the slot: after
+     second one with an Error (ERR_INVALID_STATE). removeChild (and replaceChild) release the slot: after
      removing the root this property reads null and another element can be appended. The
      slot is a document-level field, so the generic XmlNode.remove() and adoptNode() do not
      release it - they detach the element but the document still reports it here and keeps
@@ -389,7 +389,7 @@ interface XmlDocument : XmlNode
      deep defaults to true, so the whole subtree is copied; false imports only the node
      itself (an element still brings its attributes). The source stays in its document and
      is unchanged, while the copy and its subtree are owned by this document and have no
-     parent. A Document node cannot be imported (Error 20024); a non-node argument throws a
+     parent. A Document node cannot be imported (ERR_INVALID_STATE); a non-node argument throws a
      TypeError (20005). Use adoptNode to move a node instead of copying it.
 
      ```JavaScript
@@ -417,7 +417,7 @@ interface XmlDocument : XmlNode
      (or doctype) detaches it, but like XmlNode.remove() this path does not release the
      document-level slot: documentElement (doctype) keeps reporting the detached node and a
      second element (doctype) is rejected - use removeChild first when the node must be
-     replaced. A Document node cannot be adopted (Error 20024); a non-node argument throws a
+     replaced. A Document node cannot be adopted (ERR_INVALID_STATE); a non-node argument throws a
      TypeError (20005). Inserting a node into another document adopts it implicitly - see
      XmlNode.
 
@@ -430,7 +430,7 @@ interface XmlDocument : XmlNode
 
      The search covers the whole document, documentElement included, and returns the first
      match in document order or null when nothing matches; a document without a root element
-     also returns null. An invalid selector throws a SyntaxError (20024). The supported
+     also returns null. An invalid selector throws a SyntaxError (ERR_INVALID_STATE). The supported
      selector grammar is listed in the XmlElement class comment; querySelectorAll returns
      every match as a snapshot. See XmlElement.querySelector for the descendant-only variant.
 
@@ -444,7 +444,7 @@ interface XmlDocument : XmlNode
      The search covers the whole document, documentElement included. The returned
      XmlNodeList is a snapshot in document order that holds strong references to its nodes:
      a later mutation does not change it, query again after changing the tree. A document
-     without a root element returns null; an invalid selector throws a SyntaxError (20024).
+     without a root element returns null; an invalid selector throws a SyntaxError (ERR_INVALID_STATE).
 
      @param selectors the CSS selector to match
      @return an XmlNodeList of the matching elements in document order

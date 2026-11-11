@@ -18,7 +18,7 @@
  - **Module registry**: a new sandbox contains only the `module` and `buffer` modules.
    addBuiltinModules installs the full built-in module set together with the `node:` and `fibjs:`
    aliases, `assert/strict` and the `/promises` submodules. Custom modules are registered with
-   add or addScript; module names and absolute paths are accepted, relative ids throw Error 20024.
+   add or addScript; module names and absolute paths are accepted, relative ids throw ERR_INVALID_STATE.
  - **Copies on add**: a dictionary added with add(Object mods) is copied entry by entry with
    util.clone, so a plain object becomes a new object with shared nested references while native
    values such as Buffer keep their identity. Replacing an id replaces the registered module.
@@ -165,7 +165,7 @@ interface SandBox : object
 
     /*! @brief Adds a module to the sandbox under the given name
 
-     The id must be a module name or an absolute path; a relative id throws Error 20024 ("does
+     The id must be a module name or an absolute path; a relative id throws ERR_INVALID_STATE ("does
      not accept relative path"). The value is copied with util.clone: a plain object becomes a new
      object whose nested references are shared with the original, while native values such as
      Buffer keep their identity. Registering an existing id replaces the module.
@@ -298,7 +298,7 @@ interface SandBox : object
      an object `{ filename }` and must return JavaScript source; the compiled module is cached,
      so the compiler runs once per file. Re-registering an extension replaces the compiler. The
      extname must start with '.' and must not be a built-in extension ('.js', '.json', '.jsc',
-     '.wasm'); a malformed name throws ReferenceError, a reserved name throws Error 20024.
+     '.wasm'); a malformed name throws ReferenceError, a reserved name throws ERR_INVALID_STATE.
 
      Example:
      ```JavaScript

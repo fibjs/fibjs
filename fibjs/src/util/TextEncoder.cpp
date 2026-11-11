@@ -26,7 +26,7 @@ result_t TextEncoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
     if (!encoding_conv::resolve(codec, canonicalName))
         // Node.js: a bad label is ERR_ENCODING_NOT_SUPPORTED; fibjs resolves real
         // codecs here (an extension - Node's TextEncoder ignores the label).
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kRangeError).with_result(result_t::invalid_arg()).with_code("ERR_ENCODING_NOT_SUPPORTED").with_format("The \"%s\" encoding is not supported", codec.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kRangeError).with_result(result_t::out_of_range()).with_code("ERR_ENCODING_NOT_SUPPORTED").with_format("The \"%s\" encoding is not supported", codec.c_str());
 
     retVal = new TextEncoder(canonicalName);
     return result_t();
@@ -121,7 +121,7 @@ result_t TextDecoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
     exlib::string canonicalName;
     if (!encoding_conv::resolve(codec, canonicalName))
         // Node.js: RangeError + ERR_ENCODING_NOT_SUPPORTED
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kRangeError).with_result(result_t::invalid_arg()).with_code("ERR_ENCODING_NOT_SUPPORTED").with_format("The \"%s\" encoding is not supported", codec.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kRangeError).with_result(result_t::out_of_range()).with_code("ERR_ENCODING_NOT_SUPPORTED").with_format("The \"%s\" encoding is not supported", codec.c_str());
 
     // Parse options
     bool fatal = false;

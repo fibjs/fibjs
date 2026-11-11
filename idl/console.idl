@@ -176,12 +176,12 @@ module console
 
      Registers one of the supported devices and stops using the built-in console
      fallback; up to 10 devices can be registered and adding an 11th throws Error
-     20024 ("console: Too many items."). `use` is the historical name of the same
+     ERR_INVALID_STATE ("console: Too many items."). `use` is the historical name of the same
      operation and `reset` removes every registered device.
 
      The supported names are `"console"` on every platform, `"syslog"` on POSIX,
      `"event"` on Windows and `"nslog"` on Darwin; any other name throws Error
-     20024 ("console: Unknown log type."). Device management is process-wide and
+     ERR_INVALID_STATE ("console: Unknown log type."). Device management is process-wide and
      is not available in worker threads (Error 20009).
 
      Example:
@@ -201,22 +201,22 @@ module console
      registered in order. Each element is a device name string or an object:
 
      - `type` (String): device name, required, one of the names accepted by
-       `add(String)`; a missing type throws Error 20024 ("console: Missing log
+       `add(String)`; a missing type throws ERR_INVALID_STATE ("console: Missing log
        type.");
      - `levels` (Array): whitelist of severity levels recorded by this device.
        Only the listed numbers are written (PRINT is always accepted) and the
-       default is all levels; an entry outside 0..NOTSET throws Error 20024
+       default is all levels; an entry outside 0..NOTSET throws ERR_INVALID_STATE
        ("console: too many logger.").
      - File device only:
        - `path` (String): target file, required; a missing path throws Error
-         20024 ("console: Missing path."). A `%s` marker in the name is replaced
+         ERR_INVALID_STATE ("console: Missing path."). A `%s` marker in the name is replaced
          by a `YYYYMMDDHHmmss` stamp, otherwise the stamp is appended to the
          file name;
        - `split`: `"day"`, `"hour"`, `"minute"` or a size threshold such as
          `"30m"`, `"10k"` or `"1g"`; giving `count` without `split` throws Error
-         20024 ("console: Missing split mode.");
+         ERR_INVALID_STATE ("console: Missing split mode.");
        - `count` (Integer): rotated files to keep, 2 to 128, 128 by default; a
-         value outside the range throws Error 20024 ("console: Count must
+         value outside the range throws ERR_INVALID_STATE ("console: Count must
          between 2 to 128.").
 
      The example records only ERROR records to the console device:
@@ -237,7 +237,7 @@ module console
     /*! @brief Registers an output device by name; historical alias of add
 
      Behaves exactly like `add(String type)`, including the supported device
-     names, the 10-device limit and the Error 20024 failures. `use` and `add` are
+     names, the 10-device limit and the ERR_INVALID_STATE failures. `use` and `add` are
      separate function objects with identical behavior, kept for compatibility
      with older fibjs code.
 
@@ -256,7 +256,7 @@ module console
 
      Behaves exactly like `add(Object|Array cfg)`, including the file device
      configuration (`path`, `split`, `count`), the per-device `levels` whitelist
-     and the Error 20024 validation failures; see `add` for the full option list.
+     and the ERR_INVALID_STATE validation failures; see `add` for the full option list.
 
      Example:
      ```JavaScript

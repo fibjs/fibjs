@@ -98,7 +98,7 @@
  try {
      new http.Repeater('http://127.0.0.1:8080/?q=1');
  } catch (e) {
-     console.log(e.number); // 20024
+     console.log(e.number); // ERR_INVALID_STATE
  }
  ```
 */

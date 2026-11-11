@@ -56,7 +56,7 @@
  - **Results and errors**: decompressing to zero bytes returns null instead of an empty
    Buffer, and input that ends early is decoded up to its last complete output without an
    error. Wrong-format or corrupt data throws an Error
-   with `code` `Z_DATA_ERROR` (number 20024, message "data error"); a closed codec throws
+   with `code` `Z_DATA_ERROR` (ERR_INVALID_STATE, message "data error"); a closed codec throws
    ERR_ZLIB_BINDING_CLOSED; exceeding maxSize/maxOutputLength throws a RangeError
    (number 20013).
  - **Call forms**: every `async` member blocks the calling fiber when called without a
