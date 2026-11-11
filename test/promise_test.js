@@ -57,7 +57,11 @@ describe('promise', () => {
     });
 
     it("async method should reject promise instead of sync throw", () => {
-        t('promise_async_throw.js', 'rejected: [20002] Parameter not optional.\n');
+        // The point of the case is the CHANNEL (a rejected promise, not a
+        // synchronous throw). The wording is P2's: the arity failure now names
+        // the missing parameter instead of saying "[20002] Parameter not
+        // optional."
+        t('promise_async_throw.js', 'rejected: The "fname" argument is required. 0 argument(s) were passed, 1 required.\n');
     });
 
     it("caught rejection should not produce stderr noise", () => {
