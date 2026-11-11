@@ -14,8 +14,16 @@
 #include "RedisList.h"
 #include "RedisSet.h"
 #include "RedisSortedSet.h"
+#include "errhelp.h"
 
 namespace fibjs {
+
+// The handle has been released: one helper so the call sites cannot drift
+// apart, and so the code string is stated once.
+static result_t db_closed()
+{
+    return errhelp::closed("ERR_INVALID_STATE", "Redis: connection is closed.");
+}
 
 result_t db_base::openRedis(exlib::string connString,
     obj_ptr<Redis_base>& retVal, AsyncHandle ac)
@@ -520,7 +528,7 @@ result_t Redis::restore(Union_restore_key key, Union_restore_data data, int64_t 
 result_t Redis::close()
 {
     if (!m_sock)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("Redis: connection is closed.");
+        return db_closed();
 
     m_sock->ac_close();
 

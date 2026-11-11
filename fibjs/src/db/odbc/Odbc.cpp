@@ -17,10 +17,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "errhelp.h"
 
 #define SQL_SS_VARIANT (-150)
 
 namespace fibjs {
+
+// The handle has been released: one helper so the call sites cannot drift
+// apart, and so the code string is stated once.
+static result_t db_closed()
+{
+    return errhelp::closed("ERR_INVALID_STATE", "ODBC: connection is closed.");
+}
 
 static exlib::string normalize_identifier(exlib::string str)
 {
@@ -99,7 +107,7 @@ result_t odbc_close(void*& conn, AsyncHandle ac)
         return result_t::longsync();
 
     if (!conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed.");
+        return db_closed();
 
     odbc_disconnect(conn);
     conn = NULL;
@@ -391,7 +399,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
         return result_t::longsync();
 
     if (!conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed.");
+        return db_closed();
 
     if (activeStmt && *activeStmt)
         return db_stmt_busy_error();
@@ -929,7 +937,7 @@ result_t odbc_prepareStmt(void* conn, int32_t* activeStmt, exlib::string sql,
     const OdbcEscape& esc, obj_ptr<Statement_base>& retVal)
 {
     if (!conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: database is closed.");
+        return errhelp::closed("ERR_INVALID_STATE", "ODBC: database is closed.");
 
     obj_ptr<Statement> stmt = new Statement(sql,
         new OdbcStmtImpl(conn, activeStmt, sql, esc));
@@ -943,7 +951,7 @@ result_t odbc_getTables(void* conn, obj_ptr<NArray>& retVal, AsyncHandle ac)
         return result_t::longsync();
 
     if (!conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed.");
+        return db_closed();
 
     SQLRETURN hr;
     SQLHSTMT stmt;
@@ -994,7 +1002,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
         return result_t::longsync();
 
     if (!conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: connection is closed.");
+        return db_closed();
 
     SQLRETURN hr;
     SQLHSTMT stmt;

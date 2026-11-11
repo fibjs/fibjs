@@ -34,6 +34,7 @@
 
 #include <unistd.h>
 #include "editline/include/editline.h"
+#include "errhelp.h"
 
 #define _fileno fileno
 inline int32_t _umask(int32_t m)
@@ -726,7 +727,7 @@ result_t process_base::send(v8::Local<v8::Value> msg)
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_channel)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("process.send: IPC channel is not available.");
+        return errhelp::closed("ERR_IPC_CHANNEL_CLOSED", "process.send: IPC channel is not available.");
 
     return ChildProcess::Ipc::send(isolate->m_channel, msg);
 }

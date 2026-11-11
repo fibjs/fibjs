@@ -18,6 +18,7 @@
 #ifndef _WIN32
 #include <sys/ioctl.h>
 #include <termios.h>
+#include "errhelp.h"
 #endif
 
 namespace fibjs {
@@ -855,7 +856,7 @@ result_t ChildProcess::stop()
 result_t ChildProcess::send(v8::Local<v8::Value> msg)
 {
     if (m_ipc < 0)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("send: IPC channel is not available.");
+        return errhelp::closed("ERR_IPC_CHANNEL_CLOSED", "send: IPC channel is not available.");
 
     return Ipc::send(m_stdio[3], msg);
 }

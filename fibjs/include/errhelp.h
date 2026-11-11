@@ -139,33 +139,6 @@ result_t from_value(result_t hr, const char* name,
     const class Variant& received, const char* expected);
 result_t from_value(result_t hr, const char* name, const char* expected);
 
-// The expected-type phrase for a declared C++ parameter type.
-//
-// The argument macro is the only site that knows BOTH things a good message
-// needs: what the parameter is called (from the IDL) and what it was declared
-// as (the macro's first argument). GetArgumentValue knows the second and not
-// the first -- it receives `args[n]` alone -- which is why the description is
-// produced here instead of inside the conversion overloads. That also keeps
-// the 111 hand-written GetArgumentValue callers unaffected, and avoids
-// describing the same failure twice when one overload delegates to another
-// (int32_t goes through int64_t).
-//
-// The expected-type phrase for a declared C++ parameter type, or nullptr when
-// the type has nothing useful to add.
-//
-// The argument macro is the only site that knows BOTH things a good message
-// needs: what the parameter is called (from the IDL) and what it was declared
-// as (the macro's first argument). GetArgumentValue knows the second and not
-// the first -- it receives `args[n]` alone -- which is why the description is
-// produced here instead of inside the conversion overloads. That also keeps
-// the 111 hand-written GetArgumentValue callers unaffected, and avoids
-// describing the same failure twice when one overload delegates to another
-// (int32_t goes through int64_t).
-//
-// The primary template answers nullptr. A union (std::variant) therefore falls
-// through to the generic wording, which is correct: its members differ, so
-// naming one member would be a lie, and the function that takes the union
-// reports the real problem (a URL that is not a file URL, say).
 namespace detail {
 // Detects obj_ptr<T> / v8::Local<T>: both are holders whose failure to convert
 // means "not the kind of object this parameter wants".

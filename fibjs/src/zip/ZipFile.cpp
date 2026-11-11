@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include "errhelp.h"
 #include "ifs/zip.h"
 #include "ifs/fs.h"
 #include "file_path.h"
@@ -257,6 +258,13 @@ result_t zip_base::open(Union_open_data data, exlib::string mod, exlib::string c
     return zip_open_path(std::get<exlib::string>(data), mod, codec, retVal, std::move(ac));
 }
 
+// The zip handle is released: one helper so the fourteen call sites cannot
+// drift apart, and so the code string is stated once.
+static result_t zip_closed()
+{
+    return errhelp::closed("ERR_FIBJS_ZIP_CLOSED", "ZipFile: file is closed.");
+}
+
 ZipFile::ZipFile(SeekableStream_base* strm, exlib::string mod, exlib::string codec)
     : m_unz(NULL)
     , m_zip(NULL)
@@ -277,7 +285,7 @@ template <class T>
 result_t ZipFile::get_info(obj_ptr<T>& retVal)
 {
     if (!m_unz)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     int32_t err;
     char filename_inzip[256];
@@ -314,7 +322,7 @@ result_t ZipFile::get_info(obj_ptr<T>& retVal)
 result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncHandle ac)
 {
     if (!m_unz)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     if (ac.isSync())
         return result_t::nosync();
@@ -357,7 +365,7 @@ result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncHandle ac)
 result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& retVal, AsyncHandle ac)
 {
     if (!m_unz)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     if (ac.isSync())
         return result_t::nosync();
@@ -400,7 +408,7 @@ result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& ret
 result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipFile_base::GetinfoType>& retVal, AsyncHandle ac)
 {
     if (!m_unz)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     if (ac.isSync())
         return result_t::nosync();
@@ -427,7 +435,7 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipFile_base::GetinfoTyp
 result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
 {
     if (!m_unz)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     int32_t err;
     result_t hr;
@@ -483,7 +491,7 @@ result_t ZipFile::read(exlib::string password, obj_ptr<Buffer_base>& retVal)
 result_t ZipFile::read(exlib::string member, exlib::string password, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (!m_unz)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     if (ac.isSync())
         return result_t::nosync();
@@ -504,7 +512,7 @@ result_t ZipFile::read(exlib::string member, exlib::string password, obj_ptr<Buf
 result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::string password, AsyncHandle ac)
 {
     if (!m_unz)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     if (ac.isSync())
         return result_t::nosync();
@@ -531,7 +539,7 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::strin
 result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, exlib::string password, AsyncHandle ac)
 {
     if (!m_unz)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     if (ac.isSync())
         return result_t::nosync();
@@ -577,7 +585,7 @@ result_t ZipFile::checkGuard(exlib::string path)
 result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHandle ac)
 {
     if (!m_unz)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     if (ac.isSync())
         return result_t::nosync();
@@ -691,7 +699,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
 result_t ZipFile::readAll(exlib::string password, std::vector<obj_ptr<ZipFile_base::ReadAllType>>& retVal, AsyncHandle ac)
 {
     if (!m_unz)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     if (ac.isSync())
         return result_t::nosync();
@@ -760,7 +768,7 @@ result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
 result_t ZipFile::write(exlib::string filename, exlib::string password, SeekableStream_base* strm)
 {
     if (!m_zip)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     int32_t err;
     result_t hr;
@@ -828,7 +836,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
 result_t ZipFile::write(exlib::string filename, exlib::string inZipName, exlib::string password, AsyncHandle ac)
 {
     if (!m_zip)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     if (ac.isSync())
         return result_t::nosync();
@@ -846,7 +854,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string inZipName, exlib::
 result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, exlib::string password, AsyncHandle ac)
 {
     if (!m_zip)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     if (ac.isSync())
         return result_t::nosync();
@@ -867,7 +875,7 @@ result_t ZipFile::write(Buffer_base* data, exlib::string inZipName, exlib::strin
 result_t ZipFile::write(SeekableStream_base* strm, exlib::string inZipName, exlib::string password, AsyncHandle ac)
 {
     if (!m_zip)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ZipFile: file is closed.");
+        return zip_closed();
 
     if (ac.isSync())
         return result_t::nosync();

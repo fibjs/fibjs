@@ -11,6 +11,7 @@
 #include "DBResult.h"
 #include "Buffer.h"
 #include "ifs/coroutine.h"
+#include "errhelp.h"
 
 namespace fibjs {
 
@@ -40,6 +41,13 @@ result_t db_base::openSQLite(exlib::string connString,
     retVal = db;
 
     return result_t();
+}
+
+// The handle has been released: one helper so the call sites cannot drift
+// apart, and so the code string is stated once.
+static result_t db_closed()
+{
+    return errhelp::closed("ERR_INVALID_STATE", "SQLite: database is closed.");
 }
 
 result_t SQLite::open(const char* file)
@@ -362,7 +370,7 @@ result_t SQLite::prepareStmt(db_tmpl<SQLite_base, SQLite>* db,
     exlib::string sql, obj_ptr<Statement_base>& retVal)
 {
     if (!db->m_conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed.");
+        return db_closed();
 
     sqlite3_stmt* stmt = NULL;
     const char* pTail = NULL;
@@ -397,7 +405,7 @@ result_t SQLite::close(AsyncHandle ac)
         return result_t::longsync();
 
     if (!m_conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed.");
+        return db_closed();
 
     // Cascade-close active cursors (finalize statements not yet released) to
     // keep sqlite3_close from failing
@@ -420,7 +428,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle
         return result_t::longsync();
 
     if (!m_conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed.");
+        return db_closed();
 
     if (m_activeStmt)
         return db_stmt_busy_error();
@@ -511,7 +519,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle
 result_t SQLite::get_fileName(exlib::string& retVal)
 {
     if (!m_conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed.");
+        return db_closed();
 
     retVal = m_file;
     return result_t();
@@ -520,7 +528,7 @@ result_t SQLite::get_fileName(exlib::string& retVal)
 result_t SQLite::get_timeout(int32_t& retVal)
 {
     if (!m_conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed.");
+        return db_closed();
 
     retVal = m_nCmdTimeout;
     return result_t();
@@ -529,7 +537,7 @@ result_t SQLite::get_timeout(int32_t& retVal)
 result_t SQLite::set_timeout(int32_t newVal)
 {
     if (!m_conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed.");
+        return db_closed();
 
     m_nCmdTimeout = newVal;
 
@@ -545,7 +553,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncHandle ac)
         return result_t::longsync();
 
     if (!m_conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed.");
+        return db_closed();
 
     int32_t rc;
     struct sqlite3* db2 = NULL;
@@ -593,7 +601,7 @@ result_t SQLite::getTables(obj_ptr<NArray>& retVal, AsyncHandle ac)
         return result_t::longsync();
 
     if (!m_conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed.");
+        return db_closed();
 
     // Query SQLite system table to get all user tables
     exlib::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
@@ -606,7 +614,7 @@ result_t SQLite::getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, 
         return result_t::longsync();
 
     if (!m_conn)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("SQLite: database is closed.");
+        return db_closed();
 
     // Query SQLite table structure and format to match information_schema style
     exlib::string escapedTableName = escape_string(tableName);

@@ -7,6 +7,7 @@
 
 #include "console.h"
 #include "Isolate.h"
+#include "errhelp.h"
 
 namespace fibjs {
 
@@ -103,7 +104,7 @@ result_t console_base::add(exlib::string type)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("console.add is not available in worker threads.");
+        return errhelp::closed("ERR_CONSOLE_NOT_AVAILABLE", "console.add is not available in worker threads.");
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
     o->Set(isolate->context(), isolate->NewString("type", 4), isolate->NewString(type)).IsJust();
@@ -114,7 +115,7 @@ static result_t console_add_object(v8::Local<v8::Object> cfg)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("console.add is not available in worker threads.");
+        return errhelp::closed("ERR_CONSOLE_NOT_AVAILABLE", "console.add is not available in worker threads.");
 
     JSValue type;
 
@@ -168,7 +169,7 @@ static result_t console_add_array(v8::Local<v8::Array> cfg)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("console.add is not available in worker threads.");
+        return errhelp::closed("ERR_CONSOLE_NOT_AVAILABLE", "console.add is not available in worker threads.");
 
     int32_t sz = cfg->Length();
     int32_t i;
@@ -225,7 +226,7 @@ result_t console_base::reset()
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id > 1)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("console.reset is not available in worker threads.");
+        return errhelp::closed("ERR_CONSOLE_NOT_AVAILABLE", "console.reset is not available in worker threads.");
 
     int32_t i;
 

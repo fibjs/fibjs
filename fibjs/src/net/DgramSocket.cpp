@@ -13,6 +13,7 @@
 #include "Buffer.h"
 #include "SimpleObject.h"
 #include "EventInfo.h"
+#include "errhelp.h"
 #include <fcntl.h>
 
 namespace fibjs {
@@ -176,7 +177,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, obj_ptr<DgramSocket
 result_t DgramSocket::bind_core(int32_t port, exlib::string addr)
 {
     if (m_bound)
-        return result_t::make(CALL_E_INVALID_CALL).with_message("dgram: socket is already bound.");
+        return errhelp::closed("ERR_SOCKET_ALREADY_BOUND", "dgram: socket is already bound.");
 
     inetAddr addr_info;
 
@@ -431,7 +432,7 @@ static void on_close(uv_handle_t* handle)
 result_t DgramSocket::close(obj_ptr<DgramSocket_base>& retVal)
 {
     if (uv_is_closing(&m_handle))
-        return result_t::make(CALL_E_INVALID_CALL).with_message("dgram: socket is already closing.");
+        return errhelp::closed("ERR_SOCKET_DGRAM_NOT_RUNNING", "dgram: socket is already closing.");
 
     retVal = this;
 
