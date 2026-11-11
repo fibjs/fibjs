@@ -55,9 +55,14 @@ describe('error payload', () => {
         });
     });
 
-    it('omits args when no summary was attached', () => {
+    it('names the argument on an arity error', () => {
+        // P2 (plans/error-type-detail-plan-2026-11-10.md): the arity failure
+        // knows which parameter is missing from the IDL, so it attaches that
+        // name. Before P2 this error carried no summary at all, which is why
+        // the assertion is the opposite of the one below.
         assert.throws(() => fs.readFileSync(), (err) => {
-            assert.isUndefined(err.args);
+            assert.equal(err.code, 'ERR_INVALID_ARG_TYPE');
+            assert.deepEqual(err.args, { name: 'fname' });
             return true;
         });
     });
