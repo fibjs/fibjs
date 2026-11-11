@@ -51,7 +51,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         else
             hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
         if (FAILED(hr)) {
-            err = result_t::make(CALL_E_EXCEPTION).with_message("failed to create the file dialog");
+            err = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message("failed to create the file dialog");
             ev.set();
             return;
         }
@@ -68,7 +68,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
                 dwFlags |= FOS_FORCEFILESYSTEM;
             else {
                 pfd->Release();
-                err = result_t::make(CALL_E_EXCEPTION).with_message("invalid dialog type: " + opts->type.value());
+                err = result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("invalid dialog type: " + opts->type.value());
                 ev.set();
                 return;
             }
@@ -88,7 +88,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
             hr = SHCreateItemFromParsingName((LPCWSTR)utf8to16String(opts->defaultPath.value()).c_str(), nullptr, IID_PPV_ARGS(&psiFolder));
             if (FAILED(hr)) {
                 pfd->Release();
-                err = result_t::make(CALL_E_EXCEPTION).with_message("invalid defaultPath: " + opts->defaultPath.value());
+                err = result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("invalid defaultPath: " + opts->defaultPath.value());
                 ev.set();
                 return;
             }
@@ -136,7 +136,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
 
         if (FAILED(hr)) {
             pfd->Release();
-            err = result_t::make(CALL_E_EXCEPTION).with_message("failed to show the file dialog");
+            err = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message("failed to show the file dialog");
             ev.set();
             return;
         }
