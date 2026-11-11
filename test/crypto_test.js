@@ -357,7 +357,7 @@ describe('crypto', () => {
 
         assert.throws(() => {
             crypto.randomBytes(-125);
-        }, { name: 'RangeError', number: 20006 });
+        }, { name: 'RangeError', number: 20013 });
     });
 
     it("randomFillSync", () => {
@@ -371,17 +371,17 @@ describe('crypto', () => {
         crypto.randomFillSync(buf, 0);
         assert.throws(() => {
             crypto.randomFillSync(buf, -1);
-        }, { name: 'RangeError', number: 20006 });
+        }, { name: 'RangeError', number: 20013 });
 
         crypto.randomFillSync(buf, 10);
         assert.throws(() => {
             crypto.randomFillSync(buf, 11);
-        }, { name: 'RangeError', number: 20006 });
+        }, { name: 'RangeError', number: 20013 });
 
         crypto.randomFillSync(buf, 9, 1);
         assert.throws(() => {
             crypto.randomFillSync(buf, 9, 2);
-        }, { name: 'RangeError', number: 20006 });
+        }, { name: 'RangeError', number: 20013 });
     });
 
     describe('KeyObject', () => {
@@ -553,7 +553,7 @@ describe('crypto', () => {
 
                 assert.throws(() => {
                     privateKey.export({ format: 'jwk', passphrase: 'secret' });
-                }, { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
 
                 const publicDER = publicKey.export({
                     format: 'der',
@@ -1012,10 +1012,10 @@ describe('crypto', () => {
                         assert.equal(privateKey.asymmetricKeyType, 'rsa-pss');
                         assert.deepEqual(privateKey.asymmetricKeyDetails, expectedKeyDetails);
 
-                        assert.throws(() => publicKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
-                        assert.throws(() => privateKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                        assert.throws(() => publicKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
+                        assert.throws(() => privateKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
 
-                        assert.throws(() => publicKey.export({ format: 'pem', type: 'pkcs1' }), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                        assert.throws(() => publicKey.export({ format: 'pem', type: 'pkcs1' }), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
                     });
 
                     it('rsa_pss_public_2048_sha1_sha1_20', () => {
@@ -1085,25 +1085,25 @@ describe('crypto', () => {
             });
 
             it('encrypted key', () => {
-                assert.throws(() => crypto.createPrivateKey(privateDsa), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => crypto.createPrivateKey(privateDsa), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
 
                 assert.throws(() => crypto.createPrivateKey({
                     key: privateDsa,
                     format: 'pem',
                     passphrase: Buffer.alloc(1025, 'a')
-                }), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                }), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
 
                 assert.throws(() => crypto.createPrivateKey({
                     key: privateDsa,
                     format: 'pem',
                     passphrase: Buffer.alloc(1024, 'a')
-                }), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                }), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
 
                 const publicKey = crypto.createPublicKey(publicDsa);
                 assert.equal(publicKey.type, 'public');
                 assert.equal(publicKey.asymmetricKeyType, 'dsa');
                 assert.equal(publicKey.symmetricKeySize, undefined);
-                assert.throws(() => publicKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => publicKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
                 assert.deepEqual(publicKey.asymmetricKeyDetails, {
                     divisorLength: 160,
                     modulusLength: 1088
@@ -1117,7 +1117,7 @@ describe('crypto', () => {
                 assert.equal(privateKey.type, 'private');
                 assert.equal(privateKey.asymmetricKeyType, 'dsa');
                 assert.equal(privateKey.symmetricKeySize, undefined);
-                assert.throws(() => privateKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => privateKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
                 assert.deepEqual(privateKey.asymmetricKeyDetails, {
                     divisorLength: 160,
                     modulusLength: 1088
@@ -1198,7 +1198,7 @@ describe('crypto', () => {
                 assert.equal(publicKey.type, 'public');
                 assert.equal(publicKey.asymmetricKeyType, 'dsa');
                 assert.equal(publicKey.symmetricKeySize, undefined);
-                assert.throws(() => publicKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => publicKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
                 assert.deepEqual(publicKey.asymmetricKeyDetails, {
                     divisorLength: 160,
                     modulusLength: 1024
@@ -1207,7 +1207,7 @@ describe('crypto', () => {
                 assert.equal(privateKey.type, 'private');
                 assert.equal(privateKey.asymmetricKeyType, 'dsa');
                 assert.equal(privateKey.symmetricKeySize, undefined);
-                assert.throws(() => privateKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => privateKey.export({ format: 'jwk' }), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
                 assert.deepEqual(privateKey.asymmetricKeyDetails, {
                     divisorLength: 160,
                     modulusLength: 1024
@@ -1456,14 +1456,14 @@ describe('crypto', () => {
                             key: rsaKeyPemEncrypted,
                             passphrase: 'wrong'
                         }, bufferToEncrypt);
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
 
                     assert.throws(() => {
                         crypto.publicEncrypt({
                             key: rsaKeyPemEncrypted,
                             passphrase: 'wrong'
                         }, encryptedBuffer);
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
 
                     encryptedBuffer = crypto.privateEncrypt({
                         key: rsaKeyPemEncrypted,
@@ -1475,7 +1475,7 @@ describe('crypto', () => {
                             key: rsaKeyPemEncrypted,
                             passphrase: Buffer.from('wrong')
                         }, encryptedBuffer);
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
                 });
             });
 
@@ -1564,7 +1564,7 @@ describe('crypto', () => {
                             key: rsaPubPem,
                             oaepHash: 'Hello world'
                         }, Buffer.alloc(10));
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
 
                     for (const oaepHash of [0, false, Symbol(), () => { }]) {
                         assert.throws(() => {
@@ -1572,7 +1572,7 @@ describe('crypto', () => {
                                 key: rsaPubPem,
                                 oaepHash
                             }, Buffer.alloc(10));
-                        }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20004) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
+                        }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20011) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
                     }
 
                     for (const oaepLabel of [0, false, Symbol(), () => { }, {}]) {
@@ -1581,7 +1581,7 @@ describe('crypto', () => {
                                 key: rsaPubPem,
                                 oaepLabel
                             }, Buffer.alloc(10));
-                        }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20004) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
+                        }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20011) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
                     }
                 }
             });
@@ -1644,7 +1644,7 @@ describe('crypto', () => {
                 assert.throws(() => {
                     const signOptions = { key: rsaKeyPemEncrypted, passphrase: 'wrong' };
                     rsaSign.sign(signOptions, 'hex');
-                }, { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
             });
 
             it('RSA signing and verification', () => {
@@ -1723,7 +1723,7 @@ describe('crypto', () => {
                 sign.update(input);
                 assert.throws(() => {
                     sign.sign({ key: dsaKeyPemEncrypted, passphrase: 'wrong' }, 'hex');
-                }, { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
             });
 
             it('signatures vary across runs so there is no static string to verify against', () => {
@@ -1775,7 +1775,7 @@ describe('crypto', () => {
                 });
 
                 [1, {}, [], Infinity].forEach((input) => {
-                    assert.throws(() => sign.sign(input), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002) || (err.name === 'TypeError' && err.number === 20004) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
+                    assert.throws(() => sign.sign(input), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002) || (err.name === 'TypeError' && err.number === 20011) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
                     assert.throws(() => verify.verify(input), { name: 'TypeError', number: 20002 });
                 });
 
@@ -1789,8 +1789,8 @@ describe('crypto', () => {
                 // empty signature and the key is validated first
                 assert.throws(() => verify.verify('test', []), { name: 'Error', number: 20011 });
 
-                assert.throws(() => crypto.createSign('sha8'), { name: 'TypeError', number: 20004 });
-                assert.throws(() => crypto.sign('sha8', Buffer.alloc(1), keyPem), { name: 'TypeError', number: 20004 });
+                assert.throws(() => crypto.createSign('sha8'), { name: 'TypeError', number: 20011 });
+                assert.throws(() => crypto.sign('sha8', Buffer.alloc(1), keyPem), { name: 'TypeError', number: 20011 });
 
                 assert.throws(() => crypto.createSign('SHA1').update('Test123').sign(null, 'base64'), { name: 'TypeError', number: 20005 });
 
@@ -1798,13 +1798,13 @@ describe('crypto', () => {
                     const data = Buffer.alloc(1);
                     const sig = Buffer.alloc(1);
 
-                    assert.throws(() => crypto.sign(null, input, 'asdf'), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20004) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
-                    assert.throws(() => crypto.verify(null, input, 'asdf', sig), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20004) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
+                    assert.throws(() => crypto.sign(null, input, 'asdf'), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20011) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
+                    assert.throws(() => crypto.verify(null, input, 'asdf', sig), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20011) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
 
-                    assert.throws(() => crypto.sign(null, data, input), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002) || (err.name === 'TypeError' && err.number === 20004) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
-                    assert.throws(() => crypto.verify(null, data, input, sig), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002) || (err.name === 'TypeError' && err.number === 20004) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
+                    assert.throws(() => crypto.sign(null, data, input), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002) || (err.name === 'TypeError' && err.number === 20011) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
+                    assert.throws(() => crypto.verify(null, data, input, sig), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20002) || (err.name === 'TypeError' && err.number === 20011) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
 
-                    assert.throws(() => crypto.verify(null, data, 'test', input), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20004) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
+                    assert.throws(() => crypto.verify(null, data, 'test', input), (err) => { assert.ok((err.name === 'TypeError' && err.number === 20005) || (err.name === 'TypeError' && err.number === 20011) || (err.name === 'Error' && err.number === 20011), 'unexpected: ' + err); return true; });
                 });
 
                 for (const key of ['', 'foo', null, undefined, true, Boolean]) {
@@ -2159,7 +2159,7 @@ describe('crypto', () => {
                             key: certPem,
                             dsaEncoding
                         });
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
                 }
             });
 
@@ -2562,9 +2562,9 @@ describe('crypto', () => {
                 const key = crypto.scryptSync('secret', 'salt', 32);
                 const iv = Buffer.alloc(16, 0);
                 const c = crypto.createCipheriv('aes-256-cbc', key, iv);
-                assert.throws(() => c.final('xxx'), { name: 'TypeError', number: 20004, code: 'ERR_UNKNOWN_ENCODING' });
-                assert.throws(() => c.final('xxx'), { name: 'TypeError', number: 20004, code: 'ERR_UNKNOWN_ENCODING' });
-                assert.throws(() => c.final('xxx'), { name: 'TypeError', number: 20004, code: 'ERR_UNKNOWN_ENCODING' });
+                assert.throws(() => c.final('xxx'), { name: 'TypeError', number: 20011, code: 'ERR_UNKNOWN_ENCODING' });
+                assert.throws(() => c.final('xxx'), { name: 'TypeError', number: 20011, code: 'ERR_UNKNOWN_ENCODING' });
+                assert.throws(() => c.final('xxx'), { name: 'TypeError', number: 20011, code: 'ERR_UNKNOWN_ENCODING' });
 
                 const d = crypto.createDecipheriv('aes-256-cbc', key, iv);
                 assert.throws(() => d.final('xxx'), { code: 'ERR_OSSL_NO_START_LINE' });
@@ -2637,7 +2637,7 @@ describe('crypto', () => {
                 cipher.setAAD(aadbuf);
                 cipher.setAutoPadding();
 
-                assert.throws(() => cipher.getAuthTag(), { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                assert.throws(() => cipher.getAuthTag(), { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
 
                 const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
 
@@ -2648,9 +2648,9 @@ describe('crypto', () => {
                 decipher.update(encrypted);
                 decipher.final();
 
-                assert.throws(() => decipher.setAAD(aadbuf), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
-                assert.throws(() => decipher.setAuthTag(cipher.getAuthTag()), { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
-                assert.throws(() => decipher.setAutoPadding(), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => decipher.setAAD(aadbuf), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => decipher.setAuthTag(cipher.getAuthTag()), { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                assert.throws(() => decipher.setAutoPadding(), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
             });
         });
 
@@ -2711,7 +2711,7 @@ describe('crypto', () => {
                 crypto.createCipheriv('aes-128-ecb', Buffer.alloc(16), Buffer.alloc(0));
                 for (let n = 1; n < 256; n += 1)
                     assert.throws(() => crypto.createCipheriv('aes-128-ecb', Buffer.alloc(16),
-                        Buffer.alloc(n)), { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_IV' });
+                        Buffer.alloc(n)), { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_IV' });
             });
 
             it("iv in cbc", () => {
@@ -2719,13 +2719,13 @@ describe('crypto', () => {
                 for (let n = 0; n < 256; n += 1) {
                     if (n === 16) continue;
                     assert.throws(() => crypto.createCipheriv('aes-128-cbc', Buffer.alloc(16),
-                        Buffer.alloc(n)), { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_IV' });
+                        Buffer.alloc(n)), { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_IV' });
                 }
             });
 
             it("iv in gcm mode", () => {
                 assert.throws(() => crypto.createCipheriv('aes-128-gcm', Buffer.alloc(16),
-                    Buffer.alloc(0)), { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_IV' });
+                    Buffer.alloc(0)), { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_IV' });
 
                 const minIvLength = 8;
                 const maxIvLength = 64;
@@ -2845,7 +2845,7 @@ describe('crypto', () => {
                             Buffer.from(test.iv, 'hex'),
                             options);
                         encrypt.update('blah', 'ascii');
-                        assert.throws(function () { encrypt.getAuthTag(); }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                        assert.throws(function () { encrypt.getAuthTag(); }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
                     }
 
                     {
@@ -2856,7 +2856,7 @@ describe('crypto', () => {
                                 Buffer.from(test.key, 'hex'),
                                 Buffer.alloc(0)
                             );
-                        }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_IV' });
+                        }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_IV' });
                     }
                 }
             });
@@ -2866,8 +2866,8 @@ describe('crypto', () => {
                     'ipxp9a6i1Mb4USb4', '6fKjEjR3Vl30EUYC');
                 encrypt.update('blah', 'ascii');
                 encrypt.final();
-                assert.throws(() => encrypt.getAuthTag(), { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
-                assert.throws(() => encrypt.setAAD(Buffer.from('123', 'ascii')), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => encrypt.getAuthTag(), { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                assert.throws(() => encrypt.setAAD(Buffer.from('123', 'ascii')), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
             });
 
             describe("GCM mode", () => {
@@ -2878,7 +2878,7 @@ describe('crypto', () => {
                                 'FxLKsqdmv0E9xrQh',
                                 'qkuZpJWCewa6Szih');
                             decrypt.setAuthTag(Buffer.from('1'.repeat(length)));
-                        }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                        }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
 
                         assert.throws(() => {
                             crypto.createCipheriv('aes-256-gcm',
@@ -2887,7 +2887,7 @@ describe('crypto', () => {
                                 {
                                     authTagLength: length
                                 });
-                        }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                        }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
 
                         assert.throws(() => {
                             crypto.createDecipheriv('aes-256-gcm',
@@ -2896,7 +2896,7 @@ describe('crypto', () => {
                                 {
                                     authTagLength: length
                                 });
-                        }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                        }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
                     }
                 });
 
@@ -2924,7 +2924,7 @@ describe('crypto', () => {
                     assert.throws(() => {
                         // This tag would normally be allowed.
                         decipher.setAuthTag(Buffer.from('1'.repeat(12)));
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
 
                     // The Decipher object should be left intact.
                     decipher.setAuthTag(Buffer.from('445352d3ff85cf94', 'hex'));
@@ -2945,7 +2945,7 @@ describe('crypto', () => {
                             {
                                 authTagLength
                             });
-                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20004) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
+                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20011) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
 
                     assert.throws(() => {
                         crypto.createDecipheriv('aes-256-ccm',
@@ -2954,15 +2954,15 @@ describe('crypto', () => {
                             {
                                 authTagLength
                             });
-                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20004) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
+                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20011) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
 
                     assert.throws(() => {
                         crypto.createCipher('aes-256-ccm', 'bad password', { authTagLength });
-                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20004) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
+                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20011) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
 
                     assert.throws(() => {
                         crypto.createDecipher('aes-256-ccm', 'bad password', { authTagLength });
-                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20004) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
+                    }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20011) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
                 }
 
                 for (const authTagLength of [0, 1, 2, 3, 5, 7, 9, 11, 13, 15, 17, 18]) {
@@ -2973,7 +2973,7 @@ describe('crypto', () => {
                             {
                                 authTagLength
                             });
-                    }, { name: 'TypeError', number: 20004 });
+                    }, { name: 'TypeError', number: 20011 });
 
                     assert.throws(() => {
                         crypto.createDecipheriv('aes-256-ccm',
@@ -2982,15 +2982,15 @@ describe('crypto', () => {
                             {
                                 authTagLength
                             });
-                    }, { name: 'TypeError', number: 20004 });
+                    }, { name: 'TypeError', number: 20011 });
 
                     assert.throws(() => {
                         crypto.createCipher('aes-256-ccm', 'bad password', { authTagLength });
-                    }, { name: 'TypeError', number: 20004 });
+                    }, { name: 'TypeError', number: 20011 });
 
                     assert.throws(() => {
                         crypto.createDecipher('aes-256-ccm', 'bad password', { authTagLength });
-                    }, { name: 'TypeError', number: 20004 });
+                    }, { name: 'TypeError', number: 20011 });
                 }
             });
 
@@ -3000,22 +3000,22 @@ describe('crypto', () => {
                         crypto.createCipheriv(`aes-256-${mode}`,
                             'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
                             'qkuZpJWCewa6S');
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
 
                     // CCM decryption and create(De|C)ipher are unsupported in FIPS mode.
                     assert.throws(() => {
                         crypto.createDecipheriv(`aes-256-${mode}`,
                             'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
                             'qkuZpJWCewa6S');
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
 
                     assert.throws(() => {
                         crypto.createCipher(`aes-256-${mode}`, 'very bad password');
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
 
                     assert.throws(() => {
                         crypto.createDecipher(`aes-256-${mode}`, 'very bad password');
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
                 }
             });
 
@@ -3031,7 +3031,7 @@ describe('crypto', () => {
                     for (const plaintextLength of [-1, true, false, NaN]) {
                         assert.throws(() => {
                             cipher.setAAD(Buffer.from('0123456789', 'hex'), { plaintextLength });
-                        }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20004) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
+                        }, (err) => { assert.ok((err.name === 'TypeError' && err.number === 20011) || (err.name === 'TypeError' && err.number === 20005), 'unexpected: ' + err); return true; });
                     }
                 });
 
@@ -3049,12 +3049,12 @@ describe('crypto', () => {
                             cipher().setAAD(Buffer.alloc(0), {
                                 plaintextLength: maxMessageSize + 1
                             });
-                        }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_MESSAGELEN' });
+                        }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_MESSAGELEN' });
 
                         const msg = Buffer.alloc(maxMessageSize + 1);
                         assert.throws(() => {
                             cipher().update(msg);
-                        }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_MESSAGELEN' });
+                        }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_MESSAGELEN' });
 
                         const c = cipher();
                         c.setAAD(Buffer.alloc(0), {
@@ -3073,7 +3073,7 @@ describe('crypto', () => {
                                 authTagLength: 10
                             });
                         cipher.setAAD(Buffer.from('0123456789', 'hex'));
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
 
                     assert.throws(() => {
                         const cipher = crypto.createDecipheriv('aes-256-ccm',
@@ -3083,7 +3083,7 @@ describe('crypto', () => {
                                 authTagLength: 10
                             });
                         cipher.setAAD(Buffer.from('0123456789', 'hex'));
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
                 });
 
                 it("final() throws in CCM mode when no authentication tag is provided", () => {
@@ -3170,7 +3170,7 @@ describe('crypto', () => {
                     decipher.setAuthTag(tag);
                     assert.throws(() => {
                         decipher.setAuthTag(tag);
-                    }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                    }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
                     // Decryption should still work.
                     const plaintext = Buffer.concat([
                         decipher.update(ciphertext),
@@ -3217,7 +3217,7 @@ describe('crypto', () => {
                             valid.algo,
                             Buffer.from(valid.key, 'hex'),
                             Buffer.from(H(prefix) + valid.iv, 'hex')
-                        ), { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_IV' });
+                        ), { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_IV' });
 
                         function H(length) { return '00'.repeat(length); }
                     }
@@ -3228,7 +3228,7 @@ describe('crypto', () => {
                     for (const authTagLength of [0, 17]) {
                         assert.throws(() => {
                             crypto.createCipheriv('chacha20-poly1305', key, iv, { authTagLength });
-                        }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                        }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
                     }
                 });
 
@@ -3265,7 +3265,7 @@ describe('crypto', () => {
                                 // because its security assurance is lower than expected.
                                 assert.throws(() => {
                                     decipher.setAuthTag(authTag);
-                                }, { name: 'TypeError', number: 20004, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
+                                }, { name: 'TypeError', number: 20011, code: 'ERR_CRYPTO_INVALID_AUTH_TAG' });
                             }
                         }
                     }
@@ -3527,24 +3527,24 @@ describe('crypto', () => {
             {
                 const cipher = createCipher();
                 cipher.update('test', 'utf-8', 'utf-8');
-                assert.throws(() => cipher.update('666f6f', 'hex', 'hex'), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => cipher.update('666f6f', 'hex', 'hex'), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
             }
 
             {
                 const cipher = createCipher();
                 cipher.update('test', 'utf-8', 'utf-8');
-                assert.throws(() => cipher.final('hex'), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => cipher.final('hex'), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
             }
 
             {
                 const cipher = createCipher();
                 cipher.update('test', 'utf-8', 'utf-8');
-                assert.throws(() => cipher.final('bad2'), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => cipher.final('bad2'), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
             }
 
             {
                 const cipher = createCipher();
-                assert.throws(() => cipher.update('test', 'utf-8', 'bad3'), { name: 'TypeError', number: 20004, code: 'ERR_UNKNOWN_ENCODING' });
+                assert.throws(() => cipher.update('test', 'utf-8', 'bad3'), { name: 'TypeError', number: 20011, code: 'ERR_UNKNOWN_ENCODING' });
             }
         });
     });
@@ -3849,14 +3849,14 @@ describe('crypto', () => {
             assert.equal(x509.checkIP('127.0.0.1'), undefined);
             assert.equal(x509.checkIP('::'), undefined);
 
-            assert.throws(() => x509.checkIP('[::]'), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+            assert.throws(() => x509.checkIP('[::]'), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
         });
 
         it('checkHost', () => {
             assert.equal(x509.checkHost('agent1'), 'agent1');
             assert.equal(x509.checkHost('agent2'), undefined);
 
-            assert.throws(() => x509.checkHost('agent\x001'), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+            assert.throws(() => x509.checkHost('agent\x001'), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
 
             [
                 'wildcards',
@@ -3874,7 +3874,7 @@ describe('crypto', () => {
             assert.equal(x509.checkEmail('ry@tinyclouds.org'), 'ry@tinyclouds.org');
             assert.equal(x509.checkEmail('sally@example.com'), undefined);
 
-            assert.throws(() => x509.checkEmail('not\x00hing'), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+            assert.throws(() => x509.checkEmail('not\x00hing'), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
         });
 
         it('checkIssued/verify', () => {
@@ -4411,14 +4411,14 @@ describe('crypto', () => {
         it('error handling - invalid keylen', () => {
             assert.throws(() => {
                 crypto.scryptSync('password', 'salt', -1);
-            }, { name: 'RangeError', number: 20006, code: 'ERR_CRYPTO_INVALID_SCRYPT_PARAMS' });
+            }, { name: 'RangeError', number: 20013, code: 'ERR_CRYPTO_INVALID_SCRYPT_PARAMS' });
         });
 
         it('error handling - invalid N', () => {
             // N not power of 2
             assert.throws(() => {
                 crypto.scryptSync('password', 'salt', 32, { N: 1000 });
-            }, { name: 'RangeError', number: 20006, code: 'ERR_CRYPTO_INVALID_SCRYPT_PARAMS' });
+            }, { name: 'RangeError', number: 20013, code: 'ERR_CRYPTO_INVALID_SCRYPT_PARAMS' });
         });
     });
 
@@ -4594,9 +4594,9 @@ describe('crypto', () => {
             });
         }
 
-        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2, 3]), Buffer.from([1, 2])), { name: 'RangeError', number: 20004, code: 'ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH' });
-        assert.throws(() => crypto.timingSafeEqual('not a buffer', Buffer.from([1, 2])), { name: 'RangeError', number: 20004, code: 'ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH' });
-        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2]), 'not a buffer'), { name: 'RangeError', number: 20004, code: 'ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH' });
+        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2, 3]), Buffer.from([1, 2])), { name: 'RangeError', number: 20011, code: 'ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH' });
+        assert.throws(() => crypto.timingSafeEqual('not a buffer', Buffer.from([1, 2])), { name: 'RangeError', number: 20011, code: 'ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH' });
+        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2]), 'not a buffer'), { name: 'RangeError', number: 20011, code: 'ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH' });
     });
 
     describe('key/codec argument dispatch', () => {
@@ -4690,15 +4690,15 @@ describe('crypto', () => {
             const secret = crypto.createSecretKey('k');
 
             assert.throws(() => crypto.createSign('sha256').update('abc').sign(secret),
-                (e) => e.number === 20004 && /private key/.test(e.message));
+                (e) => e.number === 20011 && /private key/.test(e.message));
             assert.throws(() => crypto.createVerify('sha256').update('abc').verify(secret, Buffer.from('x')),
-                (e) => e.number === 20004 && /public or private key/.test(e.message));
+                (e) => e.number === 20011 && /public or private key/.test(e.message));
             assert.throws(() => crypto.sign('sha256', Buffer.from('abc'), secret),
-                (e) => e.number === 20004 && /private key/.test(e.message));
+                (e) => e.number === 20011 && /private key/.test(e.message));
             assert.throws(() => crypto.verify('sha256', Buffer.from('abc'), secret, Buffer.from('x')),
-                (e) => e.number === 20004 && /public or private key/.test(e.message));
+                (e) => e.number === 20011 && /public or private key/.test(e.message));
             assert.throws(() => crypto.diffieHellman({ privateKey: secret, publicKey: secret }),
-                (e) => e.number === 20004 && /private key/.test(e.message));
+                (e) => e.number === 20011 && /private key/.test(e.message));
         });
     });
 
@@ -4774,7 +4774,7 @@ describe('crypto', () => {
             assert.strictEqual(crypto.timingSafeEqual('ab', 'ab'), true);
             assert.strictEqual(crypto.timingSafeEqual(Buffer.from('ab'), 'ab'), true);
             assert.strictEqual(crypto.timingSafeEqual('ab', 'ac'), false);
-            assert.throws(() => crypto.timingSafeEqual('ab', 'abc'), { name: 'RangeError', number: 20004, code: 'ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH' });
+            assert.throws(() => crypto.timingSafeEqual('ab', 'abc'), { name: 'RangeError', number: 20011, code: 'ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH' });
         });
 
         if (isFibjs) it('privateDecrypt decodes a string buffer only with an options key', () => {

@@ -62,7 +62,7 @@ result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVa
         return result_t();
     }
 
-    return result_t::make(CALL_E_INVALIDARG)
+    return result_t::make(CALL_E_INVALID_DATA)
         .with_type_name(errtype::kTypeError)
         .with_code("ERR_CRYPTO_INVALID_DIGEST")
         .with_format("createHash: unknown algorithm '%s'.", algo.c_str());
@@ -74,7 +74,7 @@ static result_t _createHmac(exlib::string algo, const char* key, size_t keylen,
     const EVP_MD* md = _evp_md_type(algo.c_str());
     if (md) {
         if (EVP_MD_get_flags(md) & EVP_MD_FLAG_XOF)
-            return result_t::make(CALL_E_INVALIDARG)
+            return result_t::make(CALL_E_INVALID_DATA)
                 .with_type_name(errtype::kTypeError)
                 .with_code("ERR_CRYPTO_INVALID_DIGEST")
                 .with_format("createHmac: XOF hash '%s' is not supported.", algo.c_str());
@@ -83,7 +83,7 @@ static result_t _createHmac(exlib::string algo, const char* key, size_t keylen,
         return result_t();
     }
 
-    return result_t::make(CALL_E_INVALIDARG)
+    return result_t::make(CALL_E_INVALID_DATA)
         .with_type_name(errtype::kTypeError)
         .with_code("ERR_CRYPTO_INVALID_DIGEST")
         .with_format("createHmac: unknown algorithm '%s'.", algo.c_str());
@@ -113,7 +113,7 @@ result_t crypto_base::createHmac(exlib::string algo, Union_createHmac_key key,
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
         KeyObject* ko = (KeyObject*)std::get<obj_ptr<KeyObject_base>>(key).get();
         if (ko->type() != KeyObject::kKeyTypeSecret)
-            return result_t::make(CALL_E_INVALIDARG)
+            return result_t::make(CALL_E_INVALID_DATA)
                 .with_type_name(errtype::kTypeError)
                 .with_code("ERR_INVALID_ARG_TYPE")
                 .with_message("createHmac: Invalid key type");
@@ -135,7 +135,7 @@ result_t crypto_base::hash(exlib::string algorithm, Union_hash_data data,
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (!md)
-        return result_t::make(CALL_E_INVALIDARG)
+        return result_t::make(CALL_E_INVALID_DATA)
             .with_type_name(errtype::kTypeError)
             .with_code("ERR_CRYPTO_INVALID_DIGEST")
             .with_format("hash: unknown algorithm '%s'.", algorithm.c_str());
@@ -160,14 +160,14 @@ result_t crypto_base::hkdf(exlib::string algoName, Union_hkdf_password password,
         return result_t::nosync();
 
     if (size < 1)
-        return result_t::make(CALL_E_OUTRANGE)
+        return result_t::make(CALL_E_OVERFLOW)
             .with_type_name(errtype::kRangeError)
             .with_code("ERR_OUT_OF_RANGE")
             .with_format("hkdf: size must be positive, received %d.", size);
 
     const EVP_MD* md = _evp_md_type(algoName.c_str());
     if (!md)
-        return result_t::make(CALL_E_INVALIDARG)
+        return result_t::make(CALL_E_INVALID_DATA)
             .with_type_name(errtype::kTypeError)
             .with_code("ERR_CRYPTO_INVALID_DIGEST")
             .with_format("hkdf: unknown algorithm '%s'.", algoName.c_str());
@@ -216,14 +216,14 @@ result_t crypto_base::pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt s
         return result_t::nosync();
 
     if (iterations < 1 || size < 1)
-        return result_t::make(CALL_E_OUTRANGE)
+        return result_t::make(CALL_E_OVERFLOW)
             .with_type_name(errtype::kRangeError)
             .with_code("ERR_OUT_OF_RANGE")
             .with_message("pbkdf2: iterations and size must be positive.");
 
     const EVP_MD* md = _evp_md_type(algoName.c_str());
     if (!md)
-        return result_t::make(CALL_E_INVALIDARG)
+        return result_t::make(CALL_E_INVALID_DATA)
             .with_type_name(errtype::kTypeError)
             .with_code("ERR_CRYPTO_INVALID_DIGEST")
             .with_format("pbkdf2: unknown algorithm '%s'.", algoName.c_str());
@@ -275,14 +275,14 @@ result_t scrypt_load_options(v8::Local<v8::Object> options, AsyncHandle& ac)
     // Validate N is a power of 2 and greater than 1
     uint64_t N = opt->N.value();
     if (N < 2 || (N & (N - 1)) != 0)
-        return result_t::make(CALL_E_OUTRANGE)
+        return result_t::make(CALL_E_OVERFLOW)
             .with_type_name(errtype::kRangeError)
             .with_code("ERR_CRYPTO_INVALID_SCRYPT_PARAMS")
             .with_format("scrypt: N must be a power of 2 greater than 1, received %lld.", (long long)N);
 
     // Validate r and p are not zero
     if (opt->r.value() == 0 || opt->p.value() == 0)
-        return result_t::make(CALL_E_OUTRANGE)
+        return result_t::make(CALL_E_OVERFLOW)
             .with_type_name(errtype::kRangeError)
             .with_code("ERR_CRYPTO_INVALID_SCRYPT_PARAMS")
             .with_message("scrypt: r and p must be positive.");
@@ -300,7 +300,7 @@ result_t crypto_base::scrypt(Union_scrypt_password password, Union_scrypt_salt s
         return scrypt_load_options(options, ac);
 
     if (keylen < 1)
-        return result_t::make(CALL_E_OUTRANGE)
+        return result_t::make(CALL_E_OVERFLOW)
             .with_type_name(errtype::kRangeError)
             .with_code("ERR_CRYPTO_INVALID_SCRYPT_PARAMS")
             .with_format("scrypt: keylen must be positive, received %d.", keylen);

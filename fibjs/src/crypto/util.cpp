@@ -37,7 +37,7 @@ result_t crypto_base::timingSafeEqual(Union_timingSafeEqual_a a, Union_timingSaf
     Buffer* _b = (Buffer*)bufB.get();
 
     if (_a->length() != _b->length())
-        return result_t::make(CALL_E_INVALIDARG)
+        return result_t::make(CALL_E_INVALID_DATA)
             .with_type_name(errtype::kRangeError)
             .with_code("ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH")
             .with_format("Buffer lengths must be equal, got %d and %d.", (int)_a->length(), (int)_b->length());

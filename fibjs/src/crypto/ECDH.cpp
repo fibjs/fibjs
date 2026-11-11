@@ -24,11 +24,11 @@ result_t crypto_base::createECDH(exlib::string curve, obj_ptr<ECDH_base>& retVal
 {
     // Check for undefined/null curve parameter
     if (curve.empty())
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("The \"curve\" argument must be of type string. Received undefined");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("The \"curve\" argument must be of type string. Received undefined");
 
     int cid = GetCurveFromName(curve.c_str());
     if (cid == NID_undef)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid EC curve name");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid EC curve name");
 
     retVal = new ECDH(curve);
     return result_t();
@@ -40,7 +40,7 @@ result_t ECDH::ensureKey()
     if (!m_ec) {
         int cid = GetCurveFromName(m_curve.c_str());
         if (cid == NID_undef)
-            return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid curve name: '%s'.", m_curve.c_str());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid curve name: '%s'.", m_curve.c_str());
 
         m_ec = EC_KEY_new_by_curve_name(cid);
         if (!m_ec)
@@ -63,7 +63,7 @@ result_t ECDH::validatePointFormat(const exlib::string& format)
         return result_t(); // Valid formats
     }
 
-    return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid ECDH format: " + format);
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid ECDH format: " + format);
 }
 
 result_t ECDH::generateKeys(exlib::string outputEncoding, exlib::string format, v8::Local<v8::Value>& retVal)
@@ -176,7 +176,7 @@ result_t ECDH::setPrivateKey(Union_setPrivateKey_privateKey privateKey, exlib::s
 
     Buffer* key_buf = Buffer::Cast(key_buffer);
     if (!key_buf)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("Invalid buffer type");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("Invalid buffer type");
 
     // Convert buffer to BIGNUM
     BignumPointer priv_bn = BN_bin2bn((const unsigned char*)key_buf->data(), key_buf->length(), nullptr);
@@ -234,7 +234,7 @@ result_t ECDH::setPublicKey(Union_setPublicKey_publicKey publicKey, exlib::strin
 
     Buffer* key_buf = Buffer::Cast(key_buffer);
     if (!key_buf)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("Invalid buffer type");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("Invalid buffer type");
 
     const EC_GROUP* group = EC_KEY_get0_group(m_ec);
     ECPointPointer point = EC_POINT_new(group);
@@ -276,12 +276,12 @@ result_t ECDH::computeSecret(Union_computeSecret_otherPublicKey otherKey, exlib:
     // Check if we have a public key set that doesn't match the private key
     if (m_publicKeySet) {
         // This means setPublicKey was called after setPrivateKey, which breaks the key pair
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid key pair");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid key pair");
     }
 
     Buffer* other_pub_buf = Buffer::Cast(other_key_buffer);
     if (!other_pub_buf)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("Invalid buffer type");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("Invalid buffer type");
 
     const EC_GROUP* group = EC_KEY_get0_group(m_ec);
     ECPointPointer other_point = EC_POINT_new(group);
@@ -329,15 +329,15 @@ result_t ECDH_base::convertKey(Union_convertKey_key key, exlib::string curve, ex
         key_buffer = std::get<obj_ptr<Buffer_base>>(key);
 
     if (curve.empty())
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("The \"curve\" argument must be of type string. Received undefined");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("The \"curve\" argument must be of type string. Received undefined");
 
     int cid = GetCurveFromName(curve.c_str());
     if (cid == NID_undef)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid EC curve name: '%s'.", curve.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid EC curve name: '%s'.", curve.c_str());
 
     // Validate format
     if (!format.empty() && format != "uncompressed" && format != "compressed" && format != "hybrid")
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid ECDH format: " + format);
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid ECDH format: " + format);
 
     // Create temporary ECDH object to use helper functions
     ECDH temp_ecdh(curve);
@@ -347,7 +347,7 @@ result_t ECDH_base::convertKey(Union_convertKey_key key, exlib::string curve, ex
 
     Buffer* key_buf = Buffer::Cast(key_buffer);
     if (!key_buf)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("Invalid buffer type");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("Invalid buffer type");
 
     // Get EC_GROUP through a public method
     const EC_GROUP* group = temp_ecdh.getGroup();

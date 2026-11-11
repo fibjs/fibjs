@@ -93,10 +93,10 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
             retVal = store;
             return result_t();
         }
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("WebCrypto: HMAC keys only support 'raw' and 'jwk' export formats, got '%s'.", format.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("WebCrypto: HMAC keys only support 'raw' and 'jwk' export formats, got '%s'.", format.c_str());
     }
 
-    return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid key type: %d.", keyType);
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid key type: %d.", keyType);
 }
 
 result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyData, Union_importKey_algorithm algorithm,
@@ -186,7 +186,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
             Buffer* b = Buffer::Cast(buf);
             hr = ((KeyObject*)key->m_key.get())->createSecretKey(b->data(), b->length());
         } else
-            return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("WebCrypto: unknown key format: " + format);
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("WebCrypto: unknown key format: " + format);
 
         if (hr.failed())
             return hr;
@@ -196,7 +196,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
         return key->check_import_param();
     }
 
-    return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("WebCrypto: unknown key format: " + format);
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("WebCrypto: unknown key format: " + format);
 }
 
 

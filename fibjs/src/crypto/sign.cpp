@@ -25,7 +25,7 @@ static result_t get_sig_opt(Isolate* isolate, v8::Local<v8::Object> key, DSASigE
         if (dsaEncoding == "ieee-p1363")
             enc = kSigEncP1363;
         else if (dsaEncoding != "der")
-            return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid dsaEncoding: '%s'.", dsaEncoding.c_str());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid dsaEncoding: '%s'.", dsaEncoding.c_str());
     } else if (!hr.is_param_missing())
         return hr;
 
@@ -178,12 +178,12 @@ result_t Sign::sign(KeyObject_base* key, DSASigEnc enc, int padding, int salt_le
     // a secret key has no asymmetric key material; node reports
     // ERR_CRYPTO_INVALID_KEY_OBJECT_TYPE here, the null EVP_PKEY used to crash
     if (pkey == nullptr)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_SIGN_KEY_REQUIRED").with_message("Sign: invalid key type, expected a private key");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_SIGN_KEY_REQUIRED").with_message("Sign: invalid key type, expected a private key");
 
     size_t sig_len = EVP_PKEY_size(pkey);
 
     if (IsOneShot(pkey))
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("One-shot signature algorithms do not support sign");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("One-shot signature algorithms do not support sign");
 
     obj_ptr<Buffer> sig = new Buffer(NULL, sig_len);
 
@@ -305,10 +305,10 @@ result_t Verify::verify(KeyObject_base* key, const unsigned char* signature, siz
     EVP_PKEY* pkey = key_->pkey();
 
     if (pkey == nullptr)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_SIGN_KEY_REQUIRED").with_message("Verify: invalid key type, expected a public or private key");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_SIGN_KEY_REQUIRED").with_message("Verify: invalid key type, expected a public or private key");
 
     if (IsOneShot(pkey))
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("One-shot signature algorithms do not support verify");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("One-shot signature algorithms do not support verify");
 
     EVPKeyCtxPointer pkctx = EVP_PKEY_CTX_new(pkey, nullptr);
     if (!pkctx)
@@ -450,7 +450,7 @@ result_t crypto_base::createSign(exlib::string algorithm, v8::Local<v8::Object> 
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (!md)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("createSign: unknown algorithm '%s'.", algorithm.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("createSign: unknown algorithm '%s'.", algorithm.c_str());
 
     retVal = new Sign(md);
     return result_t();
@@ -460,7 +460,7 @@ result_t crypto_base::createVerify(exlib::string algorithm, v8::Local<v8::Object
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (!md)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("createVerify: unknown algorithm '%s'.", algorithm.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("createVerify: unknown algorithm '%s'.", algorithm.c_str());
 
     retVal = new Verify(md);
     return result_t();
@@ -476,7 +476,7 @@ result_t get_algorithm(Isolate* isolate, v8::Local<v8::Value> algorithm, exlib::
         return hr;
 
     if (retVal.empty())
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid algorithm: algorithm must not be empty.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Invalid algorithm: algorithm must not be empty.");
 
     return result_t();
 }
@@ -487,7 +487,7 @@ result_t _sign(exlib::string algorithm, Buffer_base* data, KeyObject_base* priva
     if (!algorithm.empty()) {
         md = _evp_md_type(algorithm.c_str());
         if (!md)
-            return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_INVALID_DIGEST").with_format("Invalid algorithm: '%s'.", algorithm.c_str());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_INVALID_DIGEST").with_format("Invalid algorithm: '%s'.", algorithm.c_str());
     }
 
     EVPMDPointer context = EVP_MD_CTX_new();
@@ -498,7 +498,7 @@ result_t _sign(exlib::string algorithm, Buffer_base* data, KeyObject_base* priva
     // a secret key has no asymmetric key material (node reports
     // ERR_CRYPTO_INVALID_KEY_OBJECT_TYPE instead of an openssl error)
     if (pkey == nullptr)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_SIGN_KEY_REQUIRED").with_message("Sign: invalid key type, expected a private key");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_SIGN_KEY_REQUIRED").with_message("Sign: invalid key type, expected a private key");
 
     if (EVP_DigestSignInit(context, &ctx, md, nullptr, pkey) <= 0)
         return openssl_error();
@@ -534,7 +534,7 @@ result_t _verify(exlib::string algorithm, Buffer_base* data, KeyObject_base* pub
     if (!algorithm.empty()) {
         md = _evp_md_type(algorithm.c_str());
         if (!md)
-            return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_INVALID_DIGEST").with_format("Invalid algorithm: '%s'.", algorithm.c_str());
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_INVALID_DIGEST").with_format("Invalid algorithm: '%s'.", algorithm.c_str());
     }
 
     EVPMDPointer context = EVP_MD_CTX_new();
@@ -543,7 +543,7 @@ result_t _verify(exlib::string algorithm, Buffer_base* data, KeyObject_base* pub
     EVP_PKEY* pkey = key->pkey();
 
     if (pkey == nullptr)
-        return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_SIGN_KEY_REQUIRED").with_message("Verify: invalid key type, expected a public or private key");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_SIGN_KEY_REQUIRED").with_message("Verify: invalid key type, expected a public or private key");
 
     if (EVP_DigestVerifyInit(context, &ctx, md, nullptr, pkey) <= 0)
         return openssl_error();

@@ -123,7 +123,7 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, Buffer_base* buffer
 
         digest = _evp_md_type(oaepHash.c_str());
         if (!digest)
-            return result_t::make(CALL_E_INVALIDARG)
+            return result_t::make(CALL_E_INVALID_DATA)
                 .with_type_name(errtype::kTypeError)
                 .with_code("ERR_INVALID_ARG_VALUE")
                 .with_format("Invalid oaepHash: '%s'.", oaepHash.c_str());

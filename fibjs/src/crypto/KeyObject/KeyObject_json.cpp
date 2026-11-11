@@ -471,7 +471,7 @@ result_t KeyObject::export_json(Variant& retVal)
             return ExportJWKEcKey(retVal);
         }
 
-    return result_t::make(CALL_E_INVALIDARG).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Not supported key type: %d.", EVP_PKEY_id(m_pkey));
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Not supported key type: %d.", EVP_PKEY_id(m_pkey));
 }
 
 }

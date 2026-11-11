@@ -12,7 +12,7 @@ describe('ECDH', () => {
 
         it('should throw for invalid curve name', () => {
             assert.throws(
-                () => crypto.createECDH('badcurve'), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                () => crypto.createECDH('badcurve'), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
         });
 
         it('should create ECDH instance for valid curves', () => {
@@ -160,7 +160,7 @@ describe('ECDH', () => {
             const ecdh = crypto.createECDH('prime256v1');
 
             assert.throws(
-                () => ecdh.generateKeys('buffer', 'invalid'), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                () => ecdh.generateKeys('buffer', 'invalid'), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
 
             // node: TypeError [ERR_CRYPTO_ECDH_INVALID_FORMAT], "Invalid ECDH format: 10"
             assert.throws(
@@ -462,7 +462,7 @@ describe('ECDH', () => {
             // This should fail because public key doesn't match private key
             assert.throws(() => {
                 ecdh.computeSecret(peerPubPtComp, 'hex', 'hex');
-            }, { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+            }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
         });
     });
 
@@ -488,7 +488,7 @@ describe('ECDH', () => {
             const cafebabePubPtComp = '03672a31bfc59d3f04548ec9b7daeeba2f61814e8ccc40448045007f5479f693a3';
 
             assert.throws(
-                () => ECDH.convertKey(cafebabePubPtComp, 'badcurve'), { name: 'TypeError', number: 20004, code: 'ERR_INVALID_ARG_VALUE' });
+                () => ECDH.convertKey(cafebabePubPtComp, 'badcurve'), { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
         });
 
         it('should convert key formats correctly', () => {

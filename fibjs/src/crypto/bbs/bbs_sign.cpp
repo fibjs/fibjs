@@ -23,7 +23,7 @@ namespace fibjs {
 result_t get_index(std::vector<int32_t>& index, size_t msg_len, std::vector<int32_t>& idx_i, std::vector<int32_t>& idx_j)
 {
     if (index.size() > msg_len)
-        return result_t::make(CALL_E_INVALIDARG)
+        return result_t::make(CALL_E_INVALID_DATA)
             .with_code("ERR_INVALID_ARG_VALUE")
             .with_message("crypto: index array length must be less than or equal to messages length");
 
@@ -35,11 +35,11 @@ result_t get_index(std::vector<int32_t>& index, size_t msg_len, std::vector<int3
     for (size_t i = 0; i < index.size(); i++) {
         int32_t n = index[i];
         if (n < pos_j)
-            return result_t::make(CALL_E_INVALIDARG)
+            return result_t::make(CALL_E_INVALID_DATA)
                 .with_code("ERR_INVALID_ARG_VALUE")
                 .with_message("crypto: index array must be sorted");
         if (n >= msg_len)
-            return result_t::make(CALL_E_INVALIDARG)
+            return result_t::make(CALL_E_INVALID_DATA)
                 .with_code("ERR_INVALID_ARG_VALUE")
                 .with_message("crypto: index array must be less than messages length");
 
