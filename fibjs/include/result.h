@@ -31,7 +31,16 @@
 #include "obj_ptr.h"
 
 #ifdef _WIN32
-#include <windows.h>
+// Only the ERROR_* numbers below are needed, and <windows.h> is the wrong way
+// to get them: it pulls in <winsock.h> (Winsock 1). A translation unit that
+// includes this header before <uv/include/uv.h> -- errhelp.cpp is one, it
+// starts with its own header -- then gets <winsock2.h> from uv/win.h on top of
+// <winsock.h>, and the SDK reports redefinition of servent / protoent /
+// WSAData / timeval. The rest of the tree happens to be safe only because
+// those files start with object.h, whose chain reaches uv.h first; that is an
+// accident of include order, not a guarantee. <winerror.h> carries exactly the
+// numbers and no socket header, so the order stops mattering.
+#include <winerror.h>
 #endif
 
 // Leave the preprocessor exactly as uv.h leaves it: the helper is restored only
