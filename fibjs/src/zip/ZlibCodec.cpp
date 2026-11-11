@@ -222,7 +222,7 @@ private:
 };
 
 // Helper to extract options from opts object
-static void extract_opts(v8::Local<v8::Object> opts, ZlibMode mode,
+static result_t extract_opts(v8::Local<v8::Object> opts, ZlibMode mode,
     int32_t& level, int32_t& windowBits, int32_t& memLevel, int32_t& strategy)
 {
     level = Z_DEFAULT_COMPRESSION;
@@ -257,21 +257,34 @@ static void extract_opts(v8::Local<v8::Object> opts, ZlibMode mode,
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
 
-    GetConfigValue(opts, "level", level, true);
-    GetConfigValue(opts, "memLevel", memLevel, true);
-    GetConfigValue(opts, "strategy", strategy, true);
+    // Node validates these three: a string where a number belongs is
+    // ERR_INVALID_ARG_TYPE, not a silently ignored option. Dropping the result
+    // made `deflateRawSync(d, {level: 'x'})` compress with the default level.
+    result_t hr = GetConfigValue(opts, "level", level, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+    hr = GetConfigValue(opts, "memLevel", memLevel, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+    hr = GetConfigValue(opts, "strategy", strategy, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
 
     // windowBits from opts overrides default only if explicitly set
     int32_t wb = 0;
     if (GetConfigValue(opts, "windowBits", wb, true).ok())
         windowBits = wb;
+
+    return result_t();
 }
 
 // Gzip
 result_t Gzip_base::_new(v8::Local<v8::Object> opts, obj_ptr<Gzip_base>& retVal, v8::Local<v8::Object> This)
 {
     int32_t level, windowBits, memLevel, strategy;
-    extract_opts(opts, ZLIB_GZIP, level, windowBits, memLevel, strategy);
+    result_t ohr = extract_opts(opts, ZLIB_GZIP, level, windowBits, memLevel, strategy);
+    if (ohr.failed())
+        return ohr;
     retVal = new ZlibCodecImpl<Gzip_base>(ZLIB_GZIP, level, windowBits, memLevel, strategy);
     return result_t();
 }
@@ -280,7 +293,9 @@ result_t Gzip_base::_new(v8::Local<v8::Object> opts, obj_ptr<Gzip_base>& retVal,
 result_t Gunzip_base::_new(v8::Local<v8::Object> opts, obj_ptr<Gunzip_base>& retVal, v8::Local<v8::Object> This)
 {
     int32_t level, windowBits, memLevel, strategy;
-    extract_opts(opts, ZLIB_GUNZIP, level, windowBits, memLevel, strategy);
+    result_t ohr = extract_opts(opts, ZLIB_GUNZIP, level, windowBits, memLevel, strategy);
+    if (ohr.failed())
+        return ohr;
     retVal = new ZlibCodecImpl<Gunzip_base>(ZLIB_GUNZIP, level, windowBits, memLevel, strategy);
     return result_t();
 }
@@ -289,7 +304,9 @@ result_t Gunzip_base::_new(v8::Local<v8::Object> opts, obj_ptr<Gunzip_base>& ret
 result_t Deflate_base::_new(v8::Local<v8::Object> opts, obj_ptr<Deflate_base>& retVal, v8::Local<v8::Object> This)
 {
     int32_t level, windowBits, memLevel, strategy;
-    extract_opts(opts, ZLIB_DEFLATE, level, windowBits, memLevel, strategy);
+    result_t ohr = extract_opts(opts, ZLIB_DEFLATE, level, windowBits, memLevel, strategy);
+    if (ohr.failed())
+        return ohr;
     retVal = new ZlibCodecImpl<Deflate_base>(ZLIB_DEFLATE, level, windowBits, memLevel, strategy);
     return result_t();
 }
@@ -298,7 +315,9 @@ result_t Deflate_base::_new(v8::Local<v8::Object> opts, obj_ptr<Deflate_base>& r
 result_t Inflate_base::_new(v8::Local<v8::Object> opts, obj_ptr<Inflate_base>& retVal, v8::Local<v8::Object> This)
 {
     int32_t level, windowBits, memLevel, strategy;
-    extract_opts(opts, ZLIB_INFLATE, level, windowBits, memLevel, strategy);
+    result_t ohr = extract_opts(opts, ZLIB_INFLATE, level, windowBits, memLevel, strategy);
+    if (ohr.failed())
+        return ohr;
     retVal = new ZlibCodecImpl<Inflate_base>(ZLIB_INFLATE, level, windowBits, memLevel, strategy);
     return result_t();
 }
@@ -307,7 +326,9 @@ result_t Inflate_base::_new(v8::Local<v8::Object> opts, obj_ptr<Inflate_base>& r
 result_t DeflateRaw_base::_new(v8::Local<v8::Object> opts, obj_ptr<DeflateRaw_base>& retVal, v8::Local<v8::Object> This)
 {
     int32_t level, windowBits, memLevel, strategy;
-    extract_opts(opts, ZLIB_DEFLATERAW, level, windowBits, memLevel, strategy);
+    result_t ohr = extract_opts(opts, ZLIB_DEFLATERAW, level, windowBits, memLevel, strategy);
+    if (ohr.failed())
+        return ohr;
     retVal = new ZlibCodecImpl<DeflateRaw_base>(ZLIB_DEFLATERAW, level, windowBits, memLevel, strategy);
     return result_t();
 }
@@ -316,7 +337,9 @@ result_t DeflateRaw_base::_new(v8::Local<v8::Object> opts, obj_ptr<DeflateRaw_ba
 result_t InflateRaw_base::_new(v8::Local<v8::Object> opts, obj_ptr<InflateRaw_base>& retVal, v8::Local<v8::Object> This)
 {
     int32_t level, windowBits, memLevel, strategy;
-    extract_opts(opts, ZLIB_INFLATERAW, level, windowBits, memLevel, strategy);
+    result_t ohr = extract_opts(opts, ZLIB_INFLATERAW, level, windowBits, memLevel, strategy);
+    if (ohr.failed())
+        return ohr;
     retVal = new ZlibCodecImpl<InflateRaw_base>(ZLIB_INFLATERAW, level, windowBits, memLevel, strategy);
     return result_t();
 }
@@ -325,7 +348,9 @@ result_t InflateRaw_base::_new(v8::Local<v8::Object> opts, obj_ptr<InflateRaw_ba
 result_t Unzip_base::_new(v8::Local<v8::Object> opts, obj_ptr<Unzip_base>& retVal, v8::Local<v8::Object> This)
 {
     int32_t level, windowBits, memLevel, strategy;
-    extract_opts(opts, ZLIB_UNZIP, level, windowBits, memLevel, strategy);
+    result_t ohr = extract_opts(opts, ZLIB_UNZIP, level, windowBits, memLevel, strategy);
+    if (ohr.failed())
+        return ohr;
     retVal = new ZlibCodecImpl<Unzip_base>(ZLIB_UNZIP, level, windowBits, memLevel, strategy);
     return result_t();
 }

@@ -611,7 +611,10 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::O
         return result_t::bad_vartype();
 
     exlib::string type("Warning");
-    GetConfigValue(options, "type", type, true);
+    // Node validates it: a non-string type is ERR_INVALID_ARG_TYPE.
+    result_t t_hr = GetConfigValue(options, "type", type, true);
+    if (t_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return t_hr;
     opts->Set(context, isolate->NewString("name"), isolate->NewString(type)).IsJust();
 
     v8::Local<v8::Value> code = options->Get(context, isolate->NewString("code")).FromMaybe(v8::Local<v8::Value>());

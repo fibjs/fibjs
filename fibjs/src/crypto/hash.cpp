@@ -108,7 +108,10 @@ result_t crypto_base::createHmac(exlib::string algo, Union_createHmac_key key,
     // can be written as hex or base64 instead of as a Buffer literal.  A Buffer
     // or KeyObject key ignores it.
     exlib::string key_encoding = "utf8";
-    GetConfigValue(options, "encoding", key_encoding, true);
+    // Node validates it: a non-string encoding is ERR_INVALID_ARG_TYPE.
+    result_t enc_hr = GetConfigValue(options, "encoding", key_encoding, true);
+    if (enc_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return enc_hr;
 
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
         KeyObject* ko = (KeyObject*)std::get<obj_ptr<KeyObject_base>>(key).get();

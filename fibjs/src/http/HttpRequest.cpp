@@ -39,7 +39,11 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
     result_t hr;
 
     method = default_method;
-    GetConfigValue(opts, "method", method, true);
+    // Node validates the request options: a method that is not a string is
+    // ERR_INVALID_ARG_TYPE, not a silently ignored option.
+    hr = GetConfigValue(opts, "method", method, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
 
     JSValue v;
 
@@ -116,7 +120,9 @@ result_t HttpRequest::Options::from_opts(exlib::string default_method, exlib::st
             return t_hr;
     }
 
-    GetConfigValue(opts, "redirect", redirect, true);
+    hr = GetConfigValue(opts, "redirect", redirect, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
 
     // Parse signal option; ignore type mismatch or missing key
     {

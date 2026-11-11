@@ -1165,7 +1165,13 @@ result_t GetConfigValue(v8::Local<v8::Object> o, const char* key, T& n, bool bSt
     if (v->IsUndefined() || v->IsNull())
         return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
 
-    return GetArgumentValue(isolate, v, n, bStrict);
+    result_t hr = GetArgumentValue(isolate, v, n, bStrict);
+    if (hr.failed())
+        // The key is the option name, so this is where an option error can
+        // finally say WHICH option: "The \"level\" argument must be of type
+        // number" instead of "[20005] The argument could not be coerced".
+        return errhelp::from_value(hr, key, v, errhelp::expected_of<T>::get());
+    return hr;
 }
 
 // a binary option (key material, passphrase, header, ...) accepts a string as

@@ -346,14 +346,24 @@ result_t FileHandle::read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retV
         if (buffer == NULL)
             buffer = new Buffer(NULL, 16384);
 
+        // These three are ordered: `length` defaults to
+        // buffer.length - offset, so a discarded offset failure does not just
+        // lose a message -- it computes the wrong length. Node reports a bad
+        // one as ERR_INVALID_ARG_TYPE.
         int32_t offset = 0;
-        GetConfigValue(options, "offset", offset, true);
+        result_t o_hr = GetConfigValue(options, "offset", offset, true);
+        if (o_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return o_hr;
 
         int32_t length = Buffer::Cast(buffer)->length() - offset;
-        GetConfigValue(options, "length", length, true);
+        o_hr = GetConfigValue(options, "length", length, true);
+        if (o_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return o_hr;
 
         int32_t position = -1;
-        GetConfigValue(options, "position", position, true);
+        o_hr = GetConfigValue(options, "position", position, true);
+        if (o_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return o_hr;
 
         ac.ctxv()[0] = buffer;
         ac.ctxv()[1] = offset;
@@ -1289,16 +1299,22 @@ result_t fs_base::appendFile(Union_appendFile_fname fname, Union_appendFile_data
             v8::Local<v8::Object> opts = std::get<v8::Local<v8::Object>>(options);
 
             // Node.js validates the encoding even when the data is a Buffer
-            GetConfigValue(opts, "encoding", encoding, true);
-            result_t _e = check_encoding(encoding);
+            result_t _e = GetConfigValue(opts, "encoding", encoding, true);
+            if (_e.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+                return _e;
+            _e = check_encoding(encoding);
             if (_e.failed())
                 return _e;
             ac.ctxv()[0] = encoding;
 
-            GetConfigValue(opts, "flag", flag);
+            _e = GetConfigValue(opts, "flag", flag);
+            if (_e.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+                return _e;
             ac.ctxv()[1] = flag;
 
-            GetConfigValue(opts, "mode", mode);
+            _e = GetConfigValue(opts, "mode", mode);
+            if (_e.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+                return _e;
             if (mode < 0)
                 return setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode));
             ac.ctxv()[2] = mode;

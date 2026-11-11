@@ -360,6 +360,9 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     exlib::string username;
     exlib::string shell;
 
+    // Deliberately lenient, matching Node: os.userInfo({encoding: 123})
+    // returns the default-encoded result instead of throwing, because the
+    // option only selects how the strings are rendered.
     GetConfigValue(options, "encoding", encoding, true);
 
     int32_t ret = uv_os_get_passwd(&pwd);
