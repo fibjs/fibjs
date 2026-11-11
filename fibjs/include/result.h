@@ -371,11 +371,6 @@ public:
         return m_code == CALL_E_NOSYNC;
     }
 
-    bool is_exception() const
-    {
-        return m_code == CALL_E_EXCEPTION;
-    }
-
     bool is_javascript() const
     {
         return m_code == CALL_E_JAVASCRIPT;

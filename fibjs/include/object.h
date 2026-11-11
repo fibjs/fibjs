@@ -410,7 +410,7 @@ public:
         // silently accepted where a string is expected
         exlib::string msg = Classinfo().name();
         msg.append(": the object can not be converted to string.");
-        return result_t::make(CALL_E_EXCEPTION).with_message(msg.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message(msg.c_str());
     }
 
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal)

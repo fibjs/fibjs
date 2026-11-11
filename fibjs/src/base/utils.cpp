@@ -916,8 +916,11 @@ result_t throwSyntaxError(TryCatch& try_catch)
         ThrowError(isolate->toString(try_catch.Exception()));
     else {
         // The snapshot of a pending V8 exception: type / message ride with the
-        // value, and the producing function is kept for diagnostics.
-        return result_t::make(CALL_E_EXCEPTION).with_message(GetException(try_catch, result_t(), false, true)).with_func(__func__);
+        // value, and the producing function is kept for diagnostics. The code
+        // names what this is -- a syntax error found while compiling -- so the
+        // boundary does not have to fall back to the sentinel's generic text;
+        // GetException() above still owns the description.
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_SYNTAX").with_message(GetException(try_catch, result_t(), false, true)).with_func(__func__);
     }
 
     return result_t(CALL_E_JAVASCRIPT);

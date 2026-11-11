@@ -1805,7 +1805,7 @@ static void not_call(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Local<v8::Value> exp = FillError(result_t(CALL_E_EXCEPTION), "This function must never be called.");
+    v8::Local<v8::Value> exp = FillError(result_t(CALL_E_INVALID_CALL), "This function must never be called.");
     td->m_running->m_errors.append(GetException(exp, false, true));
     ThrowError(exp);
 }
