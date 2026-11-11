@@ -351,7 +351,7 @@ public:
 
     virtual result_t columns(obj_ptr<NArray>& retVal)
     {
-        return result_t::make(CALL_E_INVALID_CALL).with_message("MySQL: columns() requires server-side prepared statements (v2)");
+        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message("MySQL: columns() requires server-side prepared statements (v2)");
     }
 
     // Cursor reset: drain the remaining result and release the concurrency

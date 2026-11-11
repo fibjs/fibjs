@@ -55,13 +55,13 @@ result_t js_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
             }
 
             // Not ESM syntax, restore the original error
-            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_ARG_VALUE").with_message(err_msg);
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_message(err_msg);
         }
 
         return hr;
     } else if (info.type == SandBox::kESModule)
         return m_mjs.run(ctx, src, name, arg_names, args, in_cjs);
 
-    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_ARG_VALUE").with_message("SandBox: Invalid file format.");
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_message("SandBox: Invalid file format.");
 }
 }

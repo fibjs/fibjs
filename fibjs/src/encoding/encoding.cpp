@@ -933,7 +933,7 @@ result_t encoding_base::encode(Union_encode_data data, exlib::string codec, exli
 static result_t encoding_encode_buffer(Buffer_base* data, exlib::string codec, exlib::string& retVal)
 {
     if (!static_is_safe_codec(codec))
-        return result_t::make(CALL_E_INVALID_CALL).with_format("encoding: Unknown codec: '%s'.", codec.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_UNKNOWN_ENCODING").with_format("encoding: Unknown codec: '%s'.", codec.c_str());
 
     Buffer* _data = Buffer::Cast(data);
 
@@ -992,7 +992,7 @@ static result_t encoding_encode_buffer(Buffer_base* data, exlib::string codec, e
 result_t encoding_base::decode(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal)
 {
     if (!static_is_safe_codec(codec))
-        return result_t::make(CALL_E_INVALID_CALL).with_format("encoding: Unknown codec: '%s'.", codec.c_str());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_UNKNOWN_ENCODING").with_format("encoding: Unknown codec: '%s'.", codec.c_str());
 
     if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined"))
         retVal = new Buffer(str.c_str(), str.length());

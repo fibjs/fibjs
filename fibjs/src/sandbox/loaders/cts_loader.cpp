@@ -31,7 +31,7 @@ result_t cts_Loader::ts_compile(Isolate* isolate, Buffer_base* src, obj_ptr<Buff
     try {
         retVal = ts_strip::stripToBuffer(buf->data(), buf->length());
     } catch (const std::exception& e) {
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_ARG_VALUE").with_message(e.what());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_message(e.what());
     }
 
     // Async save to cache (fire and forget, zero copy with ref counting)

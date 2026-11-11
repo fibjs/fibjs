@@ -21,7 +21,7 @@ namespace fibjs {
 // finishing or breaking
 inline result_t db_stmt_busy_error()
 {
-    return result_t::make(CALL_E_BUSY).with_message("A statement cursor is active on this connection; release the iterator "
+    return result_t::make(CALL_E_BUSY).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("A statement cursor is active on this connection; release the iterator "
         "(call iterator.return() or finish the for...of iteration) before "
         "executing other statements");
 }
@@ -247,7 +247,7 @@ public:
     result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
         if (m_activeStmt)
-            return result_t::make(CALL_E_BUSY).with_message("A statement cursor is active on this connection");
+            return result_t::make(CALL_E_BUSY).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("A statement cursor is active on this connection");
 
         return result_t::invalid_call();
     }

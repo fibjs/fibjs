@@ -894,7 +894,7 @@ public:
 
     virtual result_t columns(obj_ptr<NArray>& retVal)
     {
-        return result_t::make(CALL_E_INVALID_CALL).with_message("ODBC: columns() requires a prepared statement (v2)");
+        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message("ODBC: columns() requires a prepared statement (v2)");
     }
 
     // Cursor reset: release the HSTMT (connection stays usable), impl is

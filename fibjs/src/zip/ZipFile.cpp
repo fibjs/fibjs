@@ -612,7 +612,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
             if (hr.failed())
                 return hr;
             if (!exists)
-                return result_t::make(UV_ENOENT).with_message("ZipFile: no such file or directory");
+                return result_t::make(UV_ENOENT).with_code("ENOENT").with_message("ZipFile: no such file or directory");
 
             int32_t err = unzGetGlobalInfo64(m_pThis->m_unz, &m_gi);
             if (err != UNZ_OK)
