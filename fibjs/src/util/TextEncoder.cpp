@@ -127,6 +127,8 @@ result_t TextDecoder_base::_new(exlib::string codec, v8::Local<v8::Object> opts,
     bool fatal = false;
     bool ignoreBOM = false;
 
+    // WHATWG reads these two by truthiness: a non-boolean is not an error,
+    // it just means "not false". Kept lenient on purpose.
     GetConfigValue(opts, "fatal", fatal);
     GetConfigValue(opts, "ignoreBOM", ignoreBOM);
 

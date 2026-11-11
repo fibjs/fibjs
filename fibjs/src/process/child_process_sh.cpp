@@ -191,7 +191,11 @@ result_t child_process_base::ssh(exlib::string host, v8::Local<v8::Object> optio
         host = user + "@" + host;
 
     int32_t port = 22;
-    GetConfigValue(options, "port", port);
+    // The SSH port: silently keeping 22 would connect to the wrong endpoint
+    // for a caller that configured another one.
+    result_t p_hr = GetConfigValue(options, "port", port, true);
+    if (p_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return p_hr;
     char port_str[16];
     snprintf(port_str, sizeof(port_str), "%d", port);
 

@@ -508,27 +508,44 @@ result_t ChildProcess::fill_arg(v8::Local<v8::Array> args)
 result_t ChildProcess::fill_opt(v8::Local<v8::Object> options)
 {
     process_base::cwd(cwd);
-    GetConfigValue(options, "cwd", cwd);
+
+    // Node validates these: a wrong type is ERR_INVALID_ARG_TYPE. Silently
+    // keeping the default made `spawn(cmd, {cwd: 123})` run in the wrong
+    // directory without a word.
+    result_t hr = GetConfigValue(options, "cwd", cwd);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
     uv_options.cwd = cwd.c_str();
 
     bool detached = false;
-    GetConfigValue(options, "detached", detached);
+    hr = GetConfigValue(options, "detached", detached, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
     if (detached)
         uv_options.flags |= UV_PROCESS_DETACHED;
 
     bool windowsVerbatimArguments = false;
-    GetConfigValue(options, "windowsVerbatimArguments", windowsVerbatimArguments);
+    hr = GetConfigValue(options, "windowsVerbatimArguments", windowsVerbatimArguments, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
     if (windowsVerbatimArguments)
         uv_options.flags |= UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS;
 
     bool windowsHide = false;
-    GetConfigValue(options, "windowsHide", windowsHide);
+    hr = GetConfigValue(options, "windowsHide", windowsHide, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
     if (windowsHide)
         uv_options.flags |= UV_PROCESS_WINDOWS_HIDE;
 
-    // Parse PTY options
-    GetConfigValue(options, "cols", m_cols);
-    GetConfigValue(options, "rows", m_rows);
+    // Parse PTY options. These two size the pseudo-terminal, so a wrong type
+    // would silently give the child the default geometry.
+    hr = GetConfigValue(options, "cols", m_cols);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+    hr = GetConfigValue(options, "rows", m_rows);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
 
     return result_t();
 }
@@ -554,11 +571,17 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
     if (hr.failed())
         return hr;
 
+    // Node validates timeout (ERR_INVALID_ARG_TYPE); with it silently kept at
+    // 0 the child would simply never be killed.
     int32_t timeout = 0;
-    GetConfigValue(options, "timeout", timeout);
+    hr = GetConfigValue(options, "timeout", timeout);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
 
     exlib::string killSignal("SIGTERM");
-    GetConfigValue(options, "killSignal", killSignal);
+    hr = GetConfigValue(options, "killSignal", killSignal);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
 
     isolate_ref();
     m_vholder = new ValueHolder(wrap());

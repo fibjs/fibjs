@@ -99,6 +99,12 @@ result_t HttpCookie::parse_ex(exlib::string header, bool bDecode)
 
 result_t HttpCookie::fill(v8::Local<v8::Object> opts, bool bBase)
 {
+    // Deliberately lenient, and it is the one shape where that is defensible:
+    // a cookie attribute is either present or not, so an attribute that does
+    // not convert simply stays unset rather than making the whole cookie fail.
+    // The cost is that a wrong type is invisible -- `{secure: 'x'}` reads back
+    // as true because any truthy value does. Making this strict is a separate
+    // decision about the Cookie contract, not an error-reporting fix.
     if (bBase) {
         GetConfigValue(opts, "name", m_name);
         GetConfigValue(opts, "value", m_value);

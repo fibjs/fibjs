@@ -66,10 +66,20 @@ result_t HttpFileHandler::create(exlib::string root, v8::Local<v8::Object> optio
     std::optional<bool> immutable;
     std::optional<bool> cacheControl;
 
-    GetConfigValue(options, "autoIndex", autoIndex);
-    GetConfigValue(options, "maxAge", maxAge);
-    GetConfigValue(options, "immutable", immutable);
-    GetConfigValue(options, "cacheControl", cacheControl);
+    // maxAge is a cache lifetime: silently falling back to 0 would serve
+    // no-cache for a handler the caller configured to cache.
+    result_t ohr = GetConfigValue(options, "autoIndex", autoIndex);
+    if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return ohr;
+    ohr = GetConfigValue(options, "maxAge", maxAge);
+    if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return ohr;
+    ohr = GetConfigValue(options, "immutable", immutable);
+    if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return ohr;
+    ohr = GetConfigValue(options, "cacheControl", cacheControl);
+    if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return ohr;
 
     obj_ptr<HttpFileHandler> hdlr = new HttpFileHandler(root_, isDir, autoIndex.value_or(false));
     hdlr->m_cacheControl = cacheControl.value_or(true);

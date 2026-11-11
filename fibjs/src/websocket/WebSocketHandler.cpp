@@ -162,8 +162,11 @@ result_t WebSocket_base::upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Funct
     int32_t maxPayload = WS_DEF_SIZE;
     std::vector<exlib::string> protocols;
 
-    GetConfigValue(opts, "perMessageDeflate", perMessageDeflate);
-    GetConfigValue(opts, "maxPayload", maxPayload);
+    GetConfigValue(opts, "perMessageDeflate", perMessageDeflate, true);
+    // Same reasoning as the client side: this is the inbound payload cap.
+    result_t opt_hr = GetConfigValue(opts, "maxPayload", maxPayload, true);
+    if (opt_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return opt_hr;
 
     result_t hr = get_protocols(opts, protocols);
     if (hr.failed())

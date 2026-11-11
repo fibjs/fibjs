@@ -541,8 +541,12 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     result_t hr;
 
     GetConfigValue(opts, "origin", origin);
-    GetConfigValue(opts, "perMessageDeflate", perMessageDeflate);
-    GetConfigValue(opts, "maxPayload", maxPayload);
+    GetConfigValue(opts, "perMessageDeflate", perMessageDeflate, true);
+    // maxPayload is a limit: silently keeping the default would leave the
+    // caller believing their (smaller) payload cap is in force.
+    hr = GetConfigValue(opts, "maxPayload", maxPayload, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
 
     hr = load_protocol_options(opts, protocols);
     if (hr.failed())
