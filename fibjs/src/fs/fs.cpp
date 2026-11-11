@@ -1081,7 +1081,11 @@ result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options op
         // the options object is readable in the synchronous phase only: the
         // callback phase receives an empty handle
         if (ac.isSync()) {
-            ac.ctxv().resize(2);
+            // three slots: encoding, flag, mode. The size has to match what
+            // the block below writes -- a two-slot vector with a write to [2]
+            // is an out-of-bounds store, and it also made ac.ctx(2) read
+            // past the end.
+            ac.ctxv().resize(3);
 
             v8::Local<v8::Object> opts = std::get<v8::Local<v8::Object>>(options);
 
@@ -1093,7 +1097,15 @@ result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options op
             ac.ctxv()[0] = encoding;
 
             if (!bFd) {
-                GetConfigValue(opts, "flag", flag);
+                // The flag is a closed set: a value outside it is an argument
+                // error, and dropping the result here let it through to fail
+                // later inside open() as "[20004] Invalid argument." -- which
+                // named neither the option nor the value.
+                // A bad value must be reported; an absent option must not,
+                // because `flag` has the "r" default.
+                result_t fl_hr = GetConfigValue(opts, "flag", flag);
+                if (fl_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+                    return fl_hr;
                 ac.ctxv()[1] = flag;
             }
 
@@ -1181,10 +1193,20 @@ result_t fs_base::writeFile(Union_writeFile_fname fname, Union_writeFile_data da
                 return _e;
             ac.ctxv()[0] = encoding;
 
-            GetConfigValue(options, "flag", flag);
+            // A flag/mode that does not convert is an argument error the
+            // caller must see. Dropping the result let a bad flag through and
+            // the failure then surfaced later from the open() call with an
+            // unrelated "[20004] Invalid argument.".
+            // A missing option is not a failure: flag and mode have default
+            // values. Anything else (a value that cannot convert) is.
+            _e = GetConfigValue(options, "flag", flag);
+            if (_e.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+                return _e;
             ac.ctxv()[1] = flag;
 
-            GetConfigValue(options, "mode", mode);
+            _e = GetConfigValue(options, "mode", mode);
+            if (_e.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+                return _e;
             if (mode < 0)
                 return setOutOfRange("mode", ">= 0 && <= 4294967295", std::to_string(mode));
             ac.ctxv()[2] = mode;

@@ -155,8 +155,17 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
         | O_SYNC
 #endif
         ;
-    else
-        return result_t::invalid_arg();
+    else {
+        // A flag outside the set above is an argument error, and saying so is
+        // the whole diagnosis: the caller passed an option value the API does
+        // not define. The bare invalid_arg() this replaces reached JS as
+        // "[20004] Invalid argument." -- no option name, no value, no code.
+        return result_t::make(CALL_E_INVALID_DATA)
+            .with_type_name(errtype::kTypeError)
+            .with_code("ERR_INVALID_ARG_VALUE")
+            .with_format("The argument 'flag' is invalid. Received '%s'",
+                flags.c_str());
+    }
 
 #ifdef _WIN32
     fd = _wopen(UTF8_W(fname), _flags, _S_IREAD | _S_IWRITE);
