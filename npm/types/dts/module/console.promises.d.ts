@@ -100,7 +100,7 @@ declare module 'console/promises' {
      *      The supported names are `"console"` on every platform, `"syslog"` on POSIX,
      *      `"event"` on Windows and `"nslog"` on Darwin; any other name throws Error
      *      ERR_INVALID_STATE ("console: Unknown log type."). Device management is process-wide and
-     *      is not available in worker threads (Error 20009).
+     *      is not available in worker threads (Error 20009, code `ERR_CONSOLE_NOT_AVAILABLE`).
      *
      *      Example:
      *      ```JavaScript
@@ -201,7 +201,7 @@ declare module 'console/promises' {
      *      records still queued on an asynchronous device (file, syslog, event) may be
      *      dropped, so a caller that needs them must let the device write first. Device
      *      management is process-wide and is not available in worker threads (Error
-     *      20009).
+     *      20009, code `ERR_CONSOLE_NOT_AVAILABLE`).
      *
      */
     function reset(): void;

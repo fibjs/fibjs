@@ -113,7 +113,9 @@
  *  - An archive appended after other data is recognized as well, which is how a packed executable
  *    can serve its embedded archive at `process.execPath + '$/...'`.
  *  - The returned ZipFile is only valid until `close()`; operations on a closed or wrongly opened
- *    object throw `ZipFile: file is closed.` (see the ZipFile interface for the entry API).
+ *    object throw `ZipFile: file is closed.` with code `ERR_FIBJS_ZIP_CLOSED`
+ *    (see the ZipFile interface for the entry API). The `number` is 20009, the grouping that
+ *    every closed-handle error shares, so branch on `err.code`.
  *
  */
 declare module 'zip' {

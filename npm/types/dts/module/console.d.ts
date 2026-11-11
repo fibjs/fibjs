@@ -40,7 +40,7 @@
  *  - **Output devices**: while no device is registered the built-in console device
  *    is used; add/use replace it with up to 10 registered devices, each with an
  *    optional whitelist of levels. Device management is process-wide and is not
- *    available in worker threads (Error 20009). The console device writes
+ *    available in worker threads (Error 20009, code `ERR_CONSOLE_NOT_AVAILABLE`). The console device writes
  *    synchronously, while the file, syslog and event devices queue records and
  *    write them asynchronously.
  *  - **Input**: readLine/getpass flush pending device records and then suspend the
@@ -213,7 +213,7 @@ declare module 'console' {
      *      The supported names are `"console"` on every platform, `"syslog"` on POSIX,
      *      `"event"` on Windows and `"nslog"` on Darwin; any other name throws Error
      *      ERR_INVALID_STATE ("console: Unknown log type."). Device management is process-wide and
-     *      is not available in worker threads (Error 20009).
+     *      is not available in worker threads (Error 20009, code `ERR_CONSOLE_NOT_AVAILABLE`).
      *
      *      Example:
      *      ```JavaScript
@@ -314,7 +314,7 @@ declare module 'console' {
      *      records still queued on an asynchronous device (file, syslog, event) may be
      *      dropped, so a caller that needs them must let the device write first. Device
      *      management is process-wide and is not available in worker threads (Error
-     *      20009).
+     *      20009, code `ERR_CONSOLE_NOT_AVAILABLE`).
      *
      */
     function reset(): void;

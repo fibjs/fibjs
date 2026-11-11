@@ -18,7 +18,9 @@
  *    MemoryStream, does not clamp the result. `truncate` resizes the file and
  *    keeps the position. See SeekableStream for the shared positioning contract.
  *  - **close**: close() closes the descriptor and is idempotent. Every member
- *    then throws an Error [20009] with the message "FileStream: file is closed."
+ *    then throws an Error [20009] with code `EBADF` and the message "FileStream:
+ *    file is closed." Switch on `err.code`, not on `err.number`: the number is the
+ *    historical grouping shared by every closed-handle error (see plans/error-codes.md).
  *  - **name vs stat().name**: `name` is the path the file was opened with
  *    (normalized, still relative when a relative path was given), while
  *    stat().name is only the base name (see Stat).
@@ -77,7 +79,7 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      The path passed to the open function, with platform separators normalized
      *      but not resolved against the current directory: opening 'data.txt' keeps
      *      'data.txt', an absolute path stays absolute. Reading it after close()
-     *      throws [20009].
+     *      throws [20009] with code `EBADF`.
      *
      *      Example — inspect the name before and after close:
      *      ```JavaScript
@@ -110,7 +112,8 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no `code`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript
@@ -144,7 +147,8 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no `code`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript
@@ -176,7 +180,8 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no `code`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript
@@ -217,7 +222,7 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      The path passed to the open function, with platform separators normalized
      *      but not resolved against the current directory: opening 'data.txt' keeps
      *      'data.txt', an absolute path stays absolute. Reading it after close()
-     *      throws [20009].
+     *      throws [20009] with code `EBADF`.
      *
      *      Example — inspect the name before and after close:
      *      ```JavaScript
@@ -250,7 +255,8 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no `code`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript
@@ -282,7 +288,8 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no `code`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript
@@ -314,7 +321,8 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no `code`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      ```JavaScript

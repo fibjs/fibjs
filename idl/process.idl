@@ -717,7 +717,7 @@ module process : EventEmitter
      Available only in a child with an IPC channel; the message is JSON-encoded and
      newline-framed, so it must be JSON-serializable. The parent receives it as a `message`
      event. After `disconnect` (or in a process without a channel) the call throws Error
-     20009 ("process.send: IPC channel is not available.").
+     20009 with code `ERR_IPC_CHANNEL_CLOSED` ("process.send: IPC channel is not available.").
      @param msg specifies the message to send
     */
     static send(Value msg);

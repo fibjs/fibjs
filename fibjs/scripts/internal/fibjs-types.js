@@ -386,7 +386,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      \`AbortError\`, code \`ABORT_ERR\`, message "The operation was aborted.") or a TimeoutError
      *      (name \`TimeoutError\`, code \`TIMEOUT_ERR\`, message "The operation timed out."); a custom
      *      string reason is not preserved and also throws the generic AbortError, and any other
-     *      reason value throws a generic Error (20024) instead of the value itself; read \`AbortSignal.reason\` when the
+     *      reason value throws a generic Error (ERR_INVALID_STATE) instead of the value itself; read \`AbortSignal.reason\` when the
      *      original value matters.
      *
      *      Example — a no-op while active, an AbortError after the abort:
@@ -2336,7 +2336,7 @@ declare class Class_Buffer<TArrayBuffer extends ArrayBufferLike = ArrayBufferLik
  *    "\\r\\n" is preferred, a lone "\\n" is accepted, a lone "\\r" is not. Assign
  *    "\\n", "\\r\\n" or "\\r" to fix it; any other non-empty value throws [20004].
  *  - **maxlen**: the maxlen argument of readLine/readUntil is a byte budget that
- *    includes the separator; exceeding it throws [20024]. A value of 0 or less
+ *    includes the separator; exceeding it throws [ERR_INVALID_STATE]. A value of 0 or less
  *    means unlimited (note that this differs from readText where the size is
  *    mandatory and non-positive sizes read nothing).
  *  - **Writes and close**: writes go straight to the wrapped stream, so nothing
@@ -2508,7 +2508,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      "\\r\\n" or a lone "\\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -2539,7 +2539,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      "\\r\\n" or a lone "\\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -2568,7 +2568,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      "\\r\\n" or a lone "\\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -2627,7 +2627,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      \`\`\`JavaScript
@@ -2659,7 +2659,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      \`\`\`JavaScript
@@ -2689,7 +2689,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      \`\`\`JavaScript
@@ -3082,7 +3082,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      "\\r\\n" or a lone "\\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -3111,7 +3111,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      "\\r\\n" or a lone "\\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -3140,7 +3140,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      "\\r\\n" or a lone "\\n", whichever appears first; the separator is consumed
      *      and not part of the result. At the end of the stream the last unterminated
      *      line is returned once, then null. maxlen is a byte budget for the line
-     *      including its separator; exceeding it throws [20024] and leaves the
+     *      including its separator; exceeding it throws [ERR_INVALID_STATE] and leaves the
      *      buffered data untouched. A maxlen of 0 or less means unlimited.
      *
      *      Example — read two lines and then detect the end:
@@ -3199,7 +3199,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      \`\`\`JavaScript
@@ -3229,7 +3229,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      \`\`\`JavaScript
@@ -3259,7 +3259,7 @@ declare class Class_BufferedStreamPromise extends Class_StreamPromise {
      *      just a line ending (for example a delimiter or a boundary token). If the
      *      stream ends before the marker, the remaining text is returned and the next
      *      read returns null; maxlen is a byte budget including the marker and
-     *      exceeding it throws [20024]. A maxlen of 0 or less means unlimited.
+     *      exceeding it throws [ERR_INVALID_STATE]. A maxlen of 0 or less means unlimited.
      *
      *      Example — split a stream on a custom separator:
      *      \`\`\`JavaScript
@@ -4034,7 +4034,7 @@ declare namespace Class_Chain {
  *    \`stdout\`, \`stderr\` and the \`stdio\` array; 'ignore' and 'inherit' descriptors are null. Read
  *    the output streams to drain them, otherwise the child can block on a full pipe buffer.
  *  - **Terminal (pty)**: with \`stdio: 'pty'\` stdin and stdout are a pseudo terminal; \`cols\`, \`rows\`
- *    and \`resize\` are available in this mode and throw Error 20024 for other children.
+ *    and \`resize\` are available in this mode and throw ERR_INVALID_STATE for other children.
  *  - **IPC**: a fork child, or a spawn with an 'ipc' stdio entry, gets a message channel;
  *    \`connected\`, \`send\` and \`disconnect\` operate on it and incoming messages are delivered to the
  *    'message' event. Only one 'ipc' entry is allowed per child (ERR_IPC_ONE_PIPE).
@@ -4192,7 +4192,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      * @description Closes the ipc pipe to the child process
      *
      *       After the call \`connected\` is false and send fails; the disconnect event is emitted when
-     *       the channel closes. Calling it when no channel is connected throws Error 20024 ("IPC
+     *       the channel closes. Calling it when no channel is connected throws ERR_INVALID_STATE ("IPC
      *       channel is already disconnected").
      *
      */
@@ -4203,8 +4203,8 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *       The value is serialized as JSON-compatible data and delivered to the child's message
      *       handler (process.on('message') in the child). There is no callback form; it throws Error
-     *       20009 when the channel is not available (no 'ipc' stdio entry and no fork IPC), and the
-     *       child must still be running.
+     *       20009 with code \`ERR_IPC_CHANNEL_CLOSED\` when the channel is not available (no 'ipc'
+     *       stdio entry and no fork IPC), and the child must still be running.
      *
      *      @param msg the message to send
      *
@@ -4214,7 +4214,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     /**
      * @description Resizes the terminal of the current child process
      *
-     *       Only available when the child runs in 'pty' mode; otherwise it throws Error 20024
+     *       Only available when the child runs in 'pty' mode; otherwise it throws ERR_INVALID_STATE
      *       ("resize() only available in PTY mode"). Both dimensions must be positive, otherwise
      *       Error 20004; the default size is 80 columns by 24 rows.
      *
@@ -4227,7 +4227,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     /**
      * @description Number of terminal columns of the child process
      *
-     *       Only available in 'pty' mode; reading it for a non-pty child throws Error 20024 ("cols
+     *       Only available in 'pty' mode; reading it for a non-pty child throws ERR_INVALID_STATE ("cols
      *       property only available in PTY mode"). The default is 80 and resize updates it.
      *
      */
@@ -4236,7 +4236,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     /**
      * @description Number of terminal rows of the child process
      *
-     *       Only available in 'pty' mode; reading it for a non-pty child throws Error 20024 ("rows
+     *       Only available in 'pty' mode; reading it for a non-pty child throws ERR_INVALID_STATE ("rows
      *       property only available in PTY mode"). The default is 24 and resize updates it.
      *
      */
@@ -4660,7 +4660,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      * @description Closes the ipc pipe to the child process
      *
      *       After the call \`connected\` is false and send fails; the disconnect event is emitted when
-     *       the channel closes. Calling it when no channel is connected throws Error 20024 ("IPC
+     *       the channel closes. Calling it when no channel is connected throws ERR_INVALID_STATE ("IPC
      *       channel is already disconnected").
      *
      */
@@ -4671,8 +4671,8 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *       The value is serialized as JSON-compatible data and delivered to the child's message
      *       handler (process.on('message') in the child). There is no callback form; it throws Error
-     *       20009 when the channel is not available (no 'ipc' stdio entry and no fork IPC), and the
-     *       child must still be running.
+     *       20009 with code \`ERR_IPC_CHANNEL_CLOSED\` when the channel is not available (no 'ipc'
+     *       stdio entry and no fork IPC), and the child must still be running.
      *
      *      @param msg the message to send
      *
@@ -4682,7 +4682,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
     /**
      * @description Resizes the terminal of the current child process
      *
-     *       Only available when the child runs in 'pty' mode; otherwise it throws Error 20024
+     *       Only available when the child runs in 'pty' mode; otherwise it throws ERR_INVALID_STATE
      *       ("resize() only available in PTY mode"). Both dimensions must be positive, otherwise
      *       Error 20004; the default size is 80 columns by 24 rows.
      *
@@ -4695,7 +4695,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
     /**
      * @description Number of terminal columns of the child process
      *
-     *       Only available in 'pty' mode; reading it for a non-pty child throws Error 20024 ("cols
+     *       Only available in 'pty' mode; reading it for a non-pty child throws ERR_INVALID_STATE ("cols
      *       property only available in PTY mode"). The default is 80 and resize updates it.
      *
      */
@@ -4704,7 +4704,7 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
     /**
      * @description Number of terminal rows of the child process
      *
-     *       Only available in 'pty' mode; reading it for a non-pty child throws Error 20024 ("rows
+     *       Only available in 'pty' mode; reading it for a non-pty child throws ERR_INVALID_STATE ("rows
      *       property only available in PTY mode"). The default is 24 and resize updates it.
      *
      */
@@ -5719,7 +5719,7 @@ declare class Class_ConsoleObject extends Class_object {
      *      to \`out\`, otherwise it must be writable too. When the single argument is an
      *      object without a \`write()\` method it is read as an options object with
      *      \`stdout\` and \`stderr\` properties, where \`stdout\` is required and \`stderr\`
-     *      defaults to \`out\`. Invalid arguments throw Error 20024, for example
+     *      defaults to \`out\`. Invalid arguments throw ERR_INVALID_STATE, for example
      *      "ConsoleObject: stdout must have a write() method." or "ConsoleObject:
      *      options.stdout is required.". Each record is the formatted text plus a
      *      newline, written synchronously; the global logging system is not used.
@@ -6310,7 +6310,7 @@ declare class Class_CryptoKey extends Class_object {
      *
      *      Public keys are always extractable; private and secret keys are extractable only when
      *      the extractable argument of generateKey/importKey was true. Exporting a key whose
-     *      extractable is false rejects with \`Key is not extractable\` (Error 20024). The property
+     *      extractable is false rejects with \`Key is not extractable\` (ERR_INVALID_STATE). The property
      *      is read-only.
      *
      *      Example - a non-extractable secret key cannot be exported:
@@ -6583,14 +6583,14 @@ declare class Class_DOMEvent extends Class_object {
  *  - **MIME gate**: only the exact strings text/html, text/xml, application/xml,
  *    application/xhtml+xml and image/svg+xml are accepted (the four XML variants parse
  *    identically as XML). The comparison is case-sensitive and rejects parameters, so 'TEXT/XML'
- *    or 'text/xml; charset=utf-8' throw Error [20024].
- *  - **Parse errors**: an XML syntax error throws Error [20024] with the parser location
+ *    or 'text/xml; charset=utf-8' throw Error [ERR_INVALID_STATE].
+ *  - **Parse errors**: an XML syntax error throws Error [ERR_INVALID_STATE] with the parser location
  *    ("XmlParser: error on line N at column M: ..."), where browsers instead return a document
  *    containing a parsererror element. HTML parsing is tolerant and rarely fails.
  *  - **Parse limits**: the third options argument is an extension over the two-argument MDN
  *    signature; it accepts maxElementDepth (default 1000) and maxNodeCount (default 1000000),
  *    exactly like xml.parse. A value of 0, a negative value or Infinity disables the limit,
- *    exceeding one throws Error [20024], and a non-numeric option throws TypeError [20004].
+ *    exceeding one throws Error [ERR_INVALID_STATE], and a non-numeric option throws TypeError [20004].
  *
  *  Obtained from:
  *  - \`new DOMParser()\` — the constructor takes no arguments; the global also lets code recognize
@@ -6630,7 +6630,8 @@ declare class Class_DOMEvent extends Class_object {
  *  try {
  *      parser.parseFromString('<a><b/></a>', 'text/xml', { maxElementDepth: 1 });
  *  } catch (e) {
- *      console.log(e.number); // 20024
+ *      console.log(e.code);  // ERR_OUT_OF_RANGE
+ *      console.log(e.number); // 20013
  *  }
  *  \`\`\`
  *
@@ -6656,7 +6657,7 @@ declare class Class_DOMParser extends Class_object {
      * @description Parses a string into a DOM document
      *
      *      The MIME type selects the parser and must be one of the five exact strings listed by the
-     *      class description; invalid values throw Error [20024]. Invalid XML throws Error [20024]
+     *      class description; invalid values throw Error [ERR_INVALID_STATE]. Invalid XML throws Error [ERR_INVALID_STATE]
      *      with the parser location as well. The optional options argument is a fibjs extension that
      *      overrides the parse limits of xml.parse.
      *
@@ -7220,7 +7221,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Sends \`USE <dbName>\` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -7235,7 +7236,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Sends \`USE <dbName>\` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -7248,7 +7249,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Sends \`USE <dbName>\` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -7432,7 +7433,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Without an argument the current transaction is committed with \`COMMIT\`; with \`point\`
      *      the named savepoint is released through \`RELEASE SAVEPOINT point\`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -7446,7 +7447,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Without an argument the current transaction is committed with \`COMMIT\`; with \`point\`
      *      the named savepoint is released through \`RELEASE SAVEPOINT point\`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -7458,7 +7459,7 @@ declare class Class_DbConnection extends Class_object {
      *
      *      Without an argument the current transaction is committed with \`COMMIT\`; with \`point\`
      *      the named savepoint is released through \`RELEASE SAVEPOINT point\`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -7473,7 +7474,7 @@ declare class Class_DbConnection extends Class_object {
      *      \`ROLLBACK TO\` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -7490,7 +7491,7 @@ declare class Class_DbConnection extends Class_object {
      *      \`ROLLBACK TO\` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -7505,7 +7506,7 @@ declare class Class_DbConnection extends Class_object {
      *      \`ROLLBACK TO\` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -7586,7 +7587,7 @@ declare class Class_DbConnection extends Class_object {
      *      \`insertId\`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -7621,7 +7622,7 @@ declare class Class_DbConnection extends Class_object {
      *      \`insertId\`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -7654,7 +7655,7 @@ declare class Class_DbConnection extends Class_object {
      *      \`insertId\`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -7764,7 +7765,7 @@ declare class Class_DbConnection extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement
@@ -7799,7 +7800,7 @@ declare class Class_DbConnection extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement
@@ -7832,7 +7833,7 @@ declare class Class_DbConnection extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement
@@ -8024,7 +8025,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Sends \`USE <dbName>\` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -8037,7 +8038,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Sends \`USE <dbName>\` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -8050,7 +8051,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Sends \`USE <dbName>\` to the server, with the name escaped as a string literal. It is
      *      useful on MySQL to switch the current schema; SQLite has one database per file and
-     *      rejects the statement with error number 20024 (the SQLite message mentions a USE
+     *      rejects the statement with ERR_INVALID_STATE (the SQLite message mentions a USE
      *      syntax error).
      *
      *      @param dbName the database name
@@ -8228,7 +8229,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Without an argument the current transaction is committed with \`COMMIT\`; with \`point\`
      *      the named savepoint is released through \`RELEASE SAVEPOINT point\`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -8240,7 +8241,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Without an argument the current transaction is committed with \`COMMIT\`; with \`point\`
      *      the named savepoint is released through \`RELEASE SAVEPOINT point\`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -8252,7 +8253,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *
      *      Without an argument the current transaction is committed with \`COMMIT\`; with \`point\`
      *      the named savepoint is released through \`RELEASE SAVEPOINT point\`. Committing
-     *      without an active transaction reports error number 20024.
+     *      without an active transaction reports ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -8267,7 +8268,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      \`ROLLBACK TO\` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -8282,7 +8283,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      \`ROLLBACK TO\` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -8297,7 +8298,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      \`ROLLBACK TO\` keeps the savepoint on the stack and the surrounding transaction open:
      *      release it with commit(point) or finish the transaction with a plain
      *      commit/rollback. Rolling back without an active transaction reports error number
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      @param point the transaction name, not specified by default
      *
@@ -8378,7 +8379,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      \`insertId\`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -8411,7 +8412,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      \`insertId\`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -8444,7 +8445,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      \`insertId\`). A string containing several statements returns an array with one result
      *      set per statement. This one-argument form does not interpolate values; to pass
      *      parameters use execute(sql, ...args), prepare or format. Engine errors are reported
-     *      with number 20024, calls on a closed connection with 20009 and a busy cursor with
+     *      with ERR_INVALID_STATE, calls on a closed connection with 20009 and a busy cursor with
      *      20028.
      *
      *      Example — run a query and inspect an update result:
@@ -8554,7 +8555,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement
@@ -8587,7 +8588,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement
@@ -8620,7 +8621,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      * @description Compiles an SQL statement into a prepared statement (single statement) supporting row-by-row reads
      *
      *      Only one statement is accepted: a multi-statement string fails with error number
-     *      20004 and an empty string with 20024. SQLite compiles the statement immediately, so
+     *      20004 and an empty string with ERR_INVALID_STATE. SQLite compiles the statement immediately, so
      *      syntax errors and missing tables surface here; MySQL and ODBC defer compilation to
      *      the first execution. The call fails with 20028 while another cursor is open on the
      *      connection and with 20009 when the connection is closed. The returned Statement
@@ -9050,7 +9051,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code \`ERR_SOCKET_ALREADY_BOUND\`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -9086,7 +9088,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code \`ERR_SOCKET_ALREADY_BOUND\`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -9120,7 +9123,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code \`ERR_SOCKET_ALREADY_BOUND\`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -9430,7 +9434,9 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Closes the socket and releases the underlying handle
      *
      *      The 'close' event is emitted when the handle has been released; no further 'message' events
-     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.').
+     *      are delivered. A second close throws error 20009 (code \`ERR_SOCKET_DGRAM_NOT_RUNNING\`,
+     *      message 'dgram: socket is already closing.'). The same code and class come back from
+     *      \`send\` on a closed socket, because the implicit bind refuses a handle that is closing.
      *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
@@ -9808,7 +9814,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code \`ERR_SOCKET_ALREADY_BOUND\`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -9842,7 +9849,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code \`ERR_SOCKET_ALREADY_BOUND\`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -9876,7 +9884,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code \`ERR_SOCKET_ALREADY_BOUND\`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      \`\`\`JavaScript
@@ -10180,7 +10189,9 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description Closes the socket and releases the underlying handle
      *
      *      The 'close' event is emitted when the handle has been released; no further 'message' events
-     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.').
+     *      are delivered. A second close throws error 20009 (code \`ERR_SOCKET_DGRAM_NOT_RUNNING\`,
+     *      message 'dgram: socket is already closing.'). The same code and class come back from
+     *      \`send\` on a closed socket, because the implicit bind refuses a handle that is closing.
      *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
@@ -16581,7 +16592,9 @@ declare namespace Class_FileHandle {
  *    MemoryStream, does not clamp the result. \`truncate\` resizes the file and
  *    keeps the position. See SeekableStream for the shared positioning contract.
  *  - **close**: close() closes the descriptor and is idempotent. Every member
- *    then throws an Error [20009] with the message "FileStream: file is closed."
+ *    then throws an Error [20009] with code \`EBADF\` and the message "FileStream:
+ *    file is closed." Switch on \`err.code\`, not on \`err.number\`: the number is the
+ *    historical grouping shared by every closed-handle error (see plans/error-codes.md).
  *  - **name vs stat().name**: \`name\` is the path the file was opened with
  *    (normalized, still relative when a relative path was given), while
  *    stat().name is only the base name (see Stat).
@@ -16640,7 +16653,7 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      The path passed to the open function, with platform separators normalized
      *      but not resolved against the current directory: opening 'data.txt' keeps
      *      'data.txt', an absolute path stays absolute. Reading it after close()
-     *      throws [20009].
+     *      throws [20009] with code \`EBADF\`.
      *
      *      Example — inspect the name before and after close:
      *      \`\`\`JavaScript
@@ -16673,7 +16686,8 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no \`code\`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -16707,7 +16721,8 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no \`code\`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -16739,7 +16754,8 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no \`code\`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -16780,7 +16796,7 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      The path passed to the open function, with platform separators normalized
      *      but not resolved against the current directory: opening 'data.txt' keeps
      *      'data.txt', an absolute path stays absolute. Reading it after close()
-     *      throws [20009].
+     *      throws [20009] with code \`EBADF\`.
      *
      *      Example — inspect the name before and after close:
      *      \`\`\`JavaScript
@@ -16813,7 +16829,8 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no \`code\`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -16845,7 +16862,8 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no \`code\`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -16877,7 +16895,8 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      Applies fchmod to the open descriptor, so the change reaches the file on
      *      disk immediately and does not depend on the path (a rename in between does
      *      not matter). mode holds the permission bits, for example 0o600; on Windows
-     *      the call fails with [20009].
+     *      the call fails with [20009] (no \`code\`, the platform limitation is not a
+     *      Node-compatible error).
      *
      *      Example — restrict a file to its owner:
      *      \`\`\`JavaScript
@@ -17091,7 +17110,7 @@ declare class Class_FormData extends Class_HttpCollection {
     /**
      * @description Appends a Blob or File value under a name with an explicit file name
      *
-     *      The value must be a Blob or a File; any other value throws \`TypeError [20024] Failed to
+     *      The value must be a Blob or a File; any other value throws \`TypeError [ERR_INVALID_STATE] Failed to
      *      execute 'append' on 'FormData': parameter 2 is not of type 'Blob'.\` The entry is stored
      *      as a File with the given filename (it may be empty), the bytes and type of the value and
      *      the current time as lastModified. Use this form when the upload needs a specific name.
@@ -17119,7 +17138,7 @@ declare class Class_FormData extends Class_HttpCollection {
      *
      *      Like the filename form of append() but destructive: every existing value of name is
      *      removed first, then one File with the given filename is appended. A value that is not a
-     *      Blob or File throws \`TypeError [20024] Failed to execute 'set' on 'FormData': parameter 2
+     *      Blob or File throws \`TypeError [ERR_INVALID_STATE] Failed to execute 'set' on 'FormData': parameter 2
      *      is not of type 'Blob'.\`
      *      @param name the field name
      *      @param value the Blob or File to set
@@ -17135,13 +17154,13 @@ declare class Class_FormData extends Class_HttpCollection {
      *      accepted:
      *      - "application/x-www-form-urlencoded" (the default, also "urlencoded",
      *        "form-urlencoded", "www-form-urlencoded") serializes the entries as name=value&...
-     *        with percent escapes. A File entry makes the call fail with \`[20024] FormData encode:
+     *        with percent escapes. A File entry makes the call fail with \`[ERR_INVALID_STATE] FormData encode:
      *        field '<name>' contains non-string value (File/Blob), use multipart/form-data encoding
      *        instead\`. Spaces are encoded as %20, not as \`+\` like the WHATWG urlencoded serializer.
      *      - "multipart/form-data" writes a complete multipart body and generates a random boundary
      *        when the type string carries none; the type of the returned Blob contains the boundary
      *        actually used ("multipart/form-data; boundary=...").
-     *      Any other type, including an empty string, throws \`[20024] FormData encode: unsupported
+     *      Any other type, including an empty string, throws \`[ERR_INVALID_STATE] FormData encode: unsupported
      *      content type: <type>\`. The returned Blob holds the whole body; send it, write it to a
      *      stream or parse it back with \`new FormData(blob, '')\`.
      *
@@ -20543,7 +20562,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      code is an HTTP/2 error code (NGHTTP2_NO_ERROR, NGHTTP2_CANCEL, ...; see
      *      http2_constants). The stream ends immediately: the peer's read() throws (the current
      *      implementation leaves the remote error payload empty, \`[0] Success\`), and a local
-     *      read() still waiting for data throws \`Http2Stream: stream reset\` (number 20024).
+     *      read() still waiting for data throws \`Http2Stream: stream reset\` (ERR_INVALID_STATE).
      *      Throws when the stream is already destroyed.
      *
      *      Example — cancel a stream instead of answering it:
@@ -20944,7 +20963,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      code is an HTTP/2 error code (NGHTTP2_NO_ERROR, NGHTTP2_CANCEL, ...; see
      *      http2_constants). The stream ends immediately: the peer's read() throws (the current
      *      implementation leaves the remote error payload empty, \`[0] Success\`), and a local
-     *      read() still waiting for data throws \`Http2Stream: stream reset\` (number 20024).
+     *      read() still waiting for data throws \`Http2Stream: stream reset\` (ERR_INVALID_STATE).
      *      Throws when the stream is already destroyed.
      *
      *      Example — cancel a stream instead of answering it:
@@ -21326,7 +21345,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
     /**
      * @description Queries and sets the maximum body size in MB, default -1, no size limit
      *
-     *      A response whose body exceeds the limit fails with error number 20024; 0 rejects every
+     *      A response whose body exceeds the limit fails with ERR_INVALID_STATE; 0 rejects every
      *      body. A HEAD response is exempt because it has no body.
      *
      */
@@ -22645,7 +22664,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     /**
      * @description Queries and sets the maximum body size in MB, default -1, no size limit
      *
-     *      A response whose body exceeds the limit fails with error number 20024; 0 rejects every
+     *      A response whose body exceeds the limit fails with ERR_INVALID_STATE; 0 rejects every
      *      body. A HEAD response is exempt because it has no body.
      *
      */
@@ -24384,7 +24403,7 @@ declare class Class_HttpCookie extends Class_object {
      *      \`+\` stays a \`+\`; this matches the encoding that toString performs and keeps the two
      *      round-tripping. The attributes expires, domain, path, secure and HttpOnly are read;
      *      any other attribute, including Max-Age and SameSite, is ignored. A header without a
-     *      name or without \`=\` throws \`HttpCookie: bad cookie format.\` (20024). Parsing into an
+     *      name or without \`=\` throws \`HttpCookie: bad cookie format.\` (ERR_INVALID_STATE). Parsing into an
      *      existing object only overwrites the fields present in the header, so use parseRaw for
      *      a remote Set-Cookie value whose %XX sequences must stay as written.
      *
@@ -25280,7 +25299,7 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description protocol version information, the allowed format is: HTTP/#.#
      *
-     *      Default HTTP/1.1. The setter validates the form and throws error 20024 for anything else;
+     *      Default HTTP/1.1. The setter validates the form and throws ERR_INVALID_STATE for anything else;
      *      a version above 1.0 enables keepAlive and 1.0 disables it. A parsed message sets the
      *      version from its start line.
      *
@@ -25334,7 +25353,7 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description queries and sets the maximum number of request headers, default is 128
      *
-     *      The parser fails with error 20024 when a message carries more header lines than this; it
+     *      The parser fails with ERR_INVALID_STATE when a message carries more header lines than this; it
      *      is used when reading requests. A negative value throws a RangeError (20006).
      *
      */
@@ -25344,7 +25363,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets the maximum request header length, default is 8192
      *
      *      The maximum size in bytes of one header line accepted by the parser; a longer line fails
-     *      with error 20024. A negative value throws a RangeError (20006).
+     *      with ERR_INVALID_STATE. A negative value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -25353,7 +25372,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description queries and sets the maximum chunk size in MB, default is 2
      *
      *      Bounds a single chunk of a chunked body while it is parsed: a larger chunk fails with
-     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted.
+     *      ERR_INVALID_STATE ("HttpMessage: chunk is too huge."). 0 is accepted.
      *
      */
     maxChunkSize: number;
@@ -25361,7 +25380,7 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description queries and sets the maximum body size in MB, default is 64
      *
-     *      While parsing, a Content-Length or chunked body larger than this fails with error 20024
+     *      While parsing, a Content-Length or chunked body larger than this fails with ERR_INVALID_STATE
      *      ("HttpMessage: body is too huge."); -1 disables the limit and 0 reads no body at all. Set
      *      it before readFrom.
      *
@@ -25618,7 +25637,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;
@@ -25647,7 +25666,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;
@@ -25674,7 +25693,7 @@ declare class Class_HttpMessage extends Class_Message {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;
@@ -25712,7 +25731,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
     /**
      * @description protocol version information, the allowed format is: HTTP/#.#
      *
-     *      Default HTTP/1.1. The setter validates the form and throws error 20024 for anything else;
+     *      Default HTTP/1.1. The setter validates the form and throws ERR_INVALID_STATE for anything else;
      *      a version above 1.0 enables keepAlive and 1.0 disables it. A parsed message sets the
      *      version from its start line.
      *
@@ -25766,7 +25785,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
     /**
      * @description queries and sets the maximum number of request headers, default is 128
      *
-     *      The parser fails with error 20024 when a message carries more header lines than this; it
+     *      The parser fails with ERR_INVALID_STATE when a message carries more header lines than this; it
      *      is used when reading requests. A negative value throws a RangeError (20006).
      *
      */
@@ -25776,7 +25795,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets the maximum request header length, default is 8192
      *
      *      The maximum size in bytes of one header line accepted by the parser; a longer line fails
-     *      with error 20024. A negative value throws a RangeError (20006).
+     *      with ERR_INVALID_STATE. A negative value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -25785,7 +25804,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description queries and sets the maximum chunk size in MB, default is 2
      *
      *      Bounds a single chunk of a chunked body while it is parsed: a larger chunk fails with
-     *      error 20024 ("HttpMessage: chunk is too huge."). 0 is accepted.
+     *      ERR_INVALID_STATE ("HttpMessage: chunk is too huge."). 0 is accepted.
      *
      */
     maxChunkSize: number;
@@ -25793,7 +25812,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
     /**
      * @description queries and sets the maximum body size in MB, default is 64
      *
-     *      While parsing, a Content-Length or chunked body larger than this fails with error 20024
+     *      While parsing, a Content-Length or chunked body larger than this fails with ERR_INVALID_STATE
      *      ("HttpMessage: body is too huge."); -1 disables the limit and 0 reads no body at all. Set
      *      it before readFrom.
      *
@@ -26050,7 +26069,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;
@@ -26077,7 +26096,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;
@@ -26104,7 +26123,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      * @description parses the message body into FormData according to Content-Type
      *
      *      Only multipart/form-data (with a boundary parameter in Content-Type) and
-     *      application/x-www-form-urlencoded are supported; any other type throws a TypeError 20024
+     *      application/x-www-form-urlencoded are supported; any other type throws a TypeERR_INVALID_STATE
      *      ("the Content-Type is not a form type"), a multipart type without a boundary throws "the
      *      multipart Content-Type is missing a boundary" and an empty body throws "the body is
      *      empty". The body is consumed (bodyUsed is set), a buffered body can still be read again;
@@ -26238,7 +26257,7 @@ declare namespace Class_HttpMessage {
  *  try {
  *      new http.Repeater('http://127.0.0.1:8080/?q=1');
  *  } catch (e) {
- *      console.log(e.number); // 20024
+ *      console.log(e.number); // ERR_INVALID_STATE
  *  }
  *  \`\`\`
  *
@@ -26612,7 +26631,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      member present in options overrides it. An explicit headers value replaces the whole
      *      header set of the copy (an empty object clears it) while undefined members keep the
      *      source values, following WebIDL. A GET or HEAD result must not carry a body and
-     *      throws a TypeError (20024); a body is cloneable only when it is a seekable stream.
+     *      throws a TypeError (ERR_INVALID_STATE); a body is cloneable only when it is a seekable stream.
      *      Matches the WHATWG \`new Request(request, init)\` form.
      *
      *      @param request the existing HttpRequest object
@@ -26629,7 +26648,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      or Headers), body, json, pack, keepAlive, timeout, redirect, signal, streaming and
      *      agent. A string body defaults to text/plain;charset=UTF-8 here, while the http
      *      client functions use application/x-www-form-urlencoded for strings. A body with GET
-     *      or HEAD throws a TypeError (20024). Hand the request to http.fetch() or a Client.
+     *      or HEAD throws a TypeError (ERR_INVALID_STATE). Hand the request to http.fetch() or a Client.
      *
      *      @param url the request URL
      *      @param options the request options; see the detail for the keys that are read
@@ -26750,7 +26769,7 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *      Parsed on first access according to Content-Type: application/x-www-form-urlencoded
      *      and multipart/form-data (with a boundary) are accepted. A missing Content-Type
      *      throws "Content-Type is missing", another type throws "unknown form format" and an
-     *      empty body gives an empty FormData (error 20024). The parse rewinds the seekable
+     *      empty body gives an empty FormData (ERR_INVALID_STATE). The parse rewinds the seekable
      *      body and does not set bodyUsed, so the body remains readable afterwards.
      *
      *      Example — read an urlencoded form posted to a server:
@@ -26822,7 +26841,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      member present in options overrides it. An explicit headers value replaces the whole
      *      header set of the copy (an empty object clears it) while undefined members keep the
      *      source values, following WebIDL. A GET or HEAD result must not carry a body and
-     *      throws a TypeError (20024); a body is cloneable only when it is a seekable stream.
+     *      throws a TypeError (ERR_INVALID_STATE); a body is cloneable only when it is a seekable stream.
      *      Matches the WHATWG \`new Request(request, init)\` form.
      *
      *      @param request the existing HttpRequest object
@@ -26839,7 +26858,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      or Headers), body, json, pack, keepAlive, timeout, redirect, signal, streaming and
      *      agent. A string body defaults to text/plain;charset=UTF-8 here, while the http
      *      client functions use application/x-www-form-urlencoded for strings. A body with GET
-     *      or HEAD throws a TypeError (20024). Hand the request to http.fetch() or a Client.
+     *      or HEAD throws a TypeError (ERR_INVALID_STATE). Hand the request to http.fetch() or a Client.
      *
      *      @param url the request URL
      *      @param options the request options; see the detail for the keys that are read
@@ -26960,7 +26979,7 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *      Parsed on first access according to Content-Type: application/x-www-form-urlencoded
      *      and multipart/form-data (with a boundary) are accepted. A missing Content-Type
      *      throws "Content-Type is missing", another type throws "unknown form format" and an
-     *      empty body gives an empty FormData (error 20024). The parse rewinds the seekable
+     *      empty body gives an empty FormData (ERR_INVALID_STATE). The parse rewinds the seekable
      *      body and does not set bodyUsed, so the body remains readable afterwards.
      *
      *      Example — read an urlencoded form posted to a server:
@@ -27269,7 +27288,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description Sends a redirect with an explicit status code
      *
      *      301, 302, 303, 307 and 308 are accepted, the set the Web standard and Node.js
-     *      allow; any other code throws error 20024 ("Invalid statusCode ..., expected 301,
+     *      allow; any other code throws ERR_INVALID_STATE ("Invalid statusCode ..., expected 301,
      *      302, 303, 307, or 308."). 303 turns a POST into a GET and 308 keeps the method,
      *      which is the usual pair for the two non-permanent redirects.
      *
@@ -27402,7 +27421,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result
@@ -27416,7 +27435,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result
@@ -27428,7 +27447,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result
@@ -27636,7 +27655,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      * @description Sends a redirect with an explicit status code
      *
      *      301, 302, 303, 307 and 308 are accepted, the set the Web standard and Node.js
-     *      allow; any other code throws error 20024 ("Invalid statusCode ..., expected 301,
+     *      allow; any other code throws ERR_INVALID_STATE ("Invalid statusCode ..., expected 301,
      *      302, 303, 307, or 308."). 303 turns a POST into a GET and 308 keeps the method,
      *      which is the usual pair for the two non-permanent redirects.
      *
@@ -27767,7 +27786,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result
@@ -27779,7 +27798,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result
@@ -27791,7 +27810,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      * @description Parses the response body as JSON
      *
      *      The read form inherited from Message: the body is consumed and decoded, and the
-     *      Content-Type must name a JSON media type or the call throws error 20024
+     *      Content-Type must name a JSON media type or the call throws ERR_INVALID_STATE
      *      ("Content-Type is missing." / "Invalid content type."). A buffered body can be read
      *      again after a rewind.
      *      @return returns the parsing result
@@ -28560,7 +28579,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      options is passed to tls.createSecureContext in server mode; in addition the keys
      *      address (optional, "" listens on all addresses) and port (optional) are read by the
      *      server. When port is omitted, listen() must be called to bind; invalid certificate
-     *      material throws error 20024 here. The handler contract is the one of HttpServer.
+     *      material throws ERR_INVALID_STATE here. The handler contract is the one of HttpServer.
      *      @param options the options needed to create a secure context with tls.createSecureContext
      *      @param hdlr the request handler
      *
@@ -28624,7 +28643,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *
      *      Creates a server-mode context from the options accepted by tls.createSecureContext
      *      (cert, key, ca, passphrase, minVersion, ...) and installs it, so new handshakes use
-     *      the new material without a restart. Invalid material throws error 20024.
+     *      the new material without a restart. Invalid material throws ERR_INVALID_STATE.
      *
      *      Example — install a context built from TLS options:
      *      \`\`\`JavaScript
@@ -28703,7 +28722,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      options is passed to tls.createSecureContext in server mode; in addition the keys
      *      address (optional, "" listens on all addresses) and port (optional) are read by the
      *      server. When port is omitted, listen() must be called to bind; invalid certificate
-     *      material throws error 20024 here. The handler contract is the one of HttpServer.
+     *      material throws ERR_INVALID_STATE here. The handler contract is the one of HttpServer.
      *      @param options the options needed to create a secure context with tls.createSecureContext
      *      @param hdlr the request handler
      *
@@ -28767,7 +28786,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *
      *      Creates a server-mode context from the options accepted by tls.createSecureContext
      *      (cert, key, ca, passphrase, minVersion, ...) and installs it, so new handshakes use
-     *      the new material without a restart. Invalid material throws error 20024.
+     *      the new material without a restart. Invalid material throws ERR_INVALID_STATE.
      *
      *      Example — install a context built from TLS options:
      *      \`\`\`JavaScript
@@ -29216,7 +29235,7 @@ declare class Class_KeyObject extends Class_object {
  *    bytes, so the order is byte order, not the locale or numeric order of the text.
  *  - **One directory, one writer**: the store is a directory of LevelDB files, created when
  *    missing. Only one process may open a directory at a time - a second open fails with
- *    the LevelDB lock error (number 20024) - and close releases the lock. The store is
+ *    the LevelDB lock error (ERR_INVALID_STATE) - and close releases the lock. The store is
  *    durable across process restarts; a write is atomic, and the default write options
  *    leave it in the operating system buffer until the log is flushed, so only a system
  *    level crash can lose recent writes.
@@ -29643,7 +29662,7 @@ declare class Class_LevelDB extends Class_object {
      *      })
      *      \`\`\`
      *
-     *      A limit explicitly set to 0 is rejected with error 20024 ("limit must be greater
+     *      A limit explicitly set to 0 is rejected with ERR_INVALID_STATE ("limit must be greater
      *      than 0"); a negative limit means no limit. from and to are Buffer|String unions and
      *      a Buffer bound is used byte-for-byte. With reverse the walk starts at from
      *      (included) and descends to the smallest key; to is compared only against the
@@ -30156,7 +30175,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      })
      *      \`\`\`
      *
-     *      A limit explicitly set to 0 is rejected with error 20024 ("limit must be greater
+     *      A limit explicitly set to 0 is rejected with ERR_INVALID_STATE ("limit must be greater
      *      than 0"); a negative limit means no limit. from and to are Buffer|String unions and
      *      a Buffer bound is used byte-for-byte. With reverse the walk starts at from
      *      (included) and descends to the smallest key; to is compared only against the
@@ -31511,7 +31530,7 @@ declare class Class_MenuItem extends Class_EventEmitter {
  *  - **Buffered and streaming bodies**: a locally built message (write/text/json/pack) buffers its
  *    body in a seekable MemoryStream, so it can be read from the beginning more than once; a
  *    message read from a socket may expose a streaming body that can be consumed only once (a
- *    second consume throws TypeError 20024 "body has already been consumed"). \`bodyUsed\` reports
+ *    second consume throws TypeERR_INVALID_STATE "body has already been consumed"). \`bodyUsed\` reports
  *    whether a consume method ran, \`length\` is the size of a buffered body (0 for a streaming
  *    one), and \`body\` is null when the message has no body or the buffered body is empty.
  *  - **Writing**: \`write\` appends to the buffered body and encodes a string as utf8; \`text\`,
@@ -31676,7 +31695,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Set by the consuming readers (text, json, pack, bytes, arrayBuffer, blob and, on an
      *      HttpMessage, formData). A buffered body can still be read again after the flag is set; a
-     *      streaming body rejects a second consume with TypeError 20024 "body has already been
+     *      streaming body rejects a second consume with TypeERR_INVALID_STATE "body has already been
      *      consumed". read and readAll do not set the flag.
      *
      */
@@ -31917,7 +31936,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -31930,7 +31949,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -31941,7 +31960,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -31951,7 +31970,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -31964,7 +31983,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -31975,7 +31994,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -32024,7 +32043,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -32036,7 +32055,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -32046,7 +32065,7 @@ declare class Class_Message extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -32092,7 +32111,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -32106,7 +32125,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -32118,7 +32137,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -32165,7 +32184,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -32179,7 +32198,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -32191,7 +32210,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -32493,7 +32512,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
@@ -32508,7 +32527,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
@@ -32521,7 +32540,7 @@ declare class Class_Message extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
@@ -32877,7 +32896,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Set by the consuming readers (text, json, pack, bytes, arrayBuffer, blob and, on an
      *      HttpMessage, formData). A buffered body can still be read again after the flag is set; a
-     *      streaming body rejects a second consume with TypeError 20024 "body has already been
+     *      streaming body rejects a second consume with TypeERR_INVALID_STATE "body has already been
      *      consumed". read and readAll do not set the flag.
      *
      */
@@ -33110,7 +33129,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -33121,7 +33140,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -33132,7 +33151,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Decodes the body as utf8 and consumes it (a buffered body is rewound first); an empty or
      *      missing body returns an empty string. A second call on a streaming body throws TypeError
-     *      20024.
+     *      ERR_INVALID_STATE.
      *      @return returns the parsing result
      *
      */
@@ -33142,7 +33161,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -33153,7 +33172,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -33164,7 +33183,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message in binary form
      *
      *      Consumes the body and returns its bytes as an ArrayBuffer; a missing or empty body returns
-     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeError 20024.
+     *      a zero-length ArrayBuffer. A second call on a streaming body throws TypeERR_INVALID_STATE.
      *      Matches the Fetch Body mixin (MDN Body.arrayBuffer()).
      *      @return returns an ArrayBuffer object containing the data part of the message
      *
@@ -33211,7 +33230,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -33221,7 +33240,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -33231,7 +33250,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      * @description Returns the data part of the message as a Buffer
      *
      *      Consumes the body; a missing or empty body returns a zero-length Buffer. A second call on a
-     *      streaming body throws TypeError 20024, while a buffered body can be read again.
+     *      streaming body throws TypeERR_INVALID_STATE, while a buffered body can be read again.
      *      @return returns a Buffer containing the data part of the message, or an empty Buffer if there is no data
      *
      */
@@ -33275,7 +33294,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -33287,7 +33306,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -33299,7 +33318,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and parses it with the json module; a missing body returns null and
      *      invalid JSON throws a SyntaxError. On an HttpMessage the Content-Type header must contain
-     *      "json", otherwise error 20024 is raised ("Content-Type is missing." or "Invalid content
+     *      "json", otherwise ERR_INVALID_STATE is raised ("Content-Type is missing." or "Invalid content
      *      type.").
      *      @return returns the parsing result
      *
@@ -33344,7 +33363,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -33356,7 +33375,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -33368,7 +33387,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      Consumes the body and decodes it with the msgpack module; a missing body returns null and
      *      invalid data throws. On an HttpMessage the Content-Type header must be
-     *      application/msgpack (parameters such as charset are ignored), otherwise error 20024 is
+     *      application/msgpack (parameters such as charset are ignored), otherwise ERR_INVALID_STATE is
      *      raised.
      *      @return returns the parsing result
      *
@@ -33660,7 +33679,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
@@ -33673,7 +33692,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
@@ -33686,7 +33705,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *
      *      The base Message does not implement the wire format and throws 20009; HttpRequest,
      *      HttpResponse and WebSocketMessage override it. The HTTP implementations require a
-     *      BufferedStream (error 20024 otherwise); the HttpResponse options may contain header_only
+     *      BufferedStream (ERR_INVALID_STATE otherwise); the HttpResponse options may contain header_only
      *      (parse the status line and the headers without the body, default false).
      *      @param stm the stream object from which the formatted message is read
      *      @param options the reading options
@@ -35158,7 +35177,7 @@ declare class Class_PerformanceObserverEntryList extends Class_object {
  *    the application cannot request it at a chosen queue level.
  *  - **Life cycle**: a channel exists before the transport is ready, opens only after ICE and DTLS
  *    complete, and closes by \`close()\`, by the peer, or by closing the connection. Sending outside
- *    the open state throws 20024, and the \`close\` event reports either side closing.
+ *    the open state throws ERR_INVALID_STATE, and the \`close\` event reports either side closing.
  *
  *  Obtained from:
  *  - \`RTCPeerConnection#createDataChannel\` — the local side creates the channel;
@@ -35280,8 +35299,8 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      *      A \`Buffer\` is sent as binary data and a \`String\` is encoded as utf8 and sent as text data;
      *      the peer receives the same kind in the \`data\` property of the \`message\` event. The message is
      *      queued on the channel and the call returns immediately; \`bufferedAmount\` reports how much is
-     *      still queued. Sending before the channel is open throws 20024 (\`DataChannel not open\`),
-     *      sending after it is closed throws 20024 (\`DataChannel is closed\`), and an argument of any
+     *      still queued. Sending before the channel is open throws ERR_INVALID_STATE (\`DataChannel not open\`),
+     *      sending after it is closed throws ERR_INVALID_STATE (\`DataChannel is closed\`), and an argument of any
      *      other type throws 20005.
      *
      *      Example — walk the states of a fresh channel:
@@ -35314,7 +35333,7 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      * @description closes the channel
      *
      *      Closes the channel in both directions: data already queued may still be delivered, the peer
-     *      sees its \`close\` event and afterwards \`send\` throws 20024. Closing an already closed channel
+     *      sees its \`close\` event and afterwards \`send\` throws ERR_INVALID_STATE. Closing an already closed channel
      *      is a no-op, and closing a channel does not close its connection or the other channels.
      *
      */
@@ -35440,7 +35459,7 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      * @description channel close event, emitted when the channel is closed
      *
      *      Fired when the channel is closed, whether by the local \`close()\` call or by the peer. The
-     *      event carries no payload; after it, \`send\` throws 20024.
+     *      event carries no payload; after it, \`send\` throws ERR_INVALID_STATE.
      *
      */
     on(event: "close", listener: ()=>void): this;
@@ -35465,7 +35484,7 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      * @description channel close event, emitted when the channel is closed
      *
      *      Fired when the channel is closed, whether by the local \`close()\` call or by the peer. The
-     *      event carries no payload; after it, \`send\` throws 20024.
+     *      event carries no payload; after it, \`send\` throws ERR_INVALID_STATE.
      *
      */
     onclose: (()=>void) | null;
@@ -35702,7 +35721,7 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
  *  Notes:
  *
  *  - An instance is immutable: \`candidate\` is regenerated by the library from its parsed fields.
- *  - The constructor rejects text that is not a candidate with 20024 (\`Invalid candidate format\`)
+ *  - The constructor rejects text that is not a candidate with ERR_INVALID_STATE (\`Invalid candidate format\`)
  *    and a missing \`candidate\` or \`sdpMid\` with a TypeError 20002.
  *
  */
@@ -35712,7 +35731,7 @@ declare class Class_RTCIceCandidate extends Class_object {
      *
      *      The description object must contain both \`candidate\` (the candidate string) and \`sdpMid\` (the
      *      media line identification). A missing field throws TypeError 20002 and a string that cannot
-     *      be parsed throws 20024 (\`Invalid candidate format\`). The other fields of the standard
+     *      be parsed throws ERR_INVALID_STATE (\`Invalid candidate format\`). The other fields of the standard
      *      dictionary, such as \`sdpMLineIndex\` and \`usernameFragment\`, are accepted and ignored.
      *
      *      Example — build a candidate and read the parsed fields:
@@ -36000,8 +36019,8 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      \`\`\`JavaScript
      *      // fragment: options
      *      ({
-     *          "certificateType": "ecdsa",  // 'default' | 'ecdsa' (default) | 'rsa'; unknown -> 20024
-     *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> 20024
+     *          "certificateType": "ecdsa",  // 'default' | 'ecdsa' (default) | 'rsa'; unknown -> ERR_INVALID_STATE
+     *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> ERR_INVALID_STATE
      *          "iceServers": [],             // [{ urls: 'stun:host:port', username: '', credential: '' }]
      *          "maxMessageSize": 262144,     // largest SCTP message accepted from the peer
      *          "enableIceUdpMux": false,     // multiplex ICE and DTLS on one UDP port (rtc.listen)
@@ -36119,7 +36138,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -36138,7 +36157,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -36157,7 +36176,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -36175,7 +36194,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until \`close()\` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -36193,7 +36212,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until \`close()\` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -36211,7 +36230,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until \`close()\` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -36226,7 +36245,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
@@ -36245,7 +36264,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
@@ -36264,7 +36283,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
@@ -37079,8 +37098,8 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      \`\`\`JavaScript
      *      // fragment: options
      *      ({
-     *          "certificateType": "ecdsa",  // 'default' | 'ecdsa' (default) | 'rsa'; unknown -> 20024
-     *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> 20024
+     *          "certificateType": "ecdsa",  // 'default' | 'ecdsa' (default) | 'rsa'; unknown -> ERR_INVALID_STATE
+     *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> ERR_INVALID_STATE
      *          "iceServers": [],             // [{ urls: 'stun:host:port', username: '', credential: '' }]
      *          "maxMessageSize": 262144,     // largest SCTP message accepted from the peer
      *          "enableIceUdpMux": false,     // multiplex ICE and DTLS on one UDP port (rtc.listen)
@@ -37198,7 +37217,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -37217,7 +37236,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -37236,7 +37255,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
      *      resolves without changing anything, because the library creates and applies the answer when
      *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with 20024.
+     *      data channel or track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -37254,7 +37273,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until \`close()\` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -37272,7 +37291,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until \`close()\` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -37290,7 +37309,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      DTLS fingerprint and media lines are taken over by the connection. A remote description also
      *      installs a hold on the process, so the connection keeps running until \`close()\` is called.
      *      A description without an ICE user fragment, or text that is not a valid SDP, rejects with
-     *      20024.
+     *      ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
@@ -37305,7 +37324,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
@@ -37324,7 +37343,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
@@ -37343,7 +37362,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      * @description adds an ICE candidate received from the remote peer
      *
      *      Passes one candidate of the peer to the ICE agent. The candidate string is validated and a
-     *      remote description must already be set, otherwise the call rejects with 20024 - candidates
+     *      remote description must already be set, otherwise the call rejects with ERR_INVALID_STATE - candidates
      *      that arrive early must be queued by the application until the description is applied. The
      *      value is copied out of the argument, so both the RTCIceCandidate class and the plain objects
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
@@ -37982,7 +38001,7 @@ declare namespace Class_RTCPeerConnection {
  *
  *  Notes:
  *
- *  - fibjs has no string conversion for the class: converting an instance to a string throws 20024.
+ *  - fibjs has no string conversion for the class: converting an instance to a string throws ERR_INVALID_STATE.
  *
  */
 declare class Class_RTCSessionDescription extends Class_object {
@@ -37991,7 +38010,7 @@ declare class Class_RTCSessionDescription extends Class_object {
      *
      *      The description object must contain both \`type\` (the kind of the description) and \`sdp\` (the
      *      SDP text, a string; another type throws 20005). A missing field throws TypeError 20002. The
-     *      text is parsed at construction, so text the library cannot parse may throw 20024, and an
+     *      text is parsed at construction, so text the library cannot parse may throw ERR_INVALID_STATE, and an
      *      unknown \`type\` is accepted and reported as \`unspec\` by the \`type\` member.
      *
      *      Example — wrap a short description and read its type:
@@ -38133,7 +38152,7 @@ declare class Class_RangeStream extends Class_SeekableStream {
      *      the end of the stream) or '-end' (the last end bytes). The string is
      *      resolved against the current size of stm when the constructor runs; a
      *      malformed string, a missing '-', a begin past the end or an end past the
-     *      size throws [20024]. The stored \`end\` is the parsed inclusive end plus
+     *      size throws [ERR_INVALID_STATE]. The stored \`end\` is the parsed inclusive end plus
      *      one, so it is exclusive like the numeric form; the equivalent call is
      *      RangeStream(stm, begin, end).
      *
@@ -38277,7 +38296,7 @@ declare class Class_RangeStreamPromise extends Class_SeekableStreamPromise {
      *      the end of the stream) or '-end' (the last end bytes). The string is
      *      resolved against the current size of stm when the constructor runs; a
      *      malformed string, a missing '-', a begin past the end or an end past the
-     *      size throws [20024]. The stored \`end\` is the parsed inclusive end plus
+     *      size throws [ERR_INVALID_STATE]. The stored \`end\` is the parsed inclusive end plus
      *      one, so it is exclusive like the numeric form; the equivalent call is
      *      RangeStream(stm, begin, end).
      *
@@ -38447,7 +38466,7 @@ declare namespace Class_RangeStream {
  *  - **Replies and their types**: a status or bulk-string reply arrives as a Buffer, an
  *    integer reply as a Number, nil as null and an array as an Array whose elements follow
  *    the same rules. A server error reply throws an Error whose message is the server text
- *    and whose number is 20024.
+ *    and whose number is ERR_INVALID_STATE.
  *  - **Connection lifecycle**: db.openRedis connects before it returns, so an unreachable
  *    server throws the socket error (ECONNREFUSED with number 111, or a resolver error such
  *    as getaddrinfo ENOTFOUND) rather than a database error. close releases the connection
@@ -38568,7 +38587,7 @@ declare class Class_Redis extends Class_object {
      *      UTF-8 - use the typed members for binary data. The reply is the raw RESP value: a
      *      status or bulk string as a Buffer, an integer as a Number, nil as null and an array as
      *      an Array, with the same rules applied to nested elements. A server error reply throws
-     *      an Error whose message is the server text and whose number is 20024.
+     *      an Error whose message is the server text and whose number is ERR_INVALID_STATE.
      *
      *      Use it for commands with no dedicated member, such as SCAN or SORT.
      *
@@ -39327,7 +39346,7 @@ declare class Class_Redis extends Class_object {
      *
      *      RESTORE key ttl data. The ttl is in milliseconds and 0 keeps the key persistent; the
      *      payload is sent byte-for-byte, so a Buffer from dump round-trips unchanged. The server
-     *      rejects the command with error 20024 when the key already exists or when the payload
+     *      rejects the command with ERR_INVALID_STATE when the key already exists or when the payload
      *      is not a valid dump. No result is reported.
      *
      *      @param key the key to rebuild
@@ -39377,7 +39396,7 @@ declare class Class_Redis extends Class_object {
  *    returns null for a missing field, and incr starts from 0 for a missing field. len counts
  *    the fields and exists tests one of them.
  *  - **Type conflicts**: a member called on a key that holds another type fails with the
- *    server error (number 20024).
+ *    server error (ERR_INVALID_STATE).
  *
  *  Obtained from:
  *  - \`rdb.getHash(key)\` — the only factory, where rdb is the Redis object returned by
@@ -39966,7 +39985,7 @@ declare class Class_RedisList extends Class_object {
  *    without removing. The count form caps a positive count at the set size, repeats members
  *    for a negative count and returns an empty array for a missing key.
  *  - **Type conflicts**: a member called on a key that holds another type fails with the
- *    server error (number 20024).
+ *    server error (ERR_INVALID_STATE).
  *
  *  Obtained from:
  *  - \`rdb.getSet(key)\` — the only factory, where rdb is the Redis object returned by
@@ -40228,7 +40247,7 @@ declare class Class_RedisSet extends Class_object {
  *  - **View semantics**: the key is not created by obtaining the view, and a missing key is
  *    not an error - len returns 0, range returns an empty array and score returns null.
  *    Writing members create the key when it is missing, and a key holding another type fails
- *    with the server error (number 20024).
+ *    with the server error (ERR_INVALID_STATE).
  *
  *  Obtained from:
  *  - \`rdb.getSortedSet(key)\` — the only factory, where rdb is the Redis object returned by
@@ -41569,7 +41588,7 @@ declare class Class_SQLite extends Class_DbConnection {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (\`sqlite:path\`, \`sqlite://path\` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      \`\`\`JavaScript
@@ -41605,7 +41624,7 @@ declare class Class_SQLite extends Class_DbConnection {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (\`sqlite:path\`, \`sqlite://path\` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      \`\`\`JavaScript
@@ -41639,7 +41658,7 @@ declare class Class_SQLite extends Class_DbConnection {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (\`sqlite:path\`, \`sqlite://path\` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      \`\`\`JavaScript
@@ -41715,7 +41734,7 @@ declare class Class_SQLitePromise extends Class_DbConnectionPromise {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (\`sqlite:path\`, \`sqlite://path\` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      \`\`\`JavaScript
@@ -41749,7 +41768,7 @@ declare class Class_SQLitePromise extends Class_DbConnectionPromise {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (\`sqlite:path\`, \`sqlite://path\` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      \`\`\`JavaScript
@@ -41783,7 +41802,7 @@ declare class Class_SQLitePromise extends Class_DbConnectionPromise {
      *      usable while the backup runs. The destination accepts the same forms as
      *      openSQLite (\`sqlite:path\`, \`sqlite://path\` or a bare path), is created when missing
      *      and overwritten when it exists; its parent directory must already exist, otherwise
-     *      the call fails with error number 20024. Lock waits are bounded by timeout.
+     *      the call fails with ERR_INVALID_STATE. Lock waits are bounded by timeout.
      *
      *      Example — back up a database and open the copy:
      *      \`\`\`JavaScript
@@ -41840,7 +41859,7 @@ declare namespace Class_SQLite {
  *  - **Module registry**: a new sandbox contains only the \`module\` and \`buffer\` modules.
  *    addBuiltinModules installs the full built-in module set together with the \`node:\` and \`fibjs:\`
  *    aliases, \`assert/strict\` and the \`/promises\` submodules. Custom modules are registered with
- *    add or addScript; module names and absolute paths are accepted, relative ids throw Error 20024.
+ *    add or addScript; module names and absolute paths are accepted, relative ids throw ERR_INVALID_STATE.
  *  - **Copies on add**: a dictionary added with add(Object mods) is copied entry by entry with
  *    util.clone, so a plain object becomes a new object with shared nested references while native
  *    values such as Buffer keep their identity. Replacing an id replaces the registered module.
@@ -41998,7 +42017,7 @@ declare class Class_SandBox extends Class_object {
     /**
      * @description Adds a module to the sandbox under the given name
      *
-     *      The id must be a module name or an absolute path; a relative id throws Error 20024 ("does
+     *      The id must be a module name or an absolute path; a relative id throws ERR_INVALID_STATE ("does
      *      not accept relative path"). The value is copied with util.clone: a plain object becomes a new
      *      object whose nested references are shared with the original, while native values such as
      *      Buffer keep their identity. Registering an existing id replaces the module.
@@ -42153,7 +42172,7 @@ declare class Class_SandBox extends Class_object {
      *      an object \`{ filename }\` and must return JavaScript source; the compiled module is cached,
      *      so the compiler runs once per file. Re-registering an extension replaces the compiler. The
      *      extname must start with '.' and must not be a built-in extension ('.js', '.json', '.jsc',
-     *      '.wasm'); a malformed name throws ReferenceError, a reserved name throws Error 20024.
+     *      '.wasm'); a malformed name throws ReferenceError, a reserved name throws ERR_INVALID_STATE.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -48142,7 +48161,7 @@ declare class Class_Statement extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:
@@ -48175,7 +48194,7 @@ declare class Class_Statement extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:
@@ -48208,7 +48227,7 @@ declare class Class_Statement extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:
@@ -48636,7 +48655,7 @@ declare class Class_StatementPromise extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:
@@ -48669,7 +48688,7 @@ declare class Class_StatementPromise extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:
@@ -48702,7 +48721,7 @@ declare class Class_StatementPromise extends Class_object {
      *      A query with no matching row returns undefined, and so does a statement without a
      *      result set such as INSERT; use run or all to obtain the counters of a non-query.
      *      Missing arguments bind NULL and extra arguments are ignored. Engine errors are
-     *      reported while the statement opens or fetches (for example number 20024 on SQLite),
+     *      reported while the statement opens or fetches (for example ERR_INVALID_STATE on SQLite),
      *      and a statement closed by close() or by closing its connection fails with 20027.
      *
      *      Example — reuse one statement with different parameters:
@@ -52779,7 +52798,7 @@ declare namespace Class_StreamReader {
  *
  *  - **Character boundaries**: a JavaScript string is a sequence of Unicode code points, but a UTF-8 character occupies one to four bytes (and a UTF-16 surrogate pair four bytes). A chunk boundary can fall in the middle of a character, and the bytes seen so far are meaningless until the character is complete; the decoder remembers them (\`lastNeed\`, \`lastTotal\` and \`lastChar\` expose that state) and prepends them to the next chunk.
  *  - **Per-encoding state**: \`utf8\` holds at most three bytes; \`utf16le\`/\`ucs2\` holds an odd byte or a high surrogate; \`base64\` holds one or two bytes and adds the missing padding on end; \`hex\`, \`latin1\`, \`ascii\` and the other pass-through codecs have no state at all, so their write is just a per-chunk \`Buffer#toString\`.
- *  - **Error behavior**: a malformed UTF-8 sequence yields U+FFFD for the offending part instead of throwing; an unsupported encoding name is rejected by the constructor with an Error (number 20024), and a non-string argument with a TypeError (number 20005).
+ *  - **Error behavior**: a malformed UTF-8 sequence yields U+FFFD for the offending part instead of throwing; an unsupported encoding name is rejected by the constructor with an Error (ERR_INVALID_STATE), and a non-string argument with a TypeError (number 20005).
  *
  *  Obtained from:
  *  - \`new StringDecoder(encoding)\` — create a decoder for one byte stream;
@@ -52833,7 +52852,7 @@ declare namespace Class_StreamReader {
  *
  *  Notes:
  *
- *  - The class follows the \`string_decoder.StringDecoder\` semantics for the supported encodings and the chunk semantics. An unknown encoding throws an Error with number 20024, and \`end\` does not clear the pending state, so calling it twice returns the flush text twice.
+ *  - The class follows the \`string_decoder.StringDecoder\` semantics for the supported encodings and the chunk semantics. An unknown encoding throws an Error with ERR_INVALID_STATE, and \`end\` does not clear the pending state, so calling it twice returns the flush text twice.
  *  - \`base32\`, \`base58\` and \`base64url\` are rejected by the constructor even though \`encoding.isEncoding\` accepts them: they have no incremental decoder here.
  *
  */
@@ -52841,7 +52860,7 @@ declare class Class_StringDecoder extends Class_object {
     /**
      * @description Creates a decoder for the given encoding
      *
-     *      The accepted names are \`utf8\`/\`utf-8\`, \`utf16le\`/\`utf-16le\`/\`ucs2\`, \`base64\`, \`hex\`, \`latin1\`/\`binary\` and \`ascii\`; the name is normalized (for example \`ucs-2\` becomes \`utf16le\`) and the canonical form is exposed by the \`encoding\` property. A name outside that list throws an Error with number 20024, even when \`encoding.isEncoding\` reports it as supported, because there is no incremental decoder for it; a non-string argument throws a TypeError with number 20005.
+     *      The accepted names are \`utf8\`/\`utf-8\`, \`utf16le\`/\`utf-16le\`/\`ucs2\`, \`base64\`, \`hex\`, \`latin1\`/\`binary\` and \`ascii\`; the name is normalized (for example \`ucs-2\` becomes \`utf16le\`) and the canonical form is exposed by the \`encoding\` property. A name outside that list throws an Error with ERR_INVALID_STATE, even when \`encoding.isEncoding\` reports it as supported, because there is no incremental decoder for it; a non-string argument throws a TypeError with number 20005.
      *      @param encoding the encoding of the byte stream: "utf8", "utf16le", "ucs2", "base64", "hex", "latin1", "binary" or "ascii", default "utf8"
      *
      */
@@ -53831,7 +53850,7 @@ declare class Class_TLSSocket extends Class_Stream {
      * @description Creates a TLSSocket from the options of tls.createSecureContext
      *
      *      The options are validated and converted into a context immediately, so invalid PEM material
-     *      throws error 20024 here and not at handshake time. isServer selects the context defaults
+     *      throws ERR_INVALID_STATE here and not at handshake time. isServer selects the context defaults
      *      (rejectUnauthorized false, SNI callback installed) and does not perform any handshake:
      *      connect() or accept() still has to run. new tls.TLSSocket({key, cert}) is a client socket
      *      that presents a client certificate, while new tls.TLSSocket({key, cert}, true) is a server
@@ -54284,7 +54303,7 @@ declare class Class_TLSSocketPromise extends Class_StreamPromise {
      * @description Creates a TLSSocket from the options of tls.createSecureContext
      *
      *      The options are validated and converted into a context immediately, so invalid PEM material
-     *      throws error 20024 here and not at handshake time. isServer selects the context defaults
+     *      throws ERR_INVALID_STATE here and not at handshake time. isServer selects the context defaults
      *      (rejectUnauthorized false, SNI callback installed) and does not perform any handshake:
      *      connect() or accept() still has to run. new tls.TLSSocket({key, cert}) is a client socket
      *      that presents a client certificate, while new tls.TLSSocket({key, cert}, true) is a server
@@ -57664,7 +57683,7 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
      *      - an object's own enumerable properties become pairs in enumeration order, with the
      *        values converted to strings;
      *      - an array must contain [name, value] pairs of exactly two elements; any other element
-     *        throws \`TypeError [20024] Failed to construct 'URLSearchParams': sequence elements must
+     *        throws \`TypeError [ERR_INVALID_STATE] Failed to construct 'URLSearchParams': sequence elements must
      *        be pairs.\`;
      *      - another URLSearchParams copies every pair into an independent collection;
      *      - any other iterable of pairs (a Map, a Headers, a FormData) is materialized with
@@ -57933,7 +57952,7 @@ declare class Class_UrlObject extends Class_object {
      *      serialized as \`key=value\` pairs. \`new URL({})\` yields an empty URL whose
      *      href is \`''\`; the assembled string is parsed like the string constructor,
      *      so a malformed protocol or host throws \`url: Invalid URL '<input>'.\`
-     *      ([20024]). See the class definition for a components example.
+     *      ([ERR_INVALID_STATE]). See the class definition for a components example.
      *
      *      @param args components object holding the URL fields
      *
@@ -57949,7 +57968,7 @@ declare class Class_UrlObject extends Class_object {
      *      \`/a/b\`, and a typo such as \`ht tp://h/\` silently becomes the path
      *      \`/ht%20tp://h/\`. A malformed
      *      absolute input (\`http://\`, an out-of-range port, an invalid IPv6 host)
-     *      throws \`url: Invalid URL '<input>'.\` ([20024]); null and undefined yield
+     *      throws \`url: Invalid URL '<input>'.\` ([ERR_INVALID_STATE]); null and undefined yield
      *      an empty URL, while other non-string values throw a type error ([20005]).
      *
      *      Example — resolve a relative reference against a base:
@@ -57970,7 +57989,7 @@ declare class Class_UrlObject extends Class_object {
      * @description Parses a URL string and returns a URL object
      *
      *      Aliases the string constructor and accepts base as a URL string. An invalid input throws
-     *      \`url: Invalid URL '<input>'.\` ([20024]), while \`URL.parse('')\` returns an object whose
+     *      \`url: Invalid URL '<input>'.\` ([ERR_INVALID_STATE]), while \`URL.parse('')\` returns an object whose
      *      href is \`''\`; a relative string without a base is accepted as a rooted path, and a
      *      non-string value throws a type error ([20005]).
      *
@@ -57982,7 +58001,7 @@ declare class Class_UrlObject extends Class_object {
      *      try {
      *          URL.parse('http://');
      *      } catch (err) {
-     *          console.log(err.number); // 20024
+     *          console.log(err.number); // ERR_INVALID_STATE
      *      }
      *      \`\`\`
      *
@@ -58025,7 +58044,7 @@ declare class Class_UrlObject extends Class_object {
      *      WHATWG algorithm and returned as a new UrlObject. An empty url returns a
      *      copy of the receiver, an absolute url replaces it and a reference such as
      *      \`../c\` walks the base path. An unparsable url throws
-     *      \`url: Invalid URL '<input>'.\` ([20024]).
+     *      \`url: Invalid URL '<input>'.\` ([ERR_INVALID_STATE]).
      *
      *      Example — resolve against a base with a path:
      *      \`\`\`JavaScript
@@ -63787,7 +63806,7 @@ declare class Class_X509Certificate extends Class_object {
      *
      *      One RDN per line in RFC 2253 form with short attribute names, in the order they appear
      *      in the certificate, for example \`C=US\\nO=Example\\nCN=example.com\`. Reading an empty
-     *      subject throws error 20024 instead of returning an empty string.
+     *      subject throws ERR_INVALID_STATE instead of returning an empty string.
      *
      */
     readonly subject: string;
@@ -63843,7 +63862,7 @@ declare class Class_X509Certificate extends Class_object {
      *      Same one-RDN-per-line format as subject, and equal to the subject for a self-signed
      *      certificate. The issuer is metadata of the signature: it says who signed the
      *      certificate, not whether the signer is trusted. Reading a certificate whose issuer
-     *      name is empty (an issue call without an issuer) throws error 20024.
+     *      name is empty (an issue call without an issuer) throws ERR_INVALID_STATE.
      *
      */
     readonly issuer: string;
@@ -63982,7 +64001,7 @@ declare class Class_X509Certificate extends Class_object {
      *      subject as well, and 'never' disables the subject fallback (SAN entries are still
      *      matched). A non-matching address, even one that is not a valid mailbox, simply returns
      *      undefined; only an address holding an embedded NUL byte throws \`Invalid email
-     *      address\`. An unknown options.subject value throws error 20024.
+     *      address\`. An unknown options.subject value throws ERR_INVALID_STATE.
      *
      *      options supports the following properties:
      *      - subject: 'default', 'always' or 'never'. Default: 'default'.
@@ -64028,9 +64047,9 @@ declare class Class_X509Certificate extends Class_object {
      *      - singleLabelSubdomains: restrict wildcards to one label, which is already the
      *        effective behavior. Default: false.
      *
-     *      A name holding an embedded NUL byte throws \`Invalid host name\` (error 20024), while
+     *      A name holding an embedded NUL byte throws \`Invalid host name\` (ERR_INVALID_STATE), while
      *      other non-matching names, malformed or not, return undefined; an unknown subject
-     *      value throws error 20024. The boolean options reject non-boolean values with a
+     *      value throws ERR_INVALID_STATE. The boolean options reject non-boolean values with a
      *      TypeError [20005].
      *
      *      Example: wildcard and partial wildcard matching:
@@ -64067,7 +64086,7 @@ declare class Class_X509Certificate extends Class_object {
      *      never consulted, so a certificate that only carries a CN does not match any address and
      *      address checking always requires a certificate built with IP SAN entries. IPv4 and IPv6
      *      accept their usual text forms ('127.0.0.1', '::1'). Returns ip on a match and undefined
-     *      otherwise; a malformed address throws error 20024.
+     *      otherwise; a malformed address throws ERR_INVALID_STATE.
      *      @param ip the IPv4 or IPv6 address to match
      *      @return returns ip on a match, undefined otherwise
      *
@@ -64200,7 +64219,7 @@ declare class Class_X509Certificate extends Class_object {
  *  try {
  *      req.checkPrivateKey(publicKey);
  *  } catch (e) {
- *      console.log(e.name, e.number);                                   // Error 20024
+ *      console.log(e.name, e.number);                                   // ERR_INVALID_STATE
  *  }
  *
  *  // The PEM round-trips through the parser and the DER body matches
@@ -64247,7 +64266,7 @@ declare class Class_X509CertificateRequest extends Class_object {
      *
      *      One RDN per line in RFC 2253 form, for example \`C=CN\\nO=Example\\nCN=example.com\`, in
      *      the order the entries were passed to createCertificateRequest. A request created
-     *      without a subject is valid, but reading this member then throws error 20024, so pass a
+     *      without a subject is valid, but reading this member then throws ERR_INVALID_STATE, so pass a
      *      subject when the name will be read.
      *
      */
@@ -64310,7 +64329,7 @@ declare class Class_X509CertificateRequest extends Class_object {
      *
      *      Returns true when privateKey is the private half of the public key in the request,
      *      false for another private key. The argument must be a private KeyObject: a public or
-     *      secret KeyObject throws Error [20024] with the message "key must be a private
+     *      secret KeyObject throws Error [ERR_INVALID_STATE] with the message "key must be a private
      *      KeyObject.", and a value that is not a KeyObject fails the argument type check with a
      *      TypeError [20005] (X509Certificate#checkPrivateKey raises TypeError [20004] instead).
      *      A CA uses this check to confirm that the applicant owns the key before issuing.
@@ -64329,7 +64348,7 @@ declare class Class_X509CertificateRequest extends Class_object {
      *      try {
      *          req.checkPrivateKey(publicKey);
      *      } catch (e) {
-     *          console.log(e.name, e.number);                  // Error 20024
+     *          console.log(e.name, e.number);                  // ERR_INVALID_STATE
      *      }
      *      \`\`\`
      *      @param privateKey the private key to check
@@ -64348,7 +64367,7 @@ declare class Class_X509CertificateRequest extends Class_object {
      *      the certificate are copied from the request; every other field comes from this object:
      *      - issuer: the issuer subject as key/value pairs, for example
      *        \`{ C: 'CN', O: 'Example', CN: 'Demo CA' }\`; when omitted the issuer name is empty
-     *        and reading the issued certificate's issuer throws error 20024;
+     *        and reading the issued certificate's issuer throws ERR_INVALID_STATE;
      *      - ca: mark the certificate as a CA. Default: false;
      *      - pathlen: maximum number of intermediate CAs below this one, -1 for no constraint.
      *        Default: -1;
@@ -65176,7 +65195,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      })
      *      \`\`\`
      *
-     *      Exceeding a limit throws an Error (20024); malformed XML throws the same error with the
+     *      Exceeding a limit throws an Error (ERR_INVALID_STATE); malformed XML throws the same error with the
      *      line and column in the message. A non-number option throws a TypeError (20004), and a
      *      source that is neither string nor Buffer throws a TypeError (20005). The member returns
      *      nothing.
@@ -65242,7 +65261,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      \`childNodes[0]\` when the declaration comes first). An HTML document parsed from
      *      \`<!DOCTYPE html>\` keeps it as well; a document built with the create* factories has
      *      none. A document accepts at most one doctype - appending a second throws an Error
-     *      (20024). removeChild clears the slot, while XmlNode.remove() and adoptNode() detach the
+     *      (ERR_INVALID_STATE). removeChild clears the slot, while XmlNode.remove() and adoptNode() detach the
      *      node without clearing it, so this property then keeps reporting the detached doctype.
      *
      */
@@ -65252,7 +65271,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      * @description Returns the document element, or null when the document has no root element
      *
      *      A document holds at most one element; appendChild/insertBefore/replaceChild reject a
-     *      second one with an Error (20024). removeChild (and replaceChild) release the slot: after
+     *      second one with an Error (ERR_INVALID_STATE). removeChild (and replaceChild) release the slot: after
      *      removing the root this property reads null and another element can be appended. The
      *      slot is a document-level field, so the generic XmlNode.remove() and adoptNode() do not
      *      release it - they detach the element but the document still reports it here and keeps
@@ -65477,7 +65496,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      deep defaults to true, so the whole subtree is copied; false imports only the node
      *      itself (an element still brings its attributes). The source stays in its document and
      *      is unchanged, while the copy and its subtree are owned by this document and have no
-     *      parent. A Document node cannot be imported (Error 20024); a non-node argument throws a
+     *      parent. A Document node cannot be imported (ERR_INVALID_STATE); a non-node argument throws a
      *      TypeError (20005). Use adoptNode to move a node instead of copying it.
      *
      *      \`\`\`JavaScript
@@ -65507,7 +65526,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      (or doctype) detaches it, but like XmlNode.remove() this path does not release the
      *      document-level slot: documentElement (doctype) keeps reporting the detached node and a
      *      second element (doctype) is rejected - use removeChild first when the node must be
-     *      replaced. A Document node cannot be adopted (Error 20024); a non-node argument throws a
+     *      replaced. A Document node cannot be adopted (ERR_INVALID_STATE); a non-node argument throws a
      *      TypeError (20005). Inserting a node into another document adopts it implicitly - see
      *      XmlNode.
      *
@@ -65522,7 +65541,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *
      *      The search covers the whole document, documentElement included, and returns the first
      *      match in document order or null when nothing matches; a document without a root element
-     *      also returns null. An invalid selector throws a SyntaxError (20024). The supported
+     *      also returns null. An invalid selector throws a SyntaxError (ERR_INVALID_STATE). The supported
      *      selector grammar is listed in the XmlElement class comment; querySelectorAll returns
      *      every match as a snapshot. See XmlElement.querySelector for the descendant-only variant.
      *
@@ -65538,7 +65557,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      The search covers the whole document, documentElement included. The returned
      *      XmlNodeList is a snapshot in document order that holds strong references to its nodes:
      *      a later mutation does not change it, query again after changing the tree. A document
-     *      without a root element returns null; an invalid selector throws a SyntaxError (20024).
+     *      without a root element returns null; an invalid selector throws a SyntaxError (ERR_INVALID_STATE).
      *
      *      @param selectors the CSS selector to match
      *      @return an XmlNodeList of the matching elements in document order
@@ -66081,7 +66100,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      elements follow the document mode (\`<b/>\` in XML, \`<b></b>\` or a void tag such as
      *      \`<br>\` in HTML) and special characters are escaped. Assigning replaces every child
      *      node with the parsed content: in XML mode the fragment is parsed inside a temporary
-     *      root element, so it must be well-formed XML and a parse error (20024) leaves the
+     *      root element, so it must be well-formed XML and a parse error (ERR_INVALID_STATE) leaves the
      *      element unchanged; in HTML mode the fragment is parsed as HTML. Assigning a non-string
      *      throws a type error (20005), and an empty string only clears the children. For a
      *      \`<template>\` element in HTML mode, reading returns the serialization of the children
@@ -66112,7 +66131,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      an end tag (\`<br>\`) and empty non-void elements as \`<tag></tag>\`. Assigning parses the
      *      HTML fragment and replaces the element in its parent with the parsed nodes; when the
      *      element has no parent the assignment does nothing, and assigning to the document
-     *      element (a direct child of the document) throws an error (20024). XML mode has no
+     *      element (a direct child of the document) throws an error (ERR_INVALID_STATE). XML mode has no
      *      concept of HTML fragments, so both reading and writing throw an invalid-call error
      *      (20009); use toString or the XMLSerializer interface instead.
      *
@@ -66378,7 +66397,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      The attribute's name and namespace decide which attribute it replaces: when the element
      *      already has one with the same name, the replaced XmlAttr is returned, otherwise null is
      *      returned. The attribute must belong to no element or to this one; an attribute owned by
-     *      another element is rejected with an error (20024) — remove it there first — and passing
+     *      another element is rejected with an error (ERR_INVALID_STATE) — remove it there first — and passing
      *      one of the element's own attributes just returns it without changing anything.
      *      @param attr the XmlAttr object to set
      *      @return returns the replaced XmlAttr object, or NULL if nothing was replaced
@@ -66416,7 +66435,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      The XmlAttr object must currently belong to this element: the removed node is returned
      *      and becomes detached, so it can be attached to another element with setAttributeNode.
      *      An attribute owned by another element, or one that was already removed, throws an error
-     *      (20024), which is stricter than a browser's DOMException — check hasAttribute or
+     *      (ERR_INVALID_STATE), which is stricter than a browser's DOMException — check hasAttribute or
      *      getAttributeNode before calling.
      *      @param attr the XmlAttr object to remove
      *      @return returns the removed XmlAttr object
@@ -66537,7 +66556,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *
      *      The element itself is not a candidate and the first match in document order is
      *      returned; when nothing matches, null is returned. An empty selector throws an error
-     *      (20024); other malformed selectors either throw the same error or yield no match,
+     *      (ERR_INVALID_STATE); other malformed selectors either throw the same error or yield no match,
      *      depending on where the parse fails. Selector support: type, \`#id\`, \`.class\`, \`[attr]\`
      *      with \`=\`, \`^=\`, \`$=\`, \`*=\`, \`~=\`, \`|=\`, the descendant/\`>\`/\`+\`/\`~\` combinators and the
      *      \`:first-child\`, \`:last-child\`, \`:nth-child()\`, \`:only-child\`, \`:not()\`, \`:is()\`,
@@ -66569,7 +66588,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      The results are in document order and exclude the element itself; the list is a
      *      snapshot, so elements added after the call do not appear in it and nodes removed from
      *      the document stay reachable through it while it is referenced. The selector syntax and
-     *      error behavior are those of querySelector; an empty selector throws (20024). The list
+     *      error behavior are those of querySelector; an empty selector throws (ERR_INVALID_STATE). The list
      *      supports iteration, indexed access and a toString() that serializes the matched
      *      elements.
      *      @param selectors the CSS selector
@@ -66584,7 +66603,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      Unlike querySelector this method does not search the descendants: it answers whether
      *      the element would be selected by the selector, which makes it useful for conditional
      *      logic. Selector syntax and case rules match querySelector, and a pseudo-element
-     *      selector always returns false. An empty or malformed selector throws (20024), and only
+     *      selector always returns false. An empty or malformed selector throws (ERR_INVALID_STATE), and only
      *      a string is accepted — a non-string argument throws a type error (20005) instead of
      *      being converted. Use closest to find the nearest ancestor that matches.
      *
@@ -66614,7 +66633,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      through parent elements until a match is found; null is returned when the root is
      *      reached without a match, and non-element ancestors (a document or document fragment)
      *      end the walk. The selector syntax and the error behavior are those of matches: an empty
-     *      selector throws (20024) and a non-string argument throws a type error (20005).
+     *      selector throws (ERR_INVALID_STATE) and a non-string argument throws a type error (20005).
      *      @param selectors the CSS selector
      *      @return returns the nearest matching ancestor element (possibly the element itself), or null if there is no match
      *
@@ -66682,7 +66701,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      and 'afterend' insert into the parent at the sibling position and return null when the
      *      element has no parent; 'afterbegin' and 'beforeend' insert as the first or last child.
      *      On success the inserted element is returned. An unknown position throws an error
-     *      (20024) and a non-element argument throws a type error (20005). Use insertAdjacentText
+     *      (ERR_INVALID_STATE) and a non-element argument throws a type error (20005). Use insertAdjacentText
      *      for text and insertAdjacentHTML for markup; the XmlNode methods before/after handle the
      *      general case.
      *      @param position the insertion position
@@ -66700,9 +66719,9 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      — with a detached element they do not return (fibjs limitation, avoid that call) —
      *      while 'afterbegin' and 'beforeend' always work. The markup is parsed according to the
      *      document mode: an XML document parses the fragment as well-formed XML (a parse error
-     *      throws 20024 and nothing is inserted) and an HTML document parses it as HTML, so
+     *      throws ERR_INVALID_STATE and nothing is inserted) and an HTML document parses it as HTML, so
      *      several top-level nodes and unclosed tags are accepted. The parsed nodes are inserted
-     *      in order. An empty string does nothing and an unknown position throws (20024) before
+     *      in order. An empty string does nothing and an unknown position throws (ERR_INVALID_STATE) before
      *      any parsing. Use insertAdjacentElement for one element object and insertAdjacentText
      *      for plain text.
      *
@@ -67338,7 +67357,7 @@ declare class Class_XmlNode extends Class_object {
     /**
      * @description Inserts a node before an existing child of this node
      *
-     *      refChild must already be a child of this node, otherwise an Error (20024) is thrown.
+     *      refChild must already be a child of this node, otherwise an Error (ERR_INVALID_STATE) is thrown.
      *      If newChild already has a parent it is moved here (it leaves the old tree first), a
      *      DocumentFragment is spliced as its children, and a node owned by another document is
      *      adopted (its ownerDocument changes). Inserting a node into its own descendant is
@@ -67357,7 +67376,7 @@ declare class Class_XmlNode extends Class_object {
      *
      *      This member has no counterpart in the standard DOM (use insertBefore with the next
      *      sibling instead). It behaves like insertBefore, but the node is placed after refChild,
-     *      which must already be a child of this node (Error 20024 otherwise). Moving, fragment
+     *      which must already be a child of this node (ERR_INVALID_STATE otherwise). Moving, fragment
      *      splicing and cross-document adoption follow the same rules.
      *
      *      @param newChild the node to insert
@@ -67376,7 +67395,7 @@ declare class Class_XmlNode extends Class_object {
      *      processing instructions, comments and a fragment, but no text; an element accepts
      *      elements, text, CDATA, entity references, processing instructions, comments and
      *      fragments. A cycle (inserting an ancestor) or a disallowed node type throws an Error
-     *      (20024); a non-node argument throws a TypeError (20005).
+     *      (ERR_INVALID_STATE); a non-node argument throws a TypeError (20005).
      *
      *      \`\`\`JavaScript
      *      const xml = require('xml');
@@ -67399,7 +67418,7 @@ declare class Class_XmlNode extends Class_object {
     /**
      * @description Replaces an existing child with another node
      *
-     *      oldChild must be a child of this node (Error 20024 otherwise); it is detached and
+     *      oldChild must be a child of this node (ERR_INVALID_STATE otherwise); it is detached and
      *      returned. newChild is inserted at its position under the same rules as insertBefore,
      *      including fragment splicing, moving and cross-document adoption. When newChild equals
      *      oldChild the call is a no-op that returns the node.
@@ -67414,7 +67433,7 @@ declare class Class_XmlNode extends Class_object {
     /**
      * @description Removes a child node from this node
      *
-     *      oldChild must be a child of this node, otherwise an Error (20024) is thrown; the child
+     *      oldChild must be a child of this node, otherwise an Error (ERR_INVALID_STATE) is thrown; the child
      *      is detached with its subtree intact and returned. Removing the document element from a
      *      document sets documentElement to null, after which another element may be appended. A
      *      non-node argument throws a TypeError (20005).
@@ -70993,7 +71012,7 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
      *      try {
      *          gzip._processChunk('hello', C.Z_FINISH);
      *      } catch (e) {
-     *          console.log(e.code, e.number); // ERR_ZLIB_BINDING_CLOSED 20024
+     *          console.log(e.code, e.number); // ERR_ZLIB_BINDING_CLOSED ERR_INVALID_STATE
      *      }
      *      \`\`\`
      *
@@ -73368,7 +73387,7 @@ declare module 'assert/strict' {
  *
  *  - The two classes are only reachable through this module; they are not global
  *    variables and do not have their own module names, so
- *    \`require('AsyncLocalStorage')\` fails with error 20024.
+ *    \`require('AsyncLocalStorage')\` fails with ERR_INVALID_STATE.
  *  - The context-tracking API of both classes is complete; the remaining gaps are limited to
  *    diagnostics (ids, missing hook callbacks, ignored options) and are
  *    documented in the class definitions.
@@ -75742,7 +75761,7 @@ declare module 'colors' {
  *  - **Output devices**: while no device is registered the built-in console device
  *    is used; add/use replace it with up to 10 registered devices, each with an
  *    optional whitelist of levels. Device management is process-wide and is not
- *    available in worker threads (Error 20009). The console device writes
+ *    available in worker threads (Error 20009, code \`ERR_CONSOLE_NOT_AVAILABLE\`). The console device writes
  *    synchronously, while the file, syslog and event devices queue records and
  *    write them asynchronously.
  *  - **Input**: readLine/getpass flush pending device records and then suspend the
@@ -75909,13 +75928,13 @@ declare module 'console' {
      *
      *      Registers one of the supported devices and stops using the built-in console
      *      fallback; up to 10 devices can be registered and adding an 11th throws Error
-     *      20024 ("console: Too many items."). \`use\` is the historical name of the same
+     *      ERR_INVALID_STATE ("console: Too many items."). \`use\` is the historical name of the same
      *      operation and \`reset\` removes every registered device.
      *
      *      The supported names are \`"console"\` on every platform, \`"syslog"\` on POSIX,
      *      \`"event"\` on Windows and \`"nslog"\` on Darwin; any other name throws Error
-     *      20024 ("console: Unknown log type."). Device management is process-wide and
-     *      is not available in worker threads (Error 20009).
+     *      ERR_INVALID_STATE ("console: Unknown log type."). Device management is process-wide and
+     *      is not available in worker threads (Error 20009, code \`ERR_CONSOLE_NOT_AVAILABLE\`).
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -75936,22 +75955,22 @@ declare module 'console' {
      *      registered in order. Each element is a device name string or an object:
      *
      *      - \`type\` (String): device name, required, one of the names accepted by
-     *        \`add(String)\`; a missing type throws Error 20024 ("console: Missing log
+     *        \`add(String)\`; a missing type throws ERR_INVALID_STATE ("console: Missing log
      *        type.");
      *      - \`levels\` (Array): whitelist of severity levels recorded by this device.
      *        Only the listed numbers are written (PRINT is always accepted) and the
-     *        default is all levels; an entry outside 0..NOTSET throws Error 20024
+     *        default is all levels; an entry outside 0..NOTSET throws ERR_INVALID_STATE
      *        ("console: too many logger.").
      *      - File device only:
      *        - \`path\` (String): target file, required; a missing path throws Error
-     *          20024 ("console: Missing path."). A \`%s\` marker in the name is replaced
+     *          ERR_INVALID_STATE ("console: Missing path."). A \`%s\` marker in the name is replaced
      *          by a \`YYYYMMDDHHmmss\` stamp, otherwise the stamp is appended to the
      *          file name;
      *        - \`split\`: \`"day"\`, \`"hour"\`, \`"minute"\` or a size threshold such as
      *          \`"30m"\`, \`"10k"\` or \`"1g"\`; giving \`count\` without \`split\` throws Error
-     *          20024 ("console: Missing split mode.");
+     *          ERR_INVALID_STATE ("console: Missing split mode.");
      *        - \`count\` (Integer): rotated files to keep, 2 to 128, 128 by default; a
-     *          value outside the range throws Error 20024 ("console: Count must
+     *          value outside the range throws ERR_INVALID_STATE ("console: Count must
      *          between 2 to 128.").
      *
      *      The example records only ERROR records to the console device:
@@ -75974,7 +75993,7 @@ declare module 'console' {
      * @description Registers an output device by name; historical alias of add
      *
      *      Behaves exactly like \`add(String type)\`, including the supported device
-     *      names, the 10-device limit and the Error 20024 failures. \`use\` and \`add\` are
+     *      names, the 10-device limit and the ERR_INVALID_STATE failures. \`use\` and \`add\` are
      *      separate function objects with identical behavior, kept for compatibility
      *      with older fibjs code.
      *
@@ -75995,7 +76014,7 @@ declare module 'console' {
      *
      *      Behaves exactly like \`add(Object|Array cfg)\`, including the file device
      *      configuration (\`path\`, \`split\`, \`count\`), the per-device \`levels\` whitelist
-     *      and the Error 20024 validation failures; see \`add\` for the full option list.
+     *      and the ERR_INVALID_STATE validation failures; see \`add\` for the full option list.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -76016,7 +76035,7 @@ declare module 'console' {
      *      records still queued on an asynchronous device (file, syslog, event) may be
      *      dropped, so a caller that needs them must let the device write first. Device
      *      management is process-wide and is not available in worker threads (Error
-     *      20009).
+     *      20009, code \`ERR_CONSOLE_NOT_AVAILABLE\`).
      *
      */
     function reset(): void;
@@ -76712,13 +76731,13 @@ declare module 'console/promises' {
      *
      *      Registers one of the supported devices and stops using the built-in console
      *      fallback; up to 10 devices can be registered and adding an 11th throws Error
-     *      20024 ("console: Too many items."). \`use\` is the historical name of the same
+     *      ERR_INVALID_STATE ("console: Too many items."). \`use\` is the historical name of the same
      *      operation and \`reset\` removes every registered device.
      *
      *      The supported names are \`"console"\` on every platform, \`"syslog"\` on POSIX,
      *      \`"event"\` on Windows and \`"nslog"\` on Darwin; any other name throws Error
-     *      20024 ("console: Unknown log type."). Device management is process-wide and
-     *      is not available in worker threads (Error 20009).
+     *      ERR_INVALID_STATE ("console: Unknown log type."). Device management is process-wide and
+     *      is not available in worker threads (Error 20009, code \`ERR_CONSOLE_NOT_AVAILABLE\`).
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -76739,22 +76758,22 @@ declare module 'console/promises' {
      *      registered in order. Each element is a device name string or an object:
      *
      *      - \`type\` (String): device name, required, one of the names accepted by
-     *        \`add(String)\`; a missing type throws Error 20024 ("console: Missing log
+     *        \`add(String)\`; a missing type throws ERR_INVALID_STATE ("console: Missing log
      *        type.");
      *      - \`levels\` (Array): whitelist of severity levels recorded by this device.
      *        Only the listed numbers are written (PRINT is always accepted) and the
-     *        default is all levels; an entry outside 0..NOTSET throws Error 20024
+     *        default is all levels; an entry outside 0..NOTSET throws ERR_INVALID_STATE
      *        ("console: too many logger.").
      *      - File device only:
      *        - \`path\` (String): target file, required; a missing path throws Error
-     *          20024 ("console: Missing path."). A \`%s\` marker in the name is replaced
+     *          ERR_INVALID_STATE ("console: Missing path."). A \`%s\` marker in the name is replaced
      *          by a \`YYYYMMDDHHmmss\` stamp, otherwise the stamp is appended to the
      *          file name;
      *        - \`split\`: \`"day"\`, \`"hour"\`, \`"minute"\` or a size threshold such as
      *          \`"30m"\`, \`"10k"\` or \`"1g"\`; giving \`count\` without \`split\` throws Error
-     *          20024 ("console: Missing split mode.");
+     *          ERR_INVALID_STATE ("console: Missing split mode.");
      *        - \`count\` (Integer): rotated files to keep, 2 to 128, 128 by default; a
-     *          value outside the range throws Error 20024 ("console: Count must
+     *          value outside the range throws ERR_INVALID_STATE ("console: Count must
      *          between 2 to 128.").
      *
      *      The example records only ERROR records to the console device:
@@ -76777,7 +76796,7 @@ declare module 'console/promises' {
      * @description Registers an output device by name; historical alias of add
      *
      *      Behaves exactly like \`add(String type)\`, including the supported device
-     *      names, the 10-device limit and the Error 20024 failures. \`use\` and \`add\` are
+     *      names, the 10-device limit and the ERR_INVALID_STATE failures. \`use\` and \`add\` are
      *      separate function objects with identical behavior, kept for compatibility
      *      with older fibjs code.
      *
@@ -76798,7 +76817,7 @@ declare module 'console/promises' {
      *
      *      Behaves exactly like \`add(Object|Array cfg)\`, including the file device
      *      configuration (\`path\`, \`split\`, \`count\`), the per-device \`levels\` whitelist
-     *      and the Error 20024 validation failures; see \`add\` for the full option list.
+     *      and the ERR_INVALID_STATE validation failures; see \`add\` for the full option list.
      *
      *      Example:
      *      \`\`\`JavaScript
@@ -76819,7 +76838,7 @@ declare module 'console/promises' {
      *      records still queued on an asynchronous device (file, syslog, event) may be
      *      dropped, so a caller that needs them must let the device write first. Device
      *      management is process-wide and is not available in worker threads (Error
-     *      20009).
+     *      20009, code \`ERR_CONSOLE_NOT_AVAILABLE\`).
      *
      */
     function reset(): void;
@@ -82825,7 +82844,7 @@ declare module 'db' {
      *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
      *      are rejected here: call openRedis / openLevelDB instead. A string without a known
      *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with number 20024.
+     *      with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -82856,7 +82875,7 @@ declare module 'db' {
      *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
      *      are rejected here: call openRedis / openLevelDB instead. A string without a known
      *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with number 20024.
+     *      with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -82885,7 +82904,7 @@ declare module 'db' {
      *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
      *      are rejected here: call openRedis / openLevelDB instead. A string without a known
      *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with number 20024.
+     *      with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -82912,7 +82931,7 @@ declare module 'db' {
      *      database name is the URL path (may be empty) and the port defaults to 3306. The
      *      character set is fixed to utf8mb4 and query-string options are not read, so
      *      credentials must be part of the URL. A server that cannot be reached reports error
-     *      number 20024 ("Failed to connect to server"). Use close() to end the session.
+     *      ERR_INVALID_STATE ("Failed to connect to server"). Use close() to end the session.
      *
      *      Example — connect and run a statement (needs a MySQL server):
      *      \`\`\`JavaScript
@@ -82948,7 +82967,7 @@ declare module 'db' {
      *      database name is the URL path (may be empty) and the port defaults to 3306. The
      *      character set is fixed to utf8mb4 and query-string options are not read, so
      *      credentials must be part of the URL. A server that cannot be reached reports error
-     *      number 20024 ("Failed to connect to server"). Use close() to end the session.
+     *      ERR_INVALID_STATE ("Failed to connect to server"). Use close() to end the session.
      *
      *      Example — connect and run a statement (needs a MySQL server):
      *      \`\`\`JavaScript
@@ -82982,7 +83001,7 @@ declare module 'db' {
      *      database name is the URL path (may be empty) and the port defaults to 3306. The
      *      character set is fixed to utf8mb4 and query-string options are not read, so
      *      credentials must be part of the URL. A server that cannot be reached reports error
-     *      number 20024 ("Failed to connect to server"). Use close() to end the session.
+     *      ERR_INVALID_STATE ("Failed to connect to server"). Use close() to end the session.
      *
      *      Example — connect and run a statement (needs a MySQL server):
      *      \`\`\`JavaScript
@@ -83017,7 +83036,7 @@ declare module 'db' {
      *      lose their data when the connection is closed. Every connection enables WAL
      *      journaling, \`synchronous=normal\` and \`temp_store=memory\`, and waits up to 5000 ms
      *      for a busy file (see SQLite.timeout). Failures such as a missing parent directory
-     *      report error number 20024 with the SQLite message.
+     *      report ERR_INVALID_STATE with the SQLite message.
      *
      *      Example — create a database file in a temporary directory:
      *      \`\`\`JavaScript
@@ -83054,7 +83073,7 @@ declare module 'db' {
      *      lose their data when the connection is closed. Every connection enables WAL
      *      journaling, \`synchronous=normal\` and \`temp_store=memory\`, and waits up to 5000 ms
      *      for a busy file (see SQLite.timeout). Failures such as a missing parent directory
-     *      report error number 20024 with the SQLite message.
+     *      report ERR_INVALID_STATE with the SQLite message.
      *
      *      Example — create a database file in a temporary directory:
      *      \`\`\`JavaScript
@@ -83089,7 +83108,7 @@ declare module 'db' {
      *      lose their data when the connection is closed. Every connection enables WAL
      *      journaling, \`synchronous=normal\` and \`temp_store=memory\`, and waits up to 5000 ms
      *      for a busy file (see SQLite.timeout). Failures such as a missing parent directory
-     *      report error number 20024 with the SQLite message.
+     *      report ERR_INVALID_STATE with the SQLite message.
      *
      *      Example — create a database file in a temporary directory:
      *      \`\`\`JavaScript
@@ -83120,7 +83139,7 @@ declare module 'db' {
      *
      *      Only \`odbc://\` strings are accepted; the driver name is required and is read from
      *      the \`Driver\` (or \`driver\`) query-string parameter: \`odbc://user:pass@host/db?driver=MyDriver\`.
-     *      Without it the call fails with error number 20024 ("odbc: no driver specified.").
+     *      Without it the call fails with ERR_INVALID_STATE ("odbc: no driver specified.").
      *      The URL is translated into an ODBC connection string with the Driver, Server,
      *      optional Port and Database, Uid and Pwd attributes; other ODBC attributes cannot be
      *      set from the URL. The returned object reports type \`"odbc"\`; install the driver
@@ -83139,7 +83158,7 @@ declare module 'db' {
      *
      *      Only \`odbc://\` strings are accepted; the driver name is required and is read from
      *      the \`Driver\` (or \`driver\`) query-string parameter: \`odbc://user:pass@host/db?driver=MyDriver\`.
-     *      Without it the call fails with error number 20024 ("odbc: no driver specified.").
+     *      Without it the call fails with ERR_INVALID_STATE ("odbc: no driver specified.").
      *      The URL is translated into an ODBC connection string with the Driver, Server,
      *      optional Port and Database, Uid and Pwd attributes; other ODBC attributes cannot be
      *      set from the URL. The returned object reports type \`"odbc"\`; install the driver
@@ -83156,7 +83175,7 @@ declare module 'db' {
      *
      *      Only \`odbc://\` strings are accepted; the driver name is required and is read from
      *      the \`Driver\` (or \`driver\`) query-string parameter: \`odbc://user:pass@host/db?driver=MyDriver\`.
-     *      Without it the call fails with error number 20024 ("odbc: no driver specified.").
+     *      Without it the call fails with ERR_INVALID_STATE ("odbc: no driver specified.").
      *      The URL is translated into an ODBC connection string with the Driver, Server,
      *      optional Port and Database, Uid and Pwd attributes; other ODBC attributes cannot be
      *      set from the URL. The returned object reports type \`"odbc"\`; install the driver
@@ -83175,7 +83194,7 @@ declare module 'db' {
      *      \`libtdsodbc.so\` on posix (freetds must be installed) or "SQL Server" on Windows.
      *      Append \`?driver=msodbcsql17\` (or another name/path) to use a different driver. The
      *      returned object reports type \`"mssql"\`; note that mssql does not provide \`insertId\`
-     *      in execution results. Connection failures report error number 20024 with the
+     *      in execution results. Connection failures report ERR_INVALID_STATE with the
      *      driver diagnostics.
      *
      *      @param connString the database description, such as: mssql://user:pass@host/db
@@ -83193,7 +83212,7 @@ declare module 'db' {
      *      \`libtdsodbc.so\` on posix (freetds must be installed) or "SQL Server" on Windows.
      *      Append \`?driver=msodbcsql17\` (or another name/path) to use a different driver. The
      *      returned object reports type \`"mssql"\`; note that mssql does not provide \`insertId\`
-     *      in execution results. Connection failures report error number 20024 with the
+     *      in execution results. Connection failures report ERR_INVALID_STATE with the
      *      driver diagnostics.
      *
      *      @param connString the database description, such as: mssql://user:pass@host/db
@@ -83209,7 +83228,7 @@ declare module 'db' {
      *      \`libtdsodbc.so\` on posix (freetds must be installed) or "SQL Server" on Windows.
      *      Append \`?driver=msodbcsql17\` (or another name/path) to use a different driver. The
      *      returned object reports type \`"mssql"\`; note that mssql does not provide \`insertId\`
-     *      in execution results. Connection failures report error number 20024 with the
+     *      in execution results. Connection failures report ERR_INVALID_STATE with the
      *      driver diagnostics.
      *
      *      @param connString the database description, such as: mssql://user:pass@host/db
@@ -83432,7 +83451,7 @@ declare module 'db/promises' {
      *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
      *      are rejected here: call openRedis / openLevelDB instead. A string without a known
      *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with number 20024.
+     *      with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -83461,7 +83480,7 @@ declare module 'db/promises' {
      *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
      *      are rejected here: call openRedis / openLevelDB instead. A string without a known
      *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with number 20024.
+     *      with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -83490,7 +83509,7 @@ declare module 'db/promises' {
      *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
      *      are rejected here: call openRedis / openLevelDB instead. A string without a known
      *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with number 20024.
+     *      with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -83517,7 +83536,7 @@ declare module 'db/promises' {
      *      database name is the URL path (may be empty) and the port defaults to 3306. The
      *      character set is fixed to utf8mb4 and query-string options are not read, so
      *      credentials must be part of the URL. A server that cannot be reached reports error
-     *      number 20024 ("Failed to connect to server"). Use close() to end the session.
+     *      ERR_INVALID_STATE ("Failed to connect to server"). Use close() to end the session.
      *
      *      Example — connect and run a statement (needs a MySQL server):
      *      \`\`\`JavaScript
@@ -83551,7 +83570,7 @@ declare module 'db/promises' {
      *      database name is the URL path (may be empty) and the port defaults to 3306. The
      *      character set is fixed to utf8mb4 and query-string options are not read, so
      *      credentials must be part of the URL. A server that cannot be reached reports error
-     *      number 20024 ("Failed to connect to server"). Use close() to end the session.
+     *      ERR_INVALID_STATE ("Failed to connect to server"). Use close() to end the session.
      *
      *      Example — connect and run a statement (needs a MySQL server):
      *      \`\`\`JavaScript
@@ -83585,7 +83604,7 @@ declare module 'db/promises' {
      *      database name is the URL path (may be empty) and the port defaults to 3306. The
      *      character set is fixed to utf8mb4 and query-string options are not read, so
      *      credentials must be part of the URL. A server that cannot be reached reports error
-     *      number 20024 ("Failed to connect to server"). Use close() to end the session.
+     *      ERR_INVALID_STATE ("Failed to connect to server"). Use close() to end the session.
      *
      *      Example — connect and run a statement (needs a MySQL server):
      *      \`\`\`JavaScript
@@ -83620,7 +83639,7 @@ declare module 'db/promises' {
      *      lose their data when the connection is closed. Every connection enables WAL
      *      journaling, \`synchronous=normal\` and \`temp_store=memory\`, and waits up to 5000 ms
      *      for a busy file (see SQLite.timeout). Failures such as a missing parent directory
-     *      report error number 20024 with the SQLite message.
+     *      report ERR_INVALID_STATE with the SQLite message.
      *
      *      Example — create a database file in a temporary directory:
      *      \`\`\`JavaScript
@@ -83655,7 +83674,7 @@ declare module 'db/promises' {
      *      lose their data when the connection is closed. Every connection enables WAL
      *      journaling, \`synchronous=normal\` and \`temp_store=memory\`, and waits up to 5000 ms
      *      for a busy file (see SQLite.timeout). Failures such as a missing parent directory
-     *      report error number 20024 with the SQLite message.
+     *      report ERR_INVALID_STATE with the SQLite message.
      *
      *      Example — create a database file in a temporary directory:
      *      \`\`\`JavaScript
@@ -83690,7 +83709,7 @@ declare module 'db/promises' {
      *      lose their data when the connection is closed. Every connection enables WAL
      *      journaling, \`synchronous=normal\` and \`temp_store=memory\`, and waits up to 5000 ms
      *      for a busy file (see SQLite.timeout). Failures such as a missing parent directory
-     *      report error number 20024 with the SQLite message.
+     *      report ERR_INVALID_STATE with the SQLite message.
      *
      *      Example — create a database file in a temporary directory:
      *      \`\`\`JavaScript
@@ -83721,7 +83740,7 @@ declare module 'db/promises' {
      *
      *      Only \`odbc://\` strings are accepted; the driver name is required and is read from
      *      the \`Driver\` (or \`driver\`) query-string parameter: \`odbc://user:pass@host/db?driver=MyDriver\`.
-     *      Without it the call fails with error number 20024 ("odbc: no driver specified.").
+     *      Without it the call fails with ERR_INVALID_STATE ("odbc: no driver specified.").
      *      The URL is translated into an ODBC connection string with the Driver, Server,
      *      optional Port and Database, Uid and Pwd attributes; other ODBC attributes cannot be
      *      set from the URL. The returned object reports type \`"odbc"\`; install the driver
@@ -83738,7 +83757,7 @@ declare module 'db/promises' {
      *
      *      Only \`odbc://\` strings are accepted; the driver name is required and is read from
      *      the \`Driver\` (or \`driver\`) query-string parameter: \`odbc://user:pass@host/db?driver=MyDriver\`.
-     *      Without it the call fails with error number 20024 ("odbc: no driver specified.").
+     *      Without it the call fails with ERR_INVALID_STATE ("odbc: no driver specified.").
      *      The URL is translated into an ODBC connection string with the Driver, Server,
      *      optional Port and Database, Uid and Pwd attributes; other ODBC attributes cannot be
      *      set from the URL. The returned object reports type \`"odbc"\`; install the driver
@@ -83755,7 +83774,7 @@ declare module 'db/promises' {
      *
      *      Only \`odbc://\` strings are accepted; the driver name is required and is read from
      *      the \`Driver\` (or \`driver\`) query-string parameter: \`odbc://user:pass@host/db?driver=MyDriver\`.
-     *      Without it the call fails with error number 20024 ("odbc: no driver specified.").
+     *      Without it the call fails with ERR_INVALID_STATE ("odbc: no driver specified.").
      *      The URL is translated into an ODBC connection string with the Driver, Server,
      *      optional Port and Database, Uid and Pwd attributes; other ODBC attributes cannot be
      *      set from the URL. The returned object reports type \`"odbc"\`; install the driver
@@ -83774,7 +83793,7 @@ declare module 'db/promises' {
      *      \`libtdsodbc.so\` on posix (freetds must be installed) or "SQL Server" on Windows.
      *      Append \`?driver=msodbcsql17\` (or another name/path) to use a different driver. The
      *      returned object reports type \`"mssql"\`; note that mssql does not provide \`insertId\`
-     *      in execution results. Connection failures report error number 20024 with the
+     *      in execution results. Connection failures report ERR_INVALID_STATE with the
      *      driver diagnostics.
      *
      *      @param connString the database description, such as: mssql://user:pass@host/db
@@ -83790,7 +83809,7 @@ declare module 'db/promises' {
      *      \`libtdsodbc.so\` on posix (freetds must be installed) or "SQL Server" on Windows.
      *      Append \`?driver=msodbcsql17\` (or another name/path) to use a different driver. The
      *      returned object reports type \`"mssql"\`; note that mssql does not provide \`insertId\`
-     *      in execution results. Connection failures report error number 20024 with the
+     *      in execution results. Connection failures report ERR_INVALID_STATE with the
      *      driver diagnostics.
      *
      *      @param connString the database description, such as: mssql://user:pass@host/db
@@ -83806,7 +83825,7 @@ declare module 'db/promises' {
      *      \`libtdsodbc.so\` on posix (freetds must be installed) or "SQL Server" on Windows.
      *      Append \`?driver=msodbcsql17\` (or another name/path) to use a different driver. The
      *      returned object reports type \`"mssql"\`; note that mssql does not provide \`insertId\`
-     *      in execution results. Connection failures report error number 20024 with the
+     *      in execution results. Connection failures report ERR_INVALID_STATE with the
      *      driver diagnostics.
      *
      *      @param connString the database description, such as: mssql://user:pass@host/db
@@ -85073,7 +85092,7 @@ declare module 'encoding' {
      *      re-represented; for a charset codec the bytes are decoded from that charset into
      *      Unicode text. A string argument is first converted to its utf8 bytes, so pass a
      *      Buffer when the input is not utf8 text. An unknown codec throws an Error with
-     *      number 20024.
+     *      ERR_INVALID_STATE.
      *
      *      Example — the same bytes under several codecs:
      *      \`\`\`JavaScript
@@ -85101,7 +85120,7 @@ declare module 'encoding' {
      *      the textual representation is parsed back into the bytes it stands for; with a
      *      charset codec the text is encoded into that charset, which is the way to prepare
      *      data for a legacy system. The textual codecs are lenient about trailing or invalid
-     *      characters. An unknown codec throws an Error with number 20024.
+     *      characters. An unknown codec throws an Error with ERR_INVALID_STATE.
      *
      *      Example — text back to bytes, including a charset:
      *      \`\`\`JavaScript
@@ -94858,7 +94877,7 @@ declare module 'hex' {
  *    response arrives.
  *  - \`maxChunkSize\` (default 2 MB) limits one chunk of a chunked message; \`maxBodySize\` (default -1)
  *    limits the whole body in MB and \`maxHeadersCount\`/\`maxHeaderSize\` limit the request headers.
- *    A body that exceeds \`maxBodySize\` fails with error 20024.
+ *    A body that exceeds \`maxBodySize\` fails with ERR_INVALID_STATE.
  *  - \`http.cookies\`, the module properties and the module-level request functions all operate on one
  *    hidden global client, so \`http.cookies\` only contains the cookies collected through them.
  *  - \`fileHandler\` generates \`Cache-Control\`, \`Last-Modified\` and the gzip variants of files when
@@ -95178,7 +95197,7 @@ declare module 'http' {
     /**
      * @description Queries and sets the maximum body size in MB, default -1, no size limit
      *
-     *      A response whose body exceeds the limit fails with error number 20024; 0 rejects every
+     *      A response whose body exceeds the limit fails with ERR_INVALID_STATE; 0 rejects every
      *      body. Requests with a body larger than the limit are also rejected. A HEAD response is
      *      exempt because it has no body.
      *
@@ -96940,7 +96959,7 @@ declare module 'http/promises' {
     /**
      * @description Queries and sets the maximum body size in MB, default -1, no size limit
      *
-     *      A response whose body exceeds the limit fails with error number 20024; 0 rejects every
+     *      A response whose body exceeds the limit fails with ERR_INVALID_STATE; 0 rejects every
      *      body. Requests with a body larger than the limit are also rejected. A HEAD response is
      *      exempt because it has no body.
      *
@@ -101501,7 +101520,7 @@ declare module 'module' {
      *      against the current working directory. The returned
      *      function has \`resolve(id)\`, which returns the path that require would load (a built-in
      *      resolves to its name) without loading it, and reports a missing module with
-     *      MODULE_NOT_FOUND [20024]; it has no \`main\`, \`extensions\` or \`cache\`.
+     *      MODULE_NOT_FOUND [ERR_INVALID_STATE]; it has no \`main\`, \`extensions\` or \`cache\`.
      *
      *      Example — resolve and load a module next to a known file:
      *      \`\`\`JavaScript
@@ -107087,7 +107106,7 @@ declare module 'perf_hooks' {
  *  - The timeline is per isolate: marks recorded inside a worker are not visible to the main isolate.
  *  - getEntries returns the marks in an unspecified order; sort the array when a stable order is
  *    needed.
- *  - A missing mark in measure fails with Error [20024] and messages such as
+ *  - A missing mark in measure fails with Error [ERR_INVALID_STATE] and messages such as
  *    "startMark 'x' not found".
  *
  */
@@ -107168,7 +107187,7 @@ declare module 'performance' {
      *      The second overload, measure(name, startMark, endMark), takes mark names directly: an empty
      *      startMark means timestamp 0 and an empty endMark means the current time. Both overloads
      *      compute duration as end - start; a negative duration is accepted. A string start or
-     *      end that names a missing mark fails with Error [20024] and "startMark 'x' not found" or
+     *      end that names a missing mark fails with Error [ERR_INVALID_STATE] and "startMark 'x' not found" or
      *      "endMark 'x' not found"; \`duration\` together with \`end\` fails with "end must not be specified
      *      when duration is specified"; a start or end that is neither string nor number fails with
      *      "start must be a string or number" or "end must be a string or number". Combining a
@@ -107208,7 +107227,7 @@ declare module 'performance' {
      * @description Creates a measure between two mark names
      *
      *      Calls measure(name, startMark, endMark) with mark names: both marks must exist in the timeline
-     *      or the call fails with Error [20024]. An empty startMark is interpreted as timestamp 0 and an
+     *      or the call fails with Error [ERR_INVALID_STATE]. An empty startMark is interpreted as timestamp 0 and an
      *      empty endMark as the current time, mirroring the first overload; see the options overload for
      *      the full duration rules and error messages.
      *
@@ -107692,7 +107711,7 @@ declare module 'process' {
      *
      *      The mask removes permission bits from newly created files and directories. A string
      *      mask is read as an octal number ("0664" and "664" are the same); any character
-     *      outside '0'-'7' makes the call throw Error 20024 ("process: invalid octal string"),
+     *      outside '0'-'7' makes the call throw ERR_INVALID_STATE ("process: invalid octal string"),
      *      while a numeric mask is used as it is. The previous mask is returned and the new mask
      *      applies to the whole process.
      *      @param mask the new mask: a number, or an octal string (e.g: "0664")
@@ -108119,8 +108138,8 @@ declare module 'process' {
      *
      *      pid is an operating system process id; signal is a number or a signal name such as
      *      'SIGTERM' (the default), 'SIGKILL' or 'SIGUSR1'. Signal 0 only checks whether the
-     *      process exists. An unknown name throws Error 20024 ("process: Unknown signal: ..."),
-     *      and a failed delivery also throws Error 20024 with the operating system message. On
+     *      process exists. An unknown name throws ERR_INVALID_STATE ("process: Unknown signal: ..."),
+     *      and a failed delivery also throws ERR_INVALID_STATE with the operating system message. On
      *      Windows only the signals the platform can emulate (SIGINT/SIGTERM/SIGKILL and 0)
      *      work, and the pid must be positive.
      *
@@ -108132,7 +108151,7 @@ declare module 'process' {
      *      try {
      *          process.kill(process.pid, 'NOT_A_SIGNAL');
      *      } catch (e) {
-     *          console.log(e.number, e.message); // 20024 process: Unknown signal: NOT_A_SIGNAL
+     *          console.log(e.number, e.message); // ERR_INVALID_STATE process: Unknown signal: NOT_A_SIGNAL
      *      }
      *      \`\`\`
      *      @param pid specifies the process id
@@ -108156,7 +108175,7 @@ declare module 'process' {
      *
      *      Available only in a child with an IPC channel. The \`disconnect\` event is emitted,
      *      \`connected\` becomes false and further \`send\` calls throw; calling it when no channel
-     *      is open throws Error 20024. The child itself keeps running after the channel closes.
+     *      is open throws ERR_INVALID_STATE. The child itself keeps running after the channel closes.
      *
      */
     function disconnect(): void;
@@ -108167,7 +108186,7 @@ declare module 'process' {
      *      Available only in a child with an IPC channel; the message is JSON-encoded and
      *      newline-framed, so it must be JSON-serializable. The parent receives it as a \`message\`
      *      event. After \`disconnect\` (or in a process without a channel) the call throws Error
-     *      20009 ("process.send: IPC channel is not available.").
+     *      20009 with code \`ERR_IPC_CHANNEL_CLOSED\` ("process.send: IPC channel is not available.").
      *      @param msg specifies the message to send
      *
      */
@@ -109458,7 +109477,7 @@ declare module 'rtc' {
      *      console.log('released');
      *      \`\`\`
      *
-     *      Throws 20024 when a PeerConnection was already created, when the mux is already bound, or
+     *      Throws ERR_INVALID_STATE when a PeerConnection was already created, when the mux is already bound, or
      *      when the address or port cannot be used.
      *
      *      @param bind_address binding address, empty to listen on all interfaces
@@ -109578,7 +109597,7 @@ declare module 'rtc' {
      *
      *      Gets or sets the log level of the underlying WebRTC library; the new level takes effect
      *      immediately. The following levels are accepted: \`none\` (the default, no output), \`error\`,
-     *      \`warning\`, \`info\`, \`debug\`, \`verbose\` and \`fatal\`. An unknown value throws 20024 and leaves
+     *      \`warning\`, \`info\`, \`debug\`, \`verbose\` and \`fatal\`. An unknown value throws ERR_INVALID_STATE and leaves
      *      the previous level unchanged.
      *
      *      Example — raise the level, then reject an unknown value:
@@ -109740,7 +109759,7 @@ declare module 'sse' {
      *
      *      fibjs extension, not part of MDN EventSource: the state of the EventSource object
      *      delivered to the accept callback of \`upgrade\`. Only a sender may call \`send\`; a client
-     *      EventSource raises error 20024 when send is called. See the EventSource definition.
+     *      EventSource raises ERR_INVALID_STATE when send is called. See the EventSource definition.
      *
      */
     export const SENDER: 3;
@@ -110805,7 +110824,7 @@ declare module 'string_decoder' {
  *    signature, unlike the DER encoding that \`crypto.sign\` uses by default (\`dsaEncoding:
  *    'ieee-p1363'\` makes the crypto module interoperate).
  *  - **Errors**: unsupported algorithms, names, curves, hashes or usages reject with an Error
- *    whose \`number\` is 20024; wrong argument types throw a TypeError (20005).
+ *    whose \`number\` is ERR_INVALID_STATE; wrong argument types throw a TypeError (20005).
  *
  *  Example 1 — SHA-256 digest of a fixed message:
  *  \`\`\`JavaScript
@@ -110866,7 +110885,7 @@ declare module 'subtle' {
      *      match case-insensitively. The data may be a Buffer, a typed array, an ArrayBuffer or a
      *      string (encoded as utf8). The result size follows the algorithm: 20 bytes for SHA-1,
      *      32 for SHA-256, 48 for SHA-384 and 64 for SHA-512. An unknown algorithm rejects with
-     *      Error 20024 and an unsupported data type throws a TypeError.
+     *      ERR_INVALID_STATE and an unsupported data type throws a TypeError.
      *
      *      Example - an object algorithm and a typed array input:
      *      \`\`\`JavaScript
@@ -110894,7 +110913,7 @@ declare module 'subtle' {
      *      match case-insensitively. The data may be a Buffer, a typed array, an ArrayBuffer or a
      *      string (encoded as utf8). The result size follows the algorithm: 20 bytes for SHA-1,
      *      32 for SHA-256, 48 for SHA-384 and 64 for SHA-512. An unknown algorithm rejects with
-     *      Error 20024 and an unsupported data type throws a TypeError.
+     *      ERR_INVALID_STATE and an unsupported data type throws a TypeError.
      *
      *      Example - an object algorithm and a typed array input:
      *      \`\`\`JavaScript
@@ -110922,7 +110941,7 @@ declare module 'subtle' {
      *      match case-insensitively. The data may be a Buffer, a typed array, an ArrayBuffer or a
      *      string (encoded as utf8). The result size follows the algorithm: 20 bytes for SHA-1,
      *      32 for SHA-256, 48 for SHA-384 and 64 for SHA-512. An unknown algorithm rejects with
-     *      Error 20024 and an unsupported data type throws a TypeError.
+     *      ERR_INVALID_STATE and an unsupported data type throws a TypeError.
      *
      *      Example - an object algorithm and a typed array input:
      *      \`\`\`JavaScript
@@ -110956,7 +110975,7 @@ declare module 'subtle' {
      *        an \`alg\` field such as \`HS256\`.
      *
      *      The key must be extractable, otherwise the promise rejects with \`Key is not extractable\`
-     *      (Error 20024); public keys are always extractable.
+     *      (ERR_INVALID_STATE); public keys are always extractable.
      *
      *      Example - export an EC public key as JWK and re-import it:
      *      \`\`\`JavaScript
@@ -110996,7 +111015,7 @@ declare module 'subtle' {
      *        an \`alg\` field such as \`HS256\`.
      *
      *      The key must be extractable, otherwise the promise rejects with \`Key is not extractable\`
-     *      (Error 20024); public keys are always extractable.
+     *      (ERR_INVALID_STATE); public keys are always extractable.
      *
      *      Example - export an EC public key as JWK and re-import it:
      *      \`\`\`JavaScript
@@ -111036,7 +111055,7 @@ declare module 'subtle' {
      *        an \`alg\` field such as \`HS256\`.
      *
      *      The key must be extractable, otherwise the promise rejects with \`Key is not extractable\`
-     *      (Error 20024); public keys are always extractable.
+     *      (ERR_INVALID_STATE); public keys are always extractable.
      *
      *      Example - export an EC public key as JWK and re-import it:
      *      \`\`\`JavaScript
@@ -111078,7 +111097,7 @@ declare module 'subtle' {
      *      'verify' on the public key); ECDH needs 'deriveKey' or 'deriveBits'; HMAC accepts
      *      'sign' and/or 'verify'. An HMAC key generated without length uses the hash block size
      *      (512 bits for SHA-256), reported in \`key.algorithm.length\`. Unsupported names, curves,
-     *      hashes or usages reject with Error 20024.
+     *      hashes or usages reject with ERR_INVALID_STATE.
      *
      *      Example 1 - generate an Ed25519 pair and use it:
      *      \`\`\`JavaScript
@@ -111134,7 +111153,7 @@ declare module 'subtle' {
      *      'verify' on the public key); ECDH needs 'deriveKey' or 'deriveBits'; HMAC accepts
      *      'sign' and/or 'verify'. An HMAC key generated without length uses the hash block size
      *      (512 bits for SHA-256), reported in \`key.algorithm.length\`. Unsupported names, curves,
-     *      hashes or usages reject with Error 20024.
+     *      hashes or usages reject with ERR_INVALID_STATE.
      *
      *      Example 1 - generate an Ed25519 pair and use it:
      *      \`\`\`JavaScript
@@ -111190,7 +111209,7 @@ declare module 'subtle' {
      *      'verify' on the public key); ECDH needs 'deriveKey' or 'deriveBits'; HMAC accepts
      *      'sign' and/or 'verify'. An HMAC key generated without length uses the hash block size
      *      (512 bits for SHA-256), reported in \`key.algorithm.length\`. Unsupported names, curves,
-     *      hashes or usages reject with Error 20024.
+     *      hashes or usages reject with ERR_INVALID_STATE.
      *
      *      Example 1 - generate an Ed25519 pair and use it:
      *      \`\`\`JavaScript
@@ -111245,7 +111264,7 @@ declare module 'subtle' {
      *      usages must be consistent with the key type: a private key needs 'sign' and must not
      *      have 'verify'; a public key needs 'verify' and must not have 'sign'; ECDH private keys
      *      need 'deriveKey' or 'deriveBits' while ECDH public keys must have no usages; HMAC keys
-     *      need 'sign' or 'verify'. Violations and malformed material reject with Error 20024.
+     *      need 'sign' or 'verify'. Violations and malformed material reject with ERR_INVALID_STATE.
      *
      *      Example - import a fixed HMAC key and match the RFC 4231 test vector:
      *      \`\`\`JavaScript
@@ -111286,7 +111305,7 @@ declare module 'subtle' {
      *      usages must be consistent with the key type: a private key needs 'sign' and must not
      *      have 'verify'; a public key needs 'verify' and must not have 'sign'; ECDH private keys
      *      need 'deriveKey' or 'deriveBits' while ECDH public keys must have no usages; HMAC keys
-     *      need 'sign' or 'verify'. Violations and malformed material reject with Error 20024.
+     *      need 'sign' or 'verify'. Violations and malformed material reject with ERR_INVALID_STATE.
      *
      *      Example - import a fixed HMAC key and match the RFC 4231 test vector:
      *      \`\`\`JavaScript
@@ -111327,7 +111346,7 @@ declare module 'subtle' {
      *      usages must be consistent with the key type: a private key needs 'sign' and must not
      *      have 'verify'; a public key needs 'verify' and must not have 'sign'; ECDH private keys
      *      need 'deriveKey' or 'deriveBits' while ECDH public keys must have no usages; HMAC keys
-     *      need 'sign' or 'verify'. Violations and malformed material reject with Error 20024.
+     *      need 'sign' or 'verify'. Violations and malformed material reject with ERR_INVALID_STATE.
      *
      *      Example - import a fixed HMAC key and match the RFC 4231 test vector:
      *      \`\`\`JavaScript
@@ -111484,7 +111503,7 @@ declare module 'subtle' {
      *      for Ed25519, the key's hash for HMAC). A signature with the wrong length or corrupted
      *      bytes resolves to false instead of throwing, so callers normally do not need to catch;
      *      a key without the 'verify' usage, an unsupported algorithm or a key from a different
-     *      algorithm family rejects with Error 20024.
+     *      algorithm family rejects with ERR_INVALID_STATE.
      *
      *      Example - a valid signature is true and a tampered one is false:
      *      \`\`\`JavaScript
@@ -111522,7 +111541,7 @@ declare module 'subtle' {
      *      for Ed25519, the key's hash for HMAC). A signature with the wrong length or corrupted
      *      bytes resolves to false instead of throwing, so callers normally do not need to catch;
      *      a key without the 'verify' usage, an unsupported algorithm or a key from a different
-     *      algorithm family rejects with Error 20024.
+     *      algorithm family rejects with ERR_INVALID_STATE.
      *
      *      Example - a valid signature is true and a tampered one is false:
      *      \`\`\`JavaScript
@@ -111560,7 +111579,7 @@ declare module 'subtle' {
      *      for Ed25519, the key's hash for HMAC). A signature with the wrong length or corrupted
      *      bytes resolves to false instead of throwing, so callers normally do not need to catch;
      *      a key without the 'verify' usage, an unsupported algorithm or a key from a different
-     *      algorithm family rejects with Error 20024.
+     *      algorithm family rejects with ERR_INVALID_STATE.
      *
      *      Example - a valid signature is true and a tampered one is false:
      *      \`\`\`JavaScript
@@ -111603,7 +111622,7 @@ declare module 'subtle' {
      *      shared secret is returned (32 bytes for P-256, 66 bytes for P-521). A positive length
      *      truncates the result to length / 8 bytes and masks the trailing bits when length is
      *      not a multiple of 8, as the standard requires; a length larger than the secret, a
-     *      missing public key or a peer key on another curve rejects with Error 20024.
+     *      missing public key or a peer key on another curve rejects with ERR_INVALID_STATE.
      *
      *      Example - the full secret and a truncated half share the same prefix:
      *      \`\`\`JavaScript
@@ -111646,7 +111665,7 @@ declare module 'subtle' {
      *      shared secret is returned (32 bytes for P-256, 66 bytes for P-521). A positive length
      *      truncates the result to length / 8 bytes and masks the trailing bits when length is
      *      not a multiple of 8, as the standard requires; a length larger than the secret, a
-     *      missing public key or a peer key on another curve rejects with Error 20024.
+     *      missing public key or a peer key on another curve rejects with ERR_INVALID_STATE.
      *
      *      Example - the full secret and a truncated half share the same prefix:
      *      \`\`\`JavaScript
@@ -111689,7 +111708,7 @@ declare module 'subtle' {
      *      shared secret is returned (32 bytes for P-256, 66 bytes for P-521). A positive length
      *      truncates the result to length / 8 bytes and masks the trailing bits when length is
      *      not a multiple of 8, as the standard requires; a length larger than the secret, a
-     *      missing public key or a peer key on another curve rejects with Error 20024.
+     *      missing public key or a peer key on another curve rejects with ERR_INVALID_STATE.
      *
      *      Example - the full secret and a truncated half share the same prefix:
      *      \`\`\`JavaScript
@@ -113095,7 +113114,7 @@ declare module 'tls' {
      *
      *      A context is validated while it is created: an unknown version name, a conflicting
      *      secureProtocol/minVersion combination and unparsable or mismatching certificate material
-     *      fail here instead of at handshake time (invalid PEM material reports error 20024). Without
+     *      fail here instead of at handshake time (invalid PEM material reports ERR_INVALID_STATE). Without
      *      options an empty context is built. With isServer false (the default) the context behaves as
      *      a client: it inherits the default Mozilla trust store and requires a verified server
      *      certificate, while a server context has no CA of its own and does not require a client
@@ -113808,7 +113827,7 @@ declare module 'tls/promises' {
      *
      *      A context is validated while it is created: an unknown version name, a conflicting
      *      secureProtocol/minVersion combination and unparsable or mismatching certificate material
-     *      fail here instead of at handshake time (invalid PEM material reports error 20024). Without
+     *      fail here instead of at handshake time (invalid PEM material reports ERR_INVALID_STATE). Without
      *      options an empty context is built. With isServer false (the default) the context behaves as
      *      a client: it inherits the default Mozilla trust store and requires a verified server
      *      certificate, while a server context has no CA of its own and does not require a client
@@ -115675,7 +115694,7 @@ declare module 'url' {
      *
      *      An absolute URL is normalized component by component; a string without a scheme is
      *      treated as a relative reference and normalized as an absolute path. An invalid
-     *      absolute URL throws a type error (20024).
+     *      absolute URL throws a type error (ERR_INVALID_STATE).
      *
      *      @param href URL string to normalize
      *      @return the normalized URL string
@@ -115692,7 +115711,7 @@ declare module 'url' {
      *      URLSearchParams built from the query. The slashesDenoteHost argument is accepted for
      *      compatibility but ignored, so a protocol-relative reference such as \`//host/path\` is
      *      parsed with \`host\` as the host. Invalid percent-encoding throws \`url: URI malformed\`
-     *      and an unparsable URL throws \`url: Invalid URL '<input>'.\` (20024).
+     *      and an unparsable URL throws \`url: Invalid URL '<input>'.\` (ERR_INVALID_STATE).
      *
      *      Example — legacy parse with and without query parsing:
      *      \`\`\`JavaScript
@@ -115719,7 +115738,7 @@ declare module 'url' {
      *      The two arguments are \`from\` (the base URL) and \`to\` (the reference); the result is
      *      normalized with the WHATWG algorithm. An empty base resolves the reference on its own,
      *      so a rooted path stays a path and a relative path is returned as a relative path. An
-     *      unparsable input throws \`url: Invalid URL '<input>'.\` (20024).
+     *      unparsable input throws \`url: Invalid URL '<input>'.\` (ERR_INVALID_STATE).
      *
      *      Example — resolve against a file base:
      *      \`\`\`JavaScript
@@ -116999,7 +117018,7 @@ declare module 'util' {
      *
      *      Flattens nested arrays (and array-like objects) into a single-level array at
      *      any depth; shallow = true flattens one level only. Circular references
-     *      throw error 20024 ("util: circular reference object.") and non-objects throw
+     *      throw ERR_INVALID_STATE ("util: circular reference object.") and non-objects throw
      *      TypeError 20004.
      *
      *      @param arr the array to convert
@@ -119190,7 +119209,7 @@ declare module 'worker_threads' {
  *    XmlNode class comment for the node type table and the tree rules, and the XmlElement /
  *    XmlDocument class comments for the element and document APIs.
  *  - **Parsing modes**: \`text/xml\` (the default) is strict, case-sensitive and reports syntax
- *    errors as Error 20024 with the line and column; \`text/html\` uses a tolerant HTML tree
+ *    errors as ERR_INVALID_STATE with the line and column; \`text/html\` uses a tolerant HTML tree
  *    builder with upper-cased parsed tag names, case-insensitive tag matching and automatic
  *    html/head/body wrapping of fragments. The mode is chosen per document and cannot be
  *    changed later. A string source is taken as utf8; a Buffer keeps its bytes and (in HTML
@@ -119200,7 +119219,7 @@ declare module 'worker_threads' {
  *    \`maxNodeCount\` (default 1000000, counting elements, attributes, text, comments, CDATA,
  *    processing instructions and the doctype). A value of 0, a negative value or Infinity
  *    disables the limit; a non-number throws a TypeError (20004), and exceeding a limit throws
- *    an Error (20024).
+ *    an Error (ERR_INVALID_STATE).
  *  - **Serialization**: \`serialize(node)\` is \`node.toString()\`; it works on any node - a
  *    document, an element, a text or comment node, a fragment - and returns the markup for
  *    that node, escaping text and attribute values. XML documents close empty elements as
@@ -119395,7 +119414,7 @@ declare module 'xml' {
      *
      *      source may be a string (encoded as utf8) or a Buffer. The type selects the parsing mode
      *      and is case-sensitive: \`text/xml\` (the default) is strict and reports syntax errors as
-     *      an Error (20024) carrying the line and column; \`text/html\` uses the tolerant HTML tree
+     *      an Error (ERR_INVALID_STATE) carrying the line and column; \`text/html\` uses the tolerant HTML tree
      *      builder, wraps fragments in html/head/body and upper-cases the parsed tag names. Any
      *      other MIME type throws an Error (20004). A Buffer in HTML mode has its charset detected
      *      from a meta tag before parsing (see XmlDocument.inputEncoding). Every call returns a
@@ -119412,7 +119431,7 @@ declare module 'xml' {
      *      \`\`\`
      *
      *      A non-number option throws a TypeError (20004); exceeding a limit throws an Error
-     *      (20024). A source that is neither a string nor a Buffer throws a TypeError (20005).
+     *      (ERR_INVALID_STATE). A source that is neither a string nor a Buffer throws a TypeError (20005).
      *
      *      \`\`\`JavaScript
      *      const xml = require('xml');
@@ -119576,7 +119595,9 @@ declare module 'xml' {
  *  - An archive appended after other data is recognized as well, which is how a packed executable
  *    can serve its embedded archive at \`process.execPath + '$/...'\`.
  *  - The returned ZipFile is only valid until \`close()\`; operations on a closed or wrongly opened
- *    object throw \`ZipFile: file is closed.\` (see the ZipFile interface for the entry API).
+ *    object throw \`ZipFile: file is closed.\` with code \`ERR_FIBJS_ZIP_CLOSED\`
+ *    (see the ZipFile interface for the entry API). The \`number\` is 20009, the grouping that
+ *    every closed-handle error shares, so branch on \`err.code\`.
  *
  */
 declare module 'zip' {
@@ -120206,7 +120227,7 @@ declare module "zip" {
  *  - **Results and errors**: decompressing to zero bytes returns null instead of an empty
  *    Buffer, and input that ends early is decoded up to its last complete output without an
  *    error. Wrong-format or corrupt data throws an Error
- *    with \`code\` \`Z_DATA_ERROR\` (number 20024, message "data error"); a closed codec throws
+ *    with \`code\` \`Z_DATA_ERROR\` (ERR_INVALID_STATE, message "data error"); a closed codec throws
  *    ERR_ZLIB_BINDING_CLOSED; exceeding maxSize/maxOutputLength throws a RangeError
  *    (number 20013).
  *  - **Call forms**: every \`async\` member blocks the calling fiber when called without a

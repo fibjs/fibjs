@@ -1734,7 +1734,15 @@ static result_t readlink_options(exlib::string path, v8::Local<v8::Object> optio
         ac.ctxv().resize(1);
 
         exlib::string encoding = "utf8";
-        GetConfigValue(options, "encoding", encoding);
+        // Node.js validates the label before the syscall, so a bad encoding
+        // reports ERR_INVALID_ARG_VALUE rather than whatever readlink(2) says
+        // about the path.
+        result_t _e = GetConfigValue(options, "encoding", encoding, true);
+        if (_e.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return _e;
+        _e = check_encoding(encoding);
+        if (_e.failed())
+            return _e;
         ac.ctxv()[0] = encoding;
 
         return result_t::nosync();
@@ -1924,7 +1932,14 @@ static result_t realpath_options(exlib::string path, v8::Local<v8::Object> optio
         ac.ctxv().resize(1);
 
         exlib::string encoding = "utf8";
-        GetConfigValue(options, "encoding", encoding);
+        // Node.js validates the label before resolving, so a bad encoding
+        // reports ERR_INVALID_ARG_VALUE rather than an ENOENT for the path.
+        result_t _e = GetConfigValue(options, "encoding", encoding, true);
+        if (_e.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return _e;
+        _e = check_encoding(encoding);
+        if (_e.failed())
+            return _e;
         ac.ctxv()[0] = encoding;
 
         return result_t::nosync();

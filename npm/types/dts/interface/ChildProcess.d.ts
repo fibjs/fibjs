@@ -190,8 +190,8 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *
      *       The value is serialized as JSON-compatible data and delivered to the child's message
      *       handler (process.on('message') in the child). There is no callback form; it throws Error
-     *       20009 when the channel is not available (no 'ipc' stdio entry and no fork IPC), and the
-     *       child must still be running.
+     *       20009 with code `ERR_IPC_CHANNEL_CLOSED` when the channel is not available (no 'ipc'
+     *       stdio entry and no fork IPC), and the child must still be running.
      *
      *      @param msg the message to send
      *
@@ -658,8 +658,8 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *
      *       The value is serialized as JSON-compatible data and delivered to the child's message
      *       handler (process.on('message') in the child). There is no callback form; it throws Error
-     *       20009 when the channel is not available (no 'ipc' stdio entry and no fork IPC), and the
-     *       child must still be running.
+     *       20009 with code `ERR_IPC_CHANNEL_CLOSED` when the channel is not available (no 'ipc'
+     *       stdio entry and no fork IPC), and the child must still be running.
      *
      *      @param msg the message to send
      *

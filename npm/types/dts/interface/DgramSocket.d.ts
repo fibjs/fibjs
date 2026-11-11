@@ -157,7 +157,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code `ERR_SOCKET_ALREADY_BOUND`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -193,7 +194,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code `ERR_SOCKET_ALREADY_BOUND`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -227,7 +229,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code `ERR_SOCKET_ALREADY_BOUND`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -537,7 +540,9 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description Closes the socket and releases the underlying handle
      *
      *      The 'close' event is emitted when the handle has been released; no further 'message' events
-     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.').
+     *      are delivered. A second close throws error 20009 (code `ERR_SOCKET_DGRAM_NOT_RUNNING`,
+     *      message 'dgram: socket is already closing.'). The same code and class come back from
+     *      `send` on a closed socket, because the implicit bind refuses a handle that is closing.
      *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
@@ -915,7 +920,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code `ERR_SOCKET_ALREADY_BOUND`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -949,7 +955,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code `ERR_SOCKET_ALREADY_BOUND`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -983,7 +990,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      *      The 'listening' event is emitted during bind — in the synchronous form it has already been
      *      handled when the call returns. Binding a socket
-     *      that is already bound throws error 20009, and binding a port in use throws EADDRINUSE.
+     *      that is already bound throws error 20009 (code `ERR_SOCKET_ALREADY_BOUND`), and binding a port
+     *      in use throws EADDRINUSE.
      *
      *      Example — bind to an ephemeral port and report the assigned address:
      *      ```JavaScript
@@ -1287,7 +1295,9 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      * @description Closes the socket and releases the underlying handle
      *
      *      The 'close' event is emitted when the handle has been released; no further 'message' events
-     *      are delivered. A second close throws error 20009 ('dgram: socket is already closing.').
+     *      are delivered. A second close throws error 20009 (code `ERR_SOCKET_DGRAM_NOT_RUNNING`,
+     *      message 'dgram: socket is already closing.'). The same code and class come back from
+     *      `send` on a closed socket, because the implicit bind refuses a handle that is closing.
      *      Do not use the socket after close:
      *      address and the buffer-size getters fail with EBADF. The close(Function() callback)
      *      overload is equivalent to close() with a listener on the 'close' event.
