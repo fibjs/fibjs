@@ -662,7 +662,7 @@ static result_t base58Decode(const char* data, size_t sz, exlib::string& retVal)
     exlib::string buffer;
     buffer.resize(binsz);
     if (!b58tobin(buffer.data(), &binsz, data, sz))
-        return result_t::make(CALL_E_EXCEPTION).with_message("base58: encode error.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_ARG_VALUE").with_message("base58: encode error.");
     if (binsz < buffer.length())
         buffer = buffer.substr(buffer.length() - binsz);
 
@@ -769,9 +769,9 @@ result_t base58_base::decode(exlib::string data, int32_t chk_ver, obj_ptr<Buffer
 
     buffer.resize(binsz);
     if (!b58tobin(buffer.data(), &binsz, data.c_str(), data.length()))
-        return result_t::make(CALL_E_EXCEPTION).with_message("base58: decode error.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_ARG_VALUE").with_message("base58: decode error.");
     if (b58check(buffer.c_str() + buffer.length() - binsz, binsz, data.c_str(), data.length()) != chk_ver)
-        return result_t::make(CALL_E_EXCEPTION).with_message("base58: check error.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_ARG_VALUE").with_message("base58: check error.");
 
     // **必须无条件裁掉 version 字节与 4 字节校验和**。
     //
@@ -1114,7 +1114,7 @@ static result_t multibase_encode_buffer(Buffer_base* data, exlib::string codec, 
         return result_t();
     }
 
-    return result_t::make(CALL_E_EXCEPTION).with_format("multibase: unknown codec: '%s'.", codec.c_str());
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_UNKNOWN_ENCODING").with_format("multibase: unknown codec: '%s'.", codec.c_str());
 }
 
 result_t multibase_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
@@ -1136,7 +1136,7 @@ result_t multibase_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal
         return base58Decode(p + 1, (int32_t)sz - 1, retVal);
     }
 
-    return result_t::make(CALL_E_EXCEPTION).with_format("multibase: unknown codec: '%c'.", type);
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_UNKNOWN_ENCODING").with_format("multibase: unknown codec: '%c'.", type);
 }
 
 static const char* URITable = " ! #$ &'()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz   ~ ";

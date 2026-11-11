@@ -460,7 +460,7 @@ result_t JSTrigger::once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, 
 
     v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
     if (wrap.IsEmpty())
-        return result_t::make(CALL_E_EXCEPTION).with_message("function alloc error.");
+        return result_t::make(CALL_E_INTERNAL).with_type_name(errtype::kError).with_code("ERR_INTERNAL").with_message("function alloc error.");
 
     wrap->Set(context, NewString("_func"), func).IsJust();
     _data->Set(context, NewString("_wrap"), wrap).IsJust();
@@ -492,7 +492,7 @@ result_t JSTrigger::prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::F
 
     v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
     if (wrap.IsEmpty())
-        return result_t::make(CALL_E_EXCEPTION).with_message("function alloc error.");
+        return result_t::make(CALL_E_INTERNAL).with_type_name(errtype::kError).with_code("ERR_INTERNAL").with_message("function alloc error.");
 
     _data->Set(context, NewString("_wrap"), wrap).IsJust();
 
@@ -577,8 +577,7 @@ result_t JSTrigger::setMaxListeners(int32_t n, v8::Local<v8::Value> event)
 {
     // Node rejects a negative limit instead of ignoring it.
     if (n < 0)
-        return result_t::make(CALL_E_EXCEPTION)
-            .with_type_name(errtype::kRangeError)
+        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError)
             .with_code("ERR_OUT_OF_RANGE")
             .with_message("The value of \"n\" is out of range. It must be >= 0. Received " + std::to_string(n));
 
@@ -612,7 +611,7 @@ int32_t JSTrigger::maxListenersFor(v8::Local<v8::Value> ev)
 result_t JSTrigger::set_defaultMaxListeners(int32_t newVal)
 {
     if (newVal < 0)
-        return result_t::make(CALL_E_EXCEPTION).with_message("\"defaultMaxListeners\" must be a positive number");
+        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_message("\"defaultMaxListeners\" must be a positive number");
 
     Isolate* isolate = Isolate::current();
     isolate->m_defaultMaxListeners = newVal;
@@ -781,7 +780,7 @@ result_t JSTrigger::_emit(exlib::string ev, v8::Local<v8::Value>* args,
     if (hr.failed())
         return hr;
 
-    return !msg.empty() ? result_t::make(CALL_E_EXCEPTION).with_message(msg) : result_t();
+    return !msg.empty() ? result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_ARG_VALUE").with_message(msg) : result_t();
 }
 
 result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
@@ -828,7 +827,7 @@ result_t JSTrigger::emit(v8::Local<v8::Value> ev, OptArgs args, bool& retVal)
 
         if (hr.failed())
             return hr;
-        return !msg.empty() ? result_t::make(CALL_E_EXCEPTION).with_message(msg) : result_t();
+        return !msg.empty() ? result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_ARG_VALUE").with_message(msg) : result_t();
     }
 
     // String path: convert to exlib::string and use _emit (handles "error" etc.)
@@ -1054,8 +1053,7 @@ void JSTrigger::s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& arg
     // Reject a negative limit here rather than in the helper: this entry is the
     // one events.cpp installs, and METHOD_RETURN would drop a plain helper error.
     if (v0 < 0) {
-        ThrowResult(result_t::make(CALL_E_EXCEPTION)
-                        .with_type_name(errtype::kRangeError)
+        ThrowResult(result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError)
                         .with_code("ERR_OUT_OF_RANGE")
                         .with_message("The value of \"n\" is out of range. It must be >= 0. Received " + std::to_string(v0)));
         return;

@@ -201,7 +201,7 @@ result_t os_base::dateAdd(date_t d, int32_t num, exlib::string part, date_t& ret
     else if (part == "second")
         retVal.add(num, date_t::_SECOND);
     else
-        return result_t::make(CALL_E_EXCEPTION).with_format("Invalid date part: '%s'.", part.c_str()).with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid date part: '%s'.", part.c_str()).with_result(result_t::invalid_arg());
 
     return result_t();
 }

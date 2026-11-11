@@ -2106,7 +2106,7 @@ describe('util', () => {
 
         assert.throws(() => {
             var v = util.flatten(arr);
-        }, { number: 20024 });
+        }, { number: 20011 });
     });
 
     it("FIX: util.format(process.env) will cause fibjs to crash", () => {

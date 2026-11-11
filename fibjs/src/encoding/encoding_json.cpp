@@ -113,7 +113,7 @@ inline result_t _jsonDecode(exlib::string data,
         {
             exlib::string s = "Unexpected token ";
             s.append(1, c0_);
-            return result_t::make(CALL_E_EXCEPTION).with_message(s);
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_ARG_VALUE").with_message(s);
         }
 
         result_t ParseJsonNumber(i::MaybeHandle<i::Object>& retVal)

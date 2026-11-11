@@ -213,7 +213,6 @@ result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& r
         // silently ignoring it, so a mistyped argument cannot turn into a
         // plausible-looking but wrong reading.
         return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError)
-            .with_type_name(errtype::kRangeError)
             .with_code("ERR_OUT_OF_RANGE")
             .with_message("The value of \"time\" is out of range. It must be an Array of two numbers.");
     }

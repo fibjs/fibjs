@@ -125,7 +125,7 @@ describe('string_decoder', () => {
 
         assert.throws(() => {
             new StringDecoder('test');
-        }, { number: 20024 });
+        }, { number: 20011 });
     });
 
     it('end', () => {

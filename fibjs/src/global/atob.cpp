@@ -71,7 +71,7 @@ static result_t utf8ToLatin1(const exlib::string& utf8Str, exlib::string& latin1
         return result_t();
 
     if (!simdutf::validate_utf8(src, len))
-        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to execute 'btoa': Invalid UTF-8 sequence.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_CHAR").with_message("Failed to execute 'btoa': Invalid UTF-8 sequence.");
 
     // UTF-8 长度一定 >= Latin-1 长度，据此分配
     latin1Str.resize(len);
@@ -79,7 +79,7 @@ static result_t utf8ToLatin1(const exlib::string& utf8Str, exlib::string& latin1
 
     if (n == 0) {
         // 含超出 Latin-1 的码点（simdutf 遇到就停并返回 0）
-        return result_t::make(CALL_E_EXCEPTION).with_message("Failed to execute 'btoa': The string to be encoded contains characters outside of the Latin1 range.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_CHAR").with_message("Failed to execute 'btoa': The string to be encoded contains characters outside of the Latin1 range.");
     }
 
     latin1Str.resize(n);
@@ -192,7 +192,7 @@ result_t global_base::atob(v8::Local<v8::Value> data_, exlib::string& retVal)
         }
 
         if (!ok || !atob_pad_ok(body, pad))
-            return result_t::make(CALL_E_EXCEPTION).with_message(
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_CHAR").with_message(
                 "Failed to execute 'atob': The string to be decoded is not correctly encoded.");
 
         latin1Data.resize((body * 3) >> 2);
@@ -201,7 +201,7 @@ result_t global_base::atob(v8::Local<v8::Value> data_, exlib::string& retVal)
                 decode_src, body, latin1Data.data(),
                 simdutf::base64_default, simdutf::loose);
             if (r.error != simdutf::error_code::SUCCESS)
-                return result_t::make(CALL_E_EXCEPTION).with_message(
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_CHAR").with_message(
                     "Failed to execute 'atob': The string to be decoded is not correctly encoded.");
             latin1Data.resize(r.count);
         } else

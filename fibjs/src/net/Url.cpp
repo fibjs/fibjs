@@ -290,7 +290,6 @@ result_t url_base::format(Union_format_urlObject urlObject, v8::Local<v8::Object
     // unicode switches the host between its ASCII and its Unicode form.
     if (!options->IsObject())
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError)
-            .with_type_name(errtype::kTypeError)
             .with_code("ERR_INVALID_ARG_TYPE")
             .with_message("The \"options\" argument must be of type object.");
 
