@@ -176,6 +176,13 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, obj_ptr<DgramSocket
 // are all synchronous in the fiber (uv_call), so send() can chain on it
 result_t DgramSocket::bind_core(int32_t port, exlib::string addr)
 {
+    // A closed socket must not be usable at all. bind() reaches this same
+    // guard, and so does the implicit bind that send() does before its first
+    // packet -- without the check the send silently "succeeds" against a
+    // descriptor that is on its way out.
+    if (uv_is_closing(&m_handle))
+        return errhelp::closed("ERR_SOCKET_DGRAM_NOT_RUNNING", "dgram: socket is closed.");
+
     if (m_bound)
         return errhelp::closed("ERR_SOCKET_ALREADY_BOUND", "dgram: socket is already bound.");
 
