@@ -213,7 +213,7 @@ static result_t zip_open_path(exlib::string path, exlib::string mod, exlib::stri
             return hr;
 
         if (!exists)
-            return result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: zip file not exists!");
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_ARG_VALUE").with_message("ZipFile: zip file not exists!");
 
         hr = fs_base::openFile(path, "r+", file, std::move(ac));
     }
@@ -285,7 +285,7 @@ result_t ZipFile::get_info(obj_ptr<T>& retVal)
 
     err = unzGetCurrentFileInfo64(m_unz, &file_info, filename_inzip, sizeof(filename_inzip), NULL, 0, NULL, 0);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     exlib::string _filename;
     result_t hr = encoding_conv(m_codec).decode(filename_inzip, _filename);
@@ -325,15 +325,15 @@ result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncHandle ac)
     uint32_t i;
 
     if (m_mod != "r")
-        return result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: can not read!");
+        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("ZipFile: can not read!");
 
     err = unzGetGlobalInfo64(m_unz, &gi);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     err = unzGoToFirstFile(m_unz);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     for (i = 0; i < gi.number_entry; i++) {
         obj_ptr<ZipFile_base::GetinfoType> info;
@@ -347,7 +347,7 @@ result_t ZipFile::namelist(std::vector<exlib::string>& retVal, AsyncHandle ac)
         if ((i + 1) < gi.number_entry) {
             err = unzGoToNextFile(m_unz);
             if (err != UNZ_OK)
-                return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
         }
     }
 
@@ -368,15 +368,15 @@ result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& ret
     uint32_t i;
 
     if (m_mod != "r")
-        return result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: can not read!");
+        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("ZipFile: can not read!");
 
     err = unzGetGlobalInfo64(m_unz, &gi);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     err = unzGoToFirstFile(m_unz);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     for (i = 0; i < gi.number_entry; i++) {
         obj_ptr<ZipFile_base::InfolistType> item;
@@ -390,7 +390,7 @@ result_t ZipFile::infolist(std::vector<obj_ptr<ZipFile_base::InfolistType>>& ret
         if ((i + 1) < gi.number_entry) {
             err = unzGoToNextFile(m_unz);
             if (err != UNZ_OK)
-                return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
         }
     }
 
@@ -408,7 +408,7 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipFile_base::GetinfoTyp
     int32_t err;
 
     if (m_mod != "r")
-        return result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: can not read!");
+        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("ZipFile: can not read!");
 
     exlib::string _filename;
     result_t hr = encoding_conv(m_codec).encode(member, _filename);
@@ -417,7 +417,7 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<ZipFile_base::GetinfoTyp
 
     err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     return get_info(retVal);
 }
@@ -438,13 +438,13 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
     else
         err = unzOpenCurrentFile(m_unz);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     do {
         err = unzReadCurrentFile(m_unz, buf, BUF_SIZE);
         if (err < 0) {
             unzCloseCurrentFile(m_unz);
-            return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
         }
 
         if (err > 0) {
@@ -457,7 +457,7 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
 
     err = unzCloseCurrentFile(m_unz);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     return result_t();
 }
@@ -496,7 +496,7 @@ result_t ZipFile::read(exlib::string member, exlib::string password, obj_ptr<Buf
     int32_t err;
     err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     return read(password, retVal);
 }
@@ -519,7 +519,7 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::strin
 
     err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     hr = fs_base::openFile(path, "w", file, std::move(ac));
     if (hr.failed())
@@ -544,7 +544,7 @@ result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, exlib
     int32_t err;
     err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     return extract(strm, password);
 }
@@ -604,15 +604,15 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
             if (hr.failed())
                 return hr;
             if (!exists)
-                return result_t::make(CALL_E_EXCEPTION).with_message("ZipFile: no such file or directory");
+                return result_t::make(UV_ENOENT).with_message("ZipFile: no such file or directory");
 
             int32_t err = unzGetGlobalInfo64(m_pThis->m_unz, &m_gi);
             if (err != UNZ_OK)
-                return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
             err = unzGoToFirstFile(m_pThis->m_unz);
             if (err != UNZ_OK)
-                return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
             m_i = 0;
             return next(next_entry);
@@ -668,7 +668,7 @@ result_t ZipFile::extractAll(exlib::string path, exlib::string password, AsyncHa
             if (m_i < m_gi.number_entry) {
                 int32_t err = unzGoToNextFile(m_pThis->m_unz);
                 if (err != UNZ_OK)
-                    return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+                    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
             }
 
             return next(next_entry);
@@ -703,11 +703,11 @@ result_t ZipFile::readAll(exlib::string password, std::vector<obj_ptr<ZipFile_ba
 
     err = unzGetGlobalInfo64(m_unz, &gi);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     err = unzGoToFirstFile(m_unz);
     if (err != UNZ_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     for (i = 0; i < gi.number_entry; i++) {
         obj_ptr<ZipFile_base::ReadAllType> info;
@@ -725,7 +725,7 @@ result_t ZipFile::readAll(exlib::string password, std::vector<obj_ptr<ZipFile_ba
         if ((i + 1) < gi.number_entry) {
             err = unzGoToNextFile(m_unz);
             if (err != UNZ_OK)
-                return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
         }
     }
 
@@ -799,7 +799,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
         -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
         password.empty() ? NULL : password.c_str(), crc, 1);
     if (err != ZIP_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     strm->rewind();
     do {
@@ -814,13 +814,13 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
         err = zipWriteInFileInZip(m_zip, buff->data(), (uint32_t)buff->length());
         if (err != ZIP_OK) {
             zipCloseFileInZip(m_zip);
-            return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
         }
     } while (buff->length() > 0);
 
     err = zipCloseFileInZip(m_zip);
     if (err != ZIP_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     return result_t();
 }
@@ -891,7 +891,7 @@ result_t ZipFile::close(AsyncHandle ac)
     }
 
     if (err != ZIP_OK)
-        return result_t::make(CALL_E_EXCEPTION).with_message(zip_error(err));
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZIP_INVALID_FORMAT").with_message(zip_error(err));
 
     return result_t();
 }

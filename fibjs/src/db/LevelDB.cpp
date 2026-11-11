@@ -573,7 +573,7 @@ result_t LevelDB::forEachCore(Buffer_base* from, Buffer_base* to, v8::Local<v8::
         if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
             return hr;
         if (it->m_limit == 0)
-            return result_t::make(CALL_E_EXCEPTION).with_message("limit must be greater than 0");
+            return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_message("limit must be greater than 0");
 
         hr = GetConfigValue(opt, "reverse", it->m_reverse, true);
         if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))

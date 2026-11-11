@@ -407,7 +407,7 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
         return result_t::longsync();
 
     if (qstrcmp(connString.c_str(), "mysql:", 6))
-        return result_t::make(CALL_E_EXCEPTION).with_message("openMySQL: connection string must start with 'mysql:'.").with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("openMySQL: connection string must start with 'mysql:'.").with_result(result_t::invalid_arg());
 
     obj_ptr<Url> u = new Url();
 

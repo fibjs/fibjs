@@ -127,7 +127,7 @@ private:
 
         if (UMConnection_GetLastError(m_conn, &errorMessage, &errCode,
                 &errType)) {
-            result_t::builder b = result_t::make(CALL_E_EXCEPTION);
+            result_t::builder b = result_t::make(CALL_E_INVALID_CALL);
             if (errCode > 0)
                 b = std::move(b).with_errno(errCode);
 

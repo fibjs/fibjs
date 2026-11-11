@@ -71,7 +71,7 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
         return result_t::longsync();
 
     if (qstrcmp(connString.c_str(), "odbc:", 5))
-        return result_t::make(CALL_E_EXCEPTION).with_message("openOdbc: connection string must start with 'odbc:'.").with_result(result_t::invalid_arg());
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("openOdbc: connection string must start with 'odbc:'.").with_result(result_t::invalid_arg());
 
     obj_ptr<Odbc> conn = new Odbc();
 
@@ -156,7 +156,7 @@ static result_t odbc_set_error(int32_t handleType, void* handle)
 {
     OdbcDiagInfo info = odbc_error_info(handleType, handle);
 
-    result_t::builder b = result_t::make(CALL_E_EXCEPTION);
+    result_t::builder b = result_t::make(CALL_E_INVALID_CALL);
 
     if (!info.sqlstate.empty())
         b = std::move(b).with_code(info.sqlstate);
@@ -237,14 +237,14 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
     if (!g_odbc) {
         hr = SQLAllocEnv((SQLHENV*)&g_odbc);
         if (hr < 0)
-            return diag(result_t::make(CALL_E_EXCEPTION).with_message("odbc: unable to allocate environment."));
+            return diag(result_t::make(CALL_E_INTERNAL).with_type_name(errtype::kError).with_code("ERR_INTERNAL").with_message("odbc: unable to allocate environment."));
     }
 
     hr = SQLAllocConnect(g_odbc, (SQLHDBC*)&conn);
     if (hr < 0) {
         odbc_disconnect(conn);
         conn = NULL;
-        return diag(result_t::make(CALL_E_EXCEPTION).with_message("odbc: unable to allocate connection."));
+        return diag(result_t::make(CALL_E_INTERNAL).with_type_name(errtype::kError).with_code("ERR_INTERNAL").with_message("odbc: unable to allocate connection."));
     }
 
     if (*driver) {
@@ -324,7 +324,7 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
             odbc_disconnect(conn);
             conn = NULL;
 
-            result_t::builder b = result_t::make(CALL_E_EXCEPTION);
+            result_t::builder b = result_t::make(CALL_E_INVALID_CALL);
             if (!info.sqlstate.empty())
                 b = std::move(b).with_code(info.sqlstate);
             if (info.has_native)
@@ -362,7 +362,7 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
         str = v.string();
         driver = str.c_str();
     } else if (driver == NULL)
-        return result_t::make(CALL_E_EXCEPTION).with_message("odbc: no driver specified.");
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("odbc: no driver specified.");
 
     exlib::string pathname = u->pathname();
     
@@ -1023,7 +1023,7 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
             if (hr2 == SQL_NO_DATA)
                 break;
             if (hr2 < 0)
-                return result_t::make(CALL_E_EXCEPTION).with_message(odbc_error(SQL_HANDLE_STMT, stmt));
+                return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_EXECUTE").with_message(odbc_error(SQL_HANDLE_STMT, stmt));
 
             res->beginRow();
 
