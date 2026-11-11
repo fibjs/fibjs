@@ -11,6 +11,7 @@
 #include "XmlElement.h"
 #include <string.h>
 #include "StringBuffer.h"
+#include "errhelp.h"
 
 namespace fibjs {
 
@@ -178,7 +179,7 @@ result_t XmlNamedNodeMap::removeNode(XmlAttr_base* attr)
         }
     }
 
-    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("NotFoundError").with_message("The node provided is owned by another element.");
+    return errhelp::dom_error("NotFoundError", "The node provided is owned by another element.");
 }
 
 result_t XmlNamedNodeMap::setNamedItem(XmlAttr* newNode, obj_ptr<XmlAttr_base>& retVal)

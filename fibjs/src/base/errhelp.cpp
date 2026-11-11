@@ -122,6 +122,24 @@ result_t closed(const char* code, const char* message)
         .with_message(message);
 }
 
+result_t dom_error(const char* dom_name, const char* message, const char* code)
+{
+    exlib::string type_name = errtype::kDOMExceptionPrefix;
+    type_name.append(dom_name);
+
+    // No with_code() unless the caller supplied one: DOMException.code is the
+    // legacy WHATWG number, so an absent string code is the honest answer.
+    if (code && *code)
+        return result_t::make(CALL_E_INVALID_DATA)
+            .with_type_name(type_name)
+            .with_code(code)
+            .with_message(message);
+
+    return result_t::make(CALL_E_INVALID_DATA)
+        .with_type_name(type_name)
+        .with_message(message);
+}
+
 result_t from_conversion(result_t hr, const char* name, const Variant& received,
     bool strict)
 {

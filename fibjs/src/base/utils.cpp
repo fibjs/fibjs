@@ -210,8 +210,20 @@ static v8::Local<v8::Value> MakeNamedErrorOrFallback(Isolate* isolate, const cha
 
 // Build the JS error object for a class name. The name is the only type
 // channel: "" means the generic Error, unknown names degrade to it as well.
+//
+// A "DOMException:<name>" type_name is a DOM exception rather than a JS Error
+// subclass: DOMException is not an instanceof Error, so the branch has to come
+// before the generic path and must not fall back to it on success.
 static v8::Local<v8::Value> MakeException(Isolate* isolate, const exlib::string& type_name, exlib::string msg)
 {
+    static const size_t kPrefixLen = qstrlen(errtype::kDOMExceptionPrefix);
+
+    if (type_name.length() > kPrefixLen
+        && type_name.substr(0, kPrefixLen) == errtype::kDOMExceptionPrefix) {
+        exlib::string dom_name = type_name.substr(kPrefixLen);
+        return MakeDOMException(isolate, dom_name.c_str(), msg);
+    }
+
     v8::Local<v8::String> v8msg = isolate->NewString(msg);
 
     if (type_name.empty() || type_name == errtype::kError)

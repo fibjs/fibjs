@@ -72,6 +72,17 @@ result_t out_of_range_text(const char* msg);
 // the class stays Error, which is what Node reports for all of them.
 result_t closed(const char* code, const char* message);
 
+// A WHATWG DOM exception: err.name is `dom_name` (HierarchyRequestError,
+// NotFoundError, ...) and the object is a DOMException, NOT an Error subclass.
+// The value code stays CALL_E_INVALID_DATA so `number` remains 20011, the same
+// value these sites reported before the name channel existed; only `name`
+// (and, on a browser, the class) changes.
+//
+// `code` is optional: DOMException.code is a legacy NUMBER from the WHATWG
+// table, not a Node string code, so passing a string here would be wrong. It
+// is only there for a site that wants a fibjs-specific string as well.
+result_t dom_error(const char* dom_name, const char* message, const char* code = nullptr);
+
 // Rewrite a failed ARG / OPT_ARG conversion into a described argument error.
 //
 // This one is different from the rest of the header, and the difference is the

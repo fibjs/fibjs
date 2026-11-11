@@ -15,6 +15,7 @@
 #include "StringBuffer.h"
 #include "parse.h"
 #include <algorithm>
+#include "errhelp.h"
 
 namespace fibjs {
 
@@ -296,7 +297,7 @@ result_t XmlElement::set_outerHTML(exlib::string newVal)
     int32_t parentType;
     parent->get_nodeType(parentType);
     if (parentType == xml_base::C_DOCUMENT_NODE)
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("NoModificationAllowedError").with_message("XmlElement: The element is a direct child of a document.");
+        return errhelp::dom_error("NoModificationAllowedError", "XmlElement: The element is a direct child of a document.");
 
     // Parse the new HTML content
     obj_ptr<XmlDocument> doc = new XmlDocument(false);
@@ -489,7 +490,7 @@ result_t XmlElement::setAttributeNode(XmlAttr_base* attr, obj_ptr<XmlAttr_base>&
 {
     XmlAttr* _attr = (XmlAttr*)attr;
     if (_attr->m_owner != NULL && _attr->m_owner != this) {
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("InUseAttributeError").with_message("The attribute already belongs to another element");
+        return errhelp::dom_error("InUseAttributeError", "The attribute already belongs to another element");
     }
 
     if (_attr->m_owner == this) {

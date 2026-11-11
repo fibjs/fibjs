@@ -18,6 +18,7 @@
 #include "XmlParser.h"
 #include "encoding_conv.h"
 #include <cmath>
+#include "errhelp.h"
 
 namespace fibjs {
 
@@ -167,13 +168,13 @@ result_t XmlDocument::checkNode(XmlNode_base* newChild)
     if (type == xml_base::C_ELEMENT_NODE) {
         if (m_element) {
             if (m_element != newChild)
-                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("HierarchyRequestError").with_message("XmlDocument: The document node contains only one element node.");
+                return errhelp::dom_error("HierarchyRequestError", "XmlDocument: The document node contains only one element node.");
         } else
             m_element = (XmlElement_base*)newChild;
     } else if (type == xml_base::C_DOCUMENT_TYPE_NODE) {
         if (m_doctype) {
             if (m_doctype != newChild)
-                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("HierarchyRequestError").with_message("XmlDocument: The document node contains only one doctype node.");
+                return errhelp::dom_error("HierarchyRequestError", "XmlDocument: The document node contains only one doctype node.");
         } else
             m_doctype = (XmlDocumentType_base*)newChild;
     }
@@ -448,7 +449,7 @@ result_t XmlDocument::importNode(XmlNode_base* importedNode, bool deep, obj_ptr<
 
     // Cannot import Document nodes
     if (type == xml_base::C_DOCUMENT_NODE)
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("NotSupportedError").with_message("XmlDocument: Cannot import a document node.");
+        return errhelp::dom_error("NotSupportedError", "XmlDocument: Cannot import a document node.");
 
     // Clone the node (which creates a copy with this document as owner)
     obj_ptr<XmlNode_base> clonedNode;
@@ -475,7 +476,7 @@ result_t XmlDocument::adoptNode(XmlNode_base* adoptedNode, obj_ptr<XmlNode_base>
 
     // Cannot adopt Document nodes
     if (type == xml_base::C_DOCUMENT_NODE)
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("NotSupportedError").with_message("XmlDocument: Cannot adopt a document node.");
+        return errhelp::dom_error("NotSupportedError", "XmlDocument: Cannot adopt a document node.");
 
     // Remove the node from its current parent (if any)
     XmlNodeImpl* impl = XmlNodeImpl::fromNode(adoptedNode);

@@ -201,12 +201,12 @@ describe('xml', () => {
                 xdoc.appendChild(c);
                 assertDOMError(() => {
                     xdoc.appendChild(e1);
-                }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
+                }, 'HierarchyRequestError', { name: 'HierarchyRequestError', number: 20011 });
 
                 xdoc.replaceChild(e1, e);
                 assertDOMError(() => {
                     xdoc.replaceChild(e, c);
-                }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
+                }, 'HierarchyRequestError', { name: 'HierarchyRequestError', number: 20011 });
 
                 xdoc.removeChild(e1);
                 xdoc.appendChild(e);
@@ -867,7 +867,7 @@ describe('xml', () => {
 
                 assertDOMError(() => {
                     e3.appendChild(e);
-                }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
+                }, 'HierarchyRequestError', { name: 'HierarchyRequestError', number: 20011 });
             });
 
             it("removeChild", () => {
@@ -1458,7 +1458,7 @@ describe('xml', () => {
                 // Modern browsers throw error when trying to move owned attribute
                 assertDOMError(() => {
                     e2.setAttributeNode(attr);
-                }, 'InUseAttributeError', { name: 'Error', number: 20011 });
+                }, 'InUseAttributeError', { name: 'InUseAttributeError', number: 20011 });
             });
 
             it("setAttributeNode with cloned attribute", () => {
@@ -1597,7 +1597,7 @@ describe('xml', () => {
 
                 assertDOMError(() => {
                     elem.removeAttributeNode(attrNode);
-                }, 'NotFoundError', { name: 'Error', number: 20011 });
+                }, 'NotFoundError', { name: 'NotFoundError', number: 20011 });
             });
 
             it("getAttributeNodeNS", () => {
@@ -1795,7 +1795,7 @@ describe('xml', () => {
                 var e = hdoc.createElement("aaa");
                 assertDOMError(() => {
                     hdoc.appendChild(e);
-                }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
+                }, 'HierarchyRequestError', { name: 'HierarchyRequestError', number: 20011 });
             });
 
             it("clear after removeChild", () => {
@@ -1887,7 +1887,7 @@ describe('xml', () => {
                     // Adding second root element should throw error
                     assertDOMError(() => {
                         xdoc.appendChild(root2);
-                    }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
+                    }, 'HierarchyRequestError', { name: 'HierarchyRequestError', number: 20011 });
 
                     // Document should still have only one root
                     assert.equal(xdoc.childNodes.length, 1);
@@ -2845,7 +2845,7 @@ describe('xml', () => {
                     // Should throw error when trying to append element to document
                     assertDOMError(() => {
                         hdoc.appendChild(extraElement);
-                    }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
+                    }, 'HierarchyRequestError', { name: 'HierarchyRequestError', number: 20011 });
 
                     // Document may have DOCTYPE and HTML elements in browser
                     var initialChildCount = hdoc.childNodes.length;
@@ -3131,7 +3131,7 @@ describe('xml', () => {
             var e = hdoc.createElement("aaa");
             assertDOMError(() => {
                 hdoc.appendChild(e);
-            }, 'HierarchyRequestError', { name: 'Error', number: 20011 });
+            }, 'HierarchyRequestError', { name: 'HierarchyRequestError', number: 20011 });
         });
 
         it("clear after removeChild", () => {
@@ -3195,7 +3195,7 @@ describe('xml', () => {
             var hdoc = parseHtml("<html><body></body></html>");
             assertDOMError(() => {
                 hdoc.documentElement.outerHTML = "<p>new root</p>";
-            }, 'NoModificationAllowedError', { name: 'Error', number: 20011 });
+            }, 'NoModificationAllowedError', { name: 'NoModificationAllowedError', number: 20011 });
             // Same for XML documents: the root element's parent is the document.
             var xdoc = parse("<root/>");
             assertDOMError(() => {
@@ -4150,7 +4150,7 @@ describe('xml', () => {
 
                     assert.throws(() => {
                         doc2.importNode(doc1);
-                    }, { name: 'Error', number: 20011 });
+                    }, { name: 'NotSupportedError', number: 20011 });
                 });
 
                 it("adoptNode basic", () => {
@@ -4210,7 +4210,7 @@ describe('xml', () => {
 
                     assert.throws(() => {
                         doc2.adoptNode(doc1);
-                    }, { name: 'Error', number: 20011 });
+                    }, { name: 'NotSupportedError', number: 20011 });
                 });
 
                 it("adoptNode on detached node", () => {

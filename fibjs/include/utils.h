@@ -128,6 +128,13 @@ constexpr const char* kURIError = "URIError";
 constexpr const char* kEvalError = "EvalError";
 constexpr const char* kAbortError = "AbortError";
 constexpr const char* kTimeoutError = "TimeoutError";
+
+// A DOM exception carries its WHATWG name as err.name, and that name is NOT a
+// JS Error subclass: `new DOMException(m, 'HierarchyRequestError')` is not an
+// instanceof Error. The type_name channel is therefore prefixed, so
+// MakeException can tell the two apart while the payload keeps carrying a
+// single string across threads.
+constexpr const char* kDOMExceptionPrefix = "DOMException:";
 }
 
 // result_t and the CALL_E_* code space live in result.h so that Isolate.h --
