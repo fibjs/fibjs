@@ -490,7 +490,7 @@ describe('fs', () => {
                 assert.equal(fs.stat(d2).mode & 0o777, 0o700);
 
             assert.throws(() => fs.mkdir(path.join(homedir, 'mkdir_bad' + vmid), 'not-octal'),
-                { name: 'TypeError', number: 20004 });
+                { name: 'TypeError', code: 'ERR_INVALID_ARG_VALUE', number: 20011 });
         } finally {
             fs.rmdir(path.join(homedir, 'mkdir_recursive' + vmid), { recursive: true });
             fs.rmdir(d1);

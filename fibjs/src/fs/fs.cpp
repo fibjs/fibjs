@@ -10,6 +10,7 @@
 #endif
 
 #include "ifs/fs.h"
+#include "errhelp.h"
 #include "ifs/zip.h"
 #include "encoding_conv.h"
 #include "file_path.h"
@@ -38,7 +39,7 @@ DECLARE_MODULE(fs);
 // ERR_OUT_OF_RANGE; the message keeps fibjs' own (more explicit) wording.
 static result_t setRangeError(const char* msg)
 {
-    return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_result(result_t::out_of_range()).with_code("ERR_OUT_OF_RANGE").with_message(msg);
+    return errhelp::out_of_range_text(msg);
 }
 
 // Node prints NaN / Infinity by name, integers without a fractional part.
@@ -88,20 +89,19 @@ static exlib::string node_received_text(Variant& v)
 // Node.js ERR_OUT_OF_RANGE: RangeError with the "must be <range>" wording.
 static result_t setOutOfRange(const char* name, const char* range, exlib::string received)
 {
-    return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_result(result_t::out_of_range()).with_code("ERR_OUT_OF_RANGE").with_format("The value of \"%s\" is out of range. It must be %s. Received %s",
-                name, range, received.c_str());
+    return errhelp::out_of_range(name, range, Variant(received));
 }
 
 // Node.js ERR_INVALID_ARG_VALUE: TypeError with the "must be ..." wording.
 static result_t setInvalidArgValue(const char* name, const char* must_be, exlib::string received)
 {
-    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_VALUE").with_format("The argument '%s' %s. Received %s", name, must_be, received.c_str());
+    return errhelp::invalid_arg_value(name, must_be, Variant(received));
 }
 
 // Node.js ERR_INVALID_ARG_TYPE: TypeError with the "Received type ..." wording.
 static result_t setInvalidArgType(const char* name, const char* must_be, exlib::string received)
 {
-    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_code("ERR_INVALID_ARG_TYPE").with_format("The \"%s\" argument must be %s. Received %s", name, must_be, received.c_str());
+    return errhelp::invalid_arg_type(name, must_be, Variant(received));
 }
 
 // Node.js time argument: Date object | unix timestamp in seconds | date string
