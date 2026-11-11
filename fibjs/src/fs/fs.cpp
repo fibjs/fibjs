@@ -342,7 +342,9 @@ result_t FileHandle::read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retV
         ac.ctxv().resize(4);
 
         obj_ptr<Buffer_base> buffer;
-        GetConfigValue(options, "buffer", buffer);
+        result_t b_hr = GetConfigValue(options, "buffer", buffer);
+        if (b_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return b_hr;
         if (buffer == NULL)
             buffer = new Buffer(NULL, 16384);
 
@@ -452,7 +454,9 @@ result_t FileHandle::readFile(Union_readFile_options options, Variant& retVal, A
         if (ac.isSync()) {
             ac.ctxv().resize(1);
 
-            GetConfigValue(std::get<v8::Local<v8::Object>>(options), "encoding", encoding);
+            result_t e_hr = GetConfigValue(std::get<v8::Local<v8::Object>>(options), "encoding", encoding, true);
+            if (e_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+                return e_hr;
             ac.ctxv()[0] = encoding;
 
             return result_t::nosync();
@@ -1103,7 +1107,9 @@ result_t fs_base::readFile(Union_readFile_fname fname, Union_readFile_options op
             if (bFd)
                 encoding = "utf8";
 
-            GetConfigValue(opts, "encoding", encoding);
+            result_t enc_hr = GetConfigValue(opts, "encoding", encoding, true);
+            if (enc_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+                return enc_hr;
             ac.ctxv()[0] = encoding;
 
             if (!bFd) {
@@ -2139,11 +2145,16 @@ static result_t mkdir_options(exlib::string path, v8::Local<v8::Object> opt, Var
         ac.ctxv().resize(2);
 
         bool recursive = false;
-        GetConfigValue(opt, "recursive", recursive);
+        result_t ohr = GetConfigValue(opt, "recursive", recursive, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[0] = recursive;
 
+        // mode is a permission mask: a wrong type silently fell back to 0777.
         int32_t mode = 0777;
-        GetConfigValue(opt, "mode", mode);
+        ohr = GetConfigValue(opt, "mode", mode, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[1] = mode;
 
         return result_t::nosync();
@@ -2412,7 +2423,9 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncHand
         ac.ctxv().resize(1);
 
         bool recursive = false;
-        GetConfigValue(opt, "recursive", recursive);
+        result_t ohr = GetConfigValue(opt, "recursive", recursive, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[0] = recursive;
 
         return result_t::nosync();
@@ -2446,11 +2459,17 @@ result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle 
         ac.ctxv().resize(2);
 
         bool recursive = false;
-        GetConfigValue(opt, "recursive", recursive);
+        result_t ohr = GetConfigValue(opt, "recursive", recursive, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[0] = recursive;
 
+        // force decides whether a missing entry is an error: a silently false
+        // value turns an idempotent rm into a failure.
         bool force = false;
-        GetConfigValue(opt, "force", force);
+        ohr = GetConfigValue(opt, "force", force, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[1] = force;
 
         return result_t::nosync();
@@ -3183,19 +3202,28 @@ result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object
             return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_FS_CP_EINVAL").with_format("src and dest cannot be the same %s", src.c_str());
 
         bool recursive = false;
-        GetConfigValue(opts, "recursive", recursive);
+        result_t ohr = GetConfigValue(opts, "recursive", recursive, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[0] = recursive;
 
         bool force = true;
-        GetConfigValue(opts, "force", force);
+        ohr = GetConfigValue(opts, "force", force, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[1] = force;
 
         bool errorOnExist = false;
-        GetConfigValue(opts, "errorOnExist", errorOnExist);
+        ohr = GetConfigValue(opts, "errorOnExist", errorOnExist, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[2] = errorOnExist;
 
+        // cp's mode: silently 0 means "copy without creating permissions".
         int32_t mode = 0;
-        GetConfigValue(opts, "mode", mode);
+        ohr = GetConfigValue(opts, "mode", mode, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[3] = mode;
 
         return result_t::nosync();
@@ -3305,15 +3333,21 @@ static result_t readdir_options(exlib::string path, v8::Local<v8::Object> opts, 
         ac.ctxv().resize(3);
 
         bool recursive = false;
-        GetConfigValue(opts, "recursive", recursive);
+        result_t ohr = GetConfigValue(opts, "recursive", recursive, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[0] = recursive;
 
+        // withFileTypes stays lenient: Node accepts any truthy value for it
+        // (readdirSync(p, {withFileTypes: 'x'}) does not throw).
         bool withFileTypes = false;
         GetConfigValue(opts, "withFileTypes", withFileTypes);
         ac.ctxv()[1] = withFileTypes;
 
         exlib::string encoding;
-        GetConfigValue(opts, "encoding", encoding);
+        ohr = GetConfigValue(opts, "encoding", encoding, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[2] = encoding;
 
         return result_t::nosync();
@@ -3454,16 +3488,24 @@ result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> op
     if (ac.isSync()) {
         ac.ctxv().resize(3);
 
+        // Node validates all three; a silently defaulted start/end would read
+        // a different range than the caller asked for.
         exlib::string flags = "r";
-        GetConfigValue(options, "flags", flags);
+        result_t ohr = GetConfigValue(options, "flags", flags, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[0] = flags;
 
         int64_t start = -1;
-        GetConfigValue(options, "start", start);
+        ohr = GetConfigValue(options, "start", start, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[1] = start;
 
         int64_t end = -1;
-        GetConfigValue(options, "end", end);
+        ohr = GetConfigValue(options, "end", end, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[2] = end;
 
         return result_t::nosync();
@@ -3504,11 +3546,15 @@ result_t fs_base::createWriteStream(exlib::string fname, v8::Local<v8::Object> o
         ac.ctxv().resize(2);
 
         exlib::string flags = "w";
-        GetConfigValue(options, "flags", flags);
+        result_t ohr = GetConfigValue(options, "flags", flags, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[0] = flags;
 
         int64_t start = -1;
-        GetConfigValue(options, "start", start);
+        ohr = GetConfigValue(options, "start", start, true);
+        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return ohr;
         ac.ctxv()[1] = start;
 
         return result_t::nosync();

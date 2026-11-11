@@ -351,6 +351,8 @@ result_t fs_base::lstat(exlib::string path, v8::Local<v8::Object> options, obj_p
         ac.ctxv().resize(1);
 
         bool throwIfNoEntry = true;
+        // A truthiness flag: Node accepts any value here and only reads it
+        // for truth, so a wrong type is not an error.
         GetConfigValue(options, "throwIfNoEntry", throwIfNoEntry);
 
         // Node.js compatibility: throwIfNoEntry only affects the synchronous
@@ -413,6 +415,8 @@ result_t fs_base::stat(exlib::string path, v8::Local<v8::Object> options, obj_pt
         ac.ctxv().resize(1);
 
         bool throwIfNoEntry = true;
+        // A truthiness flag: Node accepts any value here and only reads it
+        // for truth, so a wrong type is not an error.
         GetConfigValue(options, "throwIfNoEntry", throwIfNoEntry);
 
         // Node.js compatibility: throwIfNoEntry only affects the synchronous

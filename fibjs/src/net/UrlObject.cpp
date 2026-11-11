@@ -271,6 +271,9 @@ result_t Url::format(v8::Local<v8::Object> args)
             username = str;
     }
 
+    // URL components are assignment fields, not conversions: a value that does
+    // not convert to a string leaves the component unset, which is the same
+    // outcome as not passing it. Node's url.parse behaves the same way.
     GetConfigValue(args, "username", username, true);
     GetConfigValue(args, "password", password, true);
 

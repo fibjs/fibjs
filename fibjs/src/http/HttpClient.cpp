@@ -887,6 +887,10 @@ result_t HttpClient::get_totalSocketCount(int32_t& retVal)
     return result_t();
 }
 
+// NOTE: no caller and no declaration in the header -- this is dead code kept
+// from an earlier connection-pool design. Its three discarded reads are
+// therefore not on any path; if it is ever wired up, `port` must be read with
+// strict=true so a bad value cannot silently reuse m_defaultPort.
 result_t HttpClient::getName(v8::Local<v8::Object> options, exlib::string& retVal)
 {
     Isolate* isolate = holder();
