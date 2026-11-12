@@ -15,7 +15,7 @@
  *   fibjs --man    parses the same map, the IDL comments are the manual.
  *
  * source : npm/types (version 0.33.0-dev)
- * files  : 236 corpus files + dts/_builtin/globals.d.ts
+ * files  : 238 corpus files + dts/_builtin/globals.d.ts
  * globals: Buffer URLSearchParams URL Blob File Headers FormData Request Response TextDecoder TextEncoder AbortController AbortSignal Event EventTarget MessageEvent MessagePort MessageChannel Worker CryptoKey DOMParser CSSStyleDeclaration DOMStringMap XMLSerializer XMLDocument WebSocket console process performance PerformanceObserver crypto global run require setTimeout clearTimeout setInterval clearInterval setHrInterval clearHrInterval setImmediate clearImmediate btoa atob structuredClone fetch fetchSync fetchAsync queueMicrotask
  */
 module.exports = {
@@ -1578,6 +1578,139 @@ declare class Class_BlobPromise extends Class_object {
 declare namespace Class_Blob {
     const promises: FIBJS.GeneralObject;
 }
+`,
+        "dts/interface/BrotliCompress.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/ZlibCodec.d.ts" />
+/**
+ * @description BrotliCompress is the codec that compresses data to the Brotli stream format
+ *
+ *  \`new zlib.BrotliCompress(opts)\` builds a synchronous codec; feed chunks with
+ *  \`_processChunk\` and the zlib flush flags. The output is a standard Brotli stream, the same
+ *  bytes \`zlib.brotliCompress\` writes and \`zlib.brotliDecompress\` and the brotli command line
+ *  tool read. For the fibjs stream API use \`zlib.createBrotliCompress(to)\` instead; the codec
+ *  class exists for packages that drive a codec directly. It inherits the members of
+ *  ZlibCodec, so \`_processChunk\`, \`close\` and \`reset\` behave the way they do for the deflate
+ *  codecs.
+ *
+ *  Concepts:
+ *  - **Options**: \`params\` is an object whose keys are Brotli parameter constants
+ *    (\`BROTLI_PARAM_MODE\`, \`BROTLI_PARAM_QUALITY\`, \`BROTLI_PARAM_LGWIN\`,
+ *    \`BROTLI_PARAM_LGBLOCK\`, \`BROTLI_PARAM_DISABLE_LITERAL_CONTEXT_MODELING\`,
+ *    \`BROTLI_PARAM_SIZE_HINT\`, \`BROTLI_PARAM_NPOSTFIX\`, \`BROTLI_PARAM_NDIRECT\`) and whose
+ *    values are applied through \`BrotliEncoderSetParameter\`. \`level\` is accepted as an alias
+ *    of \`BROTLI_PARAM_QUALITY\` (default \`BROTLI_DEFAULT_QUALITY\`, 11). Other keys are
+ *    ignored.
+ *  - **Flush flags**: the codec takes the zlib flush flags and maps them to Brotli
+ *    operations, so generic compression code does not need a second set of flags:
+ *    \`Z_NO_FLUSH\` is \`BROTLI_OPERATION_PROCESS\`, \`Z_SYNC_FLUSH\` (and the other flush modes)
+ *    is \`BROTLI_OPERATION_FLUSH\`, \`Z_FINISH\` is \`BROTLI_OPERATION_FINISH\`.
+ *  - **Streaming**: each \`_processChunk\` call appends to the current stream; \`Z_FINISH\` ends
+ *    it and resets the codec for the next message. A call may return an empty Buffer when
+ *    the compressor absorbed the input without producing output.
+ *
+ *  Example 1 — compress and decompress through concrete codecs:
+ *  \`\`\`JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const br = new zlib.BrotliCompress({
+ *      params: { [C.BROTLI_PARAM_QUALITY]: 11 }
+ *  });
+ *  const packed = br._processChunk('hello, brotli', C.Z_FINISH);
+ *
+ *  const unbr = new zlib.BrotliDecompress();
+ *  console.log(unbr._processChunk(packed, C.Z_FINISH).toString()); // hello, brotli
+ *  \`\`\`
+ *
+ *  Example 2 — a codec stream and the module-level helper are interchangeable:
+ *  \`\`\`JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const packed = new zlib.BrotliCompress()._processChunk('hello', C.Z_FINISH);
+ *  console.log(zlib.brotliDecompress(packed).toString()); // hello
+ *  \`\`\`
+ *
+ */
+declare class Class_BrotliCompress extends Class_ZlibCodec {
+    /**
+     * @description Creates a Brotli compressor
+     *
+     *      \`opts\` may be omitted or empty. The recognized options are \`params\` (an object of
+     *      \`BROTLI_PARAM_*\` constants to values, applied through
+     *      \`BrotliEncoderSetParameter\`) and \`level\` (an alias of \`BROTLI_PARAM_QUALITY\`,
+     *      default 11). Other keys are ignored. A value the encoder rejects throws a RangeError
+     *      with the error name from \`BrotliEncoderSetParameter\`.
+     *
+     *      @param opts compression options
+     *
+     */
+    constructor(opts?: FIBJS.GeneralObject);
+
+}
+
+`,
+        "dts/interface/BrotliDecompress.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/ZlibCodec.d.ts" />
+/**
+ * @description BrotliDecompress is the codec that decompresses Brotli streams
+ *
+ *  \`new zlib.BrotliDecompress(opts)\` builds a synchronous codec; feed chunks with
+ *  \`_processChunk\` and the zlib flush flags. It reads the standard Brotli stream format, the
+ *  same bytes \`zlib.brotliCompress\` writes and the brotli command line tool produces. For the
+ *  fibjs stream API use \`zlib.createBrotliDecompress(to)\` instead. It inherits the members of
+ *  ZlibCodec, so \`_processChunk\`, \`close\` and \`reset\` behave the way they do for the inflate
+ *  codecs.
+ *
+ *  Concepts:
+ *  - **Options**: \`params\` is an object whose keys are Brotli decoder parameter constants
+ *    (\`BROTLI_DECODER_PARAM_DISABLE_RING_BUFFER_REALLOCATION\`,
+ *    \`BROTLI_DECODER_PARAM_LARGE_WINDOW\`) and whose values are applied through
+ *    \`BrotliDecoderSetParameter\`. Other keys are ignored.
+ *  - **Errors**: corrupt input throws an Error whose \`code\` is the Brotli decoder error name
+ *    (for example \`BROTLI_DECODER_ERROR_FORMAT_RESERVED\` or
+ *    \`BROTLI_DECODER_ERROR_DICTIONARY_NOT_SET\`), read from \`BrotliDecoderGetErrorCode\`.
+ *  - **Streaming**: a Brotli stream may be split across several \`_processChunk\` calls; the
+ *    decoder keeps the state between them and finishes when the input ends.
+ *
+ *  Example 1 — decode a stream built by the codec:
+ *  \`\`\`JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const packed = new zlib.BrotliCompress()._processChunk('hello, brotli', C.Z_FINISH);
+ *  const unbr = new zlib.BrotliDecompress();
+ *  console.log(unbr._processChunk(packed, C.Z_FINISH).toString()); // hello, brotli
+ *  \`\`\`
+ *
+ *  Example 2 — a corrupt stream reports the decoder error name in err.code:
+ *  \`\`\`JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const unbr = new zlib.BrotliDecompress();
+ *  try {
+ *      unbr._processChunk(Buffer.from([0xff, 0xff, 0xff, 0xff]), C.Z_FINISH);
+ *  } catch (e) {
+ *      console.log(e.code); // BROTLI_DECODER_ERROR_FORMAT_*
+ *  }
+ *  \`\`\`
+ *
+ */
+declare class Class_BrotliDecompress extends Class_ZlibCodec {
+    /**
+     * @description Creates a Brotli decompressor
+     *
+     *      \`opts\` may be omitted or empty. The recognized option is \`params\`, an object of
+     *      \`BROTLI_DECODER_PARAM_*\` constants to values; other keys are ignored.
+     *
+     *      @param opts decompression options
+     *
+     */
+    constructor(opts?: FIBJS.GeneralObject);
+
+}
+
 `,
         "dts/interface/Buffer.d.ts": `/**
  * @description Binary data buffer object, used for io read/write data handling
@@ -120509,6 +120642,8 @@ declare module "zip" {
 /// <reference path="../interface/Unzip.d.ts" />
 /// <reference path="../interface/ZstdCompress.d.ts" />
 /// <reference path="../interface/ZstdDecompress.d.ts" />
+/// <reference path="../interface/BrotliCompress.d.ts" />
+/// <reference path="../interface/BrotliDecompress.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -120811,6 +120946,30 @@ declare module 'zlib' {
     const ZstdDecompress: typeof Class_ZstdDecompress;
 
     type ZstdDecompress = Class_ZstdDecompress;
+
+    /**
+     * @description The BrotliCompress codec class, see BrotliCompress
+     *
+     *      Build an instance with \`new zlib.BrotliCompress(opts)\`; it compresses data to the
+     *      Brotli container synchronously through \`_processChunk\`. The module-level
+     *      \`brotliCompress\`, \`brotliCompressSync\` and \`createBrotliCompress\` are the equivalent
+     *      fibjs stream APIs.
+     *
+     */
+    const BrotliCompress: typeof Class_BrotliCompress;
+
+    type BrotliCompress = Class_BrotliCompress;
+
+    /**
+     * @description The BrotliDecompress codec class, see BrotliDecompress
+     *
+     *      Build an instance with \`new zlib.BrotliDecompress(opts)\`; it decompresses Brotli data
+     *      synchronously through \`_processChunk\`.
+     *
+     */
+    const BrotliDecompress: typeof Class_BrotliDecompress;
+
+    type BrotliDecompress = Class_BrotliDecompress;
 
     /**
      * @description Creates a zlib-format compressor that writes into \`to\`
@@ -122628,6 +122787,293 @@ declare module 'zlib' {
      */
     function zstdDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
+    /**
+     * @description Creates a Brotli compressor that writes into \`to\`
+     *
+     *      The returned stream is write-only, in the same shape as \`createGzip\`: \`write\` adds
+     *      data with Z_NO_FLUSH, \`flush\` emits the pending output with Z_SYNC_FLUSH and \`close\`
+     *      finishes the stream with Z_FINISH. \`read\`/\`readBuffer\` and the \`fd\` property throw
+     *      the invalid-call error [20009]. The flush flags are the zlib ones and are mapped to
+     *      Brotli operations internally, so code written for the deflate streams keeps working.
+     *
+     *      \`opts\` carries \`params\`, an object whose keys are Brotli parameter constants
+     *      (\`BROTLI_PARAM_QUALITY\`, \`BROTLI_PARAM_LGWIN\`, ...) and whose values are applied
+     *      through \`BrotliEncoderSetParameter\`; \`level\` is accepted as an alias of
+     *      \`BROTLI_PARAM_QUALITY\`. Other keys are ignored.
+     *
+     *      Example — compress into a memory stream and decode it with a one-shot call:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const packed = new io.MemoryStream();
+     *      const br = zlib.createBrotliCompress(packed, {
+     *          params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 }
+     *      });
+     *      br.write('hello ');
+     *      br.write('world');
+     *      br.close();
+     *
+     *      packed.rewind();
+     *      console.log(zlib.brotliDecompress(packed.readAll()).toString()); // hello world
+     *      \`\`\`
+     *
+     *      @param to the destination stream that receives the compressed data; omit it to write
+     *      into an internal memory stream (the bytes stay inside the returned object)
+     *      @param options compression options
+     *      @return the write-only compressor stream
+     *
+     */
+    function createBrotliCompress(to?: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description Creates a Brotli decompressor that writes into \`to\`
+     *
+     *      The stream form of \`brotliDecompress\`, in the same shape as \`createGunzip\`: \`write\`
+     *      feeds compressed bytes, \`flush\` emits the decoded output produced so far and \`close\`
+     *      ends the stream. \`maxSize\` bounds the total number of decompressed bytes, default -1
+     *      (no limit), and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`. \`opts\` carries \`params\` as \`createBrotliCompress\` does.
+     *
+     *      @param to the destination stream that receives the decompressed data; omit it to
+     *      write into an internal memory stream
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *      @return the write-only decompressor stream
+     *
+     */
+    function createBrotliDecompress(to?: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description Compresses data with the Brotli algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete Brotli
+     *      stream, the format \`brotliDecompress\` and the brotli command line tool read. \`opts\`
+     *      is the same options object \`createBrotliCompress\` takes; the quality defaults to
+     *      \`BROTLI_DEFAULT_QUALITY\` (11) and \`level\` is accepted as its alias.
+     *
+     *      Example — round trip and a quality comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.brotliCompress(text, { level: 1 });
+     *      const small = zlib.brotliCompress(text, { level: 11 });
+     *
+     *      console.log(small.length <= fast.length);                     // true
+     *      console.log(zlib.brotliDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function brotliCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    function brotliCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description Compresses data with the Brotli algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete Brotli
+     *      stream, the format \`brotliDecompress\` and the brotli command line tool read. \`opts\`
+     *      is the same options object \`createBrotliCompress\` takes; the quality defaults to
+     *      \`BROTLI_DEFAULT_QUALITY\` (11) and \`level\` is accepted as its alias.
+     *
+     *      Example — round trip and a quality comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.brotliCompress(text, { level: 1 });
+     *      const small = zlib.brotliCompress(text, { level: 11 });
+     *
+     *      console.log(small.length <= fast.length);                     // true
+     *      console.log(zlib.brotliDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function brotliCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the Brotli algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete Brotli
+     *      stream, the format \`brotliDecompress\` and the brotli command line tool read. \`opts\`
+     *      is the same options object \`createBrotliCompress\` takes; the quality defaults to
+     *      \`BROTLI_DEFAULT_QUALITY\` (11) and \`level\` is accepted as its alias.
+     *
+     *      Example — round trip and a quality comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.brotliCompress(text, { level: 1 });
+     *      const small = zlib.brotliCompress(text, { level: 11 });
+     *
+     *      console.log(small.length <= fast.length);                     // true
+     *      console.log(zlib.brotliDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function brotliCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Decompresses Brotli data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Corrupt input throws an Error
+     *      whose \`code\` is the Brotli decoder error name (for example
+     *      \`BROTLI_DECODER_ERROR_FORMAT_RESERVED\`). \`opts\` carries \`params\` as
+     *      \`createBrotliDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function brotliDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    function brotliDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description Decompresses Brotli data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Corrupt input throws an Error
+     *      whose \`code\` is the Brotli decoder error name (for example
+     *      \`BROTLI_DECODER_ERROR_FORMAT_RESERVED\`). \`opts\` carries \`params\` as
+     *      \`createBrotliDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function brotliDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses Brotli data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Corrupt input throws an Error
+     *      whose \`code\` is the Brotli decoder error name (for example
+     *      \`BROTLI_DECODER_ERROR_FORMAT_RESERVED\`). \`opts\` carries \`params\` as
+     *      \`createBrotliDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function brotliDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Compresses data with the Brotli algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`brotliCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+
+    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description Compresses data with the Brotli algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`brotliCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function brotliCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Compresses data with the Brotli algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`brotliCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function brotliCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+
+    /**
+     * @description Decompresses Brotli data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`.
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+
+    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description Decompresses Brotli data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`.
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function brotliDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Decompresses Brotli data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`.
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function brotliDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+
 }
 
 `,
@@ -122642,6 +123088,8 @@ declare module 'zlib' {
 /// <reference path="../interface/Unzip.d.ts" />
 /// <reference path="../interface/ZstdCompress.d.ts" />
 /// <reference path="../interface/ZstdDecompress.d.ts" />
+/// <reference path="../interface/BrotliCompress.d.ts" />
+/// <reference path="../interface/BrotliDecompress.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -122787,6 +123235,30 @@ declare module 'zlib/promises' {
     const ZstdDecompress: typeof Class_ZstdDecompress;
 
     type ZstdDecompress = Class_ZstdDecompress;
+
+    /**
+     * @description The BrotliCompress codec class, see BrotliCompress
+     *
+     *      Build an instance with \`new zlib.BrotliCompress(opts)\`; it compresses data to the
+     *      Brotli container synchronously through \`_processChunk\`. The module-level
+     *      \`brotliCompress\`, \`brotliCompressSync\` and \`createBrotliCompress\` are the equivalent
+     *      fibjs stream APIs.
+     *
+     */
+    const BrotliCompress: typeof Class_BrotliCompress;
+
+    type BrotliCompress = Class_BrotliCompress;
+
+    /**
+     * @description The BrotliDecompress codec class, see BrotliDecompress
+     *
+     *      Build an instance with \`new zlib.BrotliDecompress(opts)\`; it decompresses Brotli data
+     *      synchronously through \`_processChunk\`.
+     *
+     */
+    const BrotliDecompress: typeof Class_BrotliDecompress;
+
+    type BrotliDecompress = Class_BrotliDecompress;
 
     /**
      * @description Creates a zlib-format compressor that writes into \`to\`
@@ -124564,6 +125036,285 @@ declare module 'zlib/promises' {
      */
     function zstdDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
+    /**
+     * @description Creates a Brotli compressor that writes into \`to\`
+     *
+     *      The returned stream is write-only, in the same shape as \`createGzip\`: \`write\` adds
+     *      data with Z_NO_FLUSH, \`flush\` emits the pending output with Z_SYNC_FLUSH and \`close\`
+     *      finishes the stream with Z_FINISH. \`read\`/\`readBuffer\` and the \`fd\` property throw
+     *      the invalid-call error [20009]. The flush flags are the zlib ones and are mapped to
+     *      Brotli operations internally, so code written for the deflate streams keeps working.
+     *
+     *      \`opts\` carries \`params\`, an object whose keys are Brotli parameter constants
+     *      (\`BROTLI_PARAM_QUALITY\`, \`BROTLI_PARAM_LGWIN\`, ...) and whose values are applied
+     *      through \`BrotliEncoderSetParameter\`; \`level\` is accepted as an alias of
+     *      \`BROTLI_PARAM_QUALITY\`. Other keys are ignored.
+     *
+     *      Example — compress into a memory stream and decode it with a one-shot call:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const packed = new io.MemoryStream();
+     *      const br = zlib.createBrotliCompress(packed, {
+     *          params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 }
+     *      });
+     *      br.write('hello ');
+     *      br.write('world');
+     *      br.close();
+     *
+     *      packed.rewind();
+     *      console.log(zlib.brotliDecompress(packed.readAll()).toString()); // hello world
+     *      \`\`\`
+     *
+     *      @param to the destination stream that receives the compressed data; omit it to write
+     *      into an internal memory stream (the bytes stay inside the returned object)
+     *      @param options compression options
+     *      @return the write-only compressor stream
+     *
+     */
+    function createBrotliCompress(to?: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description Creates a Brotli decompressor that writes into \`to\`
+     *
+     *      The stream form of \`brotliDecompress\`, in the same shape as \`createGunzip\`: \`write\`
+     *      feeds compressed bytes, \`flush\` emits the decoded output produced so far and \`close\`
+     *      ends the stream. \`maxSize\` bounds the total number of decompressed bytes, default -1
+     *      (no limit), and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`. \`opts\` carries \`params\` as \`createBrotliCompress\` does.
+     *
+     *      @param to the destination stream that receives the decompressed data; omit it to
+     *      write into an internal memory stream
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *      @return the write-only decompressor stream
+     *
+     */
+    function createBrotliDecompress(to?: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description Compresses data with the Brotli algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete Brotli
+     *      stream, the format \`brotliDecompress\` and the brotli command line tool read. \`opts\`
+     *      is the same options object \`createBrotliCompress\` takes; the quality defaults to
+     *      \`BROTLI_DEFAULT_QUALITY\` (11) and \`level\` is accepted as its alias.
+     *
+     *      Example — round trip and a quality comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.brotliCompress(text, { level: 1 });
+     *      const small = zlib.brotliCompress(text, { level: 11 });
+     *
+     *      console.log(small.length <= fast.length);                     // true
+     *      console.log(zlib.brotliDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function brotliCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Compresses data with the Brotli algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete Brotli
+     *      stream, the format \`brotliDecompress\` and the brotli command line tool read. \`opts\`
+     *      is the same options object \`createBrotliCompress\` takes; the quality defaults to
+     *      \`BROTLI_DEFAULT_QUALITY\` (11) and \`level\` is accepted as its alias.
+     *
+     *      Example — round trip and a quality comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.brotliCompress(text, { level: 1 });
+     *      const small = zlib.brotliCompress(text, { level: 11 });
+     *
+     *      console.log(small.length <= fast.length);                     // true
+     *      console.log(zlib.brotliDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function brotliCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the Brotli algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete Brotli
+     *      stream, the format \`brotliDecompress\` and the brotli command line tool read. \`opts\`
+     *      is the same options object \`createBrotliCompress\` takes; the quality defaults to
+     *      \`BROTLI_DEFAULT_QUALITY\` (11) and \`level\` is accepted as its alias.
+     *
+     *      Example — round trip and a quality comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.brotliCompress(text, { level: 1 });
+     *      const small = zlib.brotliCompress(text, { level: 11 });
+     *
+     *      console.log(small.length <= fast.length);                     // true
+     *      console.log(zlib.brotliDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function brotliCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Decompresses Brotli data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Corrupt input throws an Error
+     *      whose \`code\` is the Brotli decoder error name (for example
+     *      \`BROTLI_DECODER_ERROR_FORMAT_RESERVED\`). \`opts\` carries \`params\` as
+     *      \`createBrotliDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function brotliDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Decompresses Brotli data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Corrupt input throws an Error
+     *      whose \`code\` is the Brotli decoder error name (for example
+     *      \`BROTLI_DECODER_ERROR_FORMAT_RESERVED\`). \`opts\` carries \`params\` as
+     *      \`createBrotliDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function brotliDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses Brotli data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Corrupt input throws an Error
+     *      whose \`code\` is the Brotli decoder error name (for example
+     *      \`BROTLI_DECODER_ERROR_FORMAT_RESERVED\`). \`opts\` carries \`params\` as
+     *      \`createBrotliDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function brotliDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Compresses data with the Brotli algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`brotliCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+
+    /**
+     * @description Compresses data with the Brotli algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`brotliCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function brotliCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Compresses data with the Brotli algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`brotliCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function brotliCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+
+    /**
+     * @description Decompresses Brotli data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`.
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+
+    /**
+     * @description Decompresses Brotli data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`.
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function brotliDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Decompresses Brotli data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`.
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function brotliDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+
 }
 
 
@@ -125212,6 +125963,311 @@ declare module 'zlib_constants' {
      * @description zstd error: the input is empty and no progress was made
      */
     export const ZSTD_error_noForwardProgress_inputEmpty: 82;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_BLOCK_TYPE_TREES (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_BLOCK_TYPE_TREES: -30;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_CONTEXT_MAP (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_CONTEXT_MAP: -25;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_CONTEXT_MODES (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_CONTEXT_MODES: -21;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_RING_BUFFER_1 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_RING_BUFFER_1: -26;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_RING_BUFFER_2 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_RING_BUFFER_2: -27;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_TREE_GROUPS (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_TREE_GROUPS: -22;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_DICTIONARY_NOT_SET (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_DICTIONARY_NOT_SET: -19;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_BLOCK_LENGTH_1 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_BLOCK_LENGTH_1: -9;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_BLOCK_LENGTH_2 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_BLOCK_LENGTH_2: -10;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_CL_SPACE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_CL_SPACE: -6;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_CONTEXT_MAP_REPEAT (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_CONTEXT_MAP_REPEAT: -8;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_DICTIONARY (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_DICTIONARY: -12;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_DISTANCE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_DISTANCE: -16;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_EXUBERANT_META_NIBBLE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_EXUBERANT_META_NIBBLE: -3;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_EXUBERANT_NIBBLE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_EXUBERANT_NIBBLE: -1;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_HUFFMAN_SPACE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_HUFFMAN_SPACE: -7;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_PADDING_1 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_PADDING_1: -14;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_PADDING_2 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_PADDING_2: -15;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_RESERVED (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_RESERVED: -2;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_SIMPLE_HUFFMAN_ALPHABET (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_SIMPLE_HUFFMAN_ALPHABET: -4;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_SIMPLE_HUFFMAN_SAME (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_SIMPLE_HUFFMAN_SAME: -5;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_TRANSFORM (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_TRANSFORM: -11;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_WINDOW_BITS (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_WINDOW_BITS: -13;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_INVALID_ARGUMENTS (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_INVALID_ARGUMENTS: -20;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_UNREACHABLE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_UNREACHABLE: -31;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_NEEDS_MORE_INPUT (brotli)
+     */
+    export const BROTLI_DECODER_NEEDS_MORE_INPUT: 2;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_NEEDS_MORE_OUTPUT (brotli)
+     */
+    export const BROTLI_DECODER_NEEDS_MORE_OUTPUT: 3;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_NO_ERROR (brotli)
+     */
+    export const BROTLI_DECODER_NO_ERROR: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_PARAM_DISABLE_RING_BUFFER_REALLOCATION (brotli)
+     */
+    export const BROTLI_DECODER_PARAM_DISABLE_RING_BUFFER_REALLOCATION: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_PARAM_LARGE_WINDOW (brotli)
+     */
+    export const BROTLI_DECODER_PARAM_LARGE_WINDOW: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_RESULT_ERROR (brotli)
+     */
+    export const BROTLI_DECODER_RESULT_ERROR: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT (brotli)
+     */
+    export const BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT: 2;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT (brotli)
+     */
+    export const BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT: 3;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_RESULT_SUCCESS (brotli)
+     */
+    export const BROTLI_DECODER_RESULT_SUCCESS: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_SUCCESS (brotli)
+     */
+    export const BROTLI_DECODER_SUCCESS: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_DEFAULT_MODE (brotli)
+     */
+    export const BROTLI_DEFAULT_MODE: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_DEFAULT_QUALITY (brotli)
+     */
+    export const BROTLI_DEFAULT_QUALITY: 11;
+
+    /**
+     * @description zlib.constants.BROTLI_DEFAULT_WINDOW (brotli)
+     */
+    export const BROTLI_DEFAULT_WINDOW: 22;
+
+    /**
+     * @description zlib.constants.BROTLI_LARGE_MAX_WINDOW_BITS (brotli)
+     */
+    export const BROTLI_LARGE_MAX_WINDOW_BITS: 30;
+
+    /**
+     * @description zlib.constants.BROTLI_MAX_INPUT_BLOCK_BITS (brotli)
+     */
+    export const BROTLI_MAX_INPUT_BLOCK_BITS: 24;
+
+    /**
+     * @description zlib.constants.BROTLI_MAX_QUALITY (brotli)
+     */
+    export const BROTLI_MAX_QUALITY: 11;
+
+    /**
+     * @description zlib.constants.BROTLI_MAX_WINDOW_BITS (brotli)
+     */
+    export const BROTLI_MAX_WINDOW_BITS: 24;
+
+    /**
+     * @description zlib.constants.BROTLI_MIN_INPUT_BLOCK_BITS (brotli)
+     */
+    export const BROTLI_MIN_INPUT_BLOCK_BITS: 16;
+
+    /**
+     * @description zlib.constants.BROTLI_MIN_QUALITY (brotli)
+     */
+    export const BROTLI_MIN_QUALITY: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_MIN_WINDOW_BITS (brotli)
+     */
+    export const BROTLI_MIN_WINDOW_BITS: 10;
+
+    /**
+     * @description zlib.constants.BROTLI_MODE_FONT (brotli)
+     */
+    export const BROTLI_MODE_FONT: 2;
+
+    /**
+     * @description zlib.constants.BROTLI_MODE_GENERIC (brotli)
+     */
+    export const BROTLI_MODE_GENERIC: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_MODE_TEXT (brotli)
+     */
+    export const BROTLI_MODE_TEXT: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_OPERATION_EMIT_METADATA (brotli)
+     */
+    export const BROTLI_OPERATION_EMIT_METADATA: 3;
+
+    /**
+     * @description zlib.constants.BROTLI_OPERATION_FINISH (brotli)
+     */
+    export const BROTLI_OPERATION_FINISH: 2;
+
+    /**
+     * @description zlib.constants.BROTLI_OPERATION_FLUSH (brotli)
+     */
+    export const BROTLI_OPERATION_FLUSH: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_OPERATION_PROCESS (brotli)
+     */
+    export const BROTLI_OPERATION_PROCESS: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_DISABLE_LITERAL_CONTEXT_MODELING (brotli)
+     */
+    export const BROTLI_PARAM_DISABLE_LITERAL_CONTEXT_MODELING: 4;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_LARGE_WINDOW (brotli)
+     */
+    export const BROTLI_PARAM_LARGE_WINDOW: 6;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_LGBLOCK (brotli)
+     */
+    export const BROTLI_PARAM_LGBLOCK: 3;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_LGWIN (brotli)
+     */
+    export const BROTLI_PARAM_LGWIN: 2;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_MODE (brotli)
+     */
+    export const BROTLI_PARAM_MODE: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_NDIRECT (brotli)
+     */
+    export const BROTLI_PARAM_NDIRECT: 8;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_NPOSTFIX (brotli)
+     */
+    export const BROTLI_PARAM_NPOSTFIX: 7;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_QUALITY (brotli)
+     */
+    export const BROTLI_PARAM_QUALITY: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_SIZE_HINT (brotli)
+     */
+    export const BROTLI_PARAM_SIZE_HINT: 5;
 
 }
 

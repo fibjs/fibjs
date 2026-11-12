@@ -1843,4 +1843,178 @@ describe("zlib factory destination defaults", () => {
         });
     });
 
+    describe("brotli", () => {
+        var C = zlib.constants;
+
+        it("exports the full surface", () => {
+            ['brotliCompress', 'brotliDecompress', 'brotliCompressTo', 'brotliDecompressTo',
+                'createBrotliCompress', 'createBrotliDecompress',
+                'BrotliCompress', 'BrotliDecompress'].forEach((name) => {
+                assert.equal(typeof zlib[name], 'function', name + ' must be exported');
+            });
+        });
+
+        it("round-trips through the one-shot helpers", () => {
+            var text = 'hello, brotli';
+
+            assert.equal(zlib.brotliDecompress(zlib.brotliCompress(text)).toString(), text);
+        });
+
+        it("produces the same bytes as node", () => {
+            // The exact encoding of a known input: a different quality ladder or
+            // window default would show up here, and any brotli decoder can read
+            // it, which is what lets the two runtimes exchange payloads.
+            var packed = zlib.brotliCompress('hello, brotli');
+
+            assert.equal(packed.hex(), '0b068068656c6c6f2c2062726f746c6903');
+        });
+
+        it("round-trips an empty buffer", () => {
+            var packed = zlib.brotliCompress('');
+            var plain = zlib.brotliDecompress(packed);
+
+            assert.equal(packed.length, 1);
+            assert.ok(Buffer.isBuffer(plain), 'an empty result is still a buffer');
+            assert.equal(plain.length, 0);
+        });
+
+        it("takes a string or a buffer", () => {
+            var data = Buffer.from('bytes');
+
+            assert.equal(zlib.brotliDecompress(zlib.brotliCompress(data)).toString(), 'bytes');
+        });
+
+        it("maps level onto the quality parameter", () => {
+            var data = Buffer.alloc(8192, 'a'.charCodeAt(0));
+
+            assert.ok(zlib.brotliCompress(data, { level: 11 }).length <
+                zlib.brotliCompress(data, { level: 1 }).length,
+                'a higher level must produce a smaller payload');
+        });
+
+        it("accepts the brotli parameters through params", () => {
+            var data = Buffer.alloc(8192, 'a'.charCodeAt(0));
+            var packed = zlib.brotliCompress(data, {
+                params: { [C.BROTLI_PARAM_LGWIN]: 24 }
+            });
+
+            assert.equal(zlib.brotliDecompress(packed).toString(), data.toString());
+        });
+
+        it("rejects a params that is not an object", () => {
+            assert.throws(() => zlib.brotliCompress('x', { params: 1 }),
+                (e) => e.code === 'ERR_INVALID_ARG_TYPE');
+        });
+
+        it("streams into a destination", () => {
+            var packed = new io.MemoryStream();
+
+            zlib.brotliCompressTo('streaming data', packed);
+            packed.rewind();
+            assert.equal(zlib.brotliDecompress(packed.readAll()).toString(), 'streaming data');
+        });
+
+        it("decompresses into a destination", () => {
+            var out = new io.MemoryStream();
+
+            zlib.brotliDecompressTo(zlib.brotliCompress('to-stream'), out);
+            out.rewind();
+            assert.equal(out.readAll().toString(), 'to-stream');
+        });
+
+        it("stops a decompression that grows too large", () => {
+            var packed = zlib.brotliCompress(Buffer.alloc(4096, 'a'.charCodeAt(0)));
+
+            assert.throws(() => zlib.brotliDecompressTo(packed, new io.MemoryStream(), 16),
+                (e) => e.code === 'ERR_BUFFER_TOO_LARGE' && e.number === 20013);
+        });
+
+        it("builds a write-only compressor stream", () => {
+            var packed = new io.MemoryStream();
+            var br = zlib.createBrotliCompress(packed, { level: 5 });
+
+            br.write('hello ');
+            br.write('world');
+            br.close();
+
+            packed.rewind();
+            assert.equal(zlib.brotliDecompress(packed.readAll()).toString(), 'hello world');
+        });
+
+        it("builds a decompressor stream", () => {
+            var packed = zlib.brotliCompress('stream decompress');
+            var out = new io.MemoryStream();
+            var unbr = zlib.createBrotliDecompress(out);
+
+            unbr.write(packed);
+            unbr.close();
+
+            out.rewind();
+            assert.equal(out.readAll().toString(), 'stream decompress');
+        });
+
+        it("drives a codec with the zlib flush flags", () => {
+            var codec = new zlib.BrotliCompress();
+
+            var first = codec._processChunk('hello, ', C.Z_NO_FLUSH);
+            var last = codec._processChunk('world', C.Z_FINISH);
+
+            assert.equal(zlib.brotliDecompress(Buffer.concat([first, last])).toString(),
+                'hello, world');
+        });
+
+        it("starts a new stream when a codec is reused", () => {
+            var codec = new zlib.BrotliCompress();
+
+            var a = codec._processChunk('first', C.Z_FINISH);
+            var b = codec._processChunk('second', C.Z_FINISH);
+
+            assert.equal(zlib.brotliDecompress(a).toString(), 'first');
+            assert.equal(zlib.brotliDecompress(b).toString(), 'second');
+        });
+
+        it("decodes through the decompressor codec", () => {
+            var codec = new zlib.BrotliDecompress();
+
+            assert.equal(codec._processChunk(zlib.brotliCompress('codec'), C.Z_FINISH).toString(),
+                'codec');
+        });
+
+        it("rejects work on a closed codec", () => {
+            var codec = new zlib.BrotliCompress();
+
+            codec.close();
+            assert.throws(() => codec._processChunk('x', C.Z_FINISH),
+                (e) => e.code === 'ERR_ZLIB_BINDING_CLOSED');
+        });
+
+        it("reports the decoder error code", () => {
+            assert.throws(() => {
+                zlib.brotliDecompress(Buffer.from('not brotli at all'));
+            }, (e) => /^BROTLI_DECODER_ERROR_/.test(e.code || ''));
+        });
+
+        it("rejects truncated input", () => {
+            var packed = zlib.brotliCompress('a longer payload for truncation');
+
+            // Node.js reports a cut-off stream as Z_BUF_ERROR, not as a brotli
+            // decoder error: the data was well formed, it just ended early.
+            assert.throws(() => {
+                zlib.brotliDecompress(packed.slice(0, packed.length - 3));
+            }, (e) => e.code === 'Z_BUF_ERROR');
+        });
+
+        it("exposes the brotli constants", () => {
+            assert.equal(C.BROTLI_PARAM_MODE, 0);
+            assert.equal(C.BROTLI_PARAM_QUALITY, 1);
+            assert.equal(C.BROTLI_PARAM_LGWIN, 2);
+            assert.equal(C.BROTLI_MODE_GENERIC, 0);
+            assert.equal(C.BROTLI_MODE_TEXT, 1);
+            assert.equal(C.BROTLI_MODE_FONT, 2);
+            assert.equal(C.BROTLI_MIN_QUALITY, 0);
+            assert.equal(C.BROTLI_MAX_QUALITY, 11);
+            assert.equal(C.BROTLI_DEFAULT_QUALITY, 11);
+            assert.equal(C.BROTLI_DEFAULT_WINDOW, 22);
+        });
+    });
 });

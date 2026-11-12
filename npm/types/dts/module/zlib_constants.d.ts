@@ -640,5 +640,310 @@ declare module 'zlib_constants' {
      */
     export const ZSTD_error_noForwardProgress_inputEmpty: 82;
 
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_BLOCK_TYPE_TREES (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_BLOCK_TYPE_TREES: -30;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_CONTEXT_MAP (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_CONTEXT_MAP: -25;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_CONTEXT_MODES (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_CONTEXT_MODES: -21;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_RING_BUFFER_1 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_RING_BUFFER_1: -26;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_RING_BUFFER_2 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_RING_BUFFER_2: -27;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_ALLOC_TREE_GROUPS (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_ALLOC_TREE_GROUPS: -22;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_DICTIONARY_NOT_SET (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_DICTIONARY_NOT_SET: -19;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_BLOCK_LENGTH_1 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_BLOCK_LENGTH_1: -9;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_BLOCK_LENGTH_2 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_BLOCK_LENGTH_2: -10;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_CL_SPACE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_CL_SPACE: -6;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_CONTEXT_MAP_REPEAT (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_CONTEXT_MAP_REPEAT: -8;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_DICTIONARY (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_DICTIONARY: -12;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_DISTANCE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_DISTANCE: -16;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_EXUBERANT_META_NIBBLE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_EXUBERANT_META_NIBBLE: -3;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_EXUBERANT_NIBBLE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_EXUBERANT_NIBBLE: -1;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_HUFFMAN_SPACE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_HUFFMAN_SPACE: -7;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_PADDING_1 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_PADDING_1: -14;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_PADDING_2 (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_PADDING_2: -15;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_RESERVED (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_RESERVED: -2;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_SIMPLE_HUFFMAN_ALPHABET (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_SIMPLE_HUFFMAN_ALPHABET: -4;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_SIMPLE_HUFFMAN_SAME (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_SIMPLE_HUFFMAN_SAME: -5;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_TRANSFORM (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_TRANSFORM: -11;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_FORMAT_WINDOW_BITS (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_FORMAT_WINDOW_BITS: -13;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_INVALID_ARGUMENTS (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_INVALID_ARGUMENTS: -20;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_ERROR_UNREACHABLE (brotli)
+     */
+    export const BROTLI_DECODER_ERROR_UNREACHABLE: -31;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_NEEDS_MORE_INPUT (brotli)
+     */
+    export const BROTLI_DECODER_NEEDS_MORE_INPUT: 2;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_NEEDS_MORE_OUTPUT (brotli)
+     */
+    export const BROTLI_DECODER_NEEDS_MORE_OUTPUT: 3;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_NO_ERROR (brotli)
+     */
+    export const BROTLI_DECODER_NO_ERROR: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_PARAM_DISABLE_RING_BUFFER_REALLOCATION (brotli)
+     */
+    export const BROTLI_DECODER_PARAM_DISABLE_RING_BUFFER_REALLOCATION: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_PARAM_LARGE_WINDOW (brotli)
+     */
+    export const BROTLI_DECODER_PARAM_LARGE_WINDOW: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_RESULT_ERROR (brotli)
+     */
+    export const BROTLI_DECODER_RESULT_ERROR: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT (brotli)
+     */
+    export const BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT: 2;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT (brotli)
+     */
+    export const BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT: 3;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_RESULT_SUCCESS (brotli)
+     */
+    export const BROTLI_DECODER_RESULT_SUCCESS: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_DECODER_SUCCESS (brotli)
+     */
+    export const BROTLI_DECODER_SUCCESS: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_DEFAULT_MODE (brotli)
+     */
+    export const BROTLI_DEFAULT_MODE: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_DEFAULT_QUALITY (brotli)
+     */
+    export const BROTLI_DEFAULT_QUALITY: 11;
+
+    /**
+     * @description zlib.constants.BROTLI_DEFAULT_WINDOW (brotli)
+     */
+    export const BROTLI_DEFAULT_WINDOW: 22;
+
+    /**
+     * @description zlib.constants.BROTLI_LARGE_MAX_WINDOW_BITS (brotli)
+     */
+    export const BROTLI_LARGE_MAX_WINDOW_BITS: 30;
+
+    /**
+     * @description zlib.constants.BROTLI_MAX_INPUT_BLOCK_BITS (brotli)
+     */
+    export const BROTLI_MAX_INPUT_BLOCK_BITS: 24;
+
+    /**
+     * @description zlib.constants.BROTLI_MAX_QUALITY (brotli)
+     */
+    export const BROTLI_MAX_QUALITY: 11;
+
+    /**
+     * @description zlib.constants.BROTLI_MAX_WINDOW_BITS (brotli)
+     */
+    export const BROTLI_MAX_WINDOW_BITS: 24;
+
+    /**
+     * @description zlib.constants.BROTLI_MIN_INPUT_BLOCK_BITS (brotli)
+     */
+    export const BROTLI_MIN_INPUT_BLOCK_BITS: 16;
+
+    /**
+     * @description zlib.constants.BROTLI_MIN_QUALITY (brotli)
+     */
+    export const BROTLI_MIN_QUALITY: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_MIN_WINDOW_BITS (brotli)
+     */
+    export const BROTLI_MIN_WINDOW_BITS: 10;
+
+    /**
+     * @description zlib.constants.BROTLI_MODE_FONT (brotli)
+     */
+    export const BROTLI_MODE_FONT: 2;
+
+    /**
+     * @description zlib.constants.BROTLI_MODE_GENERIC (brotli)
+     */
+    export const BROTLI_MODE_GENERIC: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_MODE_TEXT (brotli)
+     */
+    export const BROTLI_MODE_TEXT: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_OPERATION_EMIT_METADATA (brotli)
+     */
+    export const BROTLI_OPERATION_EMIT_METADATA: 3;
+
+    /**
+     * @description zlib.constants.BROTLI_OPERATION_FINISH (brotli)
+     */
+    export const BROTLI_OPERATION_FINISH: 2;
+
+    /**
+     * @description zlib.constants.BROTLI_OPERATION_FLUSH (brotli)
+     */
+    export const BROTLI_OPERATION_FLUSH: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_OPERATION_PROCESS (brotli)
+     */
+    export const BROTLI_OPERATION_PROCESS: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_DISABLE_LITERAL_CONTEXT_MODELING (brotli)
+     */
+    export const BROTLI_PARAM_DISABLE_LITERAL_CONTEXT_MODELING: 4;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_LARGE_WINDOW (brotli)
+     */
+    export const BROTLI_PARAM_LARGE_WINDOW: 6;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_LGBLOCK (brotli)
+     */
+    export const BROTLI_PARAM_LGBLOCK: 3;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_LGWIN (brotli)
+     */
+    export const BROTLI_PARAM_LGWIN: 2;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_MODE (brotli)
+     */
+    export const BROTLI_PARAM_MODE: 0;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_NDIRECT (brotli)
+     */
+    export const BROTLI_PARAM_NDIRECT: 8;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_NPOSTFIX (brotli)
+     */
+    export const BROTLI_PARAM_NPOSTFIX: 7;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_QUALITY (brotli)
+     */
+    export const BROTLI_PARAM_QUALITY: 1;
+
+    /**
+     * @description zlib.constants.BROTLI_PARAM_SIZE_HINT (brotli)
+     */
+    export const BROTLI_PARAM_SIZE_HINT: 5;
+
 }
 

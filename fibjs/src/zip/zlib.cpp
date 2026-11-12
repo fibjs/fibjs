@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ZlibStream.h"
 #include "ZstdStream.h"
+#include "BrotliStream.h"
 #include "MemoryStream.h"
 #include "utils.h"
 
@@ -785,5 +786,119 @@ result_t zlib_base::zstdDecompressTo(Union_zstdDecompressTo_data data, Stream_ba
     return coder->process(buf, std::move(ac));
 }
 
+result_t zlib_base::createBrotliCompress(Stream_base* to, v8::Local<v8::Object> options,
+    obj_ptr<Stream_base>& retVal)
+{
+    // The stream lives in user code and is created synchronously, so the
+    // options can be applied right away - no phase bridge is needed here.
+    brotli_params params;
+    result_t hr = brotli_options_from_options(options, false, params);
+    if (hr.failed())
+        return hr;
+
+    retVal = new brstream(default_dest(to), params);
+    return result_t();
+}
+
+result_t zlib_base::createBrotliDecompress(Stream_base* to, int32_t maxSize,
+    v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal)
+{
+    brotli_params params;
+    result_t hr = brotli_options_from_options(options, true, params);
+    if (hr.failed())
+        return hr;
+
+    retVal = new bdstream(default_dest(to), maxSize, params);
+    return result_t();
+}
+
+// Brotli takes one options object whose `params` keys are parameter ids; it is
+// read in the sync phase and flattened into the handle, because the async phase
+// runs on a worker fiber where v8 handles are not reachable.
+result_t zlib_base::brotliCompress(Union_brotliCompress_data data,
+    v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
+{
+    if (ac.isSync())
+        return brotli_options_to_ctx(options, false, ac);
+
+    brotli_params params;
+    result_t ctx_hr = brotli_options_from_ctx(ac, params);
+    if (ctx_hr.failed())
+        return ctx_hr;
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = union_to_buffer(data, buf);
+    if (hr.failed())
+        return hr;
+
+    return (new brstream(NULL, params))->process(buf, retVal, std::move(ac));
+}
+
+result_t zlib_base::brotliDecompress(Union_brotliDecompress_data data,
+    v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
+{
+    if (ac.isSync())
+        return brotli_options_to_ctx(options, true, ac);
+
+    brotli_params params;
+    result_t ctx_hr = brotli_options_from_ctx(ac, params);
+    if (ctx_hr.failed())
+        return ctx_hr;
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = union_to_buffer(data, buf);
+    if (hr.failed())
+        return hr;
+
+    return (new bdstream(NULL, -1, params))->process(buf, retVal, std::move(ac));
+}
+
+result_t zlib_base::brotliCompressTo(Union_brotliCompressTo_data data,
+    Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
+{
+    if (ac.isSync())
+        return brotli_options_to_ctx(options, false, ac);
+
+    brotli_params params;
+    result_t ctx_hr = brotli_options_from_ctx(ac, params);
+    if (ctx_hr.failed())
+        return ctx_hr;
+
+    brstream* coder = new brstream(stm, params);
+
+    if (std::holds_alternative<obj_ptr<Stream_base>>(data))
+        return coder->process(std::get<obj_ptr<Stream_base>>(data), std::move(ac));
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = union_to_buffer(data, buf);
+    if (hr.failed())
+        return hr;
+
+    return coder->process(buf, std::move(ac));
+}
+
+result_t zlib_base::brotliDecompressTo(Union_brotliDecompressTo_data data,
+    Stream_base* stm, int32_t maxSize, v8::Local<v8::Object> options, AsyncHandle ac)
+{
+    if (ac.isSync())
+        return brotli_options_to_ctx(options, true, ac);
+
+    brotli_params params;
+    result_t ctx_hr = brotli_options_from_ctx(ac, params);
+    if (ctx_hr.failed())
+        return ctx_hr;
+
+    bdstream* coder = new bdstream(stm, maxSize, params);
+
+    if (std::holds_alternative<obj_ptr<Stream_base>>(data))
+        return coder->process(std::get<obj_ptr<Stream_base>>(data), std::move(ac));
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = union_to_buffer(data, buf);
+    if (hr.failed())
+        return hr;
+
+    return coder->process(buf, std::move(ac));
+}
 
 }

@@ -25,6 +25,8 @@ class InflateRaw_base;
 class Unzip_base;
 class ZstdCompress_base;
 class ZstdDecompress_base;
+class BrotliCompress_base;
+class BrotliDecompress_base;
 class Stream_base;
 class Buffer_base;
 
@@ -60,6 +62,10 @@ public:
     using Union_zstdDecompress_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_zstdCompressTo_data = std::variant<obj_ptr<Buffer_base>, obj_ptr<Stream_base>, exlib::string>;
     using Union_zstdDecompressTo_data = std::variant<obj_ptr<Buffer_base>, obj_ptr<Stream_base>, exlib::string>;
+    using Union_brotliCompress_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_brotliDecompress_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_brotliCompressTo_data = std::variant<obj_ptr<Buffer_base>, obj_ptr<Stream_base>, exlib::string>;
+    using Union_brotliDecompressTo_data = std::variant<obj_ptr<Buffer_base>, obj_ptr<Stream_base>, exlib::string>;
 
 public:
     enum {
@@ -102,6 +108,12 @@ public:
     static result_t zstdDecompress(Union_zstdDecompress_data data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t zstdCompressTo(Union_zstdCompressTo_data data, Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac);
     static result_t zstdDecompressTo(Union_zstdDecompressTo_data data, Stream_base* stm, int32_t maxSize, v8::Local<v8::Object> options, AsyncHandle ac);
+    static result_t createBrotliCompress(Stream_base* to, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal);
+    static result_t createBrotliDecompress(Stream_base* to, int32_t maxSize, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal);
+    static result_t brotliCompress(Union_brotliCompress_data data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t brotliDecompress(Union_brotliDecompress_data data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t brotliCompressTo(Union_brotliCompressTo_data data, Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac);
+    static result_t brotliDecompressTo(Union_brotliDecompressTo_data data, Stream_base* stm, int32_t maxSize, v8::Local<v8::Object> options, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -146,6 +158,12 @@ public:
     static void s_static_zstdDecompress(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_zstdCompressTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_zstdDecompressTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createBrotliCompress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createBrotliDecompress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_brotliCompress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_brotliDecompress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_brotliCompressTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_brotliDecompressTo(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(zlib_base, deflate, Union_deflate_data, Union_deflate_level, obj_ptr<Buffer_base>);
@@ -168,6 +186,10 @@ public:
     ASYNC_STATICVALUE3(zlib_base, zstdDecompress, Union_zstdDecompress_data, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
     ASYNC_STATIC3(zlib_base, zstdCompressTo, Union_zstdCompressTo_data, Stream_base*, v8::Local<v8::Object>);
     ASYNC_STATIC4(zlib_base, zstdDecompressTo, Union_zstdDecompressTo_data, Stream_base*, int32_t, v8::Local<v8::Object>);
+    ASYNC_STATICVALUE3(zlib_base, brotliCompress, Union_brotliCompress_data, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE3(zlib_base, brotliDecompress, Union_brotliDecompress_data, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
+    ASYNC_STATIC3(zlib_base, brotliCompressTo, Union_brotliCompressTo_data, Stream_base*, v8::Local<v8::Object>);
+    ASYNC_STATIC4(zlib_base, brotliDecompressTo, Union_brotliDecompressTo_data, Stream_base*, int32_t, v8::Local<v8::Object>);
 };
 }
 
@@ -181,6 +203,8 @@ public:
 #include "ifs/Unzip.h"
 #include "ifs/ZstdCompress.h"
 #include "ifs/ZstdDecompress.h"
+#include "ifs/BrotliCompress.h"
+#include "ifs/BrotliDecompress.h"
 #include "ifs/Stream.h"
 #include "ifs/Buffer.h"
 
@@ -218,7 +242,13 @@ inline ClassInfo& zlib_base::class_info()
         { "zstdCompress", s_static_zstdCompress, true, ClassData::ASYNC_ASYNC },
         { "zstdDecompress", s_static_zstdDecompress, true, ClassData::ASYNC_ASYNC },
         { "zstdCompressTo", s_static_zstdCompressTo, true, ClassData::ASYNC_ASYNC },
-        { "zstdDecompressTo", s_static_zstdDecompressTo, true, ClassData::ASYNC_ASYNC }
+        { "zstdDecompressTo", s_static_zstdDecompressTo, true, ClassData::ASYNC_ASYNC },
+        { "createBrotliCompress", s_static_createBrotliCompress, true, ClassData::ASYNC_SYNC },
+        { "createBrotliDecompress", s_static_createBrotliDecompress, true, ClassData::ASYNC_SYNC },
+        { "brotliCompress", s_static_brotliCompress, true, ClassData::ASYNC_ASYNC },
+        { "brotliDecompress", s_static_brotliDecompress, true, ClassData::ASYNC_ASYNC },
+        { "brotliCompressTo", s_static_brotliCompressTo, true, ClassData::ASYNC_ASYNC },
+        { "brotliDecompressTo", s_static_brotliDecompressTo, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -231,7 +261,9 @@ inline ClassInfo& zlib_base::class_info()
         { "InflateRaw", InflateRaw_base::class_info },
         { "Unzip", Unzip_base::class_info },
         { "ZstdCompress", ZstdCompress_base::class_info },
-        { "ZstdDecompress", ZstdDecompress_base::class_info }
+        { "ZstdDecompress", ZstdDecompress_base::class_info },
+        { "BrotliCompress", BrotliCompress_base::class_info },
+        { "BrotliDecompress", BrotliDecompress_base::class_info }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -792,6 +824,114 @@ inline void zlib_base::s_static_zstdDecompressTo(const v8::FunctionCallbackInfo<
         hr = acb_zstdDecompressTo(v0, v1.get(), v2, v3, cb, args);
     else
         hr = ac_zstdDecompressTo(v0, v1.get(), v2, v3);
+
+    ASYNC_METHOD_VOID();
+}
+
+inline void zlib_base::s_static_createBrotliCompress(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 0);
+
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+
+    hr = createBrotliCompress(v0.get(), v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_createBrotliDecompress(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 0);
+
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
+    OPT_ARG_NAMED(int32_t, 1, -1, "maxSize");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
+
+    hr = createBrotliDecompress(v0.get(), v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_brotliCompress(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_ENTER("zlib.brotliCompress");
+
+    METHOD_OVER_NAMED(2, 1, "data");
+
+    ARG(Union_brotliCompress_data, 0);
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+
+    if (!cb.IsEmpty())
+        hr = acb_brotliCompress(v0, v1, cb, args);
+    else
+        hr = ac_brotliCompress(v0, v1, vr);
+
+    ASYNC_METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_brotliDecompress(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_ENTER("zlib.brotliDecompress");
+
+    METHOD_OVER_NAMED(2, 1, "data");
+
+    ARG(Union_brotliDecompress_data, 0);
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+
+    if (!cb.IsEmpty())
+        hr = acb_brotliDecompress(v0, v1, cb, args);
+    else
+        hr = ac_brotliDecompress(v0, v1, vr);
+
+    ASYNC_METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_brotliCompressTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("zlib.brotliCompressTo");
+
+    METHOD_OVER_NAMED(3, 2, "stm");
+
+    ARG(Union_brotliCompressTo_data, 0);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
+
+    if (!cb.IsEmpty())
+        hr = acb_brotliCompressTo(v0, v1.get(), v2, cb, args);
+    else
+        hr = ac_brotliCompressTo(v0, v1.get(), v2);
+
+    ASYNC_METHOD_VOID();
+}
+
+inline void zlib_base::s_static_brotliDecompressTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("zlib.brotliDecompressTo");
+
+    METHOD_OVER_NAMED(4, 2, "stm");
+
+    ARG(Union_brotliDecompressTo_data, 0);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
+    OPT_ARG_NAMED(int32_t, 2, -1, "maxSize");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate), "options");
+
+    if (!cb.IsEmpty())
+        hr = acb_brotliDecompressTo(v0, v1.get(), v2, v3, cb, args);
+    else
+        hr = ac_brotliDecompressTo(v0, v1.get(), v2, v3);
 
     ASYNC_METHOD_VOID();
 }

@@ -1,0 +1,63 @@
+/*! @brief BrotliCompress is the codec that compresses data to the Brotli stream format
+
+ `new zlib.BrotliCompress(opts)` builds a synchronous codec; feed chunks with
+ `_processChunk` and the zlib flush flags. The output is a standard Brotli stream, the same
+ bytes `zlib.brotliCompress` writes and `zlib.brotliDecompress` and the brotli command line
+ tool read. For the fibjs stream API use `zlib.createBrotliCompress(to)` instead; the codec
+ class exists for packages that drive a codec directly. It inherits the members of
+ ZlibCodec, so `_processChunk`, `close` and `reset` behave the way they do for the deflate
+ codecs.
+
+ Concepts:
+ - **Options**: `params` is an object whose keys are Brotli parameter constants
+   (`BROTLI_PARAM_MODE`, `BROTLI_PARAM_QUALITY`, `BROTLI_PARAM_LGWIN`,
+   `BROTLI_PARAM_LGBLOCK`, `BROTLI_PARAM_DISABLE_LITERAL_CONTEXT_MODELING`,
+   `BROTLI_PARAM_SIZE_HINT`, `BROTLI_PARAM_NPOSTFIX`, `BROTLI_PARAM_NDIRECT`) and whose
+   values are applied through `BrotliEncoderSetParameter`. `level` is accepted as an alias
+   of `BROTLI_PARAM_QUALITY` (default `BROTLI_DEFAULT_QUALITY`, 11). Other keys are
+   ignored.
+ - **Flush flags**: the codec takes the zlib flush flags and maps them to Brotli
+   operations, so generic compression code does not need a second set of flags:
+   `Z_NO_FLUSH` is `BROTLI_OPERATION_PROCESS`, `Z_SYNC_FLUSH` (and the other flush modes)
+   is `BROTLI_OPERATION_FLUSH`, `Z_FINISH` is `BROTLI_OPERATION_FINISH`.
+ - **Streaming**: each `_processChunk` call appends to the current stream; `Z_FINISH` ends
+   it and resets the codec for the next message. A call may return an empty Buffer when
+   the compressor absorbed the input without producing output.
+
+ Example 1 — compress and decompress through concrete codecs:
+ ```JavaScript
+ const zlib = require('zlib');
+ const C = zlib.constants;
+
+ const br = new zlib.BrotliCompress({
+     params: { [C.BROTLI_PARAM_QUALITY]: 11 }
+ });
+ const packed = br._processChunk('hello, brotli', C.Z_FINISH);
+
+ const unbr = new zlib.BrotliDecompress();
+ console.log(unbr._processChunk(packed, C.Z_FINISH).toString()); // hello, brotli
+ ```
+
+ Example 2 — a codec stream and the module-level helper are interchangeable:
+ ```JavaScript
+ const zlib = require('zlib');
+ const C = zlib.constants;
+
+ const packed = new zlib.BrotliCompress()._processChunk('hello', C.Z_FINISH);
+ console.log(zlib.brotliDecompress(packed).toString()); // hello
+ ```
+ */
+interface BrotliCompress : ZlibCodec
+{
+    /*! @brief Creates a Brotli compressor
+
+     `opts` may be omitted or empty. The recognized options are `params` (an object of
+     `BROTLI_PARAM_*` constants to values, applied through
+     `BrotliEncoderSetParameter`) and `level` (an alias of `BROTLI_PARAM_QUALITY`,
+     default 11). Other keys are ignored. A value the encoder rejects throws a RangeError
+     with the error name from `BrotliEncoderSetParameter`.
+
+     @param opts compression options
+     */
+    BrotliCompress(Object opts = {});
+};
