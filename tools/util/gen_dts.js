@@ -135,13 +135,82 @@ function writeDtsFile(file, content) {
 // (plans/fibjs-upstream-gaps.md B1; `util/types`, `path/posix` and
 // `path/win32` are covered by the IDL units plus MODULE_RUNTIME_NAMES).
 //
-// One file per module under tools/handwritten/module: the file name is the IDL
-// unit name and the text is appended to that unit's corpus file - for a module
-// with an IDL unit (`net`, adding `AddressInfo`) that is a second
+// One file per module, kept next to what it declares:
+//
+//   - a pure-JS module keeps its declaration beside its implementation under
+//     fibjs/scripts (`stream.d.ts` next to `stream.js`, `stream/web.d.ts` next
+//     to `stream/web.js`). The file name carries no unit name there: the unit
+//     comes from the `declare module '<runtime name>'` line inside the file,
+//     mapped back through MODULE_RUNTIME_NAMES (`stream/web` -> `stream_web`);
+//   - everything else (a declaration merged into a module that has an IDL unit,
+//     or a module with no JS of its own such as `events` or `https`) lives
+//     under idl/types, where the file name *is* the unit name.
+//
+// Either way the text is appended to that unit's corpus file: a unit with an
+// IDL definition (`net`, adding `AddressInfo`) gets a second
 // `declare module '<name>' { ... }` block in the same file, which TypeScript
-// merges with the generated one; for a module without one it is the whole
-// file.
-const HANDWRITTEN_MODULE_DIR = path.resolve(__dirname, '../../tools/handwritten/module');
+// merges with the generated one; a unit without one is the whole file. The
+// corpus file name stays `<unit>.d.ts` under `dts/module/`, because
+// tools/gen_builtin_types.js derives the `fibjs:` / `node:` aliases from that
+// shape.
+const HANDWRITTEN_IDL_DIR = path.resolve(__dirname, '../../idl/types');
+const HANDWRITTEN_SCRIPTS_DIR = path.resolve(__dirname, '../../fibjs/scripts');
+
+// `idl/types` mirrors the corpus layout: `module/` holds module declarations and
+// `interface/` holds the class/interface ones. Only `module/` is collected here:
+// an interface-level file replaces a generated class declaration in place, which
+// is the dedicated slot below (the `Buffer` one), not an appended module block.
+const HANDWRITTEN_IDL_CATEGORIES = ['module'];
+
+// Inverse of MODULE_RUNTIME_NAMES: runtime module name -> IDL unit name, so a
+// co-located declaration can be matched to its corpus slot.
+const RUNTIME_NAME_TO_UNIT = {};
+Object.keys(MODULE_RUNTIME_NAMES).forEach(unitName =>
+    RUNTIME_NAME_TO_UNIT[MODULE_RUNTIME_NAMES[unitName]] = unitName);
+
+// The sub-path modules the pure-JS layer provides have no IDL unit, so their
+// corpus slot is not derivable from the runtime name. These are the historical
+// spellings the corpus files have always had (and the names
+// tools/gen_builtin_types.js derives the `fibjs:` / `node:` aliases from), so
+// they are pinned here rather than derived - renaming a corpus file would drop
+// the alias.
+const RUNTIME_NAME_TO_UNIT_EXTRA = {
+    'readline/promises': 'readline.promises',
+    'stream/promises': 'stream.promises',
+    'stream/web': 'stream_web',
+    'timers/promises': 'timers.promises',
+};
+
+function runtimeNameToUnit(runtimeName) {
+    return RUNTIME_NAME_TO_UNIT[runtimeName]
+        || RUNTIME_NAME_TO_UNIT_EXTRA[runtimeName]
+        || runtimeName;
+}
+
+/**
+ * Every `.d.ts` under dir, recursively. A co-located declaration may sit in a
+ * subdirectory (`fibjs/scripts/stream/web.d.ts`), so a flat readdir is not
+ * enough.
+ * @returns {string[]} absolute paths
+ */
+function walkDtsFiles(dir) {
+    const out = [];
+
+    if (!fs.existsSync(dir))
+        return out;
+
+    fs.readdirSync(dir).forEach(f => {
+        const full = path.join(dir, f);
+
+        if (fs.statSync(full).isDirectory()) {
+            out.push(...walkDtsFiles(full));
+        } else if (f.endsWith('.d.ts')) {
+            out.push(full);
+        }
+    });
+
+    return out;
+}
 
 /**
  * @returns {Map<string, string>} unit name -> text, sorted by name
@@ -149,18 +218,55 @@ const HANDWRITTEN_MODULE_DIR = path.resolve(__dirname, '../../tools/handwritten/
 function readHandwrittenModules() {
     const modules = new Map();
 
-    if (!fs.existsSync(HANDWRITTEN_MODULE_DIR))
-        return modules;
+    // idl/types: the file name is the unit name, and the subdirectory says
+    // which corpus slot it belongs to.
+    HANDWRITTEN_IDL_CATEGORIES.forEach(category => {
+        const dir = path.join(HANDWRITTEN_IDL_DIR, category);
 
-    fs.readdirSync(HANDWRITTEN_MODULE_DIR)
-        .filter(f => f.endsWith('.d.ts'))
+        if (!fs.existsSync(dir))
+            return;
+
+        fs.readdirSync(dir)
+            .filter(f => f.endsWith('.d.ts'))
+            .sort()
+            .forEach(f => {
+                modules.set(path.basename(f, '.d.ts'),
+                    fs.readFileSync(path.join(dir, f), 'utf8'));
+            });
+    });
+
+    // fibjs/scripts: the unit name comes from the declared runtime name.
+    walkDtsFiles(HANDWRITTEN_SCRIPTS_DIR)
         .sort()
-        .forEach(f => {
-            modules.set(path.basename(f, '.d.ts'), fs.readFileSync(path.join(HANDWRITTEN_MODULE_DIR, f), 'utf8'));
+        .forEach(file => {
+            const text = fs.readFileSync(file, 'utf8');
+            const declared = /^declare module '([^']+)'/m.exec(text);
+            const rel = path.relative(HANDWRITTEN_SCRIPTS_DIR, file)
+                .replace(/\\/g, '/');
+
+            // A file that does not start with a `declare module` line is not a
+            // module declaration. Failing loudly is the point: a silently
+            // skipped file is a declaration the user believes is in effect.
+            if (!declared)
+                throw new Error(`${rel}: a co-located .d.ts must start with ` +
+                    `declare module '<runtime name>' so its corpus slot can be resolved`);
+
+            const unitName = runtimeNameToUnit(declared[1]);
+
+            if (modules.has(unitName))
+                throw new Error(`${rel}: unit '${unitName}' already has a ` +
+                    `hand-written declaration (idl/types/${unitName}.d.ts)`);
+
+            modules.set(unitName, text);
         });
 
-    return modules;
+    // The two sources are scanned in a different order than the old single
+    // directory was, so re-sort by unit name: the corpus append order (and the
+    // `bridge.d.ts` reference list derived from it) must not churn just because
+    // a file moved.
+    return new Map([...modules].sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
 }
+
 
 function convertIDLCommentToJSDocComment(comment = '') {
     return comment
@@ -2663,12 +2769,12 @@ function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
                 }
             }
 
-            // Buffer is hand-written (tools/handwritten/Buffer.d.ts): its surface is
+            // Buffer is hand-written (idl/types/interface/Buffer.d.ts): its surface is
             // `declare class Class_Buffer extends Uint8Array`, which the IDL cannot
             // express. Keep the corpus slot in sync with the hand-written file; the
             // member list is checked by test/buffer_types_test.js.
             if (unitName === 'Buffer' && !ismodule) {
-                const handWritten = path.resolve(__dirname, '../../tools/handwritten/Buffer.d.ts');
+                const handWritten = path.resolve(__dirname, '../../idl/types/interface/Buffer.d.ts');
 
                 unitDeclare = fs.existsSync(handWritten) ? fs.readFileSync(handWritten, 'utf8') : unitDeclare;
             }

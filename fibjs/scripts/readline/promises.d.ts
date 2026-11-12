@@ -17,8 +17,15 @@ declare module 'readline/promises' {
      *      and takes no callback, so a subclass override would be incompatible
      *      with the inherited member (TS2416). The rest of the surface is the
      *      callback Interface's, so it is redeclared by extension.
+     *
+     *      Declared as a class, not an interface, because the runtime exports a
+     *      constructor: `new (require('readline/promises').Interface)(options)`
+     *      and `createInterface(...) instanceof Interface` both work, in Node
+     *      as well as here. The `question` member is redeclared in the class
+     *      body, which is what keeps a single name working as both value and
+     *      type.
      */
-    interface Interface extends Omit<readline.Interface, 'question' | 'constructor'> {
+    class Interface implements Omit<readline.Interface, 'question' | 'constructor'> {
         /** Asks the user a question and resolves with the answer. */
         question(query: string, options?: { signal?: Class_AbortSignal }): Promise<string>;
     }

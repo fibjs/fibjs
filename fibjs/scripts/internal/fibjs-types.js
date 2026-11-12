@@ -109215,8 +109215,15 @@ declare module 'readline/promises' {
      *      and takes no callback, so a subclass override would be incompatible
      *      with the inherited member (TS2416). The rest of the surface is the
      *      callback Interface's, so it is redeclared by extension.
+     *
+     *      Declared as a class, not an interface, because the runtime exports a
+     *      constructor: \`new (require('readline/promises').Interface)(options)\`
+     *      and \`createInterface(...) instanceof Interface\` both work, in Node
+     *      as well as here. The \`question\` member is redeclared in the class
+     *      body, which is what keeps a single name working as both value and
+     *      type.
      */
-    interface Interface extends Omit<readline.Interface, 'question' | 'constructor'> {
+    class Interface implements Omit<readline.Interface, 'question' | 'constructor'> {
         /** Asks the user a question and resolves with the answer. */
         question(query: string, options?: { signal?: Class_AbortSignal }): Promise<string>;
     }
@@ -113324,7 +113331,22 @@ declare module 'timers/promises' {
      */
     function setImmediate<T = void>(value?: T, options?: TimerOptions): Promise<T>;
 
-    export { setTimeout, setImmediate, TimerOptions };
+    /**
+     * @description Yields an empty object once per \`delay\` milliseconds
+     *
+     *      Node's \`timers/promises.setInterval\` is an async iterator, not a
+     *      promise: \`for await (const _ of setInterval(10))\` runs once per tick.
+     *      Each iteration yields \`{}\`; the \`value\` argument is accepted for
+     *      signature compatibility and is not yielded, matching Node.
+     *
+     *      The iteration ends when the consumer breaks out of the loop (the
+     *      iterator is closed, which clears the timer) or when \`options.signal\`
+     *      aborts (silently, not by throwing); an already-aborted signal makes
+     *      the first \`next()\` report done immediately.
+     */
+    function setInterval(delay?: number, value?: any, options?: TimerOptions): AsyncIterableIterator<{}>;
+
+    export { setTimeout, setImmediate, setInterval, TimerOptions };
 }
 `,
         "dts/module/tls.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />

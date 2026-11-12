@@ -26,5 +26,20 @@ declare module 'timers/promises' {
      */
     function setImmediate<T = void>(value?: T, options?: TimerOptions): Promise<T>;
 
-    export { setTimeout, setImmediate, TimerOptions };
+    /**
+     * @description Yields an empty object once per `delay` milliseconds
+     *
+     *      Node's `timers/promises.setInterval` is an async iterator, not a
+     *      promise: `for await (const _ of setInterval(10))` runs once per tick.
+     *      Each iteration yields `{}`; the `value` argument is accepted for
+     *      signature compatibility and is not yielded, matching Node.
+     *
+     *      The iteration ends when the consumer breaks out of the loop (the
+     *      iterator is closed, which clears the timer) or when `options.signal`
+     *      aborts (silently, not by throwing); an already-aborted signal makes
+     *      the first `next()` report done immediately.
+     */
+    function setInterval(delay?: number, value?: any, options?: TimerOptions): AsyncIterableIterator<{}>;
+
+    export { setTimeout, setImmediate, setInterval, TimerOptions };
 }

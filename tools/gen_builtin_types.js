@@ -104,12 +104,12 @@ function normalizeSymbolMembers(text) {
 // layer (fibjs/scripts/internal/buffer.js, `class Buffer extends Uint8Array`).
 //
 // A no-op once the corpus declares the base itself (the hand-written
-// tools/handwritten/Buffer.d.ts copied into the corpus by gen_dts).
+// idl/types/Buffer.d.ts copied into the corpus by gen_dts).
 function normalizeBufferBase(rel, text) {
     if (rel !== BUFFER_FILE)
         return text;
 
-    // The corpus slot now comes from the hand-written tools/handwritten/Buffer.d.ts
+    // The corpus slot now comes from the hand-written idl/types/Buffer.d.ts
     // (copied by tools/util/gen_dts.js), which already declares the Uint8Array base
     // and base-compatible members. The reshaping below only applies to a legacy
     // generated corpus; each step is skipped when its input is not present.

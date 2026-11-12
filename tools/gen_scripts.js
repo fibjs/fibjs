@@ -23,6 +23,15 @@ function enc_folder(dir) {
             return
         }
 
+        // A `.d.ts` next to the JS it describes is a declaration file for the
+        // type checker (read by tools/util/gen_dts.js), never a module to embed.
+        // Without this guard `indexOf('.ts')` matches, `stripTypeScript` blanks
+        // the text and `basename(f, '.ts')` turns `stream.d.ts` into `stream.d`,
+        // which used to register an empty module silently.
+        if (f.endsWith('.d.ts')) {
+            return
+        }
+
         var isTypeScript = f.indexOf('.ts') !== -1;
         var isJavaScript = f.indexOf('.js') !== -1;
         
