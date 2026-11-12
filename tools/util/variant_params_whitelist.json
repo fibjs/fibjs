@@ -499,6 +499,12 @@
             "member": "validateHeaderValue",
             "param": "value",
             "reason": "a header value is judged by what it is, not by what it converts to: undefined must fail with ERR_HTTP_INVALID_HEADER_VALUE while null and numbers are accepted (Node parity, plan section 4)"
+        },
+        {
+            "def": "url",
+            "member": "urlToHttpOptions",
+            "param": "url",
+            "reason": "only a URL object is accepted; a string or a plain object must fail with ERR_INVALID_ARG_TYPE instead of being parsed or constructed, so the original value has to be inspected (Node parity, plan section 5)"
         }
     ]
 }

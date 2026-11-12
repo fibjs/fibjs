@@ -254,6 +254,85 @@ result_t url_base::pathToFileURL(exlib::string path, v8::Local<v8::Object> optio
     return parse("file://" + pathname, false, false, retVal);
 }
 
+// percent_decode() only transforms a string from its first '%', so a component
+// without an escape is returned as it is.
+static exlib::string percent_decode(exlib::string& s)
+{
+    size_t pos = s.find('%');
+
+    if (pos == exlib::string::npos)
+        return s;
+
+    return ada::unicode::percent_decode(s.c_str(), pos);
+}
+
+result_t url_base::urlToHttpOptions(v8::Local<v8::Value> urlValue, obj_ptr<NObject>& retVal)
+{
+    // Only a URL object is accepted. `UrlObject_base::load` (what an
+    // UrlObject-typed parameter goes through) would build one from a string or
+    // a plain object instead, which is what Node.js rejects with
+    // ERR_INVALID_ARG_TYPE - so the value is inspected before it is converted.
+    obj_ptr<UrlObject_base> url;
+
+    // IsNativeObject() already rejects a non-object, so this is the whole test.
+    if (IsNativeObject(urlValue)) {
+        object_base* obj = object_base::getInstance(urlValue);
+
+        if (strcmp(obj->Classinfo().name(), "UrlObject") == 0)
+            url = (UrlObject_base*)obj;
+    }
+
+    if (url == NULL)
+        return result_t::make(CALL_E_INVALIDARG)
+            .with_code("ERR_INVALID_ARG_TYPE")
+            .with_message("The \"url\" argument must be of type URL");
+
+    obj_ptr<NObject> o = new NObject();
+
+    exlib::string protocol, hostname, hash, search, pathname, path, href, port,
+        username, password;
+    result_t hr;
+
+    if ((hr = url->get_protocol(protocol)).failed()) return hr;
+    if ((hr = url->get_hostname(hostname)).failed()) return hr;
+    if ((hr = url->get_hash(hash)).failed()) return hr;
+    if ((hr = url->get_search(search)).failed()) return hr;
+    if ((hr = url->get_pathname(pathname)).failed()) return hr;
+    if ((hr = url->get_path(path)).failed()) return hr;
+    if ((hr = url->get_href(href)).failed()) return hr;
+
+    // The URL serializes an IPv6 host with its brackets, while the option is
+    // the bare address - a client adds them back when it connects.
+    if (hostname.length() > 1 && hostname[0] == '[' && hostname[hostname.length() - 1] == ']')
+        hostname = hostname.substr(1, hostname.length() - 2);
+
+    o->add("protocol", protocol);
+    o->add("hostname", hostname);
+    o->add("hash", hash);
+    o->add("search", search);
+    o->add("pathname", pathname);
+    o->add("path", path);
+    o->add("href", href);
+
+    // A URL whose port is the default of its scheme reports `''`, and Node.js
+    // leaves the field out rather than sending an empty one.
+    if ((hr = url->get_port(port)).failed()) return hr;
+    if (!port.empty())
+        o->add("port", atoi(port.c_str()));
+
+    // Both components are percent-encoded in the URL, while `auth` is the
+    // decoded user information in Node.js - a client re-encodes what it sends.
+    if ((hr = url->get_username(username)).failed()) return hr;
+    if ((hr = url->get_password(password)).failed()) return hr;
+
+    if (!username.empty() || !password.empty()) {
+        o->add("auth", percent_decode(username) + ":" + percent_decode(password));
+    }
+
+    retVal = o;
+    return result_t();
+}
+
 result_t url_base::domainToASCII(exlib::string domain, exlib::string& retVal)
 {
     retVal = ada::idna::to_ascii(domain);

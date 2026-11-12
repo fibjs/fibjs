@@ -2366,6 +2366,72 @@ describe("url", () => {
         assert.equal(u, "sqlite:test.db");
     });
 
+    describe("urlToHttpOptions", () => {
+        it("returns the components http.request reads", () => {
+            const options = url.urlToHttpOptions(new URL('http://a.com/x'));
+
+            assert.strictEqual(options.protocol, 'http:');
+            assert.strictEqual(options.hostname, 'a.com');
+            assert.strictEqual(options.hash, '');
+            assert.strictEqual(options.search, '');
+            assert.strictEqual(options.pathname, '/x');
+            assert.strictEqual(options.path, '/x');
+            assert.strictEqual(options.href, 'http://a.com/x');
+        });
+
+        it("omits port and auth when the URL has neither", () => {
+            const options = url.urlToHttpOptions(new URL('http://a.com/x'));
+
+            assert.ok(!('port' in options), 'no port for a default-port URL');
+            assert.ok(!('auth' in options), 'no auth without user information');
+        });
+
+        it("adds port as a number and auth as user:password", () => {
+            const options = url.urlToHttpOptions(
+                new URL('http://u:p@a.com:8443/x?y=1#z'));
+
+            assert.strictEqual(options.port, 8443);
+            assert.strictEqual(typeof options.port, 'number');
+            assert.strictEqual(options.auth, 'u:p');
+            assert.strictEqual(options.search, '?y=1');
+            assert.strictEqual(options.hash, '#z');
+            assert.strictEqual(options.path, '/x?y=1');
+        });
+
+        it("strips the brackets of an IPv6 hostname", () => {
+            const options = url.urlToHttpOptions(new URL('http://[::1]:81/x'));
+
+            assert.strictEqual(options.hostname, '::1');
+            assert.strictEqual(options.port, 81);
+        });
+
+        it("percent-decodes the user information", () => {
+            const options = url.urlToHttpOptions(
+                new URL('http://u%20s:p%40ss@a.com:9/x'));
+
+            assert.strictEqual(options.auth, 'u s:p@ss');
+        });
+
+        it("keeps a trailing colon when only the user name is present", () => {
+            assert.strictEqual(
+                url.urlToHttpOptions(new URL('http://u@a.com/x')).auth, 'u:');
+        });
+
+        it("omits a port equal to the scheme default", () => {
+            assert.ok(!('port' in url.urlToHttpOptions(new URL('http://a.com:80/x'))));
+            assert.ok(!('port' in url.urlToHttpOptions(new URL('https://a.com:443/p'))));
+        });
+
+        it("rejects anything that is not a URL object", () => {
+            for (const bad of ['http://a.com/x', null, undefined, 1, {}, []]) {
+                assert.throws(() => url.urlToHttpOptions(bad), (e) => {
+                    assert.strictEqual(e.code, 'ERR_INVALID_ARG_TYPE');
+                    return true;
+                });
+            }
+        });
+    });
+
     describe("URL Parsing - Basic Cases", () => {
         it("should parse simple HTTP URLs", () => {
             const result = url.parse('http://example.com');

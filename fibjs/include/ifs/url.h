@@ -34,6 +34,7 @@ public:
     static result_t resolve(exlib::string _from, exlib::string to, exlib::string& retVal);
     static result_t fileURLToPath(Union_fileURLToPath_url url, v8::Local<v8::Object> options, exlib::string& retVal);
     static result_t pathToFileURL(exlib::string path, v8::Local<v8::Object> options, obj_ptr<UrlObject_base>& retVal);
+    static result_t urlToHttpOptions(v8::Local<v8::Value> url, obj_ptr<NObject>& retVal);
     static result_t domainToASCII(exlib::string domain, exlib::string& retVal);
     static result_t domainToUnicode(exlib::string domain, exlib::string& retVal);
 
@@ -54,6 +55,7 @@ public:
     static void s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fileURLToPath(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pathToFileURL(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_urlToHttpOptions(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_domainToASCII(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_domainToUnicode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -71,6 +73,7 @@ inline ClassInfo& url_base::class_info()
         { "resolve", s_static_resolve, true, ClassData::ASYNC_SYNC },
         { "fileURLToPath", s_static_fileURLToPath, true, ClassData::ASYNC_SYNC },
         { "pathToFileURL", s_static_pathToFileURL, true, ClassData::ASYNC_SYNC },
+        { "urlToHttpOptions", s_static_urlToHttpOptions, true, ClassData::ASYNC_SYNC },
         { "domainToASCII", s_static_domainToASCII, true, ClassData::ASYNC_SYNC },
         { "domainToUnicode", s_static_domainToUnicode, true, ClassData::ASYNC_SYNC }
     };
@@ -180,6 +183,21 @@ inline void url_base::s_static_pathToFileURL(const v8::FunctionCallbackInfo<v8::
     OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pathToFileURL(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void url_base::s_static_urlToHttpOptions(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NObject> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER_NAMED(1, 1, "url");
+
+    ARG_NAMED(v8::Local<v8::Value>, 0, "url");
+
+    hr = urlToHttpOptions(v0, vr);
 
     METHOD_RETURN();
 }

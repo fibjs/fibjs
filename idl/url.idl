@@ -264,6 +264,38 @@ module url
      */
     static UrlObject pathToFileURL(String path, Object options = {});
 
+    /*! @brief Converts a URL object into the options object http.request takes
+
+     The result carries the fields http.request reads: `protocol`, `hostname`,
+     `hash`, `search`, `pathname`, `path` (pathname + search) and `href`, plus
+     `port` and `auth` when the URL has them. `port` is a number and `auth` is
+     `username:password`, both percent-decoded, so they can be handed to a
+     client as they are. A URL whose port is the default of its scheme has no
+     `port` field, and one without user information has no `auth`, which is the
+     same omission Node.js makes.
+
+     This is the conversion Node.js exposes as url.urlToHttpOptions. Only a
+     URL object is accepted: a string, a plain object or any other value fails
+     with ERR_INVALID_ARG_TYPE, because the point of the function is to read the
+     parsed components, and anything else would have to be parsed or coerced
+     first. Node.js itself returns a nearly empty object (`{ path: '', port: null }`)
+     for a non-URL object rather than converting it, so the strict form loses
+     nothing and reports the mistake instead of hiding it.
+
+     Example — build request options from a parsed URL:
+     ```JavaScript
+     const url = require('url');
+
+     const options = url.urlToHttpOptions(new URL('http://u:p@a.com:8443/x?y=1#z'));
+     console.log(options.protocol, options.hostname, options.port); // http: a.com 8443
+     console.log(options.auth, options.path); // u:p /x?y=1
+     ```
+
+     @param url the URL object to convert
+     @return the options object for http.request
+     */
+    static NObject urlToHttpOptions(Value url);
+
     /*! @brief Converts an internationalized domain name to its ASCII (ACE) form
 
      The conversion applies the UTS #46 mapping of the URL parser and adds the `xn--`
