@@ -101,7 +101,7 @@ public:
     static result_t zipTo(Union_zipTo_data data, Stream_base* stm, int32_t level, AsyncHandle ac);
     static result_t unzip(Union_unzip_data data, Union_unzip_maxSize maxSize, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t unzipTo(Union_unzipTo_data data, Stream_base* stm, int32_t maxSize, AsyncHandle ac);
-    static result_t crc32(Union_crc32_data data, int64_t value, int64_t& retVal);
+    static result_t crc32(Union_crc32_data data, double value, int64_t& retVal);
     static result_t createZstdCompress(Stream_base* to, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal);
     static result_t createZstdDecompress(Stream_base* to, int32_t maxSize, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal);
     static result_t zstdCompress(Union_zstdCompress_data data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
@@ -713,7 +713,7 @@ inline void zlib_base::s_static_crc32(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_crc32_data, 0);
-    OPT_ARG_NAMED(int64_t, 1, 0, "value");
+    OPT_ARG_NAMED(double, 1, 0, "value");
 
     hr = crc32(v0, v1, vr);
 

@@ -1861,6 +1861,16 @@ declare module 'zlib' {
      *      console.log(whole === parts, whole.toString(16)); // true 1c291ca3
      *      ```
      *
+     *      `value` is a whole number in the unsigned 32-bit range. A fractional, out of
+     *      range or non-numeric seed is rejected rather than truncated, because a
+     *      truncated seed silently continues a checksum the caller did not ask for.
+     *
+     *      `data` accepts anything the Buffer parameters of the module accept, which is
+     *      wider than Node.js: a bare ArrayBuffer or a plain array of bytes is converted
+     *      where Node.js requires a Buffer, TypedArray or DataView. This follows the
+     *      module-wide conversion rule rather than making one member disagree with the
+     *      rest.
+     *
      *      @param data the data to checksum
      *      @param value the running checksum to continue, default 0
      *      @return the unsigned 32-bit CRC-32 checksum

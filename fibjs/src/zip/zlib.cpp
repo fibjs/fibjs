@@ -11,6 +11,7 @@
 #include "BrotliStream.h"
 #include "MemoryStream.h"
 #include "utils.h"
+#include <cmath>
 
 namespace fibjs {
 
@@ -624,8 +625,18 @@ result_t zlib_base::unzipTo(Union_unzipTo_data data, Stream_base* stm, int32_t m
     return process_to<fibjs::unzip>(data, stm, maxSize, std::move(ac));
 }
 
-result_t zlib_base::crc32(Union_crc32_data data, int64_t value, int64_t& retVal)
+result_t zlib_base::crc32(Union_crc32_data data, double value, int64_t& retVal)
 {
+    // The seed is a 32-bit register, and Node rejects anything that is not a
+    // whole number in that range instead of truncating it: a truncated seed
+    // silently continues a checksum the caller did not ask for, which is the
+    // kind of defect that only shows up as a bad trailer much later.
+    if (std::isnan(value) || std::trunc(value) != value || value < 0 || value > 4294967295.0)
+        return result_t::make(CALL_E_OVERFLOW)
+            .with_type_name(errtype::kRangeError)
+            .with_code("ERR_OUT_OF_RANGE")
+            .with_message("The value of \"value\" is out of range. It must be an integer >= 0 and <= 4294967295");
+
     obj_ptr<Buffer_base> buf;
     result_t hr = union_to_buffer(data, buf);
     if (hr.failed())
@@ -636,7 +647,7 @@ result_t zlib_base::crc32(Union_crc32_data data, int64_t value, int64_t& retVal)
     // The seed is the raw running register, not its complement: crc32's value
     // defaults to 0, which is what the first call starts from, and feeding a
     // returned value back continues the same checksum.
-    uLong crc = (uLong)value;
+    uLong crc = (uLong)(uint32_t)value;
     crc = ::crc32(crc, (const Bytef*)input->data(), (uInt)input->length());
 
     retVal = (int64_t)(uint32_t)crc;

@@ -1676,6 +1676,32 @@ describe("zlib factory destination defaults", () => {
         it("seeds from the default value", () => {
             assert.equal(zlib.crc32('abc'), zlib.crc32('abc', 0));
         });
+
+        it("rejects a seed that is not a whole number in the 32-bit range", () => {
+            // A truncated seed would silently continue a checksum the caller
+            // did not ask for, so the value is validated instead, as Node does.
+            [1.5, -1, 4294967296, Infinity, -Infinity].forEach((bad) => {
+                assert.throws(() => zlib.crc32('a', bad), (e) => {
+                    assert.strictEqual(e.code, 'ERR_OUT_OF_RANGE', String(bad));
+                    return true;
+                });
+            });
+        });
+
+        it("accepts the whole unsigned 32-bit range", () => {
+            assert.strictEqual(typeof zlib.crc32('a', 0), 'number');
+            assert.strictEqual(typeof zlib.crc32('a', 0xFFFFFFFF), 'number');
+            assert.equal(zlib.crc32('a', 0xFFFFFFFF), 3310005809);
+        });
+
+        it("still treats an omitted seed as 0", () => {
+            assert.equal(zlib.crc32('abc', undefined), zlib.crc32('abc'));
+        });
+
+        it("accepts the byte views a Buffer parameter takes", () => {
+            assert.equal(zlib.crc32(new Uint8Array([1, 2])), 3066839698);
+            assert.equal(zlib.crc32(new DataView(new ArrayBuffer(2))), 1104745215);
+        });
     });
 
     describe("zstd", () => {
