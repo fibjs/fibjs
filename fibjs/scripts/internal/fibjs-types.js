@@ -15,7 +15,7 @@
  *   fibjs --man    parses the same map, the IDL comments are the manual.
  *
  * source : npm/types (version 0.33.0-dev)
- * files  : 234 corpus files + dts/_builtin/globals.d.ts
+ * files  : 236 corpus files + dts/_builtin/globals.d.ts
  * globals: Buffer URLSearchParams URL Blob File Headers FormData Request Response TextDecoder TextEncoder AbortController AbortSignal Event EventTarget MessageEvent MessagePort MessageChannel Worker CryptoKey DOMParser CSSStyleDeclaration DOMStringMap XMLSerializer XMLDocument WebSocket console process performance PerformanceObserver crypto global run require setTimeout clearTimeout setInterval clearInterval setHrInterval clearHrInterval setImmediate clearImmediate btoa atob structuredClone fetch fetchSync fetchAsync queueMicrotask
  */
 module.exports = {
@@ -71162,6 +71162,146 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
 }
 
 `,
+        "dts/interface/ZstdCompress.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/ZlibCodec.d.ts" />
+/**
+ * @description ZstdCompress is the codec that compresses data to the zstd frame format
+ *
+ *  \`new zlib.ZstdCompress(opts)\` builds a synchronous codec; feed chunks with \`_processChunk\`
+ *  and the zlib flush flags. The output is a standard zstd frame (magic 28 b5 2f fd), the
+ *  same bytes \`zlib.zstdCompress\` writes and \`zlib.zstdDecompress\` reads. For the fibjs
+ *  stream API use \`zlib.createZstdCompress(to)\` instead; the codec class exists for packages
+ *  that drive a codec directly. It inherits the members of ZlibCodec, so \`_processChunk\`,
+ *  \`close\`, \`reset\` and \`params\` behave the way they do for the deflate codecs.
+ *
+ *  Concepts:
+ *  - **Options**: \`level\` is the zstd compression level (default 3, \`ZSTD_CLEVEL_DEFAULT\`;
+ *    negative values select zstd's fast levels), \`windowBits\` maps to \`ZSTD_c_windowLog\`,
+ *    \`strategy\` to \`ZSTD_c_strategy\` and \`nbWorkers\` to \`ZSTD_c_nbWorkers\` (0 keeps the
+ *    single-threaded path). \`pledgedSrcSize\` declares the total input length so the frame
+ *    header can carry it; omitting it writes a frame without a content size, which is what a
+ *    streaming producer has to do. \`params\` is an object whose keys are zstd parameter
+ *    constants and whose values are passed to \`ZSTD_CCtx_setParameter\`, so any parameter the
+ *    bundled library accepts can be set (for example \`ZSTD_c_checksumFlag\`). Other keys are
+ *    ignored.
+ *  - **Flush flags**: the codec takes the zlib flush flags and maps them to zstd end
+ *    directives, so generic compression code does not need a second set of flags:
+ *    \`Z_NO_FLUSH\` is \`ZSTD_e_continue\`, \`Z_SYNC_FLUSH\` (and the other flush modes) is
+ *    \`ZSTD_e_flush\`, \`Z_FINISH\` is \`ZSTD_e_end\`.
+ *  - **Streaming**: each \`_processChunk\` call appends to the current frame; \`Z_FINISH\` ends
+ *    it and resets the codec for the next message. A call may return an empty Buffer when
+ *    the compressor absorbed the input without producing output.
+ *
+ *  Example 1 — compress and decompress through concrete codecs:
+ *  \`\`\`JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const zstd = new zlib.ZstdCompress({ level: 9 });
+ *  const packed = zstd._processChunk('hello, world', C.Z_FINISH);
+ *  console.log(packed[0].toString(16), packed[1].toString(16)); // 28 b5
+ *
+ *  const unzstd = new zlib.ZstdDecompress();
+ *  console.log(unzstd._processChunk(packed, C.Z_FINISH).toString()); // hello, world
+ *  \`\`\`
+ *
+ *  Example 2 — the codec and the module-level helper produce interchangeable frames:
+ *  \`\`\`JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const packed = new zlib.ZstdCompress()._processChunk('hello, world', C.Z_FINISH);
+ *  console.log(zlib.zstdDecompress(packed).toString()); // hello, world
+ *  \`\`\`
+ *
+ */
+declare class Class_ZstdCompress extends Class_ZlibCodec {
+    /**
+     * @description Creates a zstd compressor
+     *
+     *      \`opts\` may be omitted or empty. The recognized options are \`level\` (default 3),
+     *      \`windowBits\` (ZSTD_c_windowLog), \`strategy\` (ZSTD_c_strategy), \`nbWorkers\`
+     *      (ZSTD_c_nbWorkers, 0 keeps the single-threaded path), \`pledgedSrcSize\` (declares
+     *      the total input length for the frame header) and \`params\` (an object of zstd
+     *      parameter constants to values). Other keys are ignored.
+     *
+     *      @param opts compression options
+     *
+     */
+    constructor(opts?: FIBJS.GeneralObject);
+
+}
+
+`,
+        "dts/interface/ZstdDecompress.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/ZlibCodec.d.ts" />
+/**
+ * @description ZstdDecompress is the codec that decompresses zstd frames
+ *
+ *  \`new zlib.ZstdDecompress(opts)\` builds a synchronous codec; feed chunks with
+ *  \`_processChunk\` and the zlib flush flags. It reads the standard zstd frame format, the
+ *  same bytes \`zlib.zstdCompress\` writes and the zstd command line tool produces. For the
+ *  fibjs stream API use \`zlib.createZstdDecompress(to)\` instead. It inherits the members of
+ *  ZlibCodec, so \`_processChunk\`, \`close\` and \`reset\` behave exactly as they do for the
+ *  inflate codecs; \`params\` is rejected because a decompressor has no compression
+ *  parameters.
+ *
+ *  Concepts:
+ *  - **Options**: \`windowBits\` maps to \`ZSTD_d_windowLogMax\`, the largest window the
+ *    decompressor allocates for, which bounds the memory a hostile frame can make it
+ *    reserve. \`params\` is an object whose keys are zstd parameter constants and whose values
+ *    are passed to \`ZSTD_DCtx_setParameter\`. Other keys are ignored.
+ *  - **Concatenated frames**: a zstd stream may carry several frames back to back; the
+ *    decompressor continues with the next one after a frame ends, so one call chain decodes
+ *    all of them.
+ *  - **Errors**: corrupt data, an unknown frame header or a frame that needs more memory
+ *    than \`windowBits\` allows throws an Error whose \`code\` is the zstd error name (for
+ *    example \`ZSTD_error_prefix_unknown\`), read from \`ZSTD_getErrorName\`.
+ *
+ *  Example 1 — decode a frame and its concatenated successor in one chain:
+ *  \`\`\`JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const packed = Buffer.concat([
+ *      zlib.zstdCompress('first ', { pledgedSrcSize: 6 }),
+ *      zlib.zstdCompress('second', { pledgedSrcSize: 6 }),
+ *  ]);
+ *
+ *  const unzstd = new zlib.ZstdDecompress();
+ *  console.log(unzstd._processChunk(packed, C.Z_FINISH).toString()); // first second
+ *  \`\`\`
+ *
+ *  Example 2 — a corrupt frame reports the zstd error name in err.code:
+ *  \`\`\`JavaScript
+ *  const zlib = require('zlib');
+ *  const C = zlib.constants;
+ *
+ *  const unzstd = new zlib.ZstdDecompress();
+ *  try {
+ *      unzstd._processChunk(Buffer.from('not a zstd frame'), C.Z_FINISH);
+ *  } catch (e) {
+ *      console.log(e.code); // ZSTD_error_prefix_unknown
+ *  }
+ *  \`\`\`
+ *
+ */
+declare class Class_ZstdDecompress extends Class_ZlibCodec {
+    /**
+     * @description Creates a zstd decompressor
+     *
+     *      \`opts\` may be omitted or empty. The recognized options are \`windowBits\`
+     *      (ZSTD_d_windowLogMax, the largest window the decompressor reserves memory for) and
+     *      \`params\` (an object of zstd parameter constants to values). Other keys are ignored.
+     *
+     *      @param opts decompression options
+     *
+     */
+    constructor(opts?: FIBJS.GeneralObject);
+
+}
+
+`,
         "dts/interface/object.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /**
  * @description The base class of every native object and the hooks used to convert one
@@ -120367,6 +120507,8 @@ declare module "zip" {
 /// <reference path="../interface/DeflateRaw.d.ts" />
 /// <reference path="../interface/InflateRaw.d.ts" />
 /// <reference path="../interface/Unzip.d.ts" />
+/// <reference path="../interface/ZstdCompress.d.ts" />
+/// <reference path="../interface/ZstdDecompress.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -120388,11 +120530,13 @@ declare module "zip" {
  *  - **Codec objects**: \`Gzip\`, \`Gunzip\`, \`Deflate\`, \`Inflate\`, \`DeflateRaw\`, \`InflateRaw\`
  *    and \`Unzip\` are synchronous codec classes with explicit flush
  *    control, kept for packages such as minizlib and tar;
- *  - **crc32**: \`crc32\` computes the checksum the gzip and zip trailers use, and can
- *    accumulate it over chunks;
+ *  - **zstd**: \`zstdCompress\`/\`zstdDecompress\` and their \`...To\` forms, the
+ *    \`createZstdCompress\`/\`createZstdDecompress\` stream wrappers and the \`ZstdCompress\`/
+ *    \`ZstdDecompress\` codec classes cover the zstd frame format through the bundled
+ *    libzstd; \`crc32\` computes the checksum the gzip and zip trailers use;
  *  - **Constants**: \`NO_COMPRESSION\`, \`BEST_SPEED\`, \`BEST_COMPRESSION\` and
  *    \`DEFAULT_COMPRESSION\`, plus the \`constants\` object with the flush flags, strategies,
- *    format identifiers and error codes.
+ *    format identifiers, error codes and the zstd parameter and strategy constants.
  *
  *  Concepts:
  *
@@ -120644,6 +120788,29 @@ declare module 'zlib' {
     const Unzip: typeof Class_Unzip;
 
     type Unzip = Class_Unzip;
+
+    /**
+     * @description The ZstdCompress codec class, see ZstdCompress
+     *
+     *      Build an instance with \`new zlib.ZstdCompress(opts)\`; it compresses data to a zstd
+     *      frame synchronously through \`_processChunk\`. The module-level \`zstdCompress\`,
+     *      \`zstdCompressTo\` and \`createZstdCompress\` are the equivalent fibjs stream APIs.
+     *
+     */
+    const ZstdCompress: typeof Class_ZstdCompress;
+
+    type ZstdCompress = Class_ZstdCompress;
+
+    /**
+     * @description The ZstdDecompress codec class, see ZstdDecompress
+     *
+     *      Build an instance with \`new zlib.ZstdDecompress(opts)\`; it decompresses zstd frames
+     *      synchronously through \`_processChunk\` and keeps decoding concatenated frames.
+     *
+     */
+    const ZstdDecompress: typeof Class_ZstdDecompress;
+
+    type ZstdDecompress = Class_ZstdDecompress;
 
     /**
      * @description Creates a zlib-format compressor that writes into \`to\`
@@ -122175,6 +122342,292 @@ declare module 'zlib' {
      */
     function crc32(data: Class_Buffer | string, value?: number): number;
 
+    /**
+     * @description Creates a zstd compressor that writes into \`to\`
+     *
+     *      The returned stream is write-only, in the same shape as \`createGzip\`: \`write\` adds
+     *      data with Z_NO_FLUSH, \`flush\` emits the pending output with Z_SYNC_FLUSH and \`close\`
+     *      finishes the frame with Z_FINISH. \`read\`/\`readBuffer\` and the \`fd\` property throw the
+     *      invalid-call error [20009]. The flush flags are the zlib ones and are mapped to zstd
+     *      end directives internally, so code written for the deflate streams keeps working.
+     *
+     *      \`opts\` may be omitted or empty and carries \`level\` (default 3, \`ZSTD_CLEVEL_DEFAULT\`),
+     *      \`windowBits\` (ZSTD_c_windowLog), \`strategy\` (ZSTD_c_strategy), \`nbWorkers\`
+     *      (ZSTD_c_nbWorkers, 0 keeps the single-threaded path) and \`params\` (an object of zstd
+     *      parameter constants to values).
+     *
+     *      Example — compress into a memory stream and decode it with the one-shot helper:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const packed = new io.MemoryStream();
+     *      const zstd = zlib.createZstdCompress(packed, { level: 9 });
+     *      zstd.write('hello ');
+     *      zstd.write('world');
+     *      zstd.close();
+     *
+     *      packed.rewind();
+     *      console.log(zlib.zstdDecompress(packed.readAll()).toString()); // hello world
+     *      \`\`\`
+     *
+     *      @param to the destination stream that receives the compressed data; omit it to write
+     *      into an internal memory stream (the bytes stay inside the returned object)
+     *      @param options compression options
+     *      @return the write-only compressor stream
+     *
+     */
+    function createZstdCompress(to?: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description Creates a zstd decompressor that writes into \`to\`
+     *
+     *      The stream form of \`zstdDecompress\`, in the same shape as \`createGunzip\`: \`write\`
+     *      feeds compressed bytes, \`flush\` emits the decoded output produced so far and \`close\`
+     *      ends the stream. \`maxSize\` bounds the total number of decompressed bytes, default -1
+     *      (no limit), and exceeding it throws a RangeError [20013]. \`opts\` carries \`windowBits\`
+     *      (ZSTD_d_windowLogMax, the largest window the decompressor reserves memory for) and
+     *      \`params\` (an object of zstd parameter constants to values).
+     *
+     *      @param to the destination stream that receives the decompressed data; omit it to
+     *      write into an internal memory stream
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *      @return the write-only decompressor stream
+     *
+     */
+    function createZstdDecompress(to?: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description Compresses data with the zstd algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete zstd
+     *      frame, the format \`zstdDecompress\` and the zstd command line tool read. \`opts\` is the
+     *      same options object \`createZstdCompress\` takes; \`level\` defaults to 3 and
+     *      \`pledgedSrcSize\` defaults to the length of the input, so the frame header always
+     *      carries the content size in this form.
+     *
+     *      Example — round trip and a level comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.zstdCompress(text, { level: 1 });
+     *      const small = zlib.zstdCompress(text, { level: 19 });
+     *
+     *      console.log(small.length < fast.length);              // true
+     *      console.log(zlib.zstdDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function zstdCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    function zstdCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description Compresses data with the zstd algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete zstd
+     *      frame, the format \`zstdDecompress\` and the zstd command line tool read. \`opts\` is the
+     *      same options object \`createZstdCompress\` takes; \`level\` defaults to 3 and
+     *      \`pledgedSrcSize\` defaults to the length of the input, so the frame header always
+     *      carries the content size in this form.
+     *
+     *      Example — round trip and a level comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.zstdCompress(text, { level: 1 });
+     *      const small = zlib.zstdCompress(text, { level: 19 });
+     *
+     *      console.log(small.length < fast.length);              // true
+     *      console.log(zlib.zstdDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function zstdCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the zstd algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete zstd
+     *      frame, the format \`zstdDecompress\` and the zstd command line tool read. \`opts\` is the
+     *      same options object \`createZstdCompress\` takes; \`level\` defaults to 3 and
+     *      \`pledgedSrcSize\` defaults to the length of the input, so the frame header always
+     *      carries the content size in this form.
+     *
+     *      Example — round trip and a level comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.zstdCompress(text, { level: 1 });
+     *      const small = zlib.zstdCompress(text, { level: 19 });
+     *
+     *      console.log(small.length < fast.length);              // true
+     *      console.log(zlib.zstdDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function zstdCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Decompresses zstd data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Concatenated frames are all
+     *      decoded; corrupt input or a frame whose window exceeds \`windowBits\` throws an Error
+     *      whose \`code\` is the zstd error name. \`opts\` carries \`windowBits\` and \`params\` as
+     *      \`createZstdDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function zstdDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    function zstdDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description Decompresses zstd data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Concatenated frames are all
+     *      decoded; corrupt input or a frame whose window exceeds \`windowBits\` throws an Error
+     *      whose \`code\` is the zstd error name. \`opts\` carries \`windowBits\` and \`params\` as
+     *      \`createZstdDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function zstdDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses zstd data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Concatenated frames are all
+     *      decoded; corrupt input or a frame whose window exceeds \`windowBits\` throws an Error
+     *      whose \`code\` is the zstd error name. \`opts\` carries \`windowBits\` and \`params\` as
+     *      \`createZstdDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function zstdDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Compresses data with the zstd algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`zstdCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+
+    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description Compresses data with the zstd algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`zstdCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function zstdCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Compresses data with the zstd algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`zstdCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function zstdCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+
+    /**
+     * @description Decompresses zstd data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013].
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+
+    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description Decompresses zstd data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013].
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function zstdDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Decompresses zstd data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013].
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function zstdDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+
 }
 
 `,
@@ -122187,6 +122640,8 @@ declare module 'zlib' {
 /// <reference path="../interface/DeflateRaw.d.ts" />
 /// <reference path="../interface/InflateRaw.d.ts" />
 /// <reference path="../interface/Unzip.d.ts" />
+/// <reference path="../interface/ZstdCompress.d.ts" />
+/// <reference path="../interface/ZstdDecompress.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -122309,6 +122764,29 @@ declare module 'zlib/promises' {
     const Unzip: typeof Class_Unzip;
 
     type Unzip = Class_Unzip;
+
+    /**
+     * @description The ZstdCompress codec class, see ZstdCompress
+     *
+     *      Build an instance with \`new zlib.ZstdCompress(opts)\`; it compresses data to a zstd
+     *      frame synchronously through \`_processChunk\`. The module-level \`zstdCompress\`,
+     *      \`zstdCompressTo\` and \`createZstdCompress\` are the equivalent fibjs stream APIs.
+     *
+     */
+    const ZstdCompress: typeof Class_ZstdCompress;
+
+    type ZstdCompress = Class_ZstdCompress;
+
+    /**
+     * @description The ZstdDecompress codec class, see ZstdDecompress
+     *
+     *      Build an instance with \`new zlib.ZstdDecompress(opts)\`; it decompresses zstd frames
+     *      synchronously through \`_processChunk\` and keeps decoding concatenated frames.
+     *
+     */
+    const ZstdDecompress: typeof Class_ZstdDecompress;
+
+    type ZstdDecompress = Class_ZstdDecompress;
 
     /**
      * @description Creates a zlib-format compressor that writes into \`to\`
@@ -123808,6 +124286,284 @@ declare module 'zlib/promises' {
      */
     function crc32(data: Class_Buffer | string, value?: number): number;
 
+    /**
+     * @description Creates a zstd compressor that writes into \`to\`
+     *
+     *      The returned stream is write-only, in the same shape as \`createGzip\`: \`write\` adds
+     *      data with Z_NO_FLUSH, \`flush\` emits the pending output with Z_SYNC_FLUSH and \`close\`
+     *      finishes the frame with Z_FINISH. \`read\`/\`readBuffer\` and the \`fd\` property throw the
+     *      invalid-call error [20009]. The flush flags are the zlib ones and are mapped to zstd
+     *      end directives internally, so code written for the deflate streams keeps working.
+     *
+     *      \`opts\` may be omitted or empty and carries \`level\` (default 3, \`ZSTD_CLEVEL_DEFAULT\`),
+     *      \`windowBits\` (ZSTD_c_windowLog), \`strategy\` (ZSTD_c_strategy), \`nbWorkers\`
+     *      (ZSTD_c_nbWorkers, 0 keeps the single-threaded path) and \`params\` (an object of zstd
+     *      parameter constants to values).
+     *
+     *      Example — compress into a memory stream and decode it with the one-shot helper:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const packed = new io.MemoryStream();
+     *      const zstd = zlib.createZstdCompress(packed, { level: 9 });
+     *      zstd.write('hello ');
+     *      zstd.write('world');
+     *      zstd.close();
+     *
+     *      packed.rewind();
+     *      console.log(zlib.zstdDecompress(packed.readAll()).toString()); // hello world
+     *      \`\`\`
+     *
+     *      @param to the destination stream that receives the compressed data; omit it to write
+     *      into an internal memory stream (the bytes stay inside the returned object)
+     *      @param options compression options
+     *      @return the write-only compressor stream
+     *
+     */
+    function createZstdCompress(to?: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description Creates a zstd decompressor that writes into \`to\`
+     *
+     *      The stream form of \`zstdDecompress\`, in the same shape as \`createGunzip\`: \`write\`
+     *      feeds compressed bytes, \`flush\` emits the decoded output produced so far and \`close\`
+     *      ends the stream. \`maxSize\` bounds the total number of decompressed bytes, default -1
+     *      (no limit), and exceeding it throws a RangeError [20013]. \`opts\` carries \`windowBits\`
+     *      (ZSTD_d_windowLogMax, the largest window the decompressor reserves memory for) and
+     *      \`params\` (an object of zstd parameter constants to values).
+     *
+     *      @param to the destination stream that receives the decompressed data; omit it to
+     *      write into an internal memory stream
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *      @return the write-only decompressor stream
+     *
+     */
+    function createZstdDecompress(to?: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Class_Stream;
+
+    /**
+     * @description Compresses data with the zstd algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete zstd
+     *      frame, the format \`zstdDecompress\` and the zstd command line tool read. \`opts\` is the
+     *      same options object \`createZstdCompress\` takes; \`level\` defaults to 3 and
+     *      \`pledgedSrcSize\` defaults to the length of the input, so the frame header always
+     *      carries the content size in this form.
+     *
+     *      Example — round trip and a level comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.zstdCompress(text, { level: 1 });
+     *      const small = zlib.zstdCompress(text, { level: 19 });
+     *
+     *      console.log(small.length < fast.length);              // true
+     *      console.log(zlib.zstdDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function zstdCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Compresses data with the zstd algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete zstd
+     *      frame, the format \`zstdDecompress\` and the zstd command line tool read. \`opts\` is the
+     *      same options object \`createZstdCompress\` takes; \`level\` defaults to 3 and
+     *      \`pledgedSrcSize\` defaults to the length of the input, so the frame header always
+     *      carries the content size in this form.
+     *
+     *      Example — round trip and a level comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.zstdCompress(text, { level: 1 });
+     *      const small = zlib.zstdCompress(text, { level: 19 });
+     *
+     *      console.log(small.length < fast.length);              // true
+     *      console.log(zlib.zstdDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function zstdCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the zstd algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete zstd
+     *      frame, the format \`zstdDecompress\` and the zstd command line tool read. \`opts\` is the
+     *      same options object \`createZstdCompress\` takes; \`level\` defaults to 3 and
+     *      \`pledgedSrcSize\` defaults to the length of the input, so the frame header always
+     *      carries the content size in this form.
+     *
+     *      Example — round trip and a level comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.zstdCompress(text, { level: 1 });
+     *      const small = zlib.zstdCompress(text, { level: 19 });
+     *
+     *      console.log(small.length < fast.length);              // true
+     *      console.log(zlib.zstdDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function zstdCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Decompresses zstd data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Concatenated frames are all
+     *      decoded; corrupt input or a frame whose window exceeds \`windowBits\` throws an Error
+     *      whose \`code\` is the zstd error name. \`opts\` carries \`windowBits\` and \`params\` as
+     *      \`createZstdDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function zstdDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Decompresses zstd data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Concatenated frames are all
+     *      decoded; corrupt input or a frame whose window exceeds \`windowBits\` throws an Error
+     *      whose \`code\` is the zstd error name. \`opts\` carries \`windowBits\` and \`params\` as
+     *      \`createZstdDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function zstdDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses zstd data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Concatenated frames are all
+     *      decoded; corrupt input or a frame whose window exceeds \`windowBits\` throws an Error
+     *      whose \`code\` is the zstd error name. \`opts\` carries \`windowBits\` and \`params\` as
+     *      \`createZstdDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function zstdDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+
+    /**
+     * @description Compresses data with the zstd algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`zstdCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+
+    /**
+     * @description Compresses data with the zstd algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`zstdCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function zstdCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Compresses data with the zstd algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`zstdCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function zstdCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+
+    /**
+     * @description Decompresses zstd data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013].
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+
+    /**
+     * @description Decompresses zstd data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013].
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function zstdDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Decompresses zstd data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013].
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function zstdDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+
 }
 
 
@@ -124141,6 +124897,321 @@ declare module 'zlib_constants' {
      * @description Default compression level
      */
     export const Z_DEFAULT_LEVEL: -1;
+
+    /**
+     * @description zstd compression codec type id
+     */
+    export const ZSTD_COMPRESS: 10;
+
+    /**
+     * @description zstd decompression codec type id
+     */
+    export const ZSTD_DECOMPRESS: 11;
+
+    /**
+     * @description zstd end directive: keep buffering input
+     */
+    export const ZSTD_e_continue: 0;
+
+    /**
+     * @description zstd end directive: emit everything produced so far
+     */
+    export const ZSTD_e_flush: 1;
+
+    /**
+     * @description zstd end directive: finish the frame and write its trailer
+     */
+    export const ZSTD_e_end: 2;
+
+    /**
+     * @description zstd compression strategy: fastest, no matching
+     */
+    export const ZSTD_fast: 1;
+
+    /**
+     * @description zstd compression strategy: double fast
+     */
+    export const ZSTD_dfast: 2;
+
+    /**
+     * @description zstd compression strategy: greedy
+     */
+    export const ZSTD_greedy: 3;
+
+    /**
+     * @description zstd compression strategy: lazy
+     */
+    export const ZSTD_lazy: 4;
+
+    /**
+     * @description zstd compression strategy: lazy2
+     */
+    export const ZSTD_lazy2: 5;
+
+    /**
+     * @description zstd compression strategy: binary tree with lazy2
+     */
+    export const ZSTD_btlazy2: 6;
+
+    /**
+     * @description zstd compression strategy: binary tree with optimal parsing
+     */
+    export const ZSTD_btopt: 7;
+
+    /**
+     * @description zstd compression strategy: binary tree, ultra
+     */
+    export const ZSTD_btultra: 8;
+
+    /**
+     * @description zstd compression strategy: binary tree, ultra 2
+     */
+    export const ZSTD_btultra2: 9;
+
+    /**
+     * @description zstd parameter: compression level
+     */
+    export const ZSTD_c_compressionLevel: 100;
+
+    /**
+     * @description zstd parameter: maximum back-reference distance, as a power of 2
+     */
+    export const ZSTD_c_windowLog: 101;
+
+    /**
+     * @description zstd parameter: size of the initial probe table, as a power of 2
+     */
+    export const ZSTD_c_hashLog: 102;
+
+    /**
+     * @description zstd parameter: size of the multi-probe search table, as a power of 2
+     */
+    export const ZSTD_c_chainLog: 103;
+
+    /**
+     * @description zstd parameter: number of search attempts, as a power of 2
+     */
+    export const ZSTD_c_searchLog: 104;
+
+    /**
+     * @description zstd parameter: minimum size of searched matches
+     */
+    export const ZSTD_c_minMatch: 105;
+
+    /**
+     * @description zstd parameter: impact of this field depends on the strategy
+     */
+    export const ZSTD_c_targetLength: 106;
+
+    /**
+     * @description zstd parameter: compression strategy, see the ZSTD_* strategy constants
+     */
+    export const ZSTD_c_strategy: 107;
+
+    /**
+     * @description zstd parameter: enable long distance matching
+     */
+    export const ZSTD_c_enableLongDistanceMatching: 160;
+
+    /**
+     * @description zstd parameter: long distance matcher table size, as a power of 2
+     */
+    export const ZSTD_c_ldmHashLog: 161;
+
+    /**
+     * @description zstd parameter: minimum match size of the long distance matcher
+     */
+    export const ZSTD_c_ldmMinMatch: 162;
+
+    /**
+     * @description zstd parameter: log size of each long distance matcher bucket
+     */
+    export const ZSTD_c_ldmBucketSizeLog: 163;
+
+    /**
+     * @description zstd parameter: long distance matcher hash rate, as a power of 2
+     */
+    export const ZSTD_c_ldmHashRateLog: 164;
+
+    /**
+     * @description zstd parameter: write the content size into the frame header when known
+     */
+    export const ZSTD_c_contentSizeFlag: 200;
+
+    /**
+     * @description zstd parameter: write a 32-bit content checksum at the end of the frame
+     */
+    export const ZSTD_c_checksumFlag: 201;
+
+    /**
+     * @description zstd parameter: write the dictionary id into the frame header
+     */
+    export const ZSTD_c_dictIDFlag: 202;
+
+    /**
+     * @description zstd parameter: number of worker threads for multi-threaded compression
+     */
+    export const ZSTD_c_nbWorkers: 400;
+
+    /**
+     * @description zstd parameter: size of one compression job, enforced when nbWorkers is set
+     */
+    export const ZSTD_c_jobSize: 401;
+
+    /**
+     * @description zstd parameter: overlap size between jobs, as a fraction of the window
+     */
+    export const ZSTD_c_overlapLog: 402;
+
+    /**
+     * @description zstd parameter: largest window the decompressor reserves memory for
+     */
+    export const ZSTD_d_windowLogMax: 100;
+
+    /**
+     * @description zstd default compression level
+     */
+    export const ZSTD_CLEVEL_DEFAULT: 3;
+
+    /**
+     * @description zstd error: no error
+     */
+    export const ZSTD_error_no_error: 0;
+
+    /**
+     * @description zstd error: an unspecified error occurred
+     */
+    export const ZSTD_error_GENERIC: 1;
+
+    /**
+     * @description zstd error: the frame header is not recognized
+     */
+    export const ZSTD_error_prefix_unknown: 10;
+
+    /**
+     * @description zstd error: the frame requires an unsupported library version
+     */
+    export const ZSTD_error_version_unsupported: 12;
+
+    /**
+     * @description zstd error: a frame header parameter is not supported
+     */
+    export const ZSTD_error_frameParameter_unsupported: 14;
+
+    /**
+     * @description zstd error: the frame window is larger than the decoder allows
+     */
+    export const ZSTD_error_frameParameter_windowTooLarge: 16;
+
+    /**
+     * @description zstd error: the input is corrupted
+     */
+    export const ZSTD_error_corruption_detected: 20;
+
+    /**
+     * @description zstd error: the content checksum does not match
+     */
+    export const ZSTD_error_checksum_wrong: 22;
+
+    /**
+     * @description zstd error: the literals section header is malformed
+     */
+    export const ZSTD_error_literals_headerWrong: 24;
+
+    /**
+     * @description zstd error: the dictionary is corrupted
+     */
+    export const ZSTD_error_dictionary_corrupted: 30;
+
+    /**
+     * @description zstd error: the dictionary does not match the frame
+     */
+    export const ZSTD_error_dictionary_wrong: 32;
+
+    /**
+     * @description zstd error: the dictionary could not be created
+     */
+    export const ZSTD_error_dictionaryCreation_failed: 34;
+
+    /**
+     * @description zstd error: a parameter is not supported
+     */
+    export const ZSTD_error_parameter_unsupported: 40;
+
+    /**
+     * @description zstd error: this combination of parameters is not supported
+     */
+    export const ZSTD_error_parameter_combination_unsupported: 41;
+
+    /**
+     * @description zstd error: a parameter value is out of range
+     */
+    export const ZSTD_error_parameter_outOfBound: 42;
+
+    /**
+     * @description zstd error: a table log is too large
+     */
+    export const ZSTD_error_tableLog_tooLarge: 44;
+
+    /**
+     * @description zstd error: a maximum symbol value is too large
+     */
+    export const ZSTD_error_maxSymbolValue_tooLarge: 46;
+
+    /**
+     * @description zstd error: a maximum symbol value is too small
+     */
+    export const ZSTD_error_maxSymbolValue_tooSmall: 48;
+
+    /**
+     * @description zstd error: a stability condition is not respected
+     */
+    export const ZSTD_error_stabilityCondition_notRespected: 50;
+
+    /**
+     * @description zstd error: the call is made at the wrong stage
+     */
+    export const ZSTD_error_stage_wrong: 60;
+
+    /**
+     * @description zstd error: the context is not initialized
+     */
+    export const ZSTD_error_init_missing: 62;
+
+    /**
+     * @description zstd error: memory allocation failed
+     */
+    export const ZSTD_error_memory_allocation: 64;
+
+    /**
+     * @description zstd error: the workspace is too small
+     */
+    export const ZSTD_error_workSpace_tooSmall: 66;
+
+    /**
+     * @description zstd error: the destination buffer is too small
+     */
+    export const ZSTD_error_dstSize_tooSmall: 70;
+
+    /**
+     * @description zstd error: the source size does not match the pledged size
+     */
+    export const ZSTD_error_srcSize_wrong: 72;
+
+    /**
+     * @description zstd error: the destination buffer is null
+     */
+    export const ZSTD_error_dstBuffer_null: 74;
+
+    /**
+     * @description zstd error: the destination filled up and no progress was made
+     */
+    export const ZSTD_error_noForwardProgress_destFull: 80;
+
+    /**
+     * @description zstd error: the input is empty and no progress was made
+     */
+    export const ZSTD_error_noForwardProgress_inputEmpty: 82;
 
 }
 

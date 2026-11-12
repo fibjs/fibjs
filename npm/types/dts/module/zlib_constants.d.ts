@@ -325,5 +325,320 @@ declare module 'zlib_constants' {
      */
     export const Z_DEFAULT_LEVEL: -1;
 
+    /**
+     * @description zstd compression codec type id
+     */
+    export const ZSTD_COMPRESS: 10;
+
+    /**
+     * @description zstd decompression codec type id
+     */
+    export const ZSTD_DECOMPRESS: 11;
+
+    /**
+     * @description zstd end directive: keep buffering input
+     */
+    export const ZSTD_e_continue: 0;
+
+    /**
+     * @description zstd end directive: emit everything produced so far
+     */
+    export const ZSTD_e_flush: 1;
+
+    /**
+     * @description zstd end directive: finish the frame and write its trailer
+     */
+    export const ZSTD_e_end: 2;
+
+    /**
+     * @description zstd compression strategy: fastest, no matching
+     */
+    export const ZSTD_fast: 1;
+
+    /**
+     * @description zstd compression strategy: double fast
+     */
+    export const ZSTD_dfast: 2;
+
+    /**
+     * @description zstd compression strategy: greedy
+     */
+    export const ZSTD_greedy: 3;
+
+    /**
+     * @description zstd compression strategy: lazy
+     */
+    export const ZSTD_lazy: 4;
+
+    /**
+     * @description zstd compression strategy: lazy2
+     */
+    export const ZSTD_lazy2: 5;
+
+    /**
+     * @description zstd compression strategy: binary tree with lazy2
+     */
+    export const ZSTD_btlazy2: 6;
+
+    /**
+     * @description zstd compression strategy: binary tree with optimal parsing
+     */
+    export const ZSTD_btopt: 7;
+
+    /**
+     * @description zstd compression strategy: binary tree, ultra
+     */
+    export const ZSTD_btultra: 8;
+
+    /**
+     * @description zstd compression strategy: binary tree, ultra 2
+     */
+    export const ZSTD_btultra2: 9;
+
+    /**
+     * @description zstd parameter: compression level
+     */
+    export const ZSTD_c_compressionLevel: 100;
+
+    /**
+     * @description zstd parameter: maximum back-reference distance, as a power of 2
+     */
+    export const ZSTD_c_windowLog: 101;
+
+    /**
+     * @description zstd parameter: size of the initial probe table, as a power of 2
+     */
+    export const ZSTD_c_hashLog: 102;
+
+    /**
+     * @description zstd parameter: size of the multi-probe search table, as a power of 2
+     */
+    export const ZSTD_c_chainLog: 103;
+
+    /**
+     * @description zstd parameter: number of search attempts, as a power of 2
+     */
+    export const ZSTD_c_searchLog: 104;
+
+    /**
+     * @description zstd parameter: minimum size of searched matches
+     */
+    export const ZSTD_c_minMatch: 105;
+
+    /**
+     * @description zstd parameter: impact of this field depends on the strategy
+     */
+    export const ZSTD_c_targetLength: 106;
+
+    /**
+     * @description zstd parameter: compression strategy, see the ZSTD_* strategy constants
+     */
+    export const ZSTD_c_strategy: 107;
+
+    /**
+     * @description zstd parameter: enable long distance matching
+     */
+    export const ZSTD_c_enableLongDistanceMatching: 160;
+
+    /**
+     * @description zstd parameter: long distance matcher table size, as a power of 2
+     */
+    export const ZSTD_c_ldmHashLog: 161;
+
+    /**
+     * @description zstd parameter: minimum match size of the long distance matcher
+     */
+    export const ZSTD_c_ldmMinMatch: 162;
+
+    /**
+     * @description zstd parameter: log size of each long distance matcher bucket
+     */
+    export const ZSTD_c_ldmBucketSizeLog: 163;
+
+    /**
+     * @description zstd parameter: long distance matcher hash rate, as a power of 2
+     */
+    export const ZSTD_c_ldmHashRateLog: 164;
+
+    /**
+     * @description zstd parameter: write the content size into the frame header when known
+     */
+    export const ZSTD_c_contentSizeFlag: 200;
+
+    /**
+     * @description zstd parameter: write a 32-bit content checksum at the end of the frame
+     */
+    export const ZSTD_c_checksumFlag: 201;
+
+    /**
+     * @description zstd parameter: write the dictionary id into the frame header
+     */
+    export const ZSTD_c_dictIDFlag: 202;
+
+    /**
+     * @description zstd parameter: number of worker threads for multi-threaded compression
+     */
+    export const ZSTD_c_nbWorkers: 400;
+
+    /**
+     * @description zstd parameter: size of one compression job, enforced when nbWorkers is set
+     */
+    export const ZSTD_c_jobSize: 401;
+
+    /**
+     * @description zstd parameter: overlap size between jobs, as a fraction of the window
+     */
+    export const ZSTD_c_overlapLog: 402;
+
+    /**
+     * @description zstd parameter: largest window the decompressor reserves memory for
+     */
+    export const ZSTD_d_windowLogMax: 100;
+
+    /**
+     * @description zstd default compression level
+     */
+    export const ZSTD_CLEVEL_DEFAULT: 3;
+
+    /**
+     * @description zstd error: no error
+     */
+    export const ZSTD_error_no_error: 0;
+
+    /**
+     * @description zstd error: an unspecified error occurred
+     */
+    export const ZSTD_error_GENERIC: 1;
+
+    /**
+     * @description zstd error: the frame header is not recognized
+     */
+    export const ZSTD_error_prefix_unknown: 10;
+
+    /**
+     * @description zstd error: the frame requires an unsupported library version
+     */
+    export const ZSTD_error_version_unsupported: 12;
+
+    /**
+     * @description zstd error: a frame header parameter is not supported
+     */
+    export const ZSTD_error_frameParameter_unsupported: 14;
+
+    /**
+     * @description zstd error: the frame window is larger than the decoder allows
+     */
+    export const ZSTD_error_frameParameter_windowTooLarge: 16;
+
+    /**
+     * @description zstd error: the input is corrupted
+     */
+    export const ZSTD_error_corruption_detected: 20;
+
+    /**
+     * @description zstd error: the content checksum does not match
+     */
+    export const ZSTD_error_checksum_wrong: 22;
+
+    /**
+     * @description zstd error: the literals section header is malformed
+     */
+    export const ZSTD_error_literals_headerWrong: 24;
+
+    /**
+     * @description zstd error: the dictionary is corrupted
+     */
+    export const ZSTD_error_dictionary_corrupted: 30;
+
+    /**
+     * @description zstd error: the dictionary does not match the frame
+     */
+    export const ZSTD_error_dictionary_wrong: 32;
+
+    /**
+     * @description zstd error: the dictionary could not be created
+     */
+    export const ZSTD_error_dictionaryCreation_failed: 34;
+
+    /**
+     * @description zstd error: a parameter is not supported
+     */
+    export const ZSTD_error_parameter_unsupported: 40;
+
+    /**
+     * @description zstd error: this combination of parameters is not supported
+     */
+    export const ZSTD_error_parameter_combination_unsupported: 41;
+
+    /**
+     * @description zstd error: a parameter value is out of range
+     */
+    export const ZSTD_error_parameter_outOfBound: 42;
+
+    /**
+     * @description zstd error: a table log is too large
+     */
+    export const ZSTD_error_tableLog_tooLarge: 44;
+
+    /**
+     * @description zstd error: a maximum symbol value is too large
+     */
+    export const ZSTD_error_maxSymbolValue_tooLarge: 46;
+
+    /**
+     * @description zstd error: a maximum symbol value is too small
+     */
+    export const ZSTD_error_maxSymbolValue_tooSmall: 48;
+
+    /**
+     * @description zstd error: a stability condition is not respected
+     */
+    export const ZSTD_error_stabilityCondition_notRespected: 50;
+
+    /**
+     * @description zstd error: the call is made at the wrong stage
+     */
+    export const ZSTD_error_stage_wrong: 60;
+
+    /**
+     * @description zstd error: the context is not initialized
+     */
+    export const ZSTD_error_init_missing: 62;
+
+    /**
+     * @description zstd error: memory allocation failed
+     */
+    export const ZSTD_error_memory_allocation: 64;
+
+    /**
+     * @description zstd error: the workspace is too small
+     */
+    export const ZSTD_error_workSpace_tooSmall: 66;
+
+    /**
+     * @description zstd error: the destination buffer is too small
+     */
+    export const ZSTD_error_dstSize_tooSmall: 70;
+
+    /**
+     * @description zstd error: the source size does not match the pledged size
+     */
+    export const ZSTD_error_srcSize_wrong: 72;
+
+    /**
+     * @description zstd error: the destination buffer is null
+     */
+    export const ZSTD_error_dstBuffer_null: 74;
+
+    /**
+     * @description zstd error: the destination filled up and no progress was made
+     */
+    export const ZSTD_error_noForwardProgress_destFull: 80;
+
+    /**
+     * @description zstd error: the input is empty and no progress was made
+     */
+    export const ZSTD_error_noForwardProgress_inputEmpty: 82;
+
 }
 

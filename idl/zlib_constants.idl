@@ -230,4 +230,193 @@ module zlib_constants
 
     /*! @brief Default compression level */
     const Z_DEFAULT_LEVEL = -1;
+
+    /*! @brief zstd compression codec type id */
+    const ZSTD_COMPRESS = 10;
+
+    /*! @brief zstd decompression codec type id */
+    const ZSTD_DECOMPRESS = 11;
+
+    /*! @brief zstd end directive: keep buffering input */
+    const ZSTD_e_continue = 0;
+
+    /*! @brief zstd end directive: emit everything produced so far */
+    const ZSTD_e_flush = 1;
+
+    /*! @brief zstd end directive: finish the frame and write its trailer */
+    const ZSTD_e_end = 2;
+
+    /*! @brief zstd compression strategy: fastest, no matching */
+    const ZSTD_fast = 1;
+
+    /*! @brief zstd compression strategy: double fast */
+    const ZSTD_dfast = 2;
+
+    /*! @brief zstd compression strategy: greedy */
+    const ZSTD_greedy = 3;
+
+    /*! @brief zstd compression strategy: lazy */
+    const ZSTD_lazy = 4;
+
+    /*! @brief zstd compression strategy: lazy2 */
+    const ZSTD_lazy2 = 5;
+
+    /*! @brief zstd compression strategy: binary tree with lazy2 */
+    const ZSTD_btlazy2 = 6;
+
+    /*! @brief zstd compression strategy: binary tree with optimal parsing */
+    const ZSTD_btopt = 7;
+
+    /*! @brief zstd compression strategy: binary tree, ultra */
+    const ZSTD_btultra = 8;
+
+    /*! @brief zstd compression strategy: binary tree, ultra 2 */
+    const ZSTD_btultra2 = 9;
+
+    /*! @brief zstd parameter: compression level */
+    const ZSTD_c_compressionLevel = 100;
+
+    /*! @brief zstd parameter: maximum back-reference distance, as a power of 2 */
+    const ZSTD_c_windowLog = 101;
+
+    /*! @brief zstd parameter: size of the initial probe table, as a power of 2 */
+    const ZSTD_c_hashLog = 102;
+
+    /*! @brief zstd parameter: size of the multi-probe search table, as a power of 2 */
+    const ZSTD_c_chainLog = 103;
+
+    /*! @brief zstd parameter: number of search attempts, as a power of 2 */
+    const ZSTD_c_searchLog = 104;
+
+    /*! @brief zstd parameter: minimum size of searched matches */
+    const ZSTD_c_minMatch = 105;
+
+    /*! @brief zstd parameter: impact of this field depends on the strategy */
+    const ZSTD_c_targetLength = 106;
+
+    /*! @brief zstd parameter: compression strategy, see the ZSTD_* strategy constants */
+    const ZSTD_c_strategy = 107;
+
+    /*! @brief zstd parameter: enable long distance matching */
+    const ZSTD_c_enableLongDistanceMatching = 160;
+
+    /*! @brief zstd parameter: long distance matcher table size, as a power of 2 */
+    const ZSTD_c_ldmHashLog = 161;
+
+    /*! @brief zstd parameter: minimum match size of the long distance matcher */
+    const ZSTD_c_ldmMinMatch = 162;
+
+    /*! @brief zstd parameter: log size of each long distance matcher bucket */
+    const ZSTD_c_ldmBucketSizeLog = 163;
+
+    /*! @brief zstd parameter: long distance matcher hash rate, as a power of 2 */
+    const ZSTD_c_ldmHashRateLog = 164;
+
+    /*! @brief zstd parameter: write the content size into the frame header when known */
+    const ZSTD_c_contentSizeFlag = 200;
+
+    /*! @brief zstd parameter: write a 32-bit content checksum at the end of the frame */
+    const ZSTD_c_checksumFlag = 201;
+
+    /*! @brief zstd parameter: write the dictionary id into the frame header */
+    const ZSTD_c_dictIDFlag = 202;
+
+    /*! @brief zstd parameter: number of worker threads for multi-threaded compression */
+    const ZSTD_c_nbWorkers = 400;
+
+    /*! @brief zstd parameter: size of one compression job, enforced when nbWorkers is set */
+    const ZSTD_c_jobSize = 401;
+
+    /*! @brief zstd parameter: overlap size between jobs, as a fraction of the window */
+    const ZSTD_c_overlapLog = 402;
+
+    /*! @brief zstd parameter: largest window the decompressor reserves memory for */
+    const ZSTD_d_windowLogMax = 100;
+
+    /*! @brief zstd default compression level */
+    const ZSTD_CLEVEL_DEFAULT = 3;
+
+    /*! @brief zstd error: no error */
+    const ZSTD_error_no_error = 0;
+
+    /*! @brief zstd error: an unspecified error occurred */
+    const ZSTD_error_GENERIC = 1;
+
+    /*! @brief zstd error: the frame header is not recognized */
+    const ZSTD_error_prefix_unknown = 10;
+
+    /*! @brief zstd error: the frame requires an unsupported library version */
+    const ZSTD_error_version_unsupported = 12;
+
+    /*! @brief zstd error: a frame header parameter is not supported */
+    const ZSTD_error_frameParameter_unsupported = 14;
+
+    /*! @brief zstd error: the frame window is larger than the decoder allows */
+    const ZSTD_error_frameParameter_windowTooLarge = 16;
+
+    /*! @brief zstd error: the input is corrupted */
+    const ZSTD_error_corruption_detected = 20;
+
+    /*! @brief zstd error: the content checksum does not match */
+    const ZSTD_error_checksum_wrong = 22;
+
+    /*! @brief zstd error: the literals section header is malformed */
+    const ZSTD_error_literals_headerWrong = 24;
+
+    /*! @brief zstd error: the dictionary is corrupted */
+    const ZSTD_error_dictionary_corrupted = 30;
+
+    /*! @brief zstd error: the dictionary does not match the frame */
+    const ZSTD_error_dictionary_wrong = 32;
+
+    /*! @brief zstd error: the dictionary could not be created */
+    const ZSTD_error_dictionaryCreation_failed = 34;
+
+    /*! @brief zstd error: a parameter is not supported */
+    const ZSTD_error_parameter_unsupported = 40;
+
+    /*! @brief zstd error: this combination of parameters is not supported */
+    const ZSTD_error_parameter_combination_unsupported = 41;
+
+    /*! @brief zstd error: a parameter value is out of range */
+    const ZSTD_error_parameter_outOfBound = 42;
+
+    /*! @brief zstd error: a table log is too large */
+    const ZSTD_error_tableLog_tooLarge = 44;
+
+    /*! @brief zstd error: a maximum symbol value is too large */
+    const ZSTD_error_maxSymbolValue_tooLarge = 46;
+
+    /*! @brief zstd error: a maximum symbol value is too small */
+    const ZSTD_error_maxSymbolValue_tooSmall = 48;
+
+    /*! @brief zstd error: a stability condition is not respected */
+    const ZSTD_error_stabilityCondition_notRespected = 50;
+
+    /*! @brief zstd error: the call is made at the wrong stage */
+    const ZSTD_error_stage_wrong = 60;
+
+    /*! @brief zstd error: the context is not initialized */
+    const ZSTD_error_init_missing = 62;
+
+    /*! @brief zstd error: memory allocation failed */
+    const ZSTD_error_memory_allocation = 64;
+
+    /*! @brief zstd error: the workspace is too small */
+    const ZSTD_error_workSpace_tooSmall = 66;
+
+    /*! @brief zstd error: the destination buffer is too small */
+    const ZSTD_error_dstSize_tooSmall = 70;
+
+    /*! @brief zstd error: the source size does not match the pledged size */
+    const ZSTD_error_srcSize_wrong = 72;
+
+    /*! @brief zstd error: the destination buffer is null */
+    const ZSTD_error_dstBuffer_null = 74;
+
+    /*! @brief zstd error: the destination filled up and no progress was made */
+    const ZSTD_error_noForwardProgress_destFull = 80;
+
+    /*! @brief zstd error: the input is empty and no progress was made */
+    const ZSTD_error_noForwardProgress_inputEmpty = 82;
 };

@@ -23,6 +23,8 @@ class Inflate_base;
 class DeflateRaw_base;
 class InflateRaw_base;
 class Unzip_base;
+class ZstdCompress_base;
+class ZstdDecompress_base;
 class Stream_base;
 class Buffer_base;
 
@@ -54,6 +56,10 @@ public:
     using Union_unzip_maxSize = std::variant<int32_t, v8::Local<v8::Object>>;
     using Union_unzipTo_data = std::variant<obj_ptr<Buffer_base>, obj_ptr<Stream_base>, exlib::string>;
     using Union_crc32_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_zstdCompress_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_zstdDecompress_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_zstdCompressTo_data = std::variant<obj_ptr<Buffer_base>, obj_ptr<Stream_base>, exlib::string>;
+    using Union_zstdDecompressTo_data = std::variant<obj_ptr<Buffer_base>, obj_ptr<Stream_base>, exlib::string>;
 
 public:
     enum {
@@ -90,6 +96,12 @@ public:
     static result_t unzip(Union_unzip_data data, Union_unzip_maxSize maxSize, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t unzipTo(Union_unzipTo_data data, Stream_base* stm, int32_t maxSize, AsyncHandle ac);
     static result_t crc32(Union_crc32_data data, int64_t value, int64_t& retVal);
+    static result_t createZstdCompress(Stream_base* to, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal);
+    static result_t createZstdDecompress(Stream_base* to, int32_t maxSize, v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal);
+    static result_t zstdCompress(Union_zstdCompress_data data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t zstdDecompress(Union_zstdDecompress_data data, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t zstdCompressTo(Union_zstdCompressTo_data data, Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac);
+    static result_t zstdDecompressTo(Union_zstdDecompressTo_data data, Stream_base* stm, int32_t maxSize, v8::Local<v8::Object> options, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -128,6 +140,12 @@ public:
     static void s_static_unzip(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_unzipTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_crc32(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createZstdCompress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createZstdDecompress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_zstdCompress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_zstdDecompress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_zstdCompressTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_zstdDecompressTo(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(zlib_base, deflate, Union_deflate_data, Union_deflate_level, obj_ptr<Buffer_base>);
@@ -146,6 +164,10 @@ public:
     ASYNC_STATIC3(zlib_base, zipTo, Union_zipTo_data, Stream_base*, int32_t);
     ASYNC_STATICVALUE3(zlib_base, unzip, Union_unzip_data, Union_unzip_maxSize, obj_ptr<Buffer_base>);
     ASYNC_STATIC3(zlib_base, unzipTo, Union_unzipTo_data, Stream_base*, int32_t);
+    ASYNC_STATICVALUE3(zlib_base, zstdCompress, Union_zstdCompress_data, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE3(zlib_base, zstdDecompress, Union_zstdDecompress_data, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
+    ASYNC_STATIC3(zlib_base, zstdCompressTo, Union_zstdCompressTo_data, Stream_base*, v8::Local<v8::Object>);
+    ASYNC_STATIC4(zlib_base, zstdDecompressTo, Union_zstdDecompressTo_data, Stream_base*, int32_t, v8::Local<v8::Object>);
 };
 }
 
@@ -157,6 +179,8 @@ public:
 #include "ifs/DeflateRaw.h"
 #include "ifs/InflateRaw.h"
 #include "ifs/Unzip.h"
+#include "ifs/ZstdCompress.h"
+#include "ifs/ZstdDecompress.h"
 #include "ifs/Stream.h"
 #include "ifs/Buffer.h"
 
@@ -188,7 +212,13 @@ inline ClassInfo& zlib_base::class_info()
         { "zipTo", s_static_zipTo, true, ClassData::ASYNC_ASYNC },
         { "unzip", s_static_unzip, true, ClassData::ASYNC_ASYNC },
         { "unzipTo", s_static_unzipTo, true, ClassData::ASYNC_ASYNC },
-        { "crc32", s_static_crc32, true, ClassData::ASYNC_SYNC }
+        { "crc32", s_static_crc32, true, ClassData::ASYNC_SYNC },
+        { "createZstdCompress", s_static_createZstdCompress, true, ClassData::ASYNC_SYNC },
+        { "createZstdDecompress", s_static_createZstdDecompress, true, ClassData::ASYNC_SYNC },
+        { "zstdCompress", s_static_zstdCompress, true, ClassData::ASYNC_ASYNC },
+        { "zstdDecompress", s_static_zstdDecompress, true, ClassData::ASYNC_ASYNC },
+        { "zstdCompressTo", s_static_zstdCompressTo, true, ClassData::ASYNC_ASYNC },
+        { "zstdDecompressTo", s_static_zstdDecompressTo, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -199,7 +229,9 @@ inline ClassInfo& zlib_base::class_info()
         { "Inflate", Inflate_base::class_info },
         { "DeflateRaw", DeflateRaw_base::class_info },
         { "InflateRaw", InflateRaw_base::class_info },
-        { "Unzip", Unzip_base::class_info }
+        { "Unzip", Unzip_base::class_info },
+        { "ZstdCompress", ZstdCompress_base::class_info },
+        { "ZstdDecompress", ZstdDecompress_base::class_info }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -654,5 +686,113 @@ inline void zlib_base::s_static_crc32(const v8::FunctionCallbackInfo<v8::Value>&
     hr = crc32(v0, v1, vr);
 
     METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_createZstdCompress(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 0);
+
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+
+    hr = createZstdCompress(v0.get(), v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_createZstdDecompress(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 0);
+
+    OPT_ARG_NAMED(obj_ptr<Stream_base>, 0, NULL, "to");
+    OPT_ARG_NAMED(int32_t, 1, -1, "maxSize");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
+
+    hr = createZstdDecompress(v0.get(), v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_zstdCompress(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_ENTER("zlib.zstdCompress");
+
+    METHOD_OVER_NAMED(2, 1, "data");
+
+    ARG(Union_zstdCompress_data, 0);
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+
+    if (!cb.IsEmpty())
+        hr = acb_zstdCompress(v0, v1, cb, args);
+    else
+        hr = ac_zstdCompress(v0, v1, vr);
+
+    ASYNC_METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_zstdDecompress(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_ENTER("zlib.zstdDecompress");
+
+    METHOD_OVER_NAMED(2, 1, "data");
+
+    ARG(Union_zstdDecompress_data, 0);
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+
+    if (!cb.IsEmpty())
+        hr = acb_zstdDecompress(v0, v1, cb, args);
+    else
+        hr = ac_zstdDecompress(v0, v1, vr);
+
+    ASYNC_METHOD_RETURN();
+}
+
+inline void zlib_base::s_static_zstdCompressTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("zlib.zstdCompressTo");
+
+    METHOD_OVER_NAMED(3, 2, "stm");
+
+    ARG(Union_zstdCompressTo_data, 0);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
+
+    if (!cb.IsEmpty())
+        hr = acb_zstdCompressTo(v0, v1.get(), v2, cb, args);
+    else
+        hr = ac_zstdCompressTo(v0, v1.get(), v2);
+
+    ASYNC_METHOD_VOID();
+}
+
+inline void zlib_base::s_static_zstdDecompressTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("zlib.zstdDecompressTo");
+
+    METHOD_OVER_NAMED(4, 2, "stm");
+
+    ARG(Union_zstdDecompressTo_data, 0);
+    ARG_NAMED(obj_ptr<Stream_base>, 1, "stm");
+    OPT_ARG_NAMED(int32_t, 2, -1, "maxSize");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate), "options");
+
+    if (!cb.IsEmpty())
+        hr = acb_zstdDecompressTo(v0, v1.get(), v2, v3, cb, args);
+    else
+        hr = ac_zstdDecompressTo(v0, v1.get(), v2, v3);
+
+    ASYNC_METHOD_VOID();
 }
 }

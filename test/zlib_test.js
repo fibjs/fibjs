@@ -1678,4 +1678,169 @@ describe("zlib factory destination defaults", () => {
         });
     });
 
+    describe("zstd", () => {
+        var C = zlib.constants;
+
+        it("exports the full surface", () => {
+            ['zstdCompress', 'zstdDecompress', 'zstdCompressTo', 'zstdDecompressTo',
+                'createZstdCompress', 'createZstdDecompress',
+                'ZstdCompress', 'ZstdDecompress'].forEach((name) => {
+                assert.equal(typeof zlib[name], 'function', name + ' must be exported');
+            });
+        });
+
+        it("round-trips through the one-shot helpers", () => {
+            var text = 'hello, zstd';
+
+            assert.equal(zlib.zstdDecompress(zlib.zstdCompress(text)).toString(), text);
+        });
+
+        it("writes the standard frame magic", () => {
+            var packed = zlib.zstdCompress('hello');
+
+            assert.equal(packed[0], 0x28);
+            assert.equal(packed[1], 0xb5);
+        });
+
+        it("takes a string or a buffer", () => {
+            var data = Buffer.from('bytes');
+
+            assert.equal(zlib.zstdDecompress(zlib.zstdCompress(data)).toString(), 'bytes');
+        });
+
+        it("decodes concatenated frames", () => {
+            var two = Buffer.concat([zlib.zstdCompress('aa'), zlib.zstdCompress('bb')]);
+
+            assert.equal(zlib.zstdDecompress(two).toString(), 'aabb');
+        });
+
+        it("honours the level", () => {
+            // A source file plus its reverse: real data that the high levels
+            // can exploit, unlike a single repeated sentence where every level
+            // finds the same match.
+            var src = fs.readFileSync(__filename, 'utf8');
+            var data = Buffer.from(src + src.split('').reverse().join(''));
+
+            assert.ok(zlib.zstdCompress(data, { level: 19 }).length <
+                zlib.zstdCompress(data, { level: 1 }).length,
+                'a higher level must produce a smaller frame');
+        });
+
+        it("accepts any zstd parameter through params", () => {
+            var plain = zlib.zstdCompress('hello');
+            var sum = zlib.zstdCompress('hello', {
+                params: { [C.ZSTD_c_checksumFlag]: 1 }
+            });
+
+            assert.ok(sum.length > plain.length, 'a checksum adds bytes');
+            assert.equal(zlib.zstdDecompress(sum).toString(), 'hello');
+        });
+
+        it("reports the zstd error code", () => {
+            assert.throws(() => {
+                zlib.zstdDecompress(Buffer.from('not a zstd frame'));
+            }, (e) => e.code === 'ZSTD_error_prefix_unknown');
+        });
+
+        it("streams into a destination", () => {
+            var packed = new io.MemoryStream();
+
+            zlib.zstdCompressTo('streaming data', packed);
+            packed.rewind();
+            assert.equal(zlib.zstdDecompress(packed.readAll()).toString(), 'streaming data');
+        });
+
+        it("decompresses into a destination", () => {
+            var out = new io.MemoryStream();
+
+            zlib.zstdDecompressTo(zlib.zstdCompress('to-stream'), out);
+            out.rewind();
+            assert.equal(out.readAll().toString(), 'to-stream');
+        });
+
+        it("builds a write-only compressor stream", () => {
+            var packed = new io.MemoryStream();
+            var zstd = zlib.createZstdCompress(packed, { level: 5 });
+
+            zstd.write('hello ');
+            zstd.write('world');
+            zstd.close();
+
+            packed.rewind();
+            assert.equal(zlib.zstdDecompress(packed.readAll()).toString(), 'hello world');
+        });
+
+        it("builds a decompressor stream", () => {
+            var packed = zlib.zstdCompress('stream decompress');
+            var out = new io.MemoryStream();
+            var unzstd = zlib.createZstdDecompress(out);
+
+            unzstd.write(packed);
+            unzstd.close();
+
+            out.rewind();
+            assert.equal(out.readAll().toString(), 'stream decompress');
+        });
+
+        it("drives a codec with the zlib flush flags", () => {
+            var codec = new zlib.ZstdCompress();
+
+            var first = codec._processChunk('hello, ', C.Z_NO_FLUSH);
+            var last = codec._processChunk('world', C.Z_FINISH);
+
+            assert.equal(zlib.zstdDecompress(Buffer.concat([first, last])).toString(),
+                'hello, world');
+        });
+
+        it("reuses a codec for several frames", () => {
+            var codec = new zlib.ZstdCompress();
+
+            var a = codec._processChunk('first', C.Z_FINISH);
+            var b = codec._processChunk('second', C.Z_FINISH);
+
+            assert.equal(zlib.zstdDecompress(a).toString(), 'first');
+            assert.equal(zlib.zstdDecompress(b).toString(), 'second');
+        });
+
+        it("decodes through the decompressor codec", () => {
+            var packed = zlib.zstdCompress('codec decode');
+            var codec = new zlib.ZstdDecompress();
+
+            assert.equal(codec._processChunk(packed, C.Z_FINISH).toString(), 'codec decode');
+        });
+
+        it("rejects work on a closed codec", () => {
+            var codec = new zlib.ZstdCompress();
+
+            codec.close();
+            assert.throws(() => codec._processChunk('x', C.Z_FINISH),
+                (e) => e.code === 'ERR_ZLIB_BINDING_CLOSED');
+        });
+
+        it("exposes the zstd constants", () => {
+            assert.equal(C.ZSTD_e_continue, 0);
+            assert.equal(C.ZSTD_e_flush, 1);
+            assert.equal(C.ZSTD_e_end, 2);
+            assert.equal(C.ZSTD_c_compressionLevel, 100);
+            assert.equal(C.ZSTD_c_strategy, 107);
+            assert.equal(C.ZSTD_d_windowLogMax, 100);
+            assert.equal(C.ZSTD_CLEVEL_DEFAULT, 3);
+            assert.equal(C.ZSTD_btultra2, 9);
+        });
+
+        it("round-trips an empty buffer", () => {
+            var plain = zlib.zstdDecompress(zlib.zstdCompress(''));
+
+            assert.ok(Buffer.isBuffer(plain), 'an empty result is still a buffer');
+            assert.equal(plain.length, 0);
+        });
+
+        it("stops a decompression that grows too large", () => {
+            var packed = zlib.zstdCompress(Buffer.alloc(4096, 'a'.charCodeAt(0)));
+
+            assert.throws(() => zlib.zstdDecompressTo(packed, new io.MemoryStream(), 16),
+                (e) => e.code === 'ERR_BUFFER_TOO_LARGE' && e.number === 20013);
+        });
+    });
+
 });
