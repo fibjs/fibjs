@@ -209,6 +209,41 @@ module process : EventEmitter
      */
     static readonly Object versions;
 
+    /*! @brief Returns the runtime capabilities as a read-only object
+
+     The object mirrors Node.js `process.features`, so capability probes such as
+     `'sea' in process.features` or `process.features.tls` work unchanged: every key
+     Node.js documents is present and the value reports what this build actually
+     provides. A probe written as `'x' in process.features` therefore never throws, and
+     the keys that stand for an absent capability read `false` rather than `undefined`.
+
+     The keys are:
+
+     - `inspector` — whether an inspector can attach to the isolate;
+     - `debug` — whether this is a debug build of fibjs;
+     - `uv` — whether libuv drives the event loop (always true);
+     - `ipv6` — whether the bundled libuv has IPv6 support;
+     - `openssl_is_boringssl` — false, fibjs bundles OpenSSL proper;
+     - `dtls` — whether Datagram TLS is offered (not implemented, false);
+     - `quic` — whether QUIC is offered (not implemented, false);
+     - `tls_alpn`, `tls_sni`, `tls_ocsp`, `tls` — whether the bundled OpenSSL offers
+       ALPN, SNI and OCSP, and TLS itself;
+     - `cached_builtins` — whether built-in modules are compiled once and cached;
+     - `require_module` — whether `require()` can load an ES module;
+     - `typescript` — `'strip'`, `'transform'` or `false`, the TypeScript handling of
+       source files;
+     - `sea` — whether this binary is a single executable application.
+
+     Example — probe before using an optional capability:
+     ```JavaScript
+     const features = process.features;
+
+     if (features.typescript) console.log('typescript support:', features.typescript);
+     if ('sea' in features && features.sea === true) console.log('single executable');
+     ```
+     */
+    static readonly Object features;
+
     /*! @brief Queries the full path of the currently running executable file
 
      The path comes from the operating system, so it is absolute even when the runner was

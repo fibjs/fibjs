@@ -105,6 +105,10 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
             if (marker == '1')
                 sea_data = postject_find_resource("APP", &sea_size, nullptr);
 
+            // process.features.sea reads this flag rather than the marker: the
+            // bundle is only a usable SEA when the resource is actually there.
+            g_is_sea = sea_size > 0;
+
             exlib::string exePath;
             std::vector<char*> ptrArg;
             if (sea_size > 0 || marker == '2') {

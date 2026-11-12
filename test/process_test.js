@@ -663,5 +663,73 @@ describe('process', () => {
             assert.strictEqual(process.getBuiltinModule('timers/promises'), require('timers/promises'));
         });
     });
+
+    describe("features (Node.js compatibility)", () => {
+        // The key set follows Node.js's own test, test/parallel/test-process-features.js.
+        // A probe written as `'x' in process.features` must never throw, so the
+        // object has to be present and every documented key has to exist.
+        var keys = [
+            'inspector', 'debug', 'uv', 'ipv6', 'openssl_is_boringssl',
+            'dtls', 'quic', 'tls_alpn', 'tls_sni', 'tls_ocsp', 'tls',
+            'cached_builtins', 'require_module', 'typescript', 'sea',
+        ];
+
+        it("exists and is an object", () => {
+            assert.isObject(process.features);
+            assert.strictEqual(process.features, process.features,
+                'the object must be stable across reads');
+        });
+
+        it("has every documented key", () => {
+            keys.forEach((key) => {
+                assert.ok(key in process.features, 'missing process.features.' + key);
+            });
+        });
+
+        it("reports booleans for the capability flags", () => {
+            keys.filter((k) => k !== 'typescript').forEach((key) => {
+                assert.strictEqual(typeof process.features[key], 'boolean',
+                    'process.features.' + key + ' must be a boolean');
+            });
+        });
+
+        it("reports a string or false for typescript", () => {
+            var ts = process.features.typescript;
+
+            assert.ok(ts === false || typeof ts === 'string',
+                'process.features.typescript must be false or a string, got ' + typeof ts);
+        });
+
+        it("reports the capabilities this build actually has", () => {
+            assert.isTrue(process.features.uv);
+            assert.isTrue(process.features.tls);
+            assert.isTrue(process.features.tls_alpn);
+            assert.isTrue(process.features.tls_sni);
+            assert.isFalse(process.features.openssl_is_boringssl,
+                'fibjs bundles OpenSSL proper');
+        });
+
+        it("is not writable", () => {
+            assert.throws(() => { process.features = {}; }, TypeError);
+            assert.isObject(process.features);
+        });
+
+        it("supports the 'sea' probe used by real packages", () => {
+            // pi-coding-agent 1.5.2 does exactly this at load time; an `in`
+            // operator on undefined used to throw there.
+            assert.doesNotThrow(() => {
+                return ('sea' in process.features && process.features.sea === true)
+                    || process.getBuiltinModule('node:sea') === undefined;
+            });
+            assert.isFalse(process.features.sea,
+                'the test runner is not a single executable application');
+        });
+
+        it("is a plain data object", () => {
+            assert.strictEqual(Object.prototype.toString.call(process.features),
+                '[object Object]');
+            assert.ok(Object.keys(process.features).length >= keys.length);
+        });
+    });
 });
 

@@ -138,6 +138,7 @@ public:
     static result_t get_execArgv(std::vector<exlib::string>& retVal);
     static result_t get_version(exlib::string& retVal);
     static result_t get_versions(v8::Local<v8::Object>& retVal);
+    static result_t get_features(v8::Local<v8::Object>& retVal);
     static result_t get_execPath(exlib::string& retVal);
     static result_t get_env(v8::Local<v8::Object>& retVal);
     static result_t get_arch(exlib::string& retVal);
@@ -194,6 +195,7 @@ public:
     static void s_static_get_execArgv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_version(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_versions(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_features(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_execPath(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_env(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -267,6 +269,7 @@ inline ClassInfo& process_base::class_info()
         { "execArgv", s_static_get_execArgv, block_set, true },
         { "version", s_static_get_version, block_set, true },
         { "versions", s_static_get_versions, block_set, true },
+        { "features", s_static_get_features, block_set, true },
         { "execPath", s_static_get_execPath, block_set, true },
         { "env", s_static_get_env, block_set, true },
         { "arch", s_static_get_arch, block_set, true },
@@ -357,6 +360,19 @@ inline void process_base::s_static_get_versions(const v8::FunctionCallbackInfo<v
     METHOD_OVER(0, 0);
 
     hr = get_versions(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_static_get_features(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_features(vr);
 
     METHOD_RETURN();
 }

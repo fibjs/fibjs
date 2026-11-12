@@ -341,6 +341,11 @@ public:
     // JS pipe function from internal/pipe.js, stored for C++ native objects to call
     v8::Global<v8::Function> m_pipe_fn;
 
+    // process.features: Node.js hands out the same object on every read and a
+    // package may compare or extend it, so the capabilities are built once per
+    // isolate and handed back.
+    v8::Global<v8::Object> m_features;
+
     // Wrapper function installed as Symbol.asyncIterator on promises returned by
     // async methods that yield iterator objects (so that for await (var row of
     // conn.iterate(...)) works with the promise-style API)

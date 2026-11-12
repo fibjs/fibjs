@@ -51,6 +51,8 @@ bool g_openssl_legacy_provider = false;
 
 bool g_use_env_proxy = false;
 
+bool g_is_sea = false;
+
 bool g_js_thread_affinity = true;
 
 exlib::string g_exec_code;

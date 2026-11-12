@@ -40,6 +40,10 @@ extern bool g_openssl_legacy_provider;
 
 extern bool g_use_env_proxy;
 
+// Whether this executable is a single executable application: Runtime::start()
+// moves the postject marker into it, and process.features.sea reports it.
+extern bool g_is_sea;
+
 // Every isolate runs all of its JS on one dedicated OS thread by default, which
 // matches the Node.js contract that N-API addons assume (one napi_env == one OS
 // thread) and keeps addons that store state in OS thread-local storage working.

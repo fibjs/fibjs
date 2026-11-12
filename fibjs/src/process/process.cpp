@@ -149,6 +149,74 @@ result_t process_base::get_versions(v8::Local<v8::Object>& retVal)
     return util_base::buildInfo(retVal);
 }
 
+// process.features: the capability probe Node.js exposes. The keys and their
+// types follow Node.js's own test (test/parallel/test-process-features.js) so a
+// probe written as `'x' in process.features` never throws; a capability this
+// build does not offer reads false instead of being absent, which keeps the
+// object shape stable across builds.
+//
+// Node.js hands out the same object on every read, so the result is built once
+// per isolate and cached.
+result_t process_base::get_features(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+
+    if (!isolate->m_features.IsEmpty()) {
+        retVal = isolate->m_features.Get(isolate->m_isolate);
+        return result_t();
+    }
+
+    if (retVal.IsEmpty())
+        retVal = v8::Object::New(isolate->m_isolate);
+
+    obj_ptr<NObject> features = new NObject();
+
+    // fibjs has no inspector frontend and no --inspect switch, so nothing can
+    // attach to the isolate.
+    features->add("inspector", false);
+    // build type, the same flag versions.debug reports
+#ifdef NDEBUG
+    features->add("debug", false);
+#else
+    features->add("debug", true);
+#endif
+    // the event loop is libuv's
+    features->add("uv", true);
+    // the bundled libuv is built with IPv6 support and the socket layer accepts
+    // IPv6 addresses
+    features->add("ipv6", true);
+    // ALPN, SNI and TLS itself are implemented on top of the bundled OpenSSL,
+    // which is OpenSSL proper rather than BoringSSL; OCSP stapling is not
+    // exposed by the tls module yet.
+    features->add("tls_alpn", true);
+    features->add("tls_sni", true);
+    features->add("tls_ocsp", false);
+    features->add("tls", true);
+    features->add("openssl_is_boringssl", false);
+    // Datagram TLS and QUIC are not implemented
+    features->add("dtls", false);
+    features->add("quic", false);
+    // the embedded modules are compiled once and cached by the sandbox
+    features->add("cached_builtins", true);
+    // require() loads an ES module too (cjs_Loader falls back to the ESM loader)
+    features->add("require_module", true);
+    // the loader compiles TypeScript sources up front: enums, namespaces and
+    // parameter properties are transformed, not just stripped
+    features->add("typescript", "transform");
+    // a single executable application carries its payload as a postject
+    // resource; Runtime::start records that decision in g_is_sea, so every
+    // isolate of this process reports the same answer.
+    features->add("sea", g_is_sea);
+
+    result_t hr = features->valueOf(retVal);
+    if (hr.failed())
+        return hr;
+
+    isolate->m_features.Reset(isolate->m_isolate, retVal);
+    return result_t();
+}
+
 result_t process_base::get_exitCode(int32_t& retVal)
 {
     retVal = Isolate::current()->m_exitCode;
