@@ -350,5 +350,19 @@ declare module 'performance' {
      */
     function now(): number;
 
+    /**
+     * @description The Unix time, in milliseconds, at which the runtime started
+     *
+     *      The origin the `now()` readings are relative to: `Date.now() - now()` at
+     *      any moment approximates this value, and `timeOrigin + now()` is the current
+     *      wall-clock time in milliseconds. The value is fixed once the runtime
+     *      started, so reading it twice returns the same number; it is not affected by
+     *      marks, measures or observers.
+     *
+     *      Node.js and the Web expose the same member on the global `performance`
+     *      object.
+     */
+    const timeOrigin: number;
+
 }
 

@@ -2412,5 +2412,86 @@ describe('util', () => {
             assert.equal(typeof opts.maxStringLength, 'number');
         });
     });
-});
 
+    describe('aborted', () => {
+        // util.aborted(signal) is the promise that settles when the signal
+        // aborts. It never rejects because of the abort itself - the caller
+        // reads the reason from the signal - and a bad argument rejects rather
+        // than throwing, so `await util.aborted(x)` reports it.
+        it('resolves when the signal aborts', () => {
+            var controller = new AbortController();
+
+            return new Promise((resolve, reject) => {
+                var settled = false;
+
+                util.aborted(controller.signal).then(() => {
+                    settled = true;
+                    try {
+                        assert.isTrue(controller.signal.aborted);
+                        resolve();
+                    } catch (e) {
+                        reject(e);
+                    }
+                }, reject);
+
+                // Give the subscription a tick to be in place before aborting.
+                setTimeout(() => {
+                    assert.isFalse(settled, 'must not settle before the abort');
+                    controller.abort();
+                }, 10);
+            });
+        });
+
+        it('resolves for an already-aborted signal', () => {
+            var controller = new AbortController();
+
+            controller.abort();
+
+            return util.aborted(controller.signal).then(() => {
+                assert.isTrue(controller.signal.aborted);
+            });
+        });
+
+        it('keeps the abort reason on the signal', () => {
+            var controller = new AbortController();
+            var reason = new Error('custom reason');
+
+            var pending = util.aborted(controller.signal);
+
+            controller.abort(reason);
+
+            return pending.then(() => {
+                assert.strictEqual(controller.signal.reason, reason);
+            });
+        });
+
+        it('accepts the optional resource argument', () => {
+            var controller = new AbortController();
+            var pending = util.aborted(controller.signal, { keep: true });
+
+            controller.abort();
+
+            return pending;
+        });
+
+        it('rejects (rather than throws) for a bad signal', () => {
+            // The validation happens inside the promise: a synchronous throw
+            // would surface at the call site, where the caller is not expecting
+            // an error, so the first await would miss it.
+            var pending;
+
+            assert.doesNotThrow(() => {
+                pending = util.aborted(null);
+            });
+
+            assert.ok(pending instanceof Promise);
+
+            return pending.then(() => {
+                assert.fail('a null signal must not resolve');
+            }, (e) => {
+                assert.equal(e.name, 'TypeError');
+                assert.equal(e.code, 'ERR_INVALID_ARG_TYPE');
+            });
+        });
+    });
+});

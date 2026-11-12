@@ -21,6 +21,7 @@ class types_base;
 class colors_base;
 class ConsoleObject_base;
 class Buffer_base;
+class AbortSignal_base;
 
 class util_base : public object_base {
     DECLARE_CLASS(util_base);
@@ -113,6 +114,7 @@ public:
     static result_t getSystemErrorMessage(int32_t err, exlib::string& retVal);
     static result_t getSystemErrorMap(v8::Local<v8::Value>& retVal);
     static result_t stripVTControlCharacters(exlib::string str, exlib::string& retVal);
+    static result_t aborted(AbortSignal_base* signal, v8::Local<v8::Object> resource, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -207,6 +209,10 @@ public:
     static void s_static_getSystemErrorMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getSystemErrorMap(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_stripVTControlCharacters(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_aborted(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_STATIC2(util_base, aborted, AbortSignal_base*, v8::Local<v8::Object>);
 };
 }
 
@@ -216,6 +222,7 @@ public:
 #include "ifs/colors.h"
 #include "ifs/ConsoleObject.h"
 #include "ifs/Buffer.h"
+#include "ifs/AbortSignal.h"
 
 namespace fibjs {
 inline ClassInfo& util_base::class_info()
@@ -301,7 +308,8 @@ inline ClassInfo& util_base::class_info()
         { "getSystemErrorName", s_static_getSystemErrorName, true, ClassData::ASYNC_SYNC },
         { "getSystemErrorMessage", s_static_getSystemErrorMessage, true, ClassData::ASYNC_SYNC },
         { "getSystemErrorMap", s_static_getSystemErrorMap, true, ClassData::ASYNC_SYNC },
-        { "stripVTControlCharacters", s_static_stripVTControlCharacters, true, ClassData::ASYNC_SYNC }
+        { "stripVTControlCharacters", s_static_stripVTControlCharacters, true, ClassData::ASYNC_SYNC },
+        { "aborted", s_static_aborted, true, ClassData::ASYNC_PROMISE }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -1590,5 +1598,22 @@ inline void util_base::s_static_stripVTControlCharacters(const v8::FunctionCallb
     hr = stripVTControlCharacters(v0, vr);
 
     METHOD_RETURN();
+}
+
+inline void util_base::s_static_aborted(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER("util.aborted");
+
+    METHOD_OVER_NAMED(2, 1, "signal");
+
+    ARG_NAMED(obj_ptr<AbortSignal_base>, 0, "signal");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "resource");
+
+    if (!cb.IsEmpty())
+        hr = acb_aborted(v0.get(), v1, cb, args);
+    else
+        hr = ac_aborted(v0.get(), v1);
+
+    ASYNC_METHOD_VOID();
 }
 }

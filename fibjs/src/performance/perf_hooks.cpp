@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ifs/perf_hooks.h"
 #include <uv/include/uv.h>
+#include <cmath>
 #include "PerformanceObserver.h"
 #include "Fiber.h"
 
@@ -20,6 +21,26 @@ static uint64_t s_startup = uv_hrtime();
 inline double perf_now()
 {
     return (double)(uv_hrtime() - s_startup) / 1000000.0;
+}
+
+// The Unix time `perf_now()` counts from, resolved once at first read.
+//
+// `timeOrigin` is defined as a fixed instant, not a moving one, so two reads
+// must return the same number. Deriving it per read would differ in the last
+// digits (two clock reads never sample the same instant), which breaks
+// `strictEqual` and is not what the property means. Resolved lazily rather than
+// at startup so a program that never reads it pays nothing.
+static double s_timeOrigin = NAN;
+
+inline double perf_timeOrigin()
+{
+    if (std::isnan(s_timeOrigin)) {
+        date_t wall;
+        wall.now();
+        s_timeOrigin = wall.date() - perf_now();
+    }
+
+    return s_timeOrigin;
 }
 
 result_t PerformanceObserver_base::_new(v8::Local<v8::Function> callback, obj_ptr<PerformanceObserver_base>& retVal,
@@ -422,6 +443,12 @@ result_t performance_base::getEntriesByName(exlib::string name, exlib::string ty
 result_t performance_base::now(double& retVal)
 {
     retVal = perf_now();
+    return result_t();
+}
+
+result_t performance_base::get_timeOrigin(double& retVal)
+{
+    retVal = perf_timeOrigin();
     return result_t();
 }
 

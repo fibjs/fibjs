@@ -13,6 +13,7 @@
 #include "SimpleObject.h"
 #include "ts_strip/ts_strip.h"
 #include "util.h"
+#include "AbortController.h"
 #include "dotenv_parser.h"
 #include <unordered_map>
 #include <uv/include/uv.h>
@@ -1231,5 +1232,36 @@ result_t util_base::getSystemErrorMap(v8::Local<v8::Value>& retVal)
 
     retVal = map;
     return result_t();
+}
+
+result_t util_base::aborted(AbortSignal_base* signal, v8::Local<v8::Object> resource, AsyncHandle ac)
+{
+    if (ac.isSync())
+        return result_t::nosync();
+
+    // The promise settles when the signal aborts, with no value and no
+    // rejection: the caller reads the reason from the signal, which is what
+    // Node does. There is no fiber form - a synchronous caller has nothing to
+    // wait for - so only the promise flavor exists.
+    AbortSignal* pSignal = static_cast<AbortSignal*>(signal);
+
+    // `AsyncHandle` is move-only and `addAbortCallback` takes a copyable
+    // std::function, so the handle travels inside a shared holder. Exactly one
+    // of the two paths below runs, and `post()` empties the handle, so the
+    // delivery happens once even if the abort races with this call.
+    auto held = std::make_shared<AsyncHandle>(std::move(ac));
+
+    // `addAbortCallback` is atomic against a concurrent abort: it invokes the
+    // callback inline when the signal is already aborted, so there is no window
+    // between checking and subscribing. The callback also keeps the signal
+    // reachable for as long as the promise is pending.
+    pSignal->addAbortCallback([held]() {
+        held->post(result_t());
+    });
+
+    // `resource` exists in Node so a signal owned only by this call is not
+    // collected while observed; the callback above already holds it, so the
+    // argument is accepted for signature compatibility and needs no retention.
+    return result_t::pending();
 }
 }

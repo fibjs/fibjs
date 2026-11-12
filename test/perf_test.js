@@ -728,4 +728,37 @@ describe('Performance API', () => {
                 { name: 'TypeError' });
         });
     });
+
+    describe('timeOrigin', () => {
+        // The Unix time the runtime started, which `now()` is relative to:
+        // `timeOrigin + now()` is the current wall clock, so the two clocks have
+        // to agree. Node and the Web expose the member as a fixed number, not a
+        // moving one.
+        it('is a positive number', () => {
+            assert.equal(typeof performance.timeOrigin, 'number');
+            assert.ok(performance.timeOrigin > 0,
+                'timeOrigin must be a positive timestamp');
+        });
+
+        it('does not move between reads', () => {
+            assert.strictEqual(performance.timeOrigin, performance.timeOrigin);
+        });
+
+        it('agrees with the wall clock through now()', () => {
+            var derived = performance.timeOrigin + performance.now();
+            var wall = Date.now();
+
+            assert.ok(Math.abs(wall - derived) < 5000,
+                'timeOrigin + now() should be the wall clock: ' + wall + ' vs ' + derived);
+        });
+
+        it('is not inflated by marks', () => {
+            var before = performance.timeOrigin;
+
+            performance.mark('timeOrigin-probe');
+            performance.clearMarks();
+
+            assert.strictEqual(performance.timeOrigin, before);
+        });
+    });
 });

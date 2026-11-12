@@ -107790,6 +107790,20 @@ declare module 'performance' {
      */
     function now(): number;
 
+    /**
+     * @description The Unix time, in milliseconds, at which the runtime started
+     *
+     *      The origin the \`now()\` readings are relative to: \`Date.now() - now()\` at
+     *      any moment approximates this value, and \`timeOrigin + now()\` is the current
+     *      wall-clock time in milliseconds. The value is fixed once the runtime
+     *      started, so reading it twice returns the same number; it is not affected by
+     *      marks, measures or observers.
+     *
+     *      Node.js and the Web expose the same member on the global \`performance\`
+     *      object.
+     */
+    const timeOrigin: number;
+
 }
 
 `,
@@ -116388,6 +116402,7 @@ declare module 'url' {
 /// <reference path="../module/colors.d.ts" />
 /// <reference path="../interface/ConsoleObject.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/AbortSignal.d.ts" />
 /**
  * @description Utility helpers for formatting, inspecting, type checks, async wrappers and collections
  *
@@ -117923,6 +117938,120 @@ declare module 'util' {
      *
      */
     function stripVTControlCharacters(str: string): string;
+
+    /**
+     * @description Returns a promise that resolves once the signal aborts
+     *
+     *      The promise has no value: it settles when \`signal\` aborts, whatever the
+     *      reason, and never rejects because of the abort itself. It is the async
+     *      counterpart of listening for the \`abort\` event, for code that wants to
+     *      \`await\` the cancellation of a signal it did not create.
+     *
+     *      An already-aborted signal resolves on the next tick rather than
+     *      synchronously, so handlers attached right after the call still run. A
+     *      \`signal\` that is not an AbortSignal rejects with a TypeError
+     *      (ERR_INVALID_ARG_TYPE) instead of throwing: the check happens inside the
+     *      promise, so \`await util.aborted(x)\` reports the error where the caller
+     *      expects it.
+     *
+     *      \`resource\` is an optional object Node keeps alive until the signal aborts,
+     *      so a signal owned only by this call is not collected while it is being
+     *      observed. fibjs holds the signal through the listener, so the argument is
+     *      accepted and type-checked but has no further effect.
+     *
+     *      Example — settle on cancellation instead of polling:
+     *      \`\`\`JavaScript
+     *      var util = require('util');
+     *      var controller = new AbortController();
+     *
+     *      util.aborted(controller.signal).then(() => {
+     *          console.log(controller.signal.aborted); // true
+     *      });
+     *
+     *      setTimeout(() => controller.abort(), 10);
+     *      \`\`\`
+     *
+     *      @param signal the AbortSignal to observe
+     *      @param resource an optional object kept alive until the signal aborts
+     *
+     */
+    function aborted(signal: Class_AbortSignal, resource?: FIBJS.GeneralObject): Promise<void>;
+
+    /**
+     * @description Returns a promise that resolves once the signal aborts
+     *
+     *      The promise has no value: it settles when \`signal\` aborts, whatever the
+     *      reason, and never rejects because of the abort itself. It is the async
+     *      counterpart of listening for the \`abort\` event, for code that wants to
+     *      \`await\` the cancellation of a signal it did not create.
+     *
+     *      An already-aborted signal resolves on the next tick rather than
+     *      synchronously, so handlers attached right after the call still run. A
+     *      \`signal\` that is not an AbortSignal rejects with a TypeError
+     *      (ERR_INVALID_ARG_TYPE) instead of throwing: the check happens inside the
+     *      promise, so \`await util.aborted(x)\` reports the error where the caller
+     *      expects it.
+     *
+     *      \`resource\` is an optional object Node keeps alive until the signal aborts,
+     *      so a signal owned only by this call is not collected while it is being
+     *      observed. fibjs holds the signal through the listener, so the argument is
+     *      accepted and type-checked but has no further effect.
+     *
+     *      Example — settle on cancellation instead of polling:
+     *      \`\`\`JavaScript
+     *      var util = require('util');
+     *      var controller = new AbortController();
+     *
+     *      util.aborted(controller.signal).then(() => {
+     *          console.log(controller.signal.aborted); // true
+     *      });
+     *
+     *      setTimeout(() => controller.abort(), 10);
+     *      \`\`\`
+     *
+     *      @param signal the AbortSignal to observe
+     *      @param resource an optional object kept alive until the signal aborts
+     *
+     */
+    function abortedSync(signal: Class_AbortSignal, resource?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Returns a promise that resolves once the signal aborts
+     *
+     *      The promise has no value: it settles when \`signal\` aborts, whatever the
+     *      reason, and never rejects because of the abort itself. It is the async
+     *      counterpart of listening for the \`abort\` event, for code that wants to
+     *      \`await\` the cancellation of a signal it did not create.
+     *
+     *      An already-aborted signal resolves on the next tick rather than
+     *      synchronously, so handlers attached right after the call still run. A
+     *      \`signal\` that is not an AbortSignal rejects with a TypeError
+     *      (ERR_INVALID_ARG_TYPE) instead of throwing: the check happens inside the
+     *      promise, so \`await util.aborted(x)\` reports the error where the caller
+     *      expects it.
+     *
+     *      \`resource\` is an optional object Node keeps alive until the signal aborts,
+     *      so a signal owned only by this call is not collected while it is being
+     *      observed. fibjs holds the signal through the listener, so the argument is
+     *      accepted and type-checked but has no further effect.
+     *
+     *      Example — settle on cancellation instead of polling:
+     *      \`\`\`JavaScript
+     *      var util = require('util');
+     *      var controller = new AbortController();
+     *
+     *      util.aborted(controller.signal).then(() => {
+     *          console.log(controller.signal.aborted); // true
+     *      });
+     *
+     *      setTimeout(() => controller.abort(), 10);
+     *      \`\`\`
+     *
+     *      @param signal the AbortSignal to observe
+     *      @param resource an optional object kept alive until the signal aborts
+     *
+     */
+    function abortedAsync(signal: Class_AbortSignal, resource?: FIBJS.GeneralObject): Promise<void>;
 
 }
 

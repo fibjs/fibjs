@@ -32,6 +32,7 @@ public:
     static result_t getEntriesByName(exlib::string name, exlib::string type, std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
     static result_t markResourceTiming(v8::Local<v8::Object> timingInfo, exlib::string requestedUrl, exlib::string initiatorType, v8::Local<v8::Value> global, exlib::string cacheState, v8::Local<v8::Object> bodyInfo, int32_t responseStatus);
     static result_t now(double& retVal);
+    static result_t get_timeOrigin(double& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -54,6 +55,7 @@ public:
     static void s_static_getEntriesByName(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_markResourceTiming(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_now(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_timeOrigin(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -74,9 +76,13 @@ inline ClassInfo& performance_base::class_info()
         { "now", s_static_now, true, ClassData::ASYNC_SYNC }
     };
 
+    static ClassData::ClassProperty s_property[] = {
+        { "timeOrigin", s_static_get_timeOrigin, block_set, true }
+    };
+
     static ClassData s_cd = {
         "performance", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         false
     };
@@ -219,6 +225,19 @@ inline void performance_base::s_static_now(const v8::FunctionCallbackInfo<v8::Va
     METHOD_OVER(0, 0);
 
     hr = now(vr);
+
+    METHOD_RETURN();
+}
+
+inline void performance_base::s_static_get_timeOrigin(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    double vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_timeOrigin(vr);
 
     METHOD_RETURN();
 }
