@@ -164,6 +164,17 @@ result_t BlobImpl::arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncH
     return result_t();
 }
 
+result_t BlobImpl::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
+{
+    if (ac.isSync())
+        return result_t::nosync();
+
+    // slice() copies into a fresh store, which is what the member promises:
+    // the result must not alias the Blob's bytes (subarray() would share the
+    // backing store and let a write reach the Blob).
+    return m_buffer.As<Buffer>()->slice(0, retVal);
+}
+
 result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> options)
 {
     Isolate* isolate = Isolate::current();

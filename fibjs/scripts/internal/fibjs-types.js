@@ -1066,14 +1066,15 @@ declare class Class_AsyncResource extends Class_object {
  *  - **MIME type**: the \`type\` option is lowercased and exposed by the read-only type property.
  *    fibjs keeps the value as given; the Web standard resets a type containing characters
  *    outside U+0020-U+007E to an empty string (plans/compat-differences.md).
- *  - **Reading**: text() decodes the bytes as utf8 and arrayBuffer() copies them into an
- *    ArrayBuffer, both as promises; the fibjs calling forms textSync()/textAsync() and
- *    arrayBufferSync()/arrayBufferAsync() are generated from the promise declarations.
+ *  - **Reading**: text() decodes the bytes as utf8, arrayBuffer() copies them into an
+ *    ArrayBuffer and bytes() copies them into a Buffer, all as promises; the fibjs
+ *    calling forms textSync()/textAsync(), arrayBufferSync()/arrayBufferAsync() and
+ *    bytesSync()/bytesAsync() are generated from the promise declarations.
  *  - **Slicing**: slice() copies a byte range into a new Blob and never returns a File. Indices
  *    follow the Buffer conventions: a negative value counts from the end, an index past the end
  *    clamps, and a start beyond end yields an empty Blob.
- *  - **Not in the standard**: Blob.stream() and Blob.bytes() are not implemented; use
- *    arrayBuffer() and read the bytes from it.
+ *  - **Not in the standard**: Blob.stream() is not implemented; use bytes() or arrayBuffer()
+ *    to read the whole body at once.
  *
  *  Obtained from:
  *  - \`new Blob(blobParts[, options])\` — the parts form;
@@ -1305,8 +1306,9 @@ declare class Class_Blob extends Class_object {
      *      The bytes are copied into a new ArrayBuffer, so the result does not share memory with the
      *      Blob and stays valid after the Blob is collected. An empty Blob yields a zero-length
      *      ArrayBuffer. The declared calling form returns a Promise<ArrayBuffer>; the generated
-     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN members
-     *      Blob.bytes() (a Uint8Array view) and Blob.stream() do not exist in fibjs.
+     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN member
+     *      Blob.stream() does not exist in fibjs; bytes() returns the same bytes as a
+     *      Buffer instead.
      *
      *      @return a Promise that resolves to an ArrayBuffer with the Blob bytes
      *
@@ -1319,8 +1321,9 @@ declare class Class_Blob extends Class_object {
      *      The bytes are copied into a new ArrayBuffer, so the result does not share memory with the
      *      Blob and stays valid after the Blob is collected. An empty Blob yields a zero-length
      *      ArrayBuffer. The declared calling form returns a Promise<ArrayBuffer>; the generated
-     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN members
-     *      Blob.bytes() (a Uint8Array view) and Blob.stream() do not exist in fibjs.
+     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN member
+     *      Blob.stream() does not exist in fibjs; bytes() returns the same bytes as a
+     *      Buffer instead.
      *
      *      @return a Promise that resolves to an ArrayBuffer with the Blob bytes
      *
@@ -1333,13 +1336,101 @@ declare class Class_Blob extends Class_object {
      *      The bytes are copied into a new ArrayBuffer, so the result does not share memory with the
      *      Blob and stays valid after the Blob is collected. An empty Blob yields a zero-length
      *      ArrayBuffer. The declared calling form returns a Promise<ArrayBuffer>; the generated
-     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN members
-     *      Blob.bytes() (a Uint8Array view) and Blob.stream() do not exist in fibjs.
+     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN member
+     *      Blob.stream() does not exist in fibjs; bytes() returns the same bytes as a
+     *      Buffer instead.
      *
      *      @return a Promise that resolves to an ArrayBuffer with the Blob bytes
      *
      */
     arrayBufferAsync(): Promise<ArrayBuffer>;
+
+    /**
+     * @description Reads the whole Blob as a Buffer
+     *
+     *      The bytes are copied into a new Buffer, so the result does not share memory with
+     *      the Blob: writing to it afterwards does not change the Blob, and it stays valid
+     *      after the Blob is collected. An empty Blob yields a zero-length Buffer. The
+     *      declared calling form returns a Promise<Buffer>; the generated
+     *      bytesSync()/bytesAsync() aliases are available too, and like every fibjs promise
+     *      member the value can be read any number of times because the stored bytes are
+     *      never consumed.
+     *
+     *      A Buffer is a Uint8Array subclass, so the result is accepted wherever the
+     *      standard's Uint8Array view is expected, while the Buffer reading helpers
+     *      (toString, readInt32BE, ...) stay available.
+     *
+     *      Example — read the raw bytes of a Blob:
+     *      \`\`\`JavaScript
+     *      const blob = new Blob(['abc'], { type: 'text/plain' });
+     *
+     *      const bytes = blob.bytesSync();
+     *      console.log(bytes instanceof Uint8Array, bytes.length); // true 3
+     *      console.log(bytes.toString()); // abc
+     *      \`\`\`
+     *
+     *      @return a Promise that resolves to a Buffer with the Blob bytes
+     *
+     */
+    bytes(): Promise<Class_Buffer>;
+
+    /**
+     * @description Reads the whole Blob as a Buffer
+     *
+     *      The bytes are copied into a new Buffer, so the result does not share memory with
+     *      the Blob: writing to it afterwards does not change the Blob, and it stays valid
+     *      after the Blob is collected. An empty Blob yields a zero-length Buffer. The
+     *      declared calling form returns a Promise<Buffer>; the generated
+     *      bytesSync()/bytesAsync() aliases are available too, and like every fibjs promise
+     *      member the value can be read any number of times because the stored bytes are
+     *      never consumed.
+     *
+     *      A Buffer is a Uint8Array subclass, so the result is accepted wherever the
+     *      standard's Uint8Array view is expected, while the Buffer reading helpers
+     *      (toString, readInt32BE, ...) stay available.
+     *
+     *      Example — read the raw bytes of a Blob:
+     *      \`\`\`JavaScript
+     *      const blob = new Blob(['abc'], { type: 'text/plain' });
+     *
+     *      const bytes = blob.bytesSync();
+     *      console.log(bytes instanceof Uint8Array, bytes.length); // true 3
+     *      console.log(bytes.toString()); // abc
+     *      \`\`\`
+     *
+     *      @return a Promise that resolves to a Buffer with the Blob bytes
+     *
+     */
+    bytesSync(): Class_Buffer;
+
+    /**
+     * @description Reads the whole Blob as a Buffer
+     *
+     *      The bytes are copied into a new Buffer, so the result does not share memory with
+     *      the Blob: writing to it afterwards does not change the Blob, and it stays valid
+     *      after the Blob is collected. An empty Blob yields a zero-length Buffer. The
+     *      declared calling form returns a Promise<Buffer>; the generated
+     *      bytesSync()/bytesAsync() aliases are available too, and like every fibjs promise
+     *      member the value can be read any number of times because the stored bytes are
+     *      never consumed.
+     *
+     *      A Buffer is a Uint8Array subclass, so the result is accepted wherever the
+     *      standard's Uint8Array view is expected, while the Buffer reading helpers
+     *      (toString, readInt32BE, ...) stay available.
+     *
+     *      Example — read the raw bytes of a Blob:
+     *      \`\`\`JavaScript
+     *      const blob = new Blob(['abc'], { type: 'text/plain' });
+     *
+     *      const bytes = blob.bytesSync();
+     *      console.log(bytes instanceof Uint8Array, bytes.length); // true 3
+     *      console.log(bytes.toString()); // abc
+     *      \`\`\`
+     *
+     *      @return a Promise that resolves to a Buffer with the Blob bytes
+     *
+     */
+    bytesAsync(): Promise<Class_Buffer>;
 
 }
 
@@ -1536,8 +1627,9 @@ declare class Class_BlobPromise extends Class_object {
      *      The bytes are copied into a new ArrayBuffer, so the result does not share memory with the
      *      Blob and stays valid after the Blob is collected. An empty Blob yields a zero-length
      *      ArrayBuffer. The declared calling form returns a Promise<ArrayBuffer>; the generated
-     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN members
-     *      Blob.bytes() (a Uint8Array view) and Blob.stream() do not exist in fibjs.
+     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN member
+     *      Blob.stream() does not exist in fibjs; bytes() returns the same bytes as a
+     *      Buffer instead.
      *
      *      @return a Promise that resolves to an ArrayBuffer with the Blob bytes
      *
@@ -1550,8 +1642,9 @@ declare class Class_BlobPromise extends Class_object {
      *      The bytes are copied into a new ArrayBuffer, so the result does not share memory with the
      *      Blob and stays valid after the Blob is collected. An empty Blob yields a zero-length
      *      ArrayBuffer. The declared calling form returns a Promise<ArrayBuffer>; the generated
-     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN members
-     *      Blob.bytes() (a Uint8Array view) and Blob.stream() do not exist in fibjs.
+     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN member
+     *      Blob.stream() does not exist in fibjs; bytes() returns the same bytes as a
+     *      Buffer instead.
      *
      *      @return a Promise that resolves to an ArrayBuffer with the Blob bytes
      *
@@ -1564,13 +1657,101 @@ declare class Class_BlobPromise extends Class_object {
      *      The bytes are copied into a new ArrayBuffer, so the result does not share memory with the
      *      Blob and stays valid after the Blob is collected. An empty Blob yields a zero-length
      *      ArrayBuffer. The declared calling form returns a Promise<ArrayBuffer>; the generated
-     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN members
-     *      Blob.bytes() (a Uint8Array view) and Blob.stream() do not exist in fibjs.
+     *      arrayBufferSync()/arrayBufferAsync() aliases are available too. The MDN member
+     *      Blob.stream() does not exist in fibjs; bytes() returns the same bytes as a
+     *      Buffer instead.
      *
      *      @return a Promise that resolves to an ArrayBuffer with the Blob bytes
      *
      */
     arrayBufferAsync(): Promise<ArrayBuffer>;
+
+    /**
+     * @description Reads the whole Blob as a Buffer
+     *
+     *      The bytes are copied into a new Buffer, so the result does not share memory with
+     *      the Blob: writing to it afterwards does not change the Blob, and it stays valid
+     *      after the Blob is collected. An empty Blob yields a zero-length Buffer. The
+     *      declared calling form returns a Promise<Buffer>; the generated
+     *      bytesSync()/bytesAsync() aliases are available too, and like every fibjs promise
+     *      member the value can be read any number of times because the stored bytes are
+     *      never consumed.
+     *
+     *      A Buffer is a Uint8Array subclass, so the result is accepted wherever the
+     *      standard's Uint8Array view is expected, while the Buffer reading helpers
+     *      (toString, readInt32BE, ...) stay available.
+     *
+     *      Example — read the raw bytes of a Blob:
+     *      \`\`\`JavaScript
+     *      const blob = new Blob(['abc'], { type: 'text/plain' });
+     *
+     *      const bytes = blob.bytesSync();
+     *      console.log(bytes instanceof Uint8Array, bytes.length); // true 3
+     *      console.log(bytes.toString()); // abc
+     *      \`\`\`
+     *
+     *      @return a Promise that resolves to a Buffer with the Blob bytes
+     *
+     */
+    bytes(): Promise<Class_Buffer>;
+
+    /**
+     * @description Reads the whole Blob as a Buffer
+     *
+     *      The bytes are copied into a new Buffer, so the result does not share memory with
+     *      the Blob: writing to it afterwards does not change the Blob, and it stays valid
+     *      after the Blob is collected. An empty Blob yields a zero-length Buffer. The
+     *      declared calling form returns a Promise<Buffer>; the generated
+     *      bytesSync()/bytesAsync() aliases are available too, and like every fibjs promise
+     *      member the value can be read any number of times because the stored bytes are
+     *      never consumed.
+     *
+     *      A Buffer is a Uint8Array subclass, so the result is accepted wherever the
+     *      standard's Uint8Array view is expected, while the Buffer reading helpers
+     *      (toString, readInt32BE, ...) stay available.
+     *
+     *      Example — read the raw bytes of a Blob:
+     *      \`\`\`JavaScript
+     *      const blob = new Blob(['abc'], { type: 'text/plain' });
+     *
+     *      const bytes = blob.bytesSync();
+     *      console.log(bytes instanceof Uint8Array, bytes.length); // true 3
+     *      console.log(bytes.toString()); // abc
+     *      \`\`\`
+     *
+     *      @return a Promise that resolves to a Buffer with the Blob bytes
+     *
+     */
+    bytesSync(): Class_Buffer;
+
+    /**
+     * @description Reads the whole Blob as a Buffer
+     *
+     *      The bytes are copied into a new Buffer, so the result does not share memory with
+     *      the Blob: writing to it afterwards does not change the Blob, and it stays valid
+     *      after the Blob is collected. An empty Blob yields a zero-length Buffer. The
+     *      declared calling form returns a Promise<Buffer>; the generated
+     *      bytesSync()/bytesAsync() aliases are available too, and like every fibjs promise
+     *      member the value can be read any number of times because the stored bytes are
+     *      never consumed.
+     *
+     *      A Buffer is a Uint8Array subclass, so the result is accepted wherever the
+     *      standard's Uint8Array view is expected, while the Buffer reading helpers
+     *      (toString, readInt32BE, ...) stay available.
+     *
+     *      Example — read the raw bytes of a Blob:
+     *      \`\`\`JavaScript
+     *      const blob = new Blob(['abc'], { type: 'text/plain' });
+     *
+     *      const bytes = blob.bytesSync();
+     *      console.log(bytes instanceof Uint8Array, bytes.length); // true 3
+     *      console.log(bytes.toString()); // abc
+     *      \`\`\`
+     *
+     *      @return a Promise that resolves to a Buffer with the Blob bytes
+     *
+     */
+    bytesAsync(): Promise<Class_Buffer>;
 
 }
 

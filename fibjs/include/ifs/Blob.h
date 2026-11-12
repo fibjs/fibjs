@@ -32,6 +32,7 @@ public:
     virtual result_t slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal) = 0;
     virtual result_t text(exlib::string& retVal, AsyncHandle ac) = 0;
     virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac) = 0;
+    virtual result_t bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -44,10 +45,12 @@ public:
     static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_text(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_arrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_bytes(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE1(Blob_base, text, exlib::string);
     ASYNC_MEMBERVALUE1(Blob_base, arrayBuffer, std::shared_ptr<v8::BackingStore>);
+    ASYNC_MEMBERVALUE1(Blob_base, bytes, obj_ptr<Buffer_base>);
 };
 }
 
@@ -59,7 +62,8 @@ inline ClassInfo& Blob_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "slice", s_slice, false, ClassData::ASYNC_SYNC },
         { "text", s_text, false, ClassData::ASYNC_PROMISE },
-        { "arrayBuffer", s_arrayBuffer, false, ClassData::ASYNC_PROMISE }
+        { "arrayBuffer", s_arrayBuffer, false, ClassData::ASYNC_PROMISE },
+        { "bytes", s_bytes, false, ClassData::ASYNC_PROMISE }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -206,6 +210,23 @@ inline void Blob_base::s_arrayBuffer(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = pInst->acb_arrayBuffer(cb, args);
     else
         hr = pInst->ac_arrayBuffer(vr);
+
+    ASYNC_METHOD_RETURN();
+}
+
+inline void Blob_base::s_bytes(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_INSTANCE(Blob_base);
+    ASYNC_METHOD_ENTER("Blob.bytes");
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_bytes(cb, args);
+    else
+        hr = pInst->ac_bytes(vr);
 
     ASYNC_METHOD_RETURN();
 }

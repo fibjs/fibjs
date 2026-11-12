@@ -711,6 +711,69 @@ describe("Blob API", () => {
             assert.strictEqual(view[4], 111); // 'o'
         });
 
+        it("Blob.bytes() method", async () => {
+            const blob = new Blob(['hello']);
+
+            const bytes = await blob.bytes();
+            assert.ok(Buffer.isBuffer(bytes), 'bytes() resolves to a Buffer');
+            assert.ok(bytes instanceof Uint8Array, 'a Buffer is a Uint8Array');
+            assert.strictEqual(bytes.length, 5);
+            assert.strictEqual(bytes.toString(), 'hello');
+        });
+
+        it("Blob.bytes() - sync and async aliases agree", () => {
+            const blob = new Blob(['abc', new Uint8Array([100, 101])]);
+
+            const sync = blob.bytesSync();
+            assert.strictEqual(sync.toString(), 'abcde');
+            assert.strictEqual(blob.bytes.length, 0);
+        });
+
+        it("Blob.bytes() - the result does not share memory with the Blob", () => {
+            const blob = new Blob(['abc']);
+
+            const bytes = blob.bytesSync();
+            bytes[0] = 90; // 'Z'
+
+            assert.strictEqual(bytes.toString(), 'Zbc');
+            assert.strictEqual(blob.textSync(), 'abc', 'writing to the result must not reach the Blob');
+        });
+
+        it("Blob.bytes() - each call returns a new Buffer", () => {
+            const blob = new Blob(['abc']);
+
+            const a = blob.bytesSync();
+            const b = blob.bytesSync();
+
+            assert.notEqual(a, b);
+            assert.strictEqual(a.toString(), b.toString());
+        });
+
+        it("Blob.bytes() - an empty Blob yields a zero-length Buffer", async () => {
+            const empty = new Blob([]);
+
+            assert.strictEqual(empty.bytesSync().length, 0);
+            const bytes = await empty.bytes();
+            assert.strictEqual(bytes.length, 0);
+        });
+
+        it("Blob.bytes() - File inherits it", () => {
+            const formData = new FormData();
+            formData.append('f', new Blob(['xy']), 'a.txt');
+            const file = formData.get('f');
+
+            assert.strictEqual(typeof file.bytes, 'function');
+            assert.strictEqual(file.bytesSync().toString(), 'xy');
+        });
+
+        it("Blob.bytes() - the bytes are read without consuming them", () => {
+            const blob = new Blob(['again']);
+
+            assert.strictEqual(blob.bytesSync().toString(), 'again');
+            assert.strictEqual(blob.bytesSync().toString(), 'again');
+            assert.strictEqual(blob.textSync(), 'again');
+        });
+
         it("Blob multiple async operations", async () => {
             const data = ['test data for async'];
             const blob = new Blob(data);
