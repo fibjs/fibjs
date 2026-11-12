@@ -66,7 +66,7 @@ function WritableState(options, stream) {
   // the entire buffer is not flushed immediately on write()
   var hwm = options.highWaterMark;
   var writableHwm = options.writableHighWaterMark;
-  var defaultHwm = this.objectMode ? 16 : 16 * 1024;
+  var defaultHwm = require('internal/streams/hwm').get(this.objectMode);
 
   if (hwm || hwm === 0)
     this.highWaterMark = hwm;

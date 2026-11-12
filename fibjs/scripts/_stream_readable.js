@@ -82,7 +82,7 @@ function ReadableState(options, stream) {
   // Note: 0 is a valid value, means "don't call _read preemptively ever"
   var hwm = options.highWaterMark;
   var readableHwm = options.readableHighWaterMark;
-  var defaultHwm = this.objectMode ? 16 : 16 * 1024;
+  var defaultHwm = require('internal/streams/hwm').get(this.objectMode);
 
   if (hwm || hwm === 0)
     this.highWaterMark = hwm;

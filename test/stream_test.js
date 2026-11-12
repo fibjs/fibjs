@@ -15,6 +15,89 @@ describe('stream', () => {
         test_util.cleanup();
     });
 
+    describe("predicates", () => {
+        it("answers null for a value that is not a stream", () => {
+            for (const v of [undefined, null, {}, 1, 'str', []]) {
+                assert.strictEqual(stream.isReadable(v), null);
+                assert.strictEqual(stream.isWritable(v), null);
+            }
+        });
+
+        it("recognises a JS readable and a JS writable", () => {
+            const r = new stream.Readable({ read() {} });
+            const w = new stream.Writable({ write(c, e, cb) { cb(); } });
+
+            assert.strictEqual(stream.isReadable(r), true);
+            assert.strictEqual(stream.isWritable(w), true);
+
+            // the other side answers null, not false: a Readable has no
+            // writable state at all, which is a different claim from "not
+            // writable"
+            assert.strictEqual(stream.isWritable(r), null);
+            assert.strictEqual(stream.isReadable(w), null);
+        });
+
+        it("recognises a native stream", () => {
+            const fr = fs.createReadStream(path.join(__dirname, 'package.json'));
+
+            assert.strictEqual(stream.isReadable(fr), true);
+            assert.strictEqual(stream.isWritable(fr), true);
+            assert.strictEqual(stream.isDestroyed(fr), false);
+
+            fr.destroy();
+            assert.strictEqual(stream.isReadable(fr), false);
+        });
+
+        it("reports a destroyed stream", () => {
+            const r = new stream.Readable({ read() {} });
+
+            assert.strictEqual(stream.isDestroyed(r), false);
+            r.destroy();
+            assert.strictEqual(stream.isDestroyed(r), true);
+            assert.strictEqual(stream.isReadable(r), false);
+        });
+
+        it("never returns null from isDisturbed or isErrored", () => {
+            for (const v of [undefined, null, {}, 1]) {
+                assert.strictEqual(stream.isDisturbed(v), false);
+                assert.strictEqual(stream.isErrored(v), false);
+            }
+
+            assert.strictEqual(stream.isDisturbed(new stream.Readable({ read() {} })), false);
+        });
+    });
+
+    describe("default highWaterMark", () => {
+        it("reports the value new streams are created with", () => {
+            assert.strictEqual(stream.getDefaultHighWaterMark(), 16384);
+            assert.strictEqual(stream.getDefaultHighWaterMark(true), 16);
+
+            assert.strictEqual(new stream.Readable({ read() {} }).readableHighWaterMark, 16384);
+            assert.strictEqual(
+                new stream.Readable({ objectMode: true, read() {} }).readableHighWaterMark, 16);
+        });
+
+        it("changes only the streams created afterwards", () => {
+            const before = new stream.Readable({ read() {} });
+
+            stream.setDefaultHighWaterMark(false, 1024);
+            try {
+                assert.strictEqual(stream.getDefaultHighWaterMark(), 1024);
+                assert.strictEqual(new stream.Readable({ read() {} }).readableHighWaterMark, 1024);
+                assert.strictEqual(before.readableHighWaterMark, 16384);
+            } finally {
+                stream.setDefaultHighWaterMark(false, 16384);
+            }
+
+            assert.strictEqual(new stream.Readable({ read() {} }).readableHighWaterMark, 16384);
+        });
+
+        it("rejects a bad value", () => {
+            assert.throws(() => stream.setDefaultHighWaterMark(false, -1), TypeError);
+            assert.throws(() => stream.setDefaultHighWaterMark(false, 'x'), TypeError);
+        });
+    });
+
     it("file data event", () => {
         var fn = path.join(__dirname, 'fs_test.js.data_event' + vmid);
         var testFile = fs.openFile(fn, 'w+');

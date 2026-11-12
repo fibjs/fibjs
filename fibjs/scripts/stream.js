@@ -74,6 +74,87 @@ Stream.finished = function finished(stream, opts, callback) {
     return p;
 };
 
+// The stream predicates Node exposes on the module object. They are read by the
+// stream utility packages (end-of-stream, is-stream, @fastify/*, ...) as a first
+// probe, and without them those packages fall back to checking for a `pipe`
+// method, which any object can have.
+//
+// A C++ stream (`fs.createReadStream`, `process.stdout`, a socket) carries the
+// `readable`/`writable` booleans but no `_readableState.destroyed`, while a JS
+// compatibility-layer stream carries both. So the booleans come first and the
+// state bits refine them, which makes one test correct for either shape.
+//
+// null means "not a stream of that kind" - Node uses it to tell "this is not
+// one" apart from "this one is finished", and only isReadable/isWritable/
+// isDestroyed answer it; isDisturbed and isErrored always return a boolean.
+// A Readable has no `writable` flag at all, so isWritable answers null for it
+// rather than false - the same distinction Node makes.
+function isReadableStream(stream) {
+    return stream !== null && typeof stream === 'object' &&
+        typeof stream.readable === 'boolean';
+}
+
+function isWritableStream(stream) {
+    return stream !== null && typeof stream === 'object' &&
+        typeof stream.writable === 'boolean';
+}
+
+Stream.isReadable = function isReadable(stream) {
+    if (!isReadableStream(stream)) return null;
+    if (stream.readable !== true) return false;
+    if (stream._readableState &&
+        (stream._readableState.destroyed || stream._readableState.ended)) return false;
+    return true;
+};
+
+Stream.isWritable = function isWritable(stream) {
+    if (!isWritableStream(stream)) return null;
+    if (stream.writable !== true) return false;
+    if (stream._writableState &&
+        (stream._writableState.destroyed || stream._writableState.ended)) return false;
+    return true;
+};
+
+Stream.isDestroyed = function isDestroyed(stream) {
+    if (!isReadableStream(stream) && !isWritableStream(stream)) return null;
+    // A native stream has no `destroyed` field at all, but `destroy()` clears
+    // its `readable`/`writable` flags, so the state is still observable.
+    if (typeof stream.destroyed === 'boolean') return stream.destroyed;
+    return stream.readable !== true && stream.writable !== true;
+};
+
+Stream.isDisturbed = function isDisturbed(stream) {
+    if (stream == null) return false;
+    var state = stream._readableState;
+    return !!(state && state.dataEmitted);
+};
+
+Stream.isErrored = function isErrored(stream) {
+    if (stream == null) return false;
+    var state = stream._readableState || stream._writableState;
+    if (!state) return false;
+    // `errored` is the state field of the JS layer; a native stream reports the
+    // same thing through the readable/writable flags after it is destroyed.
+    return !!(state.errored || state.error);
+};
+
+// The defaults are the runtime's own: 16384 bytes and 16 objects, which is what
+// a new stream is created with. Reporting Node's 65536 would make the function
+// disagree with the streams it describes. setDefaultHighWaterMark only affects
+// streams created afterwards, so a stream that already exists keeps its value.
+var hwm = require('internal/streams/hwm');
+
+Stream.getDefaultHighWaterMark = function getDefaultHighWaterMark(objectMode) {
+    return hwm.get(objectMode);
+};
+
+Stream.setDefaultHighWaterMark = function setDefaultHighWaterMark(objectMode, value) {
+    if (typeof value !== 'number' || !(value >= 0))
+        throw new TypeError('The "hwm" argument must be a non-negative number');
+
+    hwm.set(objectMode, value);
+};
+
 Stream.promises = require('stream/promises');
 
 // Node's `stream.addAbortSignal(signal, stream)`: aborting the signal destroys

@@ -110864,10 +110864,8 @@ declare module 'sse' {
 // Not declared because the runtime does not have them (checked with
 // temp/p2-surface-2026-10-15.cjs): \`readableEnded\`, \`readableLength\`,
 // \`readableAborted\`, \`errored\`, \`closed\`, \`writableEnded\`, \`writableFinished\`,
-// \`writableLength\`, \`writableCorked\`, \`writableNeedDrain\`, \`compose\`,
-// \`isReadable\`/\`isWritable\`/\`isDisturbed\`/\`isErrored\`,
-// \`getDefaultHighWaterMark\` and \`toWeb\`. Declaring them would hand back
-// \`undefined\` at runtime.
+// \`writableLength\`, \`writableCorked\`, \`writableNeedDrain\`, \`compose\` and
+// \`toWeb\`. Declaring them would hand back \`undefined\` at runtime.
 
 declare module 'stream' {
     /**
@@ -111359,6 +111357,39 @@ declare module 'stream' {
 
         /** The promise-flavoured helpers: the same object as \`stream/promises\`. */
         const promises: typeof import('stream/promises');
+
+        /**
+         * @description Whether a value is a stream that can still be read from
+         *
+         *      Returns null when the value is not a stream at all, so a caller
+         *      can tell "not a stream" from "a stream that has ended". Both the
+         *      JS compatibility-layer streams and the native ones
+         *      (\`fs.createReadStream\`, a socket) are recognised.
+         */
+        function isReadable(stream: any): boolean | null;
+
+        /** @description Whether a value is a stream that can still be written to; null when it is not a stream */
+        function isWritable(stream: any): boolean | null;
+
+        /** @description Whether a stream was destroyed; null when the value is not a stream */
+        function isDestroyed(stream: any): boolean | null;
+
+        /** @description Whether a readable stream was read from or its buffer inspected; never null */
+        function isDisturbed(stream: any): boolean;
+
+        /** @description Whether a stream has an error; never null */
+        function isErrored(stream: any): boolean;
+
+        /**
+         * @description The default highWaterMark of a newly created stream
+         *
+         *      16384 bytes, or 16 for object mode - the values this runtime
+         *      creates streams with, which are not Node's 65536.
+         */
+        function getDefaultHighWaterMark(objectMode?: boolean): number;
+
+        /** @description Changes the default highWaterMark, affecting only streams created afterwards */
+        function setDefaultHighWaterMark(objectMode: boolean, hwm: number): void;
 
         /** Internal, kept for compatibility with code probing the Node internals. */
         const _isUint8Array: (obj: any) => boolean;
