@@ -1548,8 +1548,31 @@ function materializeInheritedOverloads(def, name, {
  *     object `ClassInfo::Attach()` builds.
  */
 function hasAsyncMembers(def) {
+    // Any async flavor - `async` or `promise` - means the class has a promise
+    // variant: the runtime keeps a promise prototype for every class whose
+    // members can return a Promise, and `File`/`Message` prove it
+    // (`Class_File.promises` and `Class_Message.promises` are real objects,
+    // built from members declared `promise`).
     return (def.members || []).some(mem =>
         mem.async || (mem.overs || []).some(ov => !!ov.async)
+    );
+}
+
+/**
+ * Whether the *module* variant `<name>/promises` exists.
+ *
+ * Stricter than hasAsyncMembers: only `async` sets `ClassData::has_async`
+ * (tools/util/gen_code.js `gen_cls_info()` switches on `ov.async == 'async'`),
+ * and `has_async` is what makes `ClassInfo::Attach()` build the `promises`
+ * object that SandBox::addBuiltinModules() installs as `<name>/promises`. A
+ * `promise` member is promise-primary on the module object itself and adds
+ * nothing to the variant, so counting it here would declare a module the
+ * runtime never installs - `util/promises` was exactly that (declared, yet
+ * MODULE_NOT_FOUND at runtime).
+ */
+function hasAsyncModuleMembers(def) {
+    return (def.members || []).some(mem =>
+        mem.async === 'async' || (mem.overs || []).some(ov => ov.async === 'async')
     );
 }
 
@@ -2754,7 +2777,7 @@ function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
             // ancestor does (`ClassData::has_async`), which is exactly the set
             // PROMISE_VARIANT_CLASSES holds.
             const hasPromiseVariant = ismodule
-                ? hasAsyncMembers(def) && (!ROOT_MODULE_NAMES || ROOT_MODULE_NAMES.has(unitName))
+                ? hasAsyncModuleMembers(def) && (!ROOT_MODULE_NAMES || ROOT_MODULE_NAMES.has(unitName))
                 : PROMISE_VARIANT_CLASSES.has(unitName);
 
             if (hasPromiseVariant && ismodule && def.members.some(isCallOperatorMember))
