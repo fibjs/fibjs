@@ -212,7 +212,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     read(bytes?: number): any;
 
-    read(bytes?: number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    read(callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    read(bytes: number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Reads data of the specified size from the stream
@@ -299,7 +301,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     readBuffer(bytes?: number): Class_Buffer;
 
-    readBuffer(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    readBuffer(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    readBuffer(bytes: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Reads data of the specified size from the stream, returned as a Buffer
@@ -687,7 +691,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     write(data: string, encoding?: string): boolean;
 
-    write(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    write(data: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    write(data: string, encoding: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Writes the given string to the stream
@@ -1009,7 +1015,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     end(data: string, encoding?: string): Class_Stream;
 
-    end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    end(data: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    end(data: string, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
@@ -1150,7 +1158,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     copyTo(stm: Class_Stream | Class_StreamPromise, bytes?: number): number;
 
-    copyTo(stm: Class_Stream | Class_StreamPromise, bytes?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    copyTo(stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    copyTo(stm: Class_Stream | Class_StreamPromise, bytes: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Copies stream data to the destination stream
@@ -1420,7 +1430,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     destroy(err?: any): Class_Stream;
 
-    destroy(err?: any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    destroy(callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    destroy(err: any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.

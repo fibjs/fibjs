@@ -589,7 +589,7 @@ declare module 'crypto/promises' {
      *      @return returns the filled TypedArray
      *
      */
-    function getRandomValues(data: TypedArray): TypedArray;
+    function getRandomValues(data: FIBJS.TypedArray): FIBJS.TypedArray;
 
     /**
      * @description Generates a random RFC 4122 version 4 UUID

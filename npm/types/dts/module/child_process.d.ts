@@ -242,7 +242,13 @@ declare module 'child_process' {
         exitCode: number;
     };
 
-    function exec(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+    function exec(command: string, callback: (err: Error | undefined | null, retVal: {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    })=>any): void;
+
+    function exec(command: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
         stdout: any;
         stderr: any;
         exitCode: number;
@@ -345,7 +351,13 @@ declare module 'child_process' {
         exitCode: number;
     };
 
-    function execFile(command: string, args: any[], options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+    function execFile(command: string, args: any[], callback: (err: Error | undefined | null, retVal: {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    })=>any): void;
+
+    function execFile(command: string, args: any[], options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
         stdout: any;
         stderr: any;
         exitCode: number;
@@ -417,7 +429,13 @@ declare module 'child_process' {
         exitCode: number;
     };
 
-    function execFile(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+    function execFile(command: string, callback: (err: Error | undefined | null, retVal: {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    })=>any): void;
+
+    function execFile(command: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
         stdout: any;
         stderr: any;
         exitCode: number;
@@ -643,7 +661,9 @@ declare module 'child_process' {
      */
     function run(command: string, args: any[], options?: FIBJS.GeneralObject): number;
 
-    function run(command: string, args: any[], options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function run(command: string, args: any[], callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function run(command: string, args: any[], options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Directly executes a file and returns its exit code
@@ -695,7 +715,9 @@ declare module 'child_process' {
      */
     function run(command: string, options?: FIBJS.GeneralObject): number;
 
-    function run(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function run(command: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function run(command: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Directly executes a file with no arguments and returns its exit code

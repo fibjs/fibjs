@@ -176,7 +176,9 @@ declare class Class_TLSSocket extends Class_Stream {
      */
     connect(socket: Class_Stream | Class_StreamPromise, server_name?: string): void;
 
-    connect(socket: Class_Stream | Class_StreamPromise, server_name?: string, callback: (err: Error | undefined | null)=>any): void;
+    connect(socket: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    connect(socket: Class_Stream | Class_StreamPromise, server_name: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Establishes a client-side TLS session on an existing stream and waits for it

@@ -1843,7 +1843,9 @@ declare module 'http' {
      */
     function fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
-    function fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+    function fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    function fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description Sends a request using the Web Fetch standard and returns an HttpResponse object

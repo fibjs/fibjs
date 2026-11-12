@@ -509,7 +509,9 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     waitFor(url?: string): void;
 
-    waitFor(url?: string, callback: (err: Error | undefined | null)=>any): void;
+    waitFor(callback: (err: Error | undefined | null)=>any): void;
+
+    waitFor(url: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Waits for the current page to finish loading
@@ -1247,7 +1249,9 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     takeScreenshot(fullPage?: boolean): Class_Buffer;
 
-    takeScreenshot(fullPage?: boolean, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    takeScreenshot(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    takeScreenshot(fullPage: boolean, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Captures an image of the current window

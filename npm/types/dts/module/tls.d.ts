@@ -691,7 +691,11 @@ declare module 'tls' {
      */
     function connect(port: number, host?: string, options?: FIBJS.GeneralObject): Class_Stream;
 
-    function connect(port: number, host?: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(port: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(port: number, host: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(port: number, host: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a blocking TLS connection to a host and port
@@ -738,7 +742,9 @@ declare module 'tls' {
      */
     function connect(url: string, timeout?: number): Class_Stream;
 
-    function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(url: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(url: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a blocking TLS connection from an `ssl://` URL
@@ -783,7 +789,9 @@ declare module 'tls' {
      */
     function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout?: number): Class_Stream;
 
-    function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a blocking TLS connection from an `ssl://` URL with an explicit context

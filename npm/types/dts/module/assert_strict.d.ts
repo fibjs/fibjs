@@ -888,7 +888,7 @@ declare module 'assert/strict' {
          *      @return returns a Promise
          *
          */
-        function rejects(block: ()=>void, error: any, msg?: any): Promise;
+        function rejects(block: ()=>void, error: any, msg?: any): Promise<any>;
 
         /**
          * ! Tests that the given code rejects, with only a message
@@ -900,7 +900,7 @@ declare module 'assert/strict' {
          *      @return returns a Promise
          *
          */
-        function rejects(block: ()=>void, msg?: any): Promise;
+        function rejects(block: ()=>void, msg?: any): Promise<any>;
 
         /**
          * @description Tests that the given promise rejects
@@ -917,7 +917,7 @@ declare module 'assert/strict' {
          *      @return returns a Promise
          *
          */
-        function rejects(result: Promise, error: any, msg?: any): Promise;
+        function rejects(result: Promise<any>, error: any, msg?: any): Promise<any>;
 
         /**
          * ! Tests that the given promise rejects, with only a message
@@ -929,7 +929,7 @@ declare module 'assert/strict' {
          *      @return returns a Promise
          *
          */
-        function rejects(result: Promise, msg?: any): Promise;
+        function rejects(result: Promise<any>, msg?: any): Promise<any>;
 
         /**
          * @description Throws the given value when it is truthy

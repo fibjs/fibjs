@@ -456,7 +456,9 @@ declare module 'gui' {
      */
     function input(message: string, password?: boolean): string;
 
-    function input(message: string, password?: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    function input(message: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    function input(message: string, password: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Pops up a modal input box
@@ -500,7 +502,9 @@ declare module 'gui' {
      */
     function input(title: string, message: string, password?: boolean): string;
 
-    function input(title: string, message: string, password?: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    function input(title: string, message: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    function input(title: string, message: string, password: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Pops up a modal input box with the given title

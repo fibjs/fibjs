@@ -155,7 +155,9 @@ declare class Class_Condition extends Class_Lock {
      */
     wait(timeout?: number): boolean;
 
-    wait(timeout?: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    wait(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    wait(timeout: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Waits until notified or until the timeout elapses

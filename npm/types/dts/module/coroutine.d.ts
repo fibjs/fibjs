@@ -427,7 +427,9 @@ declare module 'coroutine' {
      */
     function sleep(ms?: number): void;
 
-    function sleep(ms?: number, callback: (err: Error | undefined | null)=>any): void;
+    function sleep(callback: (err: Error | undefined | null)=>any): void;
+
+    function sleep(ms: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Pauses the current fiber for the specified time

@@ -221,7 +221,9 @@ declare class Class_BufferedStream extends Class_Stream {
      */
     readLine(maxlen?: number): string;
 
-    readLine(maxlen?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    readLine(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    readLine(maxlen: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Reads one line of text
@@ -340,7 +342,9 @@ declare class Class_BufferedStream extends Class_Stream {
      */
     readUntil(mk: string, maxlen?: number): string;
 
-    readUntil(mk: string, maxlen?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    readUntil(mk: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    readUntil(mk: string, maxlen: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Reads a text string ending with the specified bytes

@@ -282,7 +282,11 @@ declare module 'zip' {
      */
     function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Class_ZipFile;
 
-    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+
+    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+
+    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod: string, codec: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
     /**
      * @description Opens a zip file

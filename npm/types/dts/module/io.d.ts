@@ -150,7 +150,9 @@ declare module 'io' {
      */
     function copyStream(from: Class_Stream | Class_StreamPromise, to: Class_Stream | Class_StreamPromise, bytes?: number): number;
 
-    function copyStream(from: Class_Stream | Class_StreamPromise, to: Class_Stream | Class_StreamPromise, bytes?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function copyStream(from: Class_Stream | Class_StreamPromise, to: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function copyStream(from: Class_Stream | Class_StreamPromise, to: Class_Stream | Class_StreamPromise, bytes: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Copies the data of a stream into a target stream

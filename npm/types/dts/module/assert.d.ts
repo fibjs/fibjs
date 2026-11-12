@@ -1000,7 +1000,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function rejects(block: ()=>void, error: any, msg?: any): Promise;
+        function rejects(block: ()=>void, error: any, msg?: any): Promise<any>;
 
         /**
          * ! Tests that the given code rejects, with only a message
@@ -1013,7 +1013,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function rejects(block: ()=>void, msg?: any): Promise;
+        function rejects(block: ()=>void, msg?: any): Promise<any>;
 
         /**
          * @description Tests that the given promise rejects
@@ -1029,7 +1029,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function rejects(result: Promise, error: any, msg?: any): Promise;
+        function rejects(result: Promise<any>, error: any, msg?: any): Promise<any>;
 
         /**
          * ! Tests that the given promise rejects, with only a message
@@ -1041,7 +1041,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function rejects(result: Promise, msg?: any): Promise;
+        function rejects(result: Promise<any>, msg?: any): Promise<any>;
 
         /**
          * @description Tests that the given code does not reject
@@ -1073,7 +1073,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function doesNotReject(block: any, error: any, msg?: any): Promise;
+        function doesNotReject(block: any, error: any, msg?: any): Promise<any>;
 
         /**
          * ! Tests that the given code does not reject, with only a message
@@ -1084,7 +1084,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function doesNotReject(block: any, msg?: any): Promise;
+        function doesNotReject(block: any, msg?: any): Promise<any>;
 
         /**
          * @description Tests that `actual` contains everything `expected` contains

@@ -623,7 +623,9 @@ declare module 'console' {
      */
     function readLine(msg?: string): string;
 
-    function readLine(msg?: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    function readLine(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    function readLine(msg: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Reads a line from the standard input, printing an optional prompt
@@ -675,7 +677,9 @@ declare module 'console' {
      */
     function getpass(msg?: string): string;
 
-    function getpass(msg?: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    function getpass(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    function getpass(msg: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Reads a password from the standard input without echoing it

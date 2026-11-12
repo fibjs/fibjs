@@ -686,7 +686,11 @@ declare module 'crypto' {
      */
     function randomFill(buffer: Class_Buffer | string, offset?: number, size?: number): Class_Buffer;
 
-    function randomFill(buffer: Class_Buffer | string, offset?: number, size?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function randomFill(buffer: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function randomFill(buffer: Class_Buffer | string, offset: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function randomFill(buffer: Class_Buffer | string, offset: number, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Fills a Buffer with cryptographically secure random bytes
@@ -739,7 +743,7 @@ declare module 'crypto' {
      *      @return returns the filled TypedArray
      *
      */
-    function getRandomValues(data: TypedArray): TypedArray;
+    function getRandomValues(data: FIBJS.TypedArray): FIBJS.TypedArray;
 
     /**
      * @description Generates a random RFC 4122 version 4 UUID
@@ -867,7 +871,12 @@ declare module 'crypto' {
         privateKey: any;
     };
 
-    function generateKeyPair(type: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+    function generateKeyPair(type: string, callback: (err: Error | undefined | null, retVal: {
+        publicKey: any;
+        privateKey: any;
+    })=>any): void;
+
+    function generateKeyPair(type: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
         publicKey: any;
         privateKey: any;
     })=>any): void;
@@ -1159,7 +1168,9 @@ declare module 'crypto' {
      */
     function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Derives a key from a password with scrypt

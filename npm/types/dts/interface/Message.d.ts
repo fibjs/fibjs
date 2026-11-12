@@ -201,7 +201,9 @@ declare class Class_Message extends Class_EventEmitter {
      */
     read(bytes?: number): Class_Buffer;
 
-    read(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    read(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    read(bytes: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
@@ -500,7 +502,9 @@ declare class Class_Message extends Class_EventEmitter {
      */
     blob(type?: string): Class_Blob;
 
-    blob(type?: string, callback: (err: Error | undefined | null, retVal: Class_Blob)=>any): void;
+    blob(callback: (err: Error | undefined | null, retVal: Class_Blob)=>any): void;
+
+    blob(type: string, callback: (err: Error | undefined | null, retVal: Class_Blob)=>any): void;
 
     /**
      * @description Returns the data part of the message as a Blob
@@ -837,7 +841,9 @@ declare class Class_Message extends Class_EventEmitter {
      */
     end(data: string, encoding?: string): Class_Message;
 
-    end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
+    end(data: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
+
+    end(data: string, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
 
     /**
      * @description Writes the given string data and sets the end of current message processing
@@ -920,7 +926,9 @@ declare class Class_Message extends Class_EventEmitter {
      */
     sendTo(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
-    sendTo(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    sendTo(stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    sendTo(stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Sends a formatted message to the given stream object
@@ -1007,7 +1015,9 @@ declare class Class_Message extends Class_EventEmitter {
      */
     readFrom(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
-    readFrom(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    readFrom(stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    readFrom(stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object

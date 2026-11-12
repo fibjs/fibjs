@@ -336,7 +336,9 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      */
     json(data: any, options?: FIBJS.GeneralObject): any;
 
-    json(data: any, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    json(data: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    json(data: any, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Writes data as a JSON body, optionally setting status and headers
@@ -461,6 +463,14 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *
      */
     static error(): Class_HttpResponse;
+
+    json(data: any): void;
+
+    json(data: any, callback: (err: Error | undefined | null)=>any): void;
+
+    jsonSync(data: any): void;
+
+    jsonAsync(data: any): Promise<void>;
 
 }
 
@@ -824,6 +834,12 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *
      */
     static error(): Class_HttpResponse;
+
+    json(data: any): Promise<void>;
+
+    jsonSync(data: any): void;
+
+    jsonAsync(data: any): Promise<void>;
 
 }
 

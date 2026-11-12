@@ -182,7 +182,11 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      */
     bind(port?: number, addr?: string): Class_DgramSocket;
 
-    bind(port?: number, addr?: string, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
+    bind(callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
+
+    bind(port: number, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
+
+    bind(port: number, addr: string, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
 
     /**
      * @description Binds the socket to a local port and address and starts delivering received datagrams to the 'message' event
@@ -369,7 +373,9 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      */
     send(msg: Class_Buffer | string, port: number, address?: string): number;
 
-    send(msg: Class_Buffer | string, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(msg: Class_Buffer | string, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    send(msg: Class_Buffer | string, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -487,7 +493,9 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      */
     send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
 
-    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(msg: Class_Buffer | string, offset: number, length: number, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends a byte range of the payload as one datagram

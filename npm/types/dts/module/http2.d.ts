@@ -333,7 +333,9 @@ declare module 'http2' {
      */
     function connect(authority: string, options?: FIBJS.GeneralObject): Class_Http2Session;
 
-    function connect(authority: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Http2Session)=>any): void;
+    function connect(authority: string, callback: (err: Error | undefined | null, retVal: Class_Http2Session)=>any): void;
+
+    function connect(authority: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Http2Session)=>any): void;
 
     /**
      * @description creates an HTTP/2 client session to the specified target

@@ -333,7 +333,9 @@ declare module 'fs' {
      */
     function access(path: string, mode?: number): void;
 
-    function access(path: string, mode?: number, callback: (err: Error | undefined | null)=>any): void;
+    function access(path: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function access(path: string, mode: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Checks the permissions of the current user on the given file
@@ -441,7 +443,9 @@ declare module 'fs' {
      */
     function mkdir(path: string, mode?: number | FIBJS.GeneralObject | any): any;
 
-    function mkdir(path: string, mode?: number | FIBJS.GeneralObject | any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function mkdir(path: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    function mkdir(path: string, mode: number | FIBJS.GeneralObject | any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Creates a directory
@@ -571,7 +575,9 @@ declare module 'fs' {
      */
     function rmdir(path: string, opt?: FIBJS.GeneralObject): void;
 
-    function rmdir(path: string, opt?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function rmdir(path: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function rmdir(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Removes a directory
@@ -624,7 +630,9 @@ declare module 'fs' {
      */
     function rm(path: string, opt?: FIBJS.GeneralObject): void;
 
-    function rm(path: string, opt?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function rm(path: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function rm(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Removes a file or directory
@@ -711,7 +719,9 @@ declare module 'fs' {
      */
     function copyFile(from: string, to: string, mode?: number): void;
 
-    function copyFile(from: string, to: string, mode?: number, callback: (err: Error | undefined | null)=>any): void;
+    function copyFile(from: string, to: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function copyFile(from: string, to: string, mode: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Copies src to dest. By default dest is overwritten when it already exists.
@@ -767,7 +777,9 @@ declare module 'fs' {
      */
     function cp(src: string, dest: string, opts?: FIBJS.GeneralObject): void;
 
-    function cp(src: string, dest: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function cp(src: string, dest: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function cp(src: string, dest: string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Copies src to dest asynchronously, including subdirectories and files.
@@ -1588,7 +1600,9 @@ declare module 'fs' {
      */
     function symlink(target: string, linkpath: string, type?: string): void;
 
-    function symlink(target: string, linkpath: string, type?: string, callback: (err: Error | undefined | null)=>any): void;
+    function symlink(target: string, linkpath: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function symlink(target: string, linkpath: string, type: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Creates a symbolic link
@@ -1664,7 +1678,13 @@ declare module 'fs' {
      */
     function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Reads the content of a file by its file descriptor
@@ -1888,7 +1908,9 @@ declare module 'fs' {
      */
     function ftruncate(fd: number | Class_FileHandle | Class_FileHandlePromise, len?: number): void;
 
-    function ftruncate(fd: number | Class_FileHandle | Class_FileHandlePromise, len?: number, callback: (err: Error | undefined | null)=>any): void;
+    function ftruncate(fd: number | Class_FileHandle | Class_FileHandlePromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function ftruncate(fd: number | Class_FileHandle | Class_FileHandlePromise, len: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Changes the size of a file by its file descriptor
@@ -2090,7 +2112,9 @@ declare module 'fs' {
      */
     function readdir(path: string, opts?: FIBJS.GeneralObject | string): any[];
 
-    function readdir(path: string, opts?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function readdir(path: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    function readdir(path: string, opts: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description Reads the entries of the given directory
@@ -2202,7 +2226,9 @@ declare module 'fs' {
      */
     function glob(pattern: string, opts?: FIBJS.GeneralObject): any[];
 
-    function glob(pattern: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function glob(pattern: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    function glob(pattern: string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description Searches the given directory for files matching a name pattern
@@ -2265,7 +2291,9 @@ declare module 'fs' {
      */
     function glob(patterns: string[], opts?: FIBJS.GeneralObject): any[];
 
-    function glob(patterns: string[], opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function glob(patterns: string[], callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    function glob(patterns: string[], opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description Searches the given directory for files matching a set of name patterns
@@ -2330,7 +2358,9 @@ declare module 'fs' {
      */
     function createReadStream(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
 
-    function createReadStream(fname: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function createReadStream(fname: string, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+
+    function createReadStream(fname: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
     /**
      * @description Creates a readable file stream
@@ -2395,7 +2425,9 @@ declare module 'fs' {
      */
     function createWriteStream(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
 
-    function createWriteStream(fname: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function createWriteStream(fname: string, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+
+    function createWriteStream(fname: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
     /**
      * @description Opens a file and creates a writable stream
@@ -2460,7 +2492,9 @@ declare module 'fs' {
      */
     function openFile(fname: string, flags?: string | number): Class_SeekableStream;
 
-    function openFile(fname: string, flags?: string | number, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function openFile(fname: string, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+
+    function openFile(fname: string, flags: string | number, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
     /**
      * @description Opens a file for reading, writing, or both
@@ -2519,7 +2553,9 @@ declare module 'fs' {
      */
     function open(fname: string, flags: number, mode?: number): Class_FileHandle;
 
-    function open(fname: string, flags: number, mode?: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+    function open(fname: string, flags: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+
+    function open(fname: string, flags: number, mode: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
 
     /**
      * @description Opens a file descriptor, using integer fs.constants flags
@@ -2609,7 +2645,11 @@ declare module 'fs' {
      */
     function open(fname: string, flags?: string, mode?: number): Class_FileHandle;
 
-    function open(fname: string, flags?: string, mode?: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+    function open(fname: string, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+
+    function open(fname: string, flags: string, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+
+    function open(fname: string, flags: string, mode: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
 
     /**
      * @description Opens a file descriptor
@@ -2699,7 +2739,9 @@ declare module 'fs' {
      */
     function openTextStream(fname: string, flags?: string): Class_BufferedStream;
 
-    function openTextStream(fname: string, flags?: string, callback: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
+    function openTextStream(fname: string, callback: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
+
+    function openTextStream(fname: string, flags: string, callback: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
 
     /**
      * @description Opens a text file for reading, writing, or both
@@ -2812,7 +2854,9 @@ declare module 'fs' {
      */
     function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): any;
 
-    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Reads the whole content of a file, by its file descriptor or by its name
@@ -2923,7 +2967,13 @@ declare module 'fs' {
      */
     function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -2972,7 +3022,11 @@ declare module 'fs' {
      */
     function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): number;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position: number, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -3080,7 +3134,9 @@ declare module 'fs' {
      */
     function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file, by its file descriptor or by its name
@@ -3187,7 +3243,9 @@ declare module 'fs' {
      */
     function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name

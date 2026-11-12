@@ -195,7 +195,11 @@ declare class Class_TcpServer extends Class_EventEmitter {
      */
     listen(port: number, addr?: string, backlog?: number): Class_TcpServer;
 
-    listen(port: number, addr?: string, backlog?: number, callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
+    listen(port: number, callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
+
+    listen(port: number, addr: string, callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
+
+    listen(port: number, addr: string, backlog: number, callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
 
     /**
      * @description Binds the address and port and starts listening for connections

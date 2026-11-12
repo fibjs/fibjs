@@ -326,7 +326,7 @@ declare class Class_SandBox extends Class_object {
      *      @return returns the loaded module object
      *
      */
-    import(id: string, base: string): Promise;
+    import(id: string, base: string): Promise<any>;
 
     /**
      * @description Registers a compiler for a custom file extension

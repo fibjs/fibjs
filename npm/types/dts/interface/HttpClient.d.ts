@@ -1346,7 +1346,9 @@ declare class Class_HttpClient extends Class_EventEmitter {
      */
     fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
-    fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+    fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object

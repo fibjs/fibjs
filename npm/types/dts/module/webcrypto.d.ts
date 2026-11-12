@@ -111,7 +111,7 @@ declare module 'webcrypto' {
      *      @return the same TypedArray
      *
      */
-    function getRandomValues(data: TypedArray): TypedArray;
+    function getRandomValues(data: FIBJS.TypedArray): FIBJS.TypedArray;
 
     /**
      * @description Returns a random version-4 UUID string

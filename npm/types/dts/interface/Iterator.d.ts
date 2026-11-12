@@ -1,0 +1,521 @@
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/object.d.ts" />
+/**
+ * @description Iterator is the abstract base class of every fibjs object that yields values one by one
+ *
+ *  It defines the four hooks of the JavaScript iteration protocols (the two symbol
+ *  members, next and return) that for...of, for await...of and spread use.
+ *
+ *  Code that only consumes values rarely calls these members: a loop asks the
+ *  object for an iterator, calls next() until it reports done, and calls return()
+ *  when the loop ends early. Implementations inherit from Iterator when they must
+ *  serve values from their own source (a directory scan, a container, a database
+ *  cursor). The class cannot be constructed with new; obtain a working iterator from
+ *  one of the producers below.
+ *
+ *  The JavaScript global named Iterator is not this class: it is the V8
+ *  iterator-helpers constructor (`Iterator.from` plus map, filter, take, drop,
+ *  flatMap, reduce, toArray and friends on its prototype). A fibjs iterator is not
+ *  an instance of that global and does not carry those helpers, but
+ *  `Iterator.from(iterable)` wraps any iterable, including a fibjs iterator, and
+ *  returns a helper object. Array, Map, Set and generator iterators are V8-native:
+ *  they are instances of the global and implement the same protocol without using
+ *  this class (plans/compat-differences.md 2.261).
+ *
+ *  Concepts:
+ *
+ *  - **The iteration result**: next() returns an object `{ value, done }`. While `done`
+ *    is false, `value` carries the next element; once the source is exhausted the
+ *    result is `{ done: true }` with no `value` property, and every later call keeps
+ *    returning it. The engine also calls `return(value)` when a loop stops early
+ *    (break, return, throw) so an implementation can release resources; the value
+ *    passed there is part of the protocol and is ignored by fibjs iterators.
+ *  - **Laziness**: values are produced on demand. A Dir does not touch the file system
+ *    when it is created and scans the directory on the first next()/read(), so a
+ *    missing path (ENOENT) or a non-directory (ENOTDIR) is reported by that first
+ *    call; a collection iterator walks the live container; a database cursor fetches
+ *    rows as they are requested. Ending a cursor early with return() is what makes
+ *    the connection reusable.
+ *  - **Cursors**: every call of `@iterator` or `@asyncIterator` on a container returns
+ *    a new iterator positioned at the first element, so independent loops and nested
+ *    loops do not share a position and a finished loop can be started again. A Dir
+ *    keeps one more cursor on the Dir object itself: read() and next() called directly
+ *    on a Dir advance the same position, which is separate from every loop's iterator.
+ *  - **Sync and async iteration**: a fibjs iterator exposes both symbol members and
+ *    each of them returns the iterator itself, so the same object works with for...of
+ *    and for await...of. for await...of also accepts plain sync iterables (arrays,
+ *    Map, Set, generators, the HTTP collections) and awaits each element. next() is
+ *    an asynchronous member: it returns `{ value, done }` directly when the value is
+ *    available, accepts a trailing `(err, result)` callback, and returns a Promise
+ *    resolving to `{ value, done }` when the source is asynchronous, for example a
+ *    cursor obtained from a db.promises connection (plans/compat-differences.md
+ *    2.262).
+ *  - **Release is explicit**: return() closes the iterator, is idempotent and keeps
+ *    next() reporting `{ done: true }`; it does not close the container behind the
+ *    iterator, so a Dir's own read()/next() cursor keeps its position. Closing a Dir
+ *    itself instead makes read() return null and next() throw Object closed [20027]
+ *    (plans/compat-differences.md 2.263).
+ *
+ *  Obtained from:
+ *  - `fs.opendir(path)` or `new fs.Dir(path)` — the Dir object itself is an Iterator
+ *    and yields DirEntry elements (it is also the only producer with a directory
+ *    cursor of its own);
+ *  - `keys()`, `values()` and `entries()` of Headers, URLSearchParams and FormData,
+ *    and their default `for...of` iteration — the HTTP collection containers inherit
+ *    the members from HttpCollection;
+ *  - `keys()`, `values()` and `entries()` of an XmlNodeList (for example
+ *    `documentElement.childNodes`) and its default iteration — this is the XML DOM
+ *    path;
+ *  - `conn.iterate(sql, ...)` and `stmt.iterate()` — database cursors, including the
+ *    promise form `(await db.promises.open(...)).iterate(...)`;
+ *  - `Iterator.from(iterable)` — not this class: the V8 helper constructor wraps any
+ *    iterable when the map/filter/toArray helpers are wanted.
+ *
+ *  Example 1 — traverse a directory with both loop forms and stop early:
+ *  ```JavaScript
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-iterator-'));
+ *  fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+ *  fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+ *
+ *  for (const entry of fs.opendir(dir))
+ *      console.log('sync:', entry.name);
+ *
+ *  (async () => {
+ *      for await (const entry of new fs.Dir(dir))
+ *          console.log('async:', entry.name);
+ *
+ *      for (const entry of fs.opendir(dir)) {
+ *          console.log('first only:', entry.name);
+ *          break; // the engine calls return() on the loop iterator here
+ *      }
+ *
+ *      fs.rmSync(dir, { recursive: true, force: true });
+ *  })();
+ *  ```
+ *
+ *  Example 2 — step through a collection iterator manually:
+ *  ```JavaScript
+ *  const params = new URLSearchParams('a=1&b=2');
+ *  const it = params.entries();
+ *
+ *  console.log(it[Symbol.iterator]() === it); // true, an iterator is iterable too
+ *  const first = it.next();
+ *  console.log(first.done, first.value[0], first.value[1]); // false a 1
+ *  const second = it.next();
+ *  console.log(second.done, second.value[0]); // false b
+ *  const end = it.next();
+ *  console.log(end.done, end.value); // true undefined, the source is exhausted
+ *  console.log(it.next().done); // true, it stays finished
+ *  ```
+ *
+ *  Example 3 — early exit runs return():
+ *  ```JavaScript
+ *  const params = new URLSearchParams('a=1&b=2&c=3');
+ *  const it = params.entries();
+ *
+ *  for (const pair of it) {
+ *      console.log(pair.join('=')); // a=1
+ *      break; // return() releases the iterator
+ *  }
+ *
+ *  console.log(it.next().done); // true
+ *  console.log(it.return().done); // true, safe to call again
+ *
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-iterator-'));
+ *  const walker = fs.opendir(dir)[Symbol.iterator]();
+ *  walker.return(); // Release an iterator that was never used
+ *  console.log(walker.next().done); // true
+ *  fs.rmSync(dir, { recursive: true, force: true });
+ *  ```
+ *
+ */
+declare class Class_Iterator extends Class_object {
+    "[Symbol.iterator]"(): Class_Iterator;
+
+    "[Symbol.asyncIterator]"(): Class_Iterator;
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: `{ value, done }` while elements remain, and `{ done: true }`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing `(err, result)` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    next(): {
+        value: any;
+        done: boolean;
+    };
+
+    next(callback: (err: Error | undefined | null, retVal: {
+        value: any;
+        done: boolean;
+    })=>any): void;
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: `{ value, done }` while elements remain, and `{ done: true }`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing `(err, result)` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    nextSync(): {
+        value: any;
+        done: boolean;
+    };
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: `{ value, done }` while elements remain, and `{ done: true }`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing `(err, result)` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    nextAsync(): Promise<{
+        value: any;
+        done: boolean;
+    }>;
+
+    /**
+     * @description Terminates iteration and releases all resources held by the iterator
+     *
+     *      The call is idempotent and safe to repeat. The engine calls it when for...of
+     *      or for await...of ends early (break, return, an exception, or a loop body that
+     *      never finishes), and code may call it directly to abandon a cursor. The value
+     *      argument belongs to the protocol and is ignored; the result is always
+     *      `{ done: true }`, even when a value was passed, where a compliant generator
+     *      would return `{ value, done: true }` (plans/compat-differences.md 4.23). After
+     *      the call next() keeps reporting `{ done: true }`. Releasing a database cursor is
+     *      required before other calls on the same connection can run; otherwise they fail
+     *      with a message such as Error 20028 "A statement cursor is active on this
+     *      connection". The container behind the iterator is not closed, so a Dir's own
+     *      read()/next() position is unaffected.
+     *
+     *      Example — stop an iterator at the first element and keep the Dir usable:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-return-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const iterator = fs.opendir(dir);
+     *      const it = iterator[Symbol.iterator]();
+     *      console.log(it.next().value.name); // a.txt
+     *      console.log(it.return().done); // true
+     *      console.log(it.next().done); // true
+     *      console.log(it.return().done); // true, calling again is safe
+     *      console.log(iterator.read().name); // a.txt, the Dir position is untouched
+     *
+     *      iterator.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @param value ignored; present for compatibility with the return(value) protocol call
+     *      @return { done: true }
+     *
+     */
+    return(value?: any): {
+        done: boolean;
+    };
+
+}
+
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/object.d.ts" />
+/**
+ * The promise variant of the Iterator class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_IteratorPromise extends Class_object {
+    "[Symbol.iterator]"(): Class_Iterator;
+
+    "[Symbol.asyncIterator]"(): Class_Iterator;
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: `{ value, done }` while elements remain, and `{ done: true }`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing `(err, result)` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    next(): Promise<{
+        value: any;
+        done: boolean;
+    }>;
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: `{ value, done }` while elements remain, and `{ done: true }`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing `(err, result)` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    nextSync(): {
+        value: any;
+        done: boolean;
+    };
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: `{ value, done }` while elements remain, and `{ done: true }`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing `(err, result)` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    nextAsync(): Promise<{
+        value: any;
+        done: boolean;
+    }>;
+
+    /**
+     * @description Terminates iteration and releases all resources held by the iterator
+     *
+     *      The call is idempotent and safe to repeat. The engine calls it when for...of
+     *      or for await...of ends early (break, return, an exception, or a loop body that
+     *      never finishes), and code may call it directly to abandon a cursor. The value
+     *      argument belongs to the protocol and is ignored; the result is always
+     *      `{ done: true }`, even when a value was passed, where a compliant generator
+     *      would return `{ value, done: true }` (plans/compat-differences.md 4.23). After
+     *      the call next() keeps reporting `{ done: true }`. Releasing a database cursor is
+     *      required before other calls on the same connection can run; otherwise they fail
+     *      with a message such as Error 20028 "A statement cursor is active on this
+     *      connection". The container behind the iterator is not closed, so a Dir's own
+     *      read()/next() position is unaffected.
+     *
+     *      Example — stop an iterator at the first element and keep the Dir usable:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-return-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const iterator = fs.opendir(dir);
+     *      const it = iterator[Symbol.iterator]();
+     *      console.log(it.next().value.name); // a.txt
+     *      console.log(it.return().done); // true
+     *      console.log(it.next().done); // true
+     *      console.log(it.return().done); // true, calling again is safe
+     *      console.log(iterator.read().name); // a.txt, the Dir position is untouched
+     *
+     *      iterator.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @param value ignored; present for compatibility with the return(value) protocol call
+     *      @return { done: true }
+     *
+     */
+    return(value?: any): {
+        done: boolean;
+    };
+
+}
+
+
+declare namespace Class_Iterator {
+    const promises: FIBJS.GeneralObject;
+}

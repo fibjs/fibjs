@@ -190,7 +190,9 @@ declare module 'net' {
      */
     function resolve(name: string, family?: number): string;
 
-    function resolve(name: string, family?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    function resolve(name: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    function resolve(name: string, family: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Queries the address of the given host name
@@ -459,7 +461,11 @@ declare module 'net' {
      */
     function connect(port: number, host?: string, timeout?: number): Class_Stream;
 
-    function connect(port: number, host?: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(port: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(port: number, host: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(port: number, host: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a Socket object and establishes a TCP connection
@@ -513,7 +519,9 @@ declare module 'net' {
      */
     function connect(url: string, timeout?: number): Class_Stream;
 
-    function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(url: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(url: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a Socket or SslSocket object and establishes a connection
@@ -704,7 +712,9 @@ declare module 'net' {
      */
     function openSmtp(url: string, timeout?: number): Class_Smtp;
 
-    function openSmtp(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Smtp)=>any): void;
+    function openSmtp(url: string, callback: (err: Error | undefined | null, retVal: Class_Smtp)=>any): void;
+
+    function openSmtp(url: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Smtp)=>any): void;
 
     /**
      * @description Creates a Smtp object and establishes a connection, see Smtp

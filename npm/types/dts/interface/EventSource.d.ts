@@ -248,7 +248,9 @@ declare class Class_EventSource extends Class_EventEmitter {
      */
     send(data: string, options?: FIBJS.GeneralObject): number;
 
-    send(data: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(data: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    send(data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends one event to the client; available on a server-side sender only

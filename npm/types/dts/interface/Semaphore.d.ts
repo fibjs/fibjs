@@ -163,7 +163,9 @@ declare class Class_Semaphore extends Class_Lock {
      */
     wait(timeout?: number): boolean;
 
-    wait(timeout?: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    wait(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    wait(timeout: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Takes a permit, waiting for one when necessary

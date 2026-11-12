@@ -498,7 +498,9 @@ declare class Class_ZipFile extends Class_object {
      */
     read(member: string, password?: string): Class_Buffer;
 
-    read(member: string, password?: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    read(member: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    read(member: string, password: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Reads one entry and returns its uncompressed data
@@ -606,7 +608,17 @@ declare class Class_ZipFile extends Class_object {
         data: Class_Buffer;
     }[];
 
-    readAll(password?: string, callback: (err: Error | undefined | null, retVal: {
+    readAll(callback: (err: Error | undefined | null, retVal: {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+        data: Class_Buffer;
+    }[])=>any): void;
+
+    readAll(password: string, callback: (err: Error | undefined | null, retVal: {
         filename: string;
         date: Date;
         compress_type: string;
@@ -741,7 +753,9 @@ declare class Class_ZipFile extends Class_object {
      */
     extract(member: string, strm: Class_SeekableStream | Class_SeekableStreamPromise, password?: string): void;
 
-    extract(member: string, strm: Class_SeekableStream | Class_SeekableStreamPromise, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    extract(member: string, strm: Class_SeekableStream | Class_SeekableStreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    extract(member: string, strm: Class_SeekableStream | Class_SeekableStreamPromise, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses one entry into a stream
@@ -852,7 +866,9 @@ declare class Class_ZipFile extends Class_object {
      */
     extract(member: string, path: string, password?: string): void;
 
-    extract(member: string, path: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    extract(member: string, path: string, callback: (err: Error | undefined | null)=>any): void;
+
+    extract(member: string, path: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses one entry to a file
@@ -968,7 +984,9 @@ declare class Class_ZipFile extends Class_object {
      */
     extractAll(path: string, password?: string): void;
 
-    extractAll(path: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    extractAll(path: string, callback: (err: Error | undefined | null)=>any): void;
+
+    extractAll(path: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses every entry below a directory
@@ -1095,7 +1113,9 @@ declare class Class_ZipFile extends Class_object {
      */
     write(data: Class_Buffer, inZipName: string, password?: string): void;
 
-    write(data: Class_Buffer, inZipName: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    write(data: Class_Buffer, inZipName: string, callback: (err: Error | undefined | null)=>any): void;
+
+    write(data: Class_Buffer, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes a Buffer as a new entry
@@ -1210,7 +1230,9 @@ declare class Class_ZipFile extends Class_object {
      */
     write(strm: Class_SeekableStream | Class_SeekableStreamPromise, inZipName: string, password?: string): void;
 
-    write(strm: Class_SeekableStream | Class_SeekableStreamPromise, inZipName: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    write(strm: Class_SeekableStream | Class_SeekableStreamPromise, inZipName: string, callback: (err: Error | undefined | null)=>any): void;
+
+    write(strm: Class_SeekableStream | Class_SeekableStreamPromise, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes a stream as a new entry
@@ -1327,7 +1349,9 @@ declare class Class_ZipFile extends Class_object {
      */
     write(filename: string, inZipName: string, password?: string): void;
 
-    write(filename: string, inZipName: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    write(filename: string, inZipName: string, callback: (err: Error | undefined | null)=>any): void;
+
+    write(filename: string, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes a local file as a new entry

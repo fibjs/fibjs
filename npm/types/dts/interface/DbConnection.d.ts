@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Statement.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * @description DbConnection is the base class of SQL database connections: it owns one session
  *  with the server (or the database file) and exposes querying, prepared statements,
@@ -315,7 +316,9 @@ declare class Class_DbConnection extends Class_object {
      */
     begin(point?: string): void;
 
-    begin(point?: string, callback: (err: Error | undefined | null)=>any): void;
+    begin(callback: (err: Error | undefined | null)=>any): void;
+
+    begin(point: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Starts a transaction on the current database connection
@@ -357,7 +360,9 @@ declare class Class_DbConnection extends Class_object {
      */
     commit(point?: string): void;
 
-    commit(point?: string, callback: (err: Error | undefined | null)=>any): void;
+    commit(callback: (err: Error | undefined | null)=>any): void;
+
+    commit(point: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Commits the transaction on the current database connection
@@ -398,7 +403,9 @@ declare class Class_DbConnection extends Class_object {
      */
     rollback(point?: string): void;
 
-    rollback(point?: string, callback: (err: Error | undefined | null)=>any): void;
+    rollback(callback: (err: Error | undefined | null)=>any): void;
+
+    rollback(point: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Rolls back the transaction on the current database connection
@@ -812,7 +819,7 @@ declare class Class_DbConnection extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterate(sql: string, ...args: any[]): Iterator<any>;
+    iterate(sql: string, ...args: any[]): Class_Iterator;
 
     /**
      * @description Executes and returns an iterator over the rows (equivalent to stmt.iterate(...args))
@@ -847,7 +854,7 @@ declare class Class_DbConnection extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateSync(sql: string, ...args: any[]): Iterator<any>;
+    iterateSync(sql: string, ...args: any[]): Class_Iterator;
 
     /**
      * @description Executes and returns an iterator over the rows (equivalent to stmt.iterate(...args))
@@ -882,7 +889,7 @@ declare class Class_DbConnection extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateAsync(sql: string, ...args: any[]): Promise<Iterator<any>>;
+    iterateAsync(sql: string, ...args: any[]): Promise<Class_IteratorPromise>;
 
 }
 
@@ -890,6 +897,7 @@ declare class Class_DbConnection extends Class_object {
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Statement.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * The promise variant of the DbConnection class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
@@ -1600,7 +1608,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterate(sql: string, ...args: any[]): Promise<Iterator<any>>;
+    iterate(sql: string, ...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Executes and returns an iterator over the rows (equivalent to stmt.iterate(...args))
@@ -1635,7 +1643,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateSync(sql: string, ...args: any[]): Iterator<any>;
+    iterateSync(sql: string, ...args: any[]): Class_Iterator;
 
     /**
      * @description Executes and returns an iterator over the rows (equivalent to stmt.iterate(...args))
@@ -1670,7 +1678,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateAsync(sql: string, ...args: any[]): Promise<Iterator<any>>;
+    iterateAsync(sql: string, ...args: any[]): Promise<Class_IteratorPromise>;
 
 }
 

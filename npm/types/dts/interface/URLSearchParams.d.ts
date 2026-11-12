@@ -142,11 +142,13 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
      *      ```
      *
      *      @param name the parameter name to check
-     *      @param value the parameter value to match, or undefined for the name-only check
+     *      @param value the parameter value to match; omitted or undefined degrades to the name-only
+     *                 check, which is why the parameter is optional (it also keeps the declaration a
+     *                 compatible override of HttpCollection#has)
      *      @return whether a pair with that name (and value) exists
      *
      */
-    has(name: string, value: any): boolean;
+    has(name: string, value?: any): boolean;
 
     /**
      * @description Removes the pairs of a name, or the pairs with a name/value combination
@@ -167,10 +169,16 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
      *      ```
      *
      *      @param name the parameter name to remove
-     *      @param value the parameter value to remove, or undefined to remove every pair of the name
+     *      @param value the parameter value to remove; omitted or undefined removes every pair of the
+     *                 name, which is why the parameter is optional (it also keeps the declaration a
+     *                 compatible override of HttpCollection#delete)
      *
      */
-    delete(name: string, value: any): void;
+    delete(name: string, value?: any): void;
+
+    has(name: string): boolean;
+
+    delete(name: string): void;
 
 }
 

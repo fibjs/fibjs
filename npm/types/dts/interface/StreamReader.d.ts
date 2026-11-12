@@ -290,7 +290,7 @@ declare class Class_StreamReader extends Class_object {
      *      ```
      *
      */
-    readonly closed: Promise;
+    readonly closed: Promise<any>;
 
 }
 
@@ -514,7 +514,7 @@ declare class Class_StreamReaderPromise extends Class_object {
      *      ```
      *
      */
-    readonly closed: Promise;
+    readonly closed: Promise<any>;
 
 }
 

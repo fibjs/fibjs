@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * @description HttpCollection is the ordered multi-map base class behind the HTTP collections of fibjs: Headers, URLSearchParams, FormData and the request cookie collection
  *
@@ -372,7 +373,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @return an iterator with every name
      *
      */
-    keys(): Iterator<any>;
+    keys(): Class_Iterator;
 
     /**
      * @description Returns an iterator over the values
@@ -382,7 +383,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @return an iterator with every value
      *
      */
-    values(): Iterator<any>;
+    values(): Class_Iterator;
 
     /**
      * @description Returns an iterator over [name, value] pairs
@@ -399,7 +400,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @return an iterator with every [name, value] pair
      *
      */
-    entries(): Iterator<any>;
+    entries(): Class_Iterator;
 
     /**
      * @description Accesses values by name with the subscript syntax
@@ -424,7 +425,7 @@ declare class Class_HttpCollection extends Class_object {
      */
     [index: string]: any;
 
-    "[Symbol.iterator]"(): Iterator<any>;
+    "[Symbol.iterator]"(): Class_Iterator;
 
 }
 

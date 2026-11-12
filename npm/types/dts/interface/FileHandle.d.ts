@@ -238,7 +238,22 @@ declare class Class_FileHandle extends Class_object {
         buffer: Class_Buffer;
     };
 
-    read(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: {
+    read(buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: {
+        bytesRead: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    read(buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: {
+        bytesRead: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    read(buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
+        bytesRead: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    read(buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
         bytesRead: number;
         buffer: Class_Buffer;
     })=>any): void;
@@ -455,7 +470,22 @@ declare class Class_FileHandle extends Class_object {
         buffer: Class_Buffer;
     };
 
-    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: {
+    write(buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: {
+        bytesWritten: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    write(buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: {
+        bytesWritten: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    write(buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
+        bytesWritten: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    write(buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
@@ -564,7 +594,17 @@ declare class Class_FileHandle extends Class_object {
         buffer: Class_Buffer;
     };
 
-    write(string: string, position?: number, encoding?: string, callback: (err: Error | undefined | null, retVal: {
+    write(string: string, callback: (err: Error | undefined | null, retVal: {
+        bytesWritten: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    write(string: string, position: number, callback: (err: Error | undefined | null, retVal: {
+        bytesWritten: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    write(string: string, position: number, encoding: string, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
@@ -642,7 +682,9 @@ declare class Class_FileHandle extends Class_object {
      */
     readFile(options?: FIBJS.GeneralObject | string): any;
 
-    readFile(options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    readFile(callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    readFile(options: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Reads the whole file from the beginning and leaves the handle open
@@ -772,7 +814,9 @@ declare class Class_FileHandle extends Class_object {
      */
     writeFile(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
-    writeFile(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    writeFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    writeFile(data: Class_Buffer | string, opt: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Replaces the content of the file and returns the number of bytes written
@@ -1004,7 +1048,9 @@ declare class Class_FileHandle extends Class_object {
      */
     truncate(len?: number): void;
 
-    truncate(len?: number, callback: (err: Error | undefined | null)=>any): void;
+    truncate(callback: (err: Error | undefined | null)=>any): void;
+
+    truncate(len: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Truncates the file to the given length (ftruncate)

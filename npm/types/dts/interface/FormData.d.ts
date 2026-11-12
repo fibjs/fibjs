@@ -253,5 +253,15 @@ declare class Class_FormData extends Class_HttpCollection {
      */
     encode(type?: string): Class_Blob;
 
+    append(map: FIBJS.GeneralObject): void;
+
+    append(name: string, value: any[] | any): void;
+
+    append(entries: any[]): void;
+
+    set(map: FIBJS.GeneralObject): void;
+
+    set(name: string, value: any[] | any): void;
+
 }
 

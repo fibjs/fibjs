@@ -12,23 +12,33 @@ declare module 'readline/promises' {
      * @description The promise-flavoured line interface
      *
      *      Same as the callback Interface, except that question() returns a
-     *      Promise instead of taking a callback. It is a *sibling* declaration
-     *      rather than a subclass: the promise form returns `Promise<string>`
-     *      and takes no callback, so a subclass override would be incompatible
-     *      with the inherited member (TS2416). The rest of the surface is the
-     *      callback Interface's, so it is redeclared by extension.
+     *      Promise instead of taking a callback.
      *
-     *      Declared as a class, not an interface, because the runtime exports a
-     *      constructor: `new (require('readline/promises').Interface)(options)`
-     *      and `createInterface(...) instanceof Interface` both work, in Node
-     *      as well as here. The `question` member is redeclared in the class
-     *      body, which is what keeps a single name working as both value and
-     *      type.
+     *      An `interface` extending `Omit<..., 'question'>` rather than a
+     *      `class ... implements`: `implements` re-types nothing (the class
+     *      body would have to redeclare every member, and TS2420 fires when it
+     *      declares only some of them), and a plain
+     *      `interface ... extends readline.Interface` is TS2430 because the
+     *      promise-shaped question is not assignable to the callback-shaped one.
+     *      Omitting `question` from the base and re-adding the promise form in
+     *      the body is the only spelling that inherits the rest of the surface
+     *      while changing one member's signature.
+     *
+     *      The runtime exports a constructor, so the same name is also
+     *      declared as a `const` with a construct signature: the interface
+     *      carries the type, the const carries the value, and
+     *      `new (require('readline/promises').Interface)(options)` plus
+     *      `createInterface(...) instanceof Interface` both keep working.
      */
-    class Interface implements Omit<readline.Interface, 'question' | 'constructor'> {
+    interface Interface extends Omit<readline.Interface, 'question'> {
         /** Asks the user a question and resolves with the answer. */
         question(query: string, options?: { signal?: Class_AbortSignal }): Promise<string>;
     }
+
+    const Interface: {
+        new (input: any, output?: any, completer?: any, terminal?: boolean): Interface;
+        new (options: InterfaceOptions): Interface;
+    };
 
     /** @description Creates a promise-flavoured line interface */
     function createInterface(input: any, output?: any, completer?: any, terminal?: boolean): Interface;

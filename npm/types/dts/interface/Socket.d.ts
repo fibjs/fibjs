@@ -450,7 +450,11 @@ declare class Class_Socket extends Class_Stream {
      */
     connect(port: number, host?: string, timeout?: number): Class_Stream;
 
-    connect(port: number, host?: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    connect(port: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    connect(port: number, host: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    connect(port: number, host: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Establishes a TCP connection (blocking form)
@@ -498,7 +502,9 @@ declare class Class_Socket extends Class_Stream {
      */
     connect(path: string, timeout?: number): Class_Stream;
 
-    connect(path: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    connect(path: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    connect(path: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Establishes a unix socket or Windows pipe connection (blocking form)
@@ -749,7 +755,9 @@ declare class Class_Socket extends Class_Stream {
      */
     recv(bytes?: number): Class_Buffer;
 
-    recv(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    recv(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    recv(bytes: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read

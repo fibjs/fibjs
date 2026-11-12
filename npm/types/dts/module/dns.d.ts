@@ -215,7 +215,9 @@ declare module 'dns' {
      */
     function lookup(name: string, options?: FIBJS.GeneralObject): any;
 
-    function lookup(name: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function lookup(name: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    function lookup(name: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Resolves a host name to its first address, or to every address when the all option is set

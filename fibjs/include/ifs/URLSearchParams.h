@@ -137,10 +137,10 @@ inline void URLSearchParams_base::s_has(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(URLSearchParams_base);
     METHOD_ENTER();
 
-    METHOD_OVER_NAMED(2, 2, "value");
+    METHOD_OVER_NAMED(2, 1, "name");
 
     ARG_NAMED(exlib::string, 0, "name");
-    ARG_NAMED(v8::Local<v8::Value>, 1, "value");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "value");
 
     hr = pInst->has(v0, v1, vr);
 
@@ -158,10 +158,10 @@ inline void URLSearchParams_base::s__delete(const v8::FunctionCallbackInfo<v8::V
     METHOD_INSTANCE(URLSearchParams_base);
     METHOD_ENTER();
 
-    METHOD_OVER_NAMED(2, 2, "value");
+    METHOD_OVER_NAMED(2, 1, "name");
 
     ARG_NAMED(exlib::string, 0, "name");
-    ARG_NAMED(v8::Local<v8::Value>, 1, "value");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "value");
 
     hr = pInst->_delete(v0, v1);
 

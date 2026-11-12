@@ -15,7 +15,7 @@
  *   fibjs --man    parses the same map, the IDL comments are the manual.
  *
  * source : npm/types (version 0.33.0-dev)
- * files  : 238 corpus files + dts/_builtin/globals.d.ts
+ * files  : 239 corpus files + dts/_builtin/globals.d.ts
  * globals: Buffer URLSearchParams URL Blob File Headers FormData Request Response TextDecoder TextEncoder AbortController AbortSignal Event EventTarget MessageEvent MessagePort MessageChannel Worker CryptoKey DOMParser CSSStyleDeclaration DOMStringMap XMLSerializer XMLDocument WebSocket console process performance PerformanceObserver crypto global run require setTimeout clearTimeout setInterval clearInterval setHrInterval clearHrInterval setImmediate clearImmediate btoa atob structuredClone fetch fetchSync fetchAsync queueMicrotask
  */
 module.exports = {
@@ -2844,7 +2844,9 @@ declare class Class_BufferedStream extends Class_Stream {
      */
     readLine(maxlen?: number): string;
 
-    readLine(maxlen?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    readLine(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    readLine(maxlen: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Reads one line of text
@@ -2963,7 +2965,9 @@ declare class Class_BufferedStream extends Class_Stream {
      */
     readUntil(mk: string, maxlen?: number): string;
 
-    readUntil(mk: string, maxlen?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    readUntil(mk: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    readUntil(mk: string, maxlen: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Reads a text string ending with the specified bytes
@@ -5618,7 +5622,9 @@ declare class Class_Condition extends Class_Lock {
      */
     wait(timeout?: number): boolean;
 
-    wait(timeout?: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    wait(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    wait(timeout: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Waits until notified or until the timeout elapses
@@ -7398,6 +7404,7 @@ declare class Class_DOMTokenList extends Class_object {
         "dts/interface/DbConnection.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Statement.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * @description DbConnection is the base class of SQL database connections: it owns one session
  *  with the server (or the database file) and exposes querying, prepared statements,
@@ -7712,7 +7719,9 @@ declare class Class_DbConnection extends Class_object {
      */
     begin(point?: string): void;
 
-    begin(point?: string, callback: (err: Error | undefined | null)=>any): void;
+    begin(callback: (err: Error | undefined | null)=>any): void;
+
+    begin(point: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Starts a transaction on the current database connection
@@ -7754,7 +7763,9 @@ declare class Class_DbConnection extends Class_object {
      */
     commit(point?: string): void;
 
-    commit(point?: string, callback: (err: Error | undefined | null)=>any): void;
+    commit(callback: (err: Error | undefined | null)=>any): void;
+
+    commit(point: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Commits the transaction on the current database connection
@@ -7795,7 +7806,9 @@ declare class Class_DbConnection extends Class_object {
      */
     rollback(point?: string): void;
 
-    rollback(point?: string, callback: (err: Error | undefined | null)=>any): void;
+    rollback(callback: (err: Error | undefined | null)=>any): void;
+
+    rollback(point: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Rolls back the transaction on the current database connection
@@ -8209,7 +8222,7 @@ declare class Class_DbConnection extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterate(sql: string, ...args: any[]): Iterator<any>;
+    iterate(sql: string, ...args: any[]): Class_Iterator;
 
     /**
      * @description Executes and returns an iterator over the rows (equivalent to stmt.iterate(...args))
@@ -8244,7 +8257,7 @@ declare class Class_DbConnection extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateSync(sql: string, ...args: any[]): Iterator<any>;
+    iterateSync(sql: string, ...args: any[]): Class_Iterator;
 
     /**
      * @description Executes and returns an iterator over the rows (equivalent to stmt.iterate(...args))
@@ -8279,7 +8292,7 @@ declare class Class_DbConnection extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateAsync(sql: string, ...args: any[]): Promise<Iterator<any>>;
+    iterateAsync(sql: string, ...args: any[]): Promise<Class_IteratorPromise>;
 
 }
 
@@ -8287,6 +8300,7 @@ declare class Class_DbConnection extends Class_object {
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Statement.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * The promise variant of the DbConnection class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
@@ -8997,7 +9011,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterate(sql: string, ...args: any[]): Promise<Iterator<any>>;
+    iterate(sql: string, ...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Executes and returns an iterator over the rows (equivalent to stmt.iterate(...args))
@@ -9032,7 +9046,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateSync(sql: string, ...args: any[]): Iterator<any>;
+    iterateSync(sql: string, ...args: any[]): Class_Iterator;
 
     /**
      * @description Executes and returns an iterator over the rows (equivalent to stmt.iterate(...args))
@@ -9067,7 +9081,7 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateAsync(sql: string, ...args: any[]): Promise<Iterator<any>>;
+    iterateAsync(sql: string, ...args: any[]): Promise<Class_IteratorPromise>;
 
 }
 
@@ -9394,7 +9408,11 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      */
     bind(port?: number, addr?: string): Class_DgramSocket;
 
-    bind(port?: number, addr?: string, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
+    bind(callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
+
+    bind(port: number, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
+
+    bind(port: number, addr: string, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
 
     /**
      * @description Binds the socket to a local port and address and starts delivering received datagrams to the 'message' event
@@ -9581,7 +9599,9 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      */
     send(msg: Class_Buffer | string, port: number, address?: string): number;
 
-    send(msg: Class_Buffer | string, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(msg: Class_Buffer | string, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    send(msg: Class_Buffer | string, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -9699,7 +9719,9 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      */
     send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
 
-    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(msg: Class_Buffer | string, offset: number, length: number, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends a byte range of the payload as one datagram
@@ -11141,7 +11163,7 @@ declare class Class_Dir extends Class_Iterator {
 /**
  * The promise variant of the Dir class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
-declare class Class_DirPromise extends Class_Iterator {
+declare class Class_DirPromise extends Class_IteratorPromise {
     /**
      * @description Creates a directory iterator for a path
      *
@@ -13231,7 +13253,9 @@ declare class Class_EventSource extends Class_EventEmitter {
      */
     send(data: string, options?: FIBJS.GeneralObject): number;
 
-    send(data: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(data: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    send(data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends one event to the client; available on a server-side sender only
@@ -14933,7 +14957,22 @@ declare class Class_FileHandle extends Class_object {
         buffer: Class_Buffer;
     };
 
-    read(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: {
+    read(buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: {
+        bytesRead: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    read(buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: {
+        bytesRead: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    read(buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
+        bytesRead: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    read(buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
         bytesRead: number;
         buffer: Class_Buffer;
     })=>any): void;
@@ -15150,7 +15189,22 @@ declare class Class_FileHandle extends Class_object {
         buffer: Class_Buffer;
     };
 
-    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: {
+    write(buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: {
+        bytesWritten: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    write(buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: {
+        bytesWritten: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    write(buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
+        bytesWritten: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    write(buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
@@ -15259,7 +15313,17 @@ declare class Class_FileHandle extends Class_object {
         buffer: Class_Buffer;
     };
 
-    write(string: string, position?: number, encoding?: string, callback: (err: Error | undefined | null, retVal: {
+    write(string: string, callback: (err: Error | undefined | null, retVal: {
+        bytesWritten: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    write(string: string, position: number, callback: (err: Error | undefined | null, retVal: {
+        bytesWritten: number;
+        buffer: Class_Buffer;
+    })=>any): void;
+
+    write(string: string, position: number, encoding: string, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
@@ -15337,7 +15401,9 @@ declare class Class_FileHandle extends Class_object {
      */
     readFile(options?: FIBJS.GeneralObject | string): any;
 
-    readFile(options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    readFile(callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    readFile(options: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Reads the whole file from the beginning and leaves the handle open
@@ -15467,7 +15533,9 @@ declare class Class_FileHandle extends Class_object {
      */
     writeFile(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
-    writeFile(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    writeFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    writeFile(data: Class_Buffer | string, opt: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Replaces the content of the file and returns the number of bytes written
@@ -15699,7 +15767,9 @@ declare class Class_FileHandle extends Class_object {
      */
     truncate(len?: number): void;
 
-    truncate(len?: number, callback: (err: Error | undefined | null)=>any): void;
+    truncate(callback: (err: Error | undefined | null)=>any): void;
+
+    truncate(len: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Truncates the file to the given length (ftruncate)
@@ -17567,6 +17637,16 @@ declare class Class_FormData extends Class_HttpCollection {
      *
      */
     encode(type?: string): Class_Blob;
+
+    append(map: FIBJS.GeneralObject): void;
+
+    append(name: string, value: any[] | any): void;
+
+    append(entries: any[]): void;
+
+    set(map: FIBJS.GeneralObject): void;
+
+    set(name: string, value: any[] | any): void;
 
 }
 
@@ -22777,7 +22857,9 @@ declare class Class_HttpClient extends Class_EventEmitter {
      */
     fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
-    fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+    fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description Sends a request using the Web Fetch standard with an HttpRequest object as the request source and returns an HttpResponse object
@@ -24209,6 +24291,7 @@ declare namespace Class_HttpClient {
 `,
         "dts/interface/HttpCollection.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * @description HttpCollection is the ordered multi-map base class behind the HTTP collections of fibjs: Headers, URLSearchParams, FormData and the request cookie collection
  *
@@ -24581,7 +24664,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @return an iterator with every name
      *
      */
-    keys(): Iterator<any>;
+    keys(): Class_Iterator;
 
     /**
      * @description Returns an iterator over the values
@@ -24591,7 +24674,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @return an iterator with every value
      *
      */
-    values(): Iterator<any>;
+    values(): Class_Iterator;
 
     /**
      * @description Returns an iterator over [name, value] pairs
@@ -24608,7 +24691,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @return an iterator with every [name, value] pair
      *
      */
-    entries(): Iterator<any>;
+    entries(): Class_Iterator;
 
     /**
      * @description Accesses values by name with the subscript syntax
@@ -24633,7 +24716,7 @@ declare class Class_HttpCollection extends Class_object {
      */
     [index: string]: any;
 
-    [Symbol.iterator](): Iterator<any>;
+    [Symbol.iterator](): Class_Iterator;
 
 }
 
@@ -27750,7 +27833,9 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      */
     json(data: any, options?: FIBJS.GeneralObject): any;
 
-    json(data: any, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    json(data: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    json(data: any, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Writes data as a JSON body, optionally setting status and headers
@@ -27875,6 +27960,14 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *
      */
     static error(): Class_HttpResponse;
+
+    json(data: any): void;
+
+    json(data: any, callback: (err: Error | undefined | null)=>any): void;
+
+    jsonSync(data: any): void;
+
+    jsonAsync(data: any): Promise<void>;
 
 }
 
@@ -28238,6 +28331,12 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *
      */
     static error(): Class_HttpResponse;
+
+    json(data: any): Promise<void>;
+
+    jsonSync(data: any): void;
+
+    jsonAsync(data: any): Promise<void>;
 
 }
 
@@ -29332,6 +29431,528 @@ declare class Class_InflateRaw extends Class_ZlibCodec {
 
 }
 
+`,
+        "dts/interface/Iterator.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/object.d.ts" />
+/**
+ * @description Iterator is the abstract base class of every fibjs object that yields values one by one
+ *
+ *  It defines the four hooks of the JavaScript iteration protocols (the two symbol
+ *  members, next and return) that for...of, for await...of and spread use.
+ *
+ *  Code that only consumes values rarely calls these members: a loop asks the
+ *  object for an iterator, calls next() until it reports done, and calls return()
+ *  when the loop ends early. Implementations inherit from Iterator when they must
+ *  serve values from their own source (a directory scan, a container, a database
+ *  cursor). The class cannot be constructed with new; obtain a working iterator from
+ *  one of the producers below.
+ *
+ *  The JavaScript global named Iterator is not this class: it is the V8
+ *  iterator-helpers constructor (\`Iterator.from\` plus map, filter, take, drop,
+ *  flatMap, reduce, toArray and friends on its prototype). A fibjs iterator is not
+ *  an instance of that global and does not carry those helpers, but
+ *  \`Iterator.from(iterable)\` wraps any iterable, including a fibjs iterator, and
+ *  returns a helper object. Array, Map, Set and generator iterators are V8-native:
+ *  they are instances of the global and implement the same protocol without using
+ *  this class (plans/compat-differences.md 2.261).
+ *
+ *  Concepts:
+ *
+ *  - **The iteration result**: next() returns an object \`{ value, done }\`. While \`done\`
+ *    is false, \`value\` carries the next element; once the source is exhausted the
+ *    result is \`{ done: true }\` with no \`value\` property, and every later call keeps
+ *    returning it. The engine also calls \`return(value)\` when a loop stops early
+ *    (break, return, throw) so an implementation can release resources; the value
+ *    passed there is part of the protocol and is ignored by fibjs iterators.
+ *  - **Laziness**: values are produced on demand. A Dir does not touch the file system
+ *    when it is created and scans the directory on the first next()/read(), so a
+ *    missing path (ENOENT) or a non-directory (ENOTDIR) is reported by that first
+ *    call; a collection iterator walks the live container; a database cursor fetches
+ *    rows as they are requested. Ending a cursor early with return() is what makes
+ *    the connection reusable.
+ *  - **Cursors**: every call of \`@iterator\` or \`@asyncIterator\` on a container returns
+ *    a new iterator positioned at the first element, so independent loops and nested
+ *    loops do not share a position and a finished loop can be started again. A Dir
+ *    keeps one more cursor on the Dir object itself: read() and next() called directly
+ *    on a Dir advance the same position, which is separate from every loop's iterator.
+ *  - **Sync and async iteration**: a fibjs iterator exposes both symbol members and
+ *    each of them returns the iterator itself, so the same object works with for...of
+ *    and for await...of. for await...of also accepts plain sync iterables (arrays,
+ *    Map, Set, generators, the HTTP collections) and awaits each element. next() is
+ *    an asynchronous member: it returns \`{ value, done }\` directly when the value is
+ *    available, accepts a trailing \`(err, result)\` callback, and returns a Promise
+ *    resolving to \`{ value, done }\` when the source is asynchronous, for example a
+ *    cursor obtained from a db.promises connection (plans/compat-differences.md
+ *    2.262).
+ *  - **Release is explicit**: return() closes the iterator, is idempotent and keeps
+ *    next() reporting \`{ done: true }\`; it does not close the container behind the
+ *    iterator, so a Dir's own read()/next() cursor keeps its position. Closing a Dir
+ *    itself instead makes read() return null and next() throw Object closed [20027]
+ *    (plans/compat-differences.md 2.263).
+ *
+ *  Obtained from:
+ *  - \`fs.opendir(path)\` or \`new fs.Dir(path)\` — the Dir object itself is an Iterator
+ *    and yields DirEntry elements (it is also the only producer with a directory
+ *    cursor of its own);
+ *  - \`keys()\`, \`values()\` and \`entries()\` of Headers, URLSearchParams and FormData,
+ *    and their default \`for...of\` iteration — the HTTP collection containers inherit
+ *    the members from HttpCollection;
+ *  - \`keys()\`, \`values()\` and \`entries()\` of an XmlNodeList (for example
+ *    \`documentElement.childNodes\`) and its default iteration — this is the XML DOM
+ *    path;
+ *  - \`conn.iterate(sql, ...)\` and \`stmt.iterate()\` — database cursors, including the
+ *    promise form \`(await db.promises.open(...)).iterate(...)\`;
+ *  - \`Iterator.from(iterable)\` — not this class: the V8 helper constructor wraps any
+ *    iterable when the map/filter/toArray helpers are wanted.
+ *
+ *  Example 1 — traverse a directory with both loop forms and stop early:
+ *  \`\`\`JavaScript
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-iterator-'));
+ *  fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+ *  fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+ *
+ *  for (const entry of fs.opendir(dir))
+ *      console.log('sync:', entry.name);
+ *
+ *  (async () => {
+ *      for await (const entry of new fs.Dir(dir))
+ *          console.log('async:', entry.name);
+ *
+ *      for (const entry of fs.opendir(dir)) {
+ *          console.log('first only:', entry.name);
+ *          break; // the engine calls return() on the loop iterator here
+ *      }
+ *
+ *      fs.rmSync(dir, { recursive: true, force: true });
+ *  })();
+ *  \`\`\`
+ *
+ *  Example 2 — step through a collection iterator manually:
+ *  \`\`\`JavaScript
+ *  const params = new URLSearchParams('a=1&b=2');
+ *  const it = params.entries();
+ *
+ *  console.log(it[Symbol.iterator]() === it); // true, an iterator is iterable too
+ *  const first = it.next();
+ *  console.log(first.done, first.value[0], first.value[1]); // false a 1
+ *  const second = it.next();
+ *  console.log(second.done, second.value[0]); // false b
+ *  const end = it.next();
+ *  console.log(end.done, end.value); // true undefined, the source is exhausted
+ *  console.log(it.next().done); // true, it stays finished
+ *  \`\`\`
+ *
+ *  Example 3 — early exit runs return():
+ *  \`\`\`JavaScript
+ *  const params = new URLSearchParams('a=1&b=2&c=3');
+ *  const it = params.entries();
+ *
+ *  for (const pair of it) {
+ *      console.log(pair.join('=')); // a=1
+ *      break; // return() releases the iterator
+ *  }
+ *
+ *  console.log(it.next().done); // true
+ *  console.log(it.return().done); // true, safe to call again
+ *
+ *  const fs = require('fs');
+ *  const os = require('os');
+ *  const path = require('path');
+ *  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-iterator-'));
+ *  const walker = fs.opendir(dir)[Symbol.iterator]();
+ *  walker.return(); // Release an iterator that was never used
+ *  console.log(walker.next().done); // true
+ *  fs.rmSync(dir, { recursive: true, force: true });
+ *  \`\`\`
+ *
+ */
+declare class Class_Iterator extends Class_object {
+    [Symbol.iterator](): Class_Iterator;
+
+    [Symbol.asyncIterator](): Class_Iterator;
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: \`{ value, done }\` while elements remain, and \`{ done: true }\`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing \`(err, result)\` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      \`\`\`
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    next(): {
+        value: any;
+        done: boolean;
+    };
+
+    next(callback: (err: Error | undefined | null, retVal: {
+        value: any;
+        done: boolean;
+    })=>any): void;
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: \`{ value, done }\` while elements remain, and \`{ done: true }\`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing \`(err, result)\` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      \`\`\`
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    nextSync(): {
+        value: any;
+        done: boolean;
+    };
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: \`{ value, done }\` while elements remain, and \`{ done: true }\`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing \`(err, result)\` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      \`\`\`
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    nextAsync(): Promise<{
+        value: any;
+        done: boolean;
+    }>;
+
+    /**
+     * @description Terminates iteration and releases all resources held by the iterator
+     *
+     *      The call is idempotent and safe to repeat. The engine calls it when for...of
+     *      or for await...of ends early (break, return, an exception, or a loop body that
+     *      never finishes), and code may call it directly to abandon a cursor. The value
+     *      argument belongs to the protocol and is ignored; the result is always
+     *      \`{ done: true }\`, even when a value was passed, where a compliant generator
+     *      would return \`{ value, done: true }\` (plans/compat-differences.md 4.23). After
+     *      the call next() keeps reporting \`{ done: true }\`. Releasing a database cursor is
+     *      required before other calls on the same connection can run; otherwise they fail
+     *      with a message such as Error 20028 "A statement cursor is active on this
+     *      connection". The container behind the iterator is not closed, so a Dir's own
+     *      read()/next() position is unaffected.
+     *
+     *      Example — stop an iterator at the first element and keep the Dir usable:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-return-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const iterator = fs.opendir(dir);
+     *      const it = iterator[Symbol.iterator]();
+     *      console.log(it.next().value.name); // a.txt
+     *      console.log(it.return().done); // true
+     *      console.log(it.next().done); // true
+     *      console.log(it.return().done); // true, calling again is safe
+     *      console.log(iterator.read().name); // a.txt, the Dir position is untouched
+     *
+     *      iterator.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      \`\`\`
+     *
+     *      @param value ignored; present for compatibility with the return(value) protocol call
+     *      @return { done: true }
+     *
+     */
+    return(value?: any): {
+        done: boolean;
+    };
+
+}
+
+
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/object.d.ts" />
+/**
+ * The promise variant of the Iterator class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
+ */
+declare class Class_IteratorPromise extends Class_object {
+    [Symbol.iterator](): Class_Iterator;
+
+    [Symbol.asyncIterator](): Class_Iterator;
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: \`{ value, done }\` while elements remain, and \`{ done: true }\`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing \`(err, result)\` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      \`\`\`
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    next(): Promise<{
+        value: any;
+        done: boolean;
+    }>;
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: \`{ value, done }\` while elements remain, and \`{ done: true }\`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing \`(err, result)\` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      \`\`\`
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    nextSync(): {
+        value: any;
+        done: boolean;
+    };
+
+    /**
+     * @description Iterates to the next element
+     *
+     *      Returns an iteration result: \`{ value, done }\` while elements remain, and \`{ done: true }\`
+     *      without a value once the source is exhausted and on every later call. The member is
+     *      asynchronous, so it also accepts a trailing \`(err, result)\` callback and returns a
+     *      Promise resolving to the result when the value is not available immediately; an iterator
+     *      obtained from an asynchronous API such as a db.promises cursor takes that path, while a
+     *      plain fiber call receives the object directly. Errors of the underlying source surface
+     *      here: a Dir reports ENOENT/ENOTDIR from the first next() because the directory is scanned
+     *      lazily, and next() on a closed Dir throws Object closed [20027]. On a Dir, next() shares
+     *      the position of read() on the Dir object; the cursor of a loop iterator is independent.
+     *
+     *      Example — read a directory one entry at a time:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-next-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const it = fs.opendir(dir)[Symbol.iterator]();
+     *      let result;
+     *      while (!(result = it.next()).done)
+     *          console.log(result.value.name); // a.txt, then b.txt
+     *      console.log(result.done, result.value); // true undefined
+     *
+     *      fs.opendir(dir).next((err, entry) => {
+     *          console.log(err, entry.name); // null a.txt
+     *      });
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      \`\`\`
+     *
+     *      @return the next iteration result, { value, done } or a promise resolving to it
+     *
+     */
+    nextAsync(): Promise<{
+        value: any;
+        done: boolean;
+    }>;
+
+    /**
+     * @description Terminates iteration and releases all resources held by the iterator
+     *
+     *      The call is idempotent and safe to repeat. The engine calls it when for...of
+     *      or for await...of ends early (break, return, an exception, or a loop body that
+     *      never finishes), and code may call it directly to abandon a cursor. The value
+     *      argument belongs to the protocol and is ignored; the result is always
+     *      \`{ done: true }\`, even when a value was passed, where a compliant generator
+     *      would return \`{ value, done: true }\` (plans/compat-differences.md 4.23). After
+     *      the call next() keeps reporting \`{ done: true }\`. Releasing a database cursor is
+     *      required before other calls on the same connection can run; otherwise they fail
+     *      with a message such as Error 20028 "A statement cursor is active on this
+     *      connection". The container behind the iterator is not closed, so a Dir's own
+     *      read()/next() position is unaffected.
+     *
+     *      Example — stop an iterator at the first element and keep the Dir usable:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-return-'));
+     *      fs.writeFileSync(path.join(dir, 'a.txt'), 'a');
+     *      fs.writeFileSync(path.join(dir, 'b.txt'), 'b');
+     *
+     *      const iterator = fs.opendir(dir);
+     *      const it = iterator[Symbol.iterator]();
+     *      console.log(it.next().value.name); // a.txt
+     *      console.log(it.return().done); // true
+     *      console.log(it.next().done); // true
+     *      console.log(it.return().done); // true, calling again is safe
+     *      console.log(iterator.read().name); // a.txt, the Dir position is untouched
+     *
+     *      iterator.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      \`\`\`
+     *
+     *      @param value ignored; present for compatibility with the return(value) protocol call
+     *      @return { done: true }
+     *
+     */
+    return(value?: any): {
+        done: boolean;
+    };
+
+}
+
+
+declare namespace Class_Iterator {
+    const promises: FIBJS.GeneralObject;
+}
 `,
         "dts/interface/KeyObject.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
@@ -30895,7 +31516,9 @@ declare class Class_Lock extends Class_object {
      */
     acquire(blocking?: boolean): boolean;
 
-    acquire(blocking?: boolean, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    acquire(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    acquire(blocking: boolean, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Acquires the lock
@@ -32099,7 +32722,9 @@ declare class Class_Message extends Class_EventEmitter {
      */
     read(bytes?: number): Class_Buffer;
 
-    read(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    read(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    read(bytes: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Reads the specified amount of data from the stream; this method is an alias of the corresponding body method
@@ -32398,7 +33023,9 @@ declare class Class_Message extends Class_EventEmitter {
      */
     blob(type?: string): Class_Blob;
 
-    blob(type?: string, callback: (err: Error | undefined | null, retVal: Class_Blob)=>any): void;
+    blob(callback: (err: Error | undefined | null, retVal: Class_Blob)=>any): void;
+
+    blob(type: string, callback: (err: Error | undefined | null, retVal: Class_Blob)=>any): void;
 
     /**
      * @description Returns the data part of the message as a Blob
@@ -32735,7 +33362,9 @@ declare class Class_Message extends Class_EventEmitter {
      */
     end(data: string, encoding?: string): Class_Message;
 
-    end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
+    end(data: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
+
+    end(data: string, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
 
     /**
      * @description Writes the given string data and sets the end of current message processing
@@ -32818,7 +33447,9 @@ declare class Class_Message extends Class_EventEmitter {
      */
     sendTo(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
-    sendTo(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    sendTo(stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    sendTo(stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Sends a formatted message to the given stream object
@@ -32905,7 +33536,9 @@ declare class Class_Message extends Class_EventEmitter {
      */
     readFrom(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
-    readFrom(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    readFrom(stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    readFrom(stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
@@ -42548,7 +43181,7 @@ declare class Class_SandBox extends Class_object {
      *      @return returns the loaded module object
      *
      */
-    import(id: string, base: string): Promise;
+    import(id: string, base: string): Promise<any>;
 
     /**
      * @description Registers a compiler for a custom file extension
@@ -43166,7 +43799,9 @@ declare class Class_SecureContext extends Class_object {
      */
     getSNIContext(servername: string, auto_resolve?: boolean): Class_SecureContext;
 
-    getSNIContext(servername: string, auto_resolve?: boolean, callback: (err: Error | undefined | null, retVal: Class_SecureContext)=>any): void;
+    getSNIContext(servername: string, callback: (err: Error | undefined | null, retVal: Class_SecureContext)=>any): void;
+
+    getSNIContext(servername: string, auto_resolve: boolean, callback: (err: Error | undefined | null, retVal: Class_SecureContext)=>any): void;
 
     /**
      * @description Looks up the SecureContext registered for a server name
@@ -44436,7 +45071,9 @@ declare class Class_Semaphore extends Class_Lock {
      */
     wait(timeout?: number): boolean;
 
-    wait(timeout?: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    wait(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    wait(timeout: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Takes a permit, waiting for one when necessary
@@ -45671,7 +46308,9 @@ declare class Class_Smtp extends Class_object {
      */
     hello(hostname?: string): void;
 
-    hello(hostname?: string, callback: (err: Error | undefined | null)=>any): void;
+    hello(callback: (err: Error | undefined | null)=>any): void;
+
+    hello(hostname: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Sends the HELO command; throws an error if the server reports an error
@@ -46852,7 +47491,11 @@ declare class Class_Socket extends Class_Stream {
      */
     connect(port: number, host?: string, timeout?: number): Class_Stream;
 
-    connect(port: number, host?: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    connect(port: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    connect(port: number, host: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    connect(port: number, host: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Establishes a TCP connection (blocking form)
@@ -46900,7 +47543,9 @@ declare class Class_Socket extends Class_Stream {
      */
     connect(path: string, timeout?: number): Class_Stream;
 
-    connect(path: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    connect(path: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    connect(path: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Establishes a unix socket or Windows pipe connection (blocking form)
@@ -47151,7 +47796,9 @@ declare class Class_Socket extends Class_Stream {
      */
     recv(bytes?: number): Class_Buffer;
 
-    recv(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    recv(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    recv(bytes: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Reads the specified amount of data from the connection; unlike the read method, recv does not guarantee reading all the requested data, but returns immediately after data is read
@@ -48462,6 +49109,7 @@ declare class Class_Stat extends Class_object {
 `,
         "dts/interface/Statement.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * @description Statement is a prepared statement created by DbConnection.prepare(): it can be
  *  executed repeatedly and can stream a result set row by row
@@ -48812,7 +49460,7 @@ declare class Class_Statement extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterate(...args: any[]): Iterator<any>;
+    iterate(...args: any[]): Class_Iterator;
 
     /**
      * @description Executes the statement and returns an iterator for row-by-row reads
@@ -48848,7 +49496,7 @@ declare class Class_Statement extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateSync(...args: any[]): Iterator<any>;
+    iterateSync(...args: any[]): Class_Iterator;
 
     /**
      * @description Executes the statement and returns an iterator for row-by-row reads
@@ -48884,7 +49532,7 @@ declare class Class_Statement extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateAsync(...args: any[]): Promise<Iterator<any>>;
+    iterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Returns the result column metadata
@@ -49028,6 +49676,7 @@ declare class Class_Statement extends Class_object {
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * The promise variant of the Statement class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
@@ -49306,7 +49955,7 @@ declare class Class_StatementPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterate(...args: any[]): Promise<Iterator<any>>;
+    iterate(...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Executes the statement and returns an iterator for row-by-row reads
@@ -49342,7 +49991,7 @@ declare class Class_StatementPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateSync(...args: any[]): Iterator<any>;
+    iterateSync(...args: any[]): Class_Iterator;
 
     /**
      * @description Executes the statement and returns an iterator for row-by-row reads
@@ -49378,7 +50027,7 @@ declare class Class_StatementPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateAsync(...args: any[]): Promise<Iterator<any>>;
+    iterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Returns the result column metadata
@@ -50076,7 +50725,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     read(bytes?: number): any;
 
-    read(bytes?: number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    read(callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    read(bytes: number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Reads data of the specified size from the stream
@@ -50163,7 +50814,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     readBuffer(bytes?: number): Class_Buffer;
 
-    readBuffer(bytes?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    readBuffer(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    readBuffer(bytes: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Reads data of the specified size from the stream, returned as a Buffer
@@ -50551,7 +51204,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     write(data: string, encoding?: string): boolean;
 
-    write(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    write(data: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    write(data: string, encoding: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Writes the given string to the stream
@@ -50873,7 +51528,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     end(data: string, encoding?: string): Class_Stream;
 
-    end(data: string, encoding?: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    end(data: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    end(data: string, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
@@ -51014,7 +51671,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     copyTo(stm: Class_Stream | Class_StreamPromise, bytes?: number): number;
 
-    copyTo(stm: Class_Stream | Class_StreamPromise, bytes?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    copyTo(stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    copyTo(stm: Class_Stream | Class_StreamPromise, bytes: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Copies stream data to the destination stream
@@ -51284,7 +51943,9 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     destroy(err?: any): Class_Stream;
 
-    destroy(err?: any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    destroy(callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    destroy(err: any, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Destroys the stream. Optionally emits the 'error' event and emits the 'close' event.
@@ -52938,7 +53599,7 @@ declare class Class_StreamReader extends Class_object {
      *      \`\`\`
      *
      */
-    readonly closed: Promise;
+    readonly closed: Promise<any>;
 
 }
 
@@ -53162,7 +53823,7 @@ declare class Class_StreamReaderPromise extends Class_object {
      *      \`\`\`
      *
      */
-    readonly closed: Promise;
+    readonly closed: Promise<any>;
 
 }
 
@@ -54262,7 +54923,9 @@ declare class Class_TLSSocket extends Class_Stream {
      */
     connect(socket: Class_Stream | Class_StreamPromise, server_name?: string): void;
 
-    connect(socket: Class_Stream | Class_StreamPromise, server_name?: string, callback: (err: Error | undefined | null)=>any): void;
+    connect(socket: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    connect(socket: Class_Stream | Class_StreamPromise, server_name: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Establishes a client-side TLS session on an existing stream and waits for it
@@ -55648,7 +56311,9 @@ declare class Class_TTYOutputStream extends Class_Stream {
      */
     cursorTo(x: number, y?: number): void;
 
-    cursorTo(x: number, y?: number, callback: (err: Error | undefined | null)=>any): void;
+    cursorTo(x: number, callback: (err: Error | undefined | null)=>any): void;
+
+    cursorTo(x: number, y: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Moves the cursor to an absolute position
@@ -56576,7 +57241,11 @@ declare class Class_TcpServer extends Class_EventEmitter {
      */
     listen(port: number, addr?: string, backlog?: number): Class_TcpServer;
 
-    listen(port: number, addr?: string, backlog?: number, callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
+    listen(port: number, callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
+
+    listen(port: number, addr: string, callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
+
+    listen(port: number, addr: string, backlog: number, callback: (err: Error | undefined | null, retVal: Class_TcpServer)=>any): void;
 
     /**
      * @description Binds the address and port and starts listening for connections
@@ -58119,11 +58788,13 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
      *      \`\`\`
      *
      *      @param name the parameter name to check
-     *      @param value the parameter value to match, or undefined for the name-only check
+     *      @param value the parameter value to match; omitted or undefined degrades to the name-only
+     *                 check, which is why the parameter is optional (it also keeps the declaration a
+     *                 compatible override of HttpCollection#has)
      *      @return whether a pair with that name (and value) exists
      *
      */
-    has(name: string, value: any): boolean;
+    has(name: string, value?: any): boolean;
 
     /**
      * @description Removes the pairs of a name, or the pairs with a name/value combination
@@ -58144,10 +58815,16 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
      *      \`\`\`
      *
      *      @param name the parameter name to remove
-     *      @param value the parameter value to remove, or undefined to remove every pair of the name
+     *      @param value the parameter value to remove; omitted or undefined removes every pair of the
+     *                 name, which is why the parameter is optional (it also keeps the declaration a
+     *                 compatible override of HttpCollection#delete)
      *
      */
-    delete(name: string, value: any): void;
+    delete(name: string, value?: any): void;
+
+    has(name: string): boolean;
+
+    delete(name: string): void;
 
 }
 
@@ -60290,7 +60967,9 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     waitFor(url?: string): void;
 
-    waitFor(url?: string, callback: (err: Error | undefined | null)=>any): void;
+    waitFor(callback: (err: Error | undefined | null)=>any): void;
+
+    waitFor(url: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Waits for the current page to finish loading
@@ -61028,7 +61707,9 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     takeScreenshot(fullPage?: boolean): Class_Buffer;
 
-    takeScreenshot(fullPage?: boolean, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    takeScreenshot(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    takeScreenshot(fullPage: boolean, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Captures an image of the current window
@@ -67991,6 +68672,7 @@ declare class Class_XmlNode extends Class_object {
         "dts/interface/XmlNodeList.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * @description The XmlNodeList object represents an ordered list of nodes, 0-based and
  *  accessible by index
@@ -68168,7 +68850,7 @@ declare class Class_XmlNodeList extends Class_object {
      *      @return returns the key-value pair iterator
      *
      */
-    entries(): Iterator<any>;
+    entries(): Class_Iterator;
 
 }
 
@@ -68894,7 +69576,9 @@ declare class Class_ZipFile extends Class_object {
      */
     read(member: string, password?: string): Class_Buffer;
 
-    read(member: string, password?: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    read(member: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    read(member: string, password: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Reads one entry and returns its uncompressed data
@@ -69002,7 +69686,17 @@ declare class Class_ZipFile extends Class_object {
         data: Class_Buffer;
     }[];
 
-    readAll(password?: string, callback: (err: Error | undefined | null, retVal: {
+    readAll(callback: (err: Error | undefined | null, retVal: {
+        filename: string;
+        date: Date;
+        compress_type: string;
+        compress_size: number;
+        file_size: number;
+        password: boolean;
+        data: Class_Buffer;
+    }[])=>any): void;
+
+    readAll(password: string, callback: (err: Error | undefined | null, retVal: {
         filename: string;
         date: Date;
         compress_type: string;
@@ -69137,7 +69831,9 @@ declare class Class_ZipFile extends Class_object {
      */
     extract(member: string, strm: Class_SeekableStream | Class_SeekableStreamPromise, password?: string): void;
 
-    extract(member: string, strm: Class_SeekableStream | Class_SeekableStreamPromise, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    extract(member: string, strm: Class_SeekableStream | Class_SeekableStreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    extract(member: string, strm: Class_SeekableStream | Class_SeekableStreamPromise, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses one entry into a stream
@@ -69248,7 +69944,9 @@ declare class Class_ZipFile extends Class_object {
      */
     extract(member: string, path: string, password?: string): void;
 
-    extract(member: string, path: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    extract(member: string, path: string, callback: (err: Error | undefined | null)=>any): void;
+
+    extract(member: string, path: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses one entry to a file
@@ -69364,7 +70062,9 @@ declare class Class_ZipFile extends Class_object {
      */
     extractAll(path: string, password?: string): void;
 
-    extractAll(path: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    extractAll(path: string, callback: (err: Error | undefined | null)=>any): void;
+
+    extractAll(path: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses every entry below a directory
@@ -69491,7 +70191,9 @@ declare class Class_ZipFile extends Class_object {
      */
     write(data: Class_Buffer, inZipName: string, password?: string): void;
 
-    write(data: Class_Buffer, inZipName: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    write(data: Class_Buffer, inZipName: string, callback: (err: Error | undefined | null)=>any): void;
+
+    write(data: Class_Buffer, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes a Buffer as a new entry
@@ -69606,7 +70308,9 @@ declare class Class_ZipFile extends Class_object {
      */
     write(strm: Class_SeekableStream | Class_SeekableStreamPromise, inZipName: string, password?: string): void;
 
-    write(strm: Class_SeekableStream | Class_SeekableStreamPromise, inZipName: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    write(strm: Class_SeekableStream | Class_SeekableStreamPromise, inZipName: string, callback: (err: Error | undefined | null)=>any): void;
+
+    write(strm: Class_SeekableStream | Class_SeekableStreamPromise, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes a stream as a new entry
@@ -69723,7 +70427,9 @@ declare class Class_ZipFile extends Class_object {
      */
     write(filename: string, inZipName: string, password?: string): void;
 
-    write(filename: string, inZipName: string, password?: string, callback: (err: Error | undefined | null)=>any): void;
+    write(filename: string, inZipName: string, callback: (err: Error | undefined | null)=>any): void;
+
+    write(filename: string, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes a local file as a new entry
@@ -72743,7 +73449,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function rejects(block: ()=>void, error: any, msg?: any): Promise;
+        function rejects(block: ()=>void, error: any, msg?: any): Promise<any>;
 
         /**
          * ! Tests that the given code rejects, with only a message
@@ -72756,7 +73462,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function rejects(block: ()=>void, msg?: any): Promise;
+        function rejects(block: ()=>void, msg?: any): Promise<any>;
 
         /**
          * @description Tests that the given promise rejects
@@ -72772,7 +73478,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function rejects(result: Promise, error: any, msg?: any): Promise;
+        function rejects(result: Promise<any>, error: any, msg?: any): Promise<any>;
 
         /**
          * ! Tests that the given promise rejects, with only a message
@@ -72784,7 +73490,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function rejects(result: Promise, msg?: any): Promise;
+        function rejects(result: Promise<any>, msg?: any): Promise<any>;
 
         /**
          * @description Tests that the given code does not reject
@@ -72816,7 +73522,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function doesNotReject(block: any, error: any, msg?: any): Promise;
+        function doesNotReject(block: any, error: any, msg?: any): Promise<any>;
 
         /**
          * ! Tests that the given code does not reject, with only a message
@@ -72827,7 +73533,7 @@ declare module 'assert' {
          *      @return returns a Promise
          *
          */
-        function doesNotReject(block: any, msg?: any): Promise;
+        function doesNotReject(block: any, msg?: any): Promise<any>;
 
         /**
          * @description Tests that \`actual\` contains everything \`expected\` contains
@@ -73779,7 +74485,7 @@ declare module 'assert/strict' {
          *      @return returns a Promise
          *
          */
-        function rejects(block: ()=>void, error: any, msg?: any): Promise;
+        function rejects(block: ()=>void, error: any, msg?: any): Promise<any>;
 
         /**
          * ! Tests that the given code rejects, with only a message
@@ -73791,7 +74497,7 @@ declare module 'assert/strict' {
          *      @return returns a Promise
          *
          */
-        function rejects(block: ()=>void, msg?: any): Promise;
+        function rejects(block: ()=>void, msg?: any): Promise<any>;
 
         /**
          * @description Tests that the given promise rejects
@@ -73808,7 +74514,7 @@ declare module 'assert/strict' {
          *      @return returns a Promise
          *
          */
-        function rejects(result: Promise, error: any, msg?: any): Promise;
+        function rejects(result: Promise<any>, error: any, msg?: any): Promise<any>;
 
         /**
          * ! Tests that the given promise rejects, with only a message
@@ -73820,7 +74526,7 @@ declare module 'assert/strict' {
          *      @return returns a Promise
          *
          */
-        function rejects(result: Promise, msg?: any): Promise;
+        function rejects(result: Promise<any>, msg?: any): Promise<any>;
 
         /**
          * @description Throws the given value when it is truthy
@@ -74680,7 +75386,13 @@ declare module 'child_process' {
         exitCode: number;
     };
 
-    function exec(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+    function exec(command: string, callback: (err: Error | undefined | null, retVal: {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    })=>any): void;
+
+    function exec(command: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
         stdout: any;
         stderr: any;
         exitCode: number;
@@ -74783,7 +75495,13 @@ declare module 'child_process' {
         exitCode: number;
     };
 
-    function execFile(command: string, args: any[], options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+    function execFile(command: string, args: any[], callback: (err: Error | undefined | null, retVal: {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    })=>any): void;
+
+    function execFile(command: string, args: any[], options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
         stdout: any;
         stderr: any;
         exitCode: number;
@@ -74855,7 +75573,13 @@ declare module 'child_process' {
         exitCode: number;
     };
 
-    function execFile(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+    function execFile(command: string, callback: (err: Error | undefined | null, retVal: {
+        stdout: any;
+        stderr: any;
+        exitCode: number;
+    })=>any): void;
+
+    function execFile(command: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
         stdout: any;
         stderr: any;
         exitCode: number;
@@ -75081,7 +75805,9 @@ declare module 'child_process' {
      */
     function run(command: string, args: any[], options?: FIBJS.GeneralObject): number;
 
-    function run(command: string, args: any[], options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function run(command: string, args: any[], callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function run(command: string, args: any[], options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Directly executes a file and returns its exit code
@@ -75133,7 +75859,9 @@ declare module 'child_process' {
      */
     function run(command: string, options?: FIBJS.GeneralObject): number;
 
-    function run(command: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function run(command: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function run(command: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Directly executes a file with no arguments and returns its exit code
@@ -76872,7 +77600,9 @@ declare module 'console' {
      */
     function readLine(msg?: string): string;
 
-    function readLine(msg?: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    function readLine(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    function readLine(msg: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Reads a line from the standard input, printing an optional prompt
@@ -76924,7 +77654,9 @@ declare module 'console' {
      */
     function getpass(msg?: string): string;
 
-    function getpass(msg?: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    function getpass(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    function getpass(msg: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Reads a password from the standard input without echoing it
@@ -79374,7 +80106,9 @@ declare module 'coroutine' {
      */
     function sleep(ms?: number): void;
 
-    function sleep(ms?: number, callback: (err: Error | undefined | null)=>any): void;
+    function sleep(callback: (err: Error | undefined | null)=>any): void;
+
+    function sleep(ms: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Pauses the current fiber for the specified time
@@ -80572,7 +81306,11 @@ declare module 'crypto' {
      */
     function randomFill(buffer: Class_Buffer | string, offset?: number, size?: number): Class_Buffer;
 
-    function randomFill(buffer: Class_Buffer | string, offset?: number, size?: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function randomFill(buffer: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function randomFill(buffer: Class_Buffer | string, offset: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function randomFill(buffer: Class_Buffer | string, offset: number, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Fills a Buffer with cryptographically secure random bytes
@@ -80625,7 +81363,7 @@ declare module 'crypto' {
      *      @return returns the filled TypedArray
      *
      */
-    function getRandomValues(data: TypedArray): TypedArray;
+    function getRandomValues(data: FIBJS.TypedArray): FIBJS.TypedArray;
 
     /**
      * @description Generates a random RFC 4122 version 4 UUID
@@ -80753,7 +81491,12 @@ declare module 'crypto' {
         privateKey: any;
     };
 
-    function generateKeyPair(type: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+    function generateKeyPair(type: string, callback: (err: Error | undefined | null, retVal: {
+        publicKey: any;
+        privateKey: any;
+    })=>any): void;
+
+    function generateKeyPair(type: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
         publicKey: any;
         privateKey: any;
     })=>any): void;
@@ -81045,7 +81788,9 @@ declare module 'crypto' {
      */
     function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Derives a key from a password with scrypt
@@ -82228,7 +82973,7 @@ declare module 'crypto/promises' {
      *      @return returns the filled TypedArray
      *
      */
-    function getRandomValues(data: TypedArray): TypedArray;
+    function getRandomValues(data: FIBJS.TypedArray): FIBJS.TypedArray;
 
     /**
      * @description Generates a random RFC 4122 version 4 UUID
@@ -85228,7 +85973,9 @@ declare module 'dns' {
      */
     function lookup(name: string, options?: FIBJS.GeneralObject): any;
 
-    function lookup(name: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function lookup(name: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    function lookup(name: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Resolves a host name to its first address, or to every address when the all option is set
@@ -86302,7 +87049,9 @@ declare module 'fs' {
      */
     function access(path: string, mode?: number): void;
 
-    function access(path: string, mode?: number, callback: (err: Error | undefined | null)=>any): void;
+    function access(path: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function access(path: string, mode: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Checks the permissions of the current user on the given file
@@ -86410,7 +87159,9 @@ declare module 'fs' {
      */
     function mkdir(path: string, mode?: number | FIBJS.GeneralObject | any): any;
 
-    function mkdir(path: string, mode?: number | FIBJS.GeneralObject | any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function mkdir(path: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    function mkdir(path: string, mode: number | FIBJS.GeneralObject | any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Creates a directory
@@ -86540,7 +87291,9 @@ declare module 'fs' {
      */
     function rmdir(path: string, opt?: FIBJS.GeneralObject): void;
 
-    function rmdir(path: string, opt?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function rmdir(path: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function rmdir(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Removes a directory
@@ -86593,7 +87346,9 @@ declare module 'fs' {
      */
     function rm(path: string, opt?: FIBJS.GeneralObject): void;
 
-    function rm(path: string, opt?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function rm(path: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function rm(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Removes a file or directory
@@ -86680,7 +87435,9 @@ declare module 'fs' {
      */
     function copyFile(from: string, to: string, mode?: number): void;
 
-    function copyFile(from: string, to: string, mode?: number, callback: (err: Error | undefined | null)=>any): void;
+    function copyFile(from: string, to: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function copyFile(from: string, to: string, mode: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Copies src to dest. By default dest is overwritten when it already exists.
@@ -86736,7 +87493,9 @@ declare module 'fs' {
      */
     function cp(src: string, dest: string, opts?: FIBJS.GeneralObject): void;
 
-    function cp(src: string, dest: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function cp(src: string, dest: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function cp(src: string, dest: string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Copies src to dest asynchronously, including subdirectories and files.
@@ -87557,7 +88316,9 @@ declare module 'fs' {
      */
     function symlink(target: string, linkpath: string, type?: string): void;
 
-    function symlink(target: string, linkpath: string, type?: string, callback: (err: Error | undefined | null)=>any): void;
+    function symlink(target: string, linkpath: string, callback: (err: Error | undefined | null)=>any): void;
+
+    function symlink(target: string, linkpath: string, type: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Creates a symbolic link
@@ -87633,7 +88394,13 @@ declare module 'fs' {
      */
     function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Reads the content of a file by its file descriptor
@@ -87857,7 +88624,9 @@ declare module 'fs' {
      */
     function ftruncate(fd: number | Class_FileHandle | Class_FileHandlePromise, len?: number): void;
 
-    function ftruncate(fd: number | Class_FileHandle | Class_FileHandlePromise, len?: number, callback: (err: Error | undefined | null)=>any): void;
+    function ftruncate(fd: number | Class_FileHandle | Class_FileHandlePromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function ftruncate(fd: number | Class_FileHandle | Class_FileHandlePromise, len: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Changes the size of a file by its file descriptor
@@ -88059,7 +88828,9 @@ declare module 'fs' {
      */
     function readdir(path: string, opts?: FIBJS.GeneralObject | string): any[];
 
-    function readdir(path: string, opts?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function readdir(path: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    function readdir(path: string, opts: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description Reads the entries of the given directory
@@ -88171,7 +88942,9 @@ declare module 'fs' {
      */
     function glob(pattern: string, opts?: FIBJS.GeneralObject): any[];
 
-    function glob(pattern: string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function glob(pattern: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    function glob(pattern: string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description Searches the given directory for files matching a name pattern
@@ -88234,7 +89007,9 @@ declare module 'fs' {
      */
     function glob(patterns: string[], opts?: FIBJS.GeneralObject): any[];
 
-    function glob(patterns: string[], opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function glob(patterns: string[], callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    function glob(patterns: string[], opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description Searches the given directory for files matching a set of name patterns
@@ -88299,7 +89074,9 @@ declare module 'fs' {
      */
     function createReadStream(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
 
-    function createReadStream(fname: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function createReadStream(fname: string, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+
+    function createReadStream(fname: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
     /**
      * @description Creates a readable file stream
@@ -88364,7 +89141,9 @@ declare module 'fs' {
      */
     function createWriteStream(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
 
-    function createWriteStream(fname: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function createWriteStream(fname: string, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+
+    function createWriteStream(fname: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
     /**
      * @description Opens a file and creates a writable stream
@@ -88429,7 +89208,9 @@ declare module 'fs' {
      */
     function openFile(fname: string, flags?: string | number): Class_SeekableStream;
 
-    function openFile(fname: string, flags?: string | number, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function openFile(fname: string, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+
+    function openFile(fname: string, flags: string | number, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
     /**
      * @description Opens a file for reading, writing, or both
@@ -88488,7 +89269,9 @@ declare module 'fs' {
      */
     function open(fname: string, flags: number, mode?: number): Class_FileHandle;
 
-    function open(fname: string, flags: number, mode?: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+    function open(fname: string, flags: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+
+    function open(fname: string, flags: number, mode: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
 
     /**
      * @description Opens a file descriptor, using integer fs.constants flags
@@ -88578,7 +89361,11 @@ declare module 'fs' {
      */
     function open(fname: string, flags?: string, mode?: number): Class_FileHandle;
 
-    function open(fname: string, flags?: string, mode?: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+    function open(fname: string, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+
+    function open(fname: string, flags: string, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
+
+    function open(fname: string, flags: string, mode: number, callback: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
 
     /**
      * @description Opens a file descriptor
@@ -88668,7 +89455,9 @@ declare module 'fs' {
      */
     function openTextStream(fname: string, flags?: string): Class_BufferedStream;
 
-    function openTextStream(fname: string, flags?: string, callback: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
+    function openTextStream(fname: string, callback: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
+
+    function openTextStream(fname: string, flags: string, callback: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
 
     /**
      * @description Opens a text file for reading, writing, or both
@@ -88781,7 +89570,9 @@ declare module 'fs' {
      */
     function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): any;
 
-    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Reads the whole content of a file, by its file descriptor or by its name
@@ -88892,7 +89683,13 @@ declare module 'fs' {
      */
     function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -88941,7 +89738,11 @@ declare module 'fs' {
      */
     function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string): number;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position?: number, encoding?: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, string: string, position: number, encoding: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -89049,7 +89850,9 @@ declare module 'fs' {
      */
     function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file, by its file descriptor or by its name
@@ -89156,7 +89959,9 @@ declare module 'fs' {
      */
     function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -94602,7 +95407,9 @@ declare module 'gui' {
      */
     function input(message: string, password?: boolean): string;
 
-    function input(message: string, password?: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    function input(message: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    function input(message: string, password: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Pops up a modal input box
@@ -94646,7 +95453,9 @@ declare module 'gui' {
      */
     function input(title: string, message: string, password?: boolean): string;
 
-    function input(title: string, message: string, password?: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    function input(title: string, message: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    function input(title: string, message: string, password: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Pops up a modal input box with the given title
@@ -97303,7 +98112,9 @@ declare module 'http' {
      */
     function fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Class_HttpResponse;
 
-    function fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+    function fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    function fetch(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description Sends a request using the Web Fetch standard and returns an HttpResponse object
@@ -99633,7 +100444,9 @@ declare module 'http2' {
      */
     function connect(authority: string, options?: FIBJS.GeneralObject): Class_Http2Session;
 
-    function connect(authority: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Http2Session)=>any): void;
+    function connect(authority: string, callback: (err: Error | undefined | null, retVal: Class_Http2Session)=>any): void;
+
+    function connect(authority: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Http2Session)=>any): void;
 
     /**
      * @description creates an HTTP/2 client session to the specified target
@@ -101694,7 +102507,9 @@ declare module 'io' {
      */
     function copyStream(from: Class_Stream | Class_StreamPromise, to: Class_Stream | Class_StreamPromise, bytes?: number): number;
 
-    function copyStream(from: Class_Stream | Class_StreamPromise, to: Class_Stream | Class_StreamPromise, bytes?: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function copyStream(from: Class_Stream | Class_StreamPromise, to: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function copyStream(from: Class_Stream | Class_StreamPromise, to: Class_Stream | Class_StreamPromise, bytes: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Copies the data of a stream into a target stream
@@ -103603,7 +104418,9 @@ declare module 'net' {
      */
     function resolve(name: string, family?: number): string;
 
-    function resolve(name: string, family?: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    function resolve(name: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    function resolve(name: string, family: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description Queries the address of the given host name
@@ -103872,7 +104689,11 @@ declare module 'net' {
      */
     function connect(port: number, host?: string, timeout?: number): Class_Stream;
 
-    function connect(port: number, host?: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(port: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(port: number, host: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(port: number, host: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a Socket object and establishes a TCP connection
@@ -103926,7 +104747,9 @@ declare module 'net' {
      */
     function connect(url: string, timeout?: number): Class_Stream;
 
-    function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(url: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(url: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a Socket or SslSocket object and establishes a connection
@@ -104117,7 +104940,9 @@ declare module 'net' {
      */
     function openSmtp(url: string, timeout?: number): Class_Smtp;
 
-    function openSmtp(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Smtp)=>any): void;
+    function openSmtp(url: string, callback: (err: Error | undefined | null, retVal: Class_Smtp)=>any): void;
+
+    function openSmtp(url: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Smtp)=>any): void;
 
     /**
      * @description Creates a Smtp object and establishes a connection, see Smtp
@@ -109715,23 +110540,33 @@ declare module 'readline/promises' {
      * @description The promise-flavoured line interface
      *
      *      Same as the callback Interface, except that question() returns a
-     *      Promise instead of taking a callback. It is a *sibling* declaration
-     *      rather than a subclass: the promise form returns \`Promise<string>\`
-     *      and takes no callback, so a subclass override would be incompatible
-     *      with the inherited member (TS2416). The rest of the surface is the
-     *      callback Interface's, so it is redeclared by extension.
+     *      Promise instead of taking a callback.
      *
-     *      Declared as a class, not an interface, because the runtime exports a
-     *      constructor: \`new (require('readline/promises').Interface)(options)\`
-     *      and \`createInterface(...) instanceof Interface\` both work, in Node
-     *      as well as here. The \`question\` member is redeclared in the class
-     *      body, which is what keeps a single name working as both value and
-     *      type.
+     *      An \`interface\` extending \`Omit<..., 'question'>\` rather than a
+     *      \`class ... implements\`: \`implements\` re-types nothing (the class
+     *      body would have to redeclare every member, and TS2420 fires when it
+     *      declares only some of them), and a plain
+     *      \`interface ... extends readline.Interface\` is TS2430 because the
+     *      promise-shaped question is not assignable to the callback-shaped one.
+     *      Omitting \`question\` from the base and re-adding the promise form in
+     *      the body is the only spelling that inherits the rest of the surface
+     *      while changing one member's signature.
+     *
+     *      The runtime exports a constructor, so the same name is also
+     *      declared as a \`const\` with a construct signature: the interface
+     *      carries the type, the const carries the value, and
+     *      \`new (require('readline/promises').Interface)(options)\` plus
+     *      \`createInterface(...) instanceof Interface\` both keep working.
      */
-    class Interface implements Omit<readline.Interface, 'question' | 'constructor'> {
+    interface Interface extends Omit<readline.Interface, 'question'> {
         /** Asks the user a question and resolves with the answer. */
         question(query: string, options?: { signal?: Class_AbortSignal }): Promise<string>;
     }
+
+    const Interface: {
+        new (input: any, output?: any, completer?: any, terminal?: boolean): Interface;
+        new (options: InterfaceOptions): Interface;
+    };
 
     /** @description Creates a promise-flavoured line interface */
     function createInterface(input: any, output?: any, completer?: any, terminal?: boolean): Interface;
@@ -114651,7 +115486,11 @@ declare module 'tls' {
      */
     function connect(port: number, host?: string, options?: FIBJS.GeneralObject): Class_Stream;
 
-    function connect(port: number, host?: string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(port: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(port: number, host: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(port: number, host: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a blocking TLS connection to a host and port
@@ -114698,7 +115537,9 @@ declare module 'tls' {
      */
     function connect(url: string, timeout?: number): Class_Stream;
 
-    function connect(url: string, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(url: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(url: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a blocking TLS connection from an \`ssl://\` URL
@@ -114743,7 +115584,9 @@ declare module 'tls' {
      */
     function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout?: number): Class_Stream;
 
-    function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout?: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+    function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    function connect(url: string, secureContext: Class_SecureContext | Class_SecureContextPromise, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a blocking TLS connection from an \`ssl://\` URL with an explicit context
@@ -118358,7 +119201,7 @@ declare module 'util' {
      *      @return returns an async function
      *
      */
-    function promisify(func: (...args: any[])=>any): (...args: any[])=>Promise;
+    function promisify(func: (...args: any[])=>any): (...args: any[])=>Promise<any>;
 
     /**
      * @description Wraps an async function for callback-based invocation
@@ -120102,7 +120945,7 @@ declare module 'webcrypto' {
      *      @return the same TypedArray
      *
      */
-    function getRandomValues(data: TypedArray): TypedArray;
+    function getRandomValues(data: FIBJS.TypedArray): FIBJS.TypedArray;
 
     /**
      * @description Returns a random version-4 UUID string
@@ -121018,7 +121861,11 @@ declare module 'zip' {
      */
     function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Class_ZipFile;
 
-    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+
+    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+
+    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod: string, codec: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
     /**
      * @description Opens a zip file
@@ -121884,7 +122731,9 @@ declare module 'zlib' {
      */
     function deflate(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function deflate(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function deflate(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function deflate(data: Class_Buffer | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -121983,7 +122832,9 @@ declare module 'zlib' {
      */
     function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
+    function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -122076,7 +122927,9 @@ declare module 'zlib' {
      */
     function inflate(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function inflate(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function inflate(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function inflate(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -122173,7 +123026,9 @@ declare module 'zlib' {
      */
     function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
+    function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -122265,7 +123120,9 @@ declare module 'zlib' {
      */
     function gzip(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function gzip(data: Class_Buffer | string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function gzip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function gzip(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -122410,7 +123267,9 @@ declare module 'zlib' {
      */
     function gunzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function gunzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function gunzip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function gunzip(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses gzip data
@@ -122508,7 +123367,9 @@ declare module 'zlib' {
      */
     function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
+    function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -122601,7 +123462,9 @@ declare module 'zlib' {
      */
     function deflateRaw(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function deflateRaw(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function deflateRaw(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function deflateRaw(data: Class_Buffer | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the deflateRaw algorithm
@@ -122689,7 +123552,9 @@ declare module 'zlib' {
      */
     function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
+    function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -122786,7 +123651,9 @@ declare module 'zlib' {
      */
     function inflateRaw(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function inflateRaw(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function inflateRaw(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function inflateRaw(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses deflateRaw data
@@ -122883,7 +123750,9 @@ declare module 'zlib' {
      */
     function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
+    function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -123014,7 +123883,9 @@ declare module 'zlib' {
      */
     function zip(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function zip(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function zip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function zip(data: Class_Buffer | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the zip algorithm
@@ -123085,7 +123956,9 @@ declare module 'zlib' {
      */
     function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number, callback: (err: Error | undefined | null)=>any): void;
+    function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -123154,7 +124027,9 @@ declare module 'zlib' {
      */
     function unzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function unzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function unzip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function unzip(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses zip data
@@ -123238,7 +124113,9 @@ declare module 'zlib' {
      */
     function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, callback: (err: Error | undefined | null)=>any): void;
+    function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -123400,7 +124277,9 @@ declare module 'zlib' {
      */
     function zstdCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function zstdCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function zstdCompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function zstdCompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the zstd algorithm in one call
@@ -123474,7 +124353,9 @@ declare module 'zlib' {
      */
     function zstdDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function zstdDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function zstdDecompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function zstdDecompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses zstd data in one call
@@ -123522,7 +124403,9 @@ declare module 'zlib' {
      */
     function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
-    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data with the zstd algorithm into a stream object
@@ -123568,7 +124451,11 @@ declare module 'zlib' {
      */
     function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
 
-    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
+
+    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses zstd data into a stream object
@@ -123686,7 +124573,9 @@ declare module 'zlib' {
      */
     function brotliCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function brotliCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function brotliCompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function brotliCompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the Brotli algorithm in one call
@@ -123758,7 +124647,9 @@ declare module 'zlib' {
      */
     function brotliDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function brotliDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function brotliDecompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    function brotliDecompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses Brotli data in one call
@@ -123806,7 +124697,9 @@ declare module 'zlib' {
      */
     function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
-    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data with the Brotli algorithm into a stream object
@@ -123853,7 +124746,11 @@ declare module 'zlib' {
      */
     function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
 
-    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+
+    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
+
+    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses Brotli data into a stream object

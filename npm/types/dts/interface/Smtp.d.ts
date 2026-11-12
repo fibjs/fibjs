@@ -226,7 +226,9 @@ declare class Class_Smtp extends Class_object {
      */
     hello(hostname?: string): void;
 
-    hello(hostname?: string, callback: (err: Error | undefined | null)=>any): void;
+    hello(callback: (err: Error | undefined | null)=>any): void;
+
+    hello(hostname: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Sends the HELO command; throws an error if the server reports an error

@@ -323,7 +323,9 @@ declare class Class_SecureContext extends Class_object {
      */
     getSNIContext(servername: string, auto_resolve?: boolean): Class_SecureContext;
 
-    getSNIContext(servername: string, auto_resolve?: boolean, callback: (err: Error | undefined | null, retVal: Class_SecureContext)=>any): void;
+    getSNIContext(servername: string, callback: (err: Error | undefined | null, retVal: Class_SecureContext)=>any): void;
+
+    getSNIContext(servername: string, auto_resolve: boolean, callback: (err: Error | undefined | null, retVal: Class_SecureContext)=>any): void;
 
     /**
      * @description Looks up the SecureContext registered for a server name

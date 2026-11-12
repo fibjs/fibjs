@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * @description The XmlNodeList object represents an ordered list of nodes, 0-based and
  *  accessible by index
@@ -178,7 +179,7 @@ declare class Class_XmlNodeList extends Class_object {
      *      @return returns the key-value pair iterator
      *
      */
-    entries(): Iterator<any>;
+    entries(): Class_Iterator;
 
 }
 

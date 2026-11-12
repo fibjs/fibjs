@@ -1332,7 +1332,7 @@ declare module 'util' {
      *      @return returns an async function
      *
      */
-    function promisify(func: (...args: any[])=>any): (...args: any[])=>Promise;
+    function promisify(func: (...args: any[])=>any): (...args: any[])=>Promise<any>;
 
     /**
      * @description Wraps an async function for callback-based invocation

@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * @description Statement is a prepared statement created by DbConnection.prepare(): it can be
  *  executed repeatedly and can stream a result set row by row
@@ -350,7 +351,7 @@ declare class Class_Statement extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterate(...args: any[]): Iterator<any>;
+    iterate(...args: any[]): Class_Iterator;
 
     /**
      * @description Executes the statement and returns an iterator for row-by-row reads
@@ -386,7 +387,7 @@ declare class Class_Statement extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateSync(...args: any[]): Iterator<any>;
+    iterateSync(...args: any[]): Class_Iterator;
 
     /**
      * @description Executes the statement and returns an iterator for row-by-row reads
@@ -422,7 +423,7 @@ declare class Class_Statement extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateAsync(...args: any[]): Promise<Iterator<any>>;
+    iterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Returns the result column metadata
@@ -566,6 +567,7 @@ declare class Class_Statement extends Class_object {
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/Iterator.d.ts" />
 /**
  * The promise variant of the Statement class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
@@ -844,7 +846,7 @@ declare class Class_StatementPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterate(...args: any[]): Promise<Iterator<any>>;
+    iterate(...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Executes the statement and returns an iterator for row-by-row reads
@@ -880,7 +882,7 @@ declare class Class_StatementPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateSync(...args: any[]): Iterator<any>;
+    iterateSync(...args: any[]): Class_Iterator;
 
     /**
      * @description Executes the statement and returns an iterator for row-by-row reads
@@ -916,7 +918,7 @@ declare class Class_StatementPromise extends Class_object {
      *      @return returns a row iterator that produces row objects one by one with bounded memory
      *
      */
-    iterateAsync(...args: any[]): Promise<Iterator<any>>;
+    iterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Returns the result column metadata

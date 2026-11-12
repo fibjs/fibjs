@@ -384,7 +384,6 @@ function isSymbolMember(memberInfo) {
     return !!memberInfo.symbol;
 }
 
-const EXCLUDE_INTERNALS = ['Iterator'];
 function getAddRefToTripleSlashDirectivesHost(
     tripleSlashDirectiveHost,
     {
@@ -400,7 +399,7 @@ function getAddRefToTripleSlashDirectivesHost(
     return (sourceType, {
         refName, refType, refHostName
     }) => {
-        if (EXCLUDE_INTERNALS.includes(refType) || refType === selfName) {
+        if (refType === selfName) {
             return;
         }
 
@@ -510,15 +509,33 @@ function generalTypeMap(dataType, {
             info.type = dom.type.array('any')
             break;
         }
-        case 'Promise':
+        case 'Promise': {
+            // `Promise` is generic in the ES lib, so a bare `Promise` written
+            // in the IDL (`assert.rejects`, `SandBox#import`,
+            // `StreamReader#closed`, `util.promisify`) is TS2314 at the use
+            // site. The IDL carries no result type for those, and `any` is the
+            // honest rendering of "the runtime hands back whatever the promise
+            // resolves to".
+            const promiseType = dom.create.namedTypeReference('Promise');
+            promiseType.typeArguments = [dom.type.any];
+            info.type = promiseType;
+            break;
+        }
         case 'Uint8Array':
         case 'ArrayBuffer':
-        case 'TypedArray':
         case 'ArrayBufferView':
             {
                 info.type = dom.create.namedTypeReference(dataType);
                 break;
             }
+        case 'TypedArray': {
+            // `TypedArray` is the only one of these that the corpus declares
+            // itself, and it lives inside `declare namespace FIBJS` in
+            // _import/_fibjs.d.ts (see gen_common_dts), so a bare reference
+            // resolves to nothing and tsc reports TS2304
+            info.type = dom.create.namedTypeReference('FIBJS.TypedArray');
+            break;
+        }
         case 'Buffer': {
             // Buffer in fibjs should map to Class_Buffer
             info.type = useRefInstance ? dom.create.namedTypeReference('Class_Buffer') : dom.create.typeof('Class_Buffer');
@@ -582,23 +599,21 @@ function generalTypeMap(dataType, {
         }
     }
 
-    if (!EXCLUDE_INTERNALS.includes(dataType)) {
-        if (allInterfacesNames.has(dataType)) {
-            // instance references follow the requested flavor (see
-            // classInstanceTypeRef); `typeof Class_X` stays the fiber
-            // constructor - the promise variant is a prototype, not a value,
-            // and module class constants are shared between both flavors
-            info.type = useRefInstance ? classInstanceTypeRef(dataType, instanceFlavor) : dom.create.typeof(normalizeClazzName(dataType));
-            info.isFibjsInterface = true;
-            info.refType = 'interface';
-        } else if (allModuleNames.has(dataType)) {
-            const moduleName = runtimeModuleName(dataType);
-            info.type = dom.create.typeof(
-                dom.create.namedTypeReference(`import ('${moduleName}')`)
-            );
-            info.isFibjsModule = true;
-            info.refType = 'module';
-        }
+    if (allInterfacesNames.has(dataType)) {
+        // instance references follow the requested flavor (see
+        // classInstanceTypeRef); `typeof Class_X` stays the fiber
+        // constructor - the promise variant is a prototype, not a value,
+        // and module class constants are shared between both flavors
+        info.type = useRefInstance ? classInstanceTypeRef(dataType, instanceFlavor) : dom.create.typeof(normalizeClazzName(dataType));
+        info.isFibjsInterface = true;
+        info.refType = 'interface';
+    } else if (allModuleNames.has(dataType)) {
+        const moduleName = runtimeModuleName(dataType);
+        info.type = dom.create.typeof(
+            dom.create.namedTypeReference(`import ('${moduleName}')`)
+        );
+        info.isFibjsModule = true;
+        info.refType = 'module';
     }
 
     return info;
@@ -920,6 +935,61 @@ function hasDefaultValue(p) {
 }
 
 /**
+ * The callback overloads of one member.
+ *
+ * A declaration with a required parameter after an optional one is TS1016, and
+ * TypeScript rejects the signature outright: an IDL member with an optional
+ * argument (`zlib.deflate(data, level = ...) async`) would become
+ * `deflate(data, level?, callback)` and none of the typings would compile.
+ *
+ * The callback is required, so it can only follow the required arguments. Every
+ * optional argument the runtime would have accepted before it gets its own
+ * overload with the full prefix (`deflate(data, level, callback)`), which is
+ * the shape the runtime dispatches. Nothing is dropped: the primary signature
+ * still declares the optional form, and the callback forms cover the prefixes.
+ *
+ * @param {Array<*>} normalParams the rendered parameters of the member
+ * @param {*} callbackType the callback function type
+ * @param {boolean} withOptionalParam true when the whole parameter list is optional
+ * @returns {Array<Array<*>>} one parameter list per callback overload
+ */
+function buildCallbackParamLists(normalParams, callbackType, withOptionalParam) {
+    const flagsOf = (p) => p.flags || 0;
+    const isOptional = (p) => (flagsOf(p) & dom.ParameterFlags.Optional) !== 0;
+    const isRest = (p) => (flagsOf(p) & dom.ParameterFlags.Rest) !== 0;
+
+    // a `...rest` parameter must stay last, so the trailing callback cannot be
+    // appended after it: that shape is emitted without a callback overload
+    if (normalParams.some(isRest))
+        return [];
+
+    const requiredCount = normalParams.findIndex(isOptional);
+
+    // Every parameter of a prefix must be required: the trailing callback is,
+    // so an optional argument before it is TS1016. `(maxlen?: number, callback)`
+    // is rejected, `(maxlen: number, callback)` is the form the runtime
+    // dispatches, and the zero-argument form keeps the callback alone.
+    const prefixOf = (length) => normalParams.slice(0, length).map((p) =>
+        isOptional(p)
+            ? dom.create.parameter(p.name, p.type, flagsOf(p) & ~dom.ParameterFlags.Optional)
+            : p
+    );
+
+    const prefixLengths = [];
+    for (let n = (requiredCount < 0 ? normalParams.length : requiredCount); n <= normalParams.length; n++)
+        prefixLengths.push(n);
+
+    return prefixLengths.map((n) => {
+        const callback = dom.create.parameter(
+            'callback', callbackType,
+            (!n && withOptionalParam) ? dom.ParameterFlags.Optional : dom.ParameterFlags.None
+        );
+
+        return prefixOf(n).concat([callback]);
+    });
+}
+
+/**
  * 
  * @param {import('./ir').IIDLDefinition['members'][number]['overs']} methodHost 
  * @returns 
@@ -932,7 +1002,9 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
     mapReturnType = null,
 } = {}) {
     let syncFunc;
-    let asyncFunc;
+    // the callback overloads (one per accepted argument prefix); empty when
+    // the member takes none
+    let asyncFuncs = [];
     let syncVariant;
     let asyncVariant;
 
@@ -1005,7 +1077,7 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
             if (!wantsCallbackOverload)
                 return {
                     syncFunc,
-                    asyncFunc,
+                    asyncFuncs,
                     syncVariant,
                     asyncVariant
                 };
@@ -1024,26 +1096,19 @@ function generateDtsFunction(functionHost, normalParams, returnType, {
                 !isVoidDomType(fiberReturnType) && dom.create.parameter('retVal', fiberReturnType)
             ].filter(Boolean), dom.type.any);
 
-            const callbackParams = Array.from(normalParams);
-            callbackParams.push(
-                dom.create.parameter(
-                    'callback', callbackType,
-                    withOptionalParam ? dom.ParameterFlags.Optional : dom.ParameterFlags.None
-                )
-            )
-
-            asyncFunc = dom.create.function(
-                functionHost.name,
-                callbackParams,
-                dom.type.void,
-                funcFlags
-            )
+            asyncFuncs = buildCallbackParamLists(normalParams, callbackType, withOptionalParam)
+                .map(callbackParams => dom.create.function(
+                    functionHost.name,
+                    callbackParams,
+                    dom.type.void,
+                    funcFlags
+                ))
         }
     }
 
     return {
         syncFunc,
-        asyncFunc,
+        asyncFuncs,
         syncVariant,
         asyncVariant
     }
@@ -1062,7 +1127,9 @@ function generateDtsMethod(methodHost, normalParams, returnType, {
     mapReturnType = null,
 } = {}) {
     let syncMethod;
-    let asyncMethod;
+    // the callback overloads (one per accepted argument prefix); empty when
+    // the member takes none
+    let asyncMethods = [];
     let syncVariant;
     let asyncVariant;
 
@@ -1127,7 +1194,7 @@ function generateDtsMethod(methodHost, normalParams, returnType, {
             if (!wantsCallbackOverload)
                 return {
                     syncMethod,
-                    asyncMethod,
+                    asyncMethods,
                     syncVariant,
                     asyncVariant
                 };
@@ -1145,26 +1212,19 @@ function generateDtsMethod(methodHost, normalParams, returnType, {
                 !isVoidDomType(fiberReturnType) && dom.create.parameter('retVal', fiberReturnType)
             ].filter(Boolean), dom.type.any);
 
-            const callbackParams = Array.from(normalParams);
-            callbackParams.push(
-                dom.create.parameter(
-                    'callback', callbackType,
-                    withOptionalParam ? dom.ParameterFlags.Optional : dom.ParameterFlags.None
-                )
-            )
-
-            asyncMethod = dom.create.method(
-                methodHost.name,
-                callbackParams,
-                dom.type.void,
-                memFlags
-            )
+            asyncMethods = buildCallbackParamLists(normalParams, callbackType, withOptionalParam)
+                .map(callbackParams => dom.create.method(
+                    methodHost.name,
+                    callbackParams,
+                    dom.type.void,
+                    memFlags
+                ));
         }
     }
 
     return {
         syncMethod,
-        asyncMethod,
+        asyncMethods,
         syncVariant,
         asyncVariant
     }
@@ -1343,6 +1403,73 @@ const EVENT_LISTENER_METHOD_NAMES = [
 ];
 
 /**
+ * Whether two IDL overloads of the same member name declare the same signature.
+ *
+ * Used by R1 to avoid re-emitting an inherited overload that the derived class
+ * already declares verbatim (`object#toString` -> `DOMTokenList#toString`): the
+ * parameters and the declared return type are what the emitter renders, and a
+ * repeated signature is pure noise in the generated declaration.
+ *
+ * @param {*} a
+ * @param {*} b
+ * @returns {boolean}
+ */
+function isSameIRSignature(a, b) {
+    if (String(a.type) !== String(b.type))
+        return false;
+
+    const pa = a.params || [];
+    const pb = b.params || [];
+    if (pa.length !== pb.length)
+        return false;
+
+    return pa.every((p, i) =>
+        String(p.type) === String(pb[i].type)
+        && !!hasDefaultValue(p) === !!hasDefaultValue(pb[i])
+        && !!p.optional === !!pb[i].optional
+    );
+}
+
+/**
+ * The instance-method names declared by the base chain of `def`, nearest base
+ * first, without duplicates.
+ *
+ * Mirrors what gen_code.js does when it decides to emit `using
+ * <Base>_base::<name>;`: only the members an ancestor declares itself count, so
+ * a name that appears two levels up is reachable on an instance of `def` and a
+ * `def` declaration of the same name is a narrowing override of it.
+ *
+ * @param {*} def
+ * @param {Object<string, *>} defs
+ * @returns {string[]}
+ */
+function declaredMethodNamesOfChain(def, defs) {
+    const names = [];
+    const seenName = new Set();
+    const seenDef = new Set();
+
+    for (let base = defs[def.declare.extend]; base; base = defs[base.declare.extend]) {
+        if (seenDef.has(base))
+            break;
+        seenDef.add(base);
+
+        (base.members || []).forEach(mem => {
+            if (mem.memType !== 'method' || mem.static)
+                return;
+            if (mem.name === base.declare.name)
+                return;
+            if (seenName.has(mem.name))
+                return;
+
+            seenName.add(mem.name);
+            names.push(mem.name);
+        });
+    }
+
+    return names;
+}
+
+/**
  * Find the declaration an event overload mirrors: the nearest ancestor
  * declaring `name` as an instance method whose second parameter is a function
  * (the listener). That declaration supplies the parameters following the
@@ -1454,6 +1581,9 @@ function materializeInheritedOverloads(def, name, {
     // promise-flavored copy of the base chain, so the inherited signatures it
     // re-emits are promise-shaped as well
     unitFlavor = 'fiber',
+    // the overloads `def` declares itself under this name: an inherited
+    // overload identical to one of them is already emitted, so it is skipped
+    ownOverloads = [],
 }) {
     const seen = new Set();
 
@@ -1500,8 +1630,14 @@ function materializeInheritedOverloads(def, name, {
             const overloads = (mem.overs && mem.overs.length > 1) ? mem.overs : [mem];
 
             overloads.forEach(over => {
+                // a base overload that the derived class re-declares verbatim
+                // (`object#toString` and `DOMTokenList#toString`) is already in
+                // the class body: re-emitting it only duplicates the signature
+                if (ownOverloads.some(own => isSameIRSignature(own, over)))
+                    return;
+
                 const { params, withRestArgs } = buildDtsMethodParams(over, getMapParamOptions);
-                const { syncMethod, asyncMethod, syncVariant, asyncVariant } = generateDtsMethod(
+                const { syncMethod, asyncMethods, syncVariant, asyncVariant } = generateDtsMethod(
                     over,
                     params,
                     mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
@@ -1515,8 +1651,8 @@ function materializeInheritedOverloads(def, name, {
 
                 dtsUnit.members.push(syncMethod);
 
-                if (asyncMethod)
-                    dtsUnit.members.push(asyncMethod);
+                if (asyncMethods)
+                    dtsUnit.members.push(...asyncMethods);
 
                 if (syncVariant)
                     dtsUnit.members.push(syncVariant);
@@ -1813,6 +1949,18 @@ function processDeclareInterface(def, {
             .filter(mem => mem.memType === 'method')
             .map(mem => mem.name)
     );
+    // (R1) names whose inherited overloads must be re-emitted after the member
+    // loop: the members this generator synthesizes, plus every instance method
+    // that re-declares a name its base chain also declares. idlc emits
+    // `using <Base>_base::<name>;` for exactly those (gen_code.js,
+    // gen_cls_using_declarations), so the runtime still dispatches the
+    // inherited overloads - and the derived `append` that only accepts a Blob
+    // is a narrowing override of `HttpCollection#append(Object|Array|...)`
+    // (TS2416) unless the inherited signatures are materialized.
+    const shadowedMemberNames = def.declare.extend
+        ? declaredMethodNamesOfChain(def, defs)
+            .filter(name => declaredMethodNames.has(name))
+        : [];
 
     if (def.declare.extend) {
         const refType = def.declare.extend;
@@ -1955,7 +2103,7 @@ function processDeclareInterface(def, {
                         memberIsOver = true;
                         mem.overs.forEach(over => {
                             currentReturnMember = over;
-                            const { syncMethod, asyncMethod, syncVariant, asyncVariant } = generateDtsMethod(
+                            const { syncMethod, asyncMethods, syncVariant, asyncVariant } = generateDtsMethod(
                                 over,
                                 getMethodParam(over),
                                 mapMemMethodReturnTypeToDtsType(over.type, getMapMemberTypeOptions()),
@@ -1971,8 +2119,8 @@ function processDeclareInterface(def, {
                             syncMethod.jsDocComment = convertIDLCommentToJSDocComment(over.comments)
                             dtsUnit.members.push(syncMethod);
 
-                            if (asyncMethod) {
-                                dtsUnit.members.push(asyncMethod);
+                            if (asyncMethods) {
+                                dtsUnit.members.push(...asyncMethods);
                             }
                             
                             if (syncVariant) {
@@ -1986,7 +2134,7 @@ function processDeclareInterface(def, {
                             }
                         });
                     } else {
-                        const { syncMethod, asyncMethod, syncVariant, asyncVariant } = generateDtsMethod(
+                        const { syncMethod, asyncMethods, syncVariant, asyncVariant } = generateDtsMethod(
                             mem, getMethodParam(mem), mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
                             {
                                 memFlags,
@@ -2001,8 +2149,8 @@ function processDeclareInterface(def, {
                         dtsUnit.members.push(syncMethod);
                         dtsUnitMember.jsDocComment = convertIDLCommentToJSDocComment(mem.comments || '')
 
-                        if (asyncMethod) {
-                            dtsUnit.members.push(asyncMethod)
+                        if (asyncMethods) {
+                            dtsUnit.members.push(...asyncMethods)
                         }
                         
                         if (syncVariant) {
@@ -2020,7 +2168,7 @@ function processDeclareInterface(def, {
                             // the Buffer/String pair accepts either form at runtime; add the union signature
                             const {
                                 syncMethod: mergedMethod,
-                                asyncMethod: mergedAsyncMethod,
+                                asyncMethods: mergedAsyncMethods,
                                 syncVariant: mergedSyncVariant,
                                 asyncVariant: mergedAsyncVariant
                             } = generateDtsMethod(
@@ -2036,8 +2184,8 @@ function processDeclareInterface(def, {
 
                             dtsUnit.members.push(mergedMethod);
 
-                            if (mergedAsyncMethod) {
-                                dtsUnit.members.push(mergedAsyncMethod);
+                            if (mergedAsyncMethods) {
+                                dtsUnit.members.push(...mergedAsyncMethods);
                             }
 
                             if (mergedSyncVariant) {
@@ -2136,7 +2284,7 @@ function processDeclareInterface(def, {
     // (base prototypes stay on the prototype chain) is preserved. The promise
     // variant does the same walk over the promise-flavored base chain, so the
     // signatures it re-emits are promise-shaped.
-    synthesizedMemberNames.forEach(name => materializeInheritedOverloads(def, name, {
+    synthesizedMemberNames.concat(shadowedMemberNames).forEach(name => materializeInheritedOverloads(def, name, {
         defs,
         dtsUnit,
         memFlags: 0,
@@ -2146,6 +2294,9 @@ function processDeclareInterface(def, {
         allModuleNames,
         unitName,
         unitFlavor,
+        ownOverloads: def.members
+            .filter(mem => mem.memType === 'method' && !mem.static && mem.name === name)
+            .reduce((all, mem) => all.concat((mem.overs && mem.overs.length > 1) ? mem.overs : [mem]), []),
     }));
 
     dtsUnit.jsDocComment = convertIDLCommentToJSDocComment(def.declare.comments || '');
@@ -2255,7 +2406,7 @@ function processDeclareModule(def, {
 
             overloads.forEach(over => {
                 const { params, withRestArgs } = buildDtsMethodParams(over, getMapParamOptions);
-                const { syncFunc, asyncFunc, syncVariant, asyncVariant } = generateDtsFunction(
+                const { syncFunc, asyncFuncs, syncVariant, asyncVariant } = generateDtsFunction(
                     Object.assign({}, over, { name: unitName }),
                     params,
                     mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
@@ -2269,7 +2420,7 @@ function processDeclareModule(def, {
                 syncFunc.jsDocComment = convertIDLCommentToJSDocComment(over.comments || '');
                 callFunctions.push(syncFunc);
 
-                [asyncFunc, syncVariant, asyncVariant]
+                asyncFuncs.concat([syncVariant, asyncVariant])
                     .filter(Boolean)
                     .forEach(member => callFunctions.push(member));
             });
@@ -2350,7 +2501,7 @@ function processDeclareModule(def, {
                 if (mem.overs && mem.overs.length > 1) {
                     memberIsOver = true;
                     mem.overs.forEach(over => {
-                        const { syncFunc, asyncFunc, syncVariant, asyncVariant } = generateDtsFunction(
+                        const { syncFunc, asyncFuncs, syncVariant, asyncVariant } = generateDtsFunction(
                             over,
                             getFunctionParams(over),
                             mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
@@ -2366,8 +2517,8 @@ function processDeclareModule(def, {
                         syncFunc.jsDocComment = convertIDLCommentToJSDocComment(over.comments)
                         dtsUnit.members.push(syncFunc);
 
-                        if (asyncFunc) {
-                            dtsUnit.members.push(asyncFunc);
+                        if (asyncFuncs) {
+                            dtsUnit.members.push(...asyncFuncs);
                         }
                         
                         if (syncVariant) {
@@ -2381,7 +2532,7 @@ function processDeclareModule(def, {
                         }
                     });
                 } else {
-                    const { asyncFunc, syncFunc, syncVariant, asyncVariant } = generateDtsFunction(
+                    const { asyncFuncs, syncFunc, syncVariant, asyncVariant } = generateDtsFunction(
                         mem,
                         getFunctionParams(mem), mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
                         {
@@ -2394,8 +2545,8 @@ function processDeclareModule(def, {
 
                     dtsUnit.members.push(dtsUnitMember = syncFunc);
 
-                    if (asyncFunc) {
-                        dtsUnit.members.push(asyncFunc);
+                    if (asyncFuncs) {
+                        dtsUnit.members.push(...asyncFuncs);
                     }
                     
                     if (syncVariant) {
@@ -2413,7 +2564,7 @@ function processDeclareModule(def, {
                         // the Buffer/String pair accepts either form at runtime; add the union signature
                         const {
                             syncFunc: mergedFunc,
-                            asyncFunc: mergedAsyncFunc,
+                            asyncFuncs: mergedAsyncFuncs,
                             syncVariant: mergedSyncVariant,
                             asyncVariant: mergedAsyncVariant
                         } = generateDtsFunction(
@@ -2429,8 +2580,8 @@ function processDeclareModule(def, {
 
                         dtsUnit.members.push(mergedFunc);
 
-                        if (mergedAsyncFunc) {
-                            dtsUnit.members.push(mergedAsyncFunc);
+                        if (mergedAsyncFuncs) {
+                            dtsUnit.members.push(...mergedAsyncFuncs);
                         }
 
                         if (mergedSyncVariant) {
@@ -2591,7 +2742,7 @@ function materializeModuleBase(def, {
                         }
                     );
 
-                    [built.syncFunc, built.asyncFunc, built.syncVariant, built.asyncVariant]
+                    [built.syncFunc].concat(built.asyncFuncs, [built.syncVariant, built.asyncVariant])
                         .filter(Boolean)
                         .forEach(member => dtsUnit.members.push(member));
                 });
@@ -2708,7 +2859,7 @@ function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
     // through classInstanceTypeRef() to the flavor of the position it sits in
     PROMISE_VARIANT_CLASSES.clear();
     Object.values(defs)
-        .filter(def => !def.declare.module && !EXCLUDE_INTERNALS.includes(def.declare.name))
+        .filter(def => !def.declare.module)
         .forEach(def => {
             if (classHasPromiseVariant(def, defs))
                 PROMISE_VARIANT_CLASSES.add(def.declare.name);
@@ -2723,10 +2874,6 @@ function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
     });
 
     Object.values(defs)
-        .filter(
-            // ignore some special idl json from
-            (def) => !EXCLUDE_INTERNALS.includes(def.declare.name)
-        )
         .forEach((def) => {
             // shaped callbacks must be emitted before same-group overloads that
             // would swallow a function argument (Value / Object / rest), see

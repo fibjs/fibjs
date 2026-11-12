@@ -264,7 +264,7 @@ declare class Class_Dir extends Class_Iterator {
 /**
  * The promise variant of the Dir class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
-declare class Class_DirPromise extends Class_Iterator {
+declare class Class_DirPromise extends Class_IteratorPromise {
     /**
      * @description Creates a directory iterator for a path
      *
