@@ -3,6 +3,7 @@
 /// <reference path="../interface/Stat.d.ts" />
 /// <reference path="../interface/DirEntry.d.ts" />
 /// <reference path="../interface/Dir.d.ts" />
+/// <reference path="../interface/FileStream.d.ts" />
 /// <reference path="../interface/FileHandle.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
@@ -198,6 +199,51 @@ declare module 'fs' {
     const Dir: typeof Class_Dir;
 
     type Dir = Class_Dir;
+
+    /**
+     * @description The file stream class behind createReadStream and createWriteStream
+     *
+     *      `new fs.ReadStream(path[, options])` opens the file for reading and builds the same
+     *      stream `createReadStream` returns, and `new fs.ReadStream(path, options)` with a
+     *      `start`/`end` range behaves like the range form. The class exists because packages
+     *      import it by name (`import { ReadStream } from 'node:fs'`) and test instances with
+     *      `instanceof`; the fibjs way to open a file stream is still `openFile`,
+     *      `createReadStream` or `createWriteStream`.
+     *
+     *      Example — build a read stream directly:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *
+     *      const stm = new fs.ReadStream(__filename);
+     *      console.log(stm instanceof fs.ReadStream); // true
+     *      stm.close();
+     *      ```
+     *
+     */
+    const ReadStream: typeof Class_FileStream;
+
+    type ReadStream = Class_FileStream;
+
+    /**
+     * @description The alias of the FileStream class used by createWriteStream
+     *
+     *      `new fs.WriteStream(path[, options])` opens the file for writing; it is the same
+     *      class as ReadStream, since fibjs opens a file descriptor whose direction comes from
+     *      the `flags` option. Pass `{ flags: 'w' }` (or `'a'`) to create a write stream.
+     *
+     *      Example — open a file for writing:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *
+     *      const out = new fs.WriteStream('/tmp/fibjs-write-stream.txt', { flags: 'w' });
+     *      out.write(Buffer.from('hello'));
+     *      out.close();
+     *      ```
+     *
+     */
+    const WriteStream: typeof Class_FileStream;
+
+    type WriteStream = Class_FileStream;
 
     /**
      * @description Checks whether the given file or directory exists

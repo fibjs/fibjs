@@ -413,4 +413,53 @@ result_t FileStream::chmod(int32_t mode, AsyncHandle ac)
     return result_t();
 #endif
 }
+
+// The Node.js class form: `new fs.ReadStream(path[, options])` and
+// `new fs.WriteStream(path[, options])` reach this constructor through the
+// fs.ReadStream / fs.WriteStream aliases. Unlike createReadStream, which reports
+// an open failure through an 'error' event, the constructor throws: a caller
+// that builds the object itself has no place to listen yet.
+result_t FileStream_base::_new(exlib::string path, v8::Local<v8::Object> options,
+    obj_ptr<FileStream_base>& retVal, v8::Local<v8::Object> This)
+{
+    exlib::string flags = "r";
+    result_t hr = GetConfigValue(options, "flags", flags, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+
+    int64_t start = -1;
+    hr = GetConfigValue(options, "start", start, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+
+    // A bounded range needs the RangeStream that createReadStream builds when
+    // `end` is set; this class is the whole file, so the option cannot be
+    // honoured here and is reported instead of silently reading past it.
+    int64_t end = -1;
+    hr = GetConfigValue(options, "end", end, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+    if (end >= 0)
+        return result_t::make(CALL_E_INVALID_DATA)
+            .with_type_name(errtype::kTypeError)
+            .with_code("ERR_INVALID_ARG_VALUE")
+            .with_message("The \"options.end\" property is not supported by fs.ReadStream; use fs.createReadStream(path, { start, end }) for a bounded range");
+
+    obj_ptr<FileStream> stm = new FileStream();
+
+    hr = stm->open(path, flags);
+    if (hr.failed())
+        return hr;
+
+    if (start > 0) {
+        hr = stm->seek(start, SEEK_SET);
+        if (hr.failed()) {
+            stm->close();
+            return hr;
+        }
+    }
+
+    retVal = stm;
+    return result_t();
+}
 }

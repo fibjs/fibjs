@@ -17,7 +17,6 @@
 namespace fibjs {
 
 class Stream_base;
-class fs_base;
 class Stat_base;
 
 class SeekableStream_base : public Stream_base {
@@ -59,7 +58,6 @@ public:
 };
 }
 
-#include "ifs/fs.h"
 #include "ifs/Stat.h"
 
 namespace fibjs {
@@ -94,7 +92,7 @@ inline void SeekableStream_base::s_seek(const v8::FunctionCallbackInfo<v8::Value
     METHOD_OVER_NAMED(2, 1, "offset");
 
     ARG_NAMED(int64_t, 0, "offset");
-    OPT_ARG_NAMED(int32_t, 1, fs_base::C_SEEK_SET, "whence");
+    OPT_ARG_NAMED(int32_t, 1, 0, "whence");
 
     hr = pInst->seek(v0, v1);
 

@@ -2738,6 +2738,108 @@ describe('fs', () => {
             });
         });
 
+        describe("ReadStream/WriteStream classes (Node.js compatibility)", () => {
+            // Packages import these by name (`import { ReadStream } from 'node:fs'`)
+            // and test instances with instanceof, so the names have to exist and be
+            // constructors even though fibjs opens files through openFile or the
+            // create*Stream factories.
+            var rsBase = path.join(homedir, 'test_readstream_' + vmid);
+            var rsFile = path.join(rsBase, 'data.txt');
+
+            before(() => {
+                if (!fs.exists(rsBase))
+                    fs.mkdir(rsBase);
+                fs.writeFile(rsFile, 'hello world');
+            });
+
+            after(() => {
+                if (fs.exists(rsBase))
+                    fs.rmSync(rsBase, { recursive: true, force: true });
+            });
+
+            it("exports both names as constructors", () => {
+                assert.isFunction(fs.ReadStream);
+                assert.isFunction(fs.WriteStream);
+            });
+
+            it("builds a readable stream that an instanceof check accepts", () => {
+                var stm = new fs.ReadStream(rsFile);
+
+                try {
+                    assert.ok(stm instanceof fs.ReadStream);
+                    assert.equal(stm.readAll().toString(), 'hello world');
+                } finally {
+                    stm.close();
+                }
+            });
+
+            it("returns the same class the factory returns", () => {
+                var a = new fs.ReadStream(rsFile);
+                var b = fs.createReadStream(rsFile);
+
+                try {
+                    assert.equal(a.constructor, b.constructor);
+                    assert.ok(b instanceof fs.ReadStream);
+                } finally {
+                    a.close();
+                    b.close();
+                }
+            });
+
+            it("starts reading at the given offset", () => {
+                var stm = new fs.ReadStream(rsFile, { start: 6 });
+
+                try {
+                    assert.equal(stm.readAll().toString(), 'world');
+                } finally {
+                    stm.close();
+                }
+            });
+
+            it("honours the flags option", () => {
+                var out = path.join(rsBase, 'written.txt');
+
+                var w = new fs.WriteStream(out, { flags: 'w' });
+                w.write(Buffer.from('via write stream'));
+                w.close();
+
+                try {
+                    assert.equal(fs.readFileSync(out).toString(), 'via write stream');
+                } finally {
+                    if (fs.exists(out))
+                        fs.unlink(out);
+                }
+            });
+
+            it("defaults to reading, so writing on it fails", () => {
+                var stm = new fs.ReadStream(rsFile);
+
+                try {
+                    assert.throws(() => stm.write(Buffer.from('x')));
+                } finally {
+                    stm.close();
+                }
+            });
+
+            it("throws for a missing file instead of emitting an error", () => {
+                // createReadStream delivers the failure through an 'error'
+                // event; a constructor has nowhere to report it yet, so it
+                // throws with the same code.
+                assert.throws(() => new fs.ReadStream(path.join(rsBase, 'no-such-file')),
+                    (e) => e.code === 'ENOENT');
+            });
+
+            it("rejects the end option, which the class cannot honour", () => {
+                // A bounded range needs the RangeStream that createReadStream
+                // builds; silently reading past it would hand back more data
+                // than the caller asked for.
+                assert.throws(() => new fs.ReadStream(rsFile, { end: 4 }),
+                    (e) => e.code === 'ERR_INVALID_ARG_VALUE');
+                assert.equal(fs.createReadStream(rsFile, { start: 0, end: 4 })
+                    .readAll().toString(), 'hello');
+            });
+        });
+
         describe("readdir encoding (Node.js compatibility)", () => {
             var encBase = path.join(homedir, 'test_readdir_encoding_' + vmid);
 

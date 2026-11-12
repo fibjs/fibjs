@@ -111,7 +111,7 @@ interface SeekableStream : Stream
      @param offset the new position
      @param whence the position base, allowed values: SEEK_SET, SEEK_CUR, SEEK_END
      */
-    seek(Long offset, Integer whence = fs.SEEK_SET);
+    seek(Long offset, Integer whence = 0);
 
     /*! @brief Queries the current stream position
 

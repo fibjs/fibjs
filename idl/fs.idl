@@ -159,6 +159,43 @@ module fs
      */
     static Dir = Dir;
 
+    /*! @brief The file stream class behind createReadStream and createWriteStream
+
+     `new fs.ReadStream(path[, options])` opens the file for reading and builds the same
+     stream `createReadStream` returns, and `new fs.ReadStream(path, options)` with a
+     `start`/`end` range behaves like the range form. The class exists because packages
+     import it by name (`import { ReadStream } from 'node:fs'`) and test instances with
+     `instanceof`; the fibjs way to open a file stream is still `openFile`,
+     `createReadStream` or `createWriteStream`.
+
+     Example — build a read stream directly:
+     ```JavaScript
+     const fs = require('fs');
+
+     const stm = new fs.ReadStream(__filename);
+     console.log(stm instanceof fs.ReadStream); // true
+     stm.close();
+     ```
+     */
+    static ReadStream = FileStream;
+
+    /*! @brief The alias of the FileStream class used by createWriteStream
+
+     `new fs.WriteStream(path[, options])` opens the file for writing; it is the same
+     class as ReadStream, since fibjs opens a file descriptor whose direction comes from
+     the `flags` option. Pass `{ flags: 'w' }` (or `'a'`) to create a write stream.
+
+     Example — open a file for writing:
+     ```JavaScript
+     const fs = require('fs');
+
+     const out = new fs.WriteStream('/tmp/fibjs-write-stream.txt', { flags: 'w' });
+     out.write(Buffer.from('hello'));
+     out.close();
+     ```
+     */
+    static WriteStream = FileStream;
+
     /*! @brief Checks whether the given file or directory exists
 
      Returns false instead of throwing when the path does not exist.

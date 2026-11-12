@@ -74,6 +74,38 @@
  */
 declare class Class_FileStream extends Class_SeekableStream {
     /**
+     * @description Opens a file and builds a positioned stream for it
+     *
+     *      `new fs.ReadStream(path[, options])` and `new fs.WriteStream(path[, options])` are the
+     *      Node.js class forms of `createReadStream` and `createWriteStream`; both reach this
+     *      constructor, which opens the file with the `flags` option (default 'r') and positions
+     *      the stream at 0. The recognized options are `flags`, and `start` / `end` for an
+     *      inclusive read range (the range form returns a RangeStream view over this file
+     *      stream).
+     *
+     *      A failure to open is thrown as an Error with the usual `code` (ENOENT and friends);
+     *      the factory functions `createReadStream`/`createWriteStream` report the same failure
+     *      through an 'error' event instead, which is what Node.js does.
+     *
+     *      Example — the class form and the factory form give the same stream:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *
+     *      const a = new fs.ReadStream(__filename);
+     *      const b = fs.createReadStream(__filename);
+     *      console.log(a instanceof fs.ReadStream, a.constructor === b.constructor); // true true
+     *
+     *      a.close();
+     *      b.close();
+     *      ```
+     *
+     *      @param path the file to open
+     *      @param options open options, `{ flags, start, end }`
+     *
+     */
+    constructor(path: string, options?: FIBJS.GeneralObject);
+
+    /**
      * @description Queries the current file name
      *
      *      The path passed to the open function, with platform separators normalized
@@ -216,6 +248,38 @@ declare class Class_FileStream extends Class_SeekableStream {
  * The promise variant of the FileStream class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
 declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
+    /**
+     * @description Opens a file and builds a positioned stream for it
+     *
+     *      `new fs.ReadStream(path[, options])` and `new fs.WriteStream(path[, options])` are the
+     *      Node.js class forms of `createReadStream` and `createWriteStream`; both reach this
+     *      constructor, which opens the file with the `flags` option (default 'r') and positions
+     *      the stream at 0. The recognized options are `flags`, and `start` / `end` for an
+     *      inclusive read range (the range form returns a RangeStream view over this file
+     *      stream).
+     *
+     *      A failure to open is thrown as an Error with the usual `code` (ENOENT and friends);
+     *      the factory functions `createReadStream`/`createWriteStream` report the same failure
+     *      through an 'error' event instead, which is what Node.js does.
+     *
+     *      Example — the class form and the factory form give the same stream:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *
+     *      const a = new fs.ReadStream(__filename);
+     *      const b = fs.createReadStream(__filename);
+     *      console.log(a instanceof fs.ReadStream, a.constructor === b.constructor); // true true
+     *
+     *      a.close();
+     *      b.close();
+     *      ```
+     *
+     *      @param path the file to open
+     *      @param options open options, `{ flags, start, end }`
+     *
+     */
+    constructor(path: string, options?: FIBJS.GeneralObject);
+
     /**
      * @description Queries the current file name
      *

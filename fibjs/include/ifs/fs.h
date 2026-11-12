@@ -19,6 +19,7 @@ class fs_constants_base;
 class Stat_base;
 class DirEntry_base;
 class Dir_base;
+class FileStream_base;
 class FileHandle_base;
 class Buffer_base;
 class SeekableStream_base;
@@ -308,6 +309,7 @@ public:
 #include "ifs/Stat.h"
 #include "ifs/DirEntry.h"
 #include "ifs/Dir.h"
+#include "ifs/FileStream.h"
 #include "ifs/FileHandle.h"
 #include "ifs/Buffer.h"
 #include "ifs/SeekableStream.h"
@@ -378,7 +380,9 @@ inline ClassInfo& fs_base::class_info()
         { "constants", fs_constants_base::class_info },
         { "Stats", Stat_base::class_info },
         { "Dirent", DirEntry_base::class_info },
-        { "Dir", Dir_base::class_info }
+        { "Dir", Dir_base::class_info },
+        { "ReadStream", FileStream_base::class_info },
+        { "WriteStream", FileStream_base::class_info }
     };
 
     static ClassData::ClassConst s_const[] = {

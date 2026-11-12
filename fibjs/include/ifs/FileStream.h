@@ -23,21 +23,16 @@ class FileStream_base : public SeekableStream_base {
 
 public:
     // FileStream_base
+    static result_t _new(exlib::string path, v8::Local<v8::Object> options, obj_ptr<FileStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t chmod(int32_t mode, AsyncHandle ac) = 0;
 
 public:
-    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        CONSTRUCT_INIT();
-
-        ThrowTypeError("not a constructor");
-    }
-
-    static result_t load(v8::Local<v8::Value> v, obj_ptr<FileStream_base>& retVal)
-    { return result_t::type_mismatch(); }
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(v8::Local<v8::Value> v, obj_ptr<FileStream_base>& retVal);
 
 public:
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -66,6 +61,44 @@ inline ClassInfo& FileStream_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void FileStream_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    CONSTRUCT_INIT();
+    __new(args);
+}
+
+inline void FileStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<FileStream_base> vr;
+
+    CONSTRUCT_ENTER();
+
+    METHOD_OVER_NAMED(2, 1, "path");
+
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+
+    hr = _new(v0, v1, vr, args.This());
+
+    CONSTRUCT_RETURN();
+}
+
+inline result_t FileStream_base::load(v8::Local<v8::Value> v, obj_ptr<FileStream_base>& retVal)
+{
+    obj_ptr<FileStream_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER_NAMED(2, 1, "path");
+
+    ARG_NAMED(exlib::string, 0, "path");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+
+    hr = _new(v0, v1, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void FileStream_base::s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args)
