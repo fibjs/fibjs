@@ -93,6 +93,11 @@ function WritableState(options, stream) {
   // has it been destroyed
   this.destroyed = false;
 
+  // The two flags behind errored/closed, set where the event happens:
+  // destroy(err) and the 'close' emission.
+  this.errored = null;
+  this.closed = false;
+
   // whether destroy() emits 'close' (Node's `emitClose`, on by default)
   this.emitClose = options.emitClose !== false;
 
@@ -353,6 +358,34 @@ Object.defineProperty(Writable.prototype, 'writableHighWaterMark', {
   get: function () {
     return this._writableState.highWaterMark;
   }
+});
+
+// The write-side state Node exposes on a Writable, as getters over the fields
+// WritableState already carries. `errored` and `closed` are declared here only
+// because a Duplex reaches them through the writable side when it has no
+// readable state; on a plain Writable they read the same flags.
+//
+// They belong to the JS compatibility layer only: a C++ stream is a different
+// prototype chain and does not inherit them.
+[
+  ['writableEnded', state => state.ending === true || state.ended === true],
+  ['writableFinished', state => state.finished === true],
+  ['writableLength', state => state.length],
+  ['writableCorked', state => state.corked],
+  ['writableNeedDrain', state => state.needDrain === true],
+  ['writableObjectMode', state => state.objectMode === true],
+  ['errored', state => state.errored === undefined ? null : state.errored],
+  ['closed', state => state.closed === true]
+].forEach(function (entry) {
+  Object.defineProperty(Writable.prototype, entry[0], {
+    enumerable: false,
+    configurable: true,
+    get: function () {
+      if (this._writableState === undefined)
+        return entry[0] === 'errored' ? null : false;
+      return entry[1](this._writableState, this);
+    }
+  });
 });
 
 // if we're already writing something, then just put this

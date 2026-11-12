@@ -106,6 +106,13 @@ function ReadableState(options, stream) {
   this.endEmitted = false;
   this.reading = false;
 
+  // The three flags behind readableDidRead/errored/closed. They start false and
+  // are set where the event happens: 'data' emission, destroy(err) and the
+  // 'close' emission respectively.
+  this.dataEmitted = false;
+  this.errored = null;
+  this.closed = false;
+
   // whether destroy() emits 'close' (Node's `emitClose`, on by default)
   this.emitClose = options.emitClose !== false;
 
@@ -275,6 +282,7 @@ function readableAddChunk(stream, chunk, encoding, addToFront, skipChunkCheck) {
 
 function addChunk(stream, state, chunk, addToFront) {
   if (state.flowing && state.length === 0 && !state.sync) {
+    state.dataEmitted = true;
     stream.emit('data', chunk);
     stream.read(0);
   } else {
@@ -487,8 +495,10 @@ Readable.prototype.read = function (n) {
       endReadable(this);
   }
 
-  if (ret !== null)
+  if (ret !== null) {
+    this._readableState.dataEmitted = true;
     this.emit('data', ret);
+  }
 
   return ret;
 };
@@ -942,6 +952,37 @@ Object.defineProperty(Readable.prototype, 'readableHighWaterMark', {
   get: function () {
     return this._readableState.highWaterMark;
   }
+});
+
+// The read-side state Node exposes on a Readable. They are getters over the
+// fields ReadableState already carries, so reading one never changes the
+// stream; a stream that was not initialised reports the neutral value instead
+// of throwing.
+//
+// They belong to the JS compatibility layer only: a C++ stream
+// (fs.createReadStream, process.stdout, a socket) is a different prototype
+// chain and does not inherit them.
+[
+  ['readableEnded', state => state.endEmitted],
+  ['readableAborted', (state, stream) => state.destroyed && !state.endEmitted],
+  ['readableDidRead', state => state.dataEmitted === true],
+  ['readableFlowing', state => state.flowing],
+  ['readableLength', state => state.length],
+  ['readableObjectMode', state => state.objectMode === true],
+  ['readableEncoding', state => state.encoding === undefined ? null : state.encoding],
+  ['errored', state => state.errored === undefined ? null : state.errored],
+  ['closed', state => state.closed === true]
+].forEach(function (entry) {
+  Object.defineProperty(Readable.prototype, entry[0], {
+    enumerable: false,
+    configurable: true,
+    get: function () {
+      if (this._readableState === undefined)
+        return entry[0] === 'readableFlowing' || entry[0] === 'readableEncoding' ||
+          entry[0] === 'errored' ? null : false;
+      return entry[1](this._readableState, this);
+    }
+  });
 });
 
 // exposed for testing purposes only.

@@ -40,6 +40,13 @@ function destroy(err, cb) {
   // as "nothing more will arrive" is right. Node code listens for both, and
   // `stream/promises.finished()` and the async iterator depend on them.
   this._destroy(err || null, (err) => {
+    // The error the stream carried, which is what `errored` reports; null means
+    // it was destroyed without one.
+    if (this._readableState)
+      this._readableState.errored = err || null;
+    if (this._writableState)
+      this._writableState.errored = err || null;
+
     if (!cb && err) {
       if (!this._writableState) {
         process.nextTick(emitErrorAndCloseNT, this, err);
@@ -93,6 +100,13 @@ function emitCloseNT(self) {
     return;
   if (self._readableState && !self._readableState.emitClose)
     return;
+
+  // `closed` reports that 'close' was emitted, which is the promise a consumer
+  // relies on when it treats the event as "nothing more will arrive".
+  if (self._readableState)
+    self._readableState.closed = true;
+  if (self._writableState)
+    self._writableState.closed = true;
 
   self.emit('close');
 }

@@ -67,6 +67,90 @@ describe('stream', () => {
         });
     });
 
+    describe("read/write state getters", () => {
+        it("reports the read state of a fresh, filled and read stream", () => {
+            const r = new stream.Readable({ read() {} });
+
+            assert.strictEqual(r.readableEnded, false);
+            assert.strictEqual(r.readableAborted, false);
+            assert.strictEqual(r.readableDidRead, false);
+            assert.strictEqual(r.readableFlowing, null);
+            assert.strictEqual(r.readableLength, 0);
+            assert.strictEqual(r.readableObjectMode, false);
+            assert.strictEqual(r.readableEncoding, null);
+            assert.strictEqual(r.errored, null);
+            assert.strictEqual(r.closed, false);
+
+            r.push('abc');
+            assert.strictEqual(r.readableLength, 3);
+            assert.strictEqual(r.readableDidRead, false);
+
+            // a byte stream hands a Buffer back, as Node does
+            assert.strictEqual(r.read().toString(), 'abc');
+            assert.strictEqual(r.readableDidRead, true);
+            assert.strictEqual(r.readableLength, 0);
+        });
+
+        it("reports object mode and the encoding", () => {
+            assert.strictEqual(
+                new stream.Readable({ objectMode: true, read() {} }).readableObjectMode, true);
+            assert.strictEqual(
+                new stream.Readable({ encoding: 'utf8', read() {} }).readableEncoding, 'utf8');
+        });
+
+        it("reports an aborted read and the error", () => {
+            const r = new stream.Readable({ read() {} });
+            r.on('error', () => {});
+            r.destroy(new Error('boom'));
+
+            assert.strictEqual(r.readableAborted, true);
+            assert.ok(r.errored instanceof Error);
+            assert.strictEqual(r.errored.message, 'boom');
+        });
+
+        it("reports the write state of a fresh, corked and ended stream", () => {
+            const w = new stream.Writable({ write(c, e, cb) { cb(); } });
+
+            assert.strictEqual(w.writableEnded, false);
+            assert.strictEqual(w.writableFinished, false);
+            assert.strictEqual(w.writableLength, 0);
+            assert.strictEqual(w.writableCorked, 0);
+            assert.strictEqual(w.writableNeedDrain, false);
+            assert.strictEqual(w.writableObjectMode, false);
+
+            w.cork();
+            assert.strictEqual(w.writableCorked, 1);
+            w.uncork();
+
+            w.end();
+            assert.strictEqual(w.writableEnded, true);
+        });
+
+        it("advances the write length while a chunk is pending", () => {
+            let release;
+            const w = new stream.Writable({
+                write(c, e, cb) { release = cb; }
+            });
+
+            w.write('pending');
+            assert.ok(w.writableLength > 0);
+            release();
+            assert.strictEqual(w.writableLength, 0);
+            w.end();
+        });
+
+        it("marks the writable side finished once flushed", async () => {
+            const w = new stream.Writable({ write(c, e, cb) { cb(); } });
+
+            await new Promise((resolve) => {
+                w.on('finish', resolve);
+                w.end('data');
+            });
+
+            assert.strictEqual(w.writableFinished, true);
+        });
+    });
+
     describe("default highWaterMark", () => {
         it("reports the value new streams are created with", () => {
             assert.strictEqual(stream.getDefaultHighWaterMark(), 16384);

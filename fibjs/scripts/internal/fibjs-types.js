@@ -110862,10 +110862,14 @@ declare module 'sse' {
 //     chunks.
 //
 // Not declared because the runtime does not have them (checked with
-// temp/p2-surface-2026-10-15.cjs): \`readableEnded\`, \`readableLength\`,
-// \`readableAborted\`, \`errored\`, \`closed\`, \`writableEnded\`, \`writableFinished\`,
-// \`writableLength\`, \`writableCorked\`, \`writableNeedDrain\`, \`compose\` and
-// \`toWeb\`. Declaring them would hand back \`undefined\` at runtime.
+// temp/p2-surface-2026-10-15.cjs): \`compose\` and \`toWeb\`. Declaring them would
+// hand back \`undefined\` at runtime.
+//
+// The read/write state getters (\`readableEnded\`, \`readableLength\`, \`errored\`,
+// \`closed\`, ...) are declared on the classes below, and they belong to the JS
+// compatibility layer only: a C++ stream (\`fs.createReadStream\`,
+// \`process.stdout\`, a socket) has a different prototype chain and does not
+// inherit them.
 
 declare module 'stream' {
     /**
@@ -111106,6 +111110,33 @@ declare module 'stream' {
             /** The configured buffer size of the readable side. */
             readonly readableHighWaterMark: number;
 
+            /** Whether the 'end' event was emitted. */
+            readonly readableEnded: boolean;
+
+            /** Whether the stream was destroyed before it ended. */
+            readonly readableAborted: boolean;
+
+            /** Whether 'data' was emitted or read() handed out a chunk. */
+            readonly readableDidRead: boolean;
+
+            /** The flow state: true while flowing, false when paused, null when nothing happened yet. */
+            readonly readableFlowing: boolean | null;
+
+            /** The number of buffered chunks, or bytes when not in object mode. */
+            readonly readableLength: number;
+
+            /** Whether the readable side works with objects rather than bytes. */
+            readonly readableObjectMode: boolean;
+
+            /** The encoding set with setEncoding(), null when none was. */
+            readonly readableEncoding: string | null;
+
+            /** The error the stream was destroyed with, null when there is none. */
+            readonly errored: Error | null;
+
+            /** Whether 'close' was emitted. */
+            readonly closed: boolean;
+
             /**
              * Adds a chunk of data to the internal queue; \`null\` signals the end
              * of the stream (after the chunks already buffered were handed out).
@@ -111227,6 +111258,30 @@ declare module 'stream' {
             /** The configured buffer size of the writable side. */
             readonly writableHighWaterMark: number;
 
+            /** Whether end() was called. */
+            readonly writableEnded: boolean;
+
+            /** Whether every chunk was flushed and 'finish' was emitted. */
+            readonly writableFinished: boolean;
+
+            /** The number of buffered chunks, or bytes when not in object mode. */
+            readonly writableLength: number;
+
+            /** The number of active cork() calls. */
+            readonly writableCorked: number;
+
+            /** Whether write() returned false and 'drain' is still pending. */
+            readonly writableNeedDrain: boolean;
+
+            /** Whether the writable side works with objects rather than bytes. */
+            readonly writableObjectMode: boolean;
+
+            /** The error the stream was destroyed with, null when there is none. */
+            readonly errored: Error | null;
+
+            /** Whether 'close' was emitted. */
+            readonly closed: boolean;
+
             /**
              * Writes a chunk; the callback runs when the chunk is flushed. It
              * returns false when the internal buffer is full - wait for 'drain'
@@ -111281,6 +111336,24 @@ declare module 'stream' {
 
             /** The configured buffer size of the writable side. */
             readonly writableHighWaterMark: number;
+
+            /** Whether end() was called. */
+            readonly writableEnded: boolean;
+
+            /** Whether every chunk was flushed and 'finish' was emitted. */
+            readonly writableFinished: boolean;
+
+            /** The number of buffered chunks, or bytes when not in object mode. */
+            readonly writableLength: number;
+
+            /** The number of active cork() calls. */
+            readonly writableCorked: number;
+
+            /** Whether write() returned false and 'drain' is still pending. */
+            readonly writableNeedDrain: boolean;
+
+            /** Whether the writable side works with objects rather than bytes. */
+            readonly writableObjectMode: boolean;
 
             /** The listeners of both sides, with the chunk typed. */
             on<K extends keyof (ReadableEventMap<T> & WritableEventMap<T>)>(event: K, listener: (...args: (ReadableEventMap<T> & WritableEventMap<T>)[K]) => void): this;
