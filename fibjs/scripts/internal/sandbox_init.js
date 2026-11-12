@@ -215,6 +215,54 @@ if (typeof process !== 'undefined' && typeof process.hrtime === 'function' && ty
     });
 })();
 
+// `fs.WriteStream` and `fs.ReadStream` are the same native class, because a
+// fibjs file stream is one descriptor whose direction comes from `flags`. That
+// leaves one thing to fix in JS: the native constructor defaults to `flags: 'r'`,
+// which is right for a read stream and wrong for a write stream - Node's
+// WriteStream creates the file with `'w'`, and a package that calls
+// `new fs.WriteStream(path)` expects the file to exist afterwards.
+//
+// A subclass supplies the default. It is a subclass rather than a second native
+// class so the stream type stays the one the rest of the runtime knows, and
+// `instanceof fs.ReadStream` keeps working for it.
+function installWriteStream() {
+    var fs;
+    try {
+        fs = require('fs');
+    } catch (e) {
+        return;
+    }
+
+    var Base = fs.ReadStream;
+    if (typeof Base !== 'function' || fs.WriteStream !== Base)
+        return;
+
+    class WriteStream extends Base {
+        constructor(path, options) {
+            // A flags string is the shorthand `new fs.WriteStream(path, 'w')`,
+            // and it is the caller's decision, so it is passed straight through.
+            if (typeof options === 'string') {
+                super(path, options);
+                return;
+            }
+
+            // Otherwise fill in the default the native constructor gets wrong
+            // for a write stream. An explicit flags - including '' - is kept.
+            var opts = Object.assign({}, options);
+            if (opts.flags === undefined)
+                opts.flags = 'w';
+
+            super(path, opts);
+        }
+    }
+
+    Object.defineProperty(WriteStream, 'name', { value: 'WriteStream', configurable: true });
+
+    fs.WriteStream = WriteStream;
+}
+
+installWriteStream();
+
 // Export JS helper methods for C++ native objects to call.
 // The returned object is saved by SandBox::installBuffer() into Isolate,
 // and individual methods are retrieved by C++ code (e.g. AsyncStream::pipe).

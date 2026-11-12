@@ -16971,9 +16971,10 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      \`new fs.ReadStream(path[, options])\` and \`new fs.WriteStream(path[, options])\` are the
      *      Node.js class forms of \`createReadStream\` and \`createWriteStream\`; both reach this
      *      constructor, which opens the file with the \`flags\` option (default 'r') and positions
-     *      the stream at 0. The recognized options are \`flags\`, and \`start\` / \`end\` for an
-     *      inclusive read range (the range form returns a RangeStream view over this file
-     *      stream).
+     *      the stream at 0. The recognized options are \`flags\` and \`start\`; \`end\` is not
+     *      supported by this constructor and throws ERR_INVALID_ARG_VALUE - the inclusive range
+     *      form of \`createReadStream\`, which returns a RangeStream view over this file stream,
+     *      is the way to read a range.
      *
      *      A failure to open is thrown as an Error with the usual \`code\` (ENOENT and friends);
      *      the factory functions \`createReadStream\`/\`createWriteStream\` report the same failure
@@ -17146,9 +17147,10 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      \`new fs.ReadStream(path[, options])\` and \`new fs.WriteStream(path[, options])\` are the
      *      Node.js class forms of \`createReadStream\` and \`createWriteStream\`; both reach this
      *      constructor, which opens the file with the \`flags\` option (default 'r') and positions
-     *      the stream at 0. The recognized options are \`flags\`, and \`start\` / \`end\` for an
-     *      inclusive read range (the range form returns a RangeStream view over this file
-     *      stream).
+     *      the stream at 0. The recognized options are \`flags\` and \`start\`; \`end\` is not
+     *      supported by this constructor and throws ERR_INVALID_ARG_VALUE - the inclusive range
+     *      form of \`createReadStream\`, which returns a RangeStream view over this file stream,
+     *      is the way to read a range.
      *
      *      A failure to open is thrown as an Error with the usual \`code\` (ENOENT and friends);
      *      the factory functions \`createReadStream\`/\`createWriteStream\` report the same failure
@@ -86171,8 +86173,10 @@ declare module 'fs' {
      * @description The file stream class behind createReadStream and createWriteStream
      *
      *      \`new fs.ReadStream(path[, options])\` opens the file for reading and builds the same
-     *      stream \`createReadStream\` returns, and \`new fs.ReadStream(path, options)\` with a
-     *      \`start\`/\`end\` range behaves like the range form. The class exists because packages
+     *      stream \`createReadStream\` returns. A \`start\` option is supported; \`end\` is not, and
+     *      passing one throws ERR_INVALID_ARG_VALUE - use \`createReadStream(path, {start, end})\`
+     *      when a range is needed, since that form returns a RangeStream view. The class exists
+     *      because packages
      *      import it by name (\`import { ReadStream } from 'node:fs'\`) and test instances with
      *      \`instanceof\`; the fibjs way to open a file stream is still \`openFile\`,
      *      \`createReadStream\` or \`createWriteStream\`.
@@ -86195,14 +86199,23 @@ declare module 'fs' {
      * @description The alias of the FileStream class used by createWriteStream
      *
      *      \`new fs.WriteStream(path[, options])\` opens the file for writing; it is the same
-     *      class as ReadStream, since fibjs opens a file descriptor whose direction comes from
-     *      the \`flags\` option. Pass \`{ flags: 'w' }\` (or \`'a'\`) to create a write stream.
+     *     /*! @description The class behind createWriteStream
+     *
+     *      \`new fs.WriteStream(path[, options])\` opens the file for writing and defaults to
+     *      \`flags: 'w'\`, so the file is created when it does not exist - the same default Node's
+     *      WriteStream has. Pass \`{ flags: 'a' }\` to append instead.
+     *
+     *      \`fs.WriteStream\` is a subclass of \`fs.ReadStream\`, not a separate native class: fibjs
+     *      opens a file descriptor whose direction comes from \`flags\`, so one implementation
+     *      serves both. The subclass exists to supply the write default, which the native
+     *      constructor cannot know; \`new fs.WriteStream(p) instanceof fs.ReadStream\` is therefore
+     *      true, while \`fs.WriteStream !== fs.ReadStream\`.
      *
      *      Example — open a file for writing:
      *      \`\`\`JavaScript
      *      const fs = require('fs');
      *
-     *      const out = new fs.WriteStream('/tmp/fibjs-write-stream.txt', { flags: 'w' });
+     *      const out = new fs.WriteStream('/tmp/fibjs-write-stream.txt');
      *      out.write(Buffer.from('hello'));
      *      out.close();
      *      \`\`\`
@@ -89454,8 +89467,10 @@ declare module 'fs/promises' {
      * @description The file stream class behind createReadStream and createWriteStream
      *
      *      \`new fs.ReadStream(path[, options])\` opens the file for reading and builds the same
-     *      stream \`createReadStream\` returns, and \`new fs.ReadStream(path, options)\` with a
-     *      \`start\`/\`end\` range behaves like the range form. The class exists because packages
+     *      stream \`createReadStream\` returns. A \`start\` option is supported; \`end\` is not, and
+     *      passing one throws ERR_INVALID_ARG_VALUE - use \`createReadStream(path, {start, end})\`
+     *      when a range is needed, since that form returns a RangeStream view. The class exists
+     *      because packages
      *      import it by name (\`import { ReadStream } from 'node:fs'\`) and test instances with
      *      \`instanceof\`; the fibjs way to open a file stream is still \`openFile\`,
      *      \`createReadStream\` or \`createWriteStream\`.
@@ -89478,14 +89493,23 @@ declare module 'fs/promises' {
      * @description The alias of the FileStream class used by createWriteStream
      *
      *      \`new fs.WriteStream(path[, options])\` opens the file for writing; it is the same
-     *      class as ReadStream, since fibjs opens a file descriptor whose direction comes from
-     *      the \`flags\` option. Pass \`{ flags: 'w' }\` (or \`'a'\`) to create a write stream.
+     *     /*! @description The class behind createWriteStream
+     *
+     *      \`new fs.WriteStream(path[, options])\` opens the file for writing and defaults to
+     *      \`flags: 'w'\`, so the file is created when it does not exist - the same default Node's
+     *      WriteStream has. Pass \`{ flags: 'a' }\` to append instead.
+     *
+     *      \`fs.WriteStream\` is a subclass of \`fs.ReadStream\`, not a separate native class: fibjs
+     *      opens a file descriptor whose direction comes from \`flags\`, so one implementation
+     *      serves both. The subclass exists to supply the write default, which the native
+     *      constructor cannot know; \`new fs.WriteStream(p) instanceof fs.ReadStream\` is therefore
+     *      true, while \`fs.WriteStream !== fs.ReadStream\`.
      *
      *      Example — open a file for writing:
      *      \`\`\`JavaScript
      *      const fs = require('fs');
      *
-     *      const out = new fs.WriteStream('/tmp/fibjs-write-stream.txt', { flags: 'w' });
+     *      const out = new fs.WriteStream('/tmp/fibjs-write-stream.txt');
      *      out.write(Buffer.from('hello'));
      *      out.close();
      *      \`\`\`

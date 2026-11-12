@@ -2840,6 +2840,53 @@ describe('fs', () => {
             });
         });
 
+        describe("WriteStream (Node.js compatibility)", () => {
+            var wsFile = path.join(homedir, 'test_write_stream_' + vmid + '.txt');
+
+            after(() => {
+                try {
+                    fs.unlink(wsFile);
+                } catch (e) {}
+            });
+
+            it("creates the file it writes to", () => {
+                // Node's WriteStream defaults to flags 'w'; the native
+                // constructor defaults to 'r', which cannot create a file.
+                try {
+                    fs.unlink(wsFile);
+                } catch (e) {}
+
+                var out = new fs.WriteStream(wsFile);
+                out.write(Buffer.from('hello'));
+                out.close();
+
+                assert.equal(fs.readTextFile(wsFile), 'hello');
+            });
+
+            it("keeps an explicit flags value", () => {
+                fs.writeTextFile(wsFile, 'abc');
+
+                var out = new fs.WriteStream(wsFile, { flags: 'a' });
+                out.write(Buffer.from('!'));
+                out.close();
+
+                assert.equal(fs.readTextFile(wsFile), 'abc!');
+            });
+
+            it("is a distinct name but the same stream family", () => {
+                // fibjs opens one descriptor whose direction comes from flags,
+                // so the two names share an implementation; the subclass only
+                // supplies the write default. Both relationships are pinned
+                // here so neither drifts unnoticed.
+                assert.notStrictEqual(fs.WriteStream, fs.ReadStream);
+
+                var out = new fs.WriteStream(wsFile, { flags: 'a' });
+                assert.ok(out instanceof fs.WriteStream);
+                assert.ok(out instanceof fs.ReadStream);
+                out.close();
+            });
+        });
+
         describe("readdir encoding (Node.js compatibility)", () => {
             var encBase = path.join(homedir, 'test_readdir_encoding_' + vmid);
 

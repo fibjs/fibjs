@@ -79,9 +79,10 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      `new fs.ReadStream(path[, options])` and `new fs.WriteStream(path[, options])` are the
      *      Node.js class forms of `createReadStream` and `createWriteStream`; both reach this
      *      constructor, which opens the file with the `flags` option (default 'r') and positions
-     *      the stream at 0. The recognized options are `flags`, and `start` / `end` for an
-     *      inclusive read range (the range form returns a RangeStream view over this file
-     *      stream).
+     *      the stream at 0. The recognized options are `flags` and `start`; `end` is not
+     *      supported by this constructor and throws ERR_INVALID_ARG_VALUE - the inclusive range
+     *      form of `createReadStream`, which returns a RangeStream view over this file stream,
+     *      is the way to read a range.
      *
      *      A failure to open is thrown as an Error with the usual `code` (ENOENT and friends);
      *      the factory functions `createReadStream`/`createWriteStream` report the same failure
@@ -254,9 +255,10 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      `new fs.ReadStream(path[, options])` and `new fs.WriteStream(path[, options])` are the
      *      Node.js class forms of `createReadStream` and `createWriteStream`; both reach this
      *      constructor, which opens the file with the `flags` option (default 'r') and positions
-     *      the stream at 0. The recognized options are `flags`, and `start` / `end` for an
-     *      inclusive read range (the range form returns a RangeStream view over this file
-     *      stream).
+     *      the stream at 0. The recognized options are `flags` and `start`; `end` is not
+     *      supported by this constructor and throws ERR_INVALID_ARG_VALUE - the inclusive range
+     *      form of `createReadStream`, which returns a RangeStream view over this file stream,
+     *      is the way to read a range.
      *
      *      A failure to open is thrown as an Error with the usual `code` (ENOENT and friends);
      *      the factory functions `createReadStream`/`createWriteStream` report the same failure
