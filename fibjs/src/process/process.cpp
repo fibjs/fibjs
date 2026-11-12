@@ -522,6 +522,23 @@ result_t process_base::uptime(double& retVal)
     return result_t();
 }
 
+result_t process_base::constrainedMemory(double& retVal)
+{
+    uint64_t limit = uv_get_constrained_memory();
+
+    // A cgroup with no limit configured holds the "unlimited" sentinel
+    // (0x7FFFFFFFFFFFF000 on cgroup v1) and 0 means the limit could not be read
+    // at all. Neither is a limit, so both report "no constraint" the way Node.js
+    // does: 2^64, the largest value a double represents exactly. A finite limit
+    // stays a whole number of bytes, which a double holds up to 2^53.
+    if (limit == 0 || limit >= (uint64_t)0x7FFFFFFFFFFFF000ULL)
+        retVal = 18446744073709551616.0;
+    else
+        retVal = (double)limit;
+
+    return result_t();
+}
+
 static exlib::string s_cwd;
 static exlib::spinlock s_cwd_lock;
 

@@ -108862,6 +108862,30 @@ declare module 'process' {
     function memoryUsage(): FIBJS.GeneralObject;
 
     /**
+     * @description Reports the memory limit of the current process
+     *
+     *      The value is the memory limit the process runs under, read from the cgroup
+     *      it belongs to, and it is the number to compare against when deciding how
+     *      much work fits. A process without a limit reports 2^64 - the value doubles
+     *      represent exactly, and the same answer Node.js gives - because there is no
+     *      finite limit to report and 0 would read as "no memory at all".
+     *
+     *      Only a cgroup limit is read: a plain process outside any container has none,
+     *      so it reports 2^64 rather than the physical memory of the machine.
+     *
+     *      Example — log the limit next to the current usage:
+     *      \`\`\`JavaScript
+     *      const process = require('process');
+     *
+     *      console.log(process.constrainedMemory()); // 18446744073709552000, no limit
+     *      \`\`\`
+     *
+     *      @return the memory limit in bytes, 2^64 when there is none
+     *
+     */
+    function constrainedMemory(): number;
+
+    /**
      * @description Queries the resource usage report of the current process
      *
      *      The report maps the operating system rusage counters: CPU times are in microseconds,

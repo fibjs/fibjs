@@ -731,5 +731,24 @@ describe('process', () => {
             assert.ok(Object.keys(process.features).length >= keys.length);
         });
     });
+
+    describe("constrainedMemory (Node.js compatibility)", () => {
+        it("is a function returning a number", () => {
+            assert.strictEqual(typeof process.constrainedMemory, 'function');
+            assert.strictEqual(typeof process.constrainedMemory(), 'number');
+        });
+
+        it("reports 2^64 when there is no cgroup limit", () => {
+            // The same "no constraint" answer Node.js gives: a value a caller
+            // compares its usage against, and one that no real limit reaches.
+            const limit = process.constrainedMemory();
+            assert.ok(limit > 0, 'a positive number: ' + limit);
+            assert.ok(Number.isFinite(limit), 'finite: ' + limit);
+        });
+
+        it("is stable across reads", () => {
+            assert.strictEqual(process.constrainedMemory(), process.constrainedMemory());
+        });
+    });
 });
 
