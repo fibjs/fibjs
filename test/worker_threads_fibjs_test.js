@@ -30,6 +30,27 @@ let h2Port = 0;
 let ssePort = 0;
 let previousHardTerminateEnv;
 
+// 下面几条「必须收敛」的用例共用的看门狗预算。它是**快速失败**的护栏，不是功能
+// 超时：原生硬件上计算型 worker 从 terminate() 到 exit 实测只要 45-56ms（8 路
+// CPU 争抢下 ~150ms），5s 已经是一百倍余量。
+//
+// android arm64 的 CI 跑在 qemu 用户态模拟下（见 .github/workflows/test.sh）：
+// 同一套用例在模拟环境要 20-40 分钟，原生只要 8-12 分钟，而这种 JIT 密集的死循环
+// 还要更慢，并且要和套件里其余部分抢同一个模拟 CPU。于是 5s 在这里只剩一百多毫秒
+// 的等效预算，一个「只是慢」的 worker 就会被判成 "terminate() did not settle"。
+// 因此只在模拟环境放宽，原生侧保持快速失败；与文件里 iOS 用 20s 的既有做法一致。
+// 本地排查可用 FIBJS_WORKER_SETTLE_TIMEOUT 覆盖。
+const settleBudgetMs = (() => {
+    const override = +(process.env.FIBJS_WORKER_SETTLE_TIMEOUT || 0);
+    if (override > 0)
+        return override;
+    if (process.platform === 'android' || process.env.QEMU_LD_PREFIX)
+        return 30000;
+    if (process.platform === 'ios')
+        return 20000;
+    return 5000;
+})();
+
 function doneOnce(done) {
     let finished = false;
 
@@ -125,7 +146,7 @@ function terminateBusyWorker(bodyLines, done) {
     let sawReady = false;
     const guard = setTimeout(() => finish(new Error(sawReady
         ? 'terminate() did not settle: worker stuck in a compute loop'
-        : 'worker never reported ready')), 5000);
+        : 'worker never reported ready')), settleBudgetMs);
     const worker = new Worker([
         'const { parentPort } = require("worker_threads");',
         'parentPort.postMessage("ready");'
@@ -1769,7 +1790,7 @@ describe('worker_threads fibjs target behavior', () => {
 
     it('terminates a worker stuck in a JS busy loop', (ctx, done) => {
         const finish = doneOnce(done);
-        const guard = setTimeout(() => finish(new Error('terminate() did not settle: worker still in busy loop')), 5000);
+        const guard = setTimeout(() => finish(new Error('terminate() did not settle: worker still in busy loop')), settleBudgetMs);
         const worker = new globalThis.Worker([
             'const { parentPort } = require("worker_threads");',
             'parentPort.postMessage("looping");',
@@ -1801,7 +1822,7 @@ describe('worker_threads fibjs target behavior', () => {
 
     it('terminates a worker blocked in Atomics.wait', (ctx, done) => {
         const finish = doneOnce(done);
-        const guard = setTimeout(() => finish(new Error('terminate() did not settle: worker still in Atomics.wait')), 5000);
+        const guard = setTimeout(() => finish(new Error('terminate() did not settle: worker still in Atomics.wait')), settleBudgetMs);
         const worker = new globalThis.Worker([
             'const { parentPort } = require("worker_threads");',
             'parentPort.postMessage("waiting");',
@@ -2061,7 +2082,7 @@ describe('worker_threads fibjs target behavior', () => {
     it('terminates a worker while it is awaiting an ESM module load', (ctx, done) => {
         const finish = doneOnce(done);
         const guard = setTimeout(
-            () => finish(new Error('terminate() did not settle: worker parked in module loading')), 5000);
+            () => finish(new Error('terminate() did not settle: worker parked in module loading')), settleBudgetMs);
         const moduleFile = path.join(fixtureRoot, 'slow-module.mjs');
         fs.writeFileSync(moduleFile, [
             'await new Promise((resolve) => setTimeout(resolve, 400));',
@@ -2190,7 +2211,7 @@ describe('worker_threads fibjs target behavior', () => {
 
         const watchdog = setTimeout(() => {
             settle(new Error('parent process did not exit while only an unref()ed worker was left'));
-        }, 5000);
+        }, settleBudgetMs);
 
         child.stdout.on('data', (data) => {
             stdout += data.toString();
@@ -2322,7 +2343,7 @@ describe('worker_threads fibjs target behavior', () => {
 
         const watchdog = setTimeout(() => {
             settle(new Error('parent process did not exit after beforeExit re-armed new work'));
-        }, process.platform === 'ios' ? 20000 : 5000);
+        }, settleBudgetMs);
 
         child.stdout.on('data', (data) => {
             stdout += data.toString();
