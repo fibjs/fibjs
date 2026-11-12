@@ -39,11 +39,14 @@
    input, which matters for the streaming forms.
  - **Compression level**: accepted as an integer or as `{ level }`. `DEFAULT_COMPRESSION`
    (-1) balances speed and ratio, 0 stores without compressing, 1 is the fastest and 9
-   gives the smallest output. The one-shot functions and `createZip` clamp out-of-range
-   values, but the codec constructors pass them to zlib unchanged: an invalid level,
-   windowBits, memLevel or strategy leaves the codec closed and the first `_processChunk`
-   throws ERR_ZLIB_BINDING_CLOSED. A higher level costs CPU time and memory, and the gain
-   shrinks as the level rises.
+   gives the smallest output. An out-of-range level throws a RangeError with code
+   `ERR_OUT_OF_RANGE` - from the one-shot functions and from the codec constructors
+   alike - rather than being clamped, so a mistyped level is reported instead of
+   quietly producing a different stream. `createZip` is the exception: its `level` is
+   an integer parameter and the stream is built with it clamped, because a constructor
+   has no way to report a failure. An invalid windowBits, memLevel or strategy leaves
+   the codec closed and the first `_processChunk` throws ERR_ZLIB_BINDING_CLOSED. A
+   higher level costs CPU time and memory, and the gain shrinks as the level rises.
  - **Flush modes and streaming**: the codec classes and the stream wrappers expose the
    zlib flush flags. `Z_NO_FLUSH` (0) absorbs input and emits only what is convenient, so
    a call may return an empty Buffer; `Z_SYNC_FLUSH` (2) emits everything produced so far
@@ -300,8 +303,8 @@ module zlib
      The returned stream is write-only: feed the gzip data with `write` and call `close`
      when the input ends. `maxSize` limits the total number of decompressed bytes; the
      default -1 means no limit and exceeding it throws a RangeError [20013]. Corrupt or
-     non-gzip input fails with `Z_DATA_ERROR`, and input that ends early is decoded up to
-     its last complete output without an error.
+     non-gzip input fails with `Z_DATA_ERROR`, and input that ends before the gzip
+     trailer fails with `Z_BUF_ERROR` instead of returning the partial output.
 
      @param to the destination stream that receives the decompressed data; omit it to write into
      an internal memory stream
@@ -356,7 +359,8 @@ module zlib
 
      `data` may be a Buffer or a string; a string is encoded as utf8. The level is either
      an integer or an options object read as `{ level }`; the default is
-     DEFAULT_COMPRESSION (-1) and values outside the -1..9 range are clamped. The result
+     DEFAULT_COMPRESSION (-1), and a value outside the -1..9 range throws a RangeError
+     with code `ERR_OUT_OF_RANGE`. The result
      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
      `inflate` or `unzip` decode it. Other options are ignored, and secrets are not
      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
@@ -388,7 +392,8 @@ module zlib
      `data` may be a Buffer, a source Stream (copied to its end) or a string (encoded as
      utf8). `stm` receives the compressed bytes at its current position and is left at the
      end, so rewind it before reading. The level must be an integer (an options object is
-     a TypeError) and is clamped to -1..9. The call finishes the stream with Z_FINISH, so
+     a TypeError) and must be in the -1..9 range; a value outside it throws a
+     RangeError with code `ERR_OUT_OF_RANGE`. The call finishes the stream with Z_FINISH, so
      no separate `close` is needed, and it returns no value.
 
      Example — compress into a memory stream and decode it:
@@ -471,7 +476,8 @@ module zlib
 
      `data` may be a Buffer or a string (encoded as utf8). `options` must be an object and
      only `{ level }` is read, so `zlib.gzip(data, 9)` is a TypeError; the default is
-     DEFAULT_COMPRESSION and the value is clamped to -1..9. The result is a gzip container
+     DEFAULT_COMPRESSION, and a value outside the -1..9 range throws a RangeError
+     with code `ERR_OUT_OF_RANGE`. The result is a gzip container
      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
      same input and level produce the same bytes in this build. Decode it with `gunzip` or
      `unzip`; `inflate` rejects it. The second argument is the options object; a `dictionary`
@@ -516,8 +522,8 @@ module zlib
      object read as `{ maxOutputLength }`; the default is -1 (no limit) and exceeding it
      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
      members are decoded as a single output; bytes after the last member that are not
-     another valid member fail with `Z_DATA_ERROR`. Truncated input is decoded up to its
-     last complete output without an error, and a zero-byte result is null.
+     another valid member fail with `Z_DATA_ERROR`. Truncated input fails with
+     `Z_BUF_ERROR`, and a zero-byte result is an empty Buffer rather than null.
 
      Example — concatenated members form one output:
      ```JavaScript
@@ -573,7 +579,8 @@ module zlib
 
      `data` may be a Buffer or a string (encoded as utf8). The level handling is the same
      as `deflate`: an integer or an options object read as `{ level }`, default
-     DEFAULT_COMPRESSION, clamped to -1..9. Raw deflate carries no header and no
+     DEFAULT_COMPRESSION, and a value outside the -1..9 range throws a RangeError
+     with code `ERR_OUT_OF_RANGE`. Raw deflate carries no header and no
      checksum, which makes the output smaller than the zlib form and is what protocols
      such as WebSocket permessage-deflate embed; only `inflateRaw` decodes it. The result
      has no identifiable magic bytes, so it cannot be recognized by `unzip`.
@@ -598,7 +605,8 @@ module zlib
      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8). `stm`
      receives the raw deflate bytes at its current position and is left at the end, so
      rewind it before reading. The level must be an integer (an options object is a
-     TypeError) and is clamped to -1..9; the stream is finished before the call returns.
+     TypeError) and must be in the -1..9 range; a value outside it throws a
+     RangeError with code `ERR_OUT_OF_RANGE`; the stream is finished before the call returns.
 
      Example — compress a source stream into a memory stream:
      ```JavaScript
@@ -628,8 +636,8 @@ module zlib
      an options object read as `{ maxOutputLength }`; the default is -1 (no limit) and
      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
      zlib-format data fails with `Z_DATA_ERROR` here (use `inflate`), gzip data with
-     `gunzip`. Truncated input is decoded up to its last complete output without an error
-     and corrupt data fails with `Z_DATA_ERROR`; a zero-byte result is null.
+     `gunzip`. Truncated input fails with `Z_BUF_ERROR`
+     and corrupt data fails with `Z_DATA_ERROR`; a zero-byte result is an empty Buffer.
 
      Example — decode raw data and reject the wrapped formats:
      ```JavaScript
@@ -687,7 +695,8 @@ module zlib
      Kept for compatibility: in this build `createZip` produces the same zlib-format bytes
      as `createDeflate`, so the consumers of either stream are interchangeable. Unlike
      `createDeflate` it accepts a compression level, which is clamped to the -1..9 range
-     like the one-shot functions. The returned stream is write-only with the usual
+     because a constructor parameter cannot report a failure; the codec classes
+     (`Deflate`, `Gzip`, ...) throw instead when their `options.level` is out of range. The returned stream is write-only with the usual
      write/flush/close contract; it is unrelated to the `zip` archive module.
 
      @param to the destination stream that receives the compressed data; omit it to write into
@@ -719,7 +728,8 @@ module zlib
      Compatibility alias of `deflate`: in this build both produce the same zlib-format
      stream, so the result decodes with `inflate` or `unzip` (raw deflate is not what this
      member writes). The level handling is the same as `deflate` (an integer or an options
-     object read as `{ level }`, default DEFAULT_COMPRESSION, clamped). Older fibjs code
+     object read as `{ level }`, default DEFAULT_COMPRESSION; a value outside -1..9 throws
+     a RangeError with code `ERR_OUT_OF_RANGE`). Older fibjs code
      uses this name; the archive format handled by the `zip` module is unrelated.
 
      Example — zip output is a deflate stream:
@@ -742,7 +752,8 @@ module zlib
      Alias of `deflateTo`: `data` may be a Buffer, a source Stream (copied to its end) or
      a string (utf8), and `stm` receives the zlib-format bytes at its current position and
      is left at the end, so rewind it before reading. The level must be an integer and is
-     clamped to -1..9; the stream is finished before the call returns. The result is
+     in the -1..9 range; a value outside it throws a RangeError with code
+     `ERR_OUT_OF_RANGE`, and the stream is finished before the call returns. The result is
      identical to the one `deflateTo` produces.
 
      @param data the data to compress
