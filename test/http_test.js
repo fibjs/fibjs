@@ -794,7 +794,7 @@ describe("http", () => {
             for (var i = 0; i < cases.length; i++)
                 assert.deepEqual(parse(cases[i][1]), copyCookie(cases[i][0]));
 
-            // malformed cookie text -> HttpCookie error (CALL_E_EXCEPTION, 20024)
+            // malformed cookie text -> HttpCookie error (CALL_E_INVALID_DATA, 20011)
             assert.throws(() => {
                 new http.Cookie().parse("");
             }, { number: 20011 });
@@ -988,7 +988,7 @@ describe("http", () => {
             ];
 
             function readreq(u) {
-                // malformed request text -> HttpMessage error (20024)
+                // malformed request text -> HttpMessage error (20011)
                 assert.throws(() => {
                     get_request(u);
                 }, { number: 20011 });
@@ -998,7 +998,7 @@ describe("http", () => {
         });
 
         it("bad response", () => {
-            // malformed response text -> HttpMessage error (20024)
+            // malformed response text -> HttpMessage error (20011)
             assert.throws(() => {
                 get_response("HTTP/1.0\r\n\r\n");
             }, { number: 20011 });
@@ -1427,7 +1427,7 @@ describe("http", () => {
             })
 
             it('more then max size', () => {
-                // body larger than maxBodySize -> HttpMessage error (20024)
+                // body larger than maxBodySize -> HttpMessage error (20011)
                 assert.throws(() => {
                     get_response(get_data(1024 * 1024 + 1), {
                         maxBodySize: 1
@@ -1511,7 +1511,7 @@ describe("http", () => {
 
         var req = new http.Request();
 
-        // json() without a json content type -> HttpMessage error (20024)
+        // json() without a json content type -> HttpMessage error (20011)
         assert.throws(() => {
             req.json();
         }, { number: 20011 });
@@ -1620,7 +1620,7 @@ describe("http", () => {
 
         var req = new http.Request();
 
-        // pack() without an msgpack content type -> HttpMessage error (20024)
+        // pack() without an msgpack content type -> HttpMessage error (20011)
         assert.throws(() => {
             req.pack();
         }, { number: 20011 });
@@ -3319,7 +3319,7 @@ describe("http", () => {
                 assert.equal(http.requestSync("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").text(),
                     "/request");
 
-                // redirect loop -> TypeError from HttpClient (20024)
+                // redirect loop -> TypeError from HttpClient (20011)
                 assert.throws(() => {
                     http.requestSync("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect1")
                 }, { name: 'TypeError', number: 20011 });

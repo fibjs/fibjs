@@ -163,8 +163,8 @@ describe('the RTC parameter unions', () => {
     }
 
     it('the RTC members convert an init object in every call form', () => {
-        // 20024 is the domain error of a connection with nothing to
-        // negotiate; 20005 would mean the object was not converted
+        // the connection has nothing to negotiate, so the call fails; 20005
+        // would mean the init object was not converted at all
         function assertConverted(err) {
             assert.ok(err, 'the call should fail on the empty connection');
             assert.notEqual(err.number, 20005, 'the init object must not be a type mismatch');
