@@ -605,6 +605,75 @@ declare module 'crypto/promises' {
     function randomUUID(options?: FIBJS.GeneralObject): string;
 
     /**
+     * @description Generates a cryptographically secure random integer in a range
+     *
+     *      The result is drawn from the same CSPRNG as randomBytes and lies in
+     *      `[min, max)`: `max` is exclusive, `min` is inclusive. Both bounds must be
+     *      whole numbers (a fractional value throws a type error rather than being
+     *      truncated), and `max` must be greater than `min` - an empty or reversed range
+     *      throws RangeError. Negative ranges work, so `randomInt(-5, -1)` answers -5 to
+     *      -2.
+     *
+     *      The draw is unbiased: values that would fall outside a whole multiple of the
+     *      range are rejected and drawn again, which is why the result is safe to use for
+     *      indices and tokens.
+     *
+     *      Example — draw from a range and simulate a die:
+     *      ```JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      console.log(crypto.randomInt(1, 7) >= 1); // true, a die roll
+     *      ```
+     *
+     *      @param max the exclusive upper bound, with 0 as the inclusive lower bound
+     *      @return a random integer in [0, max)
+     *
+     */
+    function randomInt(max: number): number;
+
+    /**
+     * @description Generates a cryptographically secure random integer in a range
+     *
+     *      Same draw as the single-argument form, with both bounds given: the result lies
+     *      in `[min, max)`, `min` included and `max` excluded, and both must be whole
+     *      numbers.
+     *
+     *      Example — a range that starts below zero:
+     *      ```JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      const v = crypto.randomInt(-5, -1); // -5 to -2
+     *      console.log(v >= -5 && v < -1);    // true
+     *      ```
+     *
+     *      @param min the inclusive lower bound
+     *      @param max the exclusive upper bound
+     *      @return a random integer in [min, max)
+     *
+     */
+    function randomInt(min: number, max: number): number;
+
+    /**
+     * @description Reports whether the runtime is running in FIPS mode
+     *
+     *      Always 0: OpenSSL is not built with the FIPS provider here, and there is no
+     *      switch to turn the mode on, so this is a truthful answer rather than a stub.
+     *      Node.js returns 1 there when the process was started with --enable-fips; fibjs
+     *      has no counterpart to that flag.
+     *
+     *      Example — check before assuming FIPS-approved algorithms:
+     *      ```JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      console.log(crypto.getFips()); // 0
+     *      ```
+     *
+     *      @return 0 when FIPS mode is off, 1 when it is on
+     *
+     */
+    function getFips(): number;
+
+    /**
      * @description Generates a new asymmetric key pair of the given type
      *
      *      The supported types are 'rsa', 'rsa-pss', 'dsa', 'ec', 'ed25519', 'ed448',

@@ -157,6 +157,9 @@ public:
     static result_t randomFill(Union_randomFill_buffer buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t getRandomValues(v8::Local<v8::TypedArray> data, v8::Local<v8::TypedArray>& retVal);
     static result_t randomUUID(v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t randomInt(double max, double& retVal);
+    static result_t randomInt(double min, double max, double& retVal);
+    static result_t getFips(int32_t& retVal);
     static result_t generateKeyPair(exlib::string type, v8::Local<v8::Object> options, obj_ptr<GenerateKeyPairType>& retVal, AsyncHandle ac);
     static result_t hkdf(exlib::string algoName, Union_hkdf_password password, Union_hkdf_salt salt, Union_hkdf_info info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
@@ -208,6 +211,8 @@ public:
     static void s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getRandomValues(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomUUID(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_randomInt(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getFips(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_generateKeyPair(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -279,6 +284,8 @@ inline ClassInfo& crypto_base::class_info()
         { "randomFill", s_static_randomFill, true, ClassData::ASYNC_ASYNC },
         { "getRandomValues", s_static_getRandomValues, true, ClassData::ASYNC_SYNC },
         { "randomUUID", s_static_randomUUID, true, ClassData::ASYNC_SYNC },
+        { "randomInt", s_static_randomInt, true, ClassData::ASYNC_SYNC },
+        { "getFips", s_static_getFips, true, ClassData::ASYNC_SYNC },
         { "generateKeyPair", s_static_generateKeyPair, true, ClassData::ASYNC_ASYNC },
         { "hkdf", s_static_hkdf, true, ClassData::ASYNC_ASYNC },
         { "pbkdf2", s_static_pbkdf2, true, ClassData::ASYNC_ASYNC },
@@ -673,6 +680,41 @@ inline void crypto_base::s_static_randomUUID(const v8::FunctionCallbackInfo<v8::
     OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
 
     hr = randomUUID(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_randomInt(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    double vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER_NAMED(1, 1, "max");
+
+    ARG_NAMED(double, 0, "max");
+
+    hr = randomInt(v0, vr);
+
+    METHOD_OVER_NAMED(2, 2, "max");
+
+    ARG_NAMED(double, 0, "min");
+    ARG_NAMED(double, 1, "max");
+
+    hr = randomInt(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_getFips(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getFips(vr);
 
     METHOD_RETURN();
 }

@@ -330,6 +330,67 @@ const publicJwk = { kty: jwk.kty, e: jwk.e, n: jwk.n };
 
 describe('crypto', () => {
 
+    describe("randomInt", () => {
+        it("returns 0 when the range holds a single value", () => {
+            assert.strictEqual(crypto.randomInt(1), 0);
+        });
+
+        it("stays inside [min, max)", () => {
+            for (let i = 0; i < 500; i++) {
+                const v = crypto.randomInt(2, 5);
+                assert.ok(Number.isInteger(v), 'an integer: ' + v);
+                assert.ok(v >= 2 && v < 5, 'in range: ' + v);
+            }
+        });
+
+        it("stays inside a negative range", () => {
+            for (let i = 0; i < 500; i++) {
+                const v = crypto.randomInt(-5, -1);
+                assert.ok(v >= -5 && v < -1, 'in range: ' + v);
+            }
+        });
+
+        it("covers a range wider than 32 bits", () => {
+            const v = crypto.randomInt(0, Math.pow(2, 40));
+            assert.ok(Number.isInteger(v) && v >= 0 && v < Math.pow(2, 40));
+        });
+
+        it("rejects an empty or reversed range", () => {
+            for (const args of [[0], [1, 1], [5, 2]]) {
+                assert.throws(() => crypto.randomInt(...args), (e) => {
+                    assert.strictEqual(e.code, 'ERR_OUT_OF_RANGE');
+                    return true;
+                });
+            }
+        });
+
+        it("rejects a fractional bound instead of truncating it", () => {
+            assert.throws(() => crypto.randomInt(1.5), (e) => {
+                assert.strictEqual(e.code, 'ERR_INVALID_ARG_TYPE');
+                return true;
+            });
+            assert.throws(() => crypto.randomInt(1, 2.5));
+        });
+
+        it("accepts both call forms", () => {
+            assert.ok(crypto.randomInt(5) >= 0);
+            assert.ok(crypto.randomInt(0, 5) >= 0);
+        });
+
+        it("coerces a numeric string, as every Number parameter does", () => {
+            // the module-wide convention for Number parameters (bStrict stays
+            // false), which Node.js does not share for this member
+            assert.strictEqual(crypto.randomInt('1'), 0);
+        });
+    });
+
+    describe("getFips", () => {
+        it("reports FIPS mode as off", () => {
+            assert.strictEqual(crypto.getFips(), 0);
+            assert.strictEqual(typeof crypto.getFips(), 'number');
+        });
+    });
+
     // A String parameter goes through the lenient pass: a Buffer is its utf8
     // text, a Date its ISO text, and a plain object converts only when it
     // carries its own toString(); numbers, arrays, typed arrays and plain
