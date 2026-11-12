@@ -487,6 +487,18 @@
             "member": "getMaxListeners",
             "param": "event",
             "reason": "Node answers the same limit for every event name; the parameter exists so the extra argument is accepted instead of rejected (plans/node-compat-round2-2026-11-08.md R1)"
+        },
+        {
+            "def": "http",
+            "member": "validateHeaderName",
+            "param": "name",
+            "reason": "a header name is never obtained by conversion: any non-string must be rejected with ERR_INVALID_HTTP_TOKEN, so the original value is the only thing that can be judged (Node parity, plan section 4)"
+        },
+        {
+            "def": "http",
+            "member": "validateHeaderValue",
+            "param": "value",
+            "reason": "a header value is judged by what it is, not by what it converts to: undefined must fail with ERR_HTTP_INVALID_HEADER_VALUE while null and numbers are accepted (Node parity, plan section 4)"
         }
     ]
 }

@@ -104,6 +104,77 @@ describe("http", () => {
 
     after(test_util.cleanup);
 
+    describe("validateHeaderName / validateHeaderValue", () => {
+        var code = (fn) => {
+            try {
+                fn();
+                return 'ok';
+            } catch (e) {
+                return e.code;
+            }
+        };
+
+        it("accepts a valid token", () => {
+            assert.strictEqual(code(() => http.validateHeaderName('x-a')), 'ok');
+            assert.strictEqual(code(() => http.validateHeaderName("!#$%&'*+-.^_`|~")), 'ok');
+        });
+
+        it("rejects a name with a separator", () => {
+            assert.strictEqual(code(() => http.validateHeaderName('x a')), 'ERR_INVALID_HTTP_TOKEN');
+            assert.strictEqual(code(() => http.validateHeaderName('x:y')), 'ERR_INVALID_HTTP_TOKEN');
+            assert.strictEqual(code(() => http.validateHeaderName('x\ty')), 'ERR_INVALID_HTTP_TOKEN');
+        });
+
+        it("rejects an empty or non-ASCII name", () => {
+            assert.strictEqual(code(() => http.validateHeaderName('')), 'ERR_INVALID_HTTP_TOKEN');
+            assert.strictEqual(code(() => http.validateHeaderName('中文')), 'ERR_INVALID_HTTP_TOKEN');
+        });
+
+        it("rejects a non-string name instead of converting it", () => {
+            // "null" and "1" are valid tokens, so converting would let these pass
+            assert.strictEqual(code(() => http.validateHeaderName(null)), 'ERR_INVALID_HTTP_TOKEN');
+            assert.strictEqual(code(() => http.validateHeaderName(1)), 'ERR_INVALID_HTTP_TOKEN');
+            assert.strictEqual(code(() => http.validateHeaderName(undefined)), 'ERR_INVALID_HTTP_TOKEN');
+        });
+
+        it("reports the value in the message", () => {
+            assert.throws(() => http.validateHeaderName('x a'),
+                /Header name must be a valid HTTP token \["x a"\]/);
+        });
+
+        it("accepts a printable value, including non-strings", () => {
+            assert.strictEqual(code(() => http.validateHeaderValue('a', 'b')), 'ok');
+            assert.strictEqual(code(() => http.validateHeaderValue('a', '')), 'ok');
+            assert.strictEqual(code(() => http.validateHeaderValue('a', 1)), 'ok');
+            assert.strictEqual(code(() => http.validateHeaderValue('a', true)), 'ok');
+            assert.strictEqual(code(() => http.validateHeaderValue('a', null)), 'ok');
+        });
+
+        it("rejects undefined with its own error code", () => {
+            assert.strictEqual(code(() => http.validateHeaderValue('a', undefined)),
+                'ERR_HTTP_INVALID_HEADER_VALUE');
+        });
+
+        it("rejects CR, LF, NUL and non-latin1", () => {
+            assert.strictEqual(code(() => http.validateHeaderValue('a', 'b\r\nc')), 'ERR_INVALID_CHAR');
+            assert.strictEqual(code(() => http.validateHeaderValue('a', 'b\nc')), 'ERR_INVALID_CHAR');
+            assert.strictEqual(code(() => http.validateHeaderValue('a', 'b\0c')), 'ERR_INVALID_CHAR');
+            assert.strictEqual(code(() => http.validateHeaderValue('a', '中文')), 'ERR_INVALID_CHAR');
+        });
+
+        it("does not make the writing paths validate", () => {
+            // the decision this batch pins: the two functions are opt-in, so
+            // existing code that stores an odd header keeps working
+            var req = new http.Request();
+            req.setHeader('bad name', 'v');
+            assert.strictEqual(req.getHeader('bad name'), 'v');
+
+            var headers = new Headers();
+            headers.set('a b', 'c');
+            assert.strictEqual(headers.get('a b'), 'c');
+        });
+    });
+
     describe("headers", () => {
         var d = new http.Request().headers;
 

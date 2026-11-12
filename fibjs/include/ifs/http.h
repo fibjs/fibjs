@@ -109,6 +109,8 @@ public:
     static result_t head(exlib::string url, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
     static result_t setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Local<v8::Function>& retVal);
     static result_t fetch(Union_fetch_request request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac);
+    static result_t validateHeaderName(v8::Local<v8::Value> name);
+    static result_t validateHeaderValue(exlib::string name, v8::Local<v8::Value> value);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -169,6 +171,8 @@ public:
     static void s_static_head(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setGlobalProxyFromEnv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_validateHeaderName(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_validateHeaderValue(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(http_base, requestSync, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
@@ -218,7 +222,9 @@ inline ClassInfo& http_base::class_info()
         { "headSync", s_static_headSync, true, ClassData::ASYNC_ASYNC },
         { "head", s_static_head, true, ClassData::ASYNC_SYNC },
         { "setGlobalProxyFromEnv", s_static_setGlobalProxyFromEnv, true, ClassData::ASYNC_SYNC },
-        { "fetch", s_static_fetch, true, ClassData::ASYNC_ASYNC }
+        { "fetch", s_static_fetch, true, ClassData::ASYNC_ASYNC },
+        { "validateHeaderName", s_static_validateHeaderName, true, ClassData::ASYNC_SYNC },
+        { "validateHeaderValue", s_static_validateHeaderValue, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -1135,5 +1141,32 @@ inline void http_base::s_static_fetch(const v8::FunctionCallbackInfo<v8::Value>&
         hr = ac_fetch(v0, v1, vr);
 
     ASYNC_METHOD_RETURN();
+}
+
+inline void http_base::s_static_validateHeaderName(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER_NAMED(1, 1, "name");
+
+    ARG_NAMED(v8::Local<v8::Value>, 0, "name");
+
+    hr = validateHeaderName(v0);
+
+    METHOD_VOID();
+}
+
+inline void http_base::s_static_validateHeaderValue(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER_NAMED(2, 2, "value");
+
+    ARG_NAMED(exlib::string, 0, "name");
+    ARG_NAMED(v8::Local<v8::Value>, 1, "value");
+
+    hr = validateHeaderValue(v0, v1);
+
+    METHOD_VOID();
 }
 }

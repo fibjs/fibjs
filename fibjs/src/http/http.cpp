@@ -17,6 +17,7 @@
 #include "HttpClient.h"
 #include "BufferedStream.h"
 #include "union_helpers.h"
+#include "HttpHeaders.h"
 #include <unordered_map>
 #include "Isolate.h"
 #include "ifs/zlib.h"
@@ -560,6 +561,16 @@ result_t http_base::fetch(Union_fetch_request request, v8::Local<v8::Object> opt
     obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac)
 {
     return get_httpClient(ac.isolate())->fetch(request, opts, retVal, std::move(ac));
+}
+
+result_t http_base::validateHeaderName(v8::Local<v8::Value> name)
+{
+    return check_header_name(name, Isolate::current());
+}
+
+result_t http_base::validateHeaderValue(exlib::string name, v8::Local<v8::Value> value)
+{
+    return check_header_value(name, value, Isolate::current());
 }
 
 result_t http_base::get_METHODS(std::vector<exlib::string>& retVal)

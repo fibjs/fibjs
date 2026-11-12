@@ -1755,6 +1755,68 @@ declare module 'http/promises' {
      */
     function fetchAsync(request: Class_HttpRequest | Class_HttpRequestPromise | string, opts?: FIBJS.GeneralObject): Promise<Class_HttpResponsePromise>;
 
+    /**
+     * @description Validates a header name without writing it anywhere
+     *
+     *      Throws when `name` is not a valid HTTP token, which is what a header name has to
+     *      be: one or more characters of the RFC 7230 token set, so no space, colon, comma,
+     *      control character or non-ASCII byte. Any non-string value is rejected the same
+     *      way, because a header name is never obtained by converting something else.
+     *
+     *      This is the validation `Node.js` exposes as http.validateHeaderName. fibjs does not
+     *      apply it in the header-writing paths (setHeader, Headers#set, the response
+     *      constructors), so it is here for code that validates input before handing it to
+     *      one of them; calling it does not make those paths stricter.
+     *
+     *      Example — reject a name before it reaches the header collection:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      http.validateHeaderName('x-request-id'); // ok
+     *      try {
+     *          http.validateHeaderName('x request id');
+     *      } catch (e) {
+     *          console.log(e.code); // ERR_INVALID_HTTP_TOKEN
+     *      }
+     *      ```
+     *
+     *      @param name the candidate header name
+     *
+     */
+    function validateHeaderName(name: any): void;
+
+    /**
+     * @description Validates a header value without writing it anywhere
+     *
+     *      Throws when `value` is undefined, or when it contains a character a header field
+     *      cannot carry: a NUL, CR or LF (the sequence CRLF would end the field and start
+     *      another) or any byte outside the latin1 range. Everything else is accepted,
+     *      including null, numbers and booleans, which are sent as their string form - the
+     *      same leniency the header-writing paths already have.
+     *
+     *      This is the validation `Node.js` exposes as http.validateHeaderValue. `name` is
+     *      only used in the error message, exactly like Node's; a bogus name does not make
+     *      the call fail, check it with validateHeaderName when both come from outside. As
+     *      with validateHeaderName, fibjs does not apply this in the writing paths.
+     *
+     *      Example — reject a value that would split the header block:
+     *      ```JavaScript
+     *      const http = require('http');
+     *
+     *      http.validateHeaderValue('x-trace', 'a b'); // ok
+     *      try {
+     *          http.validateHeaderValue('x-trace', 'a\r\nx-evil: 1');
+     *      } catch (e) {
+     *          console.log(e.code); // ERR_INVALID_CHAR
+     *      }
+     *      ```
+     *
+     *      @param name the header the value belongs to, used in the error message
+     *      @param value the candidate value
+     *
+     */
+    function validateHeaderValue(name: string, value: any): void;
+
 }
 
 
