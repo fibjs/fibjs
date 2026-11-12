@@ -700,6 +700,20 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleTypeInfo& retVal)
         return result_t();
     }
 
+    // Data and binary dependencies are not source files: their loader (the
+    // json/node/wasm ExtLoader) alone decides how they are read, so the
+    // nearest package.json "type" must not turn them into ES modules.  A
+    // package.json with "type": "module" used to make `import data from
+    // './data.json' with { type: 'json' }` compile the JSON text as an ES
+    // module body and fail on the first ':'.
+    if ((fname.length() > 5 && !qstricmp(fname.c_str() + fname.length() - 5, ".json"))
+        || (fname.length() > 5 && !qstricmp(fname.c_str() + fname.length() - 5, ".node"))
+        || (fname.length() > 5 && !qstricmp(fname.c_str() + fname.length() - 5, ".wasm"))) {
+        retVal.type = kCommonJS;
+        retVal.explicitType = true;
+        return result_t();
+    }
+
     result_t hr;
 
     while (true) {

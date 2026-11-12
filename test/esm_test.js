@@ -311,6 +311,42 @@ describe('ECMAScript modules', () => {
             assert.deepEqual(m.values, { num: 42, str: 'hello', nul: null, hasDefault: true });
         });
 
+        // A .json file is data, not source: its loader decides how it is read,
+        // so the nearest package.json "type" must never turn it into an ES
+        // module. Before the fix the JSON text was compiled as ES source and
+        // failed on the first ':'.
+        var jsonPkg = './esm_files/json_type_module/';
+
+        it("import json - the importer's package.json says type: module", async () => {
+            var m = await import(jsonPkg + 'importer.mjs');
+            assert.equal(m.fromMjs, 42);
+            assert.equal(m.namedFromMjs, 42, 'named exports must work too');
+        });
+
+        it("import json - a .js importer under type: module", async () => {
+            // The .js importer has no extension of its own to decide by, so the
+            // package.json "type": "module" applies to it - but not to the JSON
+            // it imports.
+            var m = await import(jsonPkg + 'importer.js');
+            assert.equal(m.fromJs, 42);
+            assert.equal(m.nested, true);
+        });
+
+        it("import json - dynamic import under type: module", async () => {
+            var m = await import(jsonPkg + 'dynamic.mjs');
+            assert.equal(await m.load(), 42);
+        });
+
+        it("import json - require() under type: module", () => {
+            var m = require(jsonPkg + 'requirer.cjs');
+            assert.equal(m.viaRequire, 42);
+        });
+
+        it("import json - the namespace is the parsed value under type: module", async () => {
+            var m = await import(jsonPkg + 'data.json', { with: { type: 'json' } });
+            assert.deepEqual(m.default, { answer: 42, nested: { ok: true } });
+        });
+
         it("import cjs - default is the exports object", async () => {
             // Regression: a CommonJS namespace had no `default` binding, so
             // `(await import('react')).default` was undefined while the static
