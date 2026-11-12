@@ -1477,4 +1477,205 @@ describe("zlib factory destination defaults", () => {
             assert.equal(zlib.gunzipSync(out).toString(), data.toString());
         });
     });
+
+    describe("Node.js behavioural parity", () => {
+        describe("empty input returns an empty Buffer", () => {
+            // MemoryStream::readAll reports "no bytes" as null, which leaked
+            // out of the round trip; Node.js returns an empty Buffer, so a
+            // caller writing `result.length` must not see null.
+            it("inflate", () => {
+                var v = zlib.inflateSync(zlib.deflateSync(''));
+
+                assert.ok(Buffer.isBuffer(v), 'expected a Buffer, got ' + v);
+                assert.equal(v.length, 0);
+            });
+
+            it("gunzip", () => {
+                var v = zlib.gunzipSync(zlib.gzipSync(''));
+
+                assert.ok(Buffer.isBuffer(v));
+                assert.equal(v.length, 0);
+            });
+
+            it("inflateRaw", () => {
+                var v = zlib.inflateRawSync(zlib.deflateRawSync(''));
+
+                assert.ok(Buffer.isBuffer(v));
+                assert.equal(v.length, 0);
+            });
+
+            it("unzip", () => {
+                var v = zlib.unzipSync(zlib.zipSync(''));
+
+                assert.ok(Buffer.isBuffer(v));
+                assert.equal(v.length, 0);
+            });
+        });
+
+        describe("truncated input is rejected", () => {
+            // Node.js reports Z_BUF_ERROR rather than handing back the partial
+            // output, so a cut-off message cannot be mistaken for a complete
+            // one.
+            var text = 'hello world';
+
+            it("inflate", () => {
+                var packed = zlib.deflateSync(text);
+
+                assert.throws(() => zlib.inflateSync(packed.slice(0, -4)),
+                    { code: 'Z_BUF_ERROR' });
+                assert.equal(zlib.inflateSync(packed).toString(), text,
+                    'the complete stream must still decode');
+            });
+
+            it("gunzip", () => {
+                var packed = zlib.gzipSync(text);
+
+                assert.throws(() => zlib.gunzipSync(packed.slice(0, -4)),
+                    { code: 'Z_BUF_ERROR' });
+                assert.equal(zlib.gunzipSync(packed).toString(), text);
+            });
+
+            it("inflateRaw", () => {
+                var packed = zlib.deflateRawSync(text);
+
+                assert.throws(() => zlib.inflateRawSync(packed.slice(0, -2)),
+                    { code: 'Z_BUF_ERROR' });
+                assert.equal(zlib.inflateRawSync(packed).toString(), text);
+            });
+
+            it("unzip", () => {
+                var packed = zlib.zipSync(text);
+
+                assert.throws(() => zlib.unzipSync(packed.slice(0, -4)),
+                    { code: 'Z_BUF_ERROR' });
+            });
+
+            it("leaves a partial streaming flush alone", () => {
+                // The check belongs to the finish step of a one-shot call: a
+                // stream that is only flushed has not seen the end yet, and
+                // must still hand back what it has.
+                var out = new io.MemoryStream();
+                var def = zlib.createDeflate(out);
+
+                def.write('hello');
+                def.flush();
+
+                out.rewind();
+                assert.ok(out.readAll().length > 0);
+            });
+        });
+
+        describe("out-of-range level is rejected", () => {
+            // Node.js throws ERR_OUT_OF_RANGE instead of clamping: a level the
+            // caller did not ask for silently produces a different stream.
+            it("one-shot forms", () => {
+                assert.throws(() => zlib.deflateSync('x', { level: 10 }),
+                    { code: 'ERR_OUT_OF_RANGE', name: 'RangeError' });
+                assert.throws(() => zlib.deflateSync('x', { level: -2 }),
+                    { code: 'ERR_OUT_OF_RANGE', name: 'RangeError' });
+                assert.throws(() => zlib.gzipSync('x', { level: 99 }),
+                    { code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => zlib.deflateRawSync('x', { level: 99 }),
+                    { code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => zlib.zipSync('x', { level: 99 }),
+                    { code: 'ERR_OUT_OF_RANGE' });
+            });
+
+            it("accepts the boundary values", () => {
+                assert.ok(zlib.deflateSync('x', { level: 0 }).length > 0);
+                assert.ok(zlib.deflateSync('x', { level: 9 }).length > 0);
+                assert.ok(zlib.deflateSync('x', { level: -1 }).length > 0);
+            });
+
+            it("stream forms", () => {
+                var stm = new io.MemoryStream();
+
+                assert.throws(() => zlib.deflateToSync('x', stm, 99),
+                    { code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => zlib.deflateRawToSync('x', stm, 99),
+                    { code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => zlib.zipToSync('x', stm, 99),
+                    { code: 'ERR_OUT_OF_RANGE' });
+            });
+
+            it("codec constructors", () => {
+                assert.throws(() => new zlib.Deflate({ level: 99 }),
+                    { code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => new zlib.Gzip({ level: 99 }),
+                    { code: 'ERR_OUT_OF_RANGE' });
+                assert.throws(() => new zlib.DeflateRaw({ level: 99 }),
+                    { code: 'ERR_OUT_OF_RANGE' });
+                // Node validates the option on every codec, including the
+                // inflating ones that never use it.
+                assert.throws(() => new zlib.Inflate({ level: 99 }),
+                    { code: 'ERR_OUT_OF_RANGE' });
+
+                // ...and a valid level still builds a usable codec.
+                var codec = new zlib.Gzip({ level: 9 });
+                var packed = codec._processChunk(Buffer.from('ok'),
+                    zlib.constants.Z_FINISH);
+                assert.equal(zlib.gunzipSync(packed).toString(), 'ok');
+            });
+        });
+
+        describe("maxOutputLength reports a code", () => {
+            // The error number stays fibjs's own 20013, but the code matches
+            // Node.js so `err.code` branching behaves the same on both.
+            it("carries ERR_BUFFER_TOO_LARGE", () => {
+                var packed = zlib.deflateSync('x'.repeat(1000));
+
+                assert.throws(() => zlib.inflateSync(packed, { maxOutputLength: 10 }),
+                    { code: 'ERR_BUFFER_TOO_LARGE', name: 'RangeError' });
+            });
+
+            it("keeps the historical error number", () => {
+                var packed = zlib.deflateSync('x'.repeat(1000));
+
+                assert.throws(() => zlib.inflateSync(packed, { maxOutputLength: 10 }),
+                    { number: 20013 });
+            });
+
+            it("still decodes when the limit is large enough", () => {
+                var packed = zlib.deflateSync('x'.repeat(1000));
+
+                assert.equal(zlib.inflateSync(packed, { maxOutputLength: 2000 }).length, 1000);
+            });
+        });
+    });
+
+    describe("crc32", () => {
+        it("computes the reference vector", () => {
+            // The standard CRC-32 check value for "123456789".
+            assert.equal(zlib.crc32('123456789'), 0xCBF43926);
+        });
+
+        it("returns an unsigned 32-bit value", () => {
+            var v = zlib.crc32(Buffer.from('q'));
+
+            assert.equal(typeof v, 'number');
+            assert.ok(v >= 0 && v <= 0xFFFFFFFF, 'crc32 must not be negative: ' + v);
+        });
+
+        it("is 0 for empty input", () => {
+            assert.equal(zlib.crc32(''), 0);
+            assert.equal(zlib.crc32(Buffer.alloc(0)), 0);
+        });
+
+        it("treats a string like its utf8 buffer", () => {
+            assert.equal(zlib.crc32('héllo'), zlib.crc32(Buffer.from('héllo', 'utf8')));
+        });
+
+        it("accumulates over chunks", () => {
+            var a = Buffer.from('hello ');
+            var b = Buffer.from('world');
+
+            assert.equal(zlib.crc32(b, zlib.crc32(a)),
+                zlib.crc32(Buffer.concat([a, b])));
+        });
+
+        it("seeds from the default value", () => {
+            assert.equal(zlib.crc32('abc'), zlib.crc32('abc', 0));
+        });
+    });
+
 });

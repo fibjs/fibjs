@@ -8774,7 +8774,8 @@ declare namespace Class_DbConnection {
  *  such as minizlib and tar. It inherits the members of ZlibCodec.
  *
  *  Concepts:
- *  - **Options**: \`level\` (default Z_DEFAULT_COMPRESSION, not clamped), \`windowBits\`
+ *  - **Options**: \`level\` (default Z_DEFAULT_COMPRESSION; a value outside -1..9 throws a
+ *    RangeError with code \`ERR_OUT_OF_RANGE\`), \`windowBits\`
  *    (default 15; -15 selects raw deflate and 31 the gzip container), \`memLevel\` (1 to 9,
  *    default 8) and \`strategy\` (default Z_DEFAULT_STRATEGY). Unknown keys are ignored.
  *  - **Streaming**: each \`_processChunk\` call appends to the current message; Z_FINISH
@@ -8812,11 +8813,12 @@ declare class Class_Deflate extends Class_ZlibCodec {
      * @description Creates a deflate codec
      *
      *      \`opts\` may be omitted or empty. The recognized options are \`level\` (default
-     *      Z_DEFAULT_COMPRESSION, not clamped), \`windowBits\` (default 15 for the zlib format;
+     *      Z_DEFAULT_COMPRESSION; a value outside -1..9 throws a RangeError with code
+     *      \`ERR_OUT_OF_RANGE\`), \`windowBits\` (default 15 for the zlib format;
      *      -15 writes raw deflate and 31 the gzip container), \`memLevel\` (1 to 9, default 8)
-     *      and \`strategy\` (default Z_DEFAULT_STRATEGY 0). Creation never throws for a bad
-     *      option: the codec is left closed and the first \`_processChunk\` throws
-     *      ERR_ZLIB_BINDING_CLOSED.
+     *      and \`strategy\` (default Z_DEFAULT_STRATEGY 0). An option of the wrong type throws
+     *      ERR_INVALID_ARG_TYPE; otherwise creation never fails and the first \`_processChunk\`
+     *      throws ERR_ZLIB_BINDING_CLOSED only after \`close\`.
      *
      *      @param opts compression options
      *
@@ -8839,7 +8841,8 @@ declare class Class_Deflate extends Class_ZlibCodec {
  *  packages such as minizlib and tar. It inherits the members of ZlibCodec.
  *
  *  Concepts:
- *  - **Options**: \`level\` (default Z_DEFAULT_COMPRESSION, not clamped), \`windowBits\`
+ *  - **Options**: \`level\` (default Z_DEFAULT_COMPRESSION; a value outside -1..9 throws a
+ *    RangeError with code \`ERR_OUT_OF_RANGE\`), \`windowBits\`
  *    (default -15 for raw deflate; 15 selects the zlib format and 31 the gzip container),
  *    \`memLevel\` (1 to 9, default 8) and \`strategy\` (default Z_DEFAULT_STRATEGY).
  *  - **Streaming**: Z_SYNC_FLUSH produces a piece the peer can decode without ending the
@@ -8878,11 +8881,12 @@ declare class Class_DeflateRaw extends Class_ZlibCodec {
      * @description Creates a raw-deflate codec
      *
      *      \`opts\` may be omitted or empty. The recognized options are \`level\` (default
-     *      Z_DEFAULT_COMPRESSION, not clamped), \`windowBits\` (default -15 for raw deflate; 15
-     *      writes the zlib format and 31 the gzip container), \`memLevel\` (1 to 9, default 8)
-     *      and \`strategy\` (default Z_DEFAULT_STRATEGY 0). Creation never throws for a bad
-     *      option: the codec is left closed and the first \`_processChunk\` throws
-     *      ERR_ZLIB_BINDING_CLOSED.
+     *      Z_DEFAULT_COMPRESSION; a value outside -1..9 throws a RangeError with code
+     *      \`ERR_OUT_OF_RANGE\`), \`windowBits\` (default -15 for raw deflate; 15
+     *      selects the zlib format and 31 the gzip container), \`memLevel\` (1 to 9, default 8)
+     *      and \`strategy\` (default Z_DEFAULT_STRATEGY 0). An option of the wrong type throws
+     *      ERR_INVALID_ARG_TYPE; otherwise creation never fails and the first \`_processChunk\`
+     *      throws ERR_ZLIB_BINDING_CLOSED only after \`close\`.
      *
      *      @param opts compression options
      *
@@ -16648,6 +16652,38 @@ declare namespace Class_FileHandle {
  */
 declare class Class_FileStream extends Class_SeekableStream {
     /**
+     * @description Opens a file and builds a positioned stream for it
+     *
+     *      \`new fs.ReadStream(path[, options])\` and \`new fs.WriteStream(path[, options])\` are the
+     *      Node.js class forms of \`createReadStream\` and \`createWriteStream\`; both reach this
+     *      constructor, which opens the file with the \`flags\` option (default 'r') and positions
+     *      the stream at 0. The recognized options are \`flags\`, and \`start\` / \`end\` for an
+     *      inclusive read range (the range form returns a RangeStream view over this file
+     *      stream).
+     *
+     *      A failure to open is thrown as an Error with the usual \`code\` (ENOENT and friends);
+     *      the factory functions \`createReadStream\`/\`createWriteStream\` report the same failure
+     *      through an 'error' event instead, which is what Node.js does.
+     *
+     *      Example — the class form and the factory form give the same stream:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *
+     *      const a = new fs.ReadStream(__filename);
+     *      const b = fs.createReadStream(__filename);
+     *      console.log(a instanceof fs.ReadStream, a.constructor === b.constructor); // true true
+     *
+     *      a.close();
+     *      b.close();
+     *      \`\`\`
+     *
+     *      @param path the file to open
+     *      @param options open options, \`{ flags, start, end }\`
+     *
+     */
+    constructor(path: string, options?: FIBJS.GeneralObject);
+
+    /**
      * @description Queries the current file name
      *
      *      The path passed to the open function, with platform separators normalized
@@ -16790,6 +16826,38 @@ declare class Class_FileStream extends Class_SeekableStream {
  * The promise variant of the FileStream class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
 declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
+    /**
+     * @description Opens a file and builds a positioned stream for it
+     *
+     *      \`new fs.ReadStream(path[, options])\` and \`new fs.WriteStream(path[, options])\` are the
+     *      Node.js class forms of \`createReadStream\` and \`createWriteStream\`; both reach this
+     *      constructor, which opens the file with the \`flags\` option (default 'r') and positions
+     *      the stream at 0. The recognized options are \`flags\`, and \`start\` / \`end\` for an
+     *      inclusive read range (the range form returns a RangeStream view over this file
+     *      stream).
+     *
+     *      A failure to open is thrown as an Error with the usual \`code\` (ENOENT and friends);
+     *      the factory functions \`createReadStream\`/\`createWriteStream\` report the same failure
+     *      through an 'error' event instead, which is what Node.js does.
+     *
+     *      Example — the class form and the factory form give the same stream:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *
+     *      const a = new fs.ReadStream(__filename);
+     *      const b = fs.createReadStream(__filename);
+     *      console.log(a instanceof fs.ReadStream, a.constructor === b.constructor); // true true
+     *
+     *      a.close();
+     *      b.close();
+     *      \`\`\`
+     *
+     *      @param path the file to open
+     *      @param options open options, \`{ flags, start, end }\`
+     *
+     */
+    constructor(path: string, options?: FIBJS.GeneralObject);
+
     /**
      * @description Queries the current file name
      *
@@ -17303,11 +17371,12 @@ declare class Class_Gzip extends Class_ZlibCodec {
      * @description Creates a gzip codec
      *
      *      \`opts\` may be omitted or empty. The recognized options are \`level\` (default
-     *      Z_DEFAULT_COMPRESSION, not clamped, so an out-of-range value makes the codec
-     *      unusable), \`windowBits\` (default 31; 15 writes the zlib format and -15 raw deflate),
-     *      \`memLevel\` (1 to 9, default 8) and \`strategy\` (default Z_DEFAULT_STRATEGY 0). Other
-     *      keys are ignored. Creation never throws for a bad option: the codec is left closed
-     *      and the first \`_processChunk\` throws ERR_ZLIB_BINDING_CLOSED.
+     *      Z_DEFAULT_COMPRESSION; a value outside -1..9 is rejected with a RangeError whose
+     *      code is \`ERR_OUT_OF_RANGE\`), \`windowBits\` (default 31; 15 writes the zlib format and
+     *      -15 raw deflate), \`memLevel\` (1 to 9, default 8) and \`strategy\` (default
+     *      Z_DEFAULT_STRATEGY 0). Other keys are ignored. An option of the wrong type throws
+     *      ERR_INVALID_ARG_TYPE; otherwise creation never fails and the first \`_processChunk\`
+     *      throws ERR_ZLIB_BINDING_CLOSED only after \`close\`.
      *
      *      @param opts compression options
      *
@@ -70902,8 +70971,11 @@ declare namespace Class_ZipFile {
  *    message without an explicit \`reset\`.
  *  - **Constructor parameters**: \`level\` (default Z_DEFAULT_COMPRESSION, -1), \`windowBits\`
  *    (default per class: gzip 31, zlib 15, raw -15, unzip 47), \`memLevel\` (1 to 9, default 8)
- *    and \`strategy\` (default Z_DEFAULT_STRATEGY, 0) are passed to zlib unchanged, so an
- *    invalid value leaves the codec closed and the first use throws ERR_ZLIB_BINDING_CLOSED.
+ *    and \`strategy\` (default Z_DEFAULT_STRATEGY, 0) are passed to zlib unchanged. A \`level\`
+ *    outside -1..9 is rejected with a RangeError whose code is \`ERR_OUT_OF_RANGE\`, and an
+ *    option of the wrong type throws ERR_INVALID_ARG_TYPE; an invalid \`windowBits\`,
+ *    \`memLevel\` or \`strategy\` leaves the codec closed and the first use throws
+ *    ERR_ZLIB_BINDING_CLOSED.
  *    \`params(level, strategy)\` changes the parameters of a deflating codec after creation.
  *  - **Close semantics**: \`close\` releases the zlib state and is idempotent; afterwards
  *    \`_processChunk\` and \`params\` throw ERR_ZLIB_BINDING_CLOSED while \`reset\` becomes a
@@ -85306,6 +85378,7 @@ declare module 'events' {
 /// <reference path="../interface/Stat.d.ts" />
 /// <reference path="../interface/DirEntry.d.ts" />
 /// <reference path="../interface/Dir.d.ts" />
+/// <reference path="../interface/FileStream.d.ts" />
 /// <reference path="../interface/FileHandle.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
@@ -85501,6 +85574,51 @@ declare module 'fs' {
     const Dir: typeof Class_Dir;
 
     type Dir = Class_Dir;
+
+    /**
+     * @description The file stream class behind createReadStream and createWriteStream
+     *
+     *      \`new fs.ReadStream(path[, options])\` opens the file for reading and builds the same
+     *      stream \`createReadStream\` returns, and \`new fs.ReadStream(path, options)\` with a
+     *      \`start\`/\`end\` range behaves like the range form. The class exists because packages
+     *      import it by name (\`import { ReadStream } from 'node:fs'\`) and test instances with
+     *      \`instanceof\`; the fibjs way to open a file stream is still \`openFile\`,
+     *      \`createReadStream\` or \`createWriteStream\`.
+     *
+     *      Example — build a read stream directly:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *
+     *      const stm = new fs.ReadStream(__filename);
+     *      console.log(stm instanceof fs.ReadStream); // true
+     *      stm.close();
+     *      \`\`\`
+     *
+     */
+    const ReadStream: typeof Class_FileStream;
+
+    type ReadStream = Class_FileStream;
+
+    /**
+     * @description The alias of the FileStream class used by createWriteStream
+     *
+     *      \`new fs.WriteStream(path[, options])\` opens the file for writing; it is the same
+     *      class as ReadStream, since fibjs opens a file descriptor whose direction comes from
+     *      the \`flags\` option. Pass \`{ flags: 'w' }\` (or \`'a'\`) to create a write stream.
+     *
+     *      Example — open a file for writing:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *
+     *      const out = new fs.WriteStream('/tmp/fibjs-write-stream.txt', { flags: 'w' });
+     *      out.write(Buffer.from('hello'));
+     *      out.close();
+     *      \`\`\`
+     *
+     */
+    const WriteStream: typeof Class_FileStream;
+
+    type WriteStream = Class_FileStream;
 
     /**
      * @description Checks whether the given file or directory exists
@@ -88651,6 +88769,7 @@ declare module 'fs' {
 /// <reference path="../interface/Stat.d.ts" />
 /// <reference path="../interface/DirEntry.d.ts" />
 /// <reference path="../interface/Dir.d.ts" />
+/// <reference path="../interface/FileStream.d.ts" />
 /// <reference path="../interface/FileHandle.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
@@ -88738,6 +88857,51 @@ declare module 'fs/promises' {
     const Dir: typeof Class_Dir;
 
     type Dir = Class_DirPromise;
+
+    /**
+     * @description The file stream class behind createReadStream and createWriteStream
+     *
+     *      \`new fs.ReadStream(path[, options])\` opens the file for reading and builds the same
+     *      stream \`createReadStream\` returns, and \`new fs.ReadStream(path, options)\` with a
+     *      \`start\`/\`end\` range behaves like the range form. The class exists because packages
+     *      import it by name (\`import { ReadStream } from 'node:fs'\`) and test instances with
+     *      \`instanceof\`; the fibjs way to open a file stream is still \`openFile\`,
+     *      \`createReadStream\` or \`createWriteStream\`.
+     *
+     *      Example — build a read stream directly:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *
+     *      const stm = new fs.ReadStream(__filename);
+     *      console.log(stm instanceof fs.ReadStream); // true
+     *      stm.close();
+     *      \`\`\`
+     *
+     */
+    const ReadStream: typeof Class_FileStream;
+
+    type ReadStream = Class_FileStreamPromise;
+
+    /**
+     * @description The alias of the FileStream class used by createWriteStream
+     *
+     *      \`new fs.WriteStream(path[, options])\` opens the file for writing; it is the same
+     *      class as ReadStream, since fibjs opens a file descriptor whose direction comes from
+     *      the \`flags\` option. Pass \`{ flags: 'w' }\` (or \`'a'\`) to create a write stream.
+     *
+     *      Example — open a file for writing:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *
+     *      const out = new fs.WriteStream('/tmp/fibjs-write-stream.txt', { flags: 'w' });
+     *      out.write(Buffer.from('hello'));
+     *      out.close();
+     *      \`\`\`
+     *
+     */
+    const WriteStream: typeof Class_FileStream;
+
+    type WriteStream = Class_FileStreamPromise;
 
     /**
      * @description Checks whether the given file or directory exists
@@ -107580,6 +107744,43 @@ declare module 'process' {
     const versions: FIBJS.GeneralObject;
 
     /**
+     * @description Returns the runtime capabilities as a read-only object
+     *
+     *      The object mirrors Node.js \`process.features\`, so capability probes such as
+     *      \`'sea' in process.features\` or \`process.features.tls\` work unchanged: every key
+     *      Node.js documents is present and the value reports what this build actually
+     *      provides. A probe written as \`'x' in process.features\` therefore never throws, and
+     *      the keys that stand for an absent capability read \`false\` rather than \`undefined\`.
+     *
+     *      The keys are:
+     *
+     *      - \`inspector\` — whether an inspector can attach to the isolate;
+     *      - \`debug\` — whether this is a debug build of fibjs;
+     *      - \`uv\` — whether libuv drives the event loop (always true);
+     *      - \`ipv6\` — whether the bundled libuv has IPv6 support;
+     *      - \`openssl_is_boringssl\` — false, fibjs bundles OpenSSL proper;
+     *      - \`dtls\` — whether Datagram TLS is offered (not implemented, false);
+     *      - \`quic\` — whether QUIC is offered (not implemented, false);
+     *      - \`tls_alpn\`, \`tls_sni\`, \`tls_ocsp\`, \`tls\` — whether the bundled OpenSSL offers
+     *        ALPN, SNI and OCSP, and TLS itself;
+     *      - \`cached_builtins\` — whether built-in modules are compiled once and cached;
+     *      - \`require_module\` — whether \`require()\` can load an ES module;
+     *      - \`typescript\` — \`'strip'\`, \`'transform'\` or \`false\`, the TypeScript handling of
+     *        source files;
+     *      - \`sea\` — whether this binary is a single executable application.
+     *
+     *      Example — probe before using an optional capability:
+     *      \`\`\`JavaScript
+     *      const features = process.features;
+     *
+     *      if (features.typescript) console.log('typescript support:', features.typescript);
+     *      if ('sea' in features && features.sea === true) console.log('single executable');
+     *      \`\`\`
+     *
+     */
+    const features: FIBJS.GeneralObject;
+
+    /**
      * @description Queries the full path of the currently running executable file
      *
      *      The path comes from the operating system, so it is absolute even when the runner was
@@ -120187,6 +120388,8 @@ declare module "zip" {
  *  - **Codec objects**: \`Gzip\`, \`Gunzip\`, \`Deflate\`, \`Inflate\`, \`DeflateRaw\`, \`InflateRaw\`
  *    and \`Unzip\` are synchronous codec classes with explicit flush
  *    control, kept for packages such as minizlib and tar;
+ *  - **crc32**: \`crc32\` computes the checksum the gzip and zip trailers use, and can
+ *    accumulate it over chunks;
  *  - **Constants**: \`NO_COMPRESSION\`, \`BEST_SPEED\`, \`BEST_COMPRESSION\` and
  *    \`DEFAULT_COMPRESSION\`, plus the \`constants\` object with the flush flags, strategies,
  *    format identifiers and error codes.
@@ -120224,12 +120427,13 @@ declare module "zip" {
  *    (1 to 9, default 8) and \`strategy\` (\`Z_DEFAULT_STRATEGY\` 0, \`Z_FILTERED\` 1,
  *    \`Z_HUFFMAN_ONLY\` 2, \`Z_RLE\` 3, \`Z_FIXED\` 4). The options \`dictionary\`,
  *    \`chunkSize\`, \`flush\` and \`finishFlush\` are not supported.
- *  - **Results and errors**: decompressing to zero bytes returns null instead of an empty
- *    Buffer, and input that ends early is decoded up to its last complete output without an
- *    error. Wrong-format or corrupt data throws an Error
- *    with \`code\` \`Z_DATA_ERROR\` (ERR_INVALID_STATE, message "data error"); a closed codec throws
- *    ERR_ZLIB_BINDING_CLOSED; exceeding maxSize/maxOutputLength throws a RangeError
- *    (number 20013).
+ *  - **Results and errors**: decompressing to zero bytes returns an empty Buffer, and an
+ *    input that ends before its stream does fails with \`Z_BUF_ERROR\` (the end of stream was
+ *    never reached, so the output is incomplete). Wrong-format or corrupt data throws an
+ *    Error with \`code\` \`Z_DATA_ERROR\` (ERR_INVALID_STATE, message "data error"); a closed
+ *    codec throws ERR_ZLIB_BINDING_CLOSED; exceeding maxSize/maxOutputLength throws a
+ *    RangeError (number 20013) with code \`ERR_BUFFER_TOO_LARGE\`. A \`level\` outside -1..9
+ *    throws a RangeError with code \`ERR_OUT_OF_RANGE\` instead of being clamped.
  *  - **Call forms**: every \`async\` member blocks the calling fiber when called without a
  *    callback, accepts a trailing \`(err, result)\` callback, and has \`...Sync\`/\`...Async\`
  *    aliases plus a promise-returning form under \`zlib.promises\`. The codec classes are
@@ -120729,11 +120933,11 @@ declare module 'zlib' {
      *
      *      \`data\` may be a Buffer or a string (decoded as utf8). The size limit is either an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. Only zlib-format input is
-     *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
-     *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
-     *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer.
+     *      limit) and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`. Only zlib-format input is accepted: gzip or raw deflate data
+     *      fails with \`Z_DATA_ERROR\` (use \`gunzip\` or \`inflateRaw\`). Corrupt data fails with
+     *      \`Z_DATA_ERROR\`, truncated input fails with \`Z_BUF_ERROR\`, and a result of zero bytes
+     *      is an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -120764,11 +120968,11 @@ declare module 'zlib' {
      *
      *      \`data\` may be a Buffer or a string (decoded as utf8). The size limit is either an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. Only zlib-format input is
-     *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
-     *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
-     *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer.
+     *      limit) and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`. Only zlib-format input is accepted: gzip or raw deflate data
+     *      fails with \`Z_DATA_ERROR\` (use \`gunzip\` or \`inflateRaw\`). Corrupt data fails with
+     *      \`Z_DATA_ERROR\`, truncated input fails with \`Z_BUF_ERROR\`, and a result of zero bytes
+     *      is an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -120797,11 +121001,11 @@ declare module 'zlib' {
      *
      *      \`data\` may be a Buffer or a string (decoded as utf8). The size limit is either an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. Only zlib-format input is
-     *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
-     *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
-     *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer.
+     *      limit) and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`. Only zlib-format input is accepted: gzip or raw deflate data
+     *      fails with \`Z_DATA_ERROR\` (use \`gunzip\` or \`inflateRaw\`). Corrupt data fails with
+     *      \`Z_DATA_ERROR\`, truncated input fails with \`Z_BUF_ERROR\`, and a result of zero bytes
+     *      is an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -121794,8 +121998,8 @@ declare module 'zlib' {
      *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
-     *      truncated input is decoded up to its last complete output without an error.
+     *      limit) and exceeding it throws a RangeError [20013] with code \`ERR_BUFFER_TOO_LARGE\`.
+     *      A zero-byte result is an empty Buffer, and truncated input fails with \`Z_BUF_ERROR\`.
      *
      *      Example — one decompressor for both containers:
      *      \`\`\`JavaScript
@@ -121829,8 +122033,8 @@ declare module 'zlib' {
      *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
-     *      truncated input is decoded up to its last complete output without an error.
+     *      limit) and exceeding it throws a RangeError [20013] with code \`ERR_BUFFER_TOO_LARGE\`.
+     *      A zero-byte result is an empty Buffer, and truncated input fails with \`Z_BUF_ERROR\`.
      *
      *      Example — one decompressor for both containers:
      *      \`\`\`JavaScript
@@ -121862,8 +122066,8 @@ declare module 'zlib' {
      *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
-     *      truncated input is decoded up to its last complete output without an error.
+     *      limit) and exceeding it throws a RangeError [20013] with code \`ERR_BUFFER_TOO_LARGE\`.
+     *      A zero-byte result is an empty Buffer, and truncated input fails with \`Z_BUF_ERROR\`.
      *
      *      Example — one decompressor for both containers:
      *      \`\`\`JavaScript
@@ -121936,6 +122140,40 @@ declare module 'zlib' {
      *
      */
     function unzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+
+    /**
+     * @description Computes the CRC-32 (IEEE 802.3) checksum of the data
+     *
+     *      The result is the checksum as an unsigned 32-bit integer, the same value the gzip
+     *      and zip containers carry in their trailers. \`data\` may be a Buffer or a string; a
+     *      string is encoded as utf8 first, so \`crc32('abc')\` and
+     *      \`crc32(Buffer.from('abc'))\` agree.
+     *
+     *      \`value\` seeds the running checksum and defaults to 0, which is the initial value
+     *      CRC-32 starts from: \`crc32(b, crc32(a))\` equals \`crc32(Buffer.concat([a, b]))\`, so
+     *      a checksum can be accumulated over chunks without keeping them all in memory. The
+     *      value is the raw register, not its complement, so it can be fed straight back.
+     *
+     *      Example — checksum a string, then accumulate it over two chunks:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      // The reference vector for CRC-32.
+     *      console.log(zlib.crc32('123456789').toString(16)); // cbf43926
+     *
+     *      const a = Buffer.from('hello ');
+     *      const b = Buffer.from('world');
+     *      const whole = zlib.crc32(Buffer.concat([a, b]));
+     *      const parts = zlib.crc32(b, zlib.crc32(a));
+     *      console.log(whole === parts, whole.toString(16)); // true 1c291ca3
+     *      \`\`\`
+     *
+     *      @param data the data to checksum
+     *      @param value the running checksum to continue, default 0
+     *      @return the unsigned 32-bit CRC-32 checksum
+     *
+     */
+    function crc32(data: Class_Buffer | string, value?: number): number;
 
 }
 
@@ -122356,11 +122594,11 @@ declare module 'zlib/promises' {
      *
      *      \`data\` may be a Buffer or a string (decoded as utf8). The size limit is either an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. Only zlib-format input is
-     *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
-     *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
-     *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer.
+     *      limit) and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`. Only zlib-format input is accepted: gzip or raw deflate data
+     *      fails with \`Z_DATA_ERROR\` (use \`gunzip\` or \`inflateRaw\`). Corrupt data fails with
+     *      \`Z_DATA_ERROR\`, truncated input fails with \`Z_BUF_ERROR\`, and a result of zero bytes
+     *      is an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -122389,11 +122627,11 @@ declare module 'zlib/promises' {
      *
      *      \`data\` may be a Buffer or a string (decoded as utf8). The size limit is either an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. Only zlib-format input is
-     *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
-     *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
-     *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer.
+     *      limit) and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`. Only zlib-format input is accepted: gzip or raw deflate data
+     *      fails with \`Z_DATA_ERROR\` (use \`gunzip\` or \`inflateRaw\`). Corrupt data fails with
+     *      \`Z_DATA_ERROR\`, truncated input fails with \`Z_BUF_ERROR\`, and a result of zero bytes
+     *      is an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -122422,11 +122660,11 @@ declare module 'zlib/promises' {
      *
      *      \`data\` may be a Buffer or a string (decoded as utf8). The size limit is either an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. Only zlib-format input is
-     *      accepted: gzip or raw deflate data fails with \`Z_DATA_ERROR\` (use \`gunzip\` or
-     *      \`inflateRaw\`). Corrupt data fails with \`Z_DATA_ERROR\`; truncated input is decoded up
-     *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer.
+     *      limit) and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`. Only zlib-format input is accepted: gzip or raw deflate data
+     *      fails with \`Z_DATA_ERROR\` (use \`gunzip\` or \`inflateRaw\`). Corrupt data fails with
+     *      \`Z_DATA_ERROR\`, truncated input fails with \`Z_BUF_ERROR\`, and a result of zero bytes
+     *      is an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      \`\`\`JavaScript
@@ -123397,8 +123635,8 @@ declare module 'zlib/promises' {
      *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
-     *      truncated input is decoded up to its last complete output without an error.
+     *      limit) and exceeding it throws a RangeError [20013] with code \`ERR_BUFFER_TOO_LARGE\`.
+     *      A zero-byte result is an empty Buffer, and truncated input fails with \`Z_BUF_ERROR\`.
      *
      *      Example — one decompressor for both containers:
      *      \`\`\`JavaScript
@@ -123430,8 +123668,8 @@ declare module 'zlib/promises' {
      *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
-     *      truncated input is decoded up to its last complete output without an error.
+     *      limit) and exceeding it throws a RangeError [20013] with code \`ERR_BUFFER_TOO_LARGE\`.
+     *      A zero-byte result is an empty Buffer, and truncated input fails with \`Z_BUF_ERROR\`.
      *
      *      Example — one decompressor for both containers:
      *      \`\`\`JavaScript
@@ -123463,8 +123701,8 @@ declare module 'zlib/promises' {
      *      formats fail with \`Z_DATA_ERROR\`. The result is identical
      *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
      *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
-     *      truncated input is decoded up to its last complete output without an error.
+     *      limit) and exceeding it throws a RangeError [20013] with code \`ERR_BUFFER_TOO_LARGE\`.
+     *      A zero-byte result is an empty Buffer, and truncated input fails with \`Z_BUF_ERROR\`.
      *
      *      Example — one decompressor for both containers:
      *      \`\`\`JavaScript
@@ -123535,6 +123773,40 @@ declare module 'zlib/promises' {
      *
      */
     function unzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+
+    /**
+     * @description Computes the CRC-32 (IEEE 802.3) checksum of the data
+     *
+     *      The result is the checksum as an unsigned 32-bit integer, the same value the gzip
+     *      and zip containers carry in their trailers. \`data\` may be a Buffer or a string; a
+     *      string is encoded as utf8 first, so \`crc32('abc')\` and
+     *      \`crc32(Buffer.from('abc'))\` agree.
+     *
+     *      \`value\` seeds the running checksum and defaults to 0, which is the initial value
+     *      CRC-32 starts from: \`crc32(b, crc32(a))\` equals \`crc32(Buffer.concat([a, b]))\`, so
+     *      a checksum can be accumulated over chunks without keeping them all in memory. The
+     *      value is the raw register, not its complement, so it can be fed straight back.
+     *
+     *      Example — checksum a string, then accumulate it over two chunks:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      // The reference vector for CRC-32.
+     *      console.log(zlib.crc32('123456789').toString(16)); // cbf43926
+     *
+     *      const a = Buffer.from('hello ');
+     *      const b = Buffer.from('world');
+     *      const whole = zlib.crc32(Buffer.concat([a, b]));
+     *      const parts = zlib.crc32(b, zlib.crc32(a));
+     *      console.log(whole === parts, whole.toString(16)); // true 1c291ca3
+     *      \`\`\`
+     *
+     *      @param data the data to checksum
+     *      @param value the running checksum to continue, default 0
+     *      @return the unsigned 32-bit CRC-32 checksum
+     *
+     */
+    function crc32(data: Class_Buffer | string, value?: number): number;
 
 }
 

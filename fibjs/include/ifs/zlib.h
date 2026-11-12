@@ -53,6 +53,7 @@ public:
     using Union_unzip_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_unzip_maxSize = std::variant<int32_t, v8::Local<v8::Object>>;
     using Union_unzipTo_data = std::variant<obj_ptr<Buffer_base>, obj_ptr<Stream_base>, exlib::string>;
+    using Union_crc32_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
 
 public:
     enum {
@@ -88,6 +89,7 @@ public:
     static result_t zipTo(Union_zipTo_data data, Stream_base* stm, int32_t level, AsyncHandle ac);
     static result_t unzip(Union_unzip_data data, Union_unzip_maxSize maxSize, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t unzipTo(Union_unzipTo_data data, Stream_base* stm, int32_t maxSize, AsyncHandle ac);
+    static result_t crc32(Union_crc32_data data, int64_t value, int64_t& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -125,6 +127,7 @@ public:
     static void s_static_zipTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_unzip(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_unzipTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_crc32(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(zlib_base, deflate, Union_deflate_data, Union_deflate_level, obj_ptr<Buffer_base>);
@@ -184,7 +187,8 @@ inline ClassInfo& zlib_base::class_info()
         { "zip", s_static_zip, true, ClassData::ASYNC_ASYNC },
         { "zipTo", s_static_zipTo, true, ClassData::ASYNC_ASYNC },
         { "unzip", s_static_unzip, true, ClassData::ASYNC_ASYNC },
-        { "unzipTo", s_static_unzipTo, true, ClassData::ASYNC_ASYNC }
+        { "unzipTo", s_static_unzipTo, true, ClassData::ASYNC_ASYNC },
+        { "crc32", s_static_crc32, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -634,5 +638,21 @@ inline void zlib_base::s_static_unzipTo(const v8::FunctionCallbackInfo<v8::Value
         hr = ac_unzipTo(v0, v1.get(), v2);
 
     ASYNC_METHOD_VOID();
+}
+
+inline void zlib_base::s_static_crc32(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int64_t vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER_NAMED(2, 1, "data");
+
+    ARG(Union_crc32_data, 0);
+    OPT_ARG_NAMED(int64_t, 1, 0, "value");
+
+    hr = crc32(v0, v1, vr);
+
+    METHOD_RETURN();
 }
 }

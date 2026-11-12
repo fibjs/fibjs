@@ -20,8 +20,11 @@
  *    message without an explicit `reset`.
  *  - **Constructor parameters**: `level` (default Z_DEFAULT_COMPRESSION, -1), `windowBits`
  *    (default per class: gzip 31, zlib 15, raw -15, unzip 47), `memLevel` (1 to 9, default 8)
- *    and `strategy` (default Z_DEFAULT_STRATEGY, 0) are passed to zlib unchanged, so an
- *    invalid value leaves the codec closed and the first use throws ERR_ZLIB_BINDING_CLOSED.
+ *    and `strategy` (default Z_DEFAULT_STRATEGY, 0) are passed to zlib unchanged. A `level`
+ *    outside -1..9 is rejected with a RangeError whose code is `ERR_OUT_OF_RANGE`, and an
+ *    option of the wrong type throws ERR_INVALID_ARG_TYPE; an invalid `windowBits`,
+ *    `memLevel` or `strategy` leaves the codec closed and the first use throws
+ *    ERR_ZLIB_BINDING_CLOSED.
  *    `params(level, strategy)` changes the parameters of a deflating codec after creation.
  *  - **Close semantics**: `close` releases the zlib state and is idempotent; afterwards
  *    `_processChunk` and `params` throw ERR_ZLIB_BINDING_CLOSED while `reset` becomes a

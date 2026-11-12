@@ -414,11 +414,11 @@ declare module 'zlib/promises' {
      *
      *      `data` may be a Buffer or a string (decoded as utf8). The size limit is either an
      *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. Only zlib-format input is
-     *      accepted: gzip or raw deflate data fails with `Z_DATA_ERROR` (use `gunzip` or
-     *      `inflateRaw`). Corrupt data fails with `Z_DATA_ERROR`; truncated input is decoded up
-     *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer.
+     *      limit) and exceeding it throws a RangeError [20013] with code
+     *      `ERR_BUFFER_TOO_LARGE`. Only zlib-format input is accepted: gzip or raw deflate data
+     *      fails with `Z_DATA_ERROR` (use `gunzip` or `inflateRaw`). Corrupt data fails with
+     *      `Z_DATA_ERROR`, truncated input fails with `Z_BUF_ERROR`, and a result of zero bytes
+     *      is an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      ```JavaScript
@@ -447,11 +447,11 @@ declare module 'zlib/promises' {
      *
      *      `data` may be a Buffer or a string (decoded as utf8). The size limit is either an
      *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. Only zlib-format input is
-     *      accepted: gzip or raw deflate data fails with `Z_DATA_ERROR` (use `gunzip` or
-     *      `inflateRaw`). Corrupt data fails with `Z_DATA_ERROR`; truncated input is decoded up
-     *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer.
+     *      limit) and exceeding it throws a RangeError [20013] with code
+     *      `ERR_BUFFER_TOO_LARGE`. Only zlib-format input is accepted: gzip or raw deflate data
+     *      fails with `Z_DATA_ERROR` (use `gunzip` or `inflateRaw`). Corrupt data fails with
+     *      `Z_DATA_ERROR`, truncated input fails with `Z_BUF_ERROR`, and a result of zero bytes
+     *      is an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      ```JavaScript
@@ -480,11 +480,11 @@ declare module 'zlib/promises' {
      *
      *      `data` may be a Buffer or a string (decoded as utf8). The size limit is either an
      *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. Only zlib-format input is
-     *      accepted: gzip or raw deflate data fails with `Z_DATA_ERROR` (use `gunzip` or
-     *      `inflateRaw`). Corrupt data fails with `Z_DATA_ERROR`; truncated input is decoded up
-     *      to its last complete output without an error, and a result of zero bytes is null
-     *      instead of an empty Buffer.
+     *      limit) and exceeding it throws a RangeError [20013] with code
+     *      `ERR_BUFFER_TOO_LARGE`. Only zlib-format input is accepted: gzip or raw deflate data
+     *      fails with `Z_DATA_ERROR` (use `gunzip` or `inflateRaw`). Corrupt data fails with
+     *      `Z_DATA_ERROR`, truncated input fails with `Z_BUF_ERROR`, and a result of zero bytes
+     *      is an empty Buffer.
      *
      *      Example — enforce an output limit:
      *      ```JavaScript
@@ -1455,8 +1455,8 @@ declare module 'zlib/promises' {
      *      formats fail with `Z_DATA_ERROR`. The result is identical
      *      to `gunzip` for gzip data and to `inflate` for zlib data. The size limit is an
      *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
-     *      truncated input is decoded up to its last complete output without an error.
+     *      limit) and exceeding it throws a RangeError [20013] with code `ERR_BUFFER_TOO_LARGE`.
+     *      A zero-byte result is an empty Buffer, and truncated input fails with `Z_BUF_ERROR`.
      *
      *      Example — one decompressor for both containers:
      *      ```JavaScript
@@ -1488,8 +1488,8 @@ declare module 'zlib/promises' {
      *      formats fail with `Z_DATA_ERROR`. The result is identical
      *      to `gunzip` for gzip data and to `inflate` for zlib data. The size limit is an
      *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
-     *      truncated input is decoded up to its last complete output without an error.
+     *      limit) and exceeding it throws a RangeError [20013] with code `ERR_BUFFER_TOO_LARGE`.
+     *      A zero-byte result is an empty Buffer, and truncated input fails with `Z_BUF_ERROR`.
      *
      *      Example — one decompressor for both containers:
      *      ```JavaScript
@@ -1521,8 +1521,8 @@ declare module 'zlib/promises' {
      *      formats fail with `Z_DATA_ERROR`. The result is identical
      *      to `gunzip` for gzip data and to `inflate` for zlib data. The size limit is an
      *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013]. A zero-byte result is null, and
-     *      truncated input is decoded up to its last complete output without an error.
+     *      limit) and exceeding it throws a RangeError [20013] with code `ERR_BUFFER_TOO_LARGE`.
+     *      A zero-byte result is an empty Buffer, and truncated input fails with `Z_BUF_ERROR`.
      *
      *      Example — one decompressor for both containers:
      *      ```JavaScript
@@ -1593,6 +1593,40 @@ declare module 'zlib/promises' {
      *
      */
     function unzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+
+    /**
+     * @description Computes the CRC-32 (IEEE 802.3) checksum of the data
+     *
+     *      The result is the checksum as an unsigned 32-bit integer, the same value the gzip
+     *      and zip containers carry in their trailers. `data` may be a Buffer or a string; a
+     *      string is encoded as utf8 first, so `crc32('abc')` and
+     *      `crc32(Buffer.from('abc'))` agree.
+     *
+     *      `value` seeds the running checksum and defaults to 0, which is the initial value
+     *      CRC-32 starts from: `crc32(b, crc32(a))` equals `crc32(Buffer.concat([a, b]))`, so
+     *      a checksum can be accumulated over chunks without keeping them all in memory. The
+     *      value is the raw register, not its complement, so it can be fed straight back.
+     *
+     *      Example — checksum a string, then accumulate it over two chunks:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      // The reference vector for CRC-32.
+     *      console.log(zlib.crc32('123456789').toString(16)); // cbf43926
+     *
+     *      const a = Buffer.from('hello ');
+     *      const b = Buffer.from('world');
+     *      const whole = zlib.crc32(Buffer.concat([a, b]));
+     *      const parts = zlib.crc32(b, zlib.crc32(a));
+     *      console.log(whole === parts, whole.toString(16)); // true 1c291ca3
+     *      ```
+     *
+     *      @param data the data to checksum
+     *      @param value the running checksum to continue, default 0
+     *      @return the unsigned 32-bit CRC-32 checksum
+     *
+     */
+    function crc32(data: Class_Buffer | string, value?: number): number;
 
 }
 

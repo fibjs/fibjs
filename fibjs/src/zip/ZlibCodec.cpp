@@ -14,6 +14,7 @@
 #include "ifs/Unzip.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
+#include "CodecUtils.h"
 #include <zlib/include/zlib.h>
 
 namespace fibjs {
@@ -83,7 +84,7 @@ public:
     virtual result_t _processChunk(Buffer_base* chunk, int32_t flushFlag, obj_ptr<Buffer_base>& retVal)
     {
         if (m_closed)
-            return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_ZLIB_BINDING_CLOSED").with_message("zlib binding closed");
+            return codec_closed();
 
         obj_ptr<Buffer> input = Buffer::Cast(chunk);
         m_strm.avail_in = (uInt)input->length();
@@ -157,39 +158,18 @@ public:
 
     virtual result_t get__handle(v8::Local<v8::Value>& retVal) override
     {
-        Isolate* isolate = this->holder();
-        v8::Local<v8::Context> context = isolate->context();
-
-        if (m_handle.IsEmpty()) {
-            // Create the _handle object with a close method
-            v8::Local<v8::Object> handle = v8::Object::New(isolate->m_isolate);
-            v8::Local<v8::Function> closeFn;
-            if (!v8::Function::New(context,
-                    [](const v8::FunctionCallbackInfo<v8::Value>& info) {
-                        // no-op close for compatibility
-                    })
-                     .ToLocal(&closeFn))
-                return result_t(CALL_E_JAVASCRIPT);
-
-            handle->Set(context, isolate->NewString("close"), closeFn).IsJust();
-            m_handle.Reset(isolate->m_isolate, handle);
-        }
-
-        retVal = m_handle.Get(isolate->m_isolate);
-        return result_t();
+        return codec_get_handle(m_handle, this->holder(), retVal);
     }
 
     virtual result_t set__handle(v8::Local<v8::Value> newVal) override
     {
-        Isolate* isolate = this->holder();
-        m_handle.Reset(isolate->m_isolate, newVal);
-        return result_t();
+        return codec_set_handle(m_handle, this->holder(), newVal);
     }
 
     virtual result_t params(int32_t level, int32_t strategy) override
     {
         if (m_closed)
-            return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_ZLIB_BINDING_CLOSED").with_message("zlib binding closed");
+            return codec_closed();
 
         if (!is_deflate())
             return result_t::invalid_call();
@@ -263,6 +243,15 @@ static result_t extract_opts(v8::Local<v8::Object> opts, ZlibMode mode,
     result_t hr = GetConfigValue(opts, "level", level, true);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
+
+    // And a level outside the zlib range is ERR_OUT_OF_RANGE rather than a
+    // clamped one. Node.js validates it on every codec, including the
+    // inflating ones that never use it, so the same options object is rejected
+    // the same way whichever class it is passed to.
+    hr = check_level(level);
+    if (hr.failed())
+        return hr;
+
     hr = GetConfigValue(opts, "memLevel", memLevel, true);
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;

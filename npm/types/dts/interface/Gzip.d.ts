@@ -49,11 +49,12 @@ declare class Class_Gzip extends Class_ZlibCodec {
      * @description Creates a gzip codec
      *
      *      `opts` may be omitted or empty. The recognized options are `level` (default
-     *      Z_DEFAULT_COMPRESSION, not clamped, so an out-of-range value makes the codec
-     *      unusable), `windowBits` (default 31; 15 writes the zlib format and -15 raw deflate),
-     *      `memLevel` (1 to 9, default 8) and `strategy` (default Z_DEFAULT_STRATEGY 0). Other
-     *      keys are ignored. Creation never throws for a bad option: the codec is left closed
-     *      and the first `_processChunk` throws ERR_ZLIB_BINDING_CLOSED.
+     *      Z_DEFAULT_COMPRESSION; a value outside -1..9 is rejected with a RangeError whose
+     *      code is `ERR_OUT_OF_RANGE`), `windowBits` (default 31; 15 writes the zlib format and
+     *      -15 raw deflate), `memLevel` (1 to 9, default 8) and `strategy` (default
+     *      Z_DEFAULT_STRATEGY 0). Other keys are ignored. An option of the wrong type throws
+     *      ERR_INVALID_ARG_TYPE; otherwise creation never fails and the first `_processChunk`
+     *      throws ERR_ZLIB_BINDING_CLOSED only after `close`.
      *
      *      @param opts compression options
      *

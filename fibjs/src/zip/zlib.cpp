@@ -24,6 +24,14 @@ static result_t parse_level_option(v8::Local<v8::Object> options, AsyncHandle ac
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
         return hr;
 
+    // Node.js rejects a level outside -1..9 rather than clamping it: a level
+    // the caller did not ask for silently produces a different stream. The
+    // check runs in the sync phase, so the error is thrown (or handed to the
+    // callback) before any work is scheduled.
+    hr = check_level(level);
+    if (hr.failed())
+        return hr;
+
     // The two other deflateInit2 knobs Node exposes on the one-shot forms.
     int32_t strategy = Z_DEFAULT_STRATEGY;
     hr = GetConfigValue(options, "strategy", strategy, true);
@@ -77,6 +85,11 @@ static result_t union_to_buffer(DataVariant& data, obj_ptr<Buffer_base>& buf)
 // The `*To` families share one shape: `Buffer|Stream|String data` written into
 // `stm`, with the process object (def/inf/gz/...) chosen as the template
 // argument.
+//
+// The deflating streams clamp an out-of-range level to the zlib range, because
+// a constructor has no way to report a failure. The callers that take a level
+// from the user validate it in their sync phase, so a mistyped level is
+// reported instead of silently applied - the behaviour Node.js has.
 template <typename StreamT, typename DataVariant>
 static result_t process_to(DataVariant& data, Stream_base* stm, int32_t param, AsyncHandle ac)
 {
@@ -171,8 +184,10 @@ result_t zlib_base::deflate(Union_deflate_data data, Union_deflate_level level, 
 
 result_t zlib_base::deflateTo(Union_deflateTo_data data, Stream_base* stm, int32_t level, AsyncHandle ac)
 {
-    if (ac.isSync())
-        return result_t::nosync();
+    if (ac.isSync()) {
+        result_t lhr = check_level(level);
+        return lhr.failed() ? lhr : result_t::nosync();
+    }
 
     return process_to<def>(data, stm, level, std::move(ac));
 }
@@ -314,8 +329,10 @@ result_t zlib_base::deflateRaw(Union_deflateRaw_data data, Union_deflateRaw_leve
 
 result_t zlib_base::deflateRawTo(Union_deflateRawTo_data data, Stream_base* stm, int32_t level, AsyncHandle ac)
 {
-    if (ac.isSync())
-        return result_t::nosync();
+    if (ac.isSync()) {
+        result_t lhr = check_level(level);
+        return lhr.failed() ? lhr : result_t::nosync();
+    }
 
     return process_to<defraw>(data, stm, level, std::move(ac));
 }
@@ -403,8 +420,10 @@ result_t zlib_base::zip(Union_zip_data data, Union_zip_level level, obj_ptr<Buff
 
 result_t zlib_base::zipTo(Union_zipTo_data data, Stream_base* stm, int32_t level, AsyncHandle ac)
 {
-    if (ac.isSync())
-        return result_t::nosync();
+    if (ac.isSync()) {
+        result_t lhr = check_level(level);
+        return lhr.failed() ? lhr : result_t::nosync();
+    }
 
     return process_to<fibjs::zip>(data, stm, level, std::move(ac));
 }
@@ -448,6 +467,23 @@ result_t zlib_base::unzipTo(Union_unzipTo_data data, Stream_base* stm, int32_t m
     return process_to<fibjs::unzip>(data, stm, maxSize, std::move(ac));
 }
 
+result_t zlib_base::crc32(Union_crc32_data data, int64_t value, int64_t& retVal)
+{
+    obj_ptr<Buffer_base> buf;
+    result_t hr = union_to_buffer(data, buf);
+    if (hr.failed())
+        return hr;
 
+    obj_ptr<Buffer> input = Buffer::Cast(buf);
+
+    // The seed is the raw running register, not its complement: crc32's value
+    // defaults to 0, which is what the first call starts from, and feeding a
+    // returned value back continues the same checksum.
+    uLong crc = (uLong)value;
+    crc = ::crc32(crc, (const Bytef*)input->data(), (uInt)input->length());
+
+    retVal = (int64_t)(uint32_t)crc;
+    return result_t();
+}
 
 }

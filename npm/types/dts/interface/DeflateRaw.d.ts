@@ -11,7 +11,8 @@
  *  packages such as minizlib and tar. It inherits the members of ZlibCodec.
  *
  *  Concepts:
- *  - **Options**: `level` (default Z_DEFAULT_COMPRESSION, not clamped), `windowBits`
+ *  - **Options**: `level` (default Z_DEFAULT_COMPRESSION; a value outside -1..9 throws a
+ *    RangeError with code `ERR_OUT_OF_RANGE`), `windowBits`
  *    (default -15 for raw deflate; 15 selects the zlib format and 31 the gzip container),
  *    `memLevel` (1 to 9, default 8) and `strategy` (default Z_DEFAULT_STRATEGY).
  *  - **Streaming**: Z_SYNC_FLUSH produces a piece the peer can decode without ending the
@@ -50,11 +51,12 @@ declare class Class_DeflateRaw extends Class_ZlibCodec {
      * @description Creates a raw-deflate codec
      *
      *      `opts` may be omitted or empty. The recognized options are `level` (default
-     *      Z_DEFAULT_COMPRESSION, not clamped), `windowBits` (default -15 for raw deflate; 15
-     *      writes the zlib format and 31 the gzip container), `memLevel` (1 to 9, default 8)
-     *      and `strategy` (default Z_DEFAULT_STRATEGY 0). Creation never throws for a bad
-     *      option: the codec is left closed and the first `_processChunk` throws
-     *      ERR_ZLIB_BINDING_CLOSED.
+     *      Z_DEFAULT_COMPRESSION; a value outside -1..9 throws a RangeError with code
+     *      `ERR_OUT_OF_RANGE`), `windowBits` (default -15 for raw deflate; 15
+     *      selects the zlib format and 31 the gzip container), `memLevel` (1 to 9, default 8)
+     *      and `strategy` (default Z_DEFAULT_STRATEGY 0). An option of the wrong type throws
+     *      ERR_INVALID_ARG_TYPE; otherwise creation never fails and the first `_processChunk`
+     *      throws ERR_ZLIB_BINDING_CLOSED only after `close`.
      *
      *      @param opts compression options
      *

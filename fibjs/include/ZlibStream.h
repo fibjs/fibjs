@@ -9,6 +9,7 @@
 
 #include "ifs/zlib.h"
 #include "Buffer.h"
+#include "CodecUtils.h"
 #include "MemoryStream.h"
 #include <zlib/include/zlib.h>
 #include "AsyncStream.h"
@@ -78,6 +79,19 @@ private:
                 return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_ZLIB_ERROR").with_message(zError(err));
             }
 
+            // A decompressor that is being finished without ever reaching the
+            // end of the stream was fed truncated input. Node.js rejects that
+            // with Z_BUF_ERROR instead of handing back the partial output, so a
+            // caller cannot mistake a cut-off message for a complete one.
+            if (m_flush == Z_FINISH && !m_pThis->is_ended()) {
+                const char* name = zError(Z_BUF_ERROR);
+
+                return result_t::make(CALL_E_INVALID_DATA)
+                    .with_type_name(errtype::kError)
+                    .with_code("Z_BUF_ERROR")
+                    .with_message(name);
+            }
+
             if (m_pThis->strm.avail_out == ZLIB_CHUNK)
                 return next();
 
@@ -87,7 +101,7 @@ private:
             int32_t size = ZLIB_CHUNK - m_pThis->strm.avail_out;
             if (m_pThis->m_maxSize >= 0) {
                 if (size > m_pThis->m_maxSize - m_pThis->m_dataSize)
-                    return result_t(CALL_E_OVERFLOW);
+                    return max_output_exceeded(m_pThis->m_maxSize);
                 m_pThis->m_dataSize += size;
             }
 
@@ -188,7 +202,19 @@ public:
             ON_STATE(asyncProcess, read)
             {
                 m_stm->rewind();
-                return m_stm->readAll(m_retVal, next());
+                return m_stm->readAll(m_retVal, next(read_ok));
+            }
+
+            ON_STATE(asyncProcess, read_ok)
+            {
+                // MemoryStream::readAll reports "no bytes" as null, which suits
+                // a plain stream but not a zlib round trip: Node.js returns an
+                // empty Buffer for empty input (inflateSync(deflateSync(''))),
+                // and a caller writing `result.length` would throw on null.
+                if (m_retVal == NULL)
+                    m_retVal = new Buffer(NULL, 0);
+
+                return next();
             }
 
         private:
@@ -267,7 +293,11 @@ public:
     {
         return Z_OK;
     }
-
+public:
+    // Whether a decompressor has reached the end of its stream. A compressor
+    // has no such state, so it reports true and the truncation check in the
+    // write loop never fires for it.
+    virtual bool is_ended() { return true; }
 protected:
     z_stream strm;
     obj_ptr<Stream_base> m_stm;
@@ -317,6 +347,7 @@ public:
 
         // Handle stream end normally
         if (ret == Z_STREAM_END) {
+            m_ended = true;
             inflateReset(&strm);
             return Z_OK;
         }
@@ -330,6 +361,9 @@ public:
         return ret;
     }
 
+public:
+    virtual bool is_ended() { return m_ended; }
+
 protected:
     enum inflate_mode {
         INFLATE_MODE_UNKNOWN,
@@ -340,6 +374,7 @@ protected:
 
     inflate_mode m_mode;
     int32_t m_bytes_read;
+    bool m_ended = false;
 };
 
 class inf : public inf_base {
