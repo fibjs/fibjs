@@ -234,9 +234,12 @@ describe('process', () => {
         // the numeric form and the signal name form are both accepted
         assert.isUndefined(process.kill(pid, 0));
         if (process.platform === 'win32') {
-            // Windows has no SIGCONT: the name is not a signal there
+            // Windows has no SIGCONT, so sig_name_to_number() never matches it
+            // (its table entry is inside #ifdef SIGCONT) and the name is
+            // reported the same way as any other unknown one.
             assert.throws(() => process.kill(pid, 'SIGCONT'),
-                { number: 20024, message: /Unknown signal: SIGCONT/ });
+                { name: 'TypeError', code: 'ERR_UNKNOWN_SIGNAL', number: 20011,
+                  message: /Unknown signal: SIGCONT/ });
         } else {
             assert.isUndefined(process.kill(pid, 'SIGCONT'));
         }
