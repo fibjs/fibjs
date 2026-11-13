@@ -1,0 +1,9 @@
+/*! @brief Options for binding a datagram socket by object.
+
+     Both fields are required; a missing key is reported as a missing parameter,
+     matching the positional port/address form.
+ */
+struct DgramBindOptions {
+    Integer port;
+    String address;
+};

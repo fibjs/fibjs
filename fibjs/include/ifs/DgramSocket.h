@@ -17,6 +17,7 @@
 namespace fibjs {
 
 class EventEmitter_base;
+class DgramBindOptions;
 class Buffer_base;
 
 class DgramSocket_base : public EventEmitter_base {
@@ -53,7 +54,7 @@ public:
 public:
     // DgramSocket_base
     virtual result_t bind(int32_t port, exlib::string addr, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac) = 0;
-    virtual result_t bind(v8::Local<v8::Object> opts, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t bind(DgramBindOptions* opts, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t send(Union_send_msg msg, int32_t port, exlib::string address, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t send(Union_send_msg msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t address(obj_ptr<AddressType>& retVal) = 0;
@@ -107,12 +108,13 @@ public:
 
 public:
     ASYNC_MEMBERVALUE3(DgramSocket_base, bind, int32_t, exlib::string, obj_ptr<DgramSocket_base>);
-    ASYNC_MEMBERVALUE2(DgramSocket_base, bind, v8::Local<v8::Object>, obj_ptr<DgramSocket_base>);
+    ASYNC_MEMBERVALUE2(DgramSocket_base, bind, obj_ptr<DgramBindOptions>, obj_ptr<DgramSocket_base>);
     ASYNC_MEMBERVALUE4(DgramSocket_base, send, Union_send_msg, int32_t, exlib::string, int32_t);
     ASYNC_MEMBERVALUE6(DgramSocket_base, send, Union_send_msg, int32_t, int32_t, int32_t, exlib::string, int32_t);
 };
 }
 
+#include "ifs/DgramBindOptions.h"
 #include "ifs/Buffer.h"
 
 namespace fibjs {
@@ -172,7 +174,7 @@ inline void DgramSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER_NAMED(1, 1, "opts");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "opts");
+    ARG_NAMED(obj_ptr<DgramBindOptions>, 0, "opts");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_bind(v0, cb, args);

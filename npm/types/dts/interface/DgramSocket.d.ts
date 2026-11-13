@@ -277,30 +277,15 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @return returns the current socket object
      *
      */
-    bind(opts: FIBJS.GeneralObject): Class_DgramSocket;
+    bind(opts: {
+        port?: number;
+        address?: string;
+    }): Class_DgramSocket;
 
-    bind(opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
-
-    /**
-     * @description Binds the socket with an options object; both `port` and `address` are required
-     *
-     *      The options object accepts:
-     *      ```JavaScript
-     *      // fragment: options
-     *      ({
-     *          port: 0, // the local port, 0 to let the operating system choose
-     *          address: "127.0.0.1" // the local address to bind; required even when port is 0
-     *      })
-     *      ```
-     *
-     *      The exclusive, fd and remaining bind options are not read, and a missing
-     *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
-     *      port/address form above.
-     *      @param opts the binding options
-     *      @return returns the current socket object
-     *
-     */
-    bindSync(opts: FIBJS.GeneralObject): Class_DgramSocket;
+    bind(opts: {
+        port?: number;
+        address?: string;
+    }, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
 
     /**
      * @description Binds the socket with an options object; both `port` and `address` are required
@@ -321,7 +306,34 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @return returns the current socket object
      *
      */
-    bindAsync(opts: FIBJS.GeneralObject): Promise<Class_DgramSocketPromise>;
+    bindSync(opts: {
+        port?: number;
+        address?: string;
+    }): Class_DgramSocket;
+
+    /**
+     * @description Binds the socket with an options object; both `port` and `address` are required
+     *
+     *      The options object accepts:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          port: 0, // the local port, 0 to let the operating system choose
+     *          address: "127.0.0.1" // the local address to bind; required even when port is 0
+     *      })
+     *      ```
+     *
+     *      The exclusive, fd and remaining bind options are not read, and a missing
+     *      key throws error 20002. The 'listening' event and the error behavior are the same as in the
+     *      port/address form above.
+     *      @param opts the binding options
+     *      @return returns the current socket object
+     *
+     */
+    bindAsync(opts: {
+        port?: number;
+        address?: string;
+    }): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -1042,7 +1054,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return returns the current socket object
      *
      */
-    bind(opts: FIBJS.GeneralObject): Promise<Class_DgramSocketPromise>;
+    bind(opts: {
+        port?: number;
+        address?: string;
+    }): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Binds the socket with an options object; both `port` and `address` are required
@@ -1063,7 +1078,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return returns the current socket object
      *
      */
-    bindSync(opts: FIBJS.GeneralObject): Class_DgramSocket;
+    bindSync(opts: {
+        port?: number;
+        address?: string;
+    }): Class_DgramSocket;
 
     /**
      * @description Binds the socket with an options object; both `port` and `address` are required
@@ -1084,7 +1102,10 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return returns the current socket object
      *
      */
-    bindAsync(opts: FIBJS.GeneralObject): Promise<Class_DgramSocketPromise>;
+    bindAsync(opts: {
+        port?: number;
+        address?: string;
+    }): Promise<Class_DgramSocketPromise>;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent

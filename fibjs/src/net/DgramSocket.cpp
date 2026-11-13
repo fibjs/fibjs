@@ -218,43 +218,21 @@ result_t DgramSocket::bind_core(int32_t port, exlib::string addr)
     });
 }
 
-result_t DgramSocket::bind(v8::Local<v8::Object> opts, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac)
+result_t DgramSocket::bind(DgramBindOptions* opts, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac)
 {
     retVal = this;
 
+    if (!opts || !opts->port.has_value() || !opts->address.has_value())
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
+    int32_t port = opts->port.value();
+    exlib::string addr = opts->address.value();
+
     if (ac.isSync()) {
         m_holder = new ValueHolder(wrap());
-
-        result_t hr;
-
-        int32_t port;
-        hr = GetConfigValue(opts, "port", port);
-        if (hr.failed())
-            return hr;
-
-        exlib::string addr;
-        hr = GetConfigValue(opts, "address", addr);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv().resize(2);
-        ac.ctxv()[0] = port;
-        ac.ctxv()[1] = addr;
-
         return result_t::nosync();
     }
 
-    result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr.failed())
-        return ctx_hr;
-    ctx_hr = ac.ctx(1);
-    if (ctx_hr.failed())
-        return ctx_hr;
-
-    int32_t port = ac.ctxv()[0].intVal();
-    exlib::string addr = ac.ctxv()[1].string();
-
-    // "already bound" 检查在内层 bind(port, addr, ac) 的 async 相位完成
     return bind(port, addr, retVal, std::move(ac));
 }
 

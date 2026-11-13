@@ -193,7 +193,7 @@ interface DgramSocket : EventEmitter
      @param opts the binding options
      @return returns the current socket object
      */
-    DgramSocket bind(Object opts) async;
+    DgramSocket bind(DgramBindOptions opts) async;
 
     /*! @brief Sends one datagram to the given destination and returns the number of bytes sent
 

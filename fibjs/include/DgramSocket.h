@@ -54,7 +54,7 @@ public:
 
     // DgramSocket_base
     virtual result_t bind(int32_t port, exlib::string addr, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac);
-    virtual result_t bind(v8::Local<v8::Object> opts, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac);
+    virtual result_t bind(DgramBindOptions* opts, obj_ptr<DgramSocket_base>& retVal, AsyncHandle ac);
     virtual result_t send(Union_send_msg msg, int32_t port, exlib::string address, int32_t& retVal, AsyncHandle ac);
     virtual result_t send(Union_send_msg msg, int32_t offset, int32_t length, int32_t port, exlib::string address, int32_t& retVal, AsyncHandle ac);
     // the merged entries dispatch to the per-type implementations: a string is
