@@ -391,28 +391,14 @@ result_t UVSocket::connect(exlib::string path, int32_t timeout, obj_ptr<Stream_b
     return connect(0, path, timeout, retVal, std::move(ac));
 }
 
-result_t UVSocket::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
+result_t UVSocket::connect(ConnectOptions* options, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync()) {
-        obj_ptr<ConnectOptions> opts;
-        Isolate* isolate = Isolate::current(options);
-        result_t hr = ConnectOptions::load(options, opts);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv().resize(1);
-        ac.ctxv()[0] = opts;
-
         startConnectEvent();
         return result_t::nosync();
     }
 
-    result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr.failed())
-        return ctx_hr;
-
-    ConnectOptions* opt = (ConnectOptions*)ac.ctxv()[0].object();
-    return connect(opt->port.value(), opt->host.value(), opt->timeout.value(), retVal, std::move(ac));
+    return connect(options->port.value(), options->host.value(), options->timeout.value(), retVal, std::move(ac));
 }
 
 result_t UVSocket::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
@@ -445,7 +431,7 @@ result_t UVSocket::connect(exlib::string path, int32_t timeout, v8::Local<v8::Fu
     return connect(0, path, timeout, connectListener, retVal, std::move(ac));
 }
 
-result_t UVSocket::connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
+result_t UVSocket::connect(ConnectOptions* options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync()) {
         v8::Local<v8::Object> _retVal;

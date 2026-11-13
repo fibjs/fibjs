@@ -216,7 +216,7 @@ module net
      @param options specifies the connection options object
      @return returns the connected Socket object
      */
-    static Stream connect(Object options) async;
+    static Stream connect(ConnectOptions options) async;
 
     /*! @brief Establishes a connection and triggers the connect event after the connection is established
 

@@ -213,6 +213,22 @@ function test_net(eng, use_uv) {
                 s1.close();
             });
 
+            it("socket.connect(options) names the invalid field", () => {
+                var s1 = new net.Socket(net_config.family);
+                assert.throws(() => s1.connect({ host: net_config.address, port: 'not-a-port' }),
+                    /"port" argument must be of type number/);
+            });
+
+            it("net.connect(options) names the invalid field", () => {
+                assert.throws(() => net.connect({ port: 'not-a-port' }),
+                    /"port" argument must be of type number/);
+            });
+
+            it("net.connect(options, connectListener) names the invalid field", () => {
+                assert.throws(() => net.connect({ port: 'not-a-port' }, () => {}),
+                    /"port" argument must be of type number/);
+            });
+
             it("async connect with events", () => {
                 var connectEvent = new coroutine.Event();
                 var connected = false;

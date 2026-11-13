@@ -12,7 +12,6 @@
 #include "AsyncIO.h"
 #include "Timer.h"
 #include "AsyncStream.h"
-#include <boost/preprocessor.hpp>
 #include <functional>
 
 namespace fibjs {
@@ -24,16 +23,6 @@ result_t socket_isAlive(SOCKET fd, bool& retVal);
 // and must not run off the JS thread,
 // plans/async-phase-discipline-audit-2026-10-05.md §3-F14).
 result_t create_socket(int32_t family, obj_ptr<Socket_base>& retVal);
-
-class ConnectOptions : public obj_base {
-public:
-    LOAD_OPTIONS(ConnectOptions, (host)(port)(timeout));
-
-public:
-    std::optional<exlib::string> host = "localhost";
-    std::optional<int32_t> port = 0;
-    std::optional<int32_t> timeout = 0;
-};
 
 class Socket : public AsyncStream<Socket_base> {
     FIBER_FREE();
@@ -88,13 +77,13 @@ public:
     virtual result_t set_timeout(int32_t newVal);
     virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
-    virtual result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(ConnectOptions* options, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
-    virtual result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(ConnectOptions* options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4);
     virtual result_t bind(int32_t port, bool allowIPv4);
     virtual result_t listen(int32_t backlog);

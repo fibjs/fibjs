@@ -17,6 +17,7 @@ namespace fibjs {
 
 class Socket_base;
 class Stream_base;
+class ConnectOptions;
 class Smtp_base;
 class TcpServer_base;
 class Handler_base;
@@ -45,7 +46,7 @@ public:
     static result_t resolve(exlib::string name, int32_t family, exlib::string& retVal, AsyncHandle ac);
     static result_t ip(exlib::string name, exlib::string& retVal, AsyncHandle ac);
     static result_t ipv6(exlib::string name, exlib::string& retVal, AsyncHandle ac);
-    static result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    static result_t connect(ConnectOptions* options, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     static result_t connect(Union_connect_options options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     static result_t connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
@@ -98,7 +99,7 @@ public:
     ASYNC_STATICVALUE3(net_base, resolve, exlib::string, int32_t, exlib::string);
     ASYNC_STATICVALUE2(net_base, ip, exlib::string, exlib::string);
     ASYNC_STATICVALUE2(net_base, ipv6, exlib::string, exlib::string);
-    ASYNC_STATICVALUE2(net_base, connect, v8::Local<v8::Object>, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE2(net_base, connect, obj_ptr<ConnectOptions>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE3(net_base, connect, Union_connect_options, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE4(net_base, connect, int32_t, exlib::string, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE3(net_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
@@ -111,6 +112,7 @@ public:
 
 #include "ifs/Socket.h"
 #include "ifs/Stream.h"
+#include "ifs/ConnectOptions.h"
 #include "ifs/Smtp.h"
 #include "ifs/TcpServer.h"
 #include "ifs/Handler.h"
@@ -268,7 +270,7 @@ inline void net_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<ConnectOptions>, 0, "options");
 
     if (!cb.IsEmpty())
         hr = acb_connect(v0, cb, args);

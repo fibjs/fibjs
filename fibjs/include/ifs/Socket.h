@@ -18,6 +18,7 @@ namespace fibjs {
 
 class Stream_base;
 class net_base;
+class ConnectOptions;
 class Buffer_base;
 
 class Socket_base : public Stream_base {
@@ -36,8 +37,8 @@ public:
     virtual result_t get_localPort(int32_t& retVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
-    virtual result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncHandle ac) = 0;
-    virtual result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t connect(ConnectOptions* options, obj_ptr<Stream_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t connect(ConnectOptions* options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac) = 0;
@@ -84,8 +85,8 @@ public:
     static void s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBERVALUE2(Socket_base, connect, v8::Local<v8::Object>, obj_ptr<Stream_base>);
-    ASYNC_MEMBERVALUE3(Socket_base, connect, v8::Local<v8::Object>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
+    ASYNC_MEMBERVALUE2(Socket_base, connect, obj_ptr<ConnectOptions>, obj_ptr<Stream_base>);
+    ASYNC_MEMBERVALUE3(Socket_base, connect, obj_ptr<ConnectOptions>, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_MEMBERVALUE3(Socket_base, connect, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_MEMBERVALUE4(Socket_base, connect, int32_t, exlib::string, v8::Local<v8::Function>, obj_ptr<Stream_base>);
     ASYNC_MEMBERVALUE5(Socket_base, connect, int32_t, exlib::string, int32_t, v8::Local<v8::Function>, obj_ptr<Stream_base>);
@@ -100,6 +101,7 @@ public:
 }
 
 #include "ifs/net.h"
+#include "ifs/ConnectOptions.h"
 #include "ifs/Buffer.h"
 
 namespace fibjs {
@@ -282,7 +284,7 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<ConnectOptions>, 0, "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0, cb, args);
@@ -291,7 +293,7 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER_NAMED(2, 2, "connectListener");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<ConnectOptions>, 0, "options");
     ARG_NAMED(v8::Local<v8::Function>, 1, "connectListener");
 
     if (!cb.IsEmpty())

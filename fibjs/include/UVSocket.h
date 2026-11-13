@@ -44,13 +44,13 @@ public:
     virtual result_t get_localPort(int32_t& retVal);
     virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
-    virtual result_t connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(ConnectOptions* options, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(int32_t port, exlib::string host, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
-    virtual result_t connect(v8::Local<v8::Object> options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    virtual result_t connect(ConnectOptions* options, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4);
     virtual result_t bind(int32_t port, bool allowIPv4);
     virtual result_t listen(int32_t backlog);

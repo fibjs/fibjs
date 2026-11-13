@@ -334,35 +334,17 @@ declare module 'net' {
      *      @return returns the connected Socket object
      *
      */
-    function connect(options: FIBJS.GeneralObject): Class_Stream;
+    function connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
 
-    function connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description Creates a Socket object and establishes a connection
-     *
-     *      This is the blocking form: the fiber waits until the connection is established and the method
-     *      returns the connected Socket, or throws. options supports:
-     *      ```JavaScript
-     *      // fragment: options
-     *      ({
-     *          "port": 80,          // the remote port, required
-     *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
-     *      })
-     *      ```
-     *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
-     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
-     *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
-     *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
-     *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
-     *      and a code such as ECONNREFUSED; an expired fibjs timer throws error number 20021.
-     *
-     *      @param options specifies the connection options object
-     *      @return returns the connected Socket object
-     *
-     */
-    function connectSync(options: FIBJS.GeneralObject): Class_Stream;
+    function connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a Socket object and establishes a connection
@@ -388,7 +370,41 @@ declare module 'net' {
      *      @return returns the connected Socket object
      *
      */
-    function connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    function connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
+
+    /**
+     * @description Creates a Socket object and establishes a connection
+     *
+     *      This is the blocking form: the fiber waits until the connection is established and the method
+     *      returns the connected Socket, or throws. options supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "port": 80,          // the remote port, required
+     *          "host": "localhost", // the remote address or host name
+     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *      })
+     *      ```
+     *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
+     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
+     *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
+     *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
+     *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
+     *      and a code such as ECONNREFUSED; an expired fibjs timer throws error number 20021.
+     *
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established

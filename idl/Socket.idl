@@ -191,7 +191,7 @@ interface Socket : Stream
      @param options specifies the connection options object
      @return returns the connected Socket object
     */
-    Stream connect(Object options) async;
+    Stream connect(ConnectOptions options) async;
 
     /*! @brief Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
 
@@ -208,7 +208,7 @@ interface Socket : Stream
      @param connectListener specifies the once connect event listener
      @return returns the connected Socket object
      */
-    Stream connect(Object options, Function(Object ev) connectListener) async;
+    Stream connect(ConnectOptions options, Function(Object ev) connectListener) async;
 
     /*! @brief Establishes a connection and triggers the connect event after the connection is established
 

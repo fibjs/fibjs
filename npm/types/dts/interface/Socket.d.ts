@@ -211,33 +211,17 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connect(options: FIBJS.GeneralObject): Class_Stream;
+    connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
 
-    connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description Establishes a connection on this socket (blocking form)
-     *
-     *      The fiber waits until the connection is established and the method returns this same socket,
-     *      or throws. options supports:
-     *      ```JavaScript
-     *      // fragment: options
-     *      ({
-     *          "port": 80,          // the remote port, required
-     *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
-     *      })
-     *      ```
-     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
-     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
-     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
-     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
-     *      expired timer throws error number 20021.
-     *      @param options specifies the connection options object
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(options: FIBJS.GeneralObject): Class_Stream;
+    connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Establishes a connection on this socket (blocking form)
@@ -261,7 +245,39 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
+
+    /**
+     * @description Establishes a connection on this socket (blocking form)
+     *
+     *      The fiber waits until the connection is established and the method returns this same socket,
+     *      or throws. options supports:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "port": 80,          // the remote port, required
+     *          "host": "localhost", // the remote address or host name
+     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *      })
+     *      ```
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
+     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
+     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
+     *      expired timer throws error number 20021.
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -280,7 +296,11 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connect(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+    connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -299,7 +319,11 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connectSync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+    connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -318,7 +342,11 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connectAsync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+    connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established
@@ -969,7 +997,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connect(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection on this socket (blocking form)
@@ -993,7 +1025,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connectSync(options: FIBJS.GeneralObject): Class_Stream;
+    connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
 
     /**
      * @description Establishes a connection on this socket (blocking form)
@@ -1017,7 +1053,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -1036,7 +1076,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connect(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+    connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -1055,7 +1099,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connectSync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+    connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -1074,7 +1122,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connectAsync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+    connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established

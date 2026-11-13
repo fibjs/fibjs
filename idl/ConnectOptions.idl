@@ -1,0 +1,12 @@
+/*! @brief Options shared by the socket connect entry points.
+
+     All fields are optional; the generated record keeps them as std::optional so
+     that an absent key is distinguishable from a provided default. Only these
+     three keys are read; path, family, lookup, localAddress, localPort, signal,
+     noDelay and keepAlive are not part of this record.
+ */
+struct ConnectOptions {
+    String host = "localhost";
+    Integer port = 0;
+    Integer timeout = 0;
+};

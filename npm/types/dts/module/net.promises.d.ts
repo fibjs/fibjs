@@ -205,7 +205,11 @@ declare module 'net/promises' {
      *      @return returns the connected Socket object
      *
      */
-    function connect(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    function connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Creates a Socket object and establishes a connection
@@ -231,7 +235,11 @@ declare module 'net/promises' {
      *      @return returns the connected Socket object
      *
      */
-    function connectSync(options: FIBJS.GeneralObject): Class_Stream;
+    function connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
 
     /**
      * @description Creates a Socket object and establishes a connection
@@ -257,7 +265,11 @@ declare module 'net/promises' {
      *      @return returns the connected Socket object
      *
      */
-    function connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    function connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established

@@ -240,27 +240,12 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, ob
     return socket->connect(port, host, timeout, retVal, std::move(ac));
 }
 
-result_t net_base::connect(v8::Local<v8::Object> options, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
+result_t net_base::connect(ConnectOptions* options, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        obj_ptr<ConnectOptions> opts;
-        Isolate* isolate = Isolate::current(options);
-        result_t hr = ConnectOptions::load(options, opts);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv().resize(1);
-        ac.ctxv()[0] = opts;
-
+    if (ac.isSync())
         return result_t::nosync();
-    }
 
-    result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr.failed())
-        return ctx_hr;
-
-    ConnectOptions* opts = (ConnectOptions*)ac.ctxv()[0].object();
-    return connect(opts->port.value(), opts->host.value(), opts->timeout.value(), retVal, std::move(ac));
+    return connect(options->port.value(), options->host.value(), options->timeout.value(), retVal, std::move(ac));
 }
 
 // the three forms of the merged arity-2 entry: an options object, a port and a
@@ -349,7 +334,6 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
 {
     if (ac.isSync()) {
         obj_ptr<ConnectOptions> opts;
-        Isolate* isolate = Isolate::current(options);
         result_t hr = ConnectOptions::load(options, opts);
         if (hr.failed())
             return hr;
