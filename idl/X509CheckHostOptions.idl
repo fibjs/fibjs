@@ -1,0 +1,13 @@
+/*! @brief Options for X509Certificate.checkHost.
+
+     `subject` selects whether the subject CN is consulted, while `wildcards`,
+     `partialWildcards`, `multiLabelWildcards` and `singleLabelSubdomains`
+     control the wildcard matching rules.
+ */
+struct X509CheckHostOptions {
+    String subject = "default";
+    Boolean wildcards = true;
+    Boolean partialWildcards = true;
+    Boolean multiLabelWildcards = false;
+    Boolean singleLabelSubdomains = false;
+};

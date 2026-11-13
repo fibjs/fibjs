@@ -599,13 +599,10 @@ result_t X509Certificate::next(obj_ptr<X509Certificate_base>& retVal)
     return result_t();
 }
 
-result_t X509Certificate::checkEmail(exlib::string email, v8::Local<v8::Object> options, exlib::string& retVal)
+result_t X509Certificate::checkEmail(exlib::string email, X509CheckEmailOptions* options, exlib::string& retVal)
 {
     int flags = 0;
-    exlib::string subject("default");
-    result_t hr = GetConfigValue(options, "subject", subject, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    exlib::string subject = options ? options->subject.value_or("default") : "default";
 
     if (subject == "always")
         flags = X509_CHECK_FLAG_ALWAYS_CHECK_SUBJECT;
@@ -629,13 +626,10 @@ result_t X509Certificate::checkEmail(exlib::string email, v8::Local<v8::Object> 
     return result_t();
 }
 
-result_t X509Certificate::checkHost(exlib::string name, v8::Local<v8::Object> options, exlib::string& retVal)
+result_t X509Certificate::checkHost(exlib::string name, X509CheckHostOptions* options, exlib::string& retVal)
 {
     int flags = 0;
-    exlib::string subject("default");
-    result_t hr = GetConfigValue(options, "subject", subject, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    exlib::string subject = options ? options->subject.value_or("default") : "default";
 
     if (subject == "always")
         flags = X509_CHECK_FLAG_ALWAYS_CHECK_SUBJECT;
@@ -644,32 +638,16 @@ result_t X509Certificate::checkHost(exlib::string name, v8::Local<v8::Object> op
     else if (subject != "default")
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid subject option: '%s', expected 'default', 'always' or 'never'.", subject.c_str());
 
-    bool wildcards = true;
-    hr = GetConfigValue(options, "wildcards", wildcards, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-    if (!wildcards)
+    if (!(options ? options->wildcards.value_or(true) : true))
         flags |= X509_CHECK_FLAG_NO_WILDCARDS;
 
-    bool partialWildcards = true;
-    hr = GetConfigValue(options, "partialWildcards", partialWildcards, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-    if (!partialWildcards)
+    if (!(options ? options->partialWildcards.value_or(true) : true))
         flags |= X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS;
 
-    bool multiLabelWildcards = false;
-    hr = GetConfigValue(options, "multiLabelWildcards", multiLabelWildcards, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-    if (!multiLabelWildcards)
+    if (!(options ? options->multiLabelWildcards.value_or(false) : false))
         flags |= X509_CHECK_FLAG_SINGLE_LABEL_SUBDOMAINS;
 
-    bool singleLabelSubdomains = false;
-    hr = GetConfigValue(options, "singleLabelSubdomains", singleLabelSubdomains, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-    if (singleLabelSubdomains)
+    if (options ? options->singleLabelSubdomains.value_or(false) : false)
         flags |= X509_CHECK_FLAG_SINGLE_LABEL_SUBDOMAINS;
 
     char* peername;

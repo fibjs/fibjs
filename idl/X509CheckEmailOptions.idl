@@ -1,0 +1,8 @@
+/*! @brief Options for X509Certificate.checkEmail.
+
+     `subject` is 'default', 'always' or 'never' and selects whether the
+     subject CN is consulted when no subjectAltName email entry exists.
+ */
+struct X509CheckEmailOptions {
+    String subject = "default";
+};

@@ -343,7 +343,7 @@ interface X509Certificate : object
      @param options the options
      @return returns email on a match, undefined otherwise
     */
-    String checkEmail(String email, Object options = {});
+    String checkEmail(String email, X509CheckEmailOptions options = {});
 
     /*! @brief Checks whether the certificate matches a host name
 
@@ -392,7 +392,7 @@ interface X509Certificate : object
      @param options the options
      @return returns the matching name from the certificate, undefined otherwise
     */
-    String checkHost(String name, Object options = {});
+    String checkHost(String name, X509CheckHostOptions options = {});
 
     /*! @brief Checks whether the certificate matches an IP address
 

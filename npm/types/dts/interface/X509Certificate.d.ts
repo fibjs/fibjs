@@ -390,7 +390,9 @@ declare class Class_X509Certificate extends Class_object {
      *      @return returns email on a match, undefined otherwise
      *
      */
-    checkEmail(email: string, options?: FIBJS.GeneralObject): string;
+    checkEmail(email: string, options?: {
+        subject?: string;
+    }): string;
 
     /**
      * @description Checks whether the certificate matches a host name
@@ -441,7 +443,13 @@ declare class Class_X509Certificate extends Class_object {
      *      @return returns the matching name from the certificate, undefined otherwise
      *
      */
-    checkHost(name: string, options?: FIBJS.GeneralObject): string;
+    checkHost(name: string, options?: {
+        subject?: string;
+        wildcards?: boolean;
+        partialWildcards?: boolean;
+        multiLabelWildcards?: boolean;
+        singleLabelSubdomains?: boolean;
+    }): string;
 
     /**
      * @description Checks whether the certificate matches an IP address

@@ -17,6 +17,8 @@ namespace fibjs {
 
 class Buffer_base;
 class KeyObject_base;
+class X509CheckEmailOptions;
+class X509CheckHostOptions;
 
 class X509Certificate_base : public object_base {
     DECLARE_CLASS(X509Certificate_base);
@@ -48,8 +50,8 @@ public:
     virtual result_t get_fingerprint256(exlib::string& retVal) = 0;
     virtual result_t get_fingerprint512(exlib::string& retVal) = 0;
     virtual result_t next(obj_ptr<X509Certificate_base>& retVal) = 0;
-    virtual result_t checkEmail(exlib::string email, v8::Local<v8::Object> options, exlib::string& retVal) = 0;
-    virtual result_t checkHost(exlib::string name, v8::Local<v8::Object> options, exlib::string& retVal) = 0;
+    virtual result_t checkEmail(exlib::string email, X509CheckEmailOptions* options, exlib::string& retVal) = 0;
+    virtual result_t checkHost(exlib::string name, X509CheckHostOptions* options, exlib::string& retVal) = 0;
     virtual result_t checkIP(exlib::string ip, exlib::string& retVal) = 0;
     virtual result_t checkIssued(Union_checkIssued_issuer issuer, bool& retVal) = 0;
     virtual result_t checkPrivateKey(KeyObject_base* privateKey, bool& retVal) = 0;
@@ -90,6 +92,8 @@ public:
 
 #include "ifs/Buffer.h"
 #include "ifs/KeyObject.h"
+#include "ifs/X509CheckEmailOptions.h"
+#include "ifs/X509CheckHostOptions.h"
 
 namespace fibjs {
 inline ClassInfo& X509Certificate_base::class_info()
@@ -445,9 +449,9 @@ inline void X509Certificate_base::s_checkEmail(const v8::FunctionCallbackInfo<v8
     METHOD_OVER_NAMED(2, 1, "email");
 
     ARG_NAMED(exlib::string, 0, "email");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<X509CheckEmailOptions>, 1, new X509CheckEmailOptions(), "options");
 
-    hr = pInst->checkEmail(v0, v1, vr);
+    hr = pInst->checkEmail(v0, (X509CheckEmailOptions*)v1, vr);
 
     METHOD_RETURN();
 }
@@ -462,9 +466,9 @@ inline void X509Certificate_base::s_checkHost(const v8::FunctionCallbackInfo<v8:
     METHOD_OVER_NAMED(2, 1, "name");
 
     ARG_NAMED(exlib::string, 0, "name");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<X509CheckHostOptions>, 1, new X509CheckHostOptions(), "options");
 
-    hr = pInst->checkHost(v0, v1, vr);
+    hr = pInst->checkHost(v0, (X509CheckHostOptions*)v1, vr);
 
     METHOD_RETURN();
 }
