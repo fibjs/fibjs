@@ -58,5 +58,5 @@ interface Unzip : ZlibCodec
 
      @param opts decompression options
      */
-    Unzip(Object opts = {});
+    Unzip(ZlibOptions opts = {});
 };

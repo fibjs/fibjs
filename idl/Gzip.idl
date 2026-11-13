@@ -54,5 +54,5 @@ interface Gzip : ZlibCodec
 
      @param opts compression options
      */
-    Gzip(Object opts = {});
+    Gzip(ZlibOptions opts = {});
 };

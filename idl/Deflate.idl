@@ -54,5 +54,5 @@ interface Deflate : ZlibCodec
 
      @param opts compression options
      */
-    Deflate(Object opts = {});
+    Deflate(ZlibOptions opts = {});
 };

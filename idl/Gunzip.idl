@@ -53,5 +53,5 @@ interface Gunzip : ZlibCodec
 
      @param opts decompression options
      */
-    Gunzip(Object opts = {});
+    Gunzip(ZlibOptions opts = {});
 };

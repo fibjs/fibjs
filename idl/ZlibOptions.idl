@@ -1,0 +1,11 @@
+/*! @brief Options shared by the zlib codec constructors.
+
+     `windowBits` is 0 when absent, which means the format default of the codec
+     (31 for gzip, 15 for zlib, -15 for raw deflate). Other keys are ignored.
+ */
+struct ZlibOptions {
+    Integer level = -1;
+    Integer windowBits = 0;
+    Integer memLevel = 8;
+    Integer strategy = 0;
+};

@@ -56,7 +56,12 @@ declare class Class_InflateRaw extends Class_ZlibCodec {
      *      @param opts decompression options
      *
      */
-    constructor(opts?: FIBJS.GeneralObject);
+    constructor(opts?: {
+        level?: number;
+        windowBits?: number;
+        memLevel?: number;
+        strategy?: number;
+    });
 
 }
 

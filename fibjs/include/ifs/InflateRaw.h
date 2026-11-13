@@ -17,13 +17,14 @@
 namespace fibjs {
 
 class ZlibCodec_base;
+class ZlibOptions;
 
 class InflateRaw_base : public ZlibCodec_base {
     DECLARE_CLASS(InflateRaw_base);
 
 public:
     // InflateRaw_base
-    static result_t _new(v8::Local<v8::Object> opts, obj_ptr<InflateRaw_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(ZlibOptions* opts, obj_ptr<InflateRaw_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -33,6 +34,8 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/ZlibOptions.h"
 
 namespace fibjs {
 inline ClassInfo& InflateRaw_base::class_info()
@@ -62,7 +65,7 @@ inline void InflateRaw_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<ZlibOptions>, 0, new ZlibOptions(), "opts");
 
     hr = _new(v0, vr, args.This());
 
@@ -77,7 +80,7 @@ inline result_t InflateRaw_base::load(v8::Local<v8::Value> v, obj_ptr<InflateRaw
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<ZlibOptions>, 0, new ZlibOptions(), "opts");
 
     hr = _new(v0, vr, args.This());
 

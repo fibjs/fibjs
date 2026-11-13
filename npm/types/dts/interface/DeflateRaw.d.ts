@@ -61,7 +61,12 @@ declare class Class_DeflateRaw extends Class_ZlibCodec {
      *      @param opts compression options
      *
      */
-    constructor(opts?: FIBJS.GeneralObject);
+    constructor(opts?: {
+        level?: number;
+        windowBits?: number;
+        memLevel?: number;
+        strategy?: number;
+    });
 
 }
 

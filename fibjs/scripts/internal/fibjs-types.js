@@ -9154,7 +9154,12 @@ declare class Class_Deflate extends Class_ZlibCodec {
      *      @param opts compression options
      *
      */
-    constructor(opts?: FIBJS.GeneralObject);
+    constructor(opts?: {
+        level?: number;
+        windowBits?: number;
+        memLevel?: number;
+        strategy?: number;
+    });
 
 }
 
@@ -9222,7 +9227,12 @@ declare class Class_DeflateRaw extends Class_ZlibCodec {
      *      @param opts compression options
      *
      */
-    constructor(opts?: FIBJS.GeneralObject);
+    constructor(opts?: {
+        level?: number;
+        windowBits?: number;
+        memLevel?: number;
+        strategy?: number;
+    });
 
 }
 
@@ -17762,7 +17772,12 @@ declare class Class_Gunzip extends Class_ZlibCodec {
      *      @param opts decompression options
      *
      */
-    constructor(opts?: FIBJS.GeneralObject);
+    constructor(opts?: {
+        level?: number;
+        windowBits?: number;
+        memLevel?: number;
+        strategy?: number;
+    });
 
 }
 
@@ -17828,7 +17843,12 @@ declare class Class_Gzip extends Class_ZlibCodec {
      *      @param opts compression options
      *
      */
-    constructor(opts?: FIBJS.GeneralObject);
+    constructor(opts?: {
+        level?: number;
+        windowBits?: number;
+        memLevel?: number;
+        strategy?: number;
+    });
 
 }
 
@@ -29415,7 +29435,12 @@ declare class Class_Inflate extends Class_ZlibCodec {
      *      @param opts decompression options
      *
      */
-    constructor(opts?: FIBJS.GeneralObject);
+    constructor(opts?: {
+        level?: number;
+        windowBits?: number;
+        memLevel?: number;
+        strategy?: number;
+    });
 
 }
 
@@ -29478,7 +29503,12 @@ declare class Class_InflateRaw extends Class_ZlibCodec {
      *      @param opts decompression options
      *
      */
-    constructor(opts?: FIBJS.GeneralObject);
+    constructor(opts?: {
+        level?: number;
+        windowBits?: number;
+        memLevel?: number;
+        strategy?: number;
+    });
 
 }
 
@@ -59032,7 +59062,12 @@ declare class Class_Unzip extends Class_ZlibCodec {
      *      @param opts decompression options
      *
      */
-    constructor(opts?: FIBJS.GeneralObject);
+    constructor(opts?: {
+        level?: number;
+        windowBits?: number;
+        memLevel?: number;
+        strategy?: number;
+    });
 
 }
 

@@ -56,5 +56,5 @@ interface DeflateRaw : ZlibCodec
 
      @param opts compression options
      */
-    DeflateRaw(Object opts = {});
+    DeflateRaw(ZlibOptions opts = {});
 };
