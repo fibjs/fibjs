@@ -649,7 +649,27 @@ declare module 'crypto' {
      *      @return returns the certificate request object
      *
      */
-    function createCertificateRequest(csr: Class_Buffer | FIBJS.GeneralObject | string): Class_X509CertificateRequest;
+    function createCertificateRequest(csr: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        subject?: FIBJS.GeneralObject;
+        hashAlgorithm?: string;
+    }): Class_X509CertificateRequest;
+
+    /**
+     * @description Parses an existing PEM/DER certificate request
+     *
+     *      The request is read as PEM text or PEM/DER bytes; no key is generated.
+     *      @param csr the request bytes or PEM text
+     *      @return returns the certificate request object
+     *
+     */
+    function createCertificateRequest(csr: Class_Buffer | string): Class_X509CertificateRequest;
 
     /**
      * @description Computes the shared secret between a private key and a peer's public key

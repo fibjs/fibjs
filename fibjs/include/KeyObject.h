@@ -351,8 +351,14 @@ result_t extract_key_options(const Options& options, KeyObjectOptions& out, bool
 
     COPY_KEY_OPTION(key);
     COPY_KEY_OPTION(format);
-    if (include_type)
-        COPY_KEY_OPTION(type);
+    if (include_type) {
+        // `type` is the DER key type for most records, but a certificate
+        // record uses the same name for its string array of certificate
+        // types; only copy the field when it is a string option.
+        if constexpr (requires { options.type; }
+            && std::is_constructible_v<std::optional<exlib::string>, decltype(options.type)>)
+            assign_key_option(out.type, options.type);
+    }
     COPY_KEY_OPTION(passphrase);
     COPY_KEY_OPTION(encoding);
     COPY_KEY_OPTION(namedCurve);

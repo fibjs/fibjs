@@ -228,7 +228,23 @@ declare class Class_X509CertificateRequest extends Class_object {
      *      @return returns the issued certificate
      *
      */
-    issue(options: FIBJS.GeneralObject): Class_X509Certificate;
+    issue(options: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        issuer?: FIBJS.GeneralObject;
+        hashAlgorithm?: string;
+        validFrom?: Date;
+        validTo?: Date;
+        days?: number;
+        ca?: boolean;
+        pathlen?: number;
+        keyUsage?: string[];
+        type?: string[];
+    }): Class_X509Certificate;
 
 }
 

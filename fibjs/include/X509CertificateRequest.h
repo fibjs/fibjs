@@ -23,15 +23,15 @@ public:
     virtual result_t get_raw(obj_ptr<Buffer_base>& retVal);
     virtual result_t get_pem(exlib::string& retVal);
     virtual result_t checkPrivateKey(KeyObject_base* privateKey, bool& retVal);
-    virtual result_t issue(v8::Local<v8::Object> options, obj_ptr<X509Certificate_base>& retVal);
+    virtual result_t issue(CertificateIssueOptions* options, obj_ptr<X509Certificate_base>& retVal);
 
 public:
     virtual result_t toString(exlib::string& retVal);
 
 public:
     result_t load_csr(Buffer_base* csr);
-    result_t create(v8::Local<v8::Object> options);
-    result_t fill_option(X509* cert, v8::Local<v8::Object> options, const char* key, int nid, const char** names);
+    result_t create(CertificateRequestOptions* options);
+    result_t fill_option(X509* cert, std::optional<std::vector<exlib::string>>& list, int nid, const char** names);
 
 private:
     X509ReqPointer m_csr;

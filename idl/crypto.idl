@@ -543,7 +543,15 @@ module crypto
      @param csr the PEM/DER request or the options used to create one
      @return returns the certificate request object
     */
-    static X509CertificateRequest createCertificateRequest(Buffer|Object|String csr);
+    static X509CertificateRequest createCertificateRequest(CertificateRequestOptions csr);
+
+    /*! @brief Parses an existing PEM/DER certificate request
+
+     The request is read as PEM text or PEM/DER bytes; no key is generated.
+     @param csr the request bytes or PEM text
+     @return returns the certificate request object
+     */
+    static X509CertificateRequest createCertificateRequest(Buffer|String csr);
 
     /*! @brief Computes the shared secret between a private key and a peer's public key
 

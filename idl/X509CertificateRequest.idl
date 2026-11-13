@@ -206,5 +206,5 @@ interface X509CertificateRequest : object
      @param options the issuer key and the certificate fields to apply
      @return returns the issued certificate
     */
-    X509Certificate issue(Object options);
+    X509Certificate issue(CertificateIssueOptions options);
 };

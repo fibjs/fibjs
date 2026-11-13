@@ -18,6 +18,7 @@ namespace fibjs {
 class KeyObject_base;
 class Buffer_base;
 class X509Certificate_base;
+class CertificateIssueOptions;
 
 class X509CertificateRequest_base : public object_base {
     DECLARE_CLASS(X509CertificateRequest_base);
@@ -31,7 +32,7 @@ public:
     virtual result_t get_raw(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t get_pem(exlib::string& retVal) = 0;
     virtual result_t checkPrivateKey(KeyObject_base* privateKey, bool& retVal) = 0;
-    virtual result_t issue(v8::Local<v8::Object> options, obj_ptr<X509Certificate_base>& retVal) = 0;
+    virtual result_t issue(CertificateIssueOptions* options, obj_ptr<X509Certificate_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -59,6 +60,7 @@ public:
 #include "ifs/KeyObject.h"
 #include "ifs/Buffer.h"
 #include "ifs/X509Certificate.h"
+#include "ifs/CertificateIssueOptions.h"
 
 namespace fibjs {
 inline ClassInfo& X509CertificateRequest_base::class_info()
@@ -197,9 +199,9 @@ inline void X509CertificateRequest_base::s_issue(const v8::FunctionCallbackInfo<
 
     METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<CertificateIssueOptions>, 0, "options");
 
-    hr = pInst->issue(v0, vr);
+    hr = pInst->issue((CertificateIssueOptions*)v0, vr);
 
     METHOD_RETURN();
 }

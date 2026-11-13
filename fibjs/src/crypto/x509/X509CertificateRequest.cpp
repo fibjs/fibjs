@@ -16,17 +16,28 @@ namespace fibjs {
 
 bool SafeX509SubjectAltNamePrint(const BIOPointer& out, X509_EXTENSION* ext);
 
+result_t crypto_base::createCertificateRequest(CertificateRequestOptions* csr,
+    obj_ptr<X509CertificateRequest_base>& retVal)
+{
+    if (!csr)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
+    obj_ptr<X509CertificateRequest> csr_ = new X509CertificateRequest();
+    result_t hr = csr_->create(csr);
+    if (hr.failed())
+        return hr;
+
+    retVal = csr_;
+    return result_t();
+}
+
 result_t crypto_base::createCertificateRequest(Union_createCertificateRequest_csr csr,
     obj_ptr<X509CertificateRequest_base>& retVal)
 {
     obj_ptr<X509CertificateRequest> csr_ = new X509CertificateRequest();
     result_t hr;
 
-    if (std::holds_alternative<v8::Local<v8::Object>>(csr)) {
-        // the options object builds the request from a key, subject and
-        // hashAlgorithm
-        hr = csr_->create(std::get<v8::Local<v8::Object>>(csr));
-    } else if (std::holds_alternative<exlib::string>(csr)) {
+    if (std::holds_alternative<exlib::string>(csr)) {
         // the PEM text itself
         obj_ptr<Buffer_base> buf;
 
@@ -63,45 +74,39 @@ result_t X509CertificateRequest::load_csr(Buffer_base* csr)
     return result_t();
 }
 
-static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
+template <typename Options>
+static result_t get_opt(const Options& options, NObject* subject,
     obj_ptr<KeyObject>& key, X509NamePointer& name, const EVP_MD*& md_)
 {
-    Isolate* isolate = Isolate::current(options);
-    v8::Local<v8::Context> context = isolate->context();
     result_t hr;
 
     obj_ptr<KeyObject_base> key_;
     // `type` in a CSR/issue record is the certificate type, not the DER key
     // type, so it must not be forwarded to the key parser.
-    hr = create_key_object(isolate, options, KeyObject::kKeyTypePrivate, key_, false);
+    hr = create_key_object(nullptr, options, KeyObject::kKeyTypePrivate, key_, false);
     if (hr.failed())
         return hr;
     key = key_.As<KeyObject>();
 
     name = X509_NAME_new();
-    v8::Local<v8::Object> subject;
-    hr = GetConfigValue(options, subject_name, subject, true);
-    if (hr.ok()) {
-        v8::Local<v8::Array> props = subject->GetPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
-        int32_t len = props->Length();
-        for (int i = 0; i < len; i++) {
-            exlib::string key_, value_;
+    if (subject) {
+        // NObject keeps the insertion order in `m_values`; iterate that instead
+        // of the key index, whose unordered order would scramble the subject.
+        for (auto& item : subject->m_values) {
+            Variant& value = item.m_val;
+            if (value.type() != Variant::VT_String)
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("subject value must be a string");
 
-            GetConfigValue(props, i, key_, true);
-            hr = GetConfigValue(subject, key_.c_str(), value_, true);
-            if (hr.failed())
-                return hr;
-
-            if (X509_NAME_add_entry_by_txt(name, key_.c_str(), MBSTRING_ASC, (unsigned char*)value_.c_str(), -1, -1, 0) != 1)
+            if (X509_NAME_add_entry_by_txt(name, item.m_pos->first.c_str(), MBSTRING_ASC,
+                    (unsigned char*)value.string().c_str(), -1, -1, 0)
+                != 1)
                 return openssl_error();
         }
-    } else if (!hr.is_param_missing())
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("subject must be object");
+    }
 
     exlib::string hashAlgorithm = EVP_PKEY_id(key->pkey()) == EVP_PKEY_SM2 ? "sm3" : "sha256";
-    hr = GetConfigValue(options, "hashAlgorithm", hashAlgorithm, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    if (options.hashAlgorithm.has_value())
+        hashAlgorithm = options.hashAlgorithm.value();
 
     md_ = _evp_md_type(hashAlgorithm.c_str());
     if (md_ == nullptr)
@@ -110,12 +115,17 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
     return result_t();
 }
 
-result_t X509CertificateRequest::create(v8::Local<v8::Object> options)
+result_t X509CertificateRequest::create(CertificateRequestOptions* options)
 {
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
     obj_ptr<KeyObject> key;
     X509NamePointer name;
     const EVP_MD* md;
-    result_t hr = get_opt(options, "subject", key, name, md);
+    result_t hr = get_opt(*options,
+        options->subject.has_value() ? options->subject.value().get() : nullptr,
+        key, name, md);
     if (hr.failed())
         return hr;
 
@@ -259,25 +269,13 @@ result_t X509CertificateRequest::checkPrivateKey(KeyObject_base* privateKey, boo
     return result_t();
 }
 
-result_t X509CertificateRequest::fill_option(X509* cert, v8::Local<v8::Object> options, const char* key, int nid, const char** names)
+result_t X509CertificateRequest::fill_option(X509* cert, std::optional<std::vector<exlib::string>>& list, int nid, const char** names)
 {
-    v8::Local<v8::Array> list;
-    result_t hr;
-
-    hr = GetConfigValue(options, key, list, true);
-    if (hr.is_param_missing())
+    if (!list.has_value())
         return result_t();
-    if (hr.failed())
-        return hr;
 
     exlib::string str;
-    int32_t len = list->Length();
-    for (int32_t i = 0; i < len; i++) {
-        exlib::string item;
-        hr = GetConfigValue(list, i, item, true);
-        if (hr.failed())
-            return hr;
-
+    for (auto& item : list.value()) {
         int32_t p;
         for (p = 0; p < 8; p++) {
             if (item == names[p]) {
@@ -302,12 +300,17 @@ result_t X509CertificateRequest::fill_option(X509* cert, v8::Local<v8::Object> o
     return result_t();
 }
 
-result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X509Certificate_base>& retVal)
+result_t X509CertificateRequest::issue(CertificateIssueOptions* options, obj_ptr<X509Certificate_base>& retVal)
 {
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
     obj_ptr<KeyObject> key;
     X509NamePointer name;
     const EVP_MD* md;
-    result_t hr = get_opt(options, "issuer", key, name, md);
+    result_t hr = get_opt(*options,
+        options->issuer.has_value() ? options->issuer.value().get() : nullptr,
+        key, name, md);
     if (hr.failed())
         return hr;
 
@@ -335,28 +338,20 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
 
         date_t validFrom;
         validFrom.now();
-        hr = GetConfigValue(options, "validFrom", validFrom, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
+        if (options->validFrom.has_value())
+            validFrom = options->validFrom.value();
 
         time_t tm = validFrom.date() / 1000;
         if (X509_time_adj(xi->validity.notBefore, 0, &tm) == NULL)
             return openssl_error();
 
-        date_t validTo;
-        hr = GetConfigValue(options, "validTo", validTo, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
-
-        if (!hr.is_param_missing()) {
+        if (options->validTo.has_value()) {
+            date_t validTo = options->validTo.value();
             tm = validTo.date() / 1000;
             if (X509_time_adj(xi->validity.notAfter, 0, &tm) == NULL)
                 return openssl_error();
         } else {
-            int32_t days = 100;
-            hr = GetConfigValue(options, "days", days, true);
-            if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-                return hr;
+            int32_t days = options->days.value_or(100);
 
             if (X509_time_adj(xi->validity.notAfter, (long)60 * 60 * 24 * days, &tm) == NULL)
                 return openssl_error();
@@ -366,19 +361,13 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
     {
         exlib::string basic_constraints = "critical";
 
-        bool ca = false;
-        hr = GetConfigValue(options, "ca", ca, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
+        bool ca = options->ca.value_or(false);
         if (ca)
             basic_constraints.append(", CA:TRUE");
         else
             basic_constraints.append(", CA:FALSE");
 
-        int32_t pathlen = -1;
-        hr = GetConfigValue(options, "pathlen", pathlen, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
+        int32_t pathlen = options->pathlen.value_or(-1);
         if (pathlen >= 0) {
             char buf[64];
             snprintf(buf, sizeof(buf), ", pathlen:%d", pathlen);
@@ -394,11 +383,11 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
         X509_add_ext(cert, ext, -1);
     }
 
-    hr = fill_option(cert, options, "keyUsage", NID_key_usage, xfKeyUsages);
+    hr = fill_option(cert, options->keyUsage, NID_key_usage, xfKeyUsages);
     if (hr.failed())
         return hr;
 
-    hr = fill_option(cert, options, "type", NID_netscape_cert_type, xfCertTypes);
+    hr = fill_option(cert, options->type, NID_netscape_cert_type, xfCertTypes);
     if (hr.failed())
         return hr;
 

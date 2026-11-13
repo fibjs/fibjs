@@ -1,0 +1,23 @@
+/*! @brief Options for issuing a certificate from a request.
+
+     The key-import fields select the issuer private key; `issuer` is the issuer
+     name map, `hashAlgorithm` the signature digest, and the remaining fields
+     set the validity and X.509 extensions.
+ */
+struct CertificateIssueOptions {
+    KeyObject|Buffer|String|NObject key;
+    String format;
+    String|Buffer passphrase;
+    String encoding = "utf8";
+    String namedCurve;
+    Boolean toX25519 = false;
+    NObject issuer;
+    String hashAlgorithm;
+    Date validFrom;
+    Date validTo;
+    Integer days = 100;
+    Boolean ca = false;
+    Integer pathlen = -1;
+    String[] keyUsage;
+    String[] type;
+};

@@ -28,6 +28,7 @@ class Sign_base;
 class SignCreateOptions;
 class Verify_base;
 class X509CertificateRequest_base;
+class CertificateRequestOptions;
 class DiffieHellmanOptions;
 class GenerateKeyPairOptions;
 class EncryptOptions;
@@ -59,7 +60,7 @@ public:
     using Union_createPrivateKey_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_createPublicKey_key = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_createSecretKey_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_createCertificateRequest_csr = std::variant<obj_ptr<Buffer_base>, v8::Local<v8::Object>, exlib::string>;
+    using Union_createCertificateRequest_csr = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_hash_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_randomFill_buffer = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_hkdf_password = std::variant<obj_ptr<Buffer_base>, exlib::string>;
@@ -168,6 +169,7 @@ public:
     static result_t createSign(exlib::string algorithm, SignCreateOptions* options, obj_ptr<Sign_base>& retVal);
     static result_t createVerify(exlib::string algorithm, SignCreateOptions* options, obj_ptr<Verify_base>& retVal);
     static result_t createSecretKey(Union_createSecretKey_key key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
+    static result_t createCertificateRequest(CertificateRequestOptions* csr, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t createCertificateRequest(Union_createCertificateRequest_csr csr, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t diffieHellman(DiffieHellmanOptions* options, obj_ptr<Buffer_base>& retVal);
     static result_t hash(exlib::string algorithm, Union_hash_data data, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
@@ -290,6 +292,7 @@ public:
 #include "ifs/SignCreateOptions.h"
 #include "ifs/Verify.h"
 #include "ifs/X509CertificateRequest.h"
+#include "ifs/CertificateRequestOptions.h"
 #include "ifs/DiffieHellmanOptions.h"
 #include "ifs/GenerateKeyPairOptions.h"
 #include "ifs/EncryptOptions.h"
@@ -698,6 +701,12 @@ inline void crypto_base::s_static_createCertificateRequest(const v8::FunctionCal
     obj_ptr<X509CertificateRequest_base> vr;
 
     METHOD_ENTER();
+
+    METHOD_OVER_NAMED(1, 1, "csr");
+
+    ARG_NAMED(obj_ptr<CertificateRequestOptions>, 0, "csr");
+
+    hr = createCertificateRequest((CertificateRequestOptions*)v0, vr);
 
     METHOD_OVER_NAMED(1, 1, "csr");
 
