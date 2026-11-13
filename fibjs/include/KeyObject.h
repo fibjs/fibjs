@@ -9,6 +9,7 @@
 
 #include "crypto_util.h"
 #include "ifs/KeyObject.h"
+#include <optional>
 
 namespace fibjs {
 
@@ -226,5 +227,218 @@ private:
     std::vector<unsigned char> m_key;
     EVPKeyPointer m_pkey;
 };
+
+// The key-construction subset of a function's options record. Keeping it as
+// its own record means the operation fields (padding, subject, suite, ...)
+// never reach the key parser. The extractor is a template because each API has
+// a different record shape; a field is copied only when it exists.
+struct KeyObjectOptions {
+    std::optional<Variant> key;
+    std::optional<exlib::string> format;
+    std::optional<exlib::string> type;
+    std::optional<Variant> passphrase;
+    std::optional<exlib::string> encoding;
+    std::optional<exlib::string> namedCurve;
+    std::optional<bool> toX25519;
+};
+
+template <typename T>
+Variant to_key_variant(const T& value)
+{
+    return Variant(value);
+}
+
+template <typename T>
+Variant to_key_variant(const obj_ptr<T>& value)
+{
+    obj_ptr<T> copy = value;
+    return Variant(copy);
+}
+
+template <typename... Ts>
+Variant to_key_variant(const std::variant<Ts...>& value)
+{
+    return std::visit([](const auto& v) { return Variant(v); }, value);
+}
+
+template <typename T>
+void assign_key_option(std::optional<Variant>& out, const std::optional<T>& value)
+{
+    if (value.has_value())
+        out = to_key_variant(value.value());
+}
+
+template <typename T>
+void assign_key_option(std::optional<Variant>& out, const T& value)
+{
+    out = to_key_variant(value);
+}
+
+template <typename T>
+void assign_key_option(std::optional<exlib::string>& out, const std::optional<T>& value)
+{
+    if (value.has_value())
+        out = value.value();
+}
+
+template <typename T>
+void assign_key_option(std::optional<exlib::string>& out, const T& value)
+{
+    out = value;
+}
+
+template <typename T>
+void assign_key_option(std::optional<bool>& out, const std::optional<T>& value)
+{
+    if (value.has_value())
+        out = value.value();
+}
+
+template <typename T>
+void assign_key_option(std::optional<bool>& out, const T& value)
+{
+    out = value;
+}
+
+inline result_t extract_key_options(Isolate* isolate, v8::Local<v8::Object> options, KeyObjectOptions& out, bool include_type = true)
+{
+    if (options.IsEmpty())
+        return result_t::type_mismatch();
+
+    result_t hr = GetConfigValue(options, "key", out.key);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+
+    hr = GetConfigValue(options, "format", out.format, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+
+    if (include_type) {
+        hr = GetConfigValue(options, "type", out.type, true);
+        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+            return hr;
+    }
+
+    hr = GetConfigValue(options, "passphrase", out.passphrase);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+
+    hr = GetConfigValue(options, "encoding", out.encoding, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+
+    hr = GetConfigValue(options, "namedCurve", out.namedCurve, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+
+    hr = GetConfigValue(options, "toX25519", out.toX25519, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+
+    return result_t();
+}
+
+template <typename Options>
+result_t extract_key_options(const Options& options, KeyObjectOptions& out, bool include_type = true)
+{
+#define COPY_KEY_OPTION(name) \
+    if constexpr (requires { options.name; }) assign_key_option(out.name, options.name);
+
+    COPY_KEY_OPTION(key);
+    COPY_KEY_OPTION(format);
+    if (include_type)
+        COPY_KEY_OPTION(type);
+    COPY_KEY_OPTION(passphrase);
+    COPY_KEY_OPTION(encoding);
+    COPY_KEY_OPTION(namedCurve);
+    COPY_KEY_OPTION(toX25519);
+
+#undef COPY_KEY_OPTION
+
+    return result_t();
+}
+
+inline result_t extract_key_options(v8::Local<v8::Object> options, KeyObjectOptions& out, bool include_type = true)
+{
+    return extract_key_options(Isolate::current(options), options, out, include_type);
+}
+
+template <typename T>
+result_t set_key_option(Isolate* isolate, v8::Local<v8::Object> obj, const char* name,
+    const std::optional<T>& value)
+{
+    if (!value.has_value())
+        return result_t();
+
+    T copy = value.value();
+    v8::Local<v8::Value> v = GetReturnValue(isolate, copy);
+    if (v.IsEmpty())
+        return result_t::type_mismatch();
+
+    obj->Set(isolate->context(), isolate->NewString(name), v).IsJust();
+    return result_t();
+}
+
+// Builds a private or public KeyObject from a structured key-import record.
+inline result_t create_key_object(Isolate* isolate, const KeyObjectOptions& options, KeyObject::KeyType type,
+    obj_ptr<KeyObject_base>& retVal)
+{
+    v8::Local<v8::Object> key_options = v8::Object::New(isolate->m_isolate);
+    result_t hr;
+
+#define SET_KEY_OPTION(name)                                        \
+    hr = set_key_option(isolate, key_options, #name, options.name); \
+    if (hr.failed())                                                \
+        return hr;
+
+    SET_KEY_OPTION(key);
+    SET_KEY_OPTION(format);
+    SET_KEY_OPTION(type);
+    SET_KEY_OPTION(passphrase);
+    SET_KEY_OPTION(encoding);
+    SET_KEY_OPTION(namedCurve);
+    SET_KEY_OPTION(toX25519);
+
+#undef SET_KEY_OPTION
+
+    obj_ptr<KeyObject> key = new KeyObject();
+    hr = key->createAsymmetricKey(key_options, type);
+    if (hr.failed())
+        return hr;
+
+    if (type == KeyObject::kKeyTypePrivate)
+        hr = key->toX25519_privateKey(key_options);
+    else if (type == KeyObject::kKeyTypePublic)
+        hr = key->toX25519_publicKey(key_options);
+    if (hr.failed())
+        return hr;
+
+    retVal = key;
+    return result_t();
+}
+
+// Any function-specific options shape that exposes the key-import fields can
+// be handed to this overload; the operation fields stay in that record.
+template <typename Options>
+result_t create_key_object(Isolate* isolate, const Options& options, KeyObject::KeyType type,
+    obj_ptr<KeyObject_base>& retVal, bool include_type = true)
+{
+    KeyObjectOptions key_options;
+    result_t hr = extract_key_options(options, key_options, include_type);
+    if (hr.failed())
+        return hr;
+
+    return create_key_object(isolate, key_options, type, retVal);
+}
+
+template <typename Options>
+result_t create_key_object(Isolate* isolate, const obj_ptr<Options>& options, KeyObject::KeyType type,
+    obj_ptr<KeyObject_base>& retVal, bool include_type = true)
+{
+    if (!options)
+        return result_t::type_mismatch();
+
+    return create_key_object(isolate, *options, type, retVal, include_type);
+}
 
 }

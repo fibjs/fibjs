@@ -71,7 +71,9 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
     result_t hr;
 
     obj_ptr<KeyObject_base> key_;
-    hr = crypto_base::createPrivateKey(options, key_);
+    // `type` in a CSR/issue record is the certificate type, not the DER key
+    // type, so it must not be forwarded to the key parser.
+    hr = create_key_object(isolate, options, KeyObject::kKeyTypePrivate, key_, false);
     if (hr.failed())
         return hr;
     key = key_.As<KeyObject>();

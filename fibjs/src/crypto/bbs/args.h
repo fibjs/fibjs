@@ -22,8 +22,10 @@ static result_t bbs_get_args(v8::Local<v8::Object> opts, bool priv, AsyncHandle&
 
     ac.ctxv().resize(4);
 
+    Isolate* isolate = ac.isolate();
     obj_ptr<KeyObject_base> key_;
-    hr = priv ? crypto_base::createPrivateKey(opts, key_) : crypto_base::createPublicKey(opts, key_);
+    hr = create_key_object(isolate, opts,
+        priv ? KeyObject::kKeyTypePrivate : KeyObject::kKeyTypePublic, key_);
     if (hr.failed())
         return hr;
 
