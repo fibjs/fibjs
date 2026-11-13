@@ -31,6 +31,8 @@ class Options_fs_rmdir_opt;
 class Options_fs_rm_opt;
 class Options_fs_cp_opts;
 class Options_fs_glob_opts;
+class Options_fs_createReadStream_options;
+class Options_fs_createWriteStream_options;
 
 class fs_base : public object_base {
     DECLARE_CLASS(fs_base);
@@ -155,8 +157,8 @@ public:
     static result_t opendir(exlib::string path, obj_ptr<Dir_base>& retVal, AsyncHandle ac);
     static result_t glob(exlib::string pattern, Options_fs_glob_opts* opts, obj_ptr<NArray>& retVal, AsyncHandle ac);
     static result_t glob(std::vector<exlib::string>& patterns, Options_fs_glob_opts* opts, obj_ptr<NArray>& retVal, AsyncHandle ac);
-    static result_t createReadStream(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac);
-    static result_t createWriteStream(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac);
+    static result_t createReadStream(exlib::string fname, Options_fs_createReadStream_options* options, obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac);
+    static result_t createWriteStream(exlib::string fname, Options_fs_createWriteStream_options* options, obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac);
     static result_t openFile(exlib::string fname, Union_openFile_flags flags, obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac);
     static result_t open(exlib::string fname, int32_t flags, int32_t mode, obj_ptr<FileHandle_base>& retVal, AsyncHandle ac);
     static result_t open(exlib::string fname, exlib::string flags, Variant mode, obj_ptr<FileHandle_base>& retVal, AsyncHandle ac);
@@ -292,8 +294,8 @@ public:
     ASYNC_STATICVALUE2(fs_base, opendir, exlib::string, obj_ptr<Dir_base>);
     ASYNC_STATICVALUE3(fs_base, glob, exlib::string, obj_ptr<Options_fs_glob_opts>, obj_ptr<NArray>);
     ASYNC_STATICVALUE3(fs_base, glob, std::vector<exlib::string>, obj_ptr<Options_fs_glob_opts>, obj_ptr<NArray>);
-    ASYNC_STATICVALUE3(fs_base, createReadStream, exlib::string, v8::Local<v8::Object>, obj_ptr<SeekableStream_base>);
-    ASYNC_STATICVALUE3(fs_base, createWriteStream, exlib::string, v8::Local<v8::Object>, obj_ptr<SeekableStream_base>);
+    ASYNC_STATICVALUE3(fs_base, createReadStream, exlib::string, obj_ptr<Options_fs_createReadStream_options>, obj_ptr<SeekableStream_base>);
+    ASYNC_STATICVALUE3(fs_base, createWriteStream, exlib::string, obj_ptr<Options_fs_createWriteStream_options>, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, Union_openFile_flags, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE4(fs_base, open, exlib::string, int32_t, int32_t, obj_ptr<FileHandle_base>);
     ASYNC_STATICVALUE4(fs_base, open, exlib::string, exlib::string, Variant, obj_ptr<FileHandle_base>);
@@ -359,6 +361,25 @@ public:
     std::optional<exlib::string> cwd;
     std::optional<std::vector<exlib::string>> exclude;
     std::optional<bool> withFileTypes = false;
+};
+
+class Options_fs_createReadStream_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_fs_createReadStream_options, (flags)(start)(end));
+
+public:
+    std::optional<exlib::string> flags = "r";
+    std::optional<int64_t> start = -1LL;
+    std::optional<int64_t> end = -1LL;
+};
+
+class Options_fs_createWriteStream_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_fs_createWriteStream_options, (flags)(start));
+
+public:
+    std::optional<exlib::string> flags = "w";
+    std::optional<int64_t> start = -1LL;
 };
 
 inline ClassInfo& fs_base::class_info()
@@ -1158,7 +1179,7 @@ inline void fs_base::s_static_createReadStream(const v8::FunctionCallbackInfo<v8
     METHOD_OVER_NAMED(2, 1, "fname");
 
     ARG_NAMED(exlib::string, 0, "fname");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_fs_createReadStream_options>, 1, new Options_fs_createReadStream_options(), "options");
 
     if (!cb.IsEmpty())
         hr = acb_createReadStream(v0, v1, cb, args);
@@ -1177,7 +1198,7 @@ inline void fs_base::s_static_createWriteStream(const v8::FunctionCallbackInfo<v
     METHOD_OVER_NAMED(2, 1, "fname");
 
     ARG_NAMED(exlib::string, 0, "fname");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_fs_createWriteStream_options>, 1, new Options_fs_createWriteStream_options(), "options");
 
     if (!cb.IsEmpty())
         hr = acb_createWriteStream(v0, v1, cb, args);

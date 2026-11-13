@@ -104,7 +104,11 @@ declare class Class_FileStream extends Class_SeekableStream {
      *      @param options open options, `{ flags, start, end }`
      *
      */
-    constructor(path: string, options?: FIBJS.GeneralObject);
+    constructor(path: string, options?: {
+        flags?: string;
+        start?: number;
+        end?: number;
+    });
 
     /**
      * @description Queries the current file name
@@ -280,7 +284,11 @@ declare class Class_FileStreamPromise extends Class_SeekableStreamPromise {
      *      @param options open options, `{ flags, start, end }`
      *
      */
-    constructor(path: string, options?: FIBJS.GeneralObject);
+    constructor(path: string, options?: {
+        flags?: string;
+        start?: number;
+        end?: number;
+    });
 
     /**
      * @description Queries the current file name

@@ -3427,42 +3427,17 @@ static result_t stream_open_error(exlib::string fname, exlib::string flags, resu
     return result_t();
 }
 
-result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> options,
+result_t fs_base::createReadStream(exlib::string fname, Options_fs_createReadStream_options* options,
     obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        ac.ctxv().resize(3);
-
-        // Node validates all three; a silently defaulted start/end would read
-        // a different range than the caller asked for.
-        exlib::string flags = "r";
-        result_t ohr = GetConfigValue(options, "flags", flags, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[0] = flags;
-
-        int64_t start = -1;
-        ohr = GetConfigValue(options, "start", start, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[1] = start;
-
-        int64_t end = -1;
-        ohr = GetConfigValue(options, "end", end, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[2] = end;
-
+    if (ac.isSync())
         return result_t::nosync();
-    }
 
-    result_t ctx_hr = ac.ctx(2);
-    if (ctx_hr.failed())
-        return ctx_hr;
-
-    exlib::string flags = ac.ctxv()[0].string();
-    int64_t start = ac.ctxv()[1].longVal();
-    int64_t end = ac.ctxv()[2].longVal();
+    // Node validates all three; a silently defaulted start/end would read
+    // a different range than the caller asked for.
+    exlib::string flags = options ? options->flags.value_or("r") : "r";
+    int64_t start = options ? options->start.value_or(-1) : -1;
+    int64_t end = options ? options->end.value_or(-1) : -1;
 
     obj_ptr<SeekableStream_base> stm;
     result_t hr = openFile(fname, flags, stm, std::move(ac));
@@ -3484,33 +3459,14 @@ result_t fs_base::createReadStream(exlib::string fname, v8::Local<v8::Object> op
     return result_t();
 }
 
-result_t fs_base::createWriteStream(exlib::string fname, v8::Local<v8::Object> options,
+result_t fs_base::createWriteStream(exlib::string fname, Options_fs_createWriteStream_options* options,
     obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        ac.ctxv().resize(2);
-
-        exlib::string flags = "w";
-        result_t ohr = GetConfigValue(options, "flags", flags, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[0] = flags;
-
-        int64_t start = -1;
-        ohr = GetConfigValue(options, "start", start, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[1] = start;
-
+    if (ac.isSync())
         return result_t::nosync();
-    }
 
-    result_t ctx_hr = ac.ctx(1);
-    if (ctx_hr.failed())
-        return ctx_hr;
-
-    exlib::string flags = ac.ctxv()[0].string();
-    int64_t start = ac.ctxv()[1].longVal();
+    exlib::string flags = options ? options->flags.value_or("w") : "w";
+    int64_t start = options ? options->start.value_or(-1) : -1;
 
     obj_ptr<SeekableStream_base> stm;
     result_t hr = openFile(fname, flags, stm, std::move(ac));

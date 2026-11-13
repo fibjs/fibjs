@@ -788,7 +788,7 @@ module fs
      @param options the read options
      @return the file stream object
      */
-    static SeekableStream createReadStream(String fname, Object options = {}) async;
+    static SeekableStream createReadStream(String fname, (String flags = "r", Long start = -1, Long end = -1) options = {}) async;
 
     /*! @brief Opens a file and creates a writable stream
 
@@ -807,7 +807,7 @@ module fs
      @param options the write options, supporting flags ('w' by default)
      @return the file stream object
      */
-    static SeekableStream createWriteStream(String fname, Object options = {}) async;
+    static SeekableStream createWriteStream(String fname, (String flags = "w", Long start = -1) options = {}) async;
 
     /*! @brief Opens a file for reading, writing, or both
 

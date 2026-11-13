@@ -2195,7 +2195,11 @@ declare module 'fs/promises' {
      *      @return the file stream object
      *
      */
-    function createReadStream(fname: string, options?: FIBJS.GeneralObject): Promise<Class_SeekableStreamPromise>;
+    function createReadStream(fname: string, options?: {
+        flags?: string;
+        start?: number;
+        end?: number;
+    }): Promise<Class_SeekableStreamPromise>;
 
     /**
      * @description Creates a readable file stream
@@ -2216,7 +2220,11 @@ declare module 'fs/promises' {
      *      @return the file stream object
      *
      */
-    function createReadStreamSync(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
+    function createReadStreamSync(fname: string, options?: {
+        flags?: string;
+        start?: number;
+        end?: number;
+    }): Class_SeekableStream;
 
     /**
      * @description Creates a readable file stream
@@ -2237,7 +2245,11 @@ declare module 'fs/promises' {
      *      @return the file stream object
      *
      */
-    function createReadStreamAsync(fname: string, options?: FIBJS.GeneralObject): Promise<Class_SeekableStreamPromise>;
+    function createReadStreamAsync(fname: string, options?: {
+        flags?: string;
+        start?: number;
+        end?: number;
+    }): Promise<Class_SeekableStreamPromise>;
 
     /**
      * @description Opens a file and creates a writable stream
@@ -2258,7 +2270,10 @@ declare module 'fs/promises' {
      *      @return the file stream object
      *
      */
-    function createWriteStream(fname: string, options?: FIBJS.GeneralObject): Promise<Class_SeekableStreamPromise>;
+    function createWriteStream(fname: string, options?: {
+        flags?: string;
+        start?: number;
+    }): Promise<Class_SeekableStreamPromise>;
 
     /**
      * @description Opens a file and creates a writable stream
@@ -2279,7 +2294,10 @@ declare module 'fs/promises' {
      *      @return the file stream object
      *
      */
-    function createWriteStreamSync(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
+    function createWriteStreamSync(fname: string, options?: {
+        flags?: string;
+        start?: number;
+    }): Class_SeekableStream;
 
     /**
      * @description Opens a file and creates a writable stream
@@ -2300,7 +2318,10 @@ declare module 'fs/promises' {
      *      @return the file stream object
      *
      */
-    function createWriteStreamAsync(fname: string, options?: FIBJS.GeneralObject): Promise<Class_SeekableStreamPromise>;
+    function createWriteStreamAsync(fname: string, options?: {
+        flags?: string;
+        start?: number;
+    }): Promise<Class_SeekableStreamPromise>;
 
     /**
      * @description Opens a file for reading, writing, or both

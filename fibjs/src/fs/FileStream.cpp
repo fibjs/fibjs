@@ -419,26 +419,16 @@ result_t FileStream::chmod(int32_t mode, AsyncHandle ac)
 // fs.ReadStream / fs.WriteStream aliases. Unlike createReadStream, which reports
 // an open failure through an 'error' event, the constructor throws: a caller
 // that builds the object itself has no place to listen yet.
-result_t FileStream_base::_new(exlib::string path, v8::Local<v8::Object> options,
+result_t FileStream_base::_new(exlib::string path, Options_FileStream_FileStream_options* options,
     obj_ptr<FileStream_base>& retVal, v8::Local<v8::Object> This)
 {
-    exlib::string flags = "r";
-    result_t hr = GetConfigValue(options, "flags", flags, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
-    int64_t start = -1;
-    hr = GetConfigValue(options, "start", start, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    exlib::string flags = options ? options->flags.value_or("r") : "r";
+    int64_t start = options ? options->start.value_or(-1) : -1;
 
     // A bounded range needs the RangeStream that createReadStream builds when
     // `end` is set; this class is the whole file, so the option cannot be
     // honoured here and is reported instead of silently reading past it.
-    int64_t end = -1;
-    hr = GetConfigValue(options, "end", end, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    int64_t end = options ? options->end.value_or(-1) : -1;
     if (end >= 0)
         return result_t::make(CALL_E_INVALID_DATA)
             .with_type_name(errtype::kTypeError)
@@ -447,7 +437,7 @@ result_t FileStream_base::_new(exlib::string path, v8::Local<v8::Object> options
 
     obj_ptr<FileStream> stm = new FileStream();
 
-    hr = stm->open(path, flags);
+    result_t hr = stm->open(path, flags);
     if (hr.failed())
         return hr;
 

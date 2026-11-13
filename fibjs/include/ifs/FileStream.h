@@ -12,18 +12,20 @@
  */
 
 #include "../object.h"
+#include <boost/preprocessor.hpp>
 #include "ifs/SeekableStream.h"
 
 namespace fibjs {
 
 class SeekableStream_base;
+class Options_FileStream_FileStream_options;
 
 class FileStream_base : public SeekableStream_base {
     DECLARE_CLASS(FileStream_base);
 
 public:
     // FileStream_base
-    static result_t _new(exlib::string path, v8::Local<v8::Object> options, obj_ptr<FileStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string path, Options_FileStream_FileStream_options* options, obj_ptr<FileStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t chmod(int32_t mode, AsyncHandle ac) = 0;
 
@@ -42,6 +44,16 @@ public:
 }
 
 namespace fibjs {
+class Options_FileStream_FileStream_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_FileStream_FileStream_options, (flags)(start)(end));
+
+public:
+    std::optional<exlib::string> flags = "r";
+    std::optional<int64_t> start = -1LL;
+    std::optional<int64_t> end = -1LL;
+};
+
 inline ClassInfo& FileStream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
@@ -78,7 +90,7 @@ inline void FileStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER_NAMED(2, 1, "path");
 
     ARG_NAMED(exlib::string, 0, "path");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_FileStream_FileStream_options>, 1, new Options_FileStream_FileStream_options(), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -94,7 +106,7 @@ inline result_t FileStream_base::load(v8::Local<v8::Value> v, obj_ptr<FileStream
     METHOD_OVER_NAMED(2, 1, "path");
 
     ARG_NAMED(exlib::string, 0, "path");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_FileStream_FileStream_options>, 1, new Options_FileStream_FileStream_options(), "options");
 
     hr = _new(v0, v1, vr, args.This());
 

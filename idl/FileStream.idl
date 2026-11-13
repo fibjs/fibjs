@@ -99,7 +99,7 @@ interface FileStream : SeekableStream
      @param path the file to open
      @param options open options, `{ flags, start, end }`
      */
-    FileStream(String path, Object options = {});
+    FileStream(String path, (String flags = "r", Long start = -1, Long end = -1) options = {});
 
     /*! @brief Queries the current file name
 

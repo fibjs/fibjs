@@ -2443,11 +2443,19 @@ declare module 'fs' {
      *      @return the file stream object
      *
      */
-    function createReadStream(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
+    function createReadStream(fname: string, options?: {
+        flags?: string;
+        start?: number;
+        end?: number;
+    }): Class_SeekableStream;
 
     function createReadStream(fname: string, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
-    function createReadStream(fname: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function createReadStream(fname: string, options: {
+        flags?: string;
+        start?: number;
+        end?: number;
+    }, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
     /**
      * @description Creates a readable file stream
@@ -2468,7 +2476,11 @@ declare module 'fs' {
      *      @return the file stream object
      *
      */
-    function createReadStreamSync(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
+    function createReadStreamSync(fname: string, options?: {
+        flags?: string;
+        start?: number;
+        end?: number;
+    }): Class_SeekableStream;
 
     /**
      * @description Creates a readable file stream
@@ -2489,7 +2501,11 @@ declare module 'fs' {
      *      @return the file stream object
      *
      */
-    function createReadStreamAsync(fname: string, options?: FIBJS.GeneralObject): Promise<Class_SeekableStreamPromise>;
+    function createReadStreamAsync(fname: string, options?: {
+        flags?: string;
+        start?: number;
+        end?: number;
+    }): Promise<Class_SeekableStreamPromise>;
 
     /**
      * @description Opens a file and creates a writable stream
@@ -2510,11 +2526,17 @@ declare module 'fs' {
      *      @return the file stream object
      *
      */
-    function createWriteStream(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
+    function createWriteStream(fname: string, options?: {
+        flags?: string;
+        start?: number;
+    }): Class_SeekableStream;
 
     function createWriteStream(fname: string, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
-    function createWriteStream(fname: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function createWriteStream(fname: string, options: {
+        flags?: string;
+        start?: number;
+    }, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
     /**
      * @description Opens a file and creates a writable stream
@@ -2535,7 +2557,10 @@ declare module 'fs' {
      *      @return the file stream object
      *
      */
-    function createWriteStreamSync(fname: string, options?: FIBJS.GeneralObject): Class_SeekableStream;
+    function createWriteStreamSync(fname: string, options?: {
+        flags?: string;
+        start?: number;
+    }): Class_SeekableStream;
 
     /**
      * @description Opens a file and creates a writable stream
@@ -2556,7 +2581,10 @@ declare module 'fs' {
      *      @return the file stream object
      *
      */
-    function createWriteStreamAsync(fname: string, options?: FIBJS.GeneralObject): Promise<Class_SeekableStreamPromise>;
+    function createWriteStreamAsync(fname: string, options?: {
+        flags?: string;
+        start?: number;
+    }): Promise<Class_SeekableStreamPromise>;
 
     /**
      * @description Opens a file for reading, writing, or both
