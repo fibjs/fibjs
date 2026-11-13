@@ -59,6 +59,25 @@ static result_t get_sig_opt(SignOptions* options, DSASigEnc& enc, int& padding, 
     return result_t();
 }
 
+static result_t get_create_sig_opt(SignCreateOptions* options, DSASigEnc& enc, int& padding, int& salt_len)
+{
+    if (!options)
+        return result_t();
+
+    exlib::string dsaEncoding = options->dsaEncoding.value_or("der");
+    if (dsaEncoding == "ieee-p1363")
+        enc = kSigEncP1363;
+    else if (dsaEncoding != "der")
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid dsaEncoding: '%s'.", dsaEncoding.c_str());
+
+    if (options->padding.has_value())
+        padding = options->padding.value();
+    if (options->saltLength.has_value())
+        salt_len = options->saltLength.value();
+
+    return result_t();
+}
+
 static bool ApplyRSAOptions(const EVP_PKEY* pkey, EVP_PKEY_CTX* pkctx, int padding, int salt_len)
 {
     int pk_id = EVP_PKEY_id(pkey);
@@ -146,6 +165,11 @@ Sign::Sign(const EVP_MD* md)
 {
     m_ctx = EVP_MD_CTX_new();
     EVP_DigestInit_ex(m_ctx, md, NULL);
+}
+
+result_t Sign::set_options(SignCreateOptions* options)
+{
+    return get_create_sig_opt(options, m_enc, m_padding, m_salt_len);
 }
 
 result_t Sign::update(Union_update_data data, exlib::string codec, obj_ptr<Sign_base>& retVal)
@@ -274,13 +298,18 @@ result_t Sign::sign(Union_sign_privateKey privateKey, exlib::string encoding, v8
 
 result_t Sign::sign_keyobj(KeyObject_base* privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal)
 {
-    return sign(privateKey, kSigEncDER, DEFAULT_PADDING, RSA_PSS_SALTLEN_MAX_SIGN, encoding, retVal);
+    return sign(privateKey, m_enc, m_padding, m_salt_len, encoding, retVal);
 }
 
 Verify::Verify(const EVP_MD* md)
 {
     m_ctx = EVP_MD_CTX_new();
     EVP_DigestInit_ex(m_ctx, md, NULL);
+}
+
+result_t Verify::set_options(SignCreateOptions* options)
+{
+    return get_create_sig_opt(options, m_enc, m_padding, m_salt_len);
 }
 
 result_t Verify::update(Union_update_data data, exlib::string codec, obj_ptr<Verify_base>& retVal)
@@ -423,31 +452,41 @@ result_t Verify::verify(Union_verify_privateKey privateKey, Union_verify_signatu
 
 result_t Verify::verify_keyobj(KeyObject_base* privateKey, Buffer_base* signature, bool& retVal)
 {
-    return verify(privateKey, signature, kSigEncDER, DEFAULT_PADDING, RSA_PSS_SALTLEN_MAX_SIGN, retVal);
+    return verify(privateKey, signature, m_enc, m_padding, m_salt_len, retVal);
 }
 
 result_t Verify::verify_keyobj(KeyObject_base* privateKey, exlib::string signature, exlib::string encoding, bool& retVal)
 {
-    return verify(privateKey, signature, encoding, kSigEncDER, DEFAULT_PADDING, RSA_PSS_SALTLEN_MAX_SIGN, retVal);
+    return verify(privateKey, signature, encoding, m_enc, m_padding, m_salt_len, retVal);
 }
 
-result_t crypto_base::createSign(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Sign_base>& retVal)
+result_t crypto_base::createSign(exlib::string algorithm, SignCreateOptions* options, obj_ptr<Sign_base>& retVal)
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (!md)
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("createSign: unknown algorithm '%s'.", algorithm.c_str());
 
-    retVal = new Sign(md);
+    obj_ptr<Sign> sign = new Sign(md);
+    result_t hr = sign->set_options(options);
+    if (hr.failed())
+        return hr;
+
+    retVal = sign;
     return result_t();
 }
 
-result_t crypto_base::createVerify(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Verify_base>& retVal)
+result_t crypto_base::createVerify(exlib::string algorithm, SignCreateOptions* options, obj_ptr<Verify_base>& retVal)
 {
     const EVP_MD* md = _evp_md_type(algorithm.c_str());
     if (!md)
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("createVerify: unknown algorithm '%s'.", algorithm.c_str());
 
-    retVal = new Verify(md);
+    obj_ptr<Verify> verify = new Verify(md);
+    result_t hr = verify->set_options(options);
+    if (hr.failed())
+        return hr;
+
+    retVal = verify;
     return result_t();
 }
 

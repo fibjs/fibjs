@@ -25,6 +25,7 @@ class Buffer_base;
 class Cipher_base;
 class KeyOptions;
 class Sign_base;
+class SignCreateOptions;
 class Verify_base;
 class X509CertificateRequest_base;
 class DiffieHellmanOptions;
@@ -164,8 +165,8 @@ public:
     static result_t createPrivateKey(Union_createPrivateKey_key key, obj_ptr<KeyObject_base>& retVal);
     static result_t createPublicKey(KeyOptions* key, obj_ptr<KeyObject_base>& retVal);
     static result_t createPublicKey(Union_createPublicKey_key key, obj_ptr<KeyObject_base>& retVal);
-    static result_t createSign(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Sign_base>& retVal);
-    static result_t createVerify(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Verify_base>& retVal);
+    static result_t createSign(exlib::string algorithm, SignCreateOptions* options, obj_ptr<Sign_base>& retVal);
+    static result_t createVerify(exlib::string algorithm, SignCreateOptions* options, obj_ptr<Verify_base>& retVal);
     static result_t createSecretKey(Union_createSecretKey_key key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
     static result_t createCertificateRequest(Union_createCertificateRequest_csr csr, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t diffieHellman(DiffieHellmanOptions* options, obj_ptr<Buffer_base>& retVal);
@@ -286,6 +287,7 @@ public:
 #include "ifs/Cipher.h"
 #include "ifs/KeyOptions.h"
 #include "ifs/Sign.h"
+#include "ifs/SignCreateOptions.h"
 #include "ifs/Verify.h"
 #include "ifs/X509CertificateRequest.h"
 #include "ifs/DiffieHellmanOptions.h"
@@ -652,9 +654,9 @@ inline void crypto_base::s_static_createSign(const v8::FunctionCallbackInfo<v8::
     METHOD_OVER_NAMED(2, 1, "algorithm");
 
     ARG_NAMED(exlib::string, 0, "algorithm");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<SignCreateOptions>, 1, new SignCreateOptions(), "options");
 
-    hr = createSign(v0, v1, vr);
+    hr = createSign(v0, (SignCreateOptions*)v1, vr);
 
     METHOD_RETURN();
 }
@@ -668,9 +670,9 @@ inline void crypto_base::s_static_createVerify(const v8::FunctionCallbackInfo<v8
     METHOD_OVER_NAMED(2, 1, "algorithm");
 
     ARG_NAMED(exlib::string, 0, "algorithm");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<SignCreateOptions>, 1, new SignCreateOptions(), "options");
 
-    hr = createVerify(v0, v1, vr);
+    hr = createVerify(v0, (SignCreateOptions*)v1, vr);
 
     METHOD_RETURN();
 }

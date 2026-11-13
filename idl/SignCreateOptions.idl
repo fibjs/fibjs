@@ -1,0 +1,10 @@
+/*! @brief Default signing/verifying parameters for createSign/createVerify.
+
+     They apply when the key is passed as raw key material (KeyObject, Buffer
+     or string); a KeyOptions-style key argument carries its own values.
+ */
+struct SignCreateOptions {
+    String dsaEncoding = "der";
+    Integer padding;
+    Integer saltLength;
+};

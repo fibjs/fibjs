@@ -8,12 +8,14 @@
 #include "crypto_util.h"
 #include "ifs/Sign.h"
 #include "ifs/Verify.h"
+#include "ifs/SignCreateOptions.h"
 
 namespace fibjs {
 
 class Sign : public Sign_base {
 public:
     Sign(const EVP_MD* md);
+    result_t set_options(SignCreateOptions* options);
 
 public:
     // Sign_base
@@ -31,11 +33,15 @@ public:
 
 private:
     EVPMDPointer m_ctx;
+    DSASigEnc m_enc = kSigEncDER;
+    int m_padding = DEFAULT_PADDING;
+    int m_salt_len = RSA_PSS_SALTLEN_MAX_SIGN;
 };
 
 class Verify : public Verify_base {
 public:
     Verify(const EVP_MD* md);
+    result_t set_options(SignCreateOptions* options);
 
 public:
     // Verify_base
@@ -57,6 +63,9 @@ public:
 
 private:
     EVPMDPointer m_ctx;
+    DSASigEnc m_enc = kSigEncDER;
+    int m_padding = DEFAULT_PADDING;
+    int m_salt_len = RSA_PSS_SALTLEN_MAX_SIGN;
 };
 
 }

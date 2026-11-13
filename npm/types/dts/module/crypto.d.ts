@@ -535,11 +535,11 @@ declare module 'crypto' {
     /**
      * @description Creates a streaming signing object for the given digest algorithm
      *
-     *      Update it with the data, then call `sign` once with the private key; the signing
-     *      parameters (such as `dsaEncoding` and the RSA padding) go into the key argument
-     *      of `sign`. This `options` parameter is reserved and currently unused. The
-     *      streaming form is not available for one-shot algorithms (Ed25519 and Ed448) -
-     *      use sign for those.
+     *      Update it with the data, then call `sign` once with the private key. The
+     *      `dsaEncoding`, `padding` and `saltLength` defaults given here apply when
+     *      the key is passed as raw key material; a key options object carries its
+     *      own values. The streaming form is not available for one-shot algorithms
+     *      (Ed25519 and Ed448) - use sign for those.
      *
      *      Example: a two-part update signed with an EC key:
      *      ```JavaScript
@@ -564,22 +564,30 @@ declare module 'crypto' {
      *      @return returns the signing object
      *
      */
-    function createSign(algorithm: string, options?: FIBJS.GeneralObject): Class_Sign;
+    function createSign(algorithm: string, options?: {
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }): Class_Sign;
 
     /**
      * @description Creates a streaming verification object for the given digest algorithm
      *
      *      The counterpart of createSign: update it with the data and call `verify` with the
      *      public key and the signature. `verify` returns false for a wrong signature or key
-     *      and throws only for malformed input. The options of the verification (such as
-     *      `dsaEncoding`, which must match the signer) go into the key argument of `verify`;
-     *      this `options` parameter is reserved and currently unused.
+     *      and throws only for malformed input. The dsaEncoding/padding/saltLength
+     *      defaults given here apply when the key is passed as raw key material; a key
+     *      options object carries its own values.
      *      @param algorithm the digest algorithm name
      *      @param options the verifying options, reserved and unused
      *      @return returns the verification object
      *
      */
-    function createVerify(algorithm: string, options?: FIBJS.GeneralObject): Class_Verify;
+    function createVerify(algorithm: string, options?: {
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }): Class_Verify;
 
     /**
      * @description Creates a KeyObject holding a symmetric (secret) key
