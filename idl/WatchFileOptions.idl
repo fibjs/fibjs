@@ -1,0 +1,6 @@
+/*! @brief Options shared by the fs.watchFile overloads. */
+struct WatchFileOptions {
+    Boolean persistent = true;
+    Boolean bigint = false;
+    Integer interval = 5007;
+};

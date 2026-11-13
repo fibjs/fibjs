@@ -3494,7 +3494,11 @@ declare module 'fs' {
      *      @return the FSWatcher object
      *
      */
-    function watch(fname: string, options: FIBJS.GeneralObject): Class_FSWatcher;
+    function watch(fname: string, options: {
+        persistent?: boolean;
+        recursive?: boolean;
+        encoding?: string;
+    }): Class_FSWatcher;
 
     /**
      * @description Watches a file and returns the corresponding watcher object
@@ -3514,7 +3518,11 @@ declare module 'fs' {
      *      @return the FSWatcher object
      *
      */
-    function watch(fname: string, options: FIBJS.GeneralObject, callback: (eventType: string, filename: string | Class_Buffer)=>void): Class_FSWatcher;
+    function watch(fname: string, options: {
+        persistent?: boolean;
+        recursive?: boolean;
+        encoding?: string;
+    }, callback: (eventType: string, filename: string | Class_Buffer)=>void): Class_FSWatcher;
 
     /**
      * @description Watches a file and returns the corresponding StatsWatcher object
@@ -3549,7 +3557,11 @@ declare module 'fs' {
      *      @return the StatsWatcher object
      *
      */
-    function watchFile(fname: string, options: FIBJS.GeneralObject, callback: (curStats: Class_Stat, prevStats: Class_Stat)=>void): Class_StatsWatcher;
+    function watchFile(fname: string, options: {
+        persistent?: boolean;
+        bigint?: boolean;
+        interval?: number;
+    }, callback: (curStats: Class_Stat, prevStats: Class_Stat)=>void): Class_StatsWatcher;
 
     /**
      * @description Removes all watch event handlers from the StatsWatcher watching fname

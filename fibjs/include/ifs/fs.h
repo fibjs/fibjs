@@ -26,7 +26,9 @@ class Buffer_base;
 class SeekableStream_base;
 class BufferedStream_base;
 class FSWatcher_base;
+class WatchOptions;
 class StatsWatcher_base;
+class WatchFileOptions;
 class Options_fs_rmdir_opt;
 class Options_fs_rm_opt;
 class Options_fs_cp_opts;
@@ -177,10 +179,10 @@ public:
     static result_t clearZipFS(exlib::string fname);
     static result_t watch(exlib::string fname, obj_ptr<FSWatcher_base>& retVal);
     static result_t watch(exlib::string fname, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal);
-    static result_t watch(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<FSWatcher_base>& retVal);
-    static result_t watch(exlib::string fname, v8::Local<v8::Object> options, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal);
+    static result_t watch(exlib::string fname, WatchOptions* options, obj_ptr<FSWatcher_base>& retVal);
+    static result_t watch(exlib::string fname, WatchOptions* options, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal);
     static result_t watchFile(exlib::string fname, v8::Local<v8::Function> callback, obj_ptr<StatsWatcher_base>& retVal);
-    static result_t watchFile(exlib::string fname, v8::Local<v8::Object> options, v8::Local<v8::Function> callback, obj_ptr<StatsWatcher_base>& retVal);
+    static result_t watchFile(exlib::string fname, WatchFileOptions* options, v8::Local<v8::Function> callback, obj_ptr<StatsWatcher_base>& retVal);
     static result_t unwatchFile(exlib::string fname);
     static result_t unwatchFile(exlib::string fname, v8::Local<v8::Function> callback);
 
@@ -322,7 +324,9 @@ public:
 #include "ifs/SeekableStream.h"
 #include "ifs/BufferedStream.h"
 #include "ifs/FSWatcher.h"
+#include "ifs/WatchOptions.h"
 #include "ifs/StatsWatcher.h"
+#include "ifs/WatchFileOptions.h"
 
 namespace fibjs {
 class Options_fs_rmdir_opt : public obj_base {
@@ -1499,14 +1503,14 @@ inline void fs_base::s_static_watch(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER_NAMED(2, 2, "options");
 
     ARG_NAMED(exlib::string, 0, "fname");
-    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
+    ARG_NAMED(obj_ptr<WatchOptions>, 1, "options");
 
     hr = watch(v0, v1, vr);
 
     METHOD_OVER_NAMED(3, 3, "callback");
 
     ARG_NAMED(exlib::string, 0, "fname");
-    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
+    ARG_NAMED(obj_ptr<WatchOptions>, 1, "options");
     ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = watch(v0, v1, v2, vr);
@@ -1530,7 +1534,7 @@ inline void fs_base::s_static_watchFile(const v8::FunctionCallbackInfo<v8::Value
     METHOD_OVER_NAMED(3, 3, "callback");
 
     ARG_NAMED(exlib::string, 0, "fname");
-    ARG_NAMED(v8::Local<v8::Object>, 1, "options");
+    ARG_NAMED(obj_ptr<WatchFileOptions>, 1, "options");
     ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
     hr = watchFile(v0, v1, v2, vr);

@@ -1,0 +1,6 @@
+/*! @brief Options shared by the fs.watch overloads. */
+struct WatchOptions {
+    Boolean persistent = true;
+    Boolean recursive = false;
+    String encoding = "utf8";
+};

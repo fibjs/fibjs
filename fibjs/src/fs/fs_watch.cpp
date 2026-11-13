@@ -65,13 +65,10 @@ result_t fs_base::watch(exlib::string fname, obj_ptr<FSWatcher_base>& retVal)
 
 result_t fs_base::watch(exlib::string fname, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
-
-    return watch(fname, opts, callback, retVal);
+    return watch(fname, (WatchOptions*)nullptr, callback, retVal);
 }
 
-result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<FSWatcher_base>& retVal)
+result_t fs_base::watch(exlib::string fname, WatchOptions* options, obj_ptr<FSWatcher_base>& retVal)
 {
     return watch(fname, options, v8::Local<v8::Function>(), retVal);
 }
@@ -81,27 +78,16 @@ result_t get_safe_abs_path(exlib::string fname, exlib::string& safe_name)
     return absolute_file_path_like(fname, safe_name);
 }
 
-result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal)
+result_t fs_base::watch(exlib::string fname, WatchOptions* options, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal)
 {
     result_t hr;
     exlib::string safe_name;
     if ((hr = get_safe_abs_path(fname, safe_name)).failed())
         return result_t();
 
-    bool persistent = true;
-    hr = GetConfigValue(options, "persistent", persistent, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
-    bool recursive = false;
-    hr = GetConfigValue(options, "recursive", recursive, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
-    exlib::string encoding = "utf8";
-    hr = GetConfigValue(options, "encoding", encoding, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    bool persistent = options ? options->persistent.value_or(true) : true;
+    bool recursive = options ? options->recursive.value_or(false) : false;
+    exlib::string encoding = options ? options->encoding.value_or("utf8") : "utf8";
 
     obj_ptr<FSWatcher> pFW = new FSWatcher(safe_name, callback, persistent, recursive, encoding);
     retVal = pFW;
@@ -111,13 +97,10 @@ result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, v8::
 
 result_t fs_base::watchFile(exlib::string fname, v8::Local<v8::Function> callback, obj_ptr<StatsWatcher_base>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
-
-    return watchFile(fname, opts, callback, retVal);
+    return watchFile(fname, (WatchFileOptions*)nullptr, callback, retVal);
 }
 
-result_t fs_base::watchFile(exlib::string fname, v8::Local<v8::Object> options, v8::Local<v8::Function> callback, obj_ptr<StatsWatcher_base>& retVal)
+result_t fs_base::watchFile(exlib::string fname, WatchFileOptions* options, v8::Local<v8::Function> callback, obj_ptr<StatsWatcher_base>& retVal)
 {
     result_t hr;
     exlib::string safe_name;
@@ -127,20 +110,9 @@ result_t fs_base::watchFile(exlib::string fname, v8::Local<v8::Object> options, 
     obj_ptr<StatsWatcher> pSW;
     StatsWatcher::getTargetWatcher(safe_name, pSW);
     if (pSW == NULL) {
-        bool persistent = true;
-        hr = GetConfigValue(options, "persistent", persistent, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
-
-        bool useBigInt = false;
-        hr = GetConfigValue(options, "bigint", useBigInt, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
-
-        int32_t interval = DEFAULT_STATS_WATCH_INTERVAL;
-        hr = GetConfigValue(options, "interval", interval, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
+        bool persistent = options ? options->persistent.value_or(true) : true;
+        bool useBigInt = options ? options->bigint.value_or(false) : false;
+        int32_t interval = options ? options->interval.value_or(DEFAULT_STATS_WATCH_INTERVAL) : DEFAULT_STATS_WATCH_INTERVAL;
 
         pSW = new StatsWatcher(safe_name, persistent, interval, useBigInt);
         retVal = pSW;

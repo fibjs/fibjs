@@ -1121,7 +1121,7 @@ module fs
      @param options the watch options
      @return the FSWatcher object
      */
-    static FSWatcher watch(String fname, Object options);
+    static FSWatcher watch(String fname, WatchOptions options);
 
     /*! @brief Watches a file and returns the corresponding watcher object
 
@@ -1139,7 +1139,7 @@ module fs
      @param callback `(evtType: 'change' | 'rename', filename: string) => any` the handler called when the file changes
      @return the FSWatcher object
      */
-    static FSWatcher watch(String fname, Object options, Function(String eventType, String|Buffer filename) callback);
+    static FSWatcher watch(String fname, WatchOptions options, Function(String eventType, String|Buffer filename) callback);
 
     /*! @brief Watches a file and returns the corresponding StatsWatcher object
 
@@ -1170,7 +1170,7 @@ module fs
      @param callback `(curStats: Stats, prevStats: Stats) => any` the handler called when the stats of the file change
      @return the StatsWatcher object
      */
-    static StatsWatcher watchFile(String fname, Object options, Function(Stat curStats, Stat prevStats) callback);
+    static StatsWatcher watchFile(String fname, WatchFileOptions options, Function(Stat curStats, Stat prevStats) callback);
 
     /*! @brief Removes all watch event handlers from the StatsWatcher watching fname
 
