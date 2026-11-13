@@ -450,31 +450,19 @@ result_t EventSource::close(AsyncHandle ac)
     return result_t();
 }
 
-result_t EventSource::send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncHandle ac)
+result_t EventSource::send(exlib::string data, SendOptions* options, int32_t& retVal, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        Isolate* isolate = Isolate::current(options);
-
-        obj_ptr<SendOptions> opts;
-        result_t hr = SendOptions::load(options, opts);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv().resize(1);
-        ac.ctxv()[0] = opts;
-
+    if (ac.isSync())
         return result_t::nosync();
-    }
 
     if (m_readyState != sse_base::C_SENDER) {
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("EventSource.send: can only be called when readyState is sse.SENDER");
     }
 
-    result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr.failed())
-        return ctx_hr;
-
-    SendOptions* opts = (SendOptions*)ac.ctxv()[0].object();
+    // The async call re-invokes this function with the same converted argument
+    // slots, so the sync phase's `options` is the object seen here; no ctxv
+    // handoff is needed for a native options record.
+    SendOptions* opts = options;
 
     std::vector<int32_t> breakLinePos;
     breakLinePos.reserve(data.length() + 1);

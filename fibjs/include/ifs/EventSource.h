@@ -12,12 +12,14 @@
  */
 
 #include "../object.h"
+#include <boost/preprocessor.hpp>
 #include "ifs/EventEmitter.h"
 
 namespace fibjs {
 
 class EventEmitter_base;
 class HttpResponse_base;
+class Options_EventSource_send_options;
 
 class EventSource_base : public EventEmitter_base {
     DECLARE_CLASS(EventSource_base);
@@ -27,7 +29,7 @@ public:
     // EventSource_base
     static result_t _new(exlib::string url, v8::Local<v8::Object> options, obj_ptr<EventSource_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t close(AsyncHandle ac) = 0;
-    virtual result_t send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t send(exlib::string data, Options_EventSource_send_options* options, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t get_readyState(int32_t& retVal) = 0;
     virtual result_t get_url(exlib::string& retVal) = 0;
     virtual result_t get_withCredentials(bool& retVal) = 0;
@@ -56,13 +58,23 @@ public:
 
 public:
     ASYNC_MEMBER0(EventSource_base, close);
-    ASYNC_MEMBERVALUE3(EventSource_base, send, exlib::string, v8::Local<v8::Object>, int32_t);
+    ASYNC_MEMBERVALUE3(EventSource_base, send, exlib::string, obj_ptr<Options_EventSource_send_options>, int32_t);
 };
 }
 
 #include "ifs/HttpResponse.h"
 
 namespace fibjs {
+class Options_EventSource_send_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_EventSource_send_options, (id)(event)(retry));
+
+public:
+    std::optional<exlib::string> id;
+    std::optional<exlib::string> event;
+    std::optional<int32_t> retry;
+};
+
 inline ClassInfo& EventSource_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
@@ -155,7 +167,7 @@ inline void EventSource_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_OVER_NAMED(2, 1, "data");
 
     ARG_NAMED(exlib::string, 0, "data");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_EventSource_send_options>, 1, new Options_EventSource_send_options(), "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_send(v0, v1, cb, args);

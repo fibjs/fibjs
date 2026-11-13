@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <boost/preprocessor.hpp>
-
 #include "ifs/EventSource.h"
 #include "ifs/sse.h"
 
@@ -16,15 +14,7 @@ namespace fibjs {
 
 class EventSource : public EventSource_base {
 public:
-    class SendOptions : public obj_base {
-    public:
-        LOAD_OPTIONS(SendOptions, (id)(event)(retry));
-
-    public:
-        std::optional<exlib::string> id;
-        std::optional<exlib::string> event;
-        std::optional<int32_t> retry;
-    };
+    using SendOptions = Options_EventSource_send_options;
 
     // 一次性票据：把 sse.upgrade 交出的「票」（AsyncState 的 continuation）包一层，
     // 保证**回投有且只有一次**（对齐 WebSocket::m_closeState 的仲裁语义）。
@@ -38,7 +28,7 @@ public:
 
     // EventSource_base
     virtual result_t close(AsyncHandle ac);
-    virtual result_t send(exlib::string data, v8::Local<v8::Object> options, int32_t& retVal, AsyncHandle ac);
+    virtual result_t send(exlib::string data, SendOptions* options, int32_t& retVal, AsyncHandle ac);
     virtual result_t get_readyState(int32_t& retVal);
     virtual result_t get_url(exlib::string& retVal);
     virtual result_t get_withCredentials(bool& retVal);

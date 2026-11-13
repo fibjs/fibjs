@@ -207,10 +207,12 @@ interface EventSource : EventEmitter
      ```
 
      @param data the event data, sent as one or more data lines
-     @param options event options, {} by default
+     @param options event options, {} by default; `id` sets the SSE id field,
+     `event` sets the event name and `retry` sets the reconnection delay in
+     milliseconds
      @return the byte length of the encoded SSE frame that was queued to the stream
     */
-    Integer send(String data, Object options = {}) async;
+    Integer send(String data, (String id, String event, Integer retry) options = {}) async;
 
     /*! @brief Queries the connection state: CONNECTING, OPEN, CLOSED or SENDER
 

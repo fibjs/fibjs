@@ -324,6 +324,19 @@ describe("sse", () => {
                     se.close();
                 }),
 
+                "/sse-invalid-option-type": sse.upgrade((se, req) => {
+                    // The generated options record must name the field that
+                    // failed to convert, not just the options parameter.
+                    try {
+                        se.send('invalid option type', {
+                            retry: 'not-a-number'
+                        });
+                    } catch (e) {
+                        se.send('error caught: ' + e.message);
+                    }
+                    se.close();
+                }),
+
                 "/sse-empty-data": sse.upgrade((se, req) => {
                     // Test empty data
                     se.send('', {
@@ -487,6 +500,11 @@ describe("sse", () => {
         it('invalid retry value should cause error', async () => {
             const result = await get_upgrade_event(`http://127.0.0.1:${8888 + base_port}/sse-invalid-retry`);
             assert.match(result.data, /error caught.*retry must be a positive integer/);
+        });
+
+        it('invalid option type should name the failing field', async () => {
+            const result = await get_upgrade_event(`http://127.0.0.1:${8888 + base_port}/sse-invalid-option-type`);
+            assert.match(result.data, /error caught.*retry.*number/i);
         });
 
         it('empty data', async () => {

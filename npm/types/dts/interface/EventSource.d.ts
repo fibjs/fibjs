@@ -242,15 +242,25 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      ```
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; `id` sets the SSE id field,
+     *      `event` sets the event name and `retry` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    send(data: string, options?: FIBJS.GeneralObject): number;
+    send(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): number;
 
     send(data: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    send(data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(data: string, options: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends one event to the client; available on a server-side sender only
@@ -298,11 +308,17 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      ```
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; `id` sets the SSE id field,
+     *      `event` sets the event name and `retry` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    sendSync(data: string, options?: FIBJS.GeneralObject): number;
+    sendSync(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): number;
 
     /**
      * @description Sends one event to the client; available on a server-side sender only
@@ -350,11 +366,17 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      ```
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; `id` sets the SSE id field,
+     *      `event` sets the event name and `retry` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    sendAsync(data: string, options?: FIBJS.GeneralObject): Promise<number>;
+    sendAsync(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): Promise<number>;
 
     /**
      * @description Queries the connection state: CONNECTING, OPEN, CLOSED or SENDER
@@ -734,11 +756,17 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *      ```
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; `id` sets the SSE id field,
+     *      `event` sets the event name and `retry` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    send(data: string, options?: FIBJS.GeneralObject): Promise<number>;
+    send(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): Promise<number>;
 
     /**
      * @description Sends one event to the client; available on a server-side sender only
@@ -786,11 +814,17 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *      ```
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; `id` sets the SSE id field,
+     *      `event` sets the event name and `retry` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    sendSync(data: string, options?: FIBJS.GeneralObject): number;
+    sendSync(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): number;
 
     /**
      * @description Sends one event to the client; available on a server-side sender only
@@ -838,11 +872,17 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *      ```
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; `id` sets the SSE id field,
+     *      `event` sets the event name and `retry` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    sendAsync(data: string, options?: FIBJS.GeneralObject): Promise<number>;
+    sendAsync(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): Promise<number>;
 
     /**
      * @description Queries the connection state: CONNECTING, OPEN, CLOSED or SENDER
