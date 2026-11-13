@@ -19,24 +19,22 @@ static bool als_should_stop(Isolate* isolate)
     return !isolate || isolate->is_terminating() || isolate->m_isolate->IsExecutionTerminating();
 }
 
-result_t AsyncLocalStorage_base::_new(v8::Local<v8::Object> options, obj_ptr<AsyncLocalStorage_base>& retVal, v8::Local<v8::Object> This)
+result_t AsyncLocalStorage_base::_new(AsyncLocalStorageOptions* options, obj_ptr<AsyncLocalStorage_base>& retVal, v8::Local<v8::Object> This)
 {
     Isolate* isolate = Isolate::current(This);
     obj_ptr<AsyncLocalStorage> als = new AsyncLocalStorage();
-    obj_ptr<ALSOptions> opts;
     static std::atomic<int32_t> s_nextId { 0 };
 
-    result_t hr = ALSOptions::load(options, opts);
-    if (hr.failed())
-        return hr;
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
 
     als->m_id = s_nextId.fetch_add(1);
-    if (opts->defaultValue.has_value())
-        als->m_defaultValue.Reset(isolate->m_isolate, opts->defaultValue.value());
-    if (opts->name.has_value()) {
+    if (options->defaultValue.has_value())
+        als->m_defaultValue.Reset(isolate->m_isolate, options->defaultValue.value());
+    if (options->name.has_value()) {
         // the name is rendered as a DOM string, so a number is "123"
         exlib::string name;
-        hr = GetDOMStringValue(opts->name.value(), name);
+        result_t hr = GetDOMStringValue(options->name.value(), name);
         if (hr.failed())
             return hr;
         als->m_name = name;

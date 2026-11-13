@@ -94,7 +94,7 @@ interface AsyncLocalStorage : object
 
      @param options an optional object used to configure the AsyncLocalStorage instance
     */
-    AsyncLocalStorage(Object options = {});
+    AsyncLocalStorage(AsyncLocalStorageOptions options = {});
 
     /*! @brief Gets the name of the AsyncLocalStorage instance
 

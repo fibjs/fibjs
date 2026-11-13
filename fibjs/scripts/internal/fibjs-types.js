@@ -621,7 +621,10 @@ declare class Class_AsyncLocalStorage extends Class_object {
      *      @param options an optional object used to configure the AsyncLocalStorage instance
      *
      */
-    constructor(options?: FIBJS.GeneralObject);
+    constructor(options?: {
+        defaultValue?: any;
+        name?: any;
+    });
 
     /**
      * @description Gets the name of the AsyncLocalStorage instance

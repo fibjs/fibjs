@@ -1,0 +1,9 @@
+/*! @brief Options for the AsyncLocalStorage constructor.
+
+     `defaultValue` is returned by getStore when no store is set; `name` is a
+     debugging name, converted to its string form.
+ */
+struct AsyncLocalStorageOptions {
+    Value defaultValue;
+    Value name;
+};

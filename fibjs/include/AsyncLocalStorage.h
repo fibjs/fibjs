@@ -10,15 +10,6 @@
 
 namespace fibjs {
 
-class ALSOptions : public obj_base {
-public:
-    LOAD_OPTIONS(ALSOptions, (defaultValue)(name));
-
-public:
-    std::optional<v8::Local<v8::Value>> defaultValue;
-    std::optional<v8::Local<v8::Value>> name;
-};
-
 class AsyncLocalStorage : public AsyncLocalStorage_base {
 public:
     // AsyncLocalStorage_base

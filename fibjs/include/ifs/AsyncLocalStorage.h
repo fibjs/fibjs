@@ -15,12 +15,14 @@
 
 namespace fibjs {
 
+class AsyncLocalStorageOptions;
+
 class AsyncLocalStorage_base : public object_base {
     DECLARE_CLASS(AsyncLocalStorage_base);
 
 public:
     // AsyncLocalStorage_base
-    static result_t _new(v8::Local<v8::Object> options, obj_ptr<AsyncLocalStorage_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(AsyncLocalStorageOptions* options, obj_ptr<AsyncLocalStorage_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_name(exlib::string& retVal) = 0;
     static result_t snapshot(v8::Local<v8::Function>& retVal);
     static result_t bind(v8::Local<v8::Function> fn, v8::Local<v8::Function>& retVal);
@@ -46,6 +48,8 @@ public:
     static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/AsyncLocalStorageOptions.h"
 
 namespace fibjs {
 inline ClassInfo& AsyncLocalStorage_base::class_info()
@@ -89,9 +93,9 @@ inline void AsyncLocalStorage_base::__new(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<AsyncLocalStorageOptions>, 0, new AsyncLocalStorageOptions(), "options");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((AsyncLocalStorageOptions*)v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -104,9 +108,9 @@ inline result_t AsyncLocalStorage_base::load(v8::Local<v8::Value> v, obj_ptr<Asy
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<AsyncLocalStorageOptions>, 0, new AsyncLocalStorageOptions(), "options");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((AsyncLocalStorageOptions*)v0, vr, args.This());
 
     LOAD_RETURN();
 }
