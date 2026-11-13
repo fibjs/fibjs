@@ -9,11 +9,12 @@
 #include "ifs/dns.h"
 #include "inetAddr.h"
 #include "AsyncUV.h"
-#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
 DECLARE_MODULE(dns);
+
+using LookupOptions = Options_dns_lookup_options;
 
 result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVal, AsyncHandle ac)
 {
@@ -70,17 +71,8 @@ result_t dns_base::resolve(exlib::string name, std::vector<exlib::string>& retVa
     return result_t::pending();
 }
 
-result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
+result_t dns_base::lookup(exlib::string name, LookupOptions* options, Variant& retVal, AsyncHandle ac)
 {
-    class LookupOptions : public obj_base {
-    public:
-        LOAD_OPTIONS(LookupOptions, (family)(all));
-
-    public:
-        std::optional<std::variant<exlib::string, int32_t>> family = 0;
-        std::optional<bool> all = false;
-    };
-
     class resolve_data : public uv_getaddrinfo_t {
     public:
         resolve_data(LookupOptions* opt, exlib::string name, Variant& retVal, AsyncHandle ac)
@@ -99,39 +91,28 @@ result_t dns_base::lookup(exlib::string name, v8::Local<v8::Object> options, Var
     };
 
     if (ac.isSync()) {
-        obj_ptr<LookupOptions> opt;
-        Isolate* isolate = Isolate::current(options);
-        result_t hr = LookupOptions::load(options, opt);
-        if (hr.failed())
-            return hr;
-
-        if (opt->family->index() == 0) {
-            exlib::string family = std::get<exlib::string>(opt->family.value());
+        if (options->family->index() == 0) {
+            exlib::string family = std::get<exlib::string>(options->family.value());
             if (family == "IPv4")
-                opt->family = 4;
+                options->family = 4;
             else if (family == "IPv6")
-                opt->family = 6;
+                options->family = 6;
             else
                 return result_t::make(CALL_E_INVALID_DATA).with_type_name("TypeError").with_result(result_t::invalid_arg()).with_format("Invalid family: %s", family.c_str()).arg("family", family);
         } else {
-            int32_t family = std::get<int32_t>(opt->family.value());
+            int32_t family = std::get<int32_t>(options->family.value());
             if (family != 0 && family != 4 && family != 6)
                 return result_t::make(CALL_E_INVALID_DATA).with_type_name("TypeError").with_result(result_t::invalid_arg()).with_format("Invalid family: %d", family).arg("family", family);
         }
 
-        ac.ctxv().resize(1);
-        ac.ctxv()[0] = opt;
-
         return result_t::nosync();
     }
 
-    result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr.failed())
-        return ctx_hr;
-
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
 
-    LookupOptions* opt = (LookupOptions*)ac.ctxv()[0].object();
+    // The async call re-invokes this function with the same converted argument
+    // slots, so the sync phase's normalization is visible on `options` here.
+    LookupOptions* opt = options;
     resolve_data* resolver = new resolve_data(opt, name, retVal, std::move(ac));
     int r = uv_getaddrinfo(
         s_uv_loop, resolver,

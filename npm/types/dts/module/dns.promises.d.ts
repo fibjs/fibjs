@@ -134,11 +134,15 @@ declare module 'dns/promises' {
      *      }
      *      ```
      *      @param name the host name or IP literal to resolve
-     *      @param options the query options
+     *      @param options the query options; `family` may be 0/4/6 or "IPv4"/"IPv6",
+     *      and `all` returns every address instead of the first one
      *      @return the first address, or all addresses as objects when all is true
      *
      */
-    function lookup(name: string, options?: FIBJS.GeneralObject): Promise<any>;
+    function lookup(name: string, options?: {
+        family?: string | number;
+        all?: boolean;
+    }): Promise<any>;
 
     /**
      * @description Resolves a host name to its first address, or to every address when the all option is set
@@ -178,11 +182,15 @@ declare module 'dns/promises' {
      *      }
      *      ```
      *      @param name the host name or IP literal to resolve
-     *      @param options the query options
+     *      @param options the query options; `family` may be 0/4/6 or "IPv4"/"IPv6",
+     *      and `all` returns every address instead of the first one
      *      @return the first address, or all addresses as objects when all is true
      *
      */
-    function lookupSync(name: string, options?: FIBJS.GeneralObject): any;
+    function lookupSync(name: string, options?: {
+        family?: string | number;
+        all?: boolean;
+    }): any;
 
     /**
      * @description Resolves a host name to its first address, or to every address when the all option is set
@@ -222,11 +230,15 @@ declare module 'dns/promises' {
      *      }
      *      ```
      *      @param name the host name or IP literal to resolve
-     *      @param options the query options
+     *      @param options the query options; `family` may be 0/4/6 or "IPv4"/"IPv6",
+     *      and `all` returns every address instead of the first one
      *      @return the first address, or all addresses as objects when all is true
      *
      */
-    function lookupAsync(name: string, options?: FIBJS.GeneralObject): Promise<any>;
+    function lookupAsync(name: string, options?: {
+        family?: string | number;
+        all?: boolean;
+    }): Promise<any>;
 
 }
 

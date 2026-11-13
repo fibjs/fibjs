@@ -140,8 +140,9 @@ module dns
      }
      ```
      @param name the host name or IP literal to resolve
-     @param options the query options
+     @param options the query options; `family` may be 0/4/6 or "IPv4"/"IPv6",
+     and `all` returns every address instead of the first one
      @return the first address, or all addresses as objects when all is true
      */
-    static Variant lookup(String name, Object options = {}) async;
+    static Variant lookup(String name, (String|Integer family = 0, Boolean all = false) options = {}) async;
 };

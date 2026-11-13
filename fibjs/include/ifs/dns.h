@@ -12,8 +12,11 @@
  */
 
 #include "../object.h"
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
+
+class Options_dns_lookup_options;
 
 class dns_base : public object_base {
     DECLARE_CLASS(dns_base);
@@ -21,7 +24,7 @@ class dns_base : public object_base {
 public:
     // dns_base
     static result_t resolve(exlib::string name, std::vector<exlib::string>& retVal, AsyncHandle ac);
-    static result_t lookup(exlib::string name, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac);
+    static result_t lookup(exlib::string name, Options_dns_lookup_options* options, Variant& retVal, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -40,11 +43,20 @@ public:
 
 public:
     ASYNC_STATICVALUE2(dns_base, resolve, exlib::string, std::vector<exlib::string>);
-    ASYNC_STATICVALUE3(dns_base, lookup, exlib::string, v8::Local<v8::Object>, Variant);
+    ASYNC_STATICVALUE3(dns_base, lookup, exlib::string, obj_ptr<Options_dns_lookup_options>, Variant);
 };
 }
 
 namespace fibjs {
+class Options_dns_lookup_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_dns_lookup_options, (family)(all));
+
+public:
+    std::optional<std::variant<exlib::string, int32_t>> family = 0;
+    std::optional<bool> all = false;
+};
+
 inline ClassInfo& dns_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
@@ -90,7 +102,7 @@ inline void dns_base::s_static_lookup(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_OVER_NAMED(2, 1, "name");
 
     ARG_NAMED(exlib::string, 0, "name");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_dns_lookup_options>, 1, new Options_dns_lookup_options(), "options");
 
     if (!cb.IsEmpty())
         hr = acb_lookup(v0, v1, cb, args);
