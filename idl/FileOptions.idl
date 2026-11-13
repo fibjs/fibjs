@@ -1,0 +1,12 @@
+/*! @brief Options shared by the File constructors.
+
+     `data` and `name` are read by the single-options form; `lastModified`
+     defaults to the current time when absent.
+ */
+struct FileOptions {
+    String type = "";
+    String endings = "transparent";
+    Long lastModified;
+    Buffer|String data;
+    String name = "";
+};

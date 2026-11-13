@@ -81,7 +81,7 @@ interface File : Blob
      @param name the file name, a string such as "a.txt"
      @param options optional parameter object
      */
-    File(Array blobParts, String name, Object options = {});
+    File(Array blobParts, String name, FileOptions options = {});
 
     /*! @brief Creates a File from one Buffer or string
 
@@ -92,7 +92,7 @@ interface File : Blob
      @param name the file name, a string such as "a.txt"
      @param options optional parameter object
      */
-    File(Buffer|String blobData, String name, Object options = {});
+    File(Buffer|String blobData, String name, FileOptions options = {});
 
     /*! @brief Creates a File from a single options object (fibjs extension)
 
@@ -101,7 +101,7 @@ interface File : Blob
      the same options as in the parts form. This form is not part of the Web File API.
      @param options optional parameter object
      */
-    File(Object options = {});
+    File(FileOptions options = {});
 
     /*! @brief File name, a read-only string
 

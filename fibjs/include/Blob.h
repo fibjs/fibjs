@@ -10,7 +10,7 @@ class Buffer_base;
 
 class BlobImpl {
 public:
-    result_t initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> options);
+    result_t initialize(v8::Local<v8::Array> blobParts, exlib::string type);
 
 public:
     // Blob_base

@@ -7,14 +7,14 @@
 
 namespace fibjs {
 
-result_t Blob_base::_new(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This)
+result_t Blob_base::_new(v8::Local<v8::Array> blobParts, BlobOptions* options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Blob> blob = new Blob();
     retVal = blob;
-    return blob->m_impl.initialize(blobParts, options);
+    return blob->m_impl.initialize(blobParts, options ? options->type.value_or("") : "");
 }
 
-result_t Blob_base::_new(Union_Blob_blobData blobData, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This)
+result_t Blob_base::_new(Union_Blob_blobData blobData, BlobOptions* options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This)
 {
     Isolate* isolate = Isolate::current(This);
 
@@ -29,25 +29,24 @@ result_t Blob_base::_new(Union_Blob_blobData blobData, v8::Local<v8::Object> opt
 }
 
 result_t File_base::_new(v8::Local<v8::Array> blobParts, exlib::string name,
-    v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
+    FileOptions* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<File> file = new File();
     file->m_name = name;
 
-    result_t hr = GetConfigValue(options, "lastModified", file->m_lastModified, true);
-    if (hr.is_param_missing()) {
+    if (options && options->lastModified.has_value()) {
+        file->m_lastModified = (double)options->lastModified.value();
+    } else {
         date_t d;
         d.now();
         file->m_lastModified = d.date();
-    } else if (hr.failed()) {
-        return hr;
     }
 
     retVal = file;
-    return file->m_impl.initialize(blobParts, options);
+    return file->m_impl.initialize(blobParts, options ? options->type.value_or("") : "");
 }
 
-result_t File_base::_new(Union_File_blobData blobData, exlib::string name, v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
+result_t File_base::_new(Union_File_blobData blobData, exlib::string name, FileOptions* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
 {
     Isolate* isolate = Isolate::current(This);
 
@@ -61,21 +60,18 @@ result_t File_base::_new(Union_File_blobData blobData, exlib::string name, v8::L
     return _new(blobParts, name, options, retVal, This);
 }
 
-result_t File_base::_new(v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
+result_t File_base::_new(FileOptions* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
 {
-    result_t hr;
-    obj_ptr<Buffer_base> blobData;
-    exlib::string name;
+    if (!options || !options->data.has_value())
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
 
-    hr = GetConfigValue(options, "data", blobData);
-    if (hr.failed()) {
-        return hr;
-    }
+    exlib::string name = options->name.value_or("");
+    Union_File_blobData blobData;
 
-    hr = GetConfigValue(options, "name", name, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL)) {
-        return hr;
-    }
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(options->data.value()))
+        blobData = std::get<obj_ptr<Buffer_base>>(options->data.value());
+    else
+        blobData = std::get<exlib::string>(options->data.value());
 
     return _new(blobData, name, options, retVal, This);
 }
@@ -175,32 +171,18 @@ result_t BlobImpl::bytes(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     return m_buffer.As<Buffer>()->slice(0, retVal);
 }
 
-result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> options)
+result_t BlobImpl::initialize(v8::Local<v8::Array> blobParts, exlib::string type)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
 
-    // Parse options for type
-    if (!options.IsEmpty()) {
-        v8::Local<v8::String> typeKey = isolate->NewString("type");
-        if (options->Has(context, typeKey).FromMaybe(false)) {
-            v8::Local<v8::Value> typeValue = options->Get(context, typeKey).FromMaybe(v8::Local<v8::Value>());
-            if (!typeValue.IsEmpty() && typeValue->IsString()) {
-                v8::String::Utf8Value type_str(isolate->m_isolate, typeValue);
-                exlib::string type(*type_str);
-                // Convert to lowercase
-                exlib::string lowerType;
-                for (size_t i = 0; i < type.length(); i++) {
-                    char ch = type[i];
-                    if (ch >= 'A' && ch <= 'Z') {
-                        lowerType += (ch + 32);
-                    } else {
-                        lowerType += ch;
-                    }
-                }
-                m_type = lowerType;
-            }
-        }
+    // The MIME type is lowercased before it is stored.
+    for (size_t i = 0; i < type.length(); i++) {
+        char ch = type[i];
+        if (ch >= 'A' && ch <= 'Z')
+            m_type += (ch + 32);
+        else
+            m_type += ch;
     }
 
     // Process blob parts

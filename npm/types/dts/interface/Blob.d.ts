@@ -109,7 +109,10 @@ declare class Class_Blob extends Class_object {
      *      @param options optional parameter object
      *
      */
-    constructor(blobParts?: any[], options?: FIBJS.GeneralObject);
+    constructor(blobParts?: any[], options?: {
+        type?: string;
+        endings?: string;
+    });
 
     /**
      * @description Creates a Blob from one Buffer or string
@@ -131,7 +134,10 @@ declare class Class_Blob extends Class_object {
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer | string, options?: FIBJS.GeneralObject);
+    constructor(blobData: Class_Buffer | string, options?: {
+        type?: string;
+        endings?: string;
+    });
 
     /**
      * @description The MIME type of the Blob, read-only
@@ -430,7 +436,10 @@ declare class Class_BlobPromise extends Class_object {
      *      @param options optional parameter object
      *
      */
-    constructor(blobParts?: any[], options?: FIBJS.GeneralObject);
+    constructor(blobParts?: any[], options?: {
+        type?: string;
+        endings?: string;
+    });
 
     /**
      * @description Creates a Blob from one Buffer or string
@@ -452,7 +461,10 @@ declare class Class_BlobPromise extends Class_object {
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer | string, options?: FIBJS.GeneralObject);
+    constructor(blobData: Class_Buffer | string, options?: {
+        type?: string;
+        endings?: string;
+    });
 
     /**
      * @description The MIME type of the Blob, read-only

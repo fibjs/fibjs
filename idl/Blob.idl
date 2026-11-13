@@ -103,7 +103,7 @@ interface Blob : object
      @param blobParts the initial parts: strings, Buffers, TypedArrays, ArrayBuffers or Blobs
      @param options optional parameter object
     */
-    Blob(Array blobParts = [], Object options = {});
+    Blob(Array blobParts = [], BlobOptions options = {});
 
     /*! @brief Creates a Blob from one Buffer or string
 
@@ -123,7 +123,7 @@ interface Blob : object
      @param blobData the initial binary data
      @param options optional parameter object
      */
-    Blob(Buffer|String blobData, Object options = {});
+    Blob(Buffer|String blobData, BlobOptions options = {});
 
     /*! @brief The MIME type of the Blob, read-only
 

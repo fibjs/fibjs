@@ -15,6 +15,7 @@
 
 namespace fibjs {
 
+class BlobOptions;
 class Buffer_base;
 
 class Blob_base : public object_base {
@@ -25,8 +26,8 @@ public:
 
 public:
     // Blob_base
-    static result_t _new(v8::Local<v8::Array> blobParts, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(Union_Blob_blobData blobData, v8::Local<v8::Object> options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Array> blobParts, BlobOptions* options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Union_Blob_blobData blobData, BlobOptions* options, obj_ptr<Blob_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t get_size(int32_t& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, exlib::string contentType, obj_ptr<Blob_base>& retVal) = 0;
@@ -54,6 +55,7 @@ public:
 };
 }
 
+#include "ifs/BlobOptions.h"
 #include "ifs/Buffer.h"
 
 namespace fibjs {
@@ -97,14 +99,14 @@ inline void Blob_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(2, 0);
 
     OPT_ARG_NAMED(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate), "blobParts");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<BlobOptions>, 1, new BlobOptions(), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
     METHOD_OVER_NAMED(2, 1, "blobData");
 
     ARG(Union_Blob_blobData, 0);
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<BlobOptions>, 1, new BlobOptions(), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -120,14 +122,14 @@ inline result_t Blob_base::load(v8::Local<v8::Value> v, obj_ptr<Blob_base>& retV
     METHOD_OVER(2, 0);
 
     OPT_ARG_NAMED(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate), "blobParts");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<BlobOptions>, 1, new BlobOptions(), "options");
 
     hr = _new(v0, v1, vr, args.This());
 
     METHOD_OVER_NAMED(2, 1, "blobData");
 
     ARG(Union_Blob_blobData, 0);
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<BlobOptions>, 1, new BlobOptions(), "options");
 
     hr = _new(v0, v1, vr, args.This());
 

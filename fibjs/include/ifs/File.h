@@ -17,6 +17,7 @@
 namespace fibjs {
 
 class Blob_base;
+class FileOptions;
 class Buffer_base;
 
 class File_base : public Blob_base {
@@ -27,9 +28,9 @@ public:
 
 public:
     // File_base
-    static result_t _new(v8::Local<v8::Array> blobParts, exlib::string name, v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(Union_File_blobData blobData, exlib::string name, v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Array> blobParts, exlib::string name, FileOptions* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(Union_File_blobData blobData, exlib::string name, FileOptions* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(FileOptions* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t get_lastModified(double& retVal) = 0;
 
@@ -44,6 +45,7 @@ public:
 };
 }
 
+#include "ifs/FileOptions.h"
 #include "ifs/Buffer.h"
 
 namespace fibjs {
@@ -81,7 +83,7 @@ inline void File_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG_NAMED(v8::Local<v8::Array>, 0, "blobParts");
     ARG_NAMED(exlib::string, 1, "name");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<FileOptions>, 2, new FileOptions(), "options");
 
     hr = _new(v0, v1, v2, vr, args.This());
 
@@ -89,13 +91,13 @@ inline void File_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(Union_File_blobData, 0);
     ARG_NAMED(exlib::string, 1, "name");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<FileOptions>, 2, new FileOptions(), "options");
 
     hr = _new(v0, v1, v2, vr, args.This());
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<FileOptions>, 0, new FileOptions(), "options");
 
     hr = _new(v0, vr, args.This());
 
@@ -110,7 +112,7 @@ inline result_t File_base::load(v8::Local<v8::Value> v, obj_ptr<File_base>& retV
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<FileOptions>, 0, new FileOptions(), "options");
 
     hr = _new(v0, vr, args.This());
 

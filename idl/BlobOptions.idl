@@ -1,0 +1,5 @@
+/*! @brief Options shared by the Blob constructors. */
+struct BlobOptions {
+    String type = "";
+    String endings = "transparent";
+};
