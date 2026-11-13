@@ -10,13 +10,17 @@ var { isUnion, splitUnion } = require('./type-utils');
  * @param {string} baseFolder 
  */
 module.exports = function (defs, baseFolder) {
+    // Shared struct headers have no parent and no members; generate them first.
+    const structClasses = Object.keys(defs).filter(cls => !defs[cls].__skip && defs[cls].declare.type === 'struct');
+    structClasses.forEach(cls => gen_code(cls, defs[cls], baseFolder, defs));
+
     const totalClasses = Object.keys(defs).filter(cls => !defs[cls].__skip).length;
 
     console.log(`   📋 Generating C++ code for ${totalClasses} classes...`);
 
     // Multi-round processing to ensure parent classes are processed before children
     const processed = new Set();
-    const allClasses = Object.keys(defs).filter(cls => !defs[cls].__skip);
+    const allClasses = Object.keys(defs).filter(cls => !defs[cls].__skip && defs[cls].declare.type !== 'struct');
 
     let round = 1;
     while (processed.size < allClasses.length) {
@@ -300,7 +304,9 @@ function gen_code(cls, def, baseFolder, allDefs) {
                             argc = opts = ov.params.length;
                             ov.params.forEach(p => {
                                 const vt = get_vtype(p, ov, is_load);
-                                args.push(vt.startsWith('obj_ptr<') ? 'v' + params.length + '.get()' : 'v' + params.length);
+                                const isOption = is_struct_param(p) || is_named_struct(p.type);
+                                args.push(isOption ? 'v' + params.length
+                                                   : (vt.startsWith('obj_ptr<') ? 'v' + params.length + '.get()' : 'v' + params.length));
                                 if (p.name == '...') {
                                     opts--;
                                     argc = -1;
@@ -314,6 +320,10 @@ function gen_code(cls, def, baseFolder, allDefs) {
                                     opts--;
                                     if (p.isarray)
                                         defValue = `${vt}()`;
+                                    else if (is_struct_param(p))
+                                        defValue = `new ${option_type_name(ov, p)}()`;
+                                    else if (is_named_struct(p.type))
+                                        defValue = `new ${p.type}()`;
                                     else if (p.default.value)
                                         // a string literal default must
                                         // construct the variant's string
@@ -752,6 +762,27 @@ function gen_code(cls, def, baseFolder, allDefs) {
     var fnIndexed = null;
     var fnNamed = null;
 
+    // initialized before MAIN: the generation block calls collect_option_types
+    var option_types_cache = null;
+    var HANDLE_FIELD_TYPES = {
+        Object: true,
+        Array: true,
+        Function: true,
+        Value: true,
+        Variant: true,
+        RegExp: true,
+        Promise: true,
+        Uint8Array: true,
+        TypedArray: true,
+        ArrayBufferView: true,
+        ArrayBuffer: true
+    };
+
+    if (def.declare.type === 'struct') {
+        gen_struct_header();
+        return;
+    }
+
     MAIN: {
         build_refer();
 
@@ -763,22 +794,15 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
         gen_refer_include();
 
+        gen_option_types();
+
         gen_cls_info();
 
         gen_stub();
 
         gen_end();
 
-        var txt = txts.join("\n");
-        txt = txt.replace(/};\n\n}/g, '};\n}');
-        txt = txt.replace(/}\n\n}/g, '}\n}');
-
-        var fname = path.join(baseFolder, cls + ".h");
-
-        if (!fs.existsSync(fname) || txt !== fs.readFileSync(fname, 'utf8')) {
-            console.log(`      ✏️  ${cls}.h`);
-            fs.writeFileSync(fname, txt);
-        }
+        write_generated_header();
     }
 
     // `Iterator<T>` (`Iterator<XmlNode>` in the IDL) is a typing-only
@@ -812,8 +836,13 @@ function gen_code(cls, def, baseFolder, allDefs) {
      * converts each element on its own, see GetArgumentValue(std::vector<T>&)).
      */
     function union_variant(alt) {
+        if (is_named_struct(alt))
+            throw new Error(`[gen_code] named struct '${alt}' cannot be a union alternative`);
+
         if (typeof alt === 'string' && alt.length > 2 && alt.slice(-2) === '[]') {
             var inner = base_type(alt.slice(0, -2));
+            if (is_named_struct(inner))
+                throw new Error(`[gen_code] named struct '${inner}' cannot be a union alternative`);
             return `std::vector<${typeMap[inner] || (`obj_ptr<${inner}_base>`)}>`;
         }
 
@@ -869,7 +898,165 @@ function gen_code(cls, def, baseFolder, allDefs) {
         return unions;
     }
 
+    // A struct-typed parameter is an options record (see the IDL `(...)`
+    // form). It becomes one concrete class per (owner, member, parameter), so
+    // a repeated shape is shared by the overloads of that member and two
+    // different shapes cannot collide silently.
+    function is_struct_param(p) {
+        return Array.isArray(p.type);
+    }
+
+    function is_named_struct(type) {
+        return typeof type === 'string' && !!allDefs[type] && allDefs[type].declare.type === 'struct';
+    }
+
+    function option_owner(ov) {
+        return ov.sourceClass || cls;
+    }
+
+    function option_name_part(n) {
+        return String(n).replace(/[^A-Za-z0-9_]/g, '_');
+    }
+
+    function option_type_name(ov, p) {
+        return 'Options_' + [option_owner(ov), ov.name, p.name]
+            .map(option_name_part)
+            .join('_');
+    }
+
+    function is_handle_field_type(type) {
+        var bt = base_type(type);
+        if (bt.slice(-2) === '[]')
+            bt = base_type(bt.slice(0, -2));
+        return !!HANDLE_FIELD_TYPES[bt];
+    }
+
+    function struct_has_handle(name, stack) {
+        if (stack.indexOf(name) >= 0)
+            return false;
+
+        var sd = allDefs[name];
+        if (!sd || sd.declare.type !== 'struct')
+            return false;
+
+        return (sd.fields || []).some(item => field_has_handle(item, stack.concat(name)));
+    }
+
+    function field_has_handle(item, stack) {
+        if (Array.isArray(item.type))
+            return item.type.some(f => field_has_handle(f, stack));
+
+        if (isUnion(item.type))
+            return splitUnion(item.type).some(t => is_handle_field_type(t));
+
+        if (is_named_struct(item.type))
+            return struct_has_handle(item.type, stack || []);
+
+        return is_handle_field_type(item.type);
+    }
+
+    function nested_option_name(parentName, fieldName) {
+        return parentName + '_' + option_name_part(fieldName);
+    }
+
+    function collect_struct(list, name, p, ov) {
+        // D6 first: the same shape can be reached by a sync and an async
+        // overload, and the async one must be rejected even if the sync one
+        // already registered the class.
+        if (ov.async) {
+            var bad = p.type.find(field_has_handle);
+            if (bad)
+                throw new Error(`[gen_code] async option '${name}' field '${bad.name}' is a V8 handle; async options may only use owned types (Boolean/Integer/Long/Number/String/Buffer/date_t/nested records)`);
+        }
+
+        var shape = JSON.stringify(p.type);
+        if (list[name]) {
+            if (list[name].shape !== shape)
+                throw new Error(`[gen_code] struct option '${name}' maps two different shapes on '${def.declare.name}'; rename one of the parameters`);
+            return;
+        }
+
+        // Children first: the parent's field type names the child class, and a
+        // definition ordered parent-first would leave the field type
+        // incomplete at the point the parent class is laid out.
+        p.type.forEach(item => {
+            if (Array.isArray(item.type))
+                collect_struct(list, nested_option_name(name, item.name), { type: item.type }, ov);
+        });
+
+        list[name] = { name: name, p: p, ov: ov, shape: shape };
+    }
+
+    function collect_option_types() {
+        if (option_types_cache)
+            return option_types_cache;
+
+        var list = {};
+        def.members.forEach(fn => {
+            (fn.overs || [fn]).forEach(ov => {
+                // parent overloads are generated in the parent header with
+                // their own option class; the child header only refers to it
+                if (option_owner(ov) !== cls)
+                    return;
+
+                (ov.params || []).forEach(p => {
+                    if (is_named_struct(p.type)) {
+                        if (ov.async && struct_has_handle(p.type, []))
+                            throw new Error(`[gen_code] async option '${p.name}' refers to struct '${p.type}' with a V8 handle field; async options may only use owned types (Boolean/Integer/Long/Number/String/Buffer/date_t)`);
+                        return;
+                    }
+
+                    if (is_struct_param(p))
+                        collect_struct(list, option_type_name(ov, p), p, ov);
+                });
+            });
+        });
+
+        option_types_cache = list;
+        return list;
+    }
+
+    function option_field_initializer(item, ownerCls) {
+        if (!item.default)
+            return '';
+
+        if (item.default.const !== undefined) {
+            var c = item.default.const;
+            if (Array.isArray(c))
+                return ' = ' + c[0] + '_base::C_' + c[1];
+            if (!ownerCls)
+                throw new Error(`[gen_code] struct field '${item.name}' uses the unqualified constant '${c}'; qualify it as module.CONST`);
+            return ' = ' + ownerCls + '_base::C_' + c;
+        }
+
+        var v = item.default.value;
+        if (v === undefined || v === null)
+            return '';
+
+        // values that need an isolate, or mean "not provided", cannot be
+        // field initializers; the field stays disengaged and the native code
+        // treats absence as the documented default
+        if (v === 'NULL' || v.indexOf('v8::') === 0)
+            return '';
+
+        if (item.type === 'Long' && /^-?\d+$/.test(v))
+            return ' = ' + v + 'LL';
+
+        return ' = ' + v;
+    }
+
+    function option_param_type(ov, p, by_ref) {
+        var name = option_type_name(ov, p);
+        if (!p.isarray)
+            return by_ref ? `${name}*` : `obj_ptr<${name}>`;
+        return by_ref ? `std::vector<obj_ptr<${name}>>&` : `std::vector<obj_ptr<${name}>>`;
+    }
+
     function get_type(p, ov) {
+        if (is_struct_param(p))
+            return option_param_type(ov, p, true);
+        if (is_named_struct(p.type))
+            return p.isarray ? `std::vector<obj_ptr<${p.type}>>&` : `${p.type}*`;
         if (isUnion(p.type)) {
             var alias = union_alias(ov, p);
             return p.isarray ? `std::vector<${alias}>&` : alias;
@@ -895,6 +1082,10 @@ function gen_code(cls, def, baseFolder, allDefs) {
     }
 
     function get_vtype(p, ov, is_load = false) {
+        if (is_struct_param(p))
+            return option_param_type(ov, p, false);
+        if (is_named_struct(p.type))
+            return p.isarray ? `std::vector<obj_ptr<${p.type}>>` : `obj_ptr<${p.type}>`;
         if (isUnion(p.type)) {
             var alias = union_alias(ov, p);
             // load()’s conversion drops the self alternative: the value is not
@@ -919,6 +1110,9 @@ function gen_code(cls, def, baseFolder, allDefs) {
             var base = `obj_ptr<${t.name}>`;
             return isarray ? `std::vector<${base}>` : base;
         }
+
+        if (is_named_struct(t))
+            throw new Error(`[gen_code] named struct '${t}' is parameter-only`);
 
         // returns are not parameter positions: the IDL grammar does not allow
         // a union there, and `GetReturnValue(std::variant)` does not exist
@@ -1082,7 +1276,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
         return base
     }
 
-    function gen_begin() {
+    function gen_begin(extraIncludes) {
         txts.push([
             '/***************************************************************************',
             ' *                                                                         *',
@@ -1098,14 +1292,30 @@ function gen_code(cls, def, baseFolder, allDefs) {
         txts.push("/**\n @author Leo Hoo <lion@9465.net>\n */\n");
 
         txts.push('#include "../object.h"');
+        if (def.declare.type === 'struct' || Object.keys(collect_option_types()).length)
+            txts.push('#include <boost/preprocessor.hpp>');
         if (def.declare.extend && def.declare.extend !== 'object')
             txts.push(`#include "ifs/${def.declare.extend}.h"`);
+        (extraIncludes || []).forEach(c => txts.push(`#include "ifs/${c}.h"`));
 
         txts.push('\nnamespace fibjs {\n');
     }
 
     function gen_end() {
         txts.push("}\n");
+    }
+
+    function write_generated_header() {
+        var txt = txts.join("\n");
+        txt = txt.replace(/};\n\n}/g, '};\n}');
+        txt = txt.replace(/}\n\n}/g, '}\n}');
+
+        var fname = path.join(baseFolder, cls + ".h");
+
+        if (!fs.existsSync(fname) || txt !== fs.readFileSync(fname, 'utf8')) {
+            console.log(`      ✏️  ${cls}.h`);
+            fs.writeFileSync(fname, txt);
+        }
     }
 
     function gen_refer_cls() {
@@ -1117,7 +1327,12 @@ function gen_code(cls, def, baseFolder, allDefs) {
         }
 
         refers.forEach(c => {
-            txts.push('class ' + c + '_base;');
+            txts.push('class ' + c + (is_named_struct(c) ? ';' : '_base;'));
+            has_refer = true;
+        });
+
+        Object.values(collect_option_types()).forEach(o => {
+            txts.push('class ' + o.name + ';');
             has_refer = true;
         });
 
@@ -1277,7 +1492,10 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
                             if (ov.params) {
                                 pn = ov.params.length;
-                                ov.params.forEach(p => ps.push(get_type(p, ov).replace(/&/g, "")));
+                                ov.params.forEach(p => ps.push(
+                                    (is_struct_param(p) || is_named_struct(p.type))
+                                        ? get_vtype(p, ov)
+                                        : get_type(p, ov).replace(/&/g, "")));
                             }
 
                             fns += (ov.static ? "STATIC" : "MEMBER");
@@ -1591,6 +1809,94 @@ function gen_code(cls, def, baseFolder, allDefs) {
         txts.push("    static ClassInfo s_ci(s_cd);\n    return s_ci;\n}\n");
     }
 
+    // The options record of one struct parameter: fields are declared as
+    // std::optional<T>, and LOAD_OPTIONS expands the per-field GetConfigValue
+    // calls. The optional carries the two documented meanings: an engaged
+    // value (`= default`) covers absence, a disengaged one means the caller
+    // did not provide it.
+    function get_field_type(item, parentName) {
+        if (Array.isArray(item.type)) {
+            var nested = nested_option_name(parentName, item.name);
+            return item.isarray ? `std::vector<obj_ptr<${nested}>>` : `obj_ptr<${nested}>`;
+        }
+
+        if (is_named_struct(item.type))
+            return item.isarray ? `std::vector<obj_ptr<${item.type}>>` : `obj_ptr<${item.type}>`;
+
+        if (isUnion(item.type))
+            return `std::variant<${union_variants(item.type).join(', ')}>`;
+
+        return get_rtype(item.type, item.isarray);
+    }
+
+    function emit_option_class(name, fields, sink, ownerCls) {
+        var members = fields.map(item => item.name).join(')(');
+
+        sink.push(`class ${name} : public obj_base {`);
+        sink.push('public:');
+        sink.push(`    LOAD_OPTIONS(${name}, (${members}));`);
+        sink.push('');
+        sink.push('public:');
+        fields.forEach(item => {
+            var t = get_field_type(item, name);
+            sink.push(`    std::optional<${t}> ${item.name}${option_field_initializer(item, ownerCls)};`);
+        });
+        sink.push('};');
+        sink.push('');
+    }
+
+    function gen_option_types() {
+        var list = collect_option_types();
+        Object.keys(list).forEach(name => {
+            emit_option_class(name, list[name].p.type, txts, cls);
+        });
+    }
+
+    // A named struct is emitted in its own header; inline nested fields become
+    // child classes first, exactly like the inline option records above.
+    function emit_struct_class(name, fields) {
+        fields.forEach(item => {
+            if (Array.isArray(item.type))
+                emit_struct_class(nested_option_name(name, item.name), item.type);
+        });
+        emit_option_class(name, fields, txts, null);
+    }
+
+    function collect_struct_refers(fields) {
+        var types = {};
+
+        function add(type) {
+            if (isUnion(type)) {
+                splitUnion(type).forEach(add);
+                return;
+            }
+
+            var t = base_type(type);
+            if (t && t.slice(-2) === '[]')
+                t = base_type(t.slice(0, -2));
+            if (t && t !== 'object' && t !== cls && !typeMap[t])
+                types[t] = true;
+        }
+
+        function walk(item) {
+            if (Array.isArray(item.type))
+                item.type.forEach(walk);
+            else
+                add(item.type);
+        }
+
+        (fields || []).forEach(walk);
+        return Object.keys(types);
+    }
+
+    function gen_struct_header() {
+        var fields = def.fields || [];
+        gen_begin(collect_struct_refers(fields));
+        emit_struct_class(cls, fields);
+        gen_end();
+        write_generated_header();
+    }
+
     function gen_stub() {
         def.members.forEach(fn => member_gens[fn.memType].stub_func(fn));
     }
@@ -1618,6 +1924,13 @@ function gen_code(cls, def, baseFolder, allDefs) {
                 types[t] = true;
         }
 
+        function add_field_type(item) {
+            if (Array.isArray(item.type))
+                item.type.forEach(add_field_type);
+            else
+                add_type(item.type);
+        }
+
         def.members.forEach(m => {
             // event parameters are typed for the d.ts only: they generate no
             // C++ member, so they pull in no forward declaration / include
@@ -1636,7 +1949,10 @@ function gen_code(cls, def, baseFolder, allDefs) {
                 if (!ov.params)
                     return;
                 ov.params.forEach(p => {
-                    add_type(p.type);
+                    if (Array.isArray(p.type))
+                        p.type.forEach(add_field_type);
+                    else
+                        add_type(p.type);
                     if (p.default && Array.isArray(p.default.const) && p.default.const.length > 1)
                         add_type(p.default.const[0]);
                 });

@@ -10,6 +10,12 @@ console.log('🚀 Starting fibjs documentation generation...');
 
 console.log('📖 Parsing IDL definitions...');
 var defs = parser(baseFolder);
+// Struct declarations are native input records, not JS-visible definitions;
+// their parameters are documented through the method's @param text.
+Object.keys(defs).forEach((name) => {
+    if (defs[name].declare.type === 'struct')
+        delete defs[name];
+});
 
 console.log('📚 Generating documentation...');
 gen_docs(defs, docsFolder);

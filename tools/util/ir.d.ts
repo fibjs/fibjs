@@ -45,13 +45,21 @@ declare namespace FIBJS_IDL {
         /**
          * @description the parameter type; `A|B` is a parameter-position union
          * whose alternatives are the runtime conversion's preference order
-         * (the C++ side receives one `std::variant`, see plans/idl-union-types-2026-10-02.md)
+         * (the C++ side receives one `std::variant`, see plans/idl-union-types-2026-10-02.md).
+         * An array is the inline `(...)` struct used as an options record: the
+         * C++ side receives one generated `obj_ptr<Options_...>` class.
          */
-        type: "Array" | string,
+        type: string | IIDLDataTuple,
         /**
          * @description the parameter name
          */
         name: string,
+        /**
+         * @description `[]` in the declaration; truthy means the parameter is
+         * an array of the declared type (`T[]`). Struct fields reuse the same
+         * flag for a field array (`String[] exclude`).
+         */
+        isarray?: boolean | string,
         /**
          * @description the default value; null means there is no default value
          */
@@ -91,7 +99,7 @@ declare namespace FIBJS_IDL {
         }[]
     }
 
-    export type IDeclareType = "interface" | "module"
+    export type IDeclareType = "interface" | "module" | "struct"
 
     /**
     * @description the declaration of an IDL object
@@ -225,6 +233,12 @@ declare namespace FIBJS_IDL {
          */
         members: IMember[]
         /**
+         * @description the fields of a top-level `struct` declaration; absent
+         * (or empty) for an interface or module. The declaration has no
+         * `members`: it is an input record, not a JS-visible class.
+         */
+        fields?: IIDLDataTuple
+        /**
          * @description the collection it belongs to
          */
         collect: string
@@ -239,6 +253,11 @@ declare namespace FIBJS_IDL {
     * @description a static module in fibjs
     */
     export type IModule = IIDLDefinition<"module">
+
+    /**
+    * @description a shared options record, not a JS-visible class
+    */
+    export type IStruct = IIDLDefinition<"struct">
 }
 
 export = FIBJS_IDL;

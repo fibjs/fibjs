@@ -70,7 +70,15 @@ const _formatMethodReturnType = (member) => {
 const _formatParamTypeName = (param) => {
     if (param.type === '...')
         return `...${param.name}`
-    return `${param.type} ${param.name}${param.isarray?"[]":""}`
+
+    if (Array.isArray(param.type)) {
+        const fields = param.type
+            .map(item => `${item.type} ${item.name}${item.isarray ? '[]' : ''}`)
+            .join(', ')
+        return `(${fields}) ${param.name}${param.isarray ? '[]' : ''}`
+    }
+
+    return `${param.type} ${param.name}${param.isarray ? "[]" : ""}`
 }
 
 const _formatConstructorObject = (member) => {

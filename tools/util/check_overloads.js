@@ -347,11 +347,21 @@ function canConvert(from, to, extendOf) {
     return true;
 }
 
+function structSignature(items) {
+    return '(' + items.map(function (x) {
+        var t = Array.isArray(x.type) ? structSignature(x.type) : x.type;
+        return t + ' ' + x.name + (x.isarray ? '[]' : '');
+    }).join(',') + ')';
+}
+
 function paramInfo(p) {
     var variadic = p.name === '...' || p.type === '...';
-    var type = Array.isArray(p.type)
-        ? p.type.map(function (x) { return x.type; }).join('|')
-        : p.type;
+    var isStruct = Array.isArray(p.type);
+
+    // A struct parameter is one options record, not the union of its field
+    // types: its identity is the field list, so two different shapes never
+    // compare equal by accident.
+    var type = isStruct ? 'options:' + structSignature(p.type) : p.type;
 
     if (p.isarray)
         type += '[]';

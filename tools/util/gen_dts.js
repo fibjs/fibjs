@@ -373,9 +373,8 @@ function hasDeclaredCallbackParam(host) {
         if (param.type === 'Function')
             return true;
 
-        if (Array.isArray(param.type))
-            return param.type.some((t) => t && t.type === 'Function');
-
+        // A struct parameter is one record argument. A Function field inside
+        // it is data of that record, not the member's trailing callback.
         return false;
     });
 }
@@ -636,21 +635,46 @@ function buildStructDtsType(items, {
     allInterfacesNames,
     allModuleNames,
     addRefToTripleSlashDirectivesHost,
+    // parameter-position structs are options records: every field may be
+    // omitted and the C++ side fills the IDL default; return-position structs
+    // keep their properties required
+    optionalProperties = false,
 }) {
     const propertyMembers = items.map(item => {
-        const gMap = generalTypeMap(item.type, { allInterfacesNames, allModuleNames, useRefInstance: true });
+        const flags = optionalProperties ? dom.DeclarationFlags.Optional : dom.DeclarationFlags.None;
+        let propertyType;
 
-        if (gMap && gMap.type) {
-            if (gMap.refType && dtsUnitName !== item.type) {
-                addRefToTripleSlashDirectivesHost(gMap.refType, {
-                    refHostName: memberHostName,
-                    refName: memberInfo.name,
-                    refType: item.type,
-                })
+        if (Array.isArray(item.type)) {
+            propertyType = buildStructDtsType(item.type, {
+                memberInfo,
+                memberHostName,
+                dtsUnitName,
+                allInterfacesNames,
+                allModuleNames,
+                addRefToTripleSlashDirectivesHost,
+                optionalProperties,
+            });
+        } else {
+            const gMap = generalTypeMap(item.type, { allInterfacesNames, allModuleNames, useRefInstance: true });
+
+            if (gMap && gMap.type) {
+                if (gMap.refType && dtsUnitName !== item.type) {
+                    addRefToTripleSlashDirectivesHost(gMap.refType, {
+                        refHostName: memberHostName,
+                        refName: memberInfo.name,
+                        refType: item.type,
+                    })
+                }
+                propertyType = gMap.type;
+            } else {
+                propertyType = dom.type.any;
             }
-            return dom.create.property(item.name, gMap.type);
         }
-        return dom.create.property(item.name, dom.type.any);
+
+        if (item.isarray)
+            propertyType = dom.create.array(propertyType);
+
+        return dom.create.property(item.name, propertyType, flags);
     });
 
     return dom.create.objectType(propertyMembers);
@@ -869,6 +893,23 @@ function mapParamTypeToDtsType(paramType, {
         if (paramInfo.isarray)
             callbackType = dom.create.array(callbackType);
         return { type: callbackType };
+    }
+
+    // An IDL struct parameter is one object argument; its fields become
+    // optional object-literal properties (the C++ side defaults them).
+    if (Array.isArray(paramType)) {
+        let structType = buildStructDtsType(paramType, {
+            memberInfo: { name: paramInfo && paramInfo.name },
+            memberHostName: paramHostName,
+            dtsUnitName,
+            allInterfacesNames,
+            allModuleNames,
+            addRefToTripleSlashDirectivesHost,
+            optionalProperties: true,
+        });
+        if (paramInfo && paramInfo.isarray)
+            structType = dom.create.array(structType);
+        return { type: structType };
     }
 
     const mapOptions = { allInterfacesNames, allModuleNames, useRefInstance: true, instanceFlavor };

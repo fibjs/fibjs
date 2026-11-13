@@ -207,7 +207,7 @@ function defNameFromSource(src) {
     var code = String(src)
         .replace(/\/\*[\s\S]*?\*\//g, ' ')
         .replace(/\/\/[^\n]*/g, ' ');
-    var m = /\b(?:module|interface)\s+([A-Za-z_$][\w$]*)/.exec(code);
+    var m = /\b(?:module|interface|struct)\s+([A-Za-z_$][\w$]*)/.exec(code);
     return m ? m[1] : null;
 }
 

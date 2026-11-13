@@ -3,6 +3,7 @@ var parser = require('./util/parser');
 var gen_code = require('./util/gen_code');
 var record_idljson = require('./util/record_idljson');
 var gen_dts = require('./util/gen_dts');
+var struct_utils = require('./util/struct-utils');
 var gen_builtin_types = require('./gen_builtin_types');
 
 var idlFolder = path.resolve(__dirname, '../idl');
@@ -14,6 +15,9 @@ console.log(`📁 Code Output: ${baseCodeFolder}`);
 
 console.log('\n📖 Parsing IDL definitions...');
 var defs = parser(idlFolder);
+// C++ generation keeps the named records; the checks, the recorded IR and the
+// d.ts work on a copy where every named struct parameter is its field list.
+var resolvedDefs = struct_utils.expandStructParams(defs);
 console.log(`✅ Parsed ${Object.keys(defs).length} IDL definitions`);
 
 // The call operator is spelled `operator(...)` (idl-def.pegjs). The historical
@@ -27,7 +31,7 @@ Object.values(defs).forEach((def) => {
 });
 
 console.log('\n🔎 Checking overload shadowing...');
-var shadowed = require('./util/check_overloads')(defs);
+var shadowed = require('./util/check_overloads')(resolvedDefs);
 if (shadowed.length) {
     console.log(`   ❌ ${shadowed.length} overload shadowing problem(s):`);
     shadowed.forEach((p) => {
@@ -39,7 +43,7 @@ if (shadowed.length) {
     console.log('✅ No overload shadowing');
 
 console.log('\n🔎 Checking callback shapes...');
-var callbackShapeProblems = require('./util/check_callback_shapes')(defs);
+var callbackShapeProblems = require('./util/check_callback_shapes')(resolvedDefs);
 if (callbackShapeProblems.length) {
     console.log(`   ⚠️  ${callbackShapeProblems.length} callback shape problem(s):`);
     callbackShapeProblems.forEach((p) => {
@@ -49,7 +53,7 @@ if (callbackShapeProblems.length) {
     console.log('✅ No callback shape shadowing');
 
 console.log('\n🔗 Checking union types...');
-var unionProblems = require('./util/check_unions')(defs);
+var unionProblems = require('./util/check_unions')(resolvedDefs);
 if (unionProblems.length) {
     console.log(`   ❌ ${unionProblems.length} union type problem(s):`);
     unionProblems.forEach((p) => {
@@ -63,7 +67,7 @@ if (unionProblems.length) {
 // the whitelist carries the ones that keep the generic type, each with its
 // reason (plans/value-variant-union-2026-10-05.md).
 console.log('\n🔎 Checking Value/Variant parameters...');
-var variantProblems = require('./util/check_variant_params')(defs);
+var variantProblems = require('./util/check_variant_params')(resolvedDefs);
 if (variantProblems.length) {
     console.log(`   ❌ ${variantProblems.length} Value/Variant parameter problem(s):`);
     variantProblems.forEach((p) => {
@@ -79,7 +83,7 @@ if (variantProblems.length) {
 // being changed must be fully documented (X1-X10, plans/idl-doc-completion-
 // plan-2026-10-05.md 7.1), so the generated manual never regresses.
 console.log('\n🔎 Checking documentation (X1-X10)...');
-var docProblems = require('./util/check_idl_docs')(defs, {
+var docProblems = require('./util/check_idl_docs')(resolvedDefs, {
     baseline: path.resolve(__dirname, 'util/idl_docs_baseline.json'),
     changed: true,
     report: path.resolve(__dirname, '../temp/idl_examples_report.json')
@@ -96,7 +100,7 @@ if (docProblems.length) {
     console.log('✅ No documentation problems');
 
 console.log('\n💾 Recording IDL JSON...');
-record_idljson(defs);
+record_idljson(resolvedDefs);
 console.log('✅ IDL JSON recorded');
 
 console.log('\n⚡ Generating C++ code...');
@@ -106,7 +110,7 @@ console.log('✅ C++ code generated');
 console.log('\n📝 Generating TypeScript definitions...');
 const DTS_DIST_DIR = path.resolve(__dirname, `../npm/types/dts/`);
 require('fs').mkdirSync(DTS_DIST_DIR, { recursive: true });
-gen_dts(parser(idlFolder), { DTS_DIST_DIR });
+gen_dts(resolvedDefs, { DTS_DIST_DIR });
 console.log('✅ TypeScript definitions generated');
 
 // The `--check` built-in types and the `--man` pages are two views of the

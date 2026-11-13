@@ -19,8 +19,9 @@ module.exports = function (defs, docsFolder) {
                 if (ts)
                     ts += ', ';
 
-                if (item.type)
-                    ts += item.type + ' ';
+                if (item.type) {
+                    ts += (Array.isArray(item.type) ? formatTypeName(item.type) : item.type) + ' ';
+                }
                 ts += item.name;
                 if (item.isarray)
                     ts += '[]';

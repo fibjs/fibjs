@@ -29,6 +29,10 @@
   // retired - it collided with the `Function` type name (callback shapes).
 }
 
+document
+  = interface
+  / structDecl
+
 interface = head:declareHead
   body:interfaceBody _* ";" _* {
     return {
@@ -36,6 +40,36 @@ interface = head:declareHead
       members: body
     }
   }
+
+// A shared options record. It is not a JS-visible class: the toolchain emits
+// one native class per name, and every interface that uses it includes that
+// header. `members` stays empty so the member-oriented tools skip it.
+structDecl
+  = comments:_* StructToken _* name:Identifier _* "{" _* fields:structFieldList? _* "}" _* ";" _* {
+    return {
+      declare: {
+        comments: comments.join(""),
+        type: "struct",
+        name: name,
+        extend: "object"
+      },
+      members: [],
+      fields: fields || []
+    }
+  }
+
+// Top-level struct fields use `;` separators (the field shape is the same as
+// an inline parameter struct). The trailing `;` after the last field is
+// allowed; the optional item in structFieldRest makes it a no-op.
+structFieldList
+  = first:paramStructItem rest:structFieldRest* {
+      return [first].concat(rest.filter(function (x) { return x; }));
+    }
+
+structFieldRest
+  = _* ";" _* item:paramStructItem? {
+      return item;
+    }
 
 declareHead
   = interfaceHead / moduleHead
@@ -297,7 +331,62 @@ type
 // struct, `...` and string literals are not alternatives.
 paramType
   = UnionType
+  / paramStruct
   / extType
+
+// A parameter-position struct is an options record: its fields may be
+// scalars, arrays (`String[]`), unions (`String|Integer`), nested structs or
+// shaped callbacks. The return-position `struct` above keeps the plain
+// Identifier fields it has always had.
+paramStruct
+  = "(" items:paramStructItems? _* ")" {
+      return items;
+    }
+
+paramStructItems
+  = first:paramStructItem nexts:paramStructNext* {
+      return [first].concat(nexts);
+    }
+
+paramStructNext
+  = "," item:paramStructItem {
+      return item;
+    }
+
+paramStructItem
+  = _* t:fieldType _* name:Identifier def:def? {
+      var item = {
+        type: t.type,
+        name: name,
+        default: def
+      };
+      if (t.isarray)
+        item.isarray = t.isarray;
+      if (t.callback)
+        item.callback = t.callback;
+      return item;
+    }
+
+// `UnionType` first: it owns `String[]|Foo` (ArrayUnit) and `Function(...)`.
+// A lone `String[]` makes UnionType fail on its missing `|`, then the array
+// alternative below takes it; the array-first order would commit to `String[]`
+// and hide the union.
+fieldType
+  = t:UnionType {
+      return { type: t };
+    }
+  / t:fieldBase _* "[" _* "]" {
+      return { type: typeName(t), isarray: true, callback: callbackOf(t) };
+    }
+  / t:fieldBase {
+      return { type: typeName(t), callback: callbackOf(t) };
+    }
+
+fieldBase
+  = CallbackType
+  / paramStruct
+  / IteratorType
+  / Identifier
 
 UnionType
   = first:unionUnit rest:unionTail+ {
@@ -334,7 +423,8 @@ ArrayUnit
 
 // `extType` is the only way to reach `CallbackType`: it is used by `paramitem`
 // and by the method return position, so `prop` (which keeps `type`), `operator`
-// and the struct fields (which use `Identifier`) can never carry a shape.
+// and the return-position struct fields (which use `Identifier`) can never
+// carry a shape.
 extType
   = CallbackType
   / type
@@ -537,6 +627,7 @@ SourceCharacter
 
 ModuleToken     = "module"
 InterfaceToken  = "interface"
+StructToken     = "struct"
 StringToken     = "String"
 staticToken     = "static"
 eventToken      = "event"
