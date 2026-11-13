@@ -29,6 +29,7 @@ class Verify_base;
 class X509CertificateRequest_base;
 class EncryptOptions;
 class SignOptions;
+class BbsOptions;
 class webcrypto_base;
 class subtle_base;
 class Options_crypto_createHmac_options;
@@ -81,16 +82,16 @@ public:
     using Union_timingSafeEqual_a = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_timingSafeEqual_b = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_bbsSign_messages = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_bbsSign_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
+    using Union_bbsSign_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_bbsVerify_messages = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_bbsVerify_publicKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
     using Union_bbsVerify_signature = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_bbsVerify_publicKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_proofGen_signature = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_proofGen_messages = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_proofGen_publicKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
+    using Union_proofGen_publicKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_proofVerify_messages = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_proofVerify_publicKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
     using Union_proofVerify_proof = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_proofVerify_publicKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
 
 public:
     class GetCipherInfoType : public NType {
@@ -191,9 +192,13 @@ public:
     static result_t verify(v8::Local<v8::Value> algorithm, Union_verify_data data, SignOptions* key, Union_verify_signature signature, bool& retVal, AsyncHandle ac);
     static result_t verify(v8::Local<v8::Value> algorithm, Union_verify_data data, Union_verify_key key, Union_verify_signature signature, bool& retVal, AsyncHandle ac);
     static result_t timingSafeEqual(Union_timingSafeEqual_a a, Union_timingSafeEqual_b b, bool& retVal);
+    static result_t bbsSign(std::vector<Union_bbsSign_messages>& messages, BbsOptions* privateKey, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t bbsSign(std::vector<Union_bbsSign_messages>& messages, Union_bbsSign_privateKey privateKey, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t bbsVerify(std::vector<Union_bbsVerify_messages>& messages, BbsOptions* publicKey, Union_bbsVerify_signature signature, bool& retVal, AsyncHandle ac);
     static result_t bbsVerify(std::vector<Union_bbsVerify_messages>& messages, Union_bbsVerify_publicKey publicKey, Union_bbsVerify_signature signature, bool& retVal, AsyncHandle ac);
+    static result_t proofGen(Union_proofGen_signature signature, std::vector<Union_proofGen_messages>& messages, std::vector<int32_t>& index, BbsOptions* publicKey, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t proofGen(Union_proofGen_signature signature, std::vector<Union_proofGen_messages>& messages, std::vector<int32_t>& index, Union_proofGen_publicKey publicKey, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t proofVerify(std::vector<Union_proofVerify_messages>& messages, std::vector<int32_t>& index, BbsOptions* publicKey, Union_proofVerify_proof proof, bool& retVal, AsyncHandle ac);
     static result_t proofVerify(std::vector<Union_proofVerify_messages>& messages, std::vector<int32_t>& index, Union_proofVerify_publicKey publicKey, Union_proofVerify_proof proof, bool& retVal, AsyncHandle ac);
 
 public:
@@ -259,9 +264,13 @@ public:
     ASYNC_STATICVALUE4(crypto_base, sign, v8::Local<v8::Value>, Union_sign_data, Union_sign_key, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE5(crypto_base, verify, v8::Local<v8::Value>, Union_verify_data, obj_ptr<SignOptions>, Union_verify_signature, bool);
     ASYNC_STATICVALUE5(crypto_base, verify, v8::Local<v8::Value>, Union_verify_data, Union_verify_key, Union_verify_signature, bool);
+    ASYNC_STATICVALUE3(crypto_base, bbsSign, std::vector<Union_bbsSign_messages>, obj_ptr<BbsOptions>, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE3(crypto_base, bbsSign, std::vector<Union_bbsSign_messages>, Union_bbsSign_privateKey, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE4(crypto_base, bbsVerify, std::vector<Union_bbsVerify_messages>, obj_ptr<BbsOptions>, Union_bbsVerify_signature, bool);
     ASYNC_STATICVALUE4(crypto_base, bbsVerify, std::vector<Union_bbsVerify_messages>, Union_bbsVerify_publicKey, Union_bbsVerify_signature, bool);
+    ASYNC_STATICVALUE5(crypto_base, proofGen, Union_proofGen_signature, std::vector<Union_proofGen_messages>, std::vector<int32_t>, obj_ptr<BbsOptions>, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE5(crypto_base, proofGen, Union_proofGen_signature, std::vector<Union_proofGen_messages>, std::vector<int32_t>, Union_proofGen_publicKey, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE5(crypto_base, proofVerify, std::vector<Union_proofVerify_messages>, std::vector<int32_t>, obj_ptr<BbsOptions>, Union_proofVerify_proof, bool);
     ASYNC_STATICVALUE5(crypto_base, proofVerify, std::vector<Union_proofVerify_messages>, std::vector<int32_t>, Union_proofVerify_publicKey, Union_proofVerify_proof, bool);
 };
 }
@@ -279,6 +288,7 @@ public:
 #include "ifs/X509CertificateRequest.h"
 #include "ifs/EncryptOptions.h"
 #include "ifs/SignOptions.h"
+#include "ifs/BbsOptions.h"
 #include "ifs/webcrypto.h"
 #include "ifs/subtle.h"
 
@@ -1089,6 +1099,16 @@ inline void crypto_base::s_static_bbsSign(const v8::FunctionCallbackInfo<v8::Val
     METHOD_OVER_NAMED(2, 2, "privateKey");
 
     ARG(std::vector<Union_bbsSign_messages>, 0);
+    ARG_NAMED(obj_ptr<BbsOptions>, 1, "privateKey");
+
+    if (!cb.IsEmpty())
+        hr = acb_bbsSign(v0, v1, cb, args);
+    else
+        hr = ac_bbsSign(v0, v1, vr);
+
+    METHOD_OVER_NAMED(2, 2, "privateKey");
+
+    ARG(std::vector<Union_bbsSign_messages>, 0);
     ARG(Union_bbsSign_privateKey, 1);
 
     if (!cb.IsEmpty())
@@ -1104,6 +1124,17 @@ inline void crypto_base::s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::V
     bool vr;
 
     ASYNC_METHOD_ENTER("crypto.bbsVerify");
+
+    METHOD_OVER_NAMED(3, 3, "signature");
+
+    ARG(std::vector<Union_bbsVerify_messages>, 0);
+    ARG_NAMED(obj_ptr<BbsOptions>, 1, "publicKey");
+    ARG(Union_bbsVerify_signature, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_bbsVerify(v0, v1, v2, cb, args);
+    else
+        hr = ac_bbsVerify(v0, v1, v2, vr);
 
     METHOD_OVER_NAMED(3, 3, "signature");
 
@@ -1130,6 +1161,18 @@ inline void crypto_base::s_static_proofGen(const v8::FunctionCallbackInfo<v8::Va
     ARG(Union_proofGen_signature, 0);
     ARG(std::vector<Union_proofGen_messages>, 1);
     ARG_NAMED(std::vector<int32_t>, 2, "index");
+    ARG_NAMED(obj_ptr<BbsOptions>, 3, "publicKey");
+
+    if (!cb.IsEmpty())
+        hr = acb_proofGen(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_proofGen(v0, v1, v2, v3, vr);
+
+    METHOD_OVER_NAMED(4, 4, "publicKey");
+
+    ARG(Union_proofGen_signature, 0);
+    ARG(std::vector<Union_proofGen_messages>, 1);
+    ARG_NAMED(std::vector<int32_t>, 2, "index");
     ARG(Union_proofGen_publicKey, 3);
 
     if (!cb.IsEmpty())
@@ -1145,6 +1188,18 @@ inline void crypto_base::s_static_proofVerify(const v8::FunctionCallbackInfo<v8:
     bool vr;
 
     ASYNC_METHOD_ENTER("crypto.proofVerify");
+
+    METHOD_OVER_NAMED(4, 4, "proof");
+
+    ARG(std::vector<Union_proofVerify_messages>, 0);
+    ARG_NAMED(std::vector<int32_t>, 1, "index");
+    ARG_NAMED(obj_ptr<BbsOptions>, 2, "publicKey");
+    ARG(Union_proofVerify_proof, 3);
+
+    if (!cb.IsEmpty())
+        hr = acb_proofVerify(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_proofVerify(v0, v1, v2, v3, vr);
 
     METHOD_OVER_NAMED(4, 4, "proof");
 

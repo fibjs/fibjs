@@ -1079,7 +1079,16 @@ module crypto
      @param privateKey the private key and options
      @return returns the signature
      */
-    static Buffer bbsSign(Buffer|String messages[], Buffer|KeyObject|Object|String privateKey) async;
+    static Buffer bbsSign(Buffer|String messages[], BbsOptions privateKey) async;
+
+    /*! @brief Signs BBS messages with a key given as raw key material
+
+     The key is used directly and the suite/header take their defaults.
+     @param messages the messages to sign
+     @param privateKey the private key
+     @return returns the signature
+     */
+    static Buffer bbsSign(Buffer|String messages[], Buffer|KeyObject|String privateKey) async;
 
     /*! @brief Verifies a BBS signature over a group of messages
 
@@ -1091,7 +1100,17 @@ module crypto
      @param signature the signature to verify
      @return returns true when the signature is valid
      */
-    static Boolean bbsVerify(Buffer|String messages[], Buffer|KeyObject|Object|String publicKey, Buffer|String signature) async;
+    static Boolean bbsVerify(Buffer|String messages[], BbsOptions publicKey, Buffer|String signature) async;
+
+    /*! @brief Verifies BBS messages with a key given as raw key material
+
+     The key is used directly and the suite/header take their defaults.
+     @param messages the messages to verify
+     @param publicKey the public key
+     @param signature the signature to verify
+     @return returns true when the signature is valid
+     */
+    static Boolean bbsVerify(Buffer|String messages[], Buffer|KeyObject|String publicKey, Buffer|String signature) async;
 
     /*! @brief Derives a selective-disclosure proof from a BBS signature
 
@@ -1106,7 +1125,18 @@ module crypto
      @param publicKey the public key and options
      @return returns the proof
     */
-    static Buffer proofGen(Buffer|String signature, Buffer|String messages[], Integer index[], Buffer|KeyObject|Object|String publicKey) async;
+    static Buffer proofGen(Buffer|String signature, Buffer|String messages[], Integer index[], BbsOptions publicKey) async;
+
+    /*! @brief Derives a BBS proof with a key given as raw key material
+
+     The key is used directly and the suite/header take their defaults.
+     @param signature the BBS signature to derive from
+     @param messages the full signed message set
+     @param index the positions of the messages to reveal
+     @param publicKey the public key
+     @return returns the proof
+     */
+    static Buffer proofGen(Buffer|String signature, Buffer|String messages[], Integer index[], Buffer|KeyObject|String publicKey) async;
 
     /*! @brief Verifies a selective-disclosure BBS proof
 
@@ -1120,7 +1150,18 @@ module crypto
      @param proof the proof to verify
      @return returns true when the proof is valid
      */
-    static Boolean proofVerify(Buffer|String messages[], Integer index[], Buffer|KeyObject|Object|String publicKey, Buffer|String proof) async;
+    static Boolean proofVerify(Buffer|String messages[], Integer index[], BbsOptions publicKey, Buffer|String proof) async;
+
+    /*! @brief Verifies a BBS proof with a key given as raw key material
+
+     The key is used directly and the suite/header take their defaults.
+     @param messages the revealed messages, in the order of index
+     @param index the positions the revealed messages came from
+     @param publicKey the public key
+     @param proof the proof to verify
+     @return returns true when the proof is valid
+     */
+    static Boolean proofVerify(Buffer|String messages[], Integer index[], Buffer|KeyObject|String publicKey, Buffer|String proof) async;
 
     /*! @brief The Web Crypto API entry point, see webcrypto
 

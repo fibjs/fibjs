@@ -439,6 +439,22 @@ static result_t messages_to_buffers(std::vector<T>& messages, std::vector<obj_pt
 }
 
 
+result_t crypto_base::bbsSign(std::vector<Union_bbsSign_messages>& messages, BbsOptions* privateKey,
+    obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
+{
+    result_t hr = bbs_prepare_key(privateKey, true, ac);
+    if (hr.failed())
+        return hr;
+
+    std::vector<obj_ptr<Buffer_base>> msgs;
+
+    hr = messages_to_buffers(messages, msgs);
+    if (hr.failed())
+        return hr;
+
+    return bbsSign_(msgs, retVal, ac);
+}
+
 result_t crypto_base::bbsSign(std::vector<Union_bbsSign_messages>& messages, Union_bbsSign_privateKey privateKey,
     obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
@@ -455,6 +471,31 @@ result_t crypto_base::bbsSign(std::vector<Union_bbsSign_messages>& messages, Uni
     return bbsSign_(msgs, retVal, ac);
 }
 
+
+result_t crypto_base::bbsVerify(std::vector<Union_bbsVerify_messages>& messages, BbsOptions* publicKey,
+    Union_bbsVerify_signature signature, bool& retVal, AsyncHandle ac)
+{
+    result_t hr = bbs_prepare_key(publicKey, false, ac);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<Buffer_base> sigBuf;
+
+    if (std::holds_alternative<exlib::string>(signature)) {
+        hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
+        if (hr.failed())
+            return hr;
+    } else
+        sigBuf = std::get<obj_ptr<Buffer_base>>(signature);
+
+    std::vector<obj_ptr<Buffer_base>> msgs;
+
+    hr = messages_to_buffers(messages, msgs);
+    if (hr.failed())
+        return hr;
+
+    return bbsVerify_(msgs, sigBuf, retVal, ac);
+}
 
 result_t crypto_base::bbsVerify(std::vector<Union_bbsVerify_messages>& messages, Union_bbsVerify_publicKey publicKey,
     Union_bbsVerify_signature signature, bool& retVal, AsyncHandle ac)
@@ -483,6 +524,31 @@ result_t crypto_base::bbsVerify(std::vector<Union_bbsVerify_messages>& messages,
 
 
 result_t crypto_base::proofGen(Union_proofGen_signature signature, std::vector<Union_proofGen_messages>& messages,
+    std::vector<int32_t>& index, BbsOptions* publicKey, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
+{
+    result_t hr = bbs_prepare_key(publicKey, false, ac);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<Buffer_base> sigBuf;
+
+    if (std::holds_alternative<exlib::string>(signature)) {
+        hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
+        if (hr.failed())
+            return hr;
+    } else
+        sigBuf = std::get<obj_ptr<Buffer_base>>(signature);
+
+    std::vector<obj_ptr<Buffer_base>> msgs;
+
+    hr = messages_to_buffers(messages, msgs);
+    if (hr.failed())
+        return hr;
+
+    return proofGen_(sigBuf, msgs, index, retVal, ac);
+}
+
+result_t crypto_base::proofGen(Union_proofGen_signature signature, std::vector<Union_proofGen_messages>& messages,
     std::vector<int32_t>& index, Union_proofGen_publicKey publicKey, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     result_t hr = bbs_prepare_key(publicKey, false, ac);
@@ -507,6 +573,31 @@ result_t crypto_base::proofGen(Union_proofGen_signature signature, std::vector<U
     return proofGen_(sigBuf, msgs, index, retVal, ac);
 }
 
+
+result_t crypto_base::proofVerify(std::vector<Union_proofVerify_messages>& messages, std::vector<int32_t>& index,
+    BbsOptions* publicKey, Union_proofVerify_proof proof, bool& retVal, AsyncHandle ac)
+{
+    result_t hr = bbs_prepare_key(publicKey, false, ac);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<Buffer_base> proofBuf;
+
+    if (std::holds_alternative<exlib::string>(proof)) {
+        hr = Buffer_base::from(std::get<exlib::string>(proof), "utf8", proofBuf);
+        if (hr.failed())
+            return hr;
+    } else
+        proofBuf = std::get<obj_ptr<Buffer_base>>(proof);
+
+    std::vector<obj_ptr<Buffer_base>> msgs;
+
+    hr = messages_to_buffers(messages, msgs);
+    if (hr.failed())
+        return hr;
+
+    return proofVerify_(msgs, index, proofBuf, retVal, ac);
+}
 
 result_t crypto_base::proofVerify(std::vector<Union_proofVerify_messages>& messages, std::vector<int32_t>& index,
     Union_proofVerify_publicKey publicKey, Union_proofVerify_proof proof, bool& retVal, AsyncHandle ac)

@@ -1,0 +1,19 @@
+/*! @brief Structured key and BBS options for the bbsSign family.
+
+     The key-import fields are the same as in KeyOptions. `suite` selects
+     'Bls12381Sha256' (default) or 'Bls12381Shake256'; `header` is bound into
+     the signature and `proof_header` is used when deriving or verifying a
+     proof.
+ */
+struct BbsOptions {
+    KeyObject|Buffer|String|NObject key;
+    String format;
+    String type;
+    String|Buffer passphrase;
+    String encoding = "utf8";
+    String namedCurve;
+    Boolean toX25519 = false;
+    String suite = "Bls12381Sha256";
+    Buffer header;
+    Buffer proof_header;
+};

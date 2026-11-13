@@ -1900,9 +1900,31 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_Buffer;
+    function bbsSign(messages: (Class_Buffer | string)[], privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }): Class_Buffer;
 
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function bbsSign(messages: (Class_Buffer | string)[], privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Signs a group of messages with a Bls12381G2 key using BBS
@@ -1919,7 +1941,18 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSignSync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_Buffer;
+    function bbsSignSync(messages: (Class_Buffer | string)[], privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }): Class_Buffer;
 
     /**
      * @description Signs a group of messages with a Bls12381G2 key using BBS
@@ -1936,7 +1969,53 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSignAsync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Promise<Class_Buffer>;
+    function bbsSignAsync(messages: (Class_Buffer | string)[], privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }): Promise<Class_Buffer>;
+
+    /**
+     * @description Signs BBS messages with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the messages to sign
+     *      @param privateKey the private key
+     *      @return returns the signature
+     *
+     */
+    function bbsSign(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+
+    function bbsSign(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description Signs BBS messages with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the messages to sign
+     *      @param privateKey the private key
+     *      @return returns the signature
+     *
+     */
+    function bbsSignSync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+
+    /**
+     * @description Signs BBS messages with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the messages to sign
+     *      @param privateKey the private key
+     *      @return returns the signature
+     *
+     */
+    function bbsSignAsync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -1950,9 +2029,31 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): boolean;
+    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }, signature: Class_Buffer | string): boolean;
 
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -1966,7 +2067,18 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifySync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): boolean;
+    function bbsVerifySync(messages: (Class_Buffer | string)[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }, signature: Class_Buffer | string): boolean;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -1980,7 +2092,56 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifyAsync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function bbsVerifyAsync(messages: (Class_Buffer | string)[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }, signature: Class_Buffer | string): Promise<boolean>;
+
+    /**
+     * @description Verifies BBS messages with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the messages to verify
+     *      @param publicKey the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+
+    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description Verifies BBS messages with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the messages to verify
+     *      @param publicKey the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function bbsVerifySync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+
+    /**
+     * @description Verifies BBS messages with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the messages to verify
+     *      @param publicKey the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function bbsVerifyAsync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Derives a selective-disclosure proof from a BBS signature
@@ -1997,9 +2158,31 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_Buffer;
+    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }): Class_Buffer;
 
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Derives a selective-disclosure proof from a BBS signature
@@ -2016,7 +2199,18 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGenSync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_Buffer;
+    function proofGenSync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }): Class_Buffer;
 
     /**
      * @description Derives a selective-disclosure proof from a BBS signature
@@ -2033,7 +2227,59 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGenAsync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Promise<Class_Buffer>;
+    function proofGenAsync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }): Promise<Class_Buffer>;
+
+    /**
+     * @description Derives a BBS proof with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param signature the BBS signature to derive from
+     *      @param messages the full signed message set
+     *      @param index the positions of the messages to reveal
+     *      @param publicKey the public key
+     *      @return returns the proof
+     *
+     */
+    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+
+    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description Derives a BBS proof with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param signature the BBS signature to derive from
+     *      @param messages the full signed message set
+     *      @param index the positions of the messages to reveal
+     *      @param publicKey the public key
+     *      @return returns the proof
+     *
+     */
+    function proofGenSync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+
+    /**
+     * @description Derives a BBS proof with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param signature the BBS signature to derive from
+     *      @param messages the full signed message set
+     *      @param index the positions of the messages to reveal
+     *      @param publicKey the public key
+     *      @return returns the proof
+     *
+     */
+    function proofGenAsync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -2049,9 +2295,31 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, proof: Class_Buffer | string): boolean;
+    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }, proof: Class_Buffer | string): boolean;
 
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, proof: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }, proof: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -2067,7 +2335,18 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifySync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, proof: Class_Buffer | string): boolean;
+    function proofVerifySync(messages: (Class_Buffer | string)[], index: number[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }, proof: Class_Buffer | string): boolean;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -2083,7 +2362,59 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifyAsync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, proof: Class_Buffer | string): Promise<boolean>;
+    function proofVerifyAsync(messages: (Class_Buffer | string)[], index: number[], publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        suite?: string;
+        header?: Class_Buffer;
+        proof_header?: Class_Buffer;
+    }, proof: Class_Buffer | string): Promise<boolean>;
+
+    /**
+     * @description Verifies a BBS proof with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the revealed messages, in the order of index
+     *      @param index the positions the revealed messages came from
+     *      @param publicKey the public key
+     *      @param proof the proof to verify
+     *      @return returns true when the proof is valid
+     *
+     */
+    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): boolean;
+
+    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description Verifies a BBS proof with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the revealed messages, in the order of index
+     *      @param index the positions the revealed messages came from
+     *      @param publicKey the public key
+     *      @param proof the proof to verify
+     *      @return returns true when the proof is valid
+     *
+     */
+    function proofVerifySync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): boolean;
+
+    /**
+     * @description Verifies a BBS proof with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the revealed messages, in the order of index
+     *      @param index the positions the revealed messages came from
+     *      @param publicKey the public key
+     *      @param proof the proof to verify
+     *      @return returns true when the proof is valid
+     *
+     */
+    function proofVerifyAsync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description The Web Crypto API entry point, see webcrypto
