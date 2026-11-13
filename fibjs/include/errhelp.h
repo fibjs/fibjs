@@ -118,6 +118,13 @@ result_t from_conversion(result_t hr, const char* name,
     const class Variant& received, bool strict);
 result_t from_conversion(result_t hr, const char* name, bool strict);
 
+// An options record is a plain JS object: when the value has that shape, the
+// overload that declared the record owns the call even if one field failed to
+// convert. Re-code a described field failure OUT of the overload retry band so
+// METHOD_OVER stops at this variant. The original result rides in the payload,
+// so effective_error() still reports the field failure's own number.
+result_t from_options_record(result_t hr);
+
 // The arity failure METHOD_OVER reports when too few arguments were passed.
 //
 // Same split as from_conversion: the value code stays CALL_E_PARAMNOTOPTIONAL

@@ -700,10 +700,11 @@ public:                                                  \
 
 #define LOAD_OPTION_MEMBER(r, data, elem)                                 \
     hr = GetConfigValue(opt, BOOST_PP_STRINGIZE(elem), data->elem, true); \
-    if (hr.failed())                                                           \
-        return hr;
+    if (hr.failed())                                                      \
+        return errhelp::from_options_record(hr);
 
 #define LOAD_OPTIONS(Class, Members)                                      \
+    enum { kFibjsOptions = 1 };                                           \
     static Class* getInstance(v8::Local<v8::Value> v) { return nullptr; } \
     static result_t load(v8::Local<v8::Value> v, obj_ptr<Class>& retVal)  \
     {                                                                     \
@@ -959,13 +960,29 @@ private:
     int32_t m_argc = 0;
 };
 
+// Options records generated from an IDL struct carry kFibjsOptions (see
+// LOAD_OPTIONS). A plain JS object is their input form, so they convert during
+// the strict pass too; regular class parameters keep the old behaviour.
+template <class T, class = void>
+struct is_options_record : std::false_type {
+};
+
+template <class T>
+struct is_options_record<T, std::void_t<decltype(T::kFibjsOptions)>> : std::true_type {
+};
+
 template <class T>
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& vr, bool bStrict = false)
 {
     vr = T::getInstance(v);
     if (vr)
         return result_t();
-    if (bStrict)
+
+    // An options record generated from an IDL struct is a plain JS object on
+    // the input side: converting it through load() is the point of the type,
+    // not a lenient coercion. The marker keeps every other class parameter on
+    // the old strict-then-lenient path (the overload retry in CHECK_ARGUMENT).
+    if (bStrict && !is_options_record<T>::value)
         return result_t::type_mismatch();
 
     return T::load(v, vr);

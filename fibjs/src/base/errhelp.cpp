@@ -264,9 +264,30 @@ exlib::string describe_expected_array(const char* element)
     return "must be an instance of Array";
 }
 
+// A nested conversion may already have described a more specific argument:
+// GetConfigValue names the option field it read, and the outer ARG_NAMED /
+// OPT_ARG_NAMED must not rename that failure to the whole options parameter.
+// Keeping the inner payload is what makes "The \"retry\" argument must be of
+// type number" survive an `options` record load.
+static bool has_described_argument(result_t hr)
+{
+    const ErrorPayload* p = hr.payload();
+    if (!p)
+        return false;
+
+    for (const auto& a : p->args)
+        if (a.name == "name")
+            return true;
+
+    return false;
+}
+
 result_t from_value(result_t hr, const char* name, const Variant& received,
     const char* expected)
 {
+    if (has_described_argument(hr))
+        return hr;
+
     // Only the conversion outcomes are described. A getter that threw, or an
     // allocation failure, keeps its own diagnosis.
     const bool type_bad = hr.is_type_mismatch() || hr.is_bad_var_type();
@@ -317,6 +338,38 @@ result_t from_value(result_t hr, const char* name, const Variant& received,
 result_t from_value(result_t hr, const char* name, const char* expected)
 {
     return from_value(hr, name, Variant(), expected);
+}
+
+result_t from_options_record(result_t hr)
+{
+    if (!hr.failed() || !hr.is_overload_mismatch() || !hr.payload() || !has_described_argument(hr))
+        return hr;
+
+    const ErrorPayload* p = hr.payload();
+    result_t::builder b = result_t::make(CALL_E_INVALID_DATA).with_result(hr);
+
+    if (!p->error_type_name.empty())
+        b = std::move(b).with_type_name(p->error_type_name);
+    if (!p->syscall.empty())
+        b = std::move(b).with_syscall(p->syscall.c_str());
+    if (!p->path.empty())
+        b = std::move(b).with_path(p->path);
+    if (!p->path2.empty())
+        b = std::move(b).with_path2(p->path2);
+    if (!p->hostname.empty())
+        b = std::move(b).with_hostname(p->hostname.c_str());
+    if (!p->code.empty())
+        b = std::move(b).with_code(p->code);
+    if (!p->message.empty())
+        b = std::move(b).with_message(p->message);
+    if (!p->func.empty())
+        b = std::move(b).with_func(p->func.c_str());
+    if (p->has_errno)
+        b = std::move(b).with_errno(p->errno_value);
+    for (const auto& a : p->args)
+        b = std::move(b).arg(a.name.c_str(), a.value);
+
+    return result_t(std::move(b));
 }
 
 result_t missing_required_arg(const char* name, int32_t argc, int32_t required)
