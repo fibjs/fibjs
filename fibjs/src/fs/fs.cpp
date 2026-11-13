@@ -2424,25 +2424,12 @@ result_t fs_base::mkdtemp(exlib::string prefix, exlib::string& retVal, AsyncHand
     return result_t();
 }
 
-result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle ac)
+result_t fs_base::rmdir(exlib::string path, Options_fs_rmdir_opt* opt, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        ac.ctxv().resize(1);
-
-        bool recursive = false;
-        result_t ohr = GetConfigValue(opt, "recursive", recursive, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[0] = recursive;
-
+    if (ac.isSync())
         return result_t::nosync();
-    }
 
-    result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr.failed())
-        return ctx_hr;
-
-    bool recursive = ac.ctxv()[0].boolVal();
+    bool recursive = opt->recursive.value();
 
     if (!recursive) {
         AutoReq req;
@@ -2460,34 +2447,16 @@ result_t fs_base::rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncHand
     });
 }
 
-result_t fs_base::rm(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle ac)
+result_t fs_base::rm(exlib::string path, Options_fs_rm_opt* opt, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        ac.ctxv().resize(2);
-
-        bool recursive = false;
-        result_t ohr = GetConfigValue(opt, "recursive", recursive, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[0] = recursive;
-
-        // force decides whether a missing entry is an error: a silently false
-        // value turns an idempotent rm into a failure.
-        bool force = false;
-        ohr = GetConfigValue(opt, "force", force, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[1] = force;
-
+    if (ac.isSync())
         return result_t::nosync();
-    }
 
-    result_t ctx_hr = ac.ctx(1);
-    if (ctx_hr.failed())
-        return ctx_hr;
+    bool recursive = opt->recursive.value();
 
-    bool recursive = ac.ctxv()[0].boolVal();
-    bool force = ac.ctxv()[1].boolVal();
+    // force decides whether a missing entry is an error: a silently false
+    // value turns an idempotent rm into a failure.
+    bool force = opt->force.value();
 
     result_t hr = normalize_file_path_like(path, path);
     if (hr.failed())
@@ -3199,51 +3168,20 @@ private:
     std::vector<std::pair<exlib::string, uv_dirent_type_t>> m_entries;
 };
 
-result_t fs_base::cp(exlib::string src, exlib::string dest, v8::Local<v8::Object> opts, AsyncHandle ac)
+result_t fs_base::cp(exlib::string src, exlib::string dest, Options_fs_cp_opts* opts, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        ac.ctxv().resize(4);
-
-        // Node.js: copying onto itself is refused up front.
-        if (src == dest)
-            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_FS_CP_EINVAL").with_format("src and dest cannot be the same %s", src.c_str());
-
-        bool recursive = false;
-        result_t ohr = GetConfigValue(opts, "recursive", recursive, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[0] = recursive;
-
-        bool force = true;
-        ohr = GetConfigValue(opts, "force", force, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[1] = force;
-
-        bool errorOnExist = false;
-        ohr = GetConfigValue(opts, "errorOnExist", errorOnExist, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[2] = errorOnExist;
-
-        // cp's mode: silently 0 means "copy without creating permissions".
-        int32_t mode = 0;
-        ohr = GetConfigValue(opts, "mode", mode, true);
-        if (ohr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return ohr;
-        ac.ctxv()[3] = mode;
-
+    if (ac.isSync())
         return result_t::nosync();
-    }
 
-    result_t ctx_hr = ac.ctx(3);
-    if (ctx_hr.failed())
-        return ctx_hr;
+    // Node.js: copying onto itself is refused up front.
+    if (src == dest)
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_FS_CP_EINVAL").with_format("src and dest cannot be the same %s", src.c_str());
 
-    bool recursive = ac.ctxv()[0].boolVal();
-    bool force = ac.ctxv()[1].boolVal();
-    bool errorOnExist = ac.ctxv()[2].boolVal();
-    int32_t mode = ac.ctxv()[3].intVal();
+    bool recursive = opts->recursive.value();
+    bool force = opts->force.value();
+    bool errorOnExist = opts->errorOnExist.value();
+    // cp's mode: silently 0 means "copy without creating permissions".
+    int32_t mode = opts->mode.value();
 
     result_t hr = normalize_file_path_like(src, src);
     if (hr.failed())

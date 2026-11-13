@@ -573,11 +573,15 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rmdir(path: string, opt?: FIBJS.GeneralObject): void;
+    function rmdir(path: string, opt?: {
+        recursive?: boolean;
+    }): void;
 
     function rmdir(path: string, callback: (err: Error | undefined | null)=>any): void;
 
-    function rmdir(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function rmdir(path: string, opt: {
+        recursive?: boolean;
+    }, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Removes a directory
@@ -593,7 +597,9 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rmdirSync(path: string, opt?: FIBJS.GeneralObject): void;
+    function rmdirSync(path: string, opt?: {
+        recursive?: boolean;
+    }): void;
 
     /**
      * @description Removes a directory
@@ -609,7 +615,9 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rmdirAsync(path: string, opt?: FIBJS.GeneralObject): Promise<void>;
+    function rmdirAsync(path: string, opt?: {
+        recursive?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Removes a file or directory
@@ -628,11 +636,17 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rm(path: string, opt?: FIBJS.GeneralObject): void;
+    function rm(path: string, opt?: {
+        recursive?: boolean;
+        force?: boolean;
+    }): void;
 
     function rm(path: string, callback: (err: Error | undefined | null)=>any): void;
 
-    function rm(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function rm(path: string, opt: {
+        recursive?: boolean;
+        force?: boolean;
+    }, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Removes a file or directory
@@ -651,7 +665,10 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rmSync(path: string, opt?: FIBJS.GeneralObject): void;
+    function rmSync(path: string, opt?: {
+        recursive?: boolean;
+        force?: boolean;
+    }): void;
 
     /**
      * @description Removes a file or directory
@@ -670,7 +687,10 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rmAsync(path: string, opt?: FIBJS.GeneralObject): Promise<void>;
+    function rmAsync(path: string, opt?: {
+        recursive?: boolean;
+        force?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Renames a file
@@ -764,6 +784,7 @@ declare module 'fs' {
      *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
+     *          errorOnExist: false, // throw when dest exists and force is false. Default: false
      *          mode: 0 // modifiers for copy operation. Default: 0
      *      })
      *      ```
@@ -775,11 +796,21 @@ declare module 'fs' {
      *      @param opts the copy options
      *
      */
-    function cp(src: string, dest: string, opts?: FIBJS.GeneralObject): void;
+    function cp(src: string, dest: string, opts?: {
+        recursive?: boolean;
+        force?: boolean;
+        errorOnExist?: boolean;
+        mode?: number;
+    }): void;
 
     function cp(src: string, dest: string, callback: (err: Error | undefined | null)=>any): void;
 
-    function cp(src: string, dest: string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function cp(src: string, dest: string, opts: {
+        recursive?: boolean;
+        force?: boolean;
+        errorOnExist?: boolean;
+        mode?: number;
+    }, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Copies src to dest asynchronously, including subdirectories and files.
@@ -792,6 +823,7 @@ declare module 'fs' {
      *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
+     *          errorOnExist: false, // throw when dest exists and force is false. Default: false
      *          mode: 0 // modifiers for copy operation. Default: 0
      *      })
      *      ```
@@ -803,7 +835,12 @@ declare module 'fs' {
      *      @param opts the copy options
      *
      */
-    function cpSync(src: string, dest: string, opts?: FIBJS.GeneralObject): void;
+    function cpSync(src: string, dest: string, opts?: {
+        recursive?: boolean;
+        force?: boolean;
+        errorOnExist?: boolean;
+        mode?: number;
+    }): void;
 
     /**
      * @description Copies src to dest asynchronously, including subdirectories and files.
@@ -816,6 +853,7 @@ declare module 'fs' {
      *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
+     *          errorOnExist: false, // throw when dest exists and force is false. Default: false
      *          mode: 0 // modifiers for copy operation. Default: 0
      *      })
      *      ```
@@ -827,7 +865,12 @@ declare module 'fs' {
      *      @param opts the copy options
      *
      */
-    function cpAsync(src: string, dest: string, opts?: FIBJS.GeneralObject): Promise<void>;
+    function cpAsync(src: string, dest: string, opts?: {
+        recursive?: boolean;
+        force?: boolean;
+        errorOnExist?: boolean;
+        mode?: number;
+    }): Promise<void>;
 
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
@@ -2214,21 +2257,31 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      ```
      *
      *      The pattern supports the `*`, `?`, `**` and other wildcards; the absolute paths of the matching files are returned. When `cwd` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
-     *      @param opts the options
+     *      @param opts the options; `cwd` sets the working directory, `exclude` lists
+     *      patterns to skip and `withFileTypes` returns Dirent objects
      *      @return the file list
      *
      */
-    function glob(pattern: string, opts?: FIBJS.GeneralObject): any[];
+    function glob(pattern: string, opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): any[];
 
     function glob(pattern: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
-    function glob(pattern: string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function glob(pattern: string, opts: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description Searches the given directory for files matching a name pattern
@@ -2238,17 +2291,23 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      ```
      *
      *      The pattern supports the `*`, `?`, `**` and other wildcards; the absolute paths of the matching files are returned. When `cwd` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
-     *      @param opts the options
+     *      @param opts the options; `cwd` sets the working directory, `exclude` lists
+     *      patterns to skip and `withFileTypes` returns Dirent objects
      *      @return the file list
      *
      */
-    function globSync(pattern: string, opts?: FIBJS.GeneralObject): any[];
+    function globSync(pattern: string, opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): any[];
 
     /**
      * @description Searches the given directory for files matching a name pattern
@@ -2258,17 +2317,23 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      ```
      *
      *      The pattern supports the `*`, `?`, `**` and other wildcards; the absolute paths of the matching files are returned. When `cwd` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
-     *      @param opts the options
+     *      @param opts the options; `cwd` sets the working directory, `exclude` lists
+     *      patterns to skip and `withFileTypes` returns Dirent objects
      *      @return the file list
      *
      */
-    function globAsync(pattern: string, opts?: FIBJS.GeneralObject): Promise<any[]>;
+    function globAsync(pattern: string, opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): Promise<any[]>;
 
     /**
      * @description Searches the given directory for files matching a set of name patterns
@@ -2278,6 +2343,7 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      ```
@@ -2285,15 +2351,24 @@ declare module 'fs' {
      *      The matches of all patterns are merged; a duplicate file appears only once. When `cwd` is
      *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
-     *      @param opts the options
+     *      @param opts the options; `cwd` sets the working directory, `exclude` lists
+     *      patterns to skip and `withFileTypes` returns Dirent objects
      *      @return the file list
      *
      */
-    function glob(patterns: string[], opts?: FIBJS.GeneralObject): any[];
+    function glob(patterns: string[], opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): any[];
 
     function glob(patterns: string[], callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
-    function glob(patterns: string[], opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function glob(patterns: string[], opts: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description Searches the given directory for files matching a set of name patterns
@@ -2303,6 +2378,7 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      ```
@@ -2310,11 +2386,16 @@ declare module 'fs' {
      *      The matches of all patterns are merged; a duplicate file appears only once. When `cwd` is
      *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
-     *      @param opts the options
+     *      @param opts the options; `cwd` sets the working directory, `exclude` lists
+     *      patterns to skip and `withFileTypes` returns Dirent objects
      *      @return the file list
      *
      */
-    function globSync(patterns: string[], opts?: FIBJS.GeneralObject): any[];
+    function globSync(patterns: string[], opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): any[];
 
     /**
      * @description Searches the given directory for files matching a set of name patterns
@@ -2324,6 +2405,7 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      ```
@@ -2331,11 +2413,16 @@ declare module 'fs' {
      *      The matches of all patterns are merged; a duplicate file appears only once. When `cwd` is
      *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
-     *      @param opts the options
+     *      @param opts the options; `cwd` sets the working directory, `exclude` lists
+     *      patterns to skip and `withFileTypes` returns Dirent objects
      *      @return the file list
      *
      */
-    function globAsync(patterns: string[], opts?: FIBJS.GeneralObject): Promise<any[]>;
+    function globAsync(patterns: string[], opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): Promise<any[]>;
 
     /**
      * @description Creates a readable file stream

@@ -579,6 +579,11 @@ describe('fs', () => {
         });
     });
 
+    it("rmdir names the invalid option field", () => {
+        assert.throws(() => fs.rmdir('unused', { recursive: 'yes' }),
+            /"recursive" argument must be of type boolean/);
+    });
+
     it("rmdir recursive should throw error on single file", () => {
         var test_file_path = path.join(homedir, 'test_file_for_rmdir' + vmid + '.txt');
 
@@ -804,9 +809,13 @@ describe('fs', () => {
         assert.equal(fs.exists(test_file), false);
     });
 
+    it("rm names the invalid option field", () => {
+        assert.throws(() => fs.rm('unused', { force: 1 }),
+            /"force" argument must be of type boolean/);
+    });
+
     it("rm throws EISDIR on empty directory without recursive", () => {
         var test_dir = path.join(homedir, 'rm_empty_dir_test' + vmid);
-
         // Clean up leftovers from previous runs
         try {
             fs.rmdir(test_dir, { recursive: true });
@@ -1015,6 +1024,11 @@ describe('fs', () => {
             fs.writeFile(src, 'hello cp');
             fs.cp(src, dest);
             assert.equal(fs.readFile(dest).toString(), 'hello cp');
+        });
+
+        it("copy names the invalid option field", () => {
+            assert.throws(() => fs.cp('unused-src', 'unused-dest', { mode: 'copy' }),
+                /"mode" argument must be of type number/);
         });
 
         it("copy single file overwrites by default", () => {

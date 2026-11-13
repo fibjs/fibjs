@@ -12,6 +12,7 @@
  */
 
 #include "../object.h"
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
@@ -26,6 +27,10 @@ class SeekableStream_base;
 class BufferedStream_base;
 class FSWatcher_base;
 class StatsWatcher_base;
+class Options_fs_rmdir_opt;
+class Options_fs_rm_opt;
+class Options_fs_cp_opts;
+class Options_fs_glob_opts;
 
 class fs_base : public object_base {
     DECLARE_CLASS(fs_base);
@@ -114,11 +119,11 @@ public:
     static result_t unlink(exlib::string path, AsyncHandle ac);
     static result_t mkdir(exlib::string path, Union_mkdir_mode mode, Variant& retVal, AsyncHandle ac);
     static result_t mkdtemp(exlib::string prefix, exlib::string& retVal, AsyncHandle ac);
-    static result_t rmdir(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle ac);
-    static result_t rm(exlib::string path, v8::Local<v8::Object> opt, AsyncHandle ac);
+    static result_t rmdir(exlib::string path, Options_fs_rmdir_opt* opt, AsyncHandle ac);
+    static result_t rm(exlib::string path, Options_fs_rm_opt* opt, AsyncHandle ac);
     static result_t rename(exlib::string from, exlib::string to, AsyncHandle ac);
     static result_t copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncHandle ac);
-    static result_t cp(exlib::string src, exlib::string dest, v8::Local<v8::Object> opts, AsyncHandle ac);
+    static result_t cp(exlib::string src, exlib::string dest, Options_fs_cp_opts* opts, AsyncHandle ac);
     static result_t chmod(exlib::string path, Union_chmod_mode mode, AsyncHandle ac);
     static result_t lchmod(exlib::string path, Union_lchmod_mode mode, AsyncHandle ac);
     static result_t chown(exlib::string path, int32_t uid, int32_t gid, AsyncHandle ac);
@@ -148,8 +153,8 @@ public:
     static result_t readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncHandle ac);
     static result_t readdir(exlib::string path, Union_readdir_opts opts, obj_ptr<NArray>& retVal, AsyncHandle ac);
     static result_t opendir(exlib::string path, obj_ptr<Dir_base>& retVal, AsyncHandle ac);
-    static result_t glob(exlib::string pattern, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncHandle ac);
-    static result_t glob(std::vector<exlib::string>& patterns, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncHandle ac);
+    static result_t glob(exlib::string pattern, Options_fs_glob_opts* opts, obj_ptr<NArray>& retVal, AsyncHandle ac);
+    static result_t glob(std::vector<exlib::string>& patterns, Options_fs_glob_opts* opts, obj_ptr<NArray>& retVal, AsyncHandle ac);
     static result_t createReadStream(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac);
     static result_t createWriteStream(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac);
     static result_t openFile(exlib::string fname, Union_openFile_flags flags, obj_ptr<SeekableStream_base>& retVal, AsyncHandle ac);
@@ -251,11 +256,11 @@ public:
     ASYNC_STATIC1(fs_base, unlink, exlib::string);
     ASYNC_STATICVALUE3(fs_base, mkdir, exlib::string, Union_mkdir_mode, Variant);
     ASYNC_STATICVALUE2(fs_base, mkdtemp, exlib::string, exlib::string);
-    ASYNC_STATIC2(fs_base, rmdir, exlib::string, v8::Local<v8::Object>);
-    ASYNC_STATIC2(fs_base, rm, exlib::string, v8::Local<v8::Object>);
+    ASYNC_STATIC2(fs_base, rmdir, exlib::string, obj_ptr<Options_fs_rmdir_opt>);
+    ASYNC_STATIC2(fs_base, rm, exlib::string, obj_ptr<Options_fs_rm_opt>);
     ASYNC_STATIC2(fs_base, rename, exlib::string, exlib::string);
     ASYNC_STATIC3(fs_base, copyFile, exlib::string, exlib::string, int32_t);
-    ASYNC_STATIC3(fs_base, cp, exlib::string, exlib::string, v8::Local<v8::Object>);
+    ASYNC_STATIC3(fs_base, cp, exlib::string, exlib::string, obj_ptr<Options_fs_cp_opts>);
     ASYNC_STATIC2(fs_base, chmod, exlib::string, Union_chmod_mode);
     ASYNC_STATIC2(fs_base, lchmod, exlib::string, Union_lchmod_mode);
     ASYNC_STATIC3(fs_base, chown, exlib::string, int32_t, int32_t);
@@ -285,8 +290,8 @@ public:
     ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<NArray>);
     ASYNC_STATICVALUE3(fs_base, readdir, exlib::string, Union_readdir_opts, obj_ptr<NArray>);
     ASYNC_STATICVALUE2(fs_base, opendir, exlib::string, obj_ptr<Dir_base>);
-    ASYNC_STATICVALUE3(fs_base, glob, exlib::string, v8::Local<v8::Object>, obj_ptr<NArray>);
-    ASYNC_STATICVALUE3(fs_base, glob, std::vector<exlib::string>, v8::Local<v8::Object>, obj_ptr<NArray>);
+    ASYNC_STATICVALUE3(fs_base, glob, exlib::string, obj_ptr<Options_fs_glob_opts>, obj_ptr<NArray>);
+    ASYNC_STATICVALUE3(fs_base, glob, std::vector<exlib::string>, obj_ptr<Options_fs_glob_opts>, obj_ptr<NArray>);
     ASYNC_STATICVALUE3(fs_base, createReadStream, exlib::string, v8::Local<v8::Object>, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE3(fs_base, createWriteStream, exlib::string, v8::Local<v8::Object>, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, Union_openFile_flags, obj_ptr<SeekableStream_base>);
@@ -318,6 +323,44 @@ public:
 #include "ifs/StatsWatcher.h"
 
 namespace fibjs {
+class Options_fs_rmdir_opt : public obj_base {
+public:
+    LOAD_OPTIONS(Options_fs_rmdir_opt, (recursive));
+
+public:
+    std::optional<bool> recursive = false;
+};
+
+class Options_fs_rm_opt : public obj_base {
+public:
+    LOAD_OPTIONS(Options_fs_rm_opt, (recursive)(force));
+
+public:
+    std::optional<bool> recursive = false;
+    std::optional<bool> force = false;
+};
+
+class Options_fs_cp_opts : public obj_base {
+public:
+    LOAD_OPTIONS(Options_fs_cp_opts, (recursive)(force)(errorOnExist)(mode));
+
+public:
+    std::optional<bool> recursive = false;
+    std::optional<bool> force = true;
+    std::optional<bool> errorOnExist = false;
+    std::optional<int32_t> mode = 0;
+};
+
+class Options_fs_glob_opts : public obj_base {
+public:
+    LOAD_OPTIONS(Options_fs_glob_opts, (cwd)(exclude)(withFileTypes));
+
+public:
+    std::optional<exlib::string> cwd;
+    std::optional<std::vector<exlib::string>> exclude;
+    std::optional<bool> withFileTypes = false;
+};
+
 inline ClassInfo& fs_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
@@ -528,7 +571,7 @@ inline void fs_base::s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER_NAMED(2, 1, "path");
 
     ARG_NAMED(exlib::string, 0, "path");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opt");
+    OPT_ARG_NAMED(obj_ptr<Options_fs_rmdir_opt>, 1, new Options_fs_rmdir_opt(), "opt");
 
     if (!cb.IsEmpty())
         hr = acb_rmdir(v0, v1, cb, args);
@@ -545,7 +588,7 @@ inline void fs_base::s_static_rm(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_OVER_NAMED(2, 1, "path");
 
     ARG_NAMED(exlib::string, 0, "path");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opt");
+    OPT_ARG_NAMED(obj_ptr<Options_fs_rm_opt>, 1, new Options_fs_rm_opt(), "opt");
 
     if (!cb.IsEmpty())
         hr = acb_rm(v0, v1, cb, args);
@@ -598,7 +641,7 @@ inline void fs_base::s_static_cp(const v8::FunctionCallbackInfo<v8::Value>& args
 
     ARG_NAMED(exlib::string, 0, "src");
     ARG_NAMED(exlib::string, 1, "dest");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<Options_fs_cp_opts>, 2, new Options_fs_cp_opts(), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_cp(v0, v1, v2, cb, args);
@@ -1086,7 +1129,7 @@ inline void fs_base::s_static_glob(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER_NAMED(2, 1, "pattern");
 
     ARG_NAMED(exlib::string, 0, "pattern");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<Options_fs_glob_opts>, 1, new Options_fs_glob_opts(), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_glob(v0, v1, cb, args);
@@ -1096,7 +1139,7 @@ inline void fs_base::s_static_glob(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER_NAMED(2, 1, "patterns");
 
     ARG_NAMED(std::vector<exlib::string>, 0, "patterns");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<Options_fs_glob_opts>, 1, new Options_fs_glob_opts(), "opts");
 
     if (!cb.IsEmpty())
         hr = acb_glob(v0, v1, cb, args);

@@ -17,9 +17,7 @@
 #include "DirEntry.h"
 #include <set>
 #include <algorithm>
-#include <optional>
 #include <vector>
-#include <boost/preprocessor.hpp>
 #include "match/path_match.h"
 
 namespace fibjs {
@@ -483,36 +481,16 @@ static void walkDirectorySimple(
     }
 }
 
-class GlobOptions : public obj_base {
-public:
-    LOAD_OPTIONS(GlobOptions, (cwd)(exclude)(withFileTypes))
+using GlobOptions = Options_fs_glob_opts;
 
-public:
-    std::optional<exlib::string> cwd;
-    std::optional<std::vector<exlib::string>> exclude;
-    std::optional<bool> withFileTypes;
-};
-
-result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t fs_base::glob(std::vector<exlib::string>& patterns, GlobOptions* opts, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        ac.ctxv().resize(1);
-
-        obj_ptr<GlobOptions> _opts;
-        result_t hr = GlobOptions::load(opts, _opts);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv()[0] = _opts;
-
+    if (ac.isSync())
         return result_t::nosync();
-    }
 
-    result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr.failed())
-        return ctx_hr;
-
-    obj_ptr<GlobOptions> _opts = (GlobOptions*)ac.ctxv()[0].object();
+    // The async call re-invokes this function with the same converted argument
+    // slots, so `opts` is still the object built by the glue.
+    GlobOptions* _opts = opts;
 
     // Get working directory from options or use current directory
     exlib::string cwd;
@@ -718,7 +696,7 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, v8::Local<v8::Objec
     return result_t();
 }
 
-result_t fs_base::glob(exlib::string pattern, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t fs_base::glob(exlib::string pattern, GlobOptions* opts, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
     if (ac.isSync()) {
         std::vector<exlib::string> patterns;

@@ -300,7 +300,7 @@ module fs
      @param path the directory to remove
      @param opt the removal options
      */
-    static rmdir(String path, Object opt = {}) async;
+    static rmdir(String path, (Boolean recursive = false) opt = {}) async;
 
     /*! @brief Removes a file or directory
 
@@ -317,7 +317,7 @@ module fs
      @param path the directory to remove
      @param opt the removal options
      */
-    static rm(String path, Object opt = {}) async;
+    static rm(String path, (Boolean recursive = false, Boolean force = false) opt = {}) async;
 
     /*! @brief Renames a file
 
@@ -350,6 +350,7 @@ module fs
      ({
          recursive: false, // recursively copy directories. Default: false
          force: true, // overwrite existing files or directories. Default: true
+         errorOnExist: false, // throw when dest exists and force is false. Default: false
          mode: 0 // modifiers for copy operation. Default: 0
      })
      ```
@@ -360,7 +361,7 @@ module fs
      @param dest the target path to copy to
      @param opts the copy options
      */
-    static cp(String src, String dest, Object opts = {}) async;
+    static cp(String src, String dest, (Boolean recursive = false, Boolean force = true, Boolean errorOnExist = false, Integer mode = 0) opts = {}) async;
 
     /*! @brief Sets the access permissions of the given file; not supported on Windows
 
@@ -736,16 +737,18 @@ module fs
      // fragment: options
      ({
          "cwd": "", // specify a different working directory, default to current directory
+         "exclude": [], // patterns to skip
          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      })
      ```
 
      The pattern supports the `*`, `?`, `**` and other wildcards; the absolute paths of the matching files are returned. When `cwd` is given, the matches of a relative pattern are returned relative to that directory.
      @param pattern the file name pattern
-     @param opts the options
+     @param opts the options; `cwd` sets the working directory, `exclude` lists
+     patterns to skip and `withFileTypes` returns Dirent objects
      @return the file list
      */
-    static NArray glob(String pattern, Object opts = {}) async;
+    static NArray glob(String pattern, (String cwd, String[] exclude, Boolean withFileTypes = false) opts = {}) async;
 
     /*! @brief Searches the given directory for files matching a set of name patterns
 
@@ -754,6 +757,7 @@ module fs
      // fragment: options
      ({
          "cwd": "", // specify a different working directory, default to current directory
+         "exclude": [], // patterns to skip
          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      })
      ```
@@ -761,10 +765,11 @@ module fs
      The matches of all patterns are merged; a duplicate file appears only once. When `cwd` is
      given, the matches of relative patterns are returned relative to that directory.
      @param patterns the file name patterns
-     @param opts the options
+     @param opts the options; `cwd` sets the working directory, `exclude` lists
+     patterns to skip and `withFileTypes` returns Dirent objects
      @return the file list
      */
-    static NArray glob(String patterns[], Object opts = {}) async;
+    static NArray glob(String patterns[], (String cwd, String[] exclude, Boolean withFileTypes = false) opts = {}) async;
 
     /*! @brief Creates a readable file stream
 

@@ -55,6 +55,11 @@ describe("fs.glob", () => {
             assert.deepStrictEqual(result, []);
         });
 
+        it("should name an invalid option field instead of falling back to the string overload", async () => {
+            await assert.rejects(fs.glob("*", { cwd: 1 }),
+                /"cwd" argument must be of type string/);
+        });
+
         it("should match all files with *", async () => {
             const asyncGen = await fs.glob("*", { cwd: testDir });
             const result = await asyncGeneratorToArray(asyncGen);
