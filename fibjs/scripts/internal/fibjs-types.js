@@ -5388,7 +5388,10 @@ declare class Class_Cipher extends Class_object {
      *      @return returns the current Cipher object
      *
      */
-    setAAD(buffer: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    setAAD(buffer: Class_Buffer | string, options?: {
+        encoding?: string;
+        plaintextLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Enables or disables automatic PKCS#7 padding
@@ -13247,15 +13250,25 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      \`\`\`
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; \`id\` sets the SSE id field,
+     *      \`event\` sets the event name and \`retry\` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    send(data: string, options?: FIBJS.GeneralObject): number;
+    send(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): number;
 
     send(data: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    send(data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(data: string, options: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends one event to the client; available on a server-side sender only
@@ -13303,11 +13316,17 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      \`\`\`
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; \`id\` sets the SSE id field,
+     *      \`event\` sets the event name and \`retry\` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    sendSync(data: string, options?: FIBJS.GeneralObject): number;
+    sendSync(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): number;
 
     /**
      * @description Sends one event to the client; available on a server-side sender only
@@ -13355,11 +13374,17 @@ declare class Class_EventSource extends Class_EventEmitter {
      *      \`\`\`
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; \`id\` sets the SSE id field,
+     *      \`event\` sets the event name and \`retry\` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    sendAsync(data: string, options?: FIBJS.GeneralObject): Promise<number>;
+    sendAsync(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): Promise<number>;
 
     /**
      * @description Queries the connection state: CONNECTING, OPEN, CLOSED or SENDER
@@ -13739,11 +13764,17 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *      \`\`\`
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; \`id\` sets the SSE id field,
+     *      \`event\` sets the event name and \`retry\` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    send(data: string, options?: FIBJS.GeneralObject): Promise<number>;
+    send(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): Promise<number>;
 
     /**
      * @description Sends one event to the client; available on a server-side sender only
@@ -13791,11 +13822,17 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *      \`\`\`
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; \`id\` sets the SSE id field,
+     *      \`event\` sets the event name and \`retry\` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    sendSync(data: string, options?: FIBJS.GeneralObject): number;
+    sendSync(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): number;
 
     /**
      * @description Sends one event to the client; available on a server-side sender only
@@ -13843,11 +13880,17 @@ declare class Class_EventSourcePromise extends Class_EventEmitter {
      *      \`\`\`
      *
      *      @param data the event data, sent as one or more data lines
-     *      @param options event options, {} by default
+     *      @param options event options, {} by default; \`id\` sets the SSE id field,
+     *      \`event\` sets the event name and \`retry\` sets the reconnection delay in
+     *      milliseconds
      *      @return the byte length of the encoded SSE frame that was queued to the stream
      *
      */
-    sendAsync(data: string, options?: FIBJS.GeneralObject): Promise<number>;
+    sendAsync(data: string, options?: {
+        id?: string;
+        event?: string;
+        retry?: number;
+    }): Promise<number>;
 
     /**
      * @description Queries the connection state: CONNECTING, OPEN, CLOSED or SENDER
@@ -47252,33 +47295,17 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connect(options: FIBJS.GeneralObject): Class_Stream;
+    connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
 
-    connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description Establishes a connection on this socket (blocking form)
-     *
-     *      The fiber waits until the connection is established and the method returns this same socket,
-     *      or throws. options supports:
-     *      \`\`\`JavaScript
-     *      // fragment: options
-     *      ({
-     *          "port": 80,          // the remote port, required
-     *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
-     *      })
-     *      \`\`\`
-     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
-     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
-     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
-     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
-     *      expired timer throws error number 20021.
-     *      @param options specifies the connection options object
-     *      @return returns the connected Socket object
-     *
-     */
-    connectSync(options: FIBJS.GeneralObject): Class_Stream;
+    connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Establishes a connection on this socket (blocking form)
@@ -47302,7 +47329,39 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
+
+    /**
+     * @description Establishes a connection on this socket (blocking form)
+     *
+     *      The fiber waits until the connection is established and the method returns this same socket,
+     *      or throws. options supports:
+     *      \`\`\`JavaScript
+     *      // fragment: options
+     *      ({
+     *          "port": 80,          // the remote port, required
+     *          "host": "localhost", // the remote address or host name
+     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *      })
+     *      \`\`\`
+     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
+     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
+     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
+     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
+     *      expired timer throws error number 20021.
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
+     *
+     */
+    connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -47321,7 +47380,11 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connect(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+    connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -47340,7 +47403,11 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connectSync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+    connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -47359,7 +47426,11 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the connected Socket object
      *
      */
-    connectAsync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+    connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established
@@ -48010,7 +48081,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connect(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection on this socket (blocking form)
@@ -48034,7 +48109,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connectSync(options: FIBJS.GeneralObject): Class_Stream;
+    connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
 
     /**
      * @description Establishes a connection on this socket (blocking form)
@@ -48058,7 +48137,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -48077,7 +48160,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connect(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+    connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -48096,7 +48183,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connectSync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
+    connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established (non-blocking form)
@@ -48115,7 +48206,11 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the connected Socket object
      *
      */
-    connectAsync(options: FIBJS.GeneralObject, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
+    connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established
@@ -80931,7 +81026,9 @@ declare module 'crypto' {
      *      @return returns the message digest object
      *
      */
-    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string, options?: FIBJS.GeneralObject): Class_Digest;
+    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string, options?: {
+        encoding?: string;
+    }): Class_Digest;
 
     /**
      * @description Lists the symmetric cipher names accepted by the createCipher family and
@@ -80966,7 +81063,10 @@ declare module 'crypto' {
      *      @return returns the cipher information, or undefined when it does not match
      *
      */
-    function getCipherInfo(nameOrNid: string | number, options?: FIBJS.GeneralObject): {
+    function getCipherInfo(nameOrNid: string | number, options?: {
+        keyLength?: number;
+        ivLength?: number;
+    }): {
         name: string;
         nid: number;
         blockSize: number;
@@ -80989,7 +81089,9 @@ declare module 'crypto' {
      *      @return returns the encryption object
      *
      */
-    function createCipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createCipher(algorithm: string, key: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Creates an encryption object with an explicit key and IV
@@ -81026,7 +81128,9 @@ declare module 'crypto' {
      *      @return returns the encryption object
      *
      */
-    function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Creates a decryption object, deriving the key and IV from a password
@@ -81039,7 +81143,9 @@ declare module 'crypto' {
      *      @return returns the decryption object
      *
      */
-    function createDecipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createDecipher(algorithm: string, key: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Creates a decryption object with an explicit key and IV
@@ -81055,7 +81161,9 @@ declare module 'crypto' {
      *      @return returns the decryption object
      *
      */
-    function createDecipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createDecipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Lists the ECC curve names supported by createECDH and accepted by
@@ -81376,7 +81484,9 @@ declare module 'crypto' {
      *      @return returns the UUID string
      *
      */
-    function randomUUID(options?: FIBJS.GeneralObject): string;
+    function randomUUID(options?: {
+        disableEntropyCache?: boolean;
+    }): string;
 
     /**
      * @description Generates a cryptographically secure random integer in a range
@@ -81782,15 +81892,27 @@ declare module 'crypto' {
      *      @param password the password to derive from
      *      @param salt the random salt
      *      @param keylen the number of bytes to derive
-     *      @param options the N, r, p and maxmem parameters
+     *      @param options the N, r, p and maxmem parameters; \`N\` must be a power of 2
+     *      greater than 1, \`r\` and \`p\` must be positive and \`maxmem\` caps the memory in
+     *      bytes
      *      @return returns the derived key
      *
      */
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
+    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+        N?: number;
+        r?: number;
+        p?: number;
+        maxmem?: number;
+    }): Class_Buffer;
 
     function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options: {
+        N?: number;
+        r?: number;
+        p?: number;
+        maxmem?: number;
+    }, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Derives a key from a password with scrypt
@@ -81825,11 +81947,18 @@ declare module 'crypto' {
      *      @param password the password to derive from
      *      @param salt the random salt
      *      @param keylen the number of bytes to derive
-     *      @param options the N, r, p and maxmem parameters
+     *      @param options the N, r, p and maxmem parameters; \`N\` must be a power of 2
+     *      greater than 1, \`r\` and \`p\` must be positive and \`maxmem\` caps the memory in
+     *      bytes
      *      @return returns the derived key
      *
      */
-    function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
+    function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+        N?: number;
+        r?: number;
+        p?: number;
+        maxmem?: number;
+    }): Class_Buffer;
 
     /**
      * @description Derives a key from a password with scrypt
@@ -81864,11 +81993,18 @@ declare module 'crypto' {
      *      @param password the password to derive from
      *      @param salt the random salt
      *      @param keylen the number of bytes to derive
-     *      @param options the N, r, p and maxmem parameters
+     *      @param options the N, r, p and maxmem parameters; \`N\` must be a power of 2
+     *      greater than 1, \`r\` and \`p\` must be positive and \`maxmem\` caps the memory in
+     *      bytes
      *      @return returns the derived key
      *
      */
-    function scryptAsync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function scryptAsync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+        N?: number;
+        r?: number;
+        p?: number;
+        maxmem?: number;
+    }): Promise<Class_Buffer>;
 
     /**
      * @description Decrypts data that was encrypted with the matching public key
@@ -82547,7 +82683,9 @@ declare module 'crypto/promises' {
      *      @return returns the message digest object
      *
      */
-    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string, options?: FIBJS.GeneralObject): Class_Digest;
+    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string, options?: {
+        encoding?: string;
+    }): Class_Digest;
 
     /**
      * @description Lists the symmetric cipher names accepted by the createCipher family and
@@ -82582,7 +82720,10 @@ declare module 'crypto/promises' {
      *      @return returns the cipher information, or undefined when it does not match
      *
      */
-    function getCipherInfo(nameOrNid: string | number, options?: FIBJS.GeneralObject): {
+    function getCipherInfo(nameOrNid: string | number, options?: {
+        keyLength?: number;
+        ivLength?: number;
+    }): {
         name: string;
         nid: number;
         blockSize: number;
@@ -82605,7 +82746,9 @@ declare module 'crypto/promises' {
      *      @return returns the encryption object
      *
      */
-    function createCipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createCipher(algorithm: string, key: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Creates an encryption object with an explicit key and IV
@@ -82642,7 +82785,9 @@ declare module 'crypto/promises' {
      *      @return returns the encryption object
      *
      */
-    function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Creates a decryption object, deriving the key and IV from a password
@@ -82655,7 +82800,9 @@ declare module 'crypto/promises' {
      *      @return returns the decryption object
      *
      */
-    function createDecipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createDecipher(algorithm: string, key: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Creates a decryption object with an explicit key and IV
@@ -82671,7 +82818,9 @@ declare module 'crypto/promises' {
      *      @return returns the decryption object
      *
      */
-    function createDecipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createDecipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Lists the ECC curve names supported by createECDH and accepted by
@@ -82986,7 +83135,9 @@ declare module 'crypto/promises' {
      *      @return returns the UUID string
      *
      */
-    function randomUUID(options?: FIBJS.GeneralObject): string;
+    function randomUUID(options?: {
+        disableEntropyCache?: boolean;
+    }): string;
 
     /**
      * @description Generates a cryptographically secure random integer in a range
@@ -83378,11 +83529,18 @@ declare module 'crypto/promises' {
      *      @param password the password to derive from
      *      @param salt the random salt
      *      @param keylen the number of bytes to derive
-     *      @param options the N, r, p and maxmem parameters
+     *      @param options the N, r, p and maxmem parameters; \`N\` must be a power of 2
+     *      greater than 1, \`r\` and \`p\` must be positive and \`maxmem\` caps the memory in
+     *      bytes
      *      @return returns the derived key
      *
      */
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+        N?: number;
+        r?: number;
+        p?: number;
+        maxmem?: number;
+    }): Promise<Class_Buffer>;
 
     /**
      * @description Derives a key from a password with scrypt
@@ -83417,11 +83575,18 @@ declare module 'crypto/promises' {
      *      @param password the password to derive from
      *      @param salt the random salt
      *      @param keylen the number of bytes to derive
-     *      @param options the N, r, p and maxmem parameters
+     *      @param options the N, r, p and maxmem parameters; \`N\` must be a power of 2
+     *      greater than 1, \`r\` and \`p\` must be positive and \`maxmem\` caps the memory in
+     *      bytes
      *      @return returns the derived key
      *
      */
-    function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
+    function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+        N?: number;
+        r?: number;
+        p?: number;
+        maxmem?: number;
+    }): Class_Buffer;
 
     /**
      * @description Derives a key from a password with scrypt
@@ -83456,11 +83621,18 @@ declare module 'crypto/promises' {
      *      @param password the password to derive from
      *      @param salt the random salt
      *      @param keylen the number of bytes to derive
-     *      @param options the N, r, p and maxmem parameters
+     *      @param options the N, r, p and maxmem parameters; \`N\` must be a power of 2
+     *      greater than 1, \`r\` and \`p\` must be positive and \`maxmem\` caps the memory in
+     *      bytes
      *      @return returns the derived key
      *
      */
-    function scryptAsync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function scryptAsync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+        N?: number;
+        r?: number;
+        p?: number;
+        maxmem?: number;
+    }): Promise<Class_Buffer>;
 
     /**
      * @description Decrypts data that was encrypted with the matching public key
@@ -85967,15 +86139,22 @@ declare module 'dns' {
      *      }
      *      \`\`\`
      *      @param name the host name or IP literal to resolve
-     *      @param options the query options
+     *      @param options the query options; \`family\` may be 0/4/6 or "IPv4"/"IPv6",
+     *      and \`all\` returns every address instead of the first one
      *      @return the first address, or all addresses as objects when all is true
      *
      */
-    function lookup(name: string, options?: FIBJS.GeneralObject): any;
+    function lookup(name: string, options?: {
+        family?: string | number;
+        all?: boolean;
+    }): any;
 
     function lookup(name: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
-    function lookup(name: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function lookup(name: string, options: {
+        family?: string | number;
+        all?: boolean;
+    }, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Resolves a host name to its first address, or to every address when the all option is set
@@ -86015,11 +86194,15 @@ declare module 'dns' {
      *      }
      *      \`\`\`
      *      @param name the host name or IP literal to resolve
-     *      @param options the query options
+     *      @param options the query options; \`family\` may be 0/4/6 or "IPv4"/"IPv6",
+     *      and \`all\` returns every address instead of the first one
      *      @return the first address, or all addresses as objects when all is true
      *
      */
-    function lookupSync(name: string, options?: FIBJS.GeneralObject): any;
+    function lookupSync(name: string, options?: {
+        family?: string | number;
+        all?: boolean;
+    }): any;
 
     /**
      * @description Resolves a host name to its first address, or to every address when the all option is set
@@ -86059,11 +86242,15 @@ declare module 'dns' {
      *      }
      *      \`\`\`
      *      @param name the host name or IP literal to resolve
-     *      @param options the query options
+     *      @param options the query options; \`family\` may be 0/4/6 or "IPv4"/"IPv6",
+     *      and \`all\` returns every address instead of the first one
      *      @return the first address, or all addresses as objects when all is true
      *
      */
-    function lookupAsync(name: string, options?: FIBJS.GeneralObject): Promise<any>;
+    function lookupAsync(name: string, options?: {
+        family?: string | number;
+        all?: boolean;
+    }): Promise<any>;
 
 }
 
@@ -86204,11 +86391,15 @@ declare module 'dns/promises' {
      *      }
      *      \`\`\`
      *      @param name the host name or IP literal to resolve
-     *      @param options the query options
+     *      @param options the query options; \`family\` may be 0/4/6 or "IPv4"/"IPv6",
+     *      and \`all\` returns every address instead of the first one
      *      @return the first address, or all addresses as objects when all is true
      *
      */
-    function lookup(name: string, options?: FIBJS.GeneralObject): Promise<any>;
+    function lookup(name: string, options?: {
+        family?: string | number;
+        all?: boolean;
+    }): Promise<any>;
 
     /**
      * @description Resolves a host name to its first address, or to every address when the all option is set
@@ -86248,11 +86439,15 @@ declare module 'dns/promises' {
      *      }
      *      \`\`\`
      *      @param name the host name or IP literal to resolve
-     *      @param options the query options
+     *      @param options the query options; \`family\` may be 0/4/6 or "IPv4"/"IPv6",
+     *      and \`all\` returns every address instead of the first one
      *      @return the first address, or all addresses as objects when all is true
      *
      */
-    function lookupSync(name: string, options?: FIBJS.GeneralObject): any;
+    function lookupSync(name: string, options?: {
+        family?: string | number;
+        all?: boolean;
+    }): any;
 
     /**
      * @description Resolves a host name to its first address, or to every address when the all option is set
@@ -86292,11 +86487,15 @@ declare module 'dns/promises' {
      *      }
      *      \`\`\`
      *      @param name the host name or IP literal to resolve
-     *      @param options the query options
+     *      @param options the query options; \`family\` may be 0/4/6 or "IPv4"/"IPv6",
+     *      and \`all\` returns every address instead of the first one
      *      @return the first address, or all addresses as objects when all is true
      *
      */
-    function lookupAsync(name: string, options?: FIBJS.GeneralObject): Promise<any>;
+    function lookupAsync(name: string, options?: {
+        family?: string | number;
+        all?: boolean;
+    }): Promise<any>;
 
 }
 
@@ -87289,11 +87488,15 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rmdir(path: string, opt?: FIBJS.GeneralObject): void;
+    function rmdir(path: string, opt?: {
+        recursive?: boolean;
+    }): void;
 
     function rmdir(path: string, callback: (err: Error | undefined | null)=>any): void;
 
-    function rmdir(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function rmdir(path: string, opt: {
+        recursive?: boolean;
+    }, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Removes a directory
@@ -87309,7 +87512,9 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rmdirSync(path: string, opt?: FIBJS.GeneralObject): void;
+    function rmdirSync(path: string, opt?: {
+        recursive?: boolean;
+    }): void;
 
     /**
      * @description Removes a directory
@@ -87325,7 +87530,9 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rmdirAsync(path: string, opt?: FIBJS.GeneralObject): Promise<void>;
+    function rmdirAsync(path: string, opt?: {
+        recursive?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Removes a file or directory
@@ -87344,11 +87551,17 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rm(path: string, opt?: FIBJS.GeneralObject): void;
+    function rm(path: string, opt?: {
+        recursive?: boolean;
+        force?: boolean;
+    }): void;
 
     function rm(path: string, callback: (err: Error | undefined | null)=>any): void;
 
-    function rm(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function rm(path: string, opt: {
+        recursive?: boolean;
+        force?: boolean;
+    }, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Removes a file or directory
@@ -87367,7 +87580,10 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rmSync(path: string, opt?: FIBJS.GeneralObject): void;
+    function rmSync(path: string, opt?: {
+        recursive?: boolean;
+        force?: boolean;
+    }): void;
 
     /**
      * @description Removes a file or directory
@@ -87386,7 +87602,10 @@ declare module 'fs' {
      *      @param opt the removal options
      *
      */
-    function rmAsync(path: string, opt?: FIBJS.GeneralObject): Promise<void>;
+    function rmAsync(path: string, opt?: {
+        recursive?: boolean;
+        force?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Renames a file
@@ -87480,6 +87699,7 @@ declare module 'fs' {
      *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
+     *          errorOnExist: false, // throw when dest exists and force is false. Default: false
      *          mode: 0 // modifiers for copy operation. Default: 0
      *      })
      *      \`\`\`
@@ -87491,11 +87711,21 @@ declare module 'fs' {
      *      @param opts the copy options
      *
      */
-    function cp(src: string, dest: string, opts?: FIBJS.GeneralObject): void;
+    function cp(src: string, dest: string, opts?: {
+        recursive?: boolean;
+        force?: boolean;
+        errorOnExist?: boolean;
+        mode?: number;
+    }): void;
 
     function cp(src: string, dest: string, callback: (err: Error | undefined | null)=>any): void;
 
-    function cp(src: string, dest: string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    function cp(src: string, dest: string, opts: {
+        recursive?: boolean;
+        force?: boolean;
+        errorOnExist?: boolean;
+        mode?: number;
+    }, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Copies src to dest asynchronously, including subdirectories and files.
@@ -87508,6 +87738,7 @@ declare module 'fs' {
      *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
+     *          errorOnExist: false, // throw when dest exists and force is false. Default: false
      *          mode: 0 // modifiers for copy operation. Default: 0
      *      })
      *      \`\`\`
@@ -87519,7 +87750,12 @@ declare module 'fs' {
      *      @param opts the copy options
      *
      */
-    function cpSync(src: string, dest: string, opts?: FIBJS.GeneralObject): void;
+    function cpSync(src: string, dest: string, opts?: {
+        recursive?: boolean;
+        force?: boolean;
+        errorOnExist?: boolean;
+        mode?: number;
+    }): void;
 
     /**
      * @description Copies src to dest asynchronously, including subdirectories and files.
@@ -87532,6 +87768,7 @@ declare module 'fs' {
      *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
+     *          errorOnExist: false, // throw when dest exists and force is false. Default: false
      *          mode: 0 // modifiers for copy operation. Default: 0
      *      })
      *      \`\`\`
@@ -87543,7 +87780,12 @@ declare module 'fs' {
      *      @param opts the copy options
      *
      */
-    function cpAsync(src: string, dest: string, opts?: FIBJS.GeneralObject): Promise<void>;
+    function cpAsync(src: string, dest: string, opts?: {
+        recursive?: boolean;
+        force?: boolean;
+        errorOnExist?: boolean;
+        mode?: number;
+    }): Promise<void>;
 
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
@@ -88930,21 +89172,31 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
      *
      *      The pattern supports the \`*\`, \`?\`, \`**\` and other wildcards; the absolute paths of the matching files are returned. When \`cwd\` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function glob(pattern: string, opts?: FIBJS.GeneralObject): any[];
+    function glob(pattern: string, opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): any[];
 
     function glob(pattern: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
-    function glob(pattern: string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function glob(pattern: string, opts: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description Searches the given directory for files matching a name pattern
@@ -88954,17 +89206,23 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
      *
      *      The pattern supports the \`*\`, \`?\`, \`**\` and other wildcards; the absolute paths of the matching files are returned. When \`cwd\` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function globSync(pattern: string, opts?: FIBJS.GeneralObject): any[];
+    function globSync(pattern: string, opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): any[];
 
     /**
      * @description Searches the given directory for files matching a name pattern
@@ -88974,17 +89232,23 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
      *
      *      The pattern supports the \`*\`, \`?\`, \`**\` and other wildcards; the absolute paths of the matching files are returned. When \`cwd\` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function globAsync(pattern: string, opts?: FIBJS.GeneralObject): Promise<any[]>;
+    function globAsync(pattern: string, opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): Promise<any[]>;
 
     /**
      * @description Searches the given directory for files matching a set of name patterns
@@ -88994,6 +89258,7 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
@@ -89001,15 +89266,24 @@ declare module 'fs' {
      *      The matches of all patterns are merged; a duplicate file appears only once. When \`cwd\` is
      *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function glob(patterns: string[], opts?: FIBJS.GeneralObject): any[];
+    function glob(patterns: string[], opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): any[];
 
     function glob(patterns: string[], callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
-    function glob(patterns: string[], opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function glob(patterns: string[], opts: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description Searches the given directory for files matching a set of name patterns
@@ -89019,6 +89293,7 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
@@ -89026,11 +89301,16 @@ declare module 'fs' {
      *      The matches of all patterns are merged; a duplicate file appears only once. When \`cwd\` is
      *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function globSync(patterns: string[], opts?: FIBJS.GeneralObject): any[];
+    function globSync(patterns: string[], opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): any[];
 
     /**
      * @description Searches the given directory for files matching a set of name patterns
@@ -89040,6 +89320,7 @@ declare module 'fs' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
@@ -89047,11 +89328,16 @@ declare module 'fs' {
      *      The matches of all patterns are merged; a duplicate file appears only once. When \`cwd\` is
      *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function globAsync(patterns: string[], opts?: FIBJS.GeneralObject): Promise<any[]>;
+    function globAsync(patterns: string[], opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): Promise<any[]>;
 
     /**
      * @description Creates a readable file stream
@@ -90623,7 +90909,9 @@ declare module 'fs/promises' {
      *      @param opt the removal options
      *
      */
-    function rmdir(path: string, opt?: FIBJS.GeneralObject): Promise<void>;
+    function rmdir(path: string, opt?: {
+        recursive?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Removes a directory
@@ -90639,7 +90927,9 @@ declare module 'fs/promises' {
      *      @param opt the removal options
      *
      */
-    function rmdirSync(path: string, opt?: FIBJS.GeneralObject): void;
+    function rmdirSync(path: string, opt?: {
+        recursive?: boolean;
+    }): void;
 
     /**
      * @description Removes a directory
@@ -90655,7 +90945,9 @@ declare module 'fs/promises' {
      *      @param opt the removal options
      *
      */
-    function rmdirAsync(path: string, opt?: FIBJS.GeneralObject): Promise<void>;
+    function rmdirAsync(path: string, opt?: {
+        recursive?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Removes a file or directory
@@ -90674,7 +90966,10 @@ declare module 'fs/promises' {
      *      @param opt the removal options
      *
      */
-    function rm(path: string, opt?: FIBJS.GeneralObject): Promise<void>;
+    function rm(path: string, opt?: {
+        recursive?: boolean;
+        force?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Removes a file or directory
@@ -90693,7 +90988,10 @@ declare module 'fs/promises' {
      *      @param opt the removal options
      *
      */
-    function rmSync(path: string, opt?: FIBJS.GeneralObject): void;
+    function rmSync(path: string, opt?: {
+        recursive?: boolean;
+        force?: boolean;
+    }): void;
 
     /**
      * @description Removes a file or directory
@@ -90712,7 +91010,10 @@ declare module 'fs/promises' {
      *      @param opt the removal options
      *
      */
-    function rmAsync(path: string, opt?: FIBJS.GeneralObject): Promise<void>;
+    function rmAsync(path: string, opt?: {
+        recursive?: boolean;
+        force?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Renames a file
@@ -90800,6 +91101,7 @@ declare module 'fs/promises' {
      *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
+     *          errorOnExist: false, // throw when dest exists and force is false. Default: false
      *          mode: 0 // modifiers for copy operation. Default: 0
      *      })
      *      \`\`\`
@@ -90811,7 +91113,12 @@ declare module 'fs/promises' {
      *      @param opts the copy options
      *
      */
-    function cp(src: string, dest: string, opts?: FIBJS.GeneralObject): Promise<void>;
+    function cp(src: string, dest: string, opts?: {
+        recursive?: boolean;
+        force?: boolean;
+        errorOnExist?: boolean;
+        mode?: number;
+    }): Promise<void>;
 
     /**
      * @description Copies src to dest asynchronously, including subdirectories and files.
@@ -90824,6 +91131,7 @@ declare module 'fs/promises' {
      *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
+     *          errorOnExist: false, // throw when dest exists and force is false. Default: false
      *          mode: 0 // modifiers for copy operation. Default: 0
      *      })
      *      \`\`\`
@@ -90835,7 +91143,12 @@ declare module 'fs/promises' {
      *      @param opts the copy options
      *
      */
-    function cpSync(src: string, dest: string, opts?: FIBJS.GeneralObject): void;
+    function cpSync(src: string, dest: string, opts?: {
+        recursive?: boolean;
+        force?: boolean;
+        errorOnExist?: boolean;
+        mode?: number;
+    }): void;
 
     /**
      * @description Copies src to dest asynchronously, including subdirectories and files.
@@ -90848,6 +91161,7 @@ declare module 'fs/promises' {
      *      ({
      *          recursive: false, // recursively copy directories. Default: false
      *          force: true, // overwrite existing files or directories. Default: true
+     *          errorOnExist: false, // throw when dest exists and force is false. Default: false
      *          mode: 0 // modifiers for copy operation. Default: 0
      *      })
      *      \`\`\`
@@ -90859,7 +91173,12 @@ declare module 'fs/promises' {
      *      @param opts the copy options
      *
      */
-    function cpAsync(src: string, dest: string, opts?: FIBJS.GeneralObject): Promise<void>;
+    function cpAsync(src: string, dest: string, opts?: {
+        recursive?: boolean;
+        force?: boolean;
+        errorOnExist?: boolean;
+        mode?: number;
+    }): Promise<void>;
 
     /**
      * @description Sets the access permissions of the given file; not supported on Windows
@@ -92168,17 +92487,23 @@ declare module 'fs/promises' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
      *
      *      The pattern supports the \`*\`, \`?\`, \`**\` and other wildcards; the absolute paths of the matching files are returned. When \`cwd\` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function glob(pattern: string, opts?: FIBJS.GeneralObject): Promise<any[]>;
+    function glob(pattern: string, opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): Promise<any[]>;
 
     /**
      * @description Searches the given directory for files matching a name pattern
@@ -92188,17 +92513,23 @@ declare module 'fs/promises' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
      *
      *      The pattern supports the \`*\`, \`?\`, \`**\` and other wildcards; the absolute paths of the matching files are returned. When \`cwd\` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function globSync(pattern: string, opts?: FIBJS.GeneralObject): any[];
+    function globSync(pattern: string, opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): any[];
 
     /**
      * @description Searches the given directory for files matching a name pattern
@@ -92208,17 +92539,23 @@ declare module 'fs/promises' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
      *
      *      The pattern supports the \`*\`, \`?\`, \`**\` and other wildcards; the absolute paths of the matching files are returned. When \`cwd\` is given, the matches of a relative pattern are returned relative to that directory.
      *      @param pattern the file name pattern
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function globAsync(pattern: string, opts?: FIBJS.GeneralObject): Promise<any[]>;
+    function globAsync(pattern: string, opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): Promise<any[]>;
 
     /**
      * @description Searches the given directory for files matching a set of name patterns
@@ -92228,6 +92565,7 @@ declare module 'fs/promises' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
@@ -92235,11 +92573,16 @@ declare module 'fs/promises' {
      *      The matches of all patterns are merged; a duplicate file appears only once. When \`cwd\` is
      *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function glob(patterns: string[], opts?: FIBJS.GeneralObject): Promise<any[]>;
+    function glob(patterns: string[], opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): Promise<any[]>;
 
     /**
      * @description Searches the given directory for files matching a set of name patterns
@@ -92249,6 +92592,7 @@ declare module 'fs/promises' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
@@ -92256,11 +92600,16 @@ declare module 'fs/promises' {
      *      The matches of all patterns are merged; a duplicate file appears only once. When \`cwd\` is
      *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function globSync(patterns: string[], opts?: FIBJS.GeneralObject): any[];
+    function globSync(patterns: string[], opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): any[];
 
     /**
      * @description Searches the given directory for files matching a set of name patterns
@@ -92270,6 +92619,7 @@ declare module 'fs/promises' {
      *      // fragment: options
      *      ({
      *          "cwd": "", // specify a different working directory, default to current directory
+     *          "exclude": [], // patterns to skip
      *          "withFileTypes": false // specify whether to return Dirent objects. Default: false
      *      })
      *      \`\`\`
@@ -92277,11 +92627,16 @@ declare module 'fs/promises' {
      *      The matches of all patterns are merged; a duplicate file appears only once. When \`cwd\` is
      *      given, the matches of relative patterns are returned relative to that directory.
      *      @param patterns the file name patterns
-     *      @param opts the options
+     *      @param opts the options; \`cwd\` sets the working directory, \`exclude\` lists
+     *      patterns to skip and \`withFileTypes\` returns Dirent objects
      *      @return the file list
      *
      */
-    function globAsync(patterns: string[], opts?: FIBJS.GeneralObject): Promise<any[]>;
+    function globAsync(patterns: string[], opts?: {
+        cwd?: string;
+        exclude?: string[];
+        withFileTypes?: boolean;
+    }): Promise<any[]>;
 
     /**
      * @description Creates a readable file stream
@@ -104562,35 +104917,17 @@ declare module 'net' {
      *      @return returns the connected Socket object
      *
      */
-    function connect(options: FIBJS.GeneralObject): Class_Stream;
+    function connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
 
-    function connect(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description Creates a Socket object and establishes a connection
-     *
-     *      This is the blocking form: the fiber waits until the connection is established and the method
-     *      returns the connected Socket, or throws. options supports:
-     *      \`\`\`JavaScript
-     *      // fragment: options
-     *      ({
-     *          "port": 80,          // the remote port, required
-     *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
-     *      })
-     *      \`\`\`
-     *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
-     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
-     *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
-     *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
-     *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
-     *      and a code such as ECONNREFUSED; an expired fibjs timer throws error number 20021.
-     *
-     *      @param options specifies the connection options object
-     *      @return returns the connected Socket object
-     *
-     */
-    function connectSync(options: FIBJS.GeneralObject): Class_Stream;
+    function connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Creates a Socket object and establishes a connection
@@ -104616,7 +104953,41 @@ declare module 'net' {
      *      @return returns the connected Socket object
      *
      */
-    function connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    function connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
+
+    /**
+     * @description Creates a Socket object and establishes a connection
+     *
+     *      This is the blocking form: the fiber waits until the connection is established and the method
+     *      returns the connected Socket, or throws. options supports:
+     *      \`\`\`JavaScript
+     *      // fragment: options
+     *      ({
+     *          "port": 80,          // the remote port, required
+     *          "host": "localhost", // the remote address or host name
+     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *      })
+     *      \`\`\`
+     *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
+     *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
+     *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
+     *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
+     *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
+     *      and a code such as ECONNREFUSED; an expired fibjs timer throws error number 20021.
+     *
+     *      @param options specifies the connection options object
+     *      @return returns the connected Socket object
+     *
+     */
+    function connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established
@@ -105358,7 +105729,11 @@ declare module 'net/promises' {
      *      @return returns the connected Socket object
      *
      */
-    function connect(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    function connect(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Creates a Socket object and establishes a connection
@@ -105384,7 +105759,11 @@ declare module 'net/promises' {
      *      @return returns the connected Socket object
      *
      */
-    function connectSync(options: FIBJS.GeneralObject): Class_Stream;
+    function connectSync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Class_Stream;
 
     /**
      * @description Creates a Socket object and establishes a connection
@@ -105410,7 +105789,11 @@ declare module 'net/promises' {
      *      @return returns the connected Socket object
      *
      */
-    function connectAsync(options: FIBJS.GeneralObject): Promise<Class_StreamPromise>;
+    function connectAsync(options: {
+        host?: string;
+        port?: number;
+        timeout?: number;
+    }): Promise<Class_StreamPromise>;
 
     /**
      * @description Establishes a connection and triggers the connect event after the connection is established
