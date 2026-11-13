@@ -120,7 +120,13 @@ declare class Class_Script extends Class_object {
      *      @param opts the compile options
      *
      */
-    constructor(code: string, opts?: FIBJS.GeneralObject);
+    constructor(code: string, opts?: {
+        filename?: string;
+        lineOffset?: number;
+        columnOffset?: number;
+        cachedData?: Class_Buffer;
+        type?: string;
+    });
 
     /**
      * @description Runs the compiled code in the given prepared context and returns the completion value
@@ -153,7 +159,9 @@ declare class Class_Script extends Class_object {
      *      @return the completion value of the last statement
      *
      */
-    runInContext(contextifiedObject: FIBJS.GeneralObject, opts?: FIBJS.GeneralObject): any;
+    runInContext(contextifiedObject: FIBJS.GeneralObject, opts?: {
+        timeout?: number;
+    }): any;
 
     /**
      * @description Prepares an object as a context and runs the compiled code in it
@@ -169,7 +177,9 @@ declare class Class_Script extends Class_object {
      *      @return the completion value of the last statement
      *
      */
-    runInNewContext(contextObject?: FIBJS.GeneralObject, opts?: FIBJS.GeneralObject): any;
+    runInNewContext(contextObject?: FIBJS.GeneralObject, opts?: {
+        timeout?: number;
+    }): any;
 
     /**
      * @description Runs the compiled code in the current context and returns the completion value
@@ -204,7 +214,9 @@ declare class Class_Script extends Class_object {
      *      @return the completion value of the last statement
      *
      */
-    runInThisContext(opts?: FIBJS.GeneralObject): any;
+    runInThisContext(opts?: {
+        timeout?: number;
+    }): any;
 
     /**
      * @description Returns the V8 code cache of the compiled script as a Buffer

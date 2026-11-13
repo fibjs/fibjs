@@ -114,7 +114,7 @@ interface Script : object
      @param code the source text to compile
      @param opts the compile options
     */
-    Script(String code, Object opts = {});
+    Script(String code, ScriptOptions opts = {});
 
     /*! @brief Runs the compiled code in the given prepared context and returns the completion value
 
@@ -145,7 +145,7 @@ interface Script : object
      @param opts the run options, currently timeout
      @return the completion value of the last statement
     */
-    Value runInContext(Object contextifiedObject, Object opts = {});
+    Value runInContext(Object contextifiedObject, ScriptRunOptions opts = {});
 
     /*! @brief Prepares an object as a context and runs the compiled code in it
 
@@ -159,7 +159,7 @@ interface Script : object
      @param opts the run options, currently timeout
      @return the completion value of the last statement
     */
-    Value runInNewContext(Object contextObject = {}, Object opts = {});
+    Value runInNewContext(Object contextObject = {}, ScriptRunOptions opts = {});
 
     /*! @brief Runs the compiled code in the current context and returns the completion value
 
@@ -192,7 +192,7 @@ interface Script : object
      @param opts the run options, currently timeout
      @return the completion value of the last statement
     */
-    Value runInThisContext(Object opts = {});
+    Value runInThisContext(ScriptRunOptions opts = {});
 
     /*! @brief Returns the V8 code cache of the compiled script as a Buffer
 

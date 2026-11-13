@@ -15,6 +15,8 @@
 
 namespace fibjs {
 
+class ScriptOptions;
+class ScriptRunOptions;
 class Buffer_base;
 
 class Script_base : public object_base {
@@ -22,10 +24,10 @@ class Script_base : public object_base {
 
 public:
     // Script_base
-    static result_t _new(exlib::string code, v8::Local<v8::Object> opts, obj_ptr<Script_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t runInContext(v8::Local<v8::Object> contextifiedObject, v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t runInNewContext(v8::Local<v8::Object> contextObject, v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t runInThisContext(v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal) = 0;
+    static result_t _new(exlib::string code, ScriptOptions* opts, obj_ptr<Script_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t runInContext(v8::Local<v8::Object> contextifiedObject, ScriptRunOptions* opts, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t runInNewContext(v8::Local<v8::Object> contextObject, ScriptRunOptions* opts, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t runInThisContext(ScriptRunOptions* opts, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t createCachedData(obj_ptr<Buffer_base>& retVal) = 0;
 
 public:
@@ -41,6 +43,8 @@ public:
 };
 }
 
+#include "ifs/ScriptOptions.h"
+#include "ifs/ScriptRunOptions.h"
 #include "ifs/Buffer.h"
 
 namespace fibjs {
@@ -79,9 +83,9 @@ inline void Script_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER_NAMED(2, 1, "code");
 
     ARG_NAMED(exlib::string, 0, "code");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<ScriptOptions>, 1, new ScriptOptions(), "opts");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (ScriptOptions*)v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -95,9 +99,9 @@ inline result_t Script_base::load(v8::Local<v8::Value> v, obj_ptr<Script_base>& 
     METHOD_OVER_NAMED(2, 1, "code");
 
     ARG_NAMED(exlib::string, 0, "code");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<ScriptOptions>, 1, new ScriptOptions(), "opts");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (ScriptOptions*)v1, vr, args.This());
 
     LOAD_RETURN();
 }
@@ -112,9 +116,9 @@ inline void Script_base::s_runInContext(const v8::FunctionCallbackInfo<v8::Value
     METHOD_OVER_NAMED(2, 1, "contextifiedObject");
 
     ARG_NAMED(v8::Local<v8::Object>, 0, "contextifiedObject");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<ScriptRunOptions>, 1, new ScriptRunOptions(), "opts");
 
-    hr = pInst->runInContext(v0, v1, vr);
+    hr = pInst->runInContext(v0, (ScriptRunOptions*)v1, vr);
 
     METHOD_RETURN();
 }
@@ -129,9 +133,9 @@ inline void Script_base::s_runInNewContext(const v8::FunctionCallbackInfo<v8::Va
     METHOD_OVER(2, 0);
 
     OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "contextObject");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<ScriptRunOptions>, 1, new ScriptRunOptions(), "opts");
 
-    hr = pInst->runInNewContext(v0, v1, vr);
+    hr = pInst->runInNewContext(v0, (ScriptRunOptions*)v1, vr);
 
     METHOD_RETURN();
 }
@@ -145,9 +149,9 @@ inline void Script_base::s_runInThisContext(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<ScriptRunOptions>, 0, new ScriptRunOptions(), "opts");
 
-    hr = pInst->runInThisContext(v0, vr);
+    hr = pInst->runInThisContext((ScriptRunOptions*)v0, vr);
 
     METHOD_RETURN();
 }

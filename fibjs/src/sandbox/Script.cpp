@@ -7,6 +7,8 @@
 
 #include "object.h"
 #include "ifs/vm.h"
+#include "ifs/ScriptOptions.h"
+#include "ifs/ScriptRunOptions.h"
 #include "Script.h"
 #include "SandBox.h"
 #include "Buffer.h"
@@ -16,7 +18,7 @@ namespace fibjs {
 
 void vm_get_global(v8::Local<v8::Object> obj, v8::Local<v8::Object>& retVal);
 
-result_t Script_base::_new(exlib::string code, v8::Local<v8::Object> opts,
+result_t Script_base::_new(exlib::string code, ScriptOptions* opts,
     obj_ptr<Script_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Script> s = new Script();
@@ -29,37 +31,30 @@ result_t Script_base::_new(exlib::string code, v8::Local<v8::Object> opts,
     return hr;
 }
 
-result_t Script::init(exlib::string code, v8::Local<v8::Object> opts)
+result_t Script::init(exlib::string code, ScriptOptions* opts)
 {
     Isolate* isolate = holder();
-    result_t hr;
 
     exlib::string filename("<anonymous>");
-    hr = GetConfigValue(opts, "filename", filename, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
     int32_t lineOffset = 0;
-    hr = GetConfigValue(opts, "lineOffset", lineOffset, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
     int32_t columnOffset = 0;
-    hr = GetConfigValue(opts, "columnOffset", columnOffset, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    exlib::string type("script");
+    obj_ptr<Buffer_base> cachedData;
 
-    exlib::string type;
-    hr = GetConfigValue(opts, "type", type, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    if (opts) {
+        if (opts->filename.has_value())
+            filename = opts->filename.value();
+        if (opts->lineOffset.has_value())
+            lineOffset = opts->lineOffset.value();
+        if (opts->columnOffset.has_value())
+            columnOffset = opts->columnOffset.value();
+        if (opts->type.has_value())
+            type = opts->type.value();
+        if (opts->cachedData.has_value())
+            cachedData = opts->cachedData.value();
+    }
 
     m_isModule = (type == "module");
-
-    obj_ptr<Buffer_base> cachedData;
-    hr = GetConfigValue(opts, "cachedData", cachedData, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
 
     v8::ScriptCompiler::CompileOptions compile_options = v8::ScriptCompiler::kNoCompileOptions;
     v8::ScriptCompiler::CachedData* cached_data = nullptr;
@@ -94,7 +89,7 @@ result_t Script::init(exlib::string code, v8::Local<v8::Object> opts)
     return result_t();
 }
 
-result_t Script::runInContext(v8::Local<v8::Object> contextifiedObject, v8::Local<v8::Object> opts,
+result_t Script::runInContext(v8::Local<v8::Object> contextifiedObject, ScriptRunOptions* opts,
     v8::Local<v8::Value>& retVal)
 {
     v8::Local<v8::Object> global;
@@ -114,7 +109,7 @@ result_t Script::runInContext(v8::Local<v8::Object> contextifiedObject, v8::Loca
     return hr;
 }
 
-result_t Script::runInNewContext(v8::Local<v8::Object> contextObject, v8::Local<v8::Object> opts,
+result_t Script::runInNewContext(v8::Local<v8::Object> contextObject, ScriptRunOptions* opts,
     v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = holder();
@@ -137,14 +132,12 @@ result_t Script::runInNewContext(v8::Local<v8::Object> contextObject, v8::Local<
     return hr;
 }
 
-result_t Script::runInThisContext(v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal)
+result_t Script::runInThisContext(ScriptRunOptions* opts, v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = holder();
 
-    int32_t timeout = 0;
-    result_t hr = GetConfigValue(opts, "timeout", timeout, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    int32_t timeout = opts ? opts->timeout.value_or(0) : 0;
+    result_t hr;
 
     if (m_isModule) {
         // Module cannot be run directly, but compilation already validates syntax

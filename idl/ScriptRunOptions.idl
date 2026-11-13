@@ -1,0 +1,7 @@
+/*! @brief Run options for vm.Script.
+
+     `timeout` is the run limit in milliseconds; 0 disables the limit.
+ */
+struct ScriptRunOptions {
+    Integer timeout = 0;
+};

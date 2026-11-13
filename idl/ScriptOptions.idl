@@ -1,0 +1,12 @@
+/*! @brief Compile options for vm.Script.
+
+     `cachedData` is a code cache produced by createCachedData(); `type` is a
+     fibjs extension selecting "script" (default) or "module".
+ */
+struct ScriptOptions {
+    String filename = "<anonymous>";
+    Integer lineOffset = 0;
+    Integer columnOffset = 0;
+    Buffer cachedData;
+    String type = "script";
+};

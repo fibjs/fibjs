@@ -7,6 +7,8 @@
 
 #include "object.h"
 #include "ifs/vm.h"
+#include "ifs/ScriptOptions.h"
+#include "ifs/ScriptRunOptions.h"
 
 namespace fibjs {
 
@@ -60,6 +62,15 @@ static v8::Local<v8::Object> vm_filename_options(Isolate* isolate, exlib::string
     return opts;
 }
 
+static result_t vm_load_options(v8::Local<v8::Object> opts,
+    obj_ptr<ScriptOptions>& compile_options, obj_ptr<ScriptRunOptions>& run_options)
+{
+    result_t hr = ScriptOptions::load(opts, compile_options);
+    if (hr.failed())
+        return hr;
+    return ScriptRunOptions::load(opts, run_options);
+}
+
 result_t vm_base::runInContext(exlib::string code, v8::Local<v8::Object> contextifiedObject,
     Union_runInContext_opts opts, v8::Local<v8::Value>& retVal)
 {
@@ -67,12 +78,18 @@ result_t vm_base::runInContext(exlib::string code, v8::Local<v8::Object> context
         ? vm_filename_options(Isolate::current(contextifiedObject), std::get<exlib::string>(opts))
         : std::get<v8::Local<v8::Object>>(opts);
 
-    obj_ptr<Script_base> script;
-    result_t hr = Script_base::_new(code, o, script);
+    obj_ptr<ScriptOptions> compile_options;
+    obj_ptr<ScriptRunOptions> run_options;
+    result_t hr = vm_load_options(o, compile_options, run_options);
     if (hr.failed())
         return hr;
 
-    return script->runInContext(contextifiedObject, o, retVal);
+    obj_ptr<Script_base> script;
+    hr = Script_base::_new(code, compile_options, script);
+    if (hr.failed())
+        return hr;
+
+    return script->runInContext(contextifiedObject, run_options, retVal);
 }
 
 result_t vm_base::runInNewContext(exlib::string code, v8::Local<v8::Object> contextObject,
@@ -82,12 +99,18 @@ result_t vm_base::runInNewContext(exlib::string code, v8::Local<v8::Object> cont
         ? vm_filename_options(Isolate::current(contextObject), std::get<exlib::string>(opts))
         : std::get<v8::Local<v8::Object>>(opts);
 
-    obj_ptr<Script_base> script;
-    result_t hr = Script_base::_new(code, o, script);
+    obj_ptr<ScriptOptions> compile_options;
+    obj_ptr<ScriptRunOptions> run_options;
+    result_t hr = vm_load_options(o, compile_options, run_options);
     if (hr.failed())
         return hr;
 
-    return script->runInNewContext(contextObject, o, retVal);
+    obj_ptr<Script_base> script;
+    hr = Script_base::_new(code, compile_options, script);
+    if (hr.failed())
+        return hr;
+
+    return script->runInNewContext(contextObject, run_options, retVal);
 }
 
 result_t vm_base::runInThisContext(exlib::string code, Union_runInThisContext_opts opts,
@@ -97,12 +120,18 @@ result_t vm_base::runInThisContext(exlib::string code, Union_runInThisContext_op
         ? vm_filename_options(Isolate::current(), std::get<exlib::string>(opts))
         : std::get<v8::Local<v8::Object>>(opts);
 
-    obj_ptr<Script_base> script;
-    result_t hr = Script_base::_new(code, o, script);
+    obj_ptr<ScriptOptions> compile_options;
+    obj_ptr<ScriptRunOptions> run_options;
+    result_t hr = vm_load_options(o, compile_options, run_options);
     if (hr.failed())
         return hr;
 
-    return script->runInThisContext(o, retVal);
+    obj_ptr<Script_base> script;
+    hr = Script_base::_new(code, compile_options, script);
+    if (hr.failed())
+        return hr;
+
+    return script->runInThisContext(run_options, retVal);
 }
 
 }
