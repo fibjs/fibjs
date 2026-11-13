@@ -108,7 +108,7 @@ interface Worker : EventEmitter
      @param path the Worker entry script; accepts an absolute path, a relative path starting with ./ or ../, or the source code directly when opts.eval = true
      @param opts construction options, supports eval, workerData, file_system and safe_buffer
      */
-    Worker(String path, Object opts = {});
+    Worker(String path, WorkerOptions opts = {});
 
     /*! @brief Queries the logical worker id of the target worker
 

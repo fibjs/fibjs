@@ -17,6 +17,7 @@
 namespace fibjs {
 
 class EventEmitter_base;
+class WorkerOptions;
 
 class Worker_base : public EventEmitter_base {
     DECLARE_CLASS(Worker_base);
@@ -24,7 +25,7 @@ class Worker_base : public EventEmitter_base {
 
 public:
     // Worker_base
-    static result_t _new(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string path, WorkerOptions* opts, obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_threadId(int32_t& retVal) = 0;
     virtual result_t postMessage(v8::Local<v8::Value> data) = 0;
     virtual result_t postMessage(v8::Local<v8::Value> data, v8::Local<v8::Array> transfer) = 0;
@@ -56,6 +57,8 @@ public:
     ASYNC_MEMBERVALUE1(Worker_base, terminate, int32_t);
 };
 }
+
+#include "ifs/WorkerOptions.h"
 
 namespace fibjs {
 inline ClassInfo& Worker_base::class_info()
@@ -101,9 +104,9 @@ inline void Worker_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER_NAMED(2, 1, "path");
 
     ARG_NAMED(exlib::string, 0, "path");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<WorkerOptions>, 1, new WorkerOptions(), "opts");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (WorkerOptions*)v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -117,9 +120,9 @@ inline result_t Worker_base::load(v8::Local<v8::Value> v, obj_ptr<Worker_base>& 
     METHOD_OVER_NAMED(2, 1, "path");
 
     ARG_NAMED(exlib::string, 0, "path");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "opts");
+    OPT_ARG_NAMED(obj_ptr<WorkerOptions>, 1, new WorkerOptions(), "opts");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (WorkerOptions*)v1, vr, args.This());
 
     LOAD_RETURN();
 }

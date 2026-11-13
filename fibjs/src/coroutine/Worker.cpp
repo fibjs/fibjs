@@ -125,13 +125,11 @@ result_t worker_threads_base::isMarkedAsUntransferable(v8::Local<v8::Value> obje
     return result_t();
 }
 
-result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
+result_t Worker_base::_new(exlib::string path, WorkerOptions* opts,
     obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This)
 {
-    bool isEval = false;
-    result_t hr = GetConfigValue(opts, "eval", isEval, false);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    bool isEval = opts && opts->eval.value_or(false);
+    result_t hr;
 
     if (!isEval) {
         bool isAbs = false;
@@ -140,7 +138,7 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
         bool isFileUrl = starts_with(path, "file://");
 
         if (!isAbs && !isRelativeWorkerPath && !isFileUrl)
-            return throw_worker_path_error(Isolate::current(opts));
+            return throw_worker_path_error(Isolate::current());
 
         hr = absolute_file_path_like(path, path);
         if (hr.failed())
@@ -148,33 +146,27 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
 
         path_base::isAbsolute(path, isAbs);
         if (!isAbs)
-            return throw_worker_path_error(Isolate::current(opts));
+            return throw_worker_path_error(Isolate::current());
     }
 
     obj_ptr<Worker> worker = isEval ? new Worker(path, opts, true) : new Worker(path, opts);
 
-    bool v;
+    if (opts) {
+        if (opts->file_system.has_value())
+            worker->m_isolate->m_enable_FileSystem = opts->file_system.value();
 
-    v = true;
-    hr = GetConfigValue(opts, "file_system", v, false);
-    if (hr.ok())
-        worker->m_isolate->m_enable_FileSystem = v;
+        if (opts->safe_buffer.has_value())
+            worker->m_isolate->m_safe_buffer = opts->safe_buffer.value();
 
-    v = false;
-    hr = GetConfigValue(opts, "safe_buffer", v, false);
-    if (hr.ok())
-        worker->m_isolate->m_safe_buffer = v;
+        if (opts->workerData.has_value()) {
+            obj_ptr<Buffer_base> workerData;
+            hr = v8_base::serialize(opts->workerData.value(), workerData);
+            if (hr.failed())
+                return hr;
 
-    v8::Local<v8::Value> data;
-    hr = GetConfigValue(opts, "workerData", data, false);
-    if (hr.ok()) {
-        obj_ptr<Buffer_base> workerData;
-        hr = v8_base::serialize(data, workerData);
-        if (hr.failed())
-            return hr;
-
-        worker->m_peer_worker->m_workerData = workerData;
-        worker->m_peer_worker->m_has_worker_data = true;
+            worker->m_peer_worker->m_workerData = workerData;
+            worker->m_peer_worker->m_has_worker_data = true;
+        }
     }
 
     worker->wrap(This);
@@ -258,7 +250,7 @@ void Worker::_main()
     return;
 }
 
-Worker::Worker(exlib::string path, v8::Local<v8::Object> opts)
+Worker::Worker(exlib::string path, WorkerOptions* opts)
 {
     m_isolate = new Isolate(path);
     m_threadId = m_isolate->m_id;
@@ -287,7 +279,7 @@ Worker::Worker(exlib::string path, v8::Local<v8::Object> opts)
     m_isolate->m_parent_port = childPort;
 }
 
-Worker::Worker(exlib::string source, v8::Local<v8::Object> opts, bool isEval)
+Worker::Worker(exlib::string source, WorkerOptions* opts, bool isEval)
 {
     exlib::string cwd;
     process_base::cwd(cwd);

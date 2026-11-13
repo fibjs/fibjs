@@ -35,8 +35,8 @@ public:
     {
     }
 
-    Worker(exlib::string path, v8::Local<v8::Object> opts);
-    Worker(exlib::string path, v8::Local<v8::Object> opts, bool isEval);
+    Worker(exlib::string path, WorkerOptions* opts);
+    Worker(exlib::string path, WorkerOptions* opts, bool isEval);
 
 public:
     // object_base：isolate 终止时的中断。本对象是 worker 的父侧句柄；

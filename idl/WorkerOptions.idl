@@ -1,0 +1,11 @@
+/*! @brief Options for the Worker constructor.
+
+     `workerData` is structured-cloned into the worker; `file_system` and
+     `safe_buffer` are fibjs extensions controlling the worker isolate.
+ */
+struct WorkerOptions {
+    Boolean eval = false;
+    Value workerData;
+    Boolean file_system = true;
+    Boolean safe_buffer = false;
+};

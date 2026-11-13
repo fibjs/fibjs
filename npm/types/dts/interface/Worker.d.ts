@@ -113,7 +113,12 @@ declare class Class_Worker extends Class_EventEmitter {
      *      @param opts construction options, supports eval, workerData, file_system and safe_buffer
      *
      */
-    constructor(path: string, opts?: FIBJS.GeneralObject);
+    constructor(path: string, opts?: {
+        eval?: boolean;
+        workerData?: any;
+        file_system?: boolean;
+        safe_buffer?: boolean;
+    });
 
     /**
      * @description Queries the logical worker id of the target worker
@@ -502,7 +507,12 @@ declare class Class_WorkerPromise extends Class_EventEmitter {
      *      @param opts construction options, supports eval, workerData, file_system and safe_buffer
      *
      */
-    constructor(path: string, opts?: FIBJS.GeneralObject);
+    constructor(path: string, opts?: {
+        eval?: boolean;
+        workerData?: any;
+        file_system?: boolean;
+        safe_buffer?: boolean;
+    });
 
     /**
      * @description Queries the logical worker id of the target worker
