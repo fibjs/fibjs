@@ -124,7 +124,7 @@ interface HttpResponse : HttpMessage
      @param body the body: string, Buffer, Blob, FormData, URLSearchParams, stream or null
      @param options the options object, supporting status, statusText and headers
      */
-    HttpResponse(Value body, Object options = {});
+    HttpResponse(Value body, HttpResponseOptions options = {});
 
     /*! @brief Queries and sets the numeric status code
 
@@ -296,7 +296,7 @@ interface HttpResponse : HttpMessage
      @param options the options object, supporting status, statusText and headers
      @return no data; the call writes the encoded body
      */
-    Variant json(Value data, Object options = {}) async;
+    Variant json(Value data, HttpResponseOptions options = {}) async;
 
     /*! @brief Parses the response body as JSON
 
@@ -317,7 +317,7 @@ interface HttpResponse : HttpMessage
      @param options the options object, supporting status, statusText and headers
      @return returns a new HttpResponse object
      */
-    static HttpResponse json(Value data, Object options = {});
+    static HttpResponse json(Value data, HttpResponseOptions options = {});
 
     /*! @brief Creates a redirect response (static factory)
 

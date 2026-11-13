@@ -11,6 +11,8 @@
 #include "HttpResponse.h"
 #include "HttpCookie.h"
 #include "HttpMessage.h"
+#include "Headers.h"
+#include "ifs/HttpResponseOptions.h"
 #include "Buffer.h"
 #include "union_helpers.h"
 #include "MemoryStream.h"
@@ -18,42 +20,62 @@
 
 namespace fibjs {
 
+// A plain-object `headers` is copied into a native Headers collection while
+// the JS isolate is still available; the async json() phase then only sees
+// owned C++ values.
+static result_t normalize_response_headers(HttpResponseOptions* options)
+{
+    if (!options || !options->headers.has_value())
+        return result_t();
+
+    auto& headers = options->headers.value();
+    if (std::holds_alternative<obj_ptr<NObject>>(headers)) {
+        v8::Local<v8::Object> map;
+        result_t hr = std::get<obj_ptr<NObject>>(headers)->valueOf(map);
+        if (hr.failed())
+            return hr;
+
+        obj_ptr<Headers> hdrs = new Headers();
+        hr = hdrs->append(map);
+        if (hr.failed())
+            return hr;
+
+        headers = obj_ptr<Headers_base>(hdrs);
+    }
+
+    return result_t();
+}
+
 result_t HttpResponse_base::_new(obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new HttpResponse();
     return result_t();
 }
 
-result_t HttpResponse_base::_new(v8::Local<v8::Value> body, v8::Local<v8::Object> options,
+result_t HttpResponse_base::_new(v8::Local<v8::Value> body, HttpResponseOptions* options,
     obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This)
 {
-    Isolate* isolate = Isolate::current(options);
+    Isolate* isolate = Isolate::current();
     obj_ptr<HttpResponse> resp = new HttpResponse();
     result_t hr;
 
-    // Load options using ResponseOptions
-    obj_ptr<HttpResponse::ResponseOptions> opts;
-    hr = HttpResponse::ResponseOptions::load(options, opts);
-    if (hr.failed())
-        return hr;
+    if (options) {
+        if (options->status.has_value())
+            resp->set_statusCode(options->status.value());
 
-    if (opts->status.has_value())
-        resp->set_statusCode(opts->status.value());
+        if (options->statusText.has_value())
+            resp->set_statusMessage(options->statusText.value());
 
-    if (opts->statusText.has_value())
-        resp->set_statusMessage(opts->statusText.value());
-
-    obj_ptr<HttpMessage_base> hdrRet;
-
-    if (opts->headers.has_value()) {
-        auto& headersVar = opts->headers.value();
-        if (std::holds_alternative<v8::Local<v8::Object>>(headersVar)) {
-            hr = resp->setHeader(std::get<v8::Local<v8::Object>>(headersVar), hdrRet);
-        } else {
-            hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(headersVar).get(), hdrRet);
-        }
+        hr = normalize_response_headers(options);
         if (hr.failed())
             return hr;
+
+        if (options->headers.has_value()) {
+            obj_ptr<HttpMessage_base> hdrRet;
+            hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(options->headers.value()).get(), hdrRet);
+            if (hr.failed())
+                return hr;
+        }
     }
 
     // Handle body using body_to_stream helper
@@ -179,51 +201,39 @@ result_t HttpResponse::json(v8::Local<v8::Value> data, AsyncHandle ac)
     return m_message->json(data, std::move(ac));
 }
 
-result_t HttpResponse::json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
+result_t HttpResponse::json(v8::Local<v8::Value> data, HttpResponseOptions* options, Variant& retVal, AsyncHandle ac)
 {
     if (ac.isSync()) {
         // Sync phase (V8-safe): encode the body here (same as Message::json's
         // sync phase, which cannot be reused because it would take the shared
-        // handle), then pack the options into ctx[1]. The async phase applies
-        // them.
+        // handle), then normalize the header object before the async phase.
         exlib::string str;
         result_t hr = json_base::encode(data, str);
         if (hr.failed())
             return hr;
 
-        ac.ctxv().resize(2);
+        ac.ctxv().resize(1);
         ac.ctxv()[0] = new Buffer(str.c_str(), str.length());
 
-        obj_ptr<HttpResponse::ResponseOptions> opts;
-        hr = HttpResponse::ResponseOptions::load(options, opts);
+        hr = normalize_response_headers(options);
         if (hr.failed())
             return hr;
 
-        // Normalize headers to a C++ object: the v8::Local alternative is
-        // unusable in the async phase.
-        if (opts->headers.has_value() && std::holds_alternative<v8::Local<v8::Object>>(opts->headers.value())) {
-            obj_ptr<Headers> hdrs = new Headers();
-            hdrs->append(std::get<v8::Local<v8::Object>>(opts->headers.value()));
-            opts->headers = hdrs;
-        }
-
-        ac.ctxv()[1] = opts;
         return result_t::nosync();
     }
 
     // Async phase (C++-only, no V8 access): apply status / statusText /
     // headers, then let m_message write the encoded body (which also sets
     // Content-Type: application/json).
-    if (ac.ctxv().size() > 1) {
-        obj_ptr<HttpResponse::ResponseOptions> opts = (HttpResponse::ResponseOptions*)ac.ctxv()[1].object();
-        if (opts->status.has_value())
-            set_statusCode(opts->status.value());
-        if (opts->statusText.has_value())
-            set_statusMessage(opts->statusText.value());
+    if (options) {
+        if (options->status.has_value())
+            set_statusCode(options->status.value());
+        if (options->statusText.has_value())
+            set_statusMessage(options->statusText.value());
         // appendHeader keeps any headers set before json(); the JSON body
         // write below sets/overrides Content-Type.
-        if (opts->headers.has_value() && std::holds_alternative<obj_ptr<Headers_base>>(opts->headers.value()))
-            m_message->appendHeader(std::get<obj_ptr<Headers_base>>(opts->headers.value()).get());
+        if (options->headers.has_value())
+            m_message->appendHeader(std::get<obj_ptr<Headers_base>>(options->headers.value()).get());
     }
 
     return m_message->json(data, std::move(ac));
@@ -885,32 +895,28 @@ result_t HttpResponse::get_type(exlib::string& retVal)
     return result_t();
 }
 
-result_t HttpResponse_base::json(v8::Local<v8::Value> data, v8::Local<v8::Object> options,
+result_t HttpResponse_base::json(v8::Local<v8::Value> data, HttpResponseOptions* options,
     obj_ptr<HttpResponse_base>& retVal)
 {
-    Isolate* isolate = Isolate::current(options);
     obj_ptr<HttpResponse> resp = new HttpResponse();
     result_t hr;
-
-    // Load options
-    obj_ptr<HttpResponse::ResponseOptions> opts;
-    hr = HttpResponse::ResponseOptions::load(options, opts);
-    if (hr.failed())
-        return hr;
-
-    if (opts->status.has_value())
-        resp->set_statusCode(opts->status.value());
-    if (opts->statusText.has_value())
-        resp->set_statusMessage(opts->statusText.value());
     obj_ptr<HttpMessage_base> hdrRet;
-    if (opts->headers.has_value()) {
-        auto& hv = opts->headers.value();
-        if (std::holds_alternative<v8::Local<v8::Object>>(hv))
-            hr = resp->setHeader(std::get<v8::Local<v8::Object>>(hv), hdrRet);
-        else
-            hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(hv).get(), hdrRet);
+
+    if (options) {
+        if (options->status.has_value())
+            resp->set_statusCode(options->status.value());
+        if (options->statusText.has_value())
+            resp->set_statusMessage(options->statusText.value());
+
+        hr = normalize_response_headers(options);
         if (hr.failed())
             return hr;
+
+        if (options->headers.has_value()) {
+            hr = resp->setHeader(std::get<obj_ptr<Headers_base>>(options->headers.value()).get(), hdrRet);
+            if (hr.failed())
+                return hr;
+        }
     }
 
     // Serialize to JSON and set Content-Type

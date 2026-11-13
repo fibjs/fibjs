@@ -27975,7 +27975,11 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      @param options the options object, supporting status, statusText and headers
      *
      */
-    constructor(body: any, options?: FIBJS.GeneralObject);
+    constructor(body: any, options?: {
+        status?: number;
+        statusText?: string;
+        headers?: Class_Headers | FIBJS.GeneralObject;
+    });
 
     /**
      * @description Queries and sets the numeric status code
@@ -28177,11 +28181,19 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      @return no data; the call writes the encoded body
      *
      */
-    json(data: any, options?: FIBJS.GeneralObject): any;
+    json(data: any, options?: {
+        status?: number;
+        statusText?: string;
+        headers?: Class_Headers | FIBJS.GeneralObject;
+    }): any;
 
     json(data: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
-    json(data: any, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    json(data: any, options: {
+        status?: number;
+        statusText?: string;
+        headers?: Class_Headers | FIBJS.GeneralObject;
+    }, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Writes data as a JSON body, optionally setting status and headers
@@ -28206,7 +28218,11 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      @return no data; the call writes the encoded body
      *
      */
-    jsonSync(data: any, options?: FIBJS.GeneralObject): any;
+    jsonSync(data: any, options?: {
+        status?: number;
+        statusText?: string;
+        headers?: Class_Headers | FIBJS.GeneralObject;
+    }): any;
 
     /**
      * @description Writes data as a JSON body, optionally setting status and headers
@@ -28231,7 +28247,11 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      @return no data; the call writes the encoded body
      *
      */
-    jsonAsync(data: any, options?: FIBJS.GeneralObject): Promise<any>;
+    jsonAsync(data: any, options?: {
+        status?: number;
+        statusText?: string;
+        headers?: Class_Headers | FIBJS.GeneralObject;
+    }): Promise<any>;
 
     /**
      * @description Parses the response body as JSON
@@ -28282,7 +28302,11 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      @return returns a new HttpResponse object
      *
      */
-    static json(data: any, options?: FIBJS.GeneralObject): Class_HttpResponse;
+    static json(data: any, options?: {
+        status?: number;
+        statusText?: string;
+        headers?: Class_Headers | FIBJS.GeneralObject;
+    }): Class_HttpResponse;
 
     /**
      * @description Creates a redirect response (static factory)
@@ -28352,7 +28376,11 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      @param options the options object, supporting status, statusText and headers
      *
      */
-    constructor(body: any, options?: FIBJS.GeneralObject);
+    constructor(body: any, options?: {
+        status?: number;
+        statusText?: string;
+        headers?: Class_Headers | FIBJS.GeneralObject;
+    });
 
     /**
      * @description Queries and sets the numeric status code
@@ -28554,7 +28582,11 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      @return no data; the call writes the encoded body
      *
      */
-    json(data: any, options?: FIBJS.GeneralObject): Promise<any>;
+    json(data: any, options?: {
+        status?: number;
+        statusText?: string;
+        headers?: Class_Headers | FIBJS.GeneralObject;
+    }): Promise<any>;
 
     /**
      * @description Writes data as a JSON body, optionally setting status and headers
@@ -28579,7 +28611,11 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      @return no data; the call writes the encoded body
      *
      */
-    jsonSync(data: any, options?: FIBJS.GeneralObject): any;
+    jsonSync(data: any, options?: {
+        status?: number;
+        statusText?: string;
+        headers?: Class_Headers | FIBJS.GeneralObject;
+    }): any;
 
     /**
      * @description Writes data as a JSON body, optionally setting status and headers
@@ -28604,7 +28640,11 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      @return no data; the call writes the encoded body
      *
      */
-    jsonAsync(data: any, options?: FIBJS.GeneralObject): Promise<any>;
+    jsonAsync(data: any, options?: {
+        status?: number;
+        statusText?: string;
+        headers?: Class_Headers | FIBJS.GeneralObject;
+    }): Promise<any>;
 
     /**
      * @description Parses the response body as JSON
@@ -28653,7 +28693,11 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      @return returns a new HttpResponse object
      *
      */
-    static json(data: any, options?: FIBJS.GeneralObject): Class_HttpResponse;
+    static json(data: any, options?: {
+        status?: number;
+        statusText?: string;
+        headers?: Class_Headers | FIBJS.GeneralObject;
+    }): Class_HttpResponse;
 
     /**
      * @description Creates a redirect response (static factory)
@@ -28689,7 +28733,11 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
 
 declare namespace Class_HttpResponse {
     const promises: {
-        readonly json: (data: any, options?: FIBJS.GeneralObject)=>Class_HttpResponse;
+        readonly json: (data: any, options?: {
+            status?: number;
+            statusText?: string;
+            headers?: Class_Headers | FIBJS.GeneralObject;
+        })=>Class_HttpResponse;
         readonly redirect: (url: string, status?: number)=>Class_HttpResponse;
         readonly error: ()=>Class_HttpResponse;
     };

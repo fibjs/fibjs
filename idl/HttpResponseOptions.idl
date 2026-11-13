@@ -1,0 +1,10 @@
+/*! @brief Options for the Web-compatible HttpResponse constructor and json writer.
+
+     `headers` accepts a Headers collection or a plain object of header names to
+     values and replaces or appends the headers, depending on the caller.
+ */
+struct HttpResponseOptions {
+    Integer status;
+    String statusText;
+    Headers|NObject headers;
+};

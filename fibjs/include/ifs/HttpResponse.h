@@ -17,6 +17,7 @@
 namespace fibjs {
 
 class HttpMessage_base;
+class HttpResponseOptions;
 class HttpCookie_base;
 
 class HttpResponse_base : public HttpMessage_base {
@@ -28,7 +29,7 @@ public:
 public:
     // HttpResponse_base
     static result_t _new(obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Value> body, v8::Local<v8::Object> options, obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Value> body, HttpResponseOptions* options, obj_ptr<HttpResponse_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_statusCode(int32_t& retVal) = 0;
     virtual result_t set_statusCode(int32_t newVal) = 0;
     virtual result_t get_statusMessage(exlib::string& retVal) = 0;
@@ -47,9 +48,9 @@ public:
     virtual result_t get_url(exlib::string& retVal) = 0;
     virtual result_t get_redirected(bool& retVal) = 0;
     virtual result_t get_type(exlib::string& retVal) = 0;
-    virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t json(v8::Local<v8::Value> data, HttpResponseOptions* options, Variant& retVal, AsyncHandle ac) = 0;
     virtual result_t json(Variant& retVal, AsyncHandle ac) = 0;
-    static result_t json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, obj_ptr<HttpResponse_base>& retVal);
+    static result_t json(v8::Local<v8::Value> data, HttpResponseOptions* options, obj_ptr<HttpResponse_base>& retVal);
     static result_t redirect(exlib::string url, int32_t status, obj_ptr<HttpResponse_base>& retVal);
     static result_t error(obj_ptr<HttpResponse_base>& retVal);
 
@@ -81,11 +82,12 @@ public:
     static void s_static_error(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBERVALUE3(HttpResponse_base, json, v8::Local<v8::Value>, v8::Local<v8::Object>, Variant);
+    ASYNC_MEMBERVALUE3(HttpResponse_base, json, v8::Local<v8::Value>, obj_ptr<HttpResponseOptions>, Variant);
     ASYNC_MEMBERVALUE1(HttpResponse_base, json, Variant);
 };
 }
 
+#include "ifs/HttpResponseOptions.h"
 #include "ifs/HttpCookie.h"
 
 namespace fibjs {
@@ -143,9 +145,9 @@ inline void HttpResponse_base::__new(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_OVER_NAMED(2, 1, "body");
 
     ARG_NAMED(v8::Local<v8::Value>, 0, "body");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<HttpResponseOptions>, 1, new HttpResponseOptions(), "options");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (HttpResponseOptions*)v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -159,9 +161,9 @@ inline result_t HttpResponse_base::load(v8::Local<v8::Value> v, obj_ptr<HttpResp
     METHOD_OVER_NAMED(2, 1, "body");
 
     ARG_NAMED(v8::Local<v8::Value>, 0, "body");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<HttpResponseOptions>, 1, new HttpResponseOptions(), "options");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (HttpResponseOptions*)v1, vr, args.This());
 
     LOAD_RETURN();
 }
@@ -418,7 +420,7 @@ inline void HttpResponse_base::s_json(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_OVER_NAMED(2, 1, "data");
 
     ARG_NAMED(v8::Local<v8::Value>, 0, "data");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<HttpResponseOptions>, 1, new HttpResponseOptions(), "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_json(v0, v1, cb, args);
@@ -444,9 +446,9 @@ inline void HttpResponse_base::s_static_json(const v8::FunctionCallbackInfo<v8::
     METHOD_OVER_NAMED(2, 1, "data");
 
     ARG_NAMED(v8::Local<v8::Value>, 0, "data");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<HttpResponseOptions>, 1, new HttpResponseOptions(), "options");
 
-    hr = json(v0, v1, vr);
+    hr = json(v0, (HttpResponseOptions*)v1, vr);
 
     METHOD_RETURN();
 }

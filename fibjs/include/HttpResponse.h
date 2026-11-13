@@ -18,18 +18,6 @@ namespace fibjs {
 class HttpResponse : public HttpResponse_base {
 
 public:
-    // Options for Web API compatible constructor: new Response(body, options)
-    class ResponseOptions : public obj_base {
-    public:
-        LOAD_OPTIONS(ResponseOptions, (status)(statusText)(headers));
-
-    public:
-        std::optional<int32_t> status;
-        std::optional<exlib::string> statusText;
-        std::optional<std::variant<v8::Local<v8::Object>, obj_ptr<Headers_base>>> headers;
-    };
-
-public:
     HttpResponse()
     {
         m_message = new HttpMessage(true);
@@ -59,7 +47,7 @@ public:
     virtual result_t arrayBuffer(std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac);
     virtual result_t formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac);
     virtual result_t json(v8::Local<v8::Value> data, AsyncHandle ac);
-    virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac);
+    virtual result_t json(v8::Local<v8::Value> data, HttpResponseOptions* options, Variant& retVal, AsyncHandle ac);
     virtual result_t json(Variant& retVal, AsyncHandle ac);
     virtual result_t pack(v8::Local<v8::Value> data, AsyncHandle ac);
     virtual result_t pack(Variant& retVal, AsyncHandle ac);
@@ -139,7 +127,7 @@ public:
     virtual result_t get_url(exlib::string& retVal);
     virtual result_t get_redirected(bool& retVal);
     virtual result_t get_type(exlib::string& retVal);
-    static result_t json(v8::Local<v8::Value> data, v8::Local<v8::Object> options, obj_ptr<HttpResponse_base>& retVal);
+    static result_t json(v8::Local<v8::Value> data, HttpResponseOptions* options, obj_ptr<HttpResponse_base>& retVal);
     static result_t redirect(exlib::string url, int32_t status, obj_ptr<HttpResponse_base>& retVal);
     static result_t error(obj_ptr<HttpResponse_base>& retVal);
 
