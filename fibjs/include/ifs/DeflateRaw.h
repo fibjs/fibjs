@@ -67,7 +67,7 @@ inline void DeflateRaw_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     OPT_ARG_NAMED(obj_ptr<ZlibOptions>, 0, new ZlibOptions(), "opts");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((ZlibOptions*)v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -82,7 +82,7 @@ inline result_t DeflateRaw_base::load(v8::Local<v8::Value> v, obj_ptr<DeflateRaw
 
     OPT_ARG_NAMED(obj_ptr<ZlibOptions>, 0, new ZlibOptions(), "opts");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((ZlibOptions*)v0, vr, args.This());
 
     LOAD_RETURN();
 }

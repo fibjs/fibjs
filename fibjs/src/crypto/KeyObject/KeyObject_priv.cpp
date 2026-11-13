@@ -13,21 +13,20 @@
 
 namespace fibjs {
 
+result_t crypto_base::createPrivateKey(KeyOptions* key, obj_ptr<KeyObject_base>& retVal)
+{
+    if (!key)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
+    return create_key_object(nullptr, *key, KeyObject::kKeyTypePrivate, retVal);
+}
+
 result_t crypto_base::createPrivateKey(Union_createPrivateKey_key key, obj_ptr<KeyObject_base>& retVal)
 {
     obj_ptr<KeyObject> keyObj = new KeyObject();
     result_t hr;
 
-    if (std::holds_alternative<v8::Local<v8::Object>>(key)) {
-        // the options object carries the key material and its format
-        v8::Local<v8::Object> options = std::get<v8::Local<v8::Object>>(key);
-
-        hr = keyObj->createAsymmetricKey(options, KeyObject::kKeyTypePrivate);
-        if (hr.failed())
-            return hr;
-
-        hr = keyObj->toX25519_privateKey(options);
-    } else if (std::holds_alternative<exlib::string>(key)) {
+    if (std::holds_alternative<exlib::string>(key)) {
         // the PEM text itself
         exlib::string strKey = std::get<exlib::string>(key);
 
@@ -47,23 +46,26 @@ result_t crypto_base::createPrivateKey(Union_createPrivateKey_key key, obj_ptr<K
 
 result_t KeyObject::toX25519_privateKey(v8::Local<v8::Object> options)
 {
+    bool toX25519 = false;
+    result_t hr = GetConfigValue(options, "toX25519", toX25519, true);
+    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
+        return hr;
+
+    return toX25519_privateKey(toX25519);
+}
+
+result_t KeyObject::toX25519_privateKey(bool toX25519)
+{
     int32_t key_type = EVP_PKEY_id(m_pkey);
-    if (key_type == EVP_PKEY_ED25519) {
-        bool toX25519 = false;
-        result_t hr = GetConfigValue(options, "toX25519", toX25519, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
+    if (key_type == EVP_PKEY_ED25519 && toX25519) {
+        unsigned char sk[32];
+        size_t sz = 32;
 
-        if (toX25519) {
-            unsigned char sk[32];
-            size_t sz = 32;
-
-            EVP_PKEY_get_raw_private_key(m_pkey, sk, &sz);
-            ossl_x25519_private_from_ed25519(sk, sk);
-            m_pkey = EVP_PKEY_new_raw_private_key(EVP_PKEY_X25519, nullptr, sk, sizeof(sk));
-            if (m_pkey == nullptr)
-                return openssl_error();
-        }
+        EVP_PKEY_get_raw_private_key(m_pkey, sk, &sz);
+        ossl_x25519_private_from_ed25519(sk, sk);
+        m_pkey = EVP_PKEY_new_raw_private_key(EVP_PKEY_X25519, nullptr, sk, sizeof(sk));
+        if (m_pkey == nullptr)
+            return openssl_error();
     }
 
     return result_t();

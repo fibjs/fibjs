@@ -1505,7 +1505,7 @@ inline void fs_base::s_static_watch(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG_NAMED(exlib::string, 0, "fname");
     ARG_NAMED(obj_ptr<WatchOptions>, 1, "options");
 
-    hr = watch(v0, v1, vr);
+    hr = watch(v0, (WatchOptions*)v1, vr);
 
     METHOD_OVER_NAMED(3, 3, "callback");
 
@@ -1513,7 +1513,7 @@ inline void fs_base::s_static_watch(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG_NAMED(obj_ptr<WatchOptions>, 1, "options");
     ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
-    hr = watch(v0, v1, v2, vr);
+    hr = watch(v0, (WatchOptions*)v1, v2, vr);
 
     METHOD_RETURN();
 }
@@ -1537,7 +1537,7 @@ inline void fs_base::s_static_watchFile(const v8::FunctionCallbackInfo<v8::Value
     ARG_NAMED(obj_ptr<WatchFileOptions>, 1, "options");
     ARG_NAMED(v8::Local<v8::Function>, 2, "callback");
 
-    hr = watchFile(v0, v1, v2, vr);
+    hr = watchFile(v0, (WatchFileOptions*)v1, v2, vr);
 
     METHOD_RETURN();
 }

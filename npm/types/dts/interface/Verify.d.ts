@@ -142,7 +142,30 @@ declare class Class_Verify extends Class_object {
      *      @return returns true if the signature is valid, false otherwise
      *
      */
-    verify(privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string, encoding?: string): boolean;
+    verify(privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, signature: Class_Buffer | string, encoding?: string): boolean;
+
+    /**
+     * @description Verifies a signature with a key given as raw key material
+     *
+     *      The key is used directly and the signature encoding defaults to DER.
+     *      @param privateKey the public key
+     *      @param signature the signature to verify
+     *      @param encoding the encoding of a string signature
+     *      @return returns true when the signature is valid
+     *
+     */
+    verify(privateKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string, encoding?: string): boolean;
 
 }
 

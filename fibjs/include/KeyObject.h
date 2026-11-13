@@ -18,6 +18,8 @@ namespace fibjs {
     if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))        \
         return hr;
 
+struct KeyObjectOptions;
+
 class generateKeyPairParam : public obj_base {
 public:
     static result_t load(v8::Local<v8::Object> options, obj_ptr<generateKeyPairParam>& retVal)
@@ -120,6 +122,7 @@ public:
 public:
     result_t createSecretKey(const unsigned char* key, size_t size);
     result_t createAsymmetricKey(v8::Local<v8::Object> key, KeyType type);
+    result_t createAsymmetricKey(const KeyObjectOptions& options, KeyType type);
     result_t ImportJWKKey(NObject* hwk, KeyType type);
     result_t ImportJWKRsaKey(NObject* key, KeyType type);
     result_t ImportJWKEcKey(NObject* key, KeyType type);
@@ -178,7 +181,9 @@ public:
 
 public:
     result_t toX25519_privateKey(v8::Local<v8::Object> options);
+    result_t toX25519_privateKey(bool toX25519);
     result_t toX25519_publicKey(v8::Local<v8::Object> options);
+    result_t toX25519_publicKey(bool toX25519);
 
 public:
     KeyType type() const
@@ -380,36 +385,21 @@ result_t set_key_option(Isolate* isolate, v8::Local<v8::Object> obj, const char*
 }
 
 // Builds a private or public KeyObject from a structured key-import record.
+// The record carries owned key material only, so the construction runs in the
+// native phase (no V8 object is assembled for the parser).
 inline result_t create_key_object(Isolate* isolate, const KeyObjectOptions& options, KeyObject::KeyType type,
     obj_ptr<KeyObject_base>& retVal)
 {
-    v8::Local<v8::Object> key_options = v8::Object::New(isolate->m_isolate);
-    result_t hr;
-
-#define SET_KEY_OPTION(name)                                        \
-    hr = set_key_option(isolate, key_options, #name, options.name); \
-    if (hr.failed())                                                \
-        return hr;
-
-    SET_KEY_OPTION(key);
-    SET_KEY_OPTION(format);
-    SET_KEY_OPTION(type);
-    SET_KEY_OPTION(passphrase);
-    SET_KEY_OPTION(encoding);
-    SET_KEY_OPTION(namedCurve);
-    SET_KEY_OPTION(toX25519);
-
-#undef SET_KEY_OPTION
-
     obj_ptr<KeyObject> key = new KeyObject();
-    hr = key->createAsymmetricKey(key_options, type);
+    result_t hr = key->createAsymmetricKey(options, type);
     if (hr.failed())
         return hr;
 
+    bool toX25519 = options.toX25519.value_or(false);
     if (type == KeyObject::kKeyTypePrivate)
-        hr = key->toX25519_privateKey(key_options);
+        hr = key->toX25519_privateKey(toX25519);
     else if (type == KeyObject::kKeyTypePublic)
-        hr = key->toX25519_publicKey(key_options);
+        hr = key->toX25519_publicKey(toX25519);
     if (hr.failed())
         return hr;
 

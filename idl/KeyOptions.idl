@@ -1,0 +1,14 @@
+/*! @brief Structured key-import options for createPrivateKey/createPublicKey.
+
+     `key` accepts an existing KeyObject, raw key bytes, PEM text, or a JWK
+     object; the remaining fields mirror the key-import options of Node.js.
+ */
+struct KeyOptions {
+    KeyObject|Buffer|String|NObject key;
+    String format;
+    String type;
+    String|Buffer passphrase;
+    String encoding = "utf8";
+    String namedCurve;
+    Boolean toX25519 = false;
+};

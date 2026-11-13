@@ -85,7 +85,7 @@ inline void File_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG_NAMED(exlib::string, 1, "name");
     OPT_ARG_NAMED(obj_ptr<FileOptions>, 2, new FileOptions(), "options");
 
-    hr = _new(v0, v1, v2, vr, args.This());
+    hr = _new(v0, v1, (FileOptions*)v2, vr, args.This());
 
     METHOD_OVER_NAMED(3, 2, "name");
 
@@ -93,13 +93,13 @@ inline void File_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG_NAMED(exlib::string, 1, "name");
     OPT_ARG_NAMED(obj_ptr<FileOptions>, 2, new FileOptions(), "options");
 
-    hr = _new(v0, v1, v2, vr, args.This());
+    hr = _new(v0, v1, (FileOptions*)v2, vr, args.This());
 
     METHOD_OVER(1, 0);
 
     OPT_ARG_NAMED(obj_ptr<FileOptions>, 0, new FileOptions(), "options");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((FileOptions*)v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -114,7 +114,7 @@ inline result_t File_base::load(v8::Local<v8::Value> v, obj_ptr<File_base>& retV
 
     OPT_ARG_NAMED(obj_ptr<FileOptions>, 0, new FileOptions(), "options");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((FileOptions*)v0, vr, args.This());
 
     LOAD_RETURN();
 }

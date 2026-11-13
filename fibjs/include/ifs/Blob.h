@@ -101,14 +101,14 @@ inline void Blob_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG_NAMED(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate), "blobParts");
     OPT_ARG_NAMED(obj_ptr<BlobOptions>, 1, new BlobOptions(), "options");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (BlobOptions*)v1, vr, args.This());
 
     METHOD_OVER_NAMED(2, 1, "blobData");
 
     ARG(Union_Blob_blobData, 0);
     OPT_ARG_NAMED(obj_ptr<BlobOptions>, 1, new BlobOptions(), "options");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (BlobOptions*)v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -124,14 +124,14 @@ inline result_t Blob_base::load(v8::Local<v8::Value> v, obj_ptr<Blob_base>& retV
     OPT_ARG_NAMED(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate), "blobParts");
     OPT_ARG_NAMED(obj_ptr<BlobOptions>, 1, new BlobOptions(), "options");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (BlobOptions*)v1, vr, args.This());
 
     METHOD_OVER_NAMED(2, 1, "blobData");
 
     ARG(Union_Blob_blobData, 0);
     OPT_ARG_NAMED(obj_ptr<BlobOptions>, 1, new BlobOptions(), "options");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (BlobOptions*)v1, vr, args.This());
 
     LOAD_RETURN();
 }

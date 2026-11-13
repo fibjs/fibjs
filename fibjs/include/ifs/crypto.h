@@ -23,9 +23,12 @@ class ECDH_base;
 class Digest_base;
 class Buffer_base;
 class Cipher_base;
+class KeyOptions;
 class Sign_base;
 class Verify_base;
 class X509CertificateRequest_base;
+class EncryptOptions;
+class SignOptions;
 class webcrypto_base;
 class subtle_base;
 class Options_crypto_createHmac_options;
@@ -49,8 +52,8 @@ public:
     using Union_createDecipher_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_createDecipheriv_key = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_createDecipheriv_iv = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_createPrivateKey_key = std::variant<obj_ptr<Buffer_base>, v8::Local<v8::Object>, exlib::string>;
-    using Union_createPublicKey_key = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
+    using Union_createPrivateKey_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_createPublicKey_key = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_createSecretKey_key = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_createCertificateRequest_csr = std::variant<obj_ptr<Buffer_base>, v8::Local<v8::Object>, exlib::string>;
     using Union_hash_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
@@ -62,19 +65,19 @@ public:
     using Union_pbkdf2_salt = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_scrypt_password = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_scrypt_salt = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_privateDecrypt_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
     using Union_privateDecrypt_buffer = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_privateEncrypt_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
+    using Union_privateDecrypt_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_privateEncrypt_buffer = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_publicDecrypt_publicKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
+    using Union_privateEncrypt_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_publicDecrypt_buffer = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_publicEncrypt_publicKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
+    using Union_publicDecrypt_publicKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_publicEncrypt_buffer = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_publicEncrypt_publicKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_sign_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_sign_key = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
+    using Union_sign_key = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_verify_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_verify_key = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
     using Union_verify_signature = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_verify_key = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
     using Union_timingSafeEqual_a = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_timingSafeEqual_b = std::variant<obj_ptr<Buffer_base>, exlib::string>;
     using Union_bbsSign_messages = std::variant<obj_ptr<Buffer_base>, exlib::string>;
@@ -154,7 +157,9 @@ public:
     static result_t createDecipher(exlib::string algorithm, Union_createDecipher_key key, Options_crypto_createDecipher_options* options, obj_ptr<Cipher_base>& retVal);
     static result_t createDecipheriv(exlib::string algorithm, Union_createDecipheriv_key key, Union_createDecipheriv_iv iv, Options_crypto_createDecipheriv_options* options, obj_ptr<Cipher_base>& retVal);
     static result_t getCurves(std::vector<exlib::string>& retVal);
+    static result_t createPrivateKey(KeyOptions* key, obj_ptr<KeyObject_base>& retVal);
     static result_t createPrivateKey(Union_createPrivateKey_key key, obj_ptr<KeyObject_base>& retVal);
+    static result_t createPublicKey(KeyOptions* key, obj_ptr<KeyObject_base>& retVal);
     static result_t createPublicKey(Union_createPublicKey_key key, obj_ptr<KeyObject_base>& retVal);
     static result_t createSign(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Sign_base>& retVal);
     static result_t createVerify(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Verify_base>& retVal);
@@ -173,11 +178,17 @@ public:
     static result_t hkdf(exlib::string algoName, Union_hkdf_password password, Union_hkdf_salt salt, Union_hkdf_info info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t scrypt(Union_scrypt_password password, Union_scrypt_salt salt, int32_t keylen, Options_crypto_scrypt_options* options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t privateDecrypt(EncryptOptions* privateKey, Union_privateDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
     static result_t privateDecrypt(Union_privateDecrypt_privateKey privateKey, Union_privateDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t privateEncrypt(EncryptOptions* privateKey, Union_privateEncrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
     static result_t privateEncrypt(Union_privateEncrypt_privateKey privateKey, Union_privateEncrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t publicDecrypt(EncryptOptions* publicKey, Union_publicDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
     static result_t publicDecrypt(Union_publicDecrypt_publicKey publicKey, Union_publicDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t publicEncrypt(EncryptOptions* publicKey, Union_publicEncrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
     static result_t publicEncrypt(Union_publicEncrypt_publicKey publicKey, Union_publicEncrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t sign(v8::Local<v8::Value> algorithm, Union_sign_data data, SignOptions* key, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t sign(v8::Local<v8::Value> algorithm, Union_sign_data data, Union_sign_key key, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t verify(v8::Local<v8::Value> algorithm, Union_verify_data data, SignOptions* key, Union_verify_signature signature, bool& retVal, AsyncHandle ac);
     static result_t verify(v8::Local<v8::Value> algorithm, Union_verify_data data, Union_verify_key key, Union_verify_signature signature, bool& retVal, AsyncHandle ac);
     static result_t timingSafeEqual(Union_timingSafeEqual_a a, Union_timingSafeEqual_b b, bool& retVal);
     static result_t bbsSign(std::vector<Union_bbsSign_messages>& messages, Union_bbsSign_privateKey privateKey, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
@@ -244,7 +255,9 @@ public:
     ASYNC_STATICVALUE6(crypto_base, hkdf, exlib::string, Union_hkdf_password, Union_hkdf_salt, Union_hkdf_info, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE6(crypto_base, pbkdf2, Union_pbkdf2_password, Union_pbkdf2_salt, int32_t, int32_t, exlib::string, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE5(crypto_base, scrypt, Union_scrypt_password, Union_scrypt_salt, int32_t, obj_ptr<Options_crypto_scrypt_options>, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE4(crypto_base, sign, v8::Local<v8::Value>, Union_sign_data, obj_ptr<SignOptions>, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE4(crypto_base, sign, v8::Local<v8::Value>, Union_sign_data, Union_sign_key, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE5(crypto_base, verify, v8::Local<v8::Value>, Union_verify_data, obj_ptr<SignOptions>, Union_verify_signature, bool);
     ASYNC_STATICVALUE5(crypto_base, verify, v8::Local<v8::Value>, Union_verify_data, Union_verify_key, Union_verify_signature, bool);
     ASYNC_STATICVALUE3(crypto_base, bbsSign, std::vector<Union_bbsSign_messages>, Union_bbsSign_privateKey, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE4(crypto_base, bbsVerify, std::vector<Union_bbsVerify_messages>, Union_bbsVerify_publicKey, Union_bbsVerify_signature, bool);
@@ -260,9 +273,12 @@ public:
 #include "ifs/Digest.h"
 #include "ifs/Buffer.h"
 #include "ifs/Cipher.h"
+#include "ifs/KeyOptions.h"
 #include "ifs/Sign.h"
 #include "ifs/Verify.h"
 #include "ifs/X509CertificateRequest.h"
+#include "ifs/EncryptOptions.h"
+#include "ifs/SignOptions.h"
 #include "ifs/webcrypto.h"
 #include "ifs/subtle.h"
 
@@ -454,7 +470,7 @@ inline void crypto_base::s_static_createHmac(const v8::FunctionCallbackInfo<v8::
     ARG(Union_createHmac_key, 1);
     OPT_ARG_NAMED(obj_ptr<Options_crypto_createHmac_options>, 2, new Options_crypto_createHmac_options(), "options");
 
-    hr = createHmac(v0, v1, v2, vr);
+    hr = createHmac(v0, v1, (Options_crypto_createHmac_options*)v2, vr);
 
     METHOD_RETURN();
 }
@@ -483,7 +499,7 @@ inline void crypto_base::s_static_getCipherInfo(const v8::FunctionCallbackInfo<v
     ARG(Union_getCipherInfo_nameOrNid, 0);
     OPT_ARG_NAMED(obj_ptr<Options_crypto_getCipherInfo_options>, 1, new Options_crypto_getCipherInfo_options(), "options");
 
-    hr = getCipherInfo(v0, v1, vr);
+    hr = getCipherInfo(v0, (Options_crypto_getCipherInfo_options*)v1, vr);
 
     METHOD_RETURN();
 }
@@ -500,7 +516,7 @@ inline void crypto_base::s_static_createCipher(const v8::FunctionCallbackInfo<v8
     ARG(Union_createCipher_key, 1);
     OPT_ARG_NAMED(obj_ptr<Options_crypto_createCipher_options>, 2, new Options_crypto_createCipher_options(), "options");
 
-    hr = createCipher(v0, v1, v2, vr);
+    hr = createCipher(v0, v1, (Options_crypto_createCipher_options*)v2, vr);
 
     METHOD_RETURN();
 }
@@ -518,7 +534,7 @@ inline void crypto_base::s_static_createCipheriv(const v8::FunctionCallbackInfo<
     ARG(Union_createCipheriv_iv, 2);
     OPT_ARG_NAMED(obj_ptr<Options_crypto_createCipheriv_options>, 3, new Options_crypto_createCipheriv_options(), "options");
 
-    hr = createCipheriv(v0, v1, v2, v3, vr);
+    hr = createCipheriv(v0, v1, v2, (Options_crypto_createCipheriv_options*)v3, vr);
 
     METHOD_RETURN();
 }
@@ -535,7 +551,7 @@ inline void crypto_base::s_static_createDecipher(const v8::FunctionCallbackInfo<
     ARG(Union_createDecipher_key, 1);
     OPT_ARG_NAMED(obj_ptr<Options_crypto_createDecipher_options>, 2, new Options_crypto_createDecipher_options(), "options");
 
-    hr = createDecipher(v0, v1, v2, vr);
+    hr = createDecipher(v0, v1, (Options_crypto_createDecipher_options*)v2, vr);
 
     METHOD_RETURN();
 }
@@ -553,7 +569,7 @@ inline void crypto_base::s_static_createDecipheriv(const v8::FunctionCallbackInf
     ARG(Union_createDecipheriv_iv, 2);
     OPT_ARG_NAMED(obj_ptr<Options_crypto_createDecipheriv_options>, 3, new Options_crypto_createDecipheriv_options(), "options");
 
-    hr = createDecipheriv(v0, v1, v2, v3, vr);
+    hr = createDecipheriv(v0, v1, v2, (Options_crypto_createDecipheriv_options*)v3, vr);
 
     METHOD_RETURN();
 }
@@ -579,6 +595,12 @@ inline void crypto_base::s_static_createPrivateKey(const v8::FunctionCallbackInf
 
     METHOD_OVER_NAMED(1, 1, "key");
 
+    ARG_NAMED(obj_ptr<KeyOptions>, 0, "key");
+
+    hr = createPrivateKey((KeyOptions*)v0, vr);
+
+    METHOD_OVER_NAMED(1, 1, "key");
+
     ARG(Union_createPrivateKey_key, 0);
 
     hr = createPrivateKey(v0, vr);
@@ -591,6 +613,12 @@ inline void crypto_base::s_static_createPublicKey(const v8::FunctionCallbackInfo
     obj_ptr<KeyObject_base> vr;
 
     METHOD_ENTER();
+
+    METHOD_OVER_NAMED(1, 1, "key");
+
+    ARG_NAMED(obj_ptr<KeyOptions>, 0, "key");
+
+    hr = createPublicKey((KeyOptions*)v0, vr);
 
     METHOD_OVER_NAMED(1, 1, "key");
 
@@ -756,7 +784,7 @@ inline void crypto_base::s_static_randomUUID(const v8::FunctionCallbackInfo<v8::
 
     OPT_ARG_NAMED(obj_ptr<Options_crypto_randomUUID_options>, 0, new Options_crypto_randomUUID_options(), "options");
 
-    hr = randomUUID(v0, vr);
+    hr = randomUUID((Options_crypto_randomUUID_options*)v0, vr);
 
     METHOD_RETURN();
 }
@@ -888,6 +916,13 @@ inline void crypto_base::s_static_privateDecrypt(const v8::FunctionCallbackInfo<
 
     METHOD_OVER_NAMED(2, 2, "buffer");
 
+    ARG_NAMED(obj_ptr<EncryptOptions>, 0, "privateKey");
+    ARG(Union_privateDecrypt_buffer, 1);
+
+    hr = privateDecrypt((EncryptOptions*)v0, v1, vr);
+
+    METHOD_OVER_NAMED(2, 2, "buffer");
+
     ARG(Union_privateDecrypt_privateKey, 0);
     ARG(Union_privateDecrypt_buffer, 1);
 
@@ -901,6 +936,13 @@ inline void crypto_base::s_static_privateEncrypt(const v8::FunctionCallbackInfo<
     obj_ptr<Buffer_base> vr;
 
     METHOD_ENTER();
+
+    METHOD_OVER_NAMED(2, 2, "buffer");
+
+    ARG_NAMED(obj_ptr<EncryptOptions>, 0, "privateKey");
+    ARG(Union_privateEncrypt_buffer, 1);
+
+    hr = privateEncrypt((EncryptOptions*)v0, v1, vr);
 
     METHOD_OVER_NAMED(2, 2, "buffer");
 
@@ -920,6 +962,13 @@ inline void crypto_base::s_static_publicDecrypt(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER_NAMED(2, 2, "buffer");
 
+    ARG_NAMED(obj_ptr<EncryptOptions>, 0, "publicKey");
+    ARG(Union_publicDecrypt_buffer, 1);
+
+    hr = publicDecrypt((EncryptOptions*)v0, v1, vr);
+
+    METHOD_OVER_NAMED(2, 2, "buffer");
+
     ARG(Union_publicDecrypt_publicKey, 0);
     ARG(Union_publicDecrypt_buffer, 1);
 
@@ -933,6 +982,13 @@ inline void crypto_base::s_static_publicEncrypt(const v8::FunctionCallbackInfo<v
     obj_ptr<Buffer_base> vr;
 
     METHOD_ENTER();
+
+    METHOD_OVER_NAMED(2, 2, "buffer");
+
+    ARG_NAMED(obj_ptr<EncryptOptions>, 0, "publicKey");
+    ARG(Union_publicEncrypt_buffer, 1);
+
+    hr = publicEncrypt((EncryptOptions*)v0, v1, vr);
 
     METHOD_OVER_NAMED(2, 2, "buffer");
 
@@ -954,6 +1010,17 @@ inline void crypto_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG_NAMED(v8::Local<v8::Value>, 0, "algorithm");
     ARG(Union_sign_data, 1);
+    ARG_NAMED(obj_ptr<SignOptions>, 2, "key");
+
+    if (!cb.IsEmpty())
+        hr = acb_sign(v0, v1, v2, cb, args);
+    else
+        hr = ac_sign(v0, v1, v2, vr);
+
+    METHOD_OVER_NAMED(3, 3, "key");
+
+    ARG_NAMED(v8::Local<v8::Value>, 0, "algorithm");
+    ARG(Union_sign_data, 1);
     ARG(Union_sign_key, 2);
 
     if (!cb.IsEmpty())
@@ -969,6 +1036,18 @@ inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
     bool vr;
 
     ASYNC_METHOD_ENTER("crypto.verify");
+
+    METHOD_OVER_NAMED(4, 4, "signature");
+
+    ARG_NAMED(v8::Local<v8::Value>, 0, "algorithm");
+    ARG(Union_verify_data, 1);
+    ARG_NAMED(obj_ptr<SignOptions>, 2, "key");
+    ARG(Union_verify_signature, 3);
+
+    if (!cb.IsEmpty())
+        hr = acb_verify(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_verify(v0, v1, v2, v3, vr);
 
     METHOD_OVER_NAMED(4, 4, "signature");
 

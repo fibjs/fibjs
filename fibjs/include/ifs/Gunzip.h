@@ -67,7 +67,7 @@ inline void Gunzip_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     OPT_ARG_NAMED(obj_ptr<ZlibOptions>, 0, new ZlibOptions(), "opts");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((ZlibOptions*)v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -82,7 +82,7 @@ inline result_t Gunzip_base::load(v8::Local<v8::Value> v, obj_ptr<Gunzip_base>& 
 
     OPT_ARG_NAMED(obj_ptr<ZlibOptions>, 0, new ZlibOptions(), "opts");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((ZlibOptions*)v0, vr, args.This());
 
     LOAD_RETURN();
 }

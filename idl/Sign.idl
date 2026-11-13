@@ -144,5 +144,14 @@ interface Sign : object
      @param encoding the encoding of the return value
      @return returns the signature value
      */
-    Value sign(Buffer|KeyObject|Object|String privateKey, String encoding = "buffer");
+    Value sign(SignOptions privateKey, String encoding = "buffer");
+
+    /*! @brief Signs the data with a key given as raw key material
+
+     The key is used directly and the signature encoding defaults to DER.
+     @param privateKey the private key
+     @param encoding the encoding of the return value
+     @return returns the signature value
+     */
+    Value sign(Buffer|KeyObject|String privateKey, String encoding = "buffer");
 };

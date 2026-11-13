@@ -65,4 +65,21 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<obje
     return result_t::type_mismatch();
 }
 
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<NObject>& vr, bool bStrict)
+{
+    vr = NObject::getInstance(v);
+    if (vr != NULL)
+        return result_t();
+
+    // A plain object is copied into the owned NObject form: its values are
+    // Variants, so the key parser can consume it in the native phase.
+    if (v.IsEmpty() || !IsJSObject(v))
+        return result_t::type_mismatch();
+
+    obj_ptr<NObject> obj = new NObject();
+    obj->add(v.As<v8::Object>());
+    vr = obj;
+    return result_t();
+}
+
 }

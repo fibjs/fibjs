@@ -412,7 +412,16 @@ module crypto
      @param key the private key material or its options
      @return returns the private key object
      */
-    static KeyObject createPrivateKey(Buffer|Object|String key);
+    static KeyObject createPrivateKey(KeyOptions key);
+
+    /*! @brief Creates a KeyObject from raw private key material
+
+     This form takes the key bytes or PEM text directly, without an options
+     object.
+     @param key the key bytes or PEM text
+     @return returns the private key object
+     */
+    static KeyObject createPrivateKey(Buffer|String key);
 
     /*! @brief Creates a KeyObject holding an asymmetric public key
 
@@ -423,7 +432,15 @@ module crypto
      @param key the public or private key material, or its options
      @return returns the public key object
      */
-    static KeyObject createPublicKey(Buffer|KeyObject|Object|String key);
+    static KeyObject createPublicKey(KeyOptions key);
+
+    /*! @brief Creates a KeyObject from raw public key material
+
+     This form takes the key bytes, PEM text or an existing KeyObject directly.
+     @param key the key bytes, PEM text or an existing KeyObject
+     @return returns the public key object
+     */
+    static KeyObject createPublicKey(Buffer|KeyObject|String key);
 
     /*! @brief Creates a streaming signing object for the given digest algorithm
 
@@ -839,7 +856,17 @@ module crypto
      @param buffer the data to decrypt
      @return returns the decrypted data
     */
-    static Buffer privateDecrypt(Buffer|KeyObject|Object|String privateKey, Buffer|String buffer);
+    static Buffer privateDecrypt(EncryptOptions privateKey, Buffer|String buffer);
+
+    /*! @brief Decrypts data with a private key given as raw key material
+
+     The default padding is OAEP; use the options form to select another
+     padding or supply a string buffer.
+     @param privateKey the private key
+     @param buffer the data to decrypt
+     @return returns the decrypted data
+     */
+    static Buffer privateDecrypt(Buffer|KeyObject|String privateKey, Buffer|String buffer);
 
     /*! @brief Encrypts data with the private key (RSA signature-style operation)
 
@@ -853,7 +880,17 @@ module crypto
      @param buffer the data to encrypt
      @return returns the encrypted data
     */
-    static Buffer privateEncrypt(Buffer|KeyObject|Object|String privateKey, Buffer|String buffer);
+    static Buffer privateEncrypt(EncryptOptions privateKey, Buffer|String buffer);
+
+    /*! @brief Encrypts data with a private key given as raw key material
+
+     The default padding is PKCS#1 v1.5; use the options form to select another
+     padding or supply a string buffer.
+     @param privateKey the private key
+     @param buffer the data to encrypt
+     @return returns the encrypted data
+     */
+    static Buffer privateEncrypt(Buffer|KeyObject|String privateKey, Buffer|String buffer);
 
     /*! @brief Decrypts data that was encrypted with the matching private key
 
@@ -866,7 +903,17 @@ module crypto
      @param buffer the data to decrypt
      @return returns the decrypted data
     */
-    static Buffer publicDecrypt(Buffer|KeyObject|Object|String publicKey, Buffer|String buffer);
+    static Buffer publicDecrypt(EncryptOptions publicKey, Buffer|String buffer);
+
+    /*! @brief Decrypts data with a public key given as raw key material
+
+     The default padding is PKCS#1 v1.5; use the options form to select another
+     padding or supply a string buffer.
+     @param publicKey the public key
+     @param buffer the data to decrypt
+     @return returns the decrypted data
+     */
+    static Buffer publicDecrypt(Buffer|KeyObject|String publicKey, Buffer|String buffer);
 
     /*! @brief Encrypts data with the public key so that only the private key can decrypt it
 
@@ -904,7 +951,17 @@ module crypto
      @param buffer the data to encrypt
      @return returns the encrypted data
     */
-    static Buffer publicEncrypt(Buffer|KeyObject|Object|String publicKey, Buffer|String buffer);
+    static Buffer publicEncrypt(EncryptOptions publicKey, Buffer|String buffer);
+
+    /*! @brief Encrypts data with a public key given as raw key material
+
+     The default padding is OAEP; use the options form to select another
+     padding or supply a string buffer.
+     @param publicKey the public key
+     @param buffer the data to encrypt
+     @return returns the encrypted data
+     */
+    static Buffer publicEncrypt(Buffer|KeyObject|String publicKey, Buffer|String buffer);
 
     /*! @brief Computes the signature of data in one shot
 
@@ -941,7 +998,18 @@ module crypto
      @param key the private key and signing options
      @return returns the signature
     */
-    static Buffer sign(Value algorithm, Buffer|String data, Buffer|KeyObject|Object|String key) async;
+    static Buffer sign(Value algorithm, Buffer|String data, SignOptions key) async;
+
+    /*! @brief Computes a signature with a key given as raw key material
+
+     The key is used directly; dsaEncoding, padding and saltLength take their
+     defaults.
+     @param algorithm the digest algorithm name
+     @param data the data to sign
+     @param key the private key
+     @return returns the signature
+     */
+    static Buffer sign(Value algorithm, Buffer|String data, Buffer|KeyObject|String key) async;
 
     /*! @brief Verifies the signature of data in one shot
 
@@ -957,7 +1025,19 @@ module crypto
      @param signature the signature to verify
      @return returns true when the signature is valid
     */
-    static Boolean verify(Value algorithm, Buffer|String data, Buffer|KeyObject|Object|String key, Buffer|String signature) async;
+    static Boolean verify(Value algorithm, Buffer|String data, SignOptions key, Buffer|String signature) async;
+
+    /*! @brief Verifies a signature with a key given as raw key material
+
+     The key is used directly; dsaEncoding, padding and saltLength take their
+     defaults.
+     @param algorithm the digest algorithm name
+     @param data the data that was signed
+     @param key the public key
+     @param signature the signature to verify
+     @return returns true when the signature is valid
+     */
+    static Boolean verify(Value algorithm, Buffer|String data, Buffer|KeyObject|String key, Buffer|String signature) async;
 
     /*! @brief Compares two byte sequences in constant time
 

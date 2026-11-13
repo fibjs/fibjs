@@ -16,7 +16,6 @@ namespace fibjs {
 typedef int (*EVP_PKEY_cipher_init_t)(EVP_PKEY_CTX* ctx);
 typedef int (*EVP_PKEY_cipher_t)(EVP_PKEY_CTX* ctx, unsigned char* out, size_t* outlen, const unsigned char* in, size_t inlen);
 typedef result_t (*createKey_t)(Buffer_base*, obj_ptr<KeyObject_base>&);
-typedef result_t (*createKeyOpt_t)(v8::Local<v8::Object>, obj_ptr<KeyObject_base>&);
 
 static bool SetRsaOaepLabel(const EVPKeyCtxPointer& ctx, Buffer_base* label)
 {
@@ -96,64 +95,6 @@ result_t PKEY_cipher(Buffer_base* key, int padding, Buffer_base* buffer, obj_ptr
     return PKEY_cipher<EVP_PKEY_cipher_init, EVP_PKEY_cipher>(key_, padding, buffer, retVal);
 }
 
-template <createKeyOpt_t createKey, EVP_PKEY_cipher_init_t EVP_PKEY_cipher_init, EVP_PKEY_cipher_t EVP_PKEY_cipher, bool useo_aep>
-result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal)
-{
-    Isolate* isolate = Isolate::GetCurrent(key);
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Value> v;
-    result_t hr;
-
-    obj_ptr<KeyObject_base> key_;
-    hr = createKey(key, key_);
-    if (hr.failed())
-        return hr;
-    KeyObject* key__ = key_.As<KeyObject>();
-
-    hr = GetConfigValue(key, "padding", padding, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
-    const EVP_MD* digest = nullptr;
-    if (useo_aep) {
-        exlib::string oaepHash = "sha1";
-        hr = GetConfigValue(key, "oaepHash", oaepHash, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
-
-        digest = _evp_md_type(oaepHash.c_str());
-        if (!digest)
-            return result_t::make(CALL_E_INVALID_DATA)
-                .with_type_name(errtype::kTypeError)
-                .with_code("ERR_INVALID_ARG_VALUE")
-                .with_format("Invalid oaepHash: '%s'.", oaepHash.c_str());
-    }
-
-    obj_ptr<Buffer_base> oaep_label;
-    hr = GetConfigValue(key, "oaepLabel", v);
-    if (hr.ok()) {
-        hr = GetArgumentValue(isolate, v, oaep_label, false);
-        if (hr.failed())
-            return hr;
-    } else if (!hr.is_param_missing())
-        return hr;
-
-    return PKEY_cipher<EVP_PKEY_cipher_init, EVP_PKEY_cipher>(key__->pkey(), padding, digest, oaep_label, buffer, retVal);
-}
-
-// The string buffer of the options-key form decodes with the
-// `encoding` option of the key object (default utf8) and forwards.
-static result_t optionsStringToBuffer(v8::Local<v8::Object> key, exlib::string str, obj_ptr<Buffer_base>& retVal)
-{
-    exlib::string encoding = "utf8";
-
-    result_t hr = GetConfigValue(key, "encoding", encoding, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
-    return Buffer_base::from(str, encoding, retVal);
-}
-
 // the key factories of the IDL take a union (plans/idl-union-types-2026-10-02.md):
 // the PKEY_cipher templates key on a Buffer, so these adapt them
 static result_t pkey_create_private_key(Buffer_base* key, obj_ptr<KeyObject_base>& retVal)
@@ -161,43 +102,97 @@ static result_t pkey_create_private_key(Buffer_base* key, obj_ptr<KeyObject_base
     return crypto_base::createPrivateKey(crypto_base::Union_createPrivateKey_key(obj_ptr<Buffer_base>(key)), retVal);
 }
 
-static result_t pkey_create_private_key(v8::Local<v8::Object> key, obj_ptr<KeyObject_base>& retVal)
-{
-    return crypto_base::createPrivateKey(crypto_base::Union_createPrivateKey_key(key), retVal);
-}
-
 static result_t pkey_create_public_key(Buffer_base* key, obj_ptr<KeyObject_base>& retVal)
 {
     return crypto_base::createPublicKey(crypto_base::Union_createPublicKey_key(obj_ptr<Buffer_base>(key)), retVal);
 }
 
-static result_t pkey_create_public_key(v8::Local<v8::Object> key, obj_ptr<KeyObject_base>& retVal)
+template <typename BufferUnion>
+static result_t encrypt_buffer(BufferUnion& buffer, exlib::string encoding, obj_ptr<Buffer_base>& retVal)
 {
-    return crypto_base::createPublicKey(crypto_base::Union_createPublicKey_key(key), retVal);
+    if (std::holds_alternative<exlib::string>(buffer))
+        return Buffer_base::from(std::get<exlib::string>(buffer), encoding, retVal);
+
+    retVal = std::get<obj_ptr<Buffer_base>>(buffer);
+    return result_t();
+}
+
+static result_t encrypt_label(EncryptOptions* options, obj_ptr<Buffer_base>& retVal)
+{
+    if (!options || !options->oaepLabel.has_value())
+        return result_t();
+
+    auto& label = options->oaepLabel.value();
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(label)) {
+        retVal = std::get<obj_ptr<Buffer_base>>(label);
+        return result_t();
+    }
+
+    if (std::holds_alternative<std::shared_ptr<v8::BackingStore>>(label)) {
+        auto store = std::get<std::shared_ptr<v8::BackingStore>>(label);
+        retVal = new Buffer((const unsigned char*)store->Data(), store->ByteLength());
+        return result_t();
+    }
+
+    return Buffer_base::from(std::get<exlib::string>(label), "utf8", retVal);
+}
+
+static result_t encrypt_digest(EncryptOptions* options, const EVP_MD*& digest)
+{
+    exlib::string oaepHash = options ? options->oaepHash.value_or("sha1") : "sha1";
+
+    digest = _evp_md_type(oaepHash.c_str());
+    if (!digest)
+        return result_t::make(CALL_E_INVALID_DATA)
+            .with_type_name(errtype::kTypeError)
+            .with_code("ERR_INVALID_ARG_VALUE")
+            .with_format("Invalid oaepHash: '%s'.", oaepHash.c_str());
+
+    return result_t();
+}
+
+result_t crypto_base::privateDecrypt(EncryptOptions* options, Union_privateDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal)
+{
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
+    obj_ptr<KeyObject_base> key_;
+    result_t hr = create_key_object(nullptr, *options, KeyObject::kKeyTypePrivate, key_);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<Buffer_base> buf;
+    hr = encrypt_buffer(buffer, options->encoding.value_or("utf8"), buf);
+    if (hr.failed())
+        return hr;
+
+    int padding = options->padding.value_or(RSA_PKCS1_OAEP_PADDING);
+
+    const EVP_MD* digest;
+    hr = encrypt_digest(options, digest);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<Buffer_base> label;
+    hr = encrypt_label(options, label);
+    if (hr.failed())
+        return hr;
+
+    return PKEY_cipher<EVP_PKEY_decrypt_init, EVP_PKEY_decrypt>(
+        key_.As<KeyObject>()->pkey(), padding, digest, label, buf, retVal);
 }
 
 result_t crypto_base::privateDecrypt(Union_privateDecrypt_privateKey privateKey, Union_privateDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal)
 {
-    bool bOptions = std::holds_alternative<v8::Local<v8::Object>>(privateKey);
-
-    // a string buffer is declared together with the options object only: it is
+    // a string buffer is declared together with the options form only: it is
     // decoded with the `encoding` option, which a plain key cannot carry
-    if (std::holds_alternative<exlib::string>(buffer) && !bOptions)
+    if (std::holds_alternative<exlib::string>(buffer))
         return result_t::type_mismatch();
 
     obj_ptr<Buffer_base> buf;
-
-    if (std::holds_alternative<exlib::string>(buffer)) {
-        result_t hr = optionsStringToBuffer(std::get<v8::Local<v8::Object>>(privateKey),
-            std::get<exlib::string>(buffer), buf);
-        if (hr.failed())
-            return hr;
-    } else
-        buf = std::get<obj_ptr<Buffer_base>>(buffer);
-
-    if (bOptions)
-        return PKEY_cipher<pkey_create_private_key, EVP_PKEY_decrypt_init, EVP_PKEY_decrypt, true>(
-            std::get<v8::Local<v8::Object>>(privateKey), RSA_PKCS1_OAEP_PADDING, buf, retVal);
+    result_t hr = encrypt_buffer(buffer, "utf8", buf);
+    if (hr.failed())
+        return hr;
 
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(privateKey))
         return PKEY_cipher<EVP_PKEY_decrypt_init, EVP_PKEY_decrypt>(
@@ -215,28 +210,36 @@ result_t crypto_base::privateDecrypt(Union_privateDecrypt_privateKey privateKey,
 
     return PKEY_cipher<pkey_create_private_key, EVP_PKEY_decrypt_init, EVP_PKEY_decrypt>(keyBuf, RSA_PKCS1_OAEP_PADDING, buf, retVal);
 }
+result_t crypto_base::privateEncrypt(EncryptOptions* options, Union_privateEncrypt_buffer buffer, obj_ptr<Buffer_base>& retVal)
+{
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
+    obj_ptr<KeyObject_base> key_;
+    result_t hr = create_key_object(nullptr, *options, KeyObject::kKeyTypePrivate, key_);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<Buffer_base> buf;
+    hr = encrypt_buffer(buffer, options->encoding.value_or("utf8"), buf);
+    if (hr.failed())
+        return hr;
+
+    int padding = options->padding.value_or(RSA_PKCS1_PADDING);
+
+    return PKEY_cipher<EVP_PKEY_sign_init, EVP_PKEY_sign>(
+        key_.As<KeyObject>()->pkey(), padding, nullptr, nullptr, buf, retVal);
+}
+
 result_t crypto_base::privateEncrypt(Union_privateEncrypt_privateKey privateKey, Union_privateEncrypt_buffer buffer, obj_ptr<Buffer_base>& retVal)
 {
-    bool bOptions = std::holds_alternative<v8::Local<v8::Object>>(privateKey);
-
-    // a string buffer is declared together with the options object only: it is
-    // decoded with the `encoding` option, which a plain key cannot carry
-    if (std::holds_alternative<exlib::string>(buffer) && !bOptions)
+    if (std::holds_alternative<exlib::string>(buffer))
         return result_t::type_mismatch();
 
     obj_ptr<Buffer_base> buf;
-
-    if (std::holds_alternative<exlib::string>(buffer)) {
-        result_t hr = optionsStringToBuffer(std::get<v8::Local<v8::Object>>(privateKey),
-            std::get<exlib::string>(buffer), buf);
-        if (hr.failed())
-            return hr;
-    } else
-        buf = std::get<obj_ptr<Buffer_base>>(buffer);
-
-    if (bOptions)
-        return PKEY_cipher<pkey_create_private_key, EVP_PKEY_sign_init, EVP_PKEY_sign, false>(
-            std::get<v8::Local<v8::Object>>(privateKey), RSA_PKCS1_PADDING, buf, retVal);
+    result_t hr = encrypt_buffer(buffer, "utf8", buf);
+    if (hr.failed())
+        return hr;
 
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(privateKey))
         return PKEY_cipher<EVP_PKEY_sign_init, EVP_PKEY_sign>(
@@ -254,28 +257,36 @@ result_t crypto_base::privateEncrypt(Union_privateEncrypt_privateKey privateKey,
 
     return PKEY_cipher<pkey_create_private_key, EVP_PKEY_sign_init, EVP_PKEY_sign>(keyBuf, RSA_PKCS1_PADDING, buf, retVal);
 }
+result_t crypto_base::publicDecrypt(EncryptOptions* options, Union_publicDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal)
+{
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
+    obj_ptr<KeyObject_base> key_;
+    result_t hr = create_key_object(nullptr, *options, KeyObject::kKeyTypePublic, key_);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<Buffer_base> buf;
+    hr = encrypt_buffer(buffer, options->encoding.value_or("utf8"), buf);
+    if (hr.failed())
+        return hr;
+
+    int padding = options->padding.value_or(RSA_PKCS1_PADDING);
+
+    return PKEY_cipher<EVP_PKEY_verify_recover_init, EVP_PKEY_verify_recover>(
+        key_.As<KeyObject>()->pkey(), padding, nullptr, nullptr, buf, retVal);
+}
+
 result_t crypto_base::publicDecrypt(Union_publicDecrypt_publicKey privateKey, Union_publicDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal)
 {
-    bool bOptions = std::holds_alternative<v8::Local<v8::Object>>(privateKey);
-
-    // a string buffer is declared together with the options object only: it is
-    // decoded with the `encoding` option, which a plain key cannot carry
-    if (std::holds_alternative<exlib::string>(buffer) && !bOptions)
+    if (std::holds_alternative<exlib::string>(buffer))
         return result_t::type_mismatch();
 
     obj_ptr<Buffer_base> buf;
-
-    if (std::holds_alternative<exlib::string>(buffer)) {
-        result_t hr = optionsStringToBuffer(std::get<v8::Local<v8::Object>>(privateKey),
-            std::get<exlib::string>(buffer), buf);
-        if (hr.failed())
-            return hr;
-    } else
-        buf = std::get<obj_ptr<Buffer_base>>(buffer);
-
-    if (bOptions)
-        return PKEY_cipher<pkey_create_public_key, EVP_PKEY_verify_recover_init, EVP_PKEY_verify_recover, false>(
-            std::get<v8::Local<v8::Object>>(privateKey), RSA_PKCS1_PADDING, buf, retVal);
+    result_t hr = encrypt_buffer(buffer, "utf8", buf);
+    if (hr.failed())
+        return hr;
 
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(privateKey))
         return PKEY_cipher<EVP_PKEY_verify_recover_init, EVP_PKEY_verify_recover>(
@@ -293,28 +304,46 @@ result_t crypto_base::publicDecrypt(Union_publicDecrypt_publicKey privateKey, Un
 
     return PKEY_cipher<pkey_create_public_key, EVP_PKEY_verify_recover_init, EVP_PKEY_verify_recover>(keyBuf, RSA_PKCS1_PADDING, buf, retVal);
 }
+result_t crypto_base::publicEncrypt(EncryptOptions* options, Union_publicEncrypt_buffer buffer, obj_ptr<Buffer_base>& retVal)
+{
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
+    obj_ptr<KeyObject_base> key_;
+    result_t hr = create_key_object(nullptr, *options, KeyObject::kKeyTypePublic, key_);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<Buffer_base> buf;
+    hr = encrypt_buffer(buffer, options->encoding.value_or("utf8"), buf);
+    if (hr.failed())
+        return hr;
+
+    int padding = options->padding.value_or(RSA_PKCS1_OAEP_PADDING);
+
+    const EVP_MD* digest;
+    hr = encrypt_digest(options, digest);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<Buffer_base> label;
+    hr = encrypt_label(options, label);
+    if (hr.failed())
+        return hr;
+
+    return PKEY_cipher<EVP_PKEY_encrypt_init, EVP_PKEY_encrypt>(
+        key_.As<KeyObject>()->pkey(), padding, digest, label, buf, retVal);
+}
+
 result_t crypto_base::publicEncrypt(Union_publicEncrypt_publicKey privateKey, Union_publicEncrypt_buffer buffer, obj_ptr<Buffer_base>& retVal)
 {
-    bool bOptions = std::holds_alternative<v8::Local<v8::Object>>(privateKey);
-
-    // a string buffer is declared together with the options object only: it is
-    // decoded with the `encoding` option, which a plain key cannot carry
-    if (std::holds_alternative<exlib::string>(buffer) && !bOptions)
+    if (std::holds_alternative<exlib::string>(buffer))
         return result_t::type_mismatch();
 
     obj_ptr<Buffer_base> buf;
-
-    if (std::holds_alternative<exlib::string>(buffer)) {
-        result_t hr = optionsStringToBuffer(std::get<v8::Local<v8::Object>>(privateKey),
-            std::get<exlib::string>(buffer), buf);
-        if (hr.failed())
-            return hr;
-    } else
-        buf = std::get<obj_ptr<Buffer_base>>(buffer);
-
-    if (bOptions)
-        return PKEY_cipher<pkey_create_public_key, EVP_PKEY_encrypt_init, EVP_PKEY_encrypt, true>(
-            std::get<v8::Local<v8::Object>>(privateKey), RSA_PKCS1_OAEP_PADDING, buf, retVal);
+    result_t hr = encrypt_buffer(buffer, "utf8", buf);
+    if (hr.failed())
+        return hr;
 
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(privateKey))
         return PKEY_cipher<EVP_PKEY_encrypt_init, EVP_PKEY_encrypt>(

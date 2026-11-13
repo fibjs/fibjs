@@ -2215,12 +2215,19 @@ describe('crypto', () => {
                 );
 
                 for (const dsaEncoding of ['foo', null, {}, 5, true, NaN]) {
+                    // A value with a string form reaches the signer (which
+                    // rejects an unknown encoding); a value that is not a
+                    // string at all is rejected while the options record is
+                    // loaded.
+                    const expected = (typeof dsaEncoding === 'string' || dsaEncoding === null)
+                        ? { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' }
+                        : { name: 'TypeError', number: 20005, code: 'ERR_INVALID_ARG_TYPE' };
                     assert.throws(() => {
                         crypto.sign('sha1', data, {
                             key: certPem,
                             dsaEncoding
                         });
-                    }, { name: 'TypeError', number: 20011, code: 'ERR_INVALID_ARG_VALUE' });
+                    }, expected);
                 }
             });
 

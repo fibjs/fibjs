@@ -16,6 +16,7 @@
 namespace fibjs {
 
 class Buffer_base;
+class SignOptions;
 class KeyObject_base;
 
 class Verify_base : public object_base {
@@ -23,12 +24,13 @@ class Verify_base : public object_base {
 
 public:
     using Union_update_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_verify_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
     using Union_verify_signature = std::variant<obj_ptr<Buffer_base>, exlib::string>;
+    using Union_verify_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
 
 public:
     // Verify_base
     virtual result_t update(Union_update_data data, exlib::string codec, obj_ptr<Verify_base>& retVal) = 0;
+    virtual result_t verify(SignOptions* privateKey, Union_verify_signature signature, exlib::string encoding, bool& retVal) = 0;
     virtual result_t verify(Union_verify_privateKey privateKey, Union_verify_signature signature, exlib::string encoding, bool& retVal) = 0;
 
 public:
@@ -49,6 +51,7 @@ public:
 }
 
 #include "ifs/Buffer.h"
+#include "ifs/SignOptions.h"
 #include "ifs/KeyObject.h"
 
 namespace fibjs {
@@ -93,6 +96,14 @@ inline void Verify_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_INSTANCE(Verify_base);
     METHOD_ENTER();
+
+    METHOD_OVER_NAMED(3, 2, "signature");
+
+    ARG_NAMED(obj_ptr<SignOptions>, 0, "privateKey");
+    ARG(Union_verify_signature, 1);
+    OPT_ARG_NAMED(exlib::string, 2, "buffer", "encoding");
+
+    hr = pInst->verify((SignOptions*)v0, v1, v2, vr);
 
     METHOD_OVER_NAMED(3, 2, "signature");
 

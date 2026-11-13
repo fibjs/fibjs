@@ -294,6 +294,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         var opts = 0;
                         var params = [];
                         var args = [];
+                        var sync_args = [];
                         var args_call;
                         var ftype = ov.type;
                         var _ovPfx = (_mixed && !ov.type) ? "v" : (_mixed ? "p" : "");
@@ -305,8 +306,17 @@ function gen_code(cls, def, baseFolder, allDefs) {
                             ov.params.forEach(p => {
                                 const vt = get_vtype(p, ov, is_load);
                                 const isOption = is_struct_param(p) || is_named_struct(p.type);
-                                args.push(isOption ? 'v' + params.length
-                                                   : (vt.startsWith('obj_ptr<') ? 'v' + params.length + '.get()' : 'v' + params.length));
+                                var call_arg = isOption ? 'v' + params.length
+                                                   : (vt.startsWith('obj_ptr<') ? 'v' + params.length + '.get()' : 'v' + params.length);
+                                args.push(call_arg);
+                                // The native signature takes the record by raw pointer. Spelling
+                                // the cast here (instead of relying on obj_ptr's implicit conversion)
+                                // keeps an options-record overload distinct from a same-arity union
+                                // overload: obj_ptr<Options> is otherwise convertible to every
+                                // obj_ptr<T>, and the two candidates become ambiguous.
+                                sync_args.push(isOption
+                                    ? `(${is_struct_param(p) ? option_type_name(ov, p) : p.type}*)v${params.length}`
+                                    : call_arg);
                                 if (p.name == '...') {
                                     opts--;
                                     argc = -1;
@@ -389,7 +399,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         if (params.length)
                             sink.push(params.join('\n') + '\n');
 
-                        args_call = args.slice(0);
+                        args_call = sync_args.slice(0);
                         if (ftype)
                             args_call.push('vr');
 
@@ -397,11 +407,14 @@ function gen_code(cls, def, baseFolder, allDefs) {
                             sink.push('    DEPRECATED_SOON("' + cls + '.' + ov.name + '");\n');
 
                         if (ov.async) {
+                            var ac_args = args.slice(0);
+                            if (ftype)
+                                ac_args.push('vr');
                             args.push('cb');;
                             ([
                                 `    if (!cb.IsEmpty())\n        hr = ${(ov.static ? 'acb' : 'pInst->acb')}${_ovPfx}_${get_name(ov.name, ov, def)}(${args.join(', ')}, args);`,
                                 `    else`,
-                                `        hr = ${(ov.static ? 'ac' : 'pInst->ac')}${_ovPfx}_${get_name(ov.name, ov, def)}(${args_call.join(', ')});\n`,
+                                `        hr = ${(ov.static ? 'ac' : 'pInst->ac')}${_ovPfx}_${get_name(ov.name, ov, def)}(${ac_args.join(', ')});\n`,
                             ]).forEach(line => sink.push(line))
                         } else {
                             if (is_func_new(ov, def))

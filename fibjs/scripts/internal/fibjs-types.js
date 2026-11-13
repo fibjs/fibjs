@@ -46260,7 +46260,29 @@ declare class Class_Sign extends Class_object {
      *      @return returns the signature value
      *
      */
-    sign(privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, encoding?: string): any;
+    sign(privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, encoding?: string): any;
+
+    /**
+     * @description Signs the data with a key given as raw key material
+     *
+     *      The key is used directly and the signature encoding defaults to DER.
+     *      @param privateKey the private key
+     *      @param encoding the encoding of the return value
+     *      @return returns the signature value
+     *
+     */
+    sign(privateKey: Class_Buffer | Class_KeyObject | string, encoding?: string): any;
 
 }
 
@@ -59763,7 +59785,30 @@ declare class Class_Verify extends Class_object {
      *      @return returns true if the signature is valid, false otherwise
      *
      */
-    verify(privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string, encoding?: string): boolean;
+    verify(privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, signature: Class_Buffer | string, encoding?: string): boolean;
+
+    /**
+     * @description Verifies a signature with a key given as raw key material
+     *
+     *      The key is used directly and the signature encoding defaults to DER.
+     *      @param privateKey the public key
+     *      @param signature the signature to verify
+     *      @param encoding the encoding of a string signature
+     *      @return returns true when the signature is valid
+     *
+     */
+    verify(privateKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string, encoding?: string): boolean;
 
 }
 
@@ -81342,7 +81387,26 @@ declare module 'crypto' {
      *      @return returns the private key object
      *
      */
-    function createPrivateKey(key: Class_Buffer | FIBJS.GeneralObject | string): Class_KeyObject;
+    function createPrivateKey(key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+    }): Class_KeyObject;
+
+    /**
+     * @description Creates a KeyObject from raw private key material
+     *
+     *      This form takes the key bytes or PEM text directly, without an options
+     *      object.
+     *      @param key the key bytes or PEM text
+     *      @return returns the private key object
+     *
+     */
+    function createPrivateKey(key: Class_Buffer | string): Class_KeyObject;
 
     /**
      * @description Creates a KeyObject holding an asymmetric public key
@@ -81355,7 +81419,25 @@ declare module 'crypto' {
      *      @return returns the public key object
      *
      */
-    function createPublicKey(key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_KeyObject;
+    function createPublicKey(key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+    }): Class_KeyObject;
+
+    /**
+     * @description Creates a KeyObject from raw public key material
+     *
+     *      This form takes the key bytes, PEM text or an existing KeyObject directly.
+     *      @param key the key bytes, PEM text or an existing KeyObject
+     *      @return returns the public key object
+     *
+     */
+    function createPublicKey(key: Class_Buffer | Class_KeyObject | string): Class_KeyObject;
 
     /**
      * @description Creates a streaming signing object for the given digest algorithm
@@ -82168,7 +82250,30 @@ declare module 'crypto' {
      *      @return returns the decrypted data
      *
      */
-    function privateDecrypt(privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function privateDecrypt(privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        padding?: number;
+        oaepHash?: string;
+        oaepLabel?: Class_Buffer | ArrayBuffer | string;
+    }, buffer: Class_Buffer | string): Class_Buffer;
+
+    /**
+     * @description Decrypts data with a private key given as raw key material
+     *
+     *      The default padding is OAEP; use the options form to select another
+     *      padding or supply a string buffer.
+     *      @param privateKey the private key
+     *      @param buffer the data to decrypt
+     *      @return returns the decrypted data
+     *
+     */
+    function privateDecrypt(privateKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Encrypts data with the private key (RSA signature-style operation)
@@ -82184,7 +82289,30 @@ declare module 'crypto' {
      *      @return returns the encrypted data
      *
      */
-    function privateEncrypt(privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function privateEncrypt(privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        padding?: number;
+        oaepHash?: string;
+        oaepLabel?: Class_Buffer | ArrayBuffer | string;
+    }, buffer: Class_Buffer | string): Class_Buffer;
+
+    /**
+     * @description Encrypts data with a private key given as raw key material
+     *
+     *      The default padding is PKCS#1 v1.5; use the options form to select another
+     *      padding or supply a string buffer.
+     *      @param privateKey the private key
+     *      @param buffer the data to encrypt
+     *      @return returns the encrypted data
+     *
+     */
+    function privateEncrypt(privateKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Decrypts data that was encrypted with the matching private key
@@ -82199,7 +82327,30 @@ declare module 'crypto' {
      *      @return returns the decrypted data
      *
      */
-    function publicDecrypt(publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function publicDecrypt(publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        padding?: number;
+        oaepHash?: string;
+        oaepLabel?: Class_Buffer | ArrayBuffer | string;
+    }, buffer: Class_Buffer | string): Class_Buffer;
+
+    /**
+     * @description Decrypts data with a public key given as raw key material
+     *
+     *      The default padding is PKCS#1 v1.5; use the options form to select another
+     *      padding or supply a string buffer.
+     *      @param publicKey the public key
+     *      @param buffer the data to decrypt
+     *      @return returns the decrypted data
+     *
+     */
+    function publicDecrypt(publicKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Encrypts data with the public key so that only the private key can decrypt it
@@ -82239,7 +82390,30 @@ declare module 'crypto' {
      *      @return returns the encrypted data
      *
      */
-    function publicEncrypt(publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function publicEncrypt(publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        padding?: number;
+        oaepHash?: string;
+        oaepLabel?: Class_Buffer | ArrayBuffer | string;
+    }, buffer: Class_Buffer | string): Class_Buffer;
+
+    /**
+     * @description Encrypts data with a public key given as raw key material
+     *
+     *      The default padding is OAEP; use the options form to select another
+     *      padding or supply a string buffer.
+     *      @param publicKey the public key
+     *      @param buffer the data to encrypt
+     *      @return returns the encrypted data
+     *
+     */
+    function publicEncrypt(publicKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Computes the signature of data in one shot
@@ -82278,48 +82452,31 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_Buffer;
+    function sign(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }): Class_Buffer;
 
-    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Computes the signature of data in one shot
-     *
-     *      The private key selects the algorithm family: RSA (PKCS#1 v1.5 or PSS), ECDSA,
-     *      DSA, Ed25519/Ed448, SM2 and Bls12381G1/G2 are supported. For Ed25519 and Ed448
-     *      pass \`null\` (or undefined) as the algorithm - they digest internally and reject
-     *      a separate one. With an RSA-PSS key, or when \`padding\` is set to
-     *      RSA_PKCS1_PSS_PADDING, the signature is PSS. \`dsaEncoding\` selects 'der'
-     *      (default) or 'ieee-p1363' for DSA/ECDSA, and the verifier must use the same.
-     *      The one-shot form is the only option for Ed25519/Ed448; use createSign when the
-     *      data arrives in chunks. Follows the async call forms.
-     *
-     *      Example: an EC signature, verified and tampered with:
-     *      \`\`\`JavaScript
-     *      const crypto = require('crypto');
-     *
-     *      const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', {
-     *          namedCurve: 'prime256v1'
-     *      });
-     *      const signature = crypto.sign('sha256', 'message', {
-     *          key: privateKey,
-     *          dsaEncoding: 'ieee-p1363'
-     *      });
-     *
-     *      console.log(crypto.verify('sha256', 'message', {
-     *          key: publicKey,
-     *          dsaEncoding: 'ieee-p1363'
-     *      }, signature)); // true
-     *      console.log(crypto.verify('sha256', 'tampered', publicKey, signature)); // false
-     *      \`\`\`
-     *
-     *      @param algorithm the digest algorithm name, or null for Ed25519/Ed448
-     *      @param data the data to sign
-     *      @param key the private key and signing options
-     *      @return returns the signature
-     *
-     */
-    function signSync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_Buffer;
+    function sign(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Computes the signature of data in one shot
@@ -82358,7 +82515,109 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function signAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Promise<Class_Buffer>;
+    function signSync(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }): Class_Buffer;
+
+    /**
+     * @description Computes the signature of data in one shot
+     *
+     *      The private key selects the algorithm family: RSA (PKCS#1 v1.5 or PSS), ECDSA,
+     *      DSA, Ed25519/Ed448, SM2 and Bls12381G1/G2 are supported. For Ed25519 and Ed448
+     *      pass \`null\` (or undefined) as the algorithm - they digest internally and reject
+     *      a separate one. With an RSA-PSS key, or when \`padding\` is set to
+     *      RSA_PKCS1_PSS_PADDING, the signature is PSS. \`dsaEncoding\` selects 'der'
+     *      (default) or 'ieee-p1363' for DSA/ECDSA, and the verifier must use the same.
+     *      The one-shot form is the only option for Ed25519/Ed448; use createSign when the
+     *      data arrives in chunks. Follows the async call forms.
+     *
+     *      Example: an EC signature, verified and tampered with:
+     *      \`\`\`JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', {
+     *          namedCurve: 'prime256v1'
+     *      });
+     *      const signature = crypto.sign('sha256', 'message', {
+     *          key: privateKey,
+     *          dsaEncoding: 'ieee-p1363'
+     *      });
+     *
+     *      console.log(crypto.verify('sha256', 'message', {
+     *          key: publicKey,
+     *          dsaEncoding: 'ieee-p1363'
+     *      }, signature)); // true
+     *      console.log(crypto.verify('sha256', 'tampered', publicKey, signature)); // false
+     *      \`\`\`
+     *
+     *      @param algorithm the digest algorithm name, or null for Ed25519/Ed448
+     *      @param data the data to sign
+     *      @param key the private key and signing options
+     *      @return returns the signature
+     *
+     */
+    function signAsync(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }): Promise<Class_Buffer>;
+
+    /**
+     * @description Computes a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data to sign
+     *      @param key the private key
+     *      @return returns the signature
+     *
+     */
+    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+
+    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description Computes a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data to sign
+     *      @param key the private key
+     *      @return returns the signature
+     *
+     */
+    function signSync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+
+    /**
+     * @description Computes a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data to sign
+     *      @param key the private key
+     *      @return returns the signature
+     *
+     */
+    function signAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -82376,9 +82635,31 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): boolean;
+    function verify(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, signature: Class_Buffer | string): boolean;
 
-    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function verify(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -82396,7 +82677,18 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifySync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): boolean;
+    function verifySync(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, signature: Class_Buffer | string): boolean;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -82414,7 +82706,62 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, signature: Class_Buffer | string): Promise<boolean>;
+
+    /**
+     * @description Verifies a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data that was signed
+     *      @param key the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+
+    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description Verifies a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data that was signed
+     *      @param key the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function verifySync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+
+    /**
+     * @description Verifies a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data that was signed
+     *      @param key the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Compares two byte sequences in constant time
@@ -82999,7 +83346,26 @@ declare module 'crypto/promises' {
      *      @return returns the private key object
      *
      */
-    function createPrivateKey(key: Class_Buffer | FIBJS.GeneralObject | string): Class_KeyObject;
+    function createPrivateKey(key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+    }): Class_KeyObject;
+
+    /**
+     * @description Creates a KeyObject from raw private key material
+     *
+     *      This form takes the key bytes or PEM text directly, without an options
+     *      object.
+     *      @param key the key bytes or PEM text
+     *      @return returns the private key object
+     *
+     */
+    function createPrivateKey(key: Class_Buffer | string): Class_KeyObject;
 
     /**
      * @description Creates a KeyObject holding an asymmetric public key
@@ -83012,7 +83378,25 @@ declare module 'crypto/promises' {
      *      @return returns the public key object
      *
      */
-    function createPublicKey(key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_KeyObject;
+    function createPublicKey(key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+    }): Class_KeyObject;
+
+    /**
+     * @description Creates a KeyObject from raw public key material
+     *
+     *      This form takes the key bytes, PEM text or an existing KeyObject directly.
+     *      @param key the key bytes, PEM text or an existing KeyObject
+     *      @return returns the public key object
+     *
+     */
+    function createPublicKey(key: Class_Buffer | Class_KeyObject | string): Class_KeyObject;
 
     /**
      * @description Creates a streaming signing object for the given digest algorithm
@@ -83796,7 +84180,30 @@ declare module 'crypto/promises' {
      *      @return returns the decrypted data
      *
      */
-    function privateDecrypt(privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function privateDecrypt(privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        padding?: number;
+        oaepHash?: string;
+        oaepLabel?: Class_Buffer | ArrayBuffer | string;
+    }, buffer: Class_Buffer | string): Class_Buffer;
+
+    /**
+     * @description Decrypts data with a private key given as raw key material
+     *
+     *      The default padding is OAEP; use the options form to select another
+     *      padding or supply a string buffer.
+     *      @param privateKey the private key
+     *      @param buffer the data to decrypt
+     *      @return returns the decrypted data
+     *
+     */
+    function privateDecrypt(privateKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Encrypts data with the private key (RSA signature-style operation)
@@ -83812,7 +84219,30 @@ declare module 'crypto/promises' {
      *      @return returns the encrypted data
      *
      */
-    function privateEncrypt(privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function privateEncrypt(privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        padding?: number;
+        oaepHash?: string;
+        oaepLabel?: Class_Buffer | ArrayBuffer | string;
+    }, buffer: Class_Buffer | string): Class_Buffer;
+
+    /**
+     * @description Encrypts data with a private key given as raw key material
+     *
+     *      The default padding is PKCS#1 v1.5; use the options form to select another
+     *      padding or supply a string buffer.
+     *      @param privateKey the private key
+     *      @param buffer the data to encrypt
+     *      @return returns the encrypted data
+     *
+     */
+    function privateEncrypt(privateKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Decrypts data that was encrypted with the matching private key
@@ -83827,7 +84257,30 @@ declare module 'crypto/promises' {
      *      @return returns the decrypted data
      *
      */
-    function publicDecrypt(publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function publicDecrypt(publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        padding?: number;
+        oaepHash?: string;
+        oaepLabel?: Class_Buffer | ArrayBuffer | string;
+    }, buffer: Class_Buffer | string): Class_Buffer;
+
+    /**
+     * @description Decrypts data with a public key given as raw key material
+     *
+     *      The default padding is PKCS#1 v1.5; use the options form to select another
+     *      padding or supply a string buffer.
+     *      @param publicKey the public key
+     *      @param buffer the data to decrypt
+     *      @return returns the decrypted data
+     *
+     */
+    function publicDecrypt(publicKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Encrypts data with the public key so that only the private key can decrypt it
@@ -83867,7 +84320,30 @@ declare module 'crypto/promises' {
      *      @return returns the encrypted data
      *
      */
-    function publicEncrypt(publicKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function publicEncrypt(publicKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        padding?: number;
+        oaepHash?: string;
+        oaepLabel?: Class_Buffer | ArrayBuffer | string;
+    }, buffer: Class_Buffer | string): Class_Buffer;
+
+    /**
+     * @description Encrypts data with a public key given as raw key material
+     *
+     *      The default padding is OAEP; use the options form to select another
+     *      padding or supply a string buffer.
+     *      @param publicKey the public key
+     *      @param buffer the data to encrypt
+     *      @return returns the encrypted data
+     *
+     */
+    function publicEncrypt(publicKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
 
     /**
      * @description Computes the signature of data in one shot
@@ -83906,7 +84382,18 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Promise<Class_Buffer>;
+    function sign(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }): Promise<Class_Buffer>;
 
     /**
      * @description Computes the signature of data in one shot
@@ -83945,7 +84432,18 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function signSync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Class_Buffer;
+    function signSync(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }): Class_Buffer;
 
     /**
      * @description Computes the signature of data in one shot
@@ -83984,7 +84482,57 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function signAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string): Promise<Class_Buffer>;
+    function signAsync(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }): Promise<Class_Buffer>;
+
+    /**
+     * @description Computes a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data to sign
+     *      @param key the private key
+     *      @return returns the signature
+     *
+     */
+    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+
+    /**
+     * @description Computes a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data to sign
+     *      @param key the private key
+     *      @return returns the signature
+     *
+     */
+    function signSync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+
+    /**
+     * @description Computes a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data to sign
+     *      @param key the private key
+     *      @return returns the signature
+     *
+     */
+    function signAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -84002,7 +84550,18 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function verify(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, signature: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -84020,7 +84579,18 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifySync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): boolean;
+    function verifySync(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, signature: Class_Buffer | string): boolean;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -84038,7 +84608,60 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, signature: Class_Buffer | string): Promise<boolean>;
+
+    /**
+     * @description Verifies a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data that was signed
+     *      @param key the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
+
+    /**
+     * @description Verifies a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data that was signed
+     *      @param key the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function verifySync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+
+    /**
+     * @description Verifies a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data that was signed
+     *      @param key the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
 
     /**
      * @description Compares two byte sequences in constant time

@@ -153,7 +153,29 @@ declare class Class_Sign extends Class_object {
      *      @return returns the signature value
      *
      */
-    sign(privateKey: Class_Buffer | Class_KeyObject | FIBJS.GeneralObject | string, encoding?: string): any;
+    sign(privateKey: {
+        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        format?: string;
+        type?: string;
+        passphrase?: string | Class_Buffer;
+        encoding?: string;
+        namedCurve?: string;
+        toX25519?: boolean;
+        dsaEncoding?: string;
+        padding?: number;
+        saltLength?: number;
+    }, encoding?: string): any;
+
+    /**
+     * @description Signs the data with a key given as raw key material
+     *
+     *      The key is used directly and the signature encoding defaults to DER.
+     *      @param privateKey the private key
+     *      @param encoding the encoding of the return value
+     *      @return returns the signature value
+     *
+     */
+    sign(privateKey: Class_Buffer | Class_KeyObject | string, encoding?: string): any;
 
 }
 

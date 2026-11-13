@@ -334,6 +334,131 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
     return result_t::invalid_call();
 }
 
+// ---------------------------------------------------------------------------
+// Native key construction: the same record shapes, without a V8 object.
+// ---------------------------------------------------------------------------
+
+static Buffer_base* variant_buffer(const Variant& v)
+{
+    if (v.type() != Variant::VT_Object)
+        return nullptr;
+    return Buffer_base::getInstance(v.object());
+}
+
+static KeyObject* variant_key_object(const Variant& v)
+{
+    if (v.type() != Variant::VT_Object)
+        return nullptr;
+    return static_cast<KeyObject*>(KeyObject_base::getInstance(v.object()));
+}
+
+static NObject* variant_nobject(const Variant& v)
+{
+    if (v.type() != Variant::VT_Object)
+        return nullptr;
+    return NObject::getInstance(v.object());
+}
+
+static result_t variant_to_buffer(const Variant& v, obj_ptr<Buffer_base>& retVal)
+{
+    if (v.type() == Variant::VT_String)
+        return Buffer_base::from(v.string(), "utf8", retVal);
+
+    Buffer_base* buf = variant_buffer(v);
+    if (!buf)
+        return result_t::type_mismatch();
+
+    retVal = buf;
+    return result_t();
+}
+
+result_t KeyObject::createAsymmetricKey(const KeyObjectOptions& options, KeyType type)
+{
+    if (!options.key.has_value())
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
+    const Variant& k = options.key.value();
+    result_t hr;
+
+    if (!options.format.has_value()) {
+        // No format: an object is either a JWK or an existing key, while a
+        // string or Buffer is PEM text.
+        if (k.type() == Variant::VT_Object) {
+            if (NObject* jwk = variant_nobject(k))
+                return ImportJWKKey(jwk, type);
+
+            KeyObject* key = variant_key_object(k);
+            if (key) {
+                if (type == kKeyTypePublic)
+                    return createPublicKeyFromKeyObject(key);
+
+                if (key->m_keyType == kKeyTypeSecret)
+                    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("cannot create private key from a secret key.");
+
+                if (key->m_keyType == kKeyTypePublic)
+                    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("cannot create private key from a public key.");
+
+                if (EVP_PKEY_id(key->m_pkey) == EVP_PKEY_SM2) {
+                    const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(key->m_pkey);
+
+                    ECKeyPointer ec1 = EC_KEY_new_by_curve_name(NID_sm2);
+                    EC_KEY_set_public_key(ec1, EC_KEY_get0_public_key(ec));
+                    EC_KEY_set_private_key(ec1, EC_KEY_get0_private_key(ec));
+
+                    m_pkey = EVP_PKEY_new();
+                    EVP_PKEY_set1_EC_KEY(m_pkey, ec1);
+                } else
+                    m_pkey = EVP_PKEY_dup(key->m_pkey);
+                m_keyType = type;
+
+                return result_t();
+            }
+        }
+    } else if (options.format.value() == "jwk") {
+        NObject* jwk = variant_nobject(k);
+        if (!jwk)
+            return result_t::type_mismatch();
+        return ImportJWKKey(jwk, type);
+    }
+
+    obj_ptr<Buffer_base> key_buf;
+    if (k.type() == Variant::VT_String) {
+        exlib::string data;
+        hr = commonDecode(options.encoding.value_or("utf8"), k.string(), data);
+        if (hr.failed())
+            return hr;
+        key_buf = new Buffer((const unsigned char*)data.c_str(), data.length());
+    } else {
+        key_buf = variant_buffer(k);
+        if (!key_buf)
+            return result_t::type_mismatch();
+    }
+
+    obj_ptr<Buffer_base> passphrase;
+    if (options.passphrase.has_value()) {
+        hr = variant_to_buffer(options.passphrase.value(), passphrase);
+        if (hr.failed())
+            return hr;
+    }
+
+    exlib::string format = options.format.value_or("pem");
+    exlib::string key_type;
+    exlib::string namedCurve;
+
+    if (format == "der")
+        key_type = options.type.value_or("");
+    else if (format == "raw")
+        namedCurve = options.namedCurve.value_or("");
+
+    if (type == kKeyTypePublic)
+        return ParsePublicKey(format, key_type, namedCurve, passphrase, key_buf);
+
+    if (type == kKeyTypePrivate)
+        return ParsePrivateKey(format, key_type, namedCurve, passphrase, key_buf);
+
+    return result_t::invalid_call();
+}
+
 result_t KeyObject::equals(KeyObject_base* otherKey, bool& retVal)
 {
     KeyObject* other = (KeyObject*)otherKey;

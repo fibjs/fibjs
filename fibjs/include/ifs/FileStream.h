@@ -92,7 +92,7 @@ inline void FileStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG_NAMED(exlib::string, 0, "path");
     OPT_ARG_NAMED(obj_ptr<Options_FileStream_FileStream_options>, 1, new Options_FileStream_FileStream_options(), "options");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (Options_FileStream_FileStream_options*)v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -108,7 +108,7 @@ inline result_t FileStream_base::load(v8::Local<v8::Value> v, obj_ptr<FileStream
     ARG_NAMED(exlib::string, 0, "path");
     OPT_ARG_NAMED(obj_ptr<Options_FileStream_FileStream_options>, 1, new Options_FileStream_FileStream_options(), "options");
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, (Options_FileStream_FileStream_options*)v1, vr, args.This());
 
     LOAD_RETURN();
 }

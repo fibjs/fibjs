@@ -1,0 +1,19 @@
+/*! @brief Structured key and RSA options for the publicEncrypt family.
+
+     The key-import fields are the same as in KeyOptions. `padding` selects
+     RSA_PKCS1_OAEP_PADDING or RSA_PKCS1_PADDING, `oaepHash` is the OAEP digest
+     (default 'sha1') and `oaepLabel` is the optional OAEP label. `encoding`
+     decodes a string key or a string buffer.
+ */
+struct EncryptOptions {
+    KeyObject|Buffer|String|NObject key;
+    String format;
+    String type;
+    String|Buffer passphrase;
+    String encoding = "utf8";
+    String namedCurve;
+    Boolean toX25519 = false;
+    Integer padding;
+    String oaepHash = "sha1";
+    Buffer|ArrayBuffer|String oaepLabel;
+};

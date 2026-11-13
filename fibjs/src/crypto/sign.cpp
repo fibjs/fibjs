@@ -40,6 +40,25 @@ static result_t get_sig_opt(Isolate* isolate, v8::Local<v8::Object> key, DSASigE
     return result_t();
 }
 
+static result_t get_sig_opt(SignOptions* options, DSASigEnc& enc, int& padding, int& salt_len)
+{
+    if (!options)
+        return result_t();
+
+    exlib::string dsaEncoding = options->dsaEncoding.value_or("der");
+    if (dsaEncoding == "ieee-p1363")
+        enc = kSigEncP1363;
+    else if (dsaEncoding != "der")
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid dsaEncoding: '%s'.", dsaEncoding.c_str());
+
+    if (options->padding.has_value())
+        padding = options->padding.value();
+    if (options->saltLength.has_value())
+        salt_len = options->saltLength.value();
+
+    return result_t();
+}
+
 static bool ApplyRSAOptions(const EVP_PKEY* pkey, EVP_PKEY_CTX* pkctx, int padding, int salt_len)
 {
     int pk_id = EVP_PKEY_id(pkey);
@@ -214,13 +233,30 @@ result_t Sign::sign(KeyObject_base* key, DSASigEnc enc, int padding, int salt_le
     return sig->toValue(encoding, retVal);
 }
 
+result_t Sign::sign(SignOptions* options, exlib::string encoding, v8::Local<v8::Value>& retVal)
+{
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
+    obj_ptr<KeyObject_base> key_;
+    result_t hr = create_key_object(nullptr, *options, KeyObject::kKeyTypePrivate, key_);
+    if (hr.failed())
+        return hr;
+
+    DSASigEnc enc = kSigEncDER;
+    int padding = DEFAULT_PADDING;
+    int salt_len = RSA_PSS_SALTLEN_MAX_SIGN;
+    hr = get_sig_opt(options, enc, padding, salt_len);
+    if (hr.failed())
+        return hr;
+
+    return sign(key_, enc, padding, salt_len, encoding, retVal);
+}
+
 result_t Sign::sign(Union_sign_privateKey privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal)
 {
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(privateKey))
         return sign_keyobj(std::get<obj_ptr<KeyObject_base>>(privateKey), encoding, retVal);
-
-    if (std::holds_alternative<v8::Local<v8::Object>>(privateKey))
-        return sign_opts(std::get<v8::Local<v8::Object>>(privateKey), encoding, retVal);
 
     obj_ptr<KeyObject_base> key;
     result_t hr;
@@ -239,28 +275,6 @@ result_t Sign::sign(Union_sign_privateKey privateKey, exlib::string encoding, v8
 result_t Sign::sign_keyobj(KeyObject_base* privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal)
 {
     return sign(privateKey, kSigEncDER, DEFAULT_PADDING, RSA_PSS_SALTLEN_MAX_SIGN, encoding, retVal);
-}
-
-result_t Sign::sign_opts(v8::Local<v8::Object> key, exlib::string encoding, v8::Local<v8::Value>& retVal)
-{
-    Isolate* isolate = Isolate::current(key);
-    v8::Local<v8::Context> context = isolate->context();
-    result_t hr;
-
-    obj_ptr<KeyObject_base> key_;
-    hr = crypto_base::createPrivateKey(key, key_);
-    if (hr.failed())
-        return hr;
-    KeyObject* key__ = key_.As<KeyObject>();
-
-    DSASigEnc enc = kSigEncDER;
-    int padding = DEFAULT_PADDING;
-    int salt_len = RSA_PSS_SALTLEN_MAX_SIGN;
-    hr = get_sig_opt(isolate, key, enc, padding, salt_len);
-    if (hr.failed())
-        return hr;
-
-    return sign(key__, enc, padding, salt_len, encoding, retVal);
 }
 
 Verify::Verify(const EVP_MD* md)
@@ -354,6 +368,30 @@ result_t Verify::verify(KeyObject_base* key, exlib::string signature, exlib::str
     return verify(key, (const unsigned char*)_signature.c_str(), _signature.length(), enc, padding, salt_len, retVal);
 }
 
+result_t Verify::verify(SignOptions* options, Union_verify_signature signature,
+    exlib::string encoding, bool& retVal)
+{
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
+    obj_ptr<KeyObject_base> key;
+    result_t hr = create_key_object(nullptr, *options, KeyObject::kKeyTypePublic, key);
+    if (hr.failed())
+        return hr;
+
+    DSASigEnc enc = kSigEncDER;
+    int padding = DEFAULT_PADDING;
+    int salt_len = RSA_PSS_SALTLEN_MAX_SIGN;
+    hr = get_sig_opt(options, enc, padding, salt_len);
+    if (hr.failed())
+        return hr;
+
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(signature))
+        return verify(key, std::get<obj_ptr<Buffer_base>>(signature), enc, padding, salt_len, retVal);
+
+    return verify(key, std::get<exlib::string>(signature), encoding, enc, padding, salt_len, retVal);
+}
+
 result_t Verify::verify(Union_verify_privateKey privateKey, Union_verify_signature signature,
     exlib::string encoding, bool& retVal)
 {
@@ -364,15 +402,6 @@ result_t Verify::verify(Union_verify_privateKey privateKey, Union_verify_signatu
             return verify_keyobj(key, std::get<obj_ptr<Buffer_base>>(signature), retVal);
 
         return verify_keyobj(key, std::get<exlib::string>(signature), encoding, retVal);
-    }
-
-    if (std::holds_alternative<v8::Local<v8::Object>>(privateKey)) {
-        v8::Local<v8::Object> key = std::get<v8::Local<v8::Object>>(privateKey);
-
-        if (std::holds_alternative<obj_ptr<Buffer_base>>(signature))
-            return verify_opts(key, std::get<obj_ptr<Buffer_base>>(signature), retVal);
-
-        return verify_opts(key, std::get<exlib::string>(signature), encoding, retVal);
     }
 
     obj_ptr<KeyObject_base> key;
@@ -397,53 +426,9 @@ result_t Verify::verify_keyobj(KeyObject_base* privateKey, Buffer_base* signatur
     return verify(privateKey, signature, kSigEncDER, DEFAULT_PADDING, RSA_PSS_SALTLEN_MAX_SIGN, retVal);
 }
 
-result_t Verify::verify_opts(v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal)
-{
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-    result_t hr;
-
-    obj_ptr<KeyObject_base> key_;
-    hr = crypto_base::createPublicKey(key, key_);
-    if (hr.failed())
-        return hr;
-    KeyObject* key__ = key_.As<KeyObject>();
-
-    DSASigEnc enc = kSigEncDER;
-    int padding = DEFAULT_PADDING;
-    int salt_len = RSA_PSS_SALTLEN_MAX_SIGN;
-    hr = get_sig_opt(isolate, key, enc, padding, salt_len);
-    if (hr.failed())
-        return hr;
-
-    return verify(key__, signature, enc, padding, salt_len, retVal);
-}
-
 result_t Verify::verify_keyobj(KeyObject_base* privateKey, exlib::string signature, exlib::string encoding, bool& retVal)
 {
     return verify(privateKey, signature, encoding, kSigEncDER, DEFAULT_PADDING, RSA_PSS_SALTLEN_MAX_SIGN, retVal);
-}
-
-result_t Verify::verify_opts(v8::Local<v8::Object> key, exlib::string signature, exlib::string encoding, bool& retVal)
-{
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-    result_t hr;
-
-    obj_ptr<KeyObject_base> key_;
-    hr = crypto_base::createPublicKey(key, key_);
-    if (hr.failed())
-        return hr;
-    KeyObject* key__ = key_.As<KeyObject>();
-
-    DSASigEnc enc = kSigEncDER;
-    int padding = DEFAULT_PADDING;
-    int salt_len = RSA_PSS_SALTLEN_MAX_SIGN;
-    hr = get_sig_opt(isolate, key, enc, padding, salt_len);
-    if (hr.failed())
-        return hr;
-
-    return verify(key__, signature, encoding, enc, padding, salt_len, retVal);
 }
 
 result_t crypto_base::createSign(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Sign_base>& retVal)
@@ -568,49 +553,68 @@ result_t _verify(exlib::string algorithm, Buffer_base* data, KeyObject_base* pub
 
 
 
-result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data, Union_sign_key key,
+result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data, SignOptions* options,
     obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
-    bool bObject = std::holds_alternative<v8::Local<v8::Object>>(key);
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
 
     if (ac.isSync()) {
-        Isolate* isolate = ac.isolate();
-
-        // the options object is readable in the synchronous phase only: the
-        // callback phase receives an empty handle. It carries the key and the
-        // signing parameters.
-        ac.ctxv().resize(bObject ? 5 : 1);
-
+        // Only the algorithm still needs the synchronous phase: it is a
+        // `Value` and may be null (Ed25519/Ed448), which the native phase
+        // cannot inspect. The key options are structured and are consumed in
+        // the async phase below.
         exlib::string algo;
-        result_t hr = get_algorithm(isolate, algorithm, algo);
+        result_t hr = get_algorithm(ac.isolate(), algorithm, algo);
         if (hr.failed())
             return hr;
+
+        ac.ctxv().resize(1);
         ac.ctxv()[0] = algo;
-
-        if (bObject) {
-            v8::Local<v8::Object> opt = std::get<v8::Local<v8::Object>>(key);
-
-            obj_ptr<KeyObject_base> key_;
-            hr = crypto_base::createPrivateKey(opt, key_);
-            if (hr.failed())
-                return hr;
-            ac.ctxv()[1] = key_;
-
-            DSASigEnc enc = kSigEncDER;
-            int padding = DEFAULT_PADDING;
-            int salt_len = NO_SALTLEN;
-            hr = get_sig_opt(isolate, opt, enc, padding, salt_len);
-            if (hr.failed())
-                return hr;
-            ac.ctxv()[2] = (int)enc;
-            ac.ctxv()[3] = padding;
-            ac.ctxv()[4] = salt_len;
-        }
-
         return result_t::nosync();
     }
 
-    // the algorithm and the object key options were prepared in the sync phase
+    result_t ctx_hr = ac.ctx(0);
+    if (ctx_hr.failed())
+        return ctx_hr;
+
+    obj_ptr<KeyObject_base> key_;
+    result_t hr = create_key_object(nullptr, *options, KeyObject::kKeyTypePrivate, key_);
+    if (hr.failed())
+        return hr;
+
+    DSASigEnc enc = kSigEncDER;
+    int padding = DEFAULT_PADDING;
+    int salt_len = NO_SALTLEN;
+    hr = get_sig_opt(options, enc, padding, salt_len);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<Buffer_base> buf;
+    if (std::holds_alternative<exlib::string>(data)) {
+        hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", buf);
+        if (hr.failed())
+            return hr;
+    } else
+        buf = std::get<obj_ptr<Buffer_base>>(data);
+
+    return _sign(ac.ctxv()[0].string(), buf, key_, enc, padding, salt_len, retVal);
+}
+
+result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data, Union_sign_key key,
+    obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
+{
+    if (ac.isSync()) {
+        exlib::string algo;
+        result_t hr = get_algorithm(ac.isolate(), algorithm, algo);
+        if (hr.failed())
+            return hr;
+
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = algo;
+        return result_t::nosync();
+    }
+
     result_t ctx_hr = ac.ctx(0);
     if (ctx_hr.failed())
         return ctx_hr;
@@ -631,20 +635,7 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
     int padding = DEFAULT_PADDING;
     int salt_len = NO_SALTLEN;
 
-    if (bObject) {
-        // the key and its options come from the sync phase
-        result_t ctx_hr = ac.ctx(4);
-        if (ctx_hr.failed())
-            return ctx_hr;
-
-        key_ = (KeyObject_base*)ac.ctxv()[1].object();
-        if (key_ == NULL)
-            return result_t::make(CALL_E_INTERNAL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("crypto: the key options were not read");
-
-        enc = (DSASigEnc)ac.ctxv()[2].intVal();
-        padding = ac.ctxv()[3].intVal();
-        salt_len = ac.ctxv()[4].intVal();
-    } else if (std::holds_alternative<obj_ptr<KeyObject_base>>(key))
+    if (std::holds_alternative<obj_ptr<KeyObject_base>>(key))
         key_ = std::get<obj_ptr<KeyObject_base>>(key);
     else if (std::holds_alternative<obj_ptr<Buffer_base>>(key)) {
         result_t hr = crypto_base::createPrivateKey(std::get<obj_ptr<Buffer_base>>(key), key_);
@@ -667,49 +658,72 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Union_sign_data data,
 // all-strings overload, which would stringify it (lossy) instead of failing.
 
 
-result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data data, Union_verify_key key,
+result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data data, SignOptions* options,
     Union_verify_signature signature, bool& retVal, AsyncHandle ac)
 {
-    bool bObject = std::holds_alternative<v8::Local<v8::Object>>(key);
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
 
     if (ac.isSync()) {
-        Isolate* isolate = ac.isolate();
-
-        // the options object is readable in the synchronous phase only: the
-        // callback phase receives an empty handle. It carries the key and the
-        // verifying parameters.
-        ac.ctxv().resize(bObject ? 5 : 1);
-
         exlib::string algo;
-        result_t hr = get_algorithm(isolate, algorithm, algo);
+        result_t hr = get_algorithm(ac.isolate(), algorithm, algo);
         if (hr.failed())
             return hr;
+
+        ac.ctxv().resize(1);
         ac.ctxv()[0] = algo;
-
-        if (bObject) {
-            v8::Local<v8::Object> opt = std::get<v8::Local<v8::Object>>(key);
-
-            obj_ptr<KeyObject_base> key_;
-            hr = crypto_base::createPublicKey(opt, key_);
-            if (hr.failed())
-                return hr;
-            ac.ctxv()[1] = key_;
-
-            DSASigEnc enc = kSigEncDER;
-            int padding = DEFAULT_PADDING;
-            int salt_len = NO_SALTLEN;
-            hr = get_sig_opt(isolate, opt, enc, padding, salt_len);
-            if (hr.failed())
-                return hr;
-            ac.ctxv()[2] = (int)enc;
-            ac.ctxv()[3] = padding;
-            ac.ctxv()[4] = salt_len;
-        }
-
         return result_t::nosync();
     }
 
-    // the algorithm and the object key options were prepared in the sync phase
+    result_t ctx_hr = ac.ctx(0);
+    if (ctx_hr.failed())
+        return ctx_hr;
+
+    obj_ptr<KeyObject_base> key_;
+    result_t hr = create_key_object(nullptr, *options, KeyObject::kKeyTypePublic, key_);
+    if (hr.failed())
+        return hr;
+
+    DSASigEnc enc = kSigEncDER;
+    int padding = DEFAULT_PADDING;
+    int salt_len = NO_SALTLEN;
+    hr = get_sig_opt(options, enc, padding, salt_len);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<Buffer_base> dataBuf;
+    if (std::holds_alternative<exlib::string>(data)) {
+        hr = Buffer_base::from(std::get<exlib::string>(data), "utf8", dataBuf);
+        if (hr.failed())
+            return hr;
+    } else
+        dataBuf = std::get<obj_ptr<Buffer_base>>(data);
+
+    obj_ptr<Buffer_base> sigBuf;
+    if (std::holds_alternative<exlib::string>(signature)) {
+        hr = Buffer_base::from(std::get<exlib::string>(signature), "utf8", sigBuf);
+        if (hr.failed())
+            return hr;
+    } else
+        sigBuf = std::get<obj_ptr<Buffer_base>>(signature);
+
+    return _verify(ac.ctxv()[0].string(), dataBuf, key_, sigBuf, enc, padding, salt_len, retVal);
+}
+
+result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data data, Union_verify_key key,
+    Union_verify_signature signature, bool& retVal, AsyncHandle ac)
+{
+    if (ac.isSync()) {
+        exlib::string algo;
+        result_t hr = get_algorithm(ac.isolate(), algorithm, algo);
+        if (hr.failed())
+            return hr;
+
+        ac.ctxv().resize(1);
+        ac.ctxv()[0] = algo;
+        return result_t::nosync();
+    }
+
     result_t ctx_hr = ac.ctx(0);
     if (ctx_hr.failed())
         return ctx_hr;
@@ -738,20 +752,7 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Union_verify_data d
     int padding = DEFAULT_PADDING;
     int salt_len = NO_SALTLEN;
 
-    if (bObject) {
-        // the key and its options come from the sync phase
-        result_t ctx_hr = ac.ctx(4);
-        if (ctx_hr.failed())
-            return ctx_hr;
-
-        key_ = (KeyObject_base*)ac.ctxv()[1].object();
-        if (key_ == NULL)
-            return result_t::make(CALL_E_INTERNAL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("crypto: the key options were not read");
-
-        enc = (DSASigEnc)ac.ctxv()[2].intVal();
-        padding = ac.ctxv()[3].intVal();
-        salt_len = ac.ctxv()[4].intVal();
-    } else if (std::holds_alternative<obj_ptr<KeyObject_base>>(key))
+    if (std::holds_alternative<obj_ptr<KeyObject_base>>(key))
         key_ = std::get<obj_ptr<KeyObject_base>>(key);
     else if (std::holds_alternative<obj_ptr<Buffer_base>>(key)) {
         result_t hr = crypto_base::createPublicKey(std::get<obj_ptr<Buffer_base>>(key), key_);

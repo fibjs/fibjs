@@ -187,7 +187,12 @@ result_t SecureContext::set_key(v8::Local<v8::Object> options)
     {
         // Use js_obj_has_value instead of Has to skip undefined/null values
         if (js_obj_has_value(options, context, "key")) {
-            hr = crypto_base::createPrivateKey(options, key);
+            obj_ptr<KeyOptions> key_options;
+            hr = KeyOptions::load(options, key_options);
+            if (hr.failed())
+                return hr;
+
+            hr = crypto_base::createPrivateKey((KeyOptions*)key_options, key);
             if (hr.failed())
                 return hr;
         }

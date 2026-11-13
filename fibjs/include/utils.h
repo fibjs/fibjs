@@ -989,7 +989,9 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& 
 }
 
 class Buffer_base;
+class NObject;
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict = false);
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<NObject>& vr, bool bStrict = false);
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<object_base>& vr, bool bStrict = false);
 
 // a native object is one that wraps an object_base: the class identity is

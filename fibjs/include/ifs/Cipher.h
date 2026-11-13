@@ -134,7 +134,7 @@ inline void Cipher_base::s_setAAD(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(Union_setAAD_buffer, 0);
     OPT_ARG_NAMED(obj_ptr<Options_Cipher_setAAD_options>, 1, new Options_Cipher_setAAD_options(), "options");
 
-    hr = pInst->setAAD(v0, v1, vr);
+    hr = pInst->setAAD(v0, (Options_Cipher_setAAD_options*)v1, vr);
 
     METHOD_RETURN();
 }

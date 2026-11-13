@@ -16,6 +16,7 @@
 namespace fibjs {
 
 class Buffer_base;
+class SignOptions;
 class KeyObject_base;
 
 class Sign_base : public object_base {
@@ -23,11 +24,12 @@ class Sign_base : public object_base {
 
 public:
     using Union_update_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_sign_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, v8::Local<v8::Object>, exlib::string>;
+    using Union_sign_privateKey = std::variant<obj_ptr<Buffer_base>, obj_ptr<KeyObject_base>, exlib::string>;
 
 public:
     // Sign_base
     virtual result_t update(Union_update_data data, exlib::string codec, obj_ptr<Sign_base>& retVal) = 0;
+    virtual result_t sign(SignOptions* privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t sign(Union_sign_privateKey privateKey, exlib::string encoding, v8::Local<v8::Value>& retVal) = 0;
 
 public:
@@ -48,6 +50,7 @@ public:
 }
 
 #include "ifs/Buffer.h"
+#include "ifs/SignOptions.h"
 #include "ifs/KeyObject.h"
 
 namespace fibjs {
@@ -92,6 +95,13 @@ inline void Sign_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_INSTANCE(Sign_base);
     METHOD_ENTER();
+
+    METHOD_OVER_NAMED(2, 1, "privateKey");
+
+    ARG_NAMED(obj_ptr<SignOptions>, 0, "privateKey");
+    OPT_ARG_NAMED(exlib::string, 1, "buffer", "encoding");
+
+    hr = pInst->sign((SignOptions*)v0, v1, vr);
 
     METHOD_OVER_NAMED(2, 1, "privateKey");
 

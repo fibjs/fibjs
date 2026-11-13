@@ -133,5 +133,15 @@ interface Verify : object
      @param encoding the encoding of a string signature, default "buffer"
      @return returns true if the signature is valid, false otherwise
     */
-    Boolean verify(Buffer|KeyObject|Object|String privateKey, Buffer|String signature, String encoding = "buffer");
+    Boolean verify(SignOptions privateKey, Buffer|String signature, String encoding = "buffer");
+
+    /*! @brief Verifies a signature with a key given as raw key material
+
+     The key is used directly and the signature encoding defaults to DER.
+     @param privateKey the public key
+     @param signature the signature to verify
+     @param encoding the encoding of a string signature
+     @return returns true when the signature is valid
+     */
+    Boolean verify(Buffer|KeyObject|String privateKey, Buffer|String signature, String encoding = "buffer");
 };
