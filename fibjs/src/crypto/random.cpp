@@ -184,8 +184,7 @@ result_t crypto_base::randomUUID(Options_crypto_randomUUID_options* options, exl
     // a uuid.v4 extension and is deliberately not forwarded here.
     (void)options;
 
-    Isolate* isolate = Isolate::current();
-    return uuid_base::v4(v8::Object::New(isolate->m_isolate), retVal);
+    return uuid_base::v4(nullptr, retVal);
 }
 
 }

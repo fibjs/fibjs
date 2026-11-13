@@ -1,0 +1,4 @@
+/*! @brief Options for uuid.v4: 16 bytes of random data to use. */
+struct UuidV4Options {
+    Buffer|Array random;
+};

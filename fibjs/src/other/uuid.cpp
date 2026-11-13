@@ -23,6 +23,36 @@
 
 namespace fibjs {
 
+static bool uuid_option_bytes(const std::variant<obj_ptr<Buffer_base>, v8::Local<v8::Array>>& value,
+    uint8_t* out, size_t size)
+{
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(value)) {
+        Buffer* p = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(value).get());
+        if (p->length() < (int32_t)size)
+            return false;
+
+        memcpy(out, p->data(), size);
+        return true;
+    }
+
+    v8::Local<v8::Array> array = std::get<v8::Local<v8::Array>>(value);
+    if (array->Length() < size)
+        return false;
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+
+    for (uint32_t i = 0; i < size; i++) {
+        v8::Local<v8::Value> v;
+        if (!array->Get(context, i).ToLocal(&v) || !v->IsNumber())
+            return false;
+
+        out[i] = (uint8_t)(v->Int32Value(context).FromMaybe(0) & 0xFF);
+    }
+
+    return true;
+}
+
 DECLARE_MODULE(uuid);
 
 // UUID epoch offset: 100-nanosecond intervals from Oct 15, 1582 to Jan 1, 1970
@@ -341,10 +371,8 @@ result_t uuid_base::stringify(Union_stringify_arr arr, int32_t offset, exlib::st
     return result_t();
 }
 
-result_t uuid_base::v1(v8::Local<v8::Object> options, exlib::string& retVal)
+result_t uuid_base::v1(UuidV1Options* options, exlib::string& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    
     uint8_t uuid[16];
     static uint64_t last_timestamp = 0;
     static uint16_t clock_seq = 0;
@@ -363,48 +391,27 @@ result_t uuid_base::v1(v8::Local<v8::Object> options, exlib::string& retVal)
         initialized = true;
     }
 
-    // Parse options if provided
-    bool has_node = false;
     bool has_clockseq = false;
     uint64_t custom_msecs = 0;
     uint64_t custom_nsecs = 0;
     bool has_custom_time = false;
-    
-    if (!options.IsEmpty() && options->IsObject()) {
-        v8::Local<v8::Context> context = isolate->context();
-        
-        // Get node option
-        v8::Local<v8::Value> node_val;
-        if (options->Get(context, isolate->NewString("node")).ToLocal(&node_val) && node_val->IsObject()) {
-            obj_ptr<Buffer_base> node_buf = Buffer_base::getInstance(node_val);
-            if (node_buf) {
-                Buffer* p = (Buffer*)node_buf.get();
-                if (p->length() >= 6) {
-                    memcpy(node_id, p->data(), 6);
-                    has_node = true;
-                }
-            }
-        }
-        
-        // Get clockseq option
-        v8::Local<v8::Value> clockseq_val;
-        if (options->Get(context, isolate->NewString("clockseq")).ToLocal(&clockseq_val) && clockseq_val->IsNumber()) {
-            clock_seq = clockseq_val->Int32Value(context).FromMaybe(0) & 0x3FFF;
+
+    if (options) {
+        if (options->node.has_value())
+            uuid_option_bytes(options->node.value(), node_id, 6);
+
+        if (options->clockseq.has_value()) {
+            clock_seq = options->clockseq.value() & 0x3FFF;
             has_clockseq = true;
         }
-        
-        // Get msecs option
-        v8::Local<v8::Value> msecs_val;
-        if (options->Get(context, isolate->NewString("msecs")).ToLocal(&msecs_val) && msecs_val->IsNumber()) {
-            custom_msecs = msecs_val->IntegerValue(context).FromMaybe(0);
+
+        if (options->msecs.has_value()) {
+            custom_msecs = options->msecs.value();
             has_custom_time = true;
         }
-        
-        // Get nsecs option
-        v8::Local<v8::Value> nsecs_val;
-        if (options->Get(context, isolate->NewString("nsecs")).ToLocal(&nsecs_val) && nsecs_val->IsNumber()) {
-            custom_nsecs = nsecs_val->IntegerValue(context).FromMaybe(0);
-        }
+
+        if (options->nsecs.has_value())
+            custom_nsecs = options->nsecs.value();
     }
 
     uint64_t timestamp;
@@ -453,29 +460,13 @@ result_t uuid_base::v1(v8::Local<v8::Object> options, exlib::string& retVal)
     return result_t();
 }
 
-result_t uuid_base::v4(v8::Local<v8::Object> options, exlib::string& retVal)
+result_t uuid_base::v4(UuidV4Options* options, exlib::string& retVal)
 {
-    Isolate* isolate = Isolate::current();
     uint8_t uuid[16];
 
-    // Check if custom random bytes provided
     bool has_random = false;
-    if (!options.IsEmpty() && options->IsObject()) {
-        v8::Local<v8::Context> context = isolate->context();
-        
-        // Get random option
-        v8::Local<v8::Value> random_val;
-        if (options->Get(context, isolate->NewString("random")).ToLocal(&random_val) && random_val->IsObject()) {
-            obj_ptr<Buffer_base> random_buf = Buffer_base::getInstance(random_val);
-            if (random_buf) {
-                Buffer* p = (Buffer*)random_buf.get();
-                if (p->length() >= 16) {
-                    memcpy(uuid, p->data(), 16);
-                    has_random = true;
-                }
-            }
-        }
-    }
+    if (options && options->random.has_value())
+        has_random = uuid_option_bytes(options->random.value(), uuid, 16);
     
     if (!has_random) {
         // Generate random bytes
@@ -585,10 +576,8 @@ result_t uuid_base::version(exlib::string uuid, int32_t& retVal)
     return result_t();
 }
 
-result_t uuid_base::v6(v8::Local<v8::Object> options, exlib::string& retVal)
+result_t uuid_base::v6(UuidV1Options* options, exlib::string& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    
     uint8_t uuid[16];
     static uint64_t last_timestamp = 0;
     static uint16_t clock_seq = 0;
@@ -603,48 +592,27 @@ result_t uuid_base::v6(v8::Local<v8::Object> options, exlib::string& retVal)
         initialized = true;
     }
 
-    // Parse options if provided
-    bool has_node = false;
     bool has_clockseq = false;
     uint64_t custom_msecs = 0;
     uint64_t custom_nsecs = 0;
     bool has_custom_time = false;
-    
-    if (!options.IsEmpty() && options->IsObject()) {
-        v8::Local<v8::Context> context = isolate->context();
-        
-        // Get node option
-        v8::Local<v8::Value> node_val;
-        if (options->Get(context, isolate->NewString("node")).ToLocal(&node_val) && node_val->IsObject()) {
-            obj_ptr<Buffer_base> node_buf = Buffer_base::getInstance(node_val);
-            if (node_buf) {
-                Buffer* p = (Buffer*)node_buf.get();
-                if (p->length() >= 6) {
-                    memcpy(node_id, p->data(), 6);
-                    has_node = true;
-                }
-            }
-        }
-        
-        // Get clockseq option
-        v8::Local<v8::Value> clockseq_val;
-        if (options->Get(context, isolate->NewString("clockseq")).ToLocal(&clockseq_val) && clockseq_val->IsNumber()) {
-            clock_seq = clockseq_val->Int32Value(context).FromMaybe(0) & 0x3FFF;
+
+    if (options) {
+        if (options->node.has_value())
+            uuid_option_bytes(options->node.value(), node_id, 6);
+
+        if (options->clockseq.has_value()) {
+            clock_seq = options->clockseq.value() & 0x3FFF;
             has_clockseq = true;
         }
-        
-        // Get msecs option
-        v8::Local<v8::Value> msecs_val;
-        if (options->Get(context, isolate->NewString("msecs")).ToLocal(&msecs_val) && msecs_val->IsNumber()) {
-            custom_msecs = msecs_val->IntegerValue(context).FromMaybe(0);
+
+        if (options->msecs.has_value()) {
+            custom_msecs = options->msecs.value();
             has_custom_time = true;
         }
-        
-        // Get nsecs option
-        v8::Local<v8::Value> nsecs_val;
-        if (options->Get(context, isolate->NewString("nsecs")).ToLocal(&nsecs_val) && nsecs_val->IsNumber()) {
-            custom_nsecs = nsecs_val->IntegerValue(context).FromMaybe(0);
-        }
+
+        if (options->nsecs.has_value())
+            custom_nsecs = options->nsecs.value();
     }
 
     uint64_t timestamp;
@@ -691,24 +659,15 @@ result_t uuid_base::v6(v8::Local<v8::Object> options, exlib::string& retVal)
     return result_t();
 }
 
-result_t uuid_base::v7(v8::Local<v8::Object> options, exlib::string& retVal)
+result_t uuid_base::v7(UuidV7Options* options, exlib::string& retVal)
 {
-    Isolate* isolate = Isolate::current();
     uint8_t uuid[16];
-    
+
     // Get Unix timestamp in milliseconds
     uint64_t timestamp_ms;
-    
-    if (!options.IsEmpty() && options->IsObject()) {
-        v8::Local<v8::Context> context = isolate->context();
-        v8::Local<v8::Value> msecs_val;
-        if (options->Get(context, isolate->NewString("msecs")).ToLocal(&msecs_val) && msecs_val->IsNumber()) {
-            timestamp_ms = msecs_val->IntegerValue(context).FromMaybe(0);
-        } else {
-            auto now = std::chrono::system_clock::now();
-            timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                now.time_since_epoch()).count();
-        }
+
+    if (options && options->msecs.has_value()) {
+        timestamp_ms = options->msecs.value();
     } else {
         auto now = std::chrono::system_clock::now();
         timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(

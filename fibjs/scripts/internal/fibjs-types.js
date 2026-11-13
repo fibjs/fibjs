@@ -121834,7 +121834,12 @@ declare module 'uuid' {
      *      @return returns a generated uuid string
      *
      */
-    function v1(options?: FIBJS.GeneralObject): string;
+    function v1(options?: {
+        msecs?: number;
+        nsecs?: number;
+        clockseq?: number;
+        node?: Class_Buffer | any[];
+    }): string;
 
     /**
      * @description Creates a version 3 UUID by hashing the namespace and name with MD5
@@ -121872,7 +121877,9 @@ declare module 'uuid' {
      *      @return returns a generated uuid string
      *
      */
-    function v4(options?: FIBJS.GeneralObject): string;
+    function v4(options?: {
+        random?: Class_Buffer | any[];
+    }): string;
 
     /**
      * @description Creates a version 5 UUID by hashing the namespace and name with SHA1
@@ -121937,7 +121944,12 @@ declare module 'uuid' {
      *      @return returns a generated uuid string
      *
      */
-    function v6(options?: FIBJS.GeneralObject): string;
+    function v6(options?: {
+        msecs?: number;
+        nsecs?: number;
+        clockseq?: number;
+        node?: Class_Buffer | any[];
+    }): string;
 
     /**
      * @description Creates a version 7 UUID from a Unix epoch timestamp and random bits
@@ -121969,7 +121981,9 @@ declare module 'uuid' {
      *      @return returns a generated uuid string
      *
      */
-    function v7(options?: FIBJS.GeneralObject): string;
+    function v7(options?: {
+        msecs?: number;
+    }): string;
 
     /**
      * @description Reorders the timestamp fields of a version 1 UUID into the version 6 arrangement

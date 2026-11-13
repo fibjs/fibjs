@@ -1,0 +1,4 @@
+/*! @brief Options for uuid.v7: the Unix epoch milliseconds to embed. */
+struct UuidV7Options {
+    Long msecs;
+};

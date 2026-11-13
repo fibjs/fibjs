@@ -1,0 +1,12 @@
+/*! @brief Options for uuid.v1 and uuid.v6.
+
+     `msecs` fixes the Unix epoch time, `nsecs` adds nanoseconds (divided by
+     100), `clockseq` is the 14-bit clock sequence and `node` is a 6-byte node
+     id.
+ */
+struct UuidV1Options {
+    Long msecs;
+    Long nsecs;
+    Integer clockseq;
+    Buffer|Array node;
+};

@@ -234,7 +234,7 @@ module uuid
      @param options optional parameter object; see the options block above
      @return returns a generated uuid string
      */
-    static String v1(Object options = {});
+    static String v1(UuidV1Options options = {});
 
 /*! @brief Creates a version 3 UUID by hashing the namespace and name with MD5
 
@@ -268,7 +268,7 @@ module uuid
      @param options optional parameter object; random is accepted but is not applied
      @return returns a generated uuid string
      */
-    static String v4(Object options = {});
+    static String v4(UuidV4Options options = {});
 
 /*! @brief Creates a version 5 UUID by hashing the namespace and name with SHA1
 
@@ -327,7 +327,7 @@ module uuid
      @param options optional parameter object; see v1 for the supported properties and defaults
      @return returns a generated uuid string
      */
-    static String v6(Object options = {});
+    static String v6(UuidV1Options options = {});
 
     /*! @brief Creates a version 7 UUID from a Unix epoch timestamp and random bits
 
@@ -357,7 +357,7 @@ module uuid
      @param options optional parameter object; see the options block above
      @return returns a generated uuid string
      */
-    static String v7(Object options = {});
+    static String v7(UuidV7Options options = {});
 
     /*! @brief Reorders the timestamp fields of a version 1 UUID into the version 6 arrangement
 

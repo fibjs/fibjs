@@ -16,6 +16,9 @@
 namespace fibjs {
 
 class Buffer_base;
+class UuidV1Options;
+class UuidV4Options;
+class UuidV7Options;
 
 class uuid_base : public object_base {
     DECLARE_CLASS(uuid_base);
@@ -37,13 +40,13 @@ public:
     // uuid_base
     static result_t parse(exlib::string uuid, obj_ptr<Buffer_base>& retVal);
     static result_t stringify(Union_stringify_arr arr, int32_t offset, exlib::string& retVal);
-    static result_t v1(v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t v1(UuidV1Options* options, exlib::string& retVal);
     static result_t v3(exlib::string name, Union_v3_ns ns, exlib::string& retVal);
-    static result_t v4(v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t v4(UuidV4Options* options, exlib::string& retVal);
     static result_t v5(exlib::string name, Union_v5_ns ns, exlib::string& retVal);
     static result_t version(exlib::string uuid, int32_t& retVal);
-    static result_t v6(v8::Local<v8::Object> options, exlib::string& retVal);
-    static result_t v7(v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t v6(UuidV1Options* options, exlib::string& retVal);
+    static result_t v7(UuidV7Options* options, exlib::string& retVal);
     static result_t v1ToV6(exlib::string uuid, exlib::string& retVal);
     static result_t v6ToV1(exlib::string uuid, exlib::string& retVal);
     static result_t validate(exlib::string uuid, bool& retVal);
@@ -90,6 +93,9 @@ public:
 }
 
 #include "ifs/Buffer.h"
+#include "ifs/UuidV1Options.h"
+#include "ifs/UuidV4Options.h"
+#include "ifs/UuidV7Options.h"
 
 namespace fibjs {
 inline ClassInfo& uuid_base::class_info()
@@ -179,9 +185,9 @@ inline void uuid_base::s_static_v1(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<UuidV1Options>, 0, new UuidV1Options(), "options");
 
-    hr = v1(v0, vr);
+    hr = v1((UuidV1Options*)v0, vr);
 
     METHOD_RETURN();
 }
@@ -210,9 +216,9 @@ inline void uuid_base::s_static_v4(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<UuidV4Options>, 0, new UuidV4Options(), "options");
 
-    hr = v4(v0, vr);
+    hr = v4((UuidV4Options*)v0, vr);
 
     METHOD_RETURN();
 }
@@ -256,9 +262,9 @@ inline void uuid_base::s_static_v6(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<UuidV1Options>, 0, new UuidV1Options(), "options");
 
-    hr = v6(v0, vr);
+    hr = v6((UuidV1Options*)v0, vr);
 
     METHOD_RETURN();
 }
@@ -271,9 +277,9 @@ inline void uuid_base::s_static_v7(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<UuidV7Options>, 0, new UuidV7Options(), "options");
 
-    hr = v7(v0, vr);
+    hr = v7((UuidV7Options*)v0, vr);
 
     METHOD_RETURN();
 }
