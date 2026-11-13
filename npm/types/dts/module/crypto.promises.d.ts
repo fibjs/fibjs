@@ -511,7 +511,10 @@ declare module 'crypto/promises' {
      *      @return returns the shared secret
      *
      */
-    function diffieHellman(options: FIBJS.GeneralObject): Class_Buffer;
+    function diffieHellman(options: {
+        privateKey?: Class_KeyObject;
+        publicKey?: Class_KeyObject;
+    }): Class_Buffer;
 
     /**
      * @description Computes a one-shot message digest of the data
@@ -764,7 +767,28 @@ declare module 'crypto/promises' {
      *      @return returns the generated key pair
      *
      */
-    function generateKeyPair(type: string, options?: FIBJS.GeneralObject): Promise<{
+    function generateKeyPair(type: string, options?: {
+        modulusLength?: number;
+        publicExponent?: number;
+        hashAlgorithm?: string;
+        mgf1Algorithm?: string;
+        saltLength?: number;
+        divisorLength?: number;
+        namedCurve?: string;
+        paramEncoding?: string;
+        publicKeyEncoding?: {
+            format?: string;
+            type?: string;
+            cipher?: string;
+            passphrase?: string | Class_Buffer;
+        };
+        privateKeyEncoding?: {
+            format?: string;
+            type?: string;
+            cipher?: string;
+            passphrase?: string | Class_Buffer;
+        };
+    }): Promise<{
         publicKey: any;
         privateKey: any;
     }>;
@@ -808,7 +832,28 @@ declare module 'crypto/promises' {
      *      @return returns the generated key pair
      *
      */
-    function generateKeyPairSync(type: string, options?: FIBJS.GeneralObject): {
+    function generateKeyPairSync(type: string, options?: {
+        modulusLength?: number;
+        publicExponent?: number;
+        hashAlgorithm?: string;
+        mgf1Algorithm?: string;
+        saltLength?: number;
+        divisorLength?: number;
+        namedCurve?: string;
+        paramEncoding?: string;
+        publicKeyEncoding?: {
+            format?: string;
+            type?: string;
+            cipher?: string;
+            passphrase?: string | Class_Buffer;
+        };
+        privateKeyEncoding?: {
+            format?: string;
+            type?: string;
+            cipher?: string;
+            passphrase?: string | Class_Buffer;
+        };
+    }): {
         publicKey: any;
         privateKey: any;
     };
@@ -852,7 +897,28 @@ declare module 'crypto/promises' {
      *      @return returns the generated key pair
      *
      */
-    function generateKeyPairAsync(type: string, options?: FIBJS.GeneralObject): Promise<{
+    function generateKeyPairAsync(type: string, options?: {
+        modulusLength?: number;
+        publicExponent?: number;
+        hashAlgorithm?: string;
+        mgf1Algorithm?: string;
+        saltLength?: number;
+        divisorLength?: number;
+        namedCurve?: string;
+        paramEncoding?: string;
+        publicKeyEncoding?: {
+            format?: string;
+            type?: string;
+            cipher?: string;
+            passphrase?: string | Class_Buffer;
+        };
+        privateKeyEncoding?: {
+            format?: string;
+            type?: string;
+            cipher?: string;
+            passphrase?: string | Class_Buffer;
+        };
+    }): Promise<{
         publicKey: any;
         privateKey: any;
     }>;

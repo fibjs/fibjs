@@ -208,49 +208,80 @@ result_t KeyObject::generateKey(exlib::string type, generateKeyPairParam* param)
     return generateOKPKey(nid, param);
 }
 
-result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> options,
-    obj_ptr<GenerateKeyPairType>& retVal, AsyncHandle ac)
+static result_t load_key_encoding(KeyEncodingOptions* options, obj_ptr<keyEncodingParam>& retVal)
 {
-    if (ac.isSync()) {
-        Isolate* isolate = ac.isolate();
-        result_t hr;
+    if (!options)
+        return result_t();
 
-        ac.ctxv().resize(3);
+    obj_ptr<keyEncodingParam> param = new keyEncodingParam();
+    param->format = options->format.value_or("");
+    param->type = options->type.value_or("");
+    param->cipher = options->cipher.value_or("");
 
-        obj_ptr<generateKeyPairParam> param;
-        hr = generateKeyPairParam::load(options, param);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv()[0] = param;
-
-        obj_ptr<keyEncodingParam> publicKeyEncodingParam;
-        hr = keyEncodingParam::load(options, "publicKeyEncoding", publicKeyEncodingParam);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv()[1] = publicKeyEncodingParam;
-
-        obj_ptr<keyEncodingParam> privateKeyEncodingParam;
-        hr = keyEncodingParam::load(options, "privateKeyEncoding", privateKeyEncodingParam);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv()[2] = privateKeyEncodingParam;
-
-        return result_t::nosync();
+    if (options->passphrase.has_value()) {
+        auto& passphrase = options->passphrase.value();
+        if (std::holds_alternative<obj_ptr<Buffer_base>>(passphrase))
+            param->passphrase = std::get<obj_ptr<Buffer_base>>(passphrase);
+        else {
+            result_t hr = Buffer_base::from(std::get<exlib::string>(passphrase), "utf8", param->passphrase);
+            if (hr.failed())
+                return hr;
+        }
     }
 
-    result_t ctx_hr = ac.ctx(2);
-    if (ctx_hr.failed())
-        return ctx_hr;
+    retVal = param;
+    return result_t();
+}
 
-    obj_ptr<generateKeyPairParam> param = (generateKeyPairParam*)ac.ctxv()[0].object();
+result_t crypto_base::generateKeyPair(exlib::string type, GenerateKeyPairOptions* options,
+    obj_ptr<GenerateKeyPairType>& retVal, AsyncHandle ac)
+{
+    if (ac.isSync())
+        return result_t::nosync();
+
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
+    result_t hr;
+
+    obj_ptr<generateKeyPairParam> param = new generateKeyPairParam();
+    if (options->modulusLength.has_value())
+        param->modulusLength = options->modulusLength.value();
+    if (options->publicExponent.has_value())
+        param->publicExponent = options->publicExponent.value();
+    if (options->hashAlgorithm.has_value())
+        param->hashAlgorithm = options->hashAlgorithm.value();
+    if (options->mgf1Algorithm.has_value())
+        param->mgf1Algorithm = options->mgf1Algorithm.value();
+    if (options->saltLength.has_value())
+        param->saltLength = options->saltLength.value();
+    if (options->divisorLength.has_value())
+        param->divisorLength = options->divisorLength.value();
+    if (options->namedCurve.has_value())
+        param->namedCurve = options->namedCurve.value();
+    if (options->paramEncoding.has_value())
+        param->paramEncoding = options->paramEncoding.value();
+
+    obj_ptr<keyEncodingParam> publicKeyEncodingParam;
+    hr = load_key_encoding(options->publicKeyEncoding.has_value()
+            ? options->publicKeyEncoding.value().get()
+            : nullptr,
+        publicKeyEncodingParam);
+    if (hr.failed())
+        return hr;
+
+    obj_ptr<keyEncodingParam> privateKeyEncodingParam;
+    hr = load_key_encoding(options->privateKeyEncoding.has_value()
+            ? options->privateKeyEncoding.value().get()
+            : nullptr,
+        privateKeyEncodingParam);
+    if (hr.failed())
+        return hr;
 
     retVal = new GenerateKeyPairType();
 
     obj_ptr<KeyObject> privaterKey = new KeyObject();
-    result_t hr = privaterKey->generateKey(type, param);
+    hr = privaterKey->generateKey(type, param);
     if (hr.failed())
         return hr;
 
@@ -260,7 +291,6 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
     if (hr.failed())
         return hr;
 
-    obj_ptr<keyEncodingParam> publicKeyEncodingParam = (keyEncodingParam*)ac.ctxv()[1].object();
     if (publicKeyEncodingParam) {
         Variant v;
         hr = publicKey.As<KeyObject>()->ExportKey(publicKeyEncodingParam, v);
@@ -271,7 +301,6 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
     } else
         retVal->publicKey = publicKey;
 
-    obj_ptr<keyEncodingParam> privateKeyEncodingParam = (keyEncodingParam*)ac.ctxv()[2].object();
     if (privateKeyEncodingParam) {
         Variant v;
         hr = privaterKey->ExportKey(privateKeyEncodingParam, v);

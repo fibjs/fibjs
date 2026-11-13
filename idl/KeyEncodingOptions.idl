@@ -1,0 +1,12 @@
+/*! @brief Export options for generateKeyPair's publicKeyEncoding/privateKeyEncoding.
+
+     The shape is the one accepted by KeyObject.export: `format` is 'pem',
+     'der', 'jwk' or 'buffer'; `type` is the ASN.1 type; `cipher` and
+     `passphrase` encrypt a PEM private key.
+ */
+struct KeyEncodingOptions {
+    String format;
+    String type;
+    String cipher;
+    String|Buffer passphrase;
+};

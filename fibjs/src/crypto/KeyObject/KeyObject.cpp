@@ -66,23 +66,20 @@ result_t crypto_base::createSecretKey(Union_createSecretKey_key key, exlib::stri
     return _createSecretKey((const unsigned char*)key_buf->data(), key_buf->length(), retVal);
 }
 
-result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal)
+result_t crypto_base::diffieHellman(DiffieHellmanOptions* options, obj_ptr<Buffer_base>& retVal)
 {
+    if (!options || !options->privateKey.has_value() || !options->publicKey.has_value())
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
     result_t hr;
 
-    obj_ptr<KeyObject_base> privateKey;
-    hr = GetConfigValue(options, "privateKey", privateKey, true);
-    if (hr.failed())
-        return hr;
+    obj_ptr<KeyObject_base> privateKey = options->privateKey.value();
     KeyObject* privateKey_ = privateKey.As<KeyObject>();
     if (privateKey_->type() != KeyObject::kKeyTypePrivate)
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("property 'privateKey' must be a private key");
     int32_t privateKeyType = EVP_PKEY_id(privateKey_->pkey());
 
-    obj_ptr<KeyObject_base> publicKey;
-    hr = GetConfigValue(options, "publicKey", publicKey, true);
-    if (hr.failed())
-        return hr;
+    obj_ptr<KeyObject_base> publicKey = options->publicKey.value();
     KeyObject* publicKey_ = publicKey.As<KeyObject>();
     if (publicKey_->type() != KeyObject::kKeyTypePublic)
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("property 'publicKey' must be a public key");
@@ -248,15 +245,27 @@ result_t KeyObject::ExportKey(keyEncodingParam* param, Variant& retVal)
     return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid key type: %d.", m_keyType);
 }
 
-result_t KeyObject::_export(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+result_t KeyObject::_export(KeyEncodingOptions* options, v8::Local<v8::Value>& retVal)
 {
     result_t hr;
-    Isolate* isolate = holder();
 
-    obj_ptr<keyEncodingParam> param;
-    hr = keyEncodingParam::load(options, param);
-    if (hr.failed())
-        return hr;
+    obj_ptr<keyEncodingParam> param = new keyEncodingParam();
+    if (options) {
+        param->format = options->format.value_or("");
+        param->type = options->type.value_or("");
+        param->cipher = options->cipher.value_or("");
+
+        if (options->passphrase.has_value()) {
+            auto& passphrase = options->passphrase.value();
+            if (std::holds_alternative<obj_ptr<Buffer_base>>(passphrase))
+                param->passphrase = std::get<obj_ptr<Buffer_base>>(passphrase);
+            else {
+                hr = Buffer_base::from(std::get<exlib::string>(passphrase), "utf8", param->passphrase);
+                if (hr.failed())
+                    return hr;
+            }
+        }
+    }
 
     Variant v;
     hr = ExportKey(param, v);

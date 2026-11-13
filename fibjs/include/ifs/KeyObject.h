@@ -15,6 +15,8 @@
 
 namespace fibjs {
 
+class KeyEncodingOptions;
+
 class KeyObject_base : public object_base {
     DECLARE_CLASS(KeyObject_base);
 
@@ -24,7 +26,7 @@ public:
     virtual result_t get_asymmetricKeyType(exlib::string& retVal) = 0;
     virtual result_t get_symmetricKeySize(int32_t& retVal) = 0;
     virtual result_t get_type(exlib::string& retVal) = 0;
-    virtual result_t _export(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t _export(KeyEncodingOptions* options, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t equals(KeyObject_base* otherKey, bool& retVal) = 0;
 
 public:
@@ -47,6 +49,8 @@ public:
     static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/KeyEncodingOptions.h"
 
 namespace fibjs {
 inline ClassInfo& KeyObject_base::class_info()
@@ -139,9 +143,9 @@ inline void KeyObject_base::s__export(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<KeyEncodingOptions>, 0, new KeyEncodingOptions(), "options");
 
-    hr = pInst->_export(v0, vr);
+    hr = pInst->_export((KeyEncodingOptions*)v0, vr);
 
     METHOD_RETURN();
 }

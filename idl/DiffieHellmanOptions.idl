@@ -1,0 +1,7 @@
+/*! @brief Options for crypto.diffieHellman: the local private key and the
+     peer's public key. Both fields are required and must be KeyObjects.
+ */
+struct DiffieHellmanOptions {
+    KeyObject privateKey;
+    KeyObject publicKey;
+};

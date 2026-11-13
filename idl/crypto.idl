@@ -559,7 +559,7 @@ module crypto
      @param options the key pair to compute the secret from
      @return returns the shared secret
     */
-    static Buffer diffieHellman(Object options);
+    static Buffer diffieHellman(DiffieHellmanOptions options);
 
     /*! @brief Computes a one-shot message digest of the data
 
@@ -754,7 +754,7 @@ module crypto
      @param options the key generation and encoding options
      @return returns the generated key pair
     */
-    static (Variant publicKey, Variant privateKey) generateKeyPair(String type, Object options = {}) async;
+    static (Variant publicKey, Variant privateKey) generateKeyPair(String type, GenerateKeyPairOptions options = {}) async;
 
     /*! @brief Derives key material from a secret with HKDF (RFC 5869)
 

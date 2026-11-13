@@ -27,6 +27,8 @@ class KeyOptions;
 class Sign_base;
 class Verify_base;
 class X509CertificateRequest_base;
+class DiffieHellmanOptions;
+class GenerateKeyPairOptions;
 class EncryptOptions;
 class SignOptions;
 class BbsOptions;
@@ -166,7 +168,7 @@ public:
     static result_t createVerify(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Verify_base>& retVal);
     static result_t createSecretKey(Union_createSecretKey_key key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
     static result_t createCertificateRequest(Union_createCertificateRequest_csr csr, obj_ptr<X509CertificateRequest_base>& retVal);
-    static result_t diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal);
+    static result_t diffieHellman(DiffieHellmanOptions* options, obj_ptr<Buffer_base>& retVal);
     static result_t hash(exlib::string algorithm, Union_hash_data data, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal);
     static result_t randomFill(Union_randomFill_buffer buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
@@ -175,7 +177,7 @@ public:
     static result_t randomInt(double max, double& retVal);
     static result_t randomInt(double min, double max, double& retVal);
     static result_t getFips(int32_t& retVal);
-    static result_t generateKeyPair(exlib::string type, v8::Local<v8::Object> options, obj_ptr<GenerateKeyPairType>& retVal, AsyncHandle ac);
+    static result_t generateKeyPair(exlib::string type, GenerateKeyPairOptions* options, obj_ptr<GenerateKeyPairType>& retVal, AsyncHandle ac);
     static result_t hkdf(exlib::string algoName, Union_hkdf_password password, Union_hkdf_salt salt, Union_hkdf_info info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t scrypt(Union_scrypt_password password, Union_scrypt_salt salt, int32_t keylen, Options_crypto_scrypt_options* options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
@@ -256,7 +258,7 @@ public:
 
 public:
     ASYNC_STATICVALUE4(crypto_base, randomFill, Union_randomFill_buffer, int32_t, int32_t, obj_ptr<Buffer_base>);
-    ASYNC_STATICVALUE3(crypto_base, generateKeyPair, exlib::string, v8::Local<v8::Object>, obj_ptr<GenerateKeyPairType>);
+    ASYNC_STATICVALUE3(crypto_base, generateKeyPair, exlib::string, obj_ptr<GenerateKeyPairOptions>, obj_ptr<GenerateKeyPairType>);
     ASYNC_STATICVALUE6(crypto_base, hkdf, exlib::string, Union_hkdf_password, Union_hkdf_salt, Union_hkdf_info, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE6(crypto_base, pbkdf2, Union_pbkdf2_password, Union_pbkdf2_salt, int32_t, int32_t, exlib::string, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE5(crypto_base, scrypt, Union_scrypt_password, Union_scrypt_salt, int32_t, obj_ptr<Options_crypto_scrypt_options>, obj_ptr<Buffer_base>);
@@ -286,6 +288,8 @@ public:
 #include "ifs/Sign.h"
 #include "ifs/Verify.h"
 #include "ifs/X509CertificateRequest.h"
+#include "ifs/DiffieHellmanOptions.h"
+#include "ifs/GenerateKeyPairOptions.h"
 #include "ifs/EncryptOptions.h"
 #include "ifs/SignOptions.h"
 #include "ifs/BbsOptions.h"
@@ -710,9 +714,9 @@ inline void crypto_base::s_static_diffieHellman(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<DiffieHellmanOptions>, 0, "options");
 
-    hr = diffieHellman(v0, vr);
+    hr = diffieHellman((DiffieHellmanOptions*)v0, vr);
 
     METHOD_RETURN();
 }
@@ -843,7 +847,7 @@ inline void crypto_base::s_static_generateKeyPair(const v8::FunctionCallbackInfo
     METHOD_OVER_NAMED(2, 1, "type");
 
     ARG_NAMED(exlib::string, 0, "type");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<GenerateKeyPairOptions>, 1, new GenerateKeyPairOptions(), "options");
 
     if (!cb.IsEmpty())
         hr = acb_generateKeyPair(v0, v1, cb, args);

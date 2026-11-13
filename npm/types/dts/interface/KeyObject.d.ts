@@ -223,7 +223,12 @@ declare class Class_KeyObject extends Class_object {
      *      @return returns the key's information
      *
      */
-    export(options?: FIBJS.GeneralObject): any;
+    export(options?: {
+        format?: string;
+        type?: string;
+        cipher?: string;
+        passphrase?: string | Class_Buffer;
+    }): any;
 
     /**
      * @description Compares whether two KeyObject objects are equal

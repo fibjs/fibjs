@@ -112,7 +112,7 @@ public:
     virtual result_t get_asymmetricKeyType(exlib::string& retVal);
     virtual result_t get_symmetricKeySize(int32_t& retVal);
     virtual result_t get_type(exlib::string& retVal);
-    virtual result_t _export(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
+    virtual result_t _export(KeyEncodingOptions* options, v8::Local<v8::Value>& retVal);
     virtual result_t equals(KeyObject_base* otherKey, bool& retVal);
 
 public:

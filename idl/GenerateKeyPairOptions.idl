@@ -1,0 +1,17 @@
+/*! @brief Key-generation parameters for generateKeyPair.
+
+     The fields map to the per-type parameters of the OpenSSL key generation
+     routines; a field that does not apply to the requested type is ignored.
+ */
+struct GenerateKeyPairOptions {
+    Integer modulusLength;
+    Integer publicExponent = 65537;
+    String hashAlgorithm;
+    String mgf1Algorithm;
+    Integer saltLength = -1;
+    Integer divisorLength = -1;
+    String namedCurve;
+    String paramEncoding;
+    KeyEncodingOptions publicKeyEncoding;
+    KeyEncodingOptions privateKeyEncoding;
+};

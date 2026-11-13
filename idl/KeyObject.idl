@@ -210,7 +210,7 @@ interface KeyObject : object
      @param options the options for exporting the key
      @return returns the key's information
     */
-    Value export(Object options = {});
+    Value export(KeyEncodingOptions options = {});
 
     /*! @brief Compares whether two KeyObject objects are equal
 
