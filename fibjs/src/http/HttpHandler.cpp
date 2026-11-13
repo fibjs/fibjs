@@ -659,7 +659,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_body.Release();
 
             m_req->clear();
-            return m_req->readFrom(m_stmBuffered, v8::Local<v8::Object>(), next(invoke));
+            return m_req->readFrom(m_stmBuffered, nullptr, next(invoke));
         }
 
         ON_STATE(asyncInvoke, invoke)
@@ -796,13 +796,13 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 }
             }
 
-            return m_rep->sendTo(m_stm, v8::Local<v8::Object>(), next(end));
+            return m_rep->sendTo(m_stm, nullptr, next(end));
         }
 
         ON_STATE(asyncInvoke, zip)
         {
             m_rep->set_body(m_zip);
-            return m_rep->sendTo(m_stm, v8::Local<v8::Object>(), next(end));
+            return m_rep->sendTo(m_stm, nullptr, next(end));
         }
 
         ON_STATE(asyncInvoke, end)

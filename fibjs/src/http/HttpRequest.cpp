@@ -892,7 +892,7 @@ result_t HttpRequest::clear()
     return result_t();
 }
 
-result_t HttpRequest::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
+result_t HttpRequest::sendTo(Stream_base* stm, Options_Message_sendTo_options* options, AsyncHandle ac)
 {
     if (ac.isSync())
         return result_t::nosync();
@@ -914,7 +914,7 @@ result_t HttpRequest::sendTo(Stream_base* stm, v8::Local<v8::Object> options, As
     return m_message->send(stm, strCommand, std::move(ac));
 }
 
-result_t HttpRequest::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
+result_t HttpRequest::readFrom(Stream_base* stm, Options_Message_readFrom_options* options, AsyncHandle ac)
 {
     class asyncReadFrom : public AsyncState {
     public:

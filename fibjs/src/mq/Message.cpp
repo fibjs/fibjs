@@ -445,12 +445,12 @@ result_t Message::clear()
     return result_t();
 }
 
-result_t Message::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
+result_t Message::sendTo(Stream_base* stm, Options_Message_sendTo_options* options, AsyncHandle ac)
 {
     return result_t::invalid_call();
 }
 
-result_t Message::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
+result_t Message::readFrom(Stream_base* stm, Options_Message_readFrom_options* options, AsyncHandle ac)
 {
     return result_t::invalid_call();
 }

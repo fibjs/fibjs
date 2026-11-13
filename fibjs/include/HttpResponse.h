@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ifs/HttpResponse.h"
+#include "ifs/Message.h"
 #include "HttpMessage.h"
 #include "HttpCookie.h"
 #include <boost/preprocessor.hpp>
@@ -17,16 +18,6 @@ namespace fibjs {
 class HttpResponse : public HttpResponse_base {
 
 public:
-    // Options for sendTo/readFrom
-    class Options : public obj_base {
-    public:
-        LOAD_OPTIONS(Options, (header_only)(content_length));
-
-    public:
-        std::optional<bool> header_only = false;
-        std::optional<bool> content_length;
-    };
-
     // Options for Web API compatible constructor: new Response(body, options)
     class ResponseOptions : public obj_base {
     public:
@@ -81,8 +72,8 @@ public:
     virtual result_t end(exlib::string data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac);
     virtual result_t isEnded(bool& retVal);
     virtual result_t clear();
-    virtual result_t sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac);
-    virtual result_t readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac);
+    virtual result_t sendTo(Stream_base* stm, Options_Message_sendTo_options* options, AsyncHandle ac);
+    virtual result_t readFrom(Stream_base* stm, Options_Message_readFrom_options* options, AsyncHandle ac);
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
     virtual result_t get_lastError(exlib::string& retVal);
     virtual result_t set_lastError(exlib::string newVal);

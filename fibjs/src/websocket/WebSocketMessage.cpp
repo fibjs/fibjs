@@ -417,9 +417,9 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncHandle 
     return (new asyncSendTo(this, stm, wss, std::move(ac)))->post(result_t());
 }
 
-result_t WebSocketMessage::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
+result_t WebSocketMessage::sendTo(Stream_base* stm, Options_Message_sendTo_options* options, AsyncHandle ac)
 {
-    return sendTo(stm, NULL, std::move(ac));
+    return sendTo(stm, (WebSocket*)nullptr, std::move(ac));
 }
 
 result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandle ac)
@@ -609,9 +609,9 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncHandl
     return (new asyncReadFrom(this, stm, wss, std::move(ac)))->post(result_t());
 }
 
-result_t WebSocketMessage::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
+result_t WebSocketMessage::readFrom(Stream_base* stm, Options_Message_readFrom_options* options, AsyncHandle ac)
 {
-    return readFrom(stm, NULL, std::move(ac));
+    return readFrom(stm, (WebSocket*)nullptr, std::move(ac));
 }
 
 result_t WebSocketMessage::get_stream(obj_ptr<Stream_base>& retVal)

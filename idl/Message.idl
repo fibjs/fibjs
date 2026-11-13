@@ -420,7 +420,7 @@ interface Message : EventEmitter
      @param stm the stream object that receives the formatted message
      @param options the sending options
      */
-    sendTo(Stream stm, Object options = {}) async;
+    sendTo(Stream stm, (Boolean header_only = false, Boolean content_length) options = {}) async;
 
     /*! @brief Reads a formatted message from the given cached stream object and parses and fills the object
 
@@ -431,7 +431,7 @@ interface Message : EventEmitter
      @param stm the stream object from which the formatted message is read
      @param options the reading options
      */
-    readFrom(Stream stm, Object options = {}) async;
+    readFrom(Stream stm, (Boolean header_only = false) options = {}) async;
 
     /*! @brief Queries the stream object used when the message was read from
 

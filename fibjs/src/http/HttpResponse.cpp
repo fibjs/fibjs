@@ -689,55 +689,32 @@ result_t HttpResponse::readHeader(Stream_base* stm, AsyncHandle ac)
     return readFrom(stm, std::move(ac), true);
 }
 
-result_t HttpResponse::sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
+result_t HttpResponse::sendTo(Stream_base* stm, Options_Message_sendTo_options* options, AsyncHandle ac)
 {
+    bool header_only = options && options->header_only.value();
+
     if (ac.isSync()) {
-        obj_ptr<Options> _options;
-        Isolate* isolate = Isolate::current(options);
-        result_t hr = Options::load(options, _options);
-        if (hr.failed())
-            return hr;
-
-        if (!_options->header_only.value() && _options->content_length.has_value())
+        if (!header_only && options && options->content_length.has_value())
             return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("HttpResponse: content_length option is only valid for header_only response");
-
-        ac.ctxv().resize(1);
-        ac.ctxv()[0] = _options;
 
         return result_t::nosync();
     }
 
     exlib::string strCommand = prepareHeaders();
 
-    if (ac.ctxv().size() == 1) {
-        Options* _options = (Options*)ac.ctxv()[0].object();
-        if (_options->header_only.value())
-            return m_message->sendHeader(stm, strCommand, _options->content_length.value_or(true), std::move(ac));
-    }
+    if (header_only)
+        return m_message->sendHeader(stm, strCommand, options ? options->content_length.value_or(true) : true, std::move(ac));
 
     return m_message->send(stm, strCommand, std::move(ac));
 }
 
-result_t HttpResponse::readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac)
+result_t HttpResponse::readFrom(Stream_base* stm, Options_Message_readFrom_options* options, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        obj_ptr<Options> _options;
-        Isolate* isolate = Isolate::current(options);
-        result_t hr = Options::load(options, _options);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv().resize(1);
-        ac.ctxv()[0] = _options;
-
+    if (ac.isSync())
         return result_t::nosync();
-    }
 
-    if (ac.ctxv().size() == 1) {
-        Options* _options = (Options*)ac.ctxv()[0].object();
-        if (_options->header_only.value())
-            return readFrom(stm, std::move(ac), true);
-    }
+    if (options && options->header_only.value())
+        return readFrom(stm, std::move(ac), true);
 
     return readFrom(stm, std::move(ac), false);
 }

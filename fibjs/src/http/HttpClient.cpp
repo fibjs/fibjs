@@ -1203,7 +1203,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
 
         ON_STATE(asyncRequest, send)
         {
-            return m_req->sendTo(m_conn, v8::Local<v8::Object>(), next(recv));
+            return m_req->sendTo(m_conn, nullptr, next(recv));
         }
 
         result_t error(result_t v)

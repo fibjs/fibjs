@@ -33488,11 +33488,17 @@ declare class Class_Message extends Class_EventEmitter {
      *      @param options the sending options
      *
      */
-    sendTo(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    sendTo(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+        content_length?: boolean;
+    }): void;
 
     sendTo(stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    sendTo(stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    sendTo(stm: Class_Stream | Class_StreamPromise, options: {
+        header_only?: boolean;
+        content_length?: boolean;
+    }, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Sends a formatted message to the given stream object
@@ -33528,7 +33534,10 @@ declare class Class_Message extends Class_EventEmitter {
      *      @param options the sending options
      *
      */
-    sendToSync(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    sendToSync(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+        content_length?: boolean;
+    }): void;
 
     /**
      * @description Sends a formatted message to the given stream object
@@ -33564,7 +33573,10 @@ declare class Class_Message extends Class_EventEmitter {
      *      @param options the sending options
      *
      */
-    sendToAsync(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    sendToAsync(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+        content_length?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
@@ -33577,11 +33589,15 @@ declare class Class_Message extends Class_EventEmitter {
      *      @param options the reading options
      *
      */
-    readFrom(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    readFrom(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+    }): void;
 
     readFrom(stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    readFrom(stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+    readFrom(stm: Class_Stream | Class_StreamPromise, options: {
+        header_only?: boolean;
+    }, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
@@ -33594,7 +33610,9 @@ declare class Class_Message extends Class_EventEmitter {
      *      @param options the reading options
      *
      */
-    readFromSync(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    readFromSync(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+    }): void;
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
@@ -33607,7 +33625,9 @@ declare class Class_Message extends Class_EventEmitter {
      *      @param options the reading options
      *
      */
-    readFromAsync(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    readFromAsync(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Queries the stream object used when the message was read from
@@ -34661,7 +34681,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @param options the sending options
      *
      */
-    sendTo(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    sendTo(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+        content_length?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Sends a formatted message to the given stream object
@@ -34697,7 +34720,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @param options the sending options
      *
      */
-    sendToSync(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    sendToSync(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+        content_length?: boolean;
+    }): void;
 
     /**
      * @description Sends a formatted message to the given stream object
@@ -34733,7 +34759,10 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @param options the sending options
      *
      */
-    sendToAsync(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    sendToAsync(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+        content_length?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
@@ -34746,7 +34775,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @param options the reading options
      *
      */
-    readFrom(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    readFrom(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
@@ -34759,7 +34790,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @param options the reading options
      *
      */
-    readFromSync(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    readFromSync(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+    }): void;
 
     /**
      * @description Reads a formatted message from the given cached stream object and parses and fills the object
@@ -34772,7 +34805,9 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @param options the reading options
      *
      */
-    readFromAsync(stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    readFromAsync(stm: Class_Stream | Class_StreamPromise, options?: {
+        header_only?: boolean;
+    }): Promise<void>;
 
     /**
      * @description Queries the stream object used when the message was read from

@@ -12,6 +12,7 @@
  */
 
 #include "../object.h"
+#include <boost/preprocessor.hpp>
 #include "ifs/EventEmitter.h"
 
 namespace fibjs {
@@ -20,6 +21,8 @@ class EventEmitter_base;
 class Stream_base;
 class Buffer_base;
 class Blob_base;
+class Options_Message_sendTo_options;
+class Options_Message_readFrom_options;
 
 class Message_base : public EventEmitter_base {
     DECLARE_CLASS(Message_base);
@@ -66,8 +69,8 @@ public:
     virtual result_t end(exlib::string data, exlib::string encoding, obj_ptr<Message_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t isEnded(bool& retVal) = 0;
     virtual result_t clear() = 0;
-    virtual result_t sendTo(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac) = 0;
-    virtual result_t readFrom(Stream_base* stm, v8::Local<v8::Object> options, AsyncHandle ac) = 0;
+    virtual result_t sendTo(Stream_base* stm, Options_Message_sendTo_options* options, AsyncHandle ac) = 0;
+    virtual result_t readFrom(Stream_base* stm, Options_Message_readFrom_options* options, AsyncHandle ac) = 0;
     virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t get_lastError(exlib::string& retVal) = 0;
     virtual result_t set_lastError(exlib::string newVal) = 0;
@@ -140,8 +143,8 @@ public:
     ASYNC_MEMBERVALUE2(Message_base, end, Buffer_base*, obj_ptr<Message_base>);
     ASYNC_MEMBERVALUE3(Message_base, end, Buffer_base*, exlib::string, obj_ptr<Message_base>);
     ASYNC_MEMBERVALUE3(Message_base, end, exlib::string, exlib::string, obj_ptr<Message_base>);
-    ASYNC_MEMBER2(Message_base, sendTo, Stream_base*, v8::Local<v8::Object>);
-    ASYNC_MEMBER2(Message_base, readFrom, Stream_base*, v8::Local<v8::Object>);
+    ASYNC_MEMBER2(Message_base, sendTo, Stream_base*, obj_ptr<Options_Message_sendTo_options>);
+    ASYNC_MEMBER2(Message_base, readFrom, Stream_base*, obj_ptr<Options_Message_readFrom_options>);
 };
 }
 
@@ -150,6 +153,23 @@ public:
 #include "ifs/Blob.h"
 
 namespace fibjs {
+class Options_Message_sendTo_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_Message_sendTo_options, (header_only)(content_length));
+
+public:
+    std::optional<bool> header_only = false;
+    std::optional<bool> content_length;
+};
+
+class Options_Message_readFrom_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_Message_readFrom_options, (header_only));
+
+public:
+    std::optional<bool> header_only = false;
+};
+
 inline ClassInfo& Message_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
@@ -661,7 +681,7 @@ inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER_NAMED(2, 1, "stm");
 
     ARG_NAMED(obj_ptr<Stream_base>, 0, "stm");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_Message_sendTo_options>, 1, new Options_Message_sendTo_options(), "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_sendTo(v0.get(), v1, cb, args);
@@ -679,7 +699,7 @@ inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_OVER_NAMED(2, 1, "stm");
 
     ARG_NAMED(obj_ptr<Stream_base>, 0, "stm");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_Message_readFrom_options>, 1, new Options_Message_readFrom_options(), "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_readFrom(v0.get(), v1, cb, args);
