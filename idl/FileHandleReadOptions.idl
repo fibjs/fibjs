@@ -1,0 +1,11 @@
+/*! @brief Options for FileHandle.read's object form.
+
+     `buffer` defaults to a fresh 16384-byte Buffer, `offset` to 0, `length`
+     to `buffer.length - offset` and `position` to the current file position.
+ */
+struct FileHandleReadOptions {
+    Buffer buffer;
+    Integer offset = 0;
+    Integer length;
+    Integer position = -1;
+};

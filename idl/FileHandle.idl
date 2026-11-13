@@ -184,7 +184,7 @@ interface FileHandle : object
      @param options the read options
      @return returns an object containing the bytesRead and buffer properties
      */
-    (Integer bytesRead, Buffer buffer) read(Object options) async;
+    (Integer bytesRead, Buffer buffer) read(FileHandleReadOptions options) async;
 
     /*! @brief Writes bytes from a Buffer, optionally at a given position
 

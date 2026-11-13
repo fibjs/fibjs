@@ -328,66 +328,22 @@ result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, i
     return result_t();
 }
 
-result_t FileHandle::read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncHandle ac)
+result_t FileHandle::read(FileHandleReadOptions* options, obj_ptr<ReadType>& retVal, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        ac.ctxv().resize(4);
-
-        obj_ptr<Buffer_base> buffer;
-        result_t b_hr = GetConfigValue(options, "buffer", buffer);
-        if (b_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return b_hr;
-        if (buffer == NULL)
-            buffer = new Buffer(NULL, 16384);
-
-        // These three are ordered: `length` defaults to
-        // buffer.length - offset, so a discarded offset failure does not just
-        // lose a message -- it computes the wrong length. Node reports a bad
-        // one as ERR_INVALID_ARG_TYPE.
-        int32_t offset = 0;
-        result_t o_hr = GetConfigValue(options, "offset", offset, true);
-        if (o_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return o_hr;
-
-        int32_t length = Buffer::Cast(buffer)->length() - offset;
-        o_hr = GetConfigValue(options, "length", length, true);
-        if (o_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return o_hr;
-
-        int32_t position = -1;
-        o_hr = GetConfigValue(options, "position", position, true);
-        if (o_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return o_hr;
-
-        ac.ctxv()[0] = buffer;
-        ac.ctxv()[1] = offset;
-        ac.ctxv()[2] = length;
-        ac.ctxv()[3] = position;
-
+    if (ac.isSync())
         return result_t::nosync();
-    }
 
-    result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr.failed())
-        return ctx_hr;
-    ctx_hr = ac.ctx(1);
-    if (ctx_hr.failed())
-        return ctx_hr;
-    ctx_hr = ac.ctx(2);
-    if (ctx_hr.failed())
-        return ctx_hr;
-    ctx_hr = ac.ctx(3);
-    if (ctx_hr.failed())
-        return ctx_hr;
+    obj_ptr<Buffer_base> buffer;
+    if (options && options->buffer.has_value())
+        buffer = options->buffer.value();
+    else
+        buffer = new Buffer(NULL, 16384);
 
-    // Read the ctx slots out before the call moves the handle: the
-    // initialisation of the handle parameter is only indeterminately sequenced
-    // with the other argument expressions, so a move-first ordering would leave
-    // the remaining ctx reads dereferencing the emptied handle.
-    obj_ptr<Buffer_base> buffer = Buffer_base::getInstance(ac.ctxv()[0].object());
-    int32_t offset = ac.ctxv()[1].intVal();
-    int32_t length = ac.ctxv()[2].intVal();
-    int32_t position = ac.ctxv()[3].intVal();
+    int32_t offset = options ? options->offset.value_or(0) : 0;
+    int32_t length = options && options->length.has_value()
+        ? options->length.value()
+        : Buffer::Cast(buffer)->length() - offset;
+    int32_t position = options ? options->position.value_or(-1) : -1;
 
     return read(buffer, offset, length, position, retVal, std::move(ac));
 }

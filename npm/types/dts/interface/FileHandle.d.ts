@@ -386,12 +386,22 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    read(options: FIBJS.GeneralObject): {
+    read(options: {
+        buffer?: Class_Buffer;
+        offset?: number;
+        length?: number;
+        position?: number;
+    }): {
         bytesRead: number;
         buffer: Class_Buffer;
     };
 
-    read(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: {
+    read(options: {
+        buffer?: Class_Buffer;
+        offset?: number;
+        length?: number;
+        position?: number;
+    }, callback: (err: Error | undefined | null, retVal: {
         bytesRead: number;
         buffer: Class_Buffer;
     })=>any): void;
@@ -406,7 +416,12 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readSync(options: FIBJS.GeneralObject): {
+    readSync(options: {
+        buffer?: Class_Buffer;
+        offset?: number;
+        length?: number;
+        position?: number;
+    }): {
         bytesRead: number;
         buffer: Class_Buffer;
     };
@@ -421,7 +436,12 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readAsync(options: FIBJS.GeneralObject): Promise<{
+    readAsync(options: {
+        buffer?: Class_Buffer;
+        offset?: number;
+        length?: number;
+        position?: number;
+    }): Promise<{
         bytesRead: number;
         buffer: Class_Buffer;
     }>;
@@ -1482,7 +1502,12 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    read(options: FIBJS.GeneralObject): Promise<{
+    read(options: {
+        buffer?: Class_Buffer;
+        offset?: number;
+        length?: number;
+        position?: number;
+    }): Promise<{
         bytesRead: number;
         buffer: Class_Buffer;
     }>;
@@ -1497,7 +1522,12 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readSync(options: FIBJS.GeneralObject): {
+    readSync(options: {
+        buffer?: Class_Buffer;
+        offset?: number;
+        length?: number;
+        position?: number;
+    }): {
         bytesRead: number;
         buffer: Class_Buffer;
     };
@@ -1512,7 +1542,12 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readAsync(options: FIBJS.GeneralObject): Promise<{
+    readAsync(options: {
+        buffer?: Class_Buffer;
+        offset?: number;
+        length?: number;
+        position?: number;
+    }): Promise<{
         bytesRead: number;
         buffer: Class_Buffer;
     }>;

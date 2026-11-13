@@ -309,7 +309,7 @@ public:
     virtual result_t chmod(int32_t mode, AsyncHandle ac);
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac);
     virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncHandle ac);
-    virtual result_t read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncHandle ac);
+    virtual result_t read(FileHandleReadOptions* options, obj_ptr<ReadType>& retVal, AsyncHandle ac);
     virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncHandle ac);
     virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncHandle ac);
     virtual result_t readFile(Union_readFile_options options, Variant& retVal, AsyncHandle ac);

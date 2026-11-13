@@ -17,6 +17,7 @@ namespace fibjs {
 
 class Stat_base;
 class Buffer_base;
+class FileHandleReadOptions;
 
 class FileHandle_base : public object_base {
     DECLARE_CLASS(FileHandle_base);
@@ -74,7 +75,7 @@ public:
     virtual result_t chmod(int32_t mode, AsyncHandle ac) = 0;
     virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<ReadType>& retVal, AsyncHandle ac) = 0;
-    virtual result_t read(v8::Local<v8::Object> options, obj_ptr<ReadType>& retVal, AsyncHandle ac) = 0;
+    virtual result_t read(FileHandleReadOptions* options, obj_ptr<ReadType>& retVal, AsyncHandle ac) = 0;
     virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncHandle ac) = 0;
     virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncHandle ac) = 0;
     virtual result_t readFile(Union_readFile_options options, Variant& retVal, AsyncHandle ac) = 0;
@@ -112,7 +113,7 @@ public:
     ASYNC_MEMBER1(FileHandle_base, chmod, int32_t);
     ASYNC_MEMBERVALUE1(FileHandle_base, stat, obj_ptr<Stat_base>);
     ASYNC_MEMBERVALUE5(FileHandle_base, read, Buffer_base*, int32_t, int32_t, int32_t, obj_ptr<ReadType>);
-    ASYNC_MEMBERVALUE2(FileHandle_base, read, v8::Local<v8::Object>, obj_ptr<ReadType>);
+    ASYNC_MEMBERVALUE2(FileHandle_base, read, obj_ptr<FileHandleReadOptions>, obj_ptr<ReadType>);
     ASYNC_MEMBERVALUE5(FileHandle_base, write, Buffer_base*, int32_t, int32_t, int32_t, obj_ptr<WriteType>);
     ASYNC_MEMBERVALUE4(FileHandle_base, write, exlib::string, int32_t, exlib::string, obj_ptr<WriteType>);
     ASYNC_MEMBERVALUE2(FileHandle_base, readFile, Union_readFile_options, Variant);
@@ -129,6 +130,7 @@ public:
 
 #include "ifs/Stat.h"
 #include "ifs/Buffer.h"
+#include "ifs/FileHandleReadOptions.h"
 
 namespace fibjs {
 inline ClassInfo& FileHandle_base::class_info()
@@ -269,7 +271,7 @@ inline void FileHandle_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<FileHandleReadOptions>, 0, "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_read(v0, cb, args);
