@@ -311,7 +311,9 @@ declare module 'crypto' {
      *      @return returns the message digest object
      *
      */
-    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string, options?: FIBJS.GeneralObject): Class_Digest;
+    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string, options?: {
+        encoding?: string;
+    }): Class_Digest;
 
     /**
      * @description Lists the symmetric cipher names accepted by the createCipher family and
@@ -346,7 +348,10 @@ declare module 'crypto' {
      *      @return returns the cipher information, or undefined when it does not match
      *
      */
-    function getCipherInfo(nameOrNid: string | number, options?: FIBJS.GeneralObject): {
+    function getCipherInfo(nameOrNid: string | number, options?: {
+        keyLength?: number;
+        ivLength?: number;
+    }): {
         name: string;
         nid: number;
         blockSize: number;
@@ -369,7 +374,9 @@ declare module 'crypto' {
      *      @return returns the encryption object
      *
      */
-    function createCipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createCipher(algorithm: string, key: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Creates an encryption object with an explicit key and IV
@@ -406,7 +413,9 @@ declare module 'crypto' {
      *      @return returns the encryption object
      *
      */
-    function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Creates a decryption object, deriving the key and IV from a password
@@ -419,7 +428,9 @@ declare module 'crypto' {
      *      @return returns the decryption object
      *
      */
-    function createDecipher(algorithm: string, key: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createDecipher(algorithm: string, key: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Creates a decryption object with an explicit key and IV
@@ -435,7 +446,9 @@ declare module 'crypto' {
      *      @return returns the decryption object
      *
      */
-    function createDecipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    function createDecipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+        authTagLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Lists the ECC curve names supported by createECDH and accepted by
@@ -756,7 +769,9 @@ declare module 'crypto' {
      *      @return returns the UUID string
      *
      */
-    function randomUUID(options?: FIBJS.GeneralObject): string;
+    function randomUUID(options?: {
+        disableEntropyCache?: boolean;
+    }): string;
 
     /**
      * @description Generates a cryptographically secure random integer in a range
@@ -1162,15 +1177,27 @@ declare module 'crypto' {
      *      @param password the password to derive from
      *      @param salt the random salt
      *      @param keylen the number of bytes to derive
-     *      @param options the N, r, p and maxmem parameters
+     *      @param options the N, r, p and maxmem parameters; `N` must be a power of 2
+     *      greater than 1, `r` and `p` must be positive and `maxmem` caps the memory in
+     *      bytes
      *      @return returns the derived key
      *
      */
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
+    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+        N?: number;
+        r?: number;
+        p?: number;
+        maxmem?: number;
+    }): Class_Buffer;
 
     function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options: {
+        N?: number;
+        r?: number;
+        p?: number;
+        maxmem?: number;
+    }, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Derives a key from a password with scrypt
@@ -1205,11 +1232,18 @@ declare module 'crypto' {
      *      @param password the password to derive from
      *      @param salt the random salt
      *      @param keylen the number of bytes to derive
-     *      @param options the N, r, p and maxmem parameters
+     *      @param options the N, r, p and maxmem parameters; `N` must be a power of 2
+     *      greater than 1, `r` and `p` must be positive and `maxmem` caps the memory in
+     *      bytes
      *      @return returns the derived key
      *
      */
-    function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Class_Buffer;
+    function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+        N?: number;
+        r?: number;
+        p?: number;
+        maxmem?: number;
+    }): Class_Buffer;
 
     /**
      * @description Derives a key from a password with scrypt
@@ -1244,11 +1278,18 @@ declare module 'crypto' {
      *      @param password the password to derive from
      *      @param salt the random salt
      *      @param keylen the number of bytes to derive
-     *      @param options the N, r, p and maxmem parameters
+     *      @param options the N, r, p and maxmem parameters; `N` must be a power of 2
+     *      greater than 1, `r` and `p` must be positive and `maxmem` caps the memory in
+     *      bytes
      *      @return returns the derived key
      *
      */
-    function scryptAsync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function scryptAsync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+        N?: number;
+        r?: number;
+        p?: number;
+        maxmem?: number;
+    }): Promise<Class_Buffer>;
 
     /**
      * @description Decrypts data that was encrypted with the matching public key

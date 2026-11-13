@@ -12,6 +12,7 @@
  */
 
 #include "../object.h"
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
@@ -27,6 +28,14 @@ class Verify_base;
 class X509CertificateRequest_base;
 class webcrypto_base;
 class subtle_base;
+class Options_crypto_createHmac_options;
+class Options_crypto_getCipherInfo_options;
+class Options_crypto_createCipher_options;
+class Options_crypto_createCipheriv_options;
+class Options_crypto_createDecipher_options;
+class Options_crypto_createDecipheriv_options;
+class Options_crypto_randomUUID_options;
+class Options_crypto_scrypt_options;
 
 class crypto_base : public object_base {
     DECLARE_CLASS(crypto_base);
@@ -137,13 +146,13 @@ public:
     static result_t getHashes(std::vector<exlib::string>& retVal);
     static result_t createECDH(exlib::string curve, obj_ptr<ECDH_base>& retVal);
     static result_t createHash(exlib::string algo, obj_ptr<Digest_base>& retVal);
-    static result_t createHmac(exlib::string algo, Union_createHmac_key key, v8::Local<v8::Object> options, obj_ptr<Digest_base>& retVal);
+    static result_t createHmac(exlib::string algo, Union_createHmac_key key, Options_crypto_createHmac_options* options, obj_ptr<Digest_base>& retVal);
     static result_t getCiphers(std::vector<exlib::string>& retVal);
-    static result_t getCipherInfo(Union_getCipherInfo_nameOrNid nameOrNid, v8::Local<v8::Object> options, obj_ptr<GetCipherInfoType>& retVal);
-    static result_t createCipher(exlib::string algorithm, Union_createCipher_key key, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
-    static result_t createCipheriv(exlib::string algorithm, Union_createCipheriv_key key, Union_createCipheriv_iv iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
-    static result_t createDecipher(exlib::string algorithm, Union_createDecipher_key key, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
-    static result_t createDecipheriv(exlib::string algorithm, Union_createDecipheriv_key key, Union_createDecipheriv_iv iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
+    static result_t getCipherInfo(Union_getCipherInfo_nameOrNid nameOrNid, Options_crypto_getCipherInfo_options* options, obj_ptr<GetCipherInfoType>& retVal);
+    static result_t createCipher(exlib::string algorithm, Union_createCipher_key key, Options_crypto_createCipher_options* options, obj_ptr<Cipher_base>& retVal);
+    static result_t createCipheriv(exlib::string algorithm, Union_createCipheriv_key key, Union_createCipheriv_iv iv, Options_crypto_createCipheriv_options* options, obj_ptr<Cipher_base>& retVal);
+    static result_t createDecipher(exlib::string algorithm, Union_createDecipher_key key, Options_crypto_createDecipher_options* options, obj_ptr<Cipher_base>& retVal);
+    static result_t createDecipheriv(exlib::string algorithm, Union_createDecipheriv_key key, Union_createDecipheriv_iv iv, Options_crypto_createDecipheriv_options* options, obj_ptr<Cipher_base>& retVal);
     static result_t getCurves(std::vector<exlib::string>& retVal);
     static result_t createPrivateKey(Union_createPrivateKey_key key, obj_ptr<KeyObject_base>& retVal);
     static result_t createPublicKey(Union_createPublicKey_key key, obj_ptr<KeyObject_base>& retVal);
@@ -156,14 +165,14 @@ public:
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal);
     static result_t randomFill(Union_randomFill_buffer buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t getRandomValues(v8::Local<v8::TypedArray> data, v8::Local<v8::TypedArray>& retVal);
-    static result_t randomUUID(v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t randomUUID(Options_crypto_randomUUID_options* options, exlib::string& retVal);
     static result_t randomInt(double max, double& retVal);
     static result_t randomInt(double min, double max, double& retVal);
     static result_t getFips(int32_t& retVal);
     static result_t generateKeyPair(exlib::string type, v8::Local<v8::Object> options, obj_ptr<GenerateKeyPairType>& retVal, AsyncHandle ac);
     static result_t hkdf(exlib::string algoName, Union_hkdf_password password, Union_hkdf_salt salt, Union_hkdf_info info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
-    static result_t scrypt(Union_scrypt_password password, Union_scrypt_salt salt, int32_t keylen, v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
+    static result_t scrypt(Union_scrypt_password password, Union_scrypt_salt salt, int32_t keylen, Options_crypto_scrypt_options* options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     static result_t privateDecrypt(Union_privateDecrypt_privateKey privateKey, Union_privateDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
     static result_t privateEncrypt(Union_privateEncrypt_privateKey privateKey, Union_privateEncrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
     static result_t publicDecrypt(Union_publicDecrypt_publicKey publicKey, Union_publicDecrypt_buffer buffer, obj_ptr<Buffer_base>& retVal);
@@ -234,7 +243,7 @@ public:
     ASYNC_STATICVALUE3(crypto_base, generateKeyPair, exlib::string, v8::Local<v8::Object>, obj_ptr<GenerateKeyPairType>);
     ASYNC_STATICVALUE6(crypto_base, hkdf, exlib::string, Union_hkdf_password, Union_hkdf_salt, Union_hkdf_info, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE6(crypto_base, pbkdf2, Union_pbkdf2_password, Union_pbkdf2_salt, int32_t, int32_t, exlib::string, obj_ptr<Buffer_base>);
-    ASYNC_STATICVALUE5(crypto_base, scrypt, Union_scrypt_password, Union_scrypt_salt, int32_t, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE5(crypto_base, scrypt, Union_scrypt_password, Union_scrypt_salt, int32_t, obj_ptr<Options_crypto_scrypt_options>, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE4(crypto_base, sign, v8::Local<v8::Value>, Union_sign_data, Union_sign_key, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE5(crypto_base, verify, v8::Local<v8::Value>, Union_verify_data, Union_verify_key, Union_verify_signature, bool);
     ASYNC_STATICVALUE3(crypto_base, bbsSign, std::vector<Union_bbsSign_messages>, Union_bbsSign_privateKey, obj_ptr<Buffer_base>);
@@ -258,6 +267,74 @@ public:
 #include "ifs/subtle.h"
 
 namespace fibjs {
+class Options_crypto_createHmac_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_crypto_createHmac_options, (encoding));
+
+public:
+    std::optional<exlib::string> encoding = "utf8";
+};
+
+class Options_crypto_getCipherInfo_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_crypto_getCipherInfo_options, (keyLength)(ivLength));
+
+public:
+    std::optional<int32_t> keyLength;
+    std::optional<int32_t> ivLength;
+};
+
+class Options_crypto_createCipher_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_crypto_createCipher_options, (authTagLength));
+
+public:
+    std::optional<int32_t> authTagLength;
+};
+
+class Options_crypto_createCipheriv_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_crypto_createCipheriv_options, (authTagLength));
+
+public:
+    std::optional<int32_t> authTagLength;
+};
+
+class Options_crypto_createDecipher_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_crypto_createDecipher_options, (authTagLength));
+
+public:
+    std::optional<int32_t> authTagLength;
+};
+
+class Options_crypto_createDecipheriv_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_crypto_createDecipheriv_options, (authTagLength));
+
+public:
+    std::optional<int32_t> authTagLength;
+};
+
+class Options_crypto_randomUUID_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_crypto_randomUUID_options, (disableEntropyCache));
+
+public:
+    std::optional<bool> disableEntropyCache = false;
+};
+
+class Options_crypto_scrypt_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_crypto_scrypt_options, (N)(r)(p)(maxmem));
+
+public:
+    std::optional<int64_t> N = 16384LL;
+    std::optional<int32_t> r = 8;
+    std::optional<int32_t> p = 1;
+    std::optional<int64_t> maxmem = 33554432LL;
+};
+
 inline ClassInfo& crypto_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
@@ -375,7 +452,7 @@ inline void crypto_base::s_static_createHmac(const v8::FunctionCallbackInfo<v8::
 
     ARG_NAMED(exlib::string, 0, "algo");
     ARG(Union_createHmac_key, 1);
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_crypto_createHmac_options>, 2, new Options_crypto_createHmac_options(), "options");
 
     hr = createHmac(v0, v1, v2, vr);
 
@@ -404,7 +481,7 @@ inline void crypto_base::s_static_getCipherInfo(const v8::FunctionCallbackInfo<v
     METHOD_OVER_NAMED(2, 1, "nameOrNid");
 
     ARG(Union_getCipherInfo_nameOrNid, 0);
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_crypto_getCipherInfo_options>, 1, new Options_crypto_getCipherInfo_options(), "options");
 
     hr = getCipherInfo(v0, v1, vr);
 
@@ -421,7 +498,7 @@ inline void crypto_base::s_static_createCipher(const v8::FunctionCallbackInfo<v8
 
     ARG_NAMED(exlib::string, 0, "algorithm");
     ARG(Union_createCipher_key, 1);
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_crypto_createCipher_options>, 2, new Options_crypto_createCipher_options(), "options");
 
     hr = createCipher(v0, v1, v2, vr);
 
@@ -439,7 +516,7 @@ inline void crypto_base::s_static_createCipheriv(const v8::FunctionCallbackInfo<
     ARG_NAMED(exlib::string, 0, "algorithm");
     ARG(Union_createCipheriv_key, 1);
     ARG(Union_createCipheriv_iv, 2);
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_crypto_createCipheriv_options>, 3, new Options_crypto_createCipheriv_options(), "options");
 
     hr = createCipheriv(v0, v1, v2, v3, vr);
 
@@ -456,7 +533,7 @@ inline void crypto_base::s_static_createDecipher(const v8::FunctionCallbackInfo<
 
     ARG_NAMED(exlib::string, 0, "algorithm");
     ARG(Union_createDecipher_key, 1);
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_crypto_createDecipher_options>, 2, new Options_crypto_createDecipher_options(), "options");
 
     hr = createDecipher(v0, v1, v2, vr);
 
@@ -474,7 +551,7 @@ inline void crypto_base::s_static_createDecipheriv(const v8::FunctionCallbackInf
     ARG_NAMED(exlib::string, 0, "algorithm");
     ARG(Union_createDecipheriv_key, 1);
     ARG(Union_createDecipheriv_iv, 2);
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_crypto_createDecipheriv_options>, 3, new Options_crypto_createDecipheriv_options(), "options");
 
     hr = createDecipheriv(v0, v1, v2, v3, vr);
 
@@ -677,7 +754,7 @@ inline void crypto_base::s_static_randomUUID(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_crypto_randomUUID_options>, 0, new Options_crypto_randomUUID_options(), "options");
 
     hr = randomUUID(v0, vr);
 
@@ -793,7 +870,7 @@ inline void crypto_base::s_static_scrypt(const v8::FunctionCallbackInfo<v8::Valu
     ARG(Union_scrypt_password, 0);
     ARG(Union_scrypt_salt, 1);
     ARG_NAMED(int32_t, 2, "keylen");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_crypto_scrypt_options>, 3, new Options_crypto_scrypt_options(), "options");
 
     if (!cb.IsEmpty())
         hr = acb_scrypt(v0, v1, v2, v3, cb, args);

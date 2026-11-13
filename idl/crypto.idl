@@ -279,7 +279,7 @@ module crypto
      @param options the options object; `encoding` decodes a string key
      @return returns the message digest object
      */
-    static Digest createHmac(String algo, Buffer|KeyObject|String key, Object options = {});
+    static Digest createHmac(String algo, Buffer|KeyObject|String key, (String encoding = "utf8") options = {});
 
     /*! @brief Lists the symmetric cipher names accepted by the createCipher family and
      described by getCipherInfo
@@ -310,7 +310,7 @@ module crypto
      @param options the optional keyLength and ivLength filters
      @return returns the cipher information, or undefined when it does not match
      */
-    static (String name, Integer nid, Integer blockSize, Integer ivLength, Integer keyLength, String mode) getCipherInfo(String|Integer nameOrNid, Object options = {});
+    static (String name, Integer nid, Integer blockSize, Integer ivLength, Integer keyLength, String mode) getCipherInfo(String|Integer nameOrNid, (Integer keyLength, Integer ivLength) options = {});
 
     /*! @brief Creates an encryption object, deriving the key and IV from a password
 
@@ -324,7 +324,7 @@ module crypto
      @param options the cipher options
      @return returns the encryption object
      */
-    static Cipher createCipher(String algorithm, Buffer|String key, Object options = {});
+    static Cipher createCipher(String algorithm, Buffer|String key, (Integer authTagLength) options = {});
 
     /*! @brief Creates an encryption object with an explicit key and IV
 
@@ -359,7 +359,7 @@ module crypto
      @param options the cipher options
      @return returns the encryption object
      */
-    static Cipher createCipheriv(String algorithm, Buffer|KeyObject|String key, Buffer|String iv, Object options = {});
+    static Cipher createCipheriv(String algorithm, Buffer|KeyObject|String key, Buffer|String iv, (Integer authTagLength) options = {});
 
     /*! @brief Creates a decryption object, deriving the key and IV from a password
 
@@ -370,7 +370,7 @@ module crypto
      @param options the cipher options
      @return returns the decryption object
      */
-    static Cipher createDecipher(String algorithm, Buffer|String key, Object options = {});
+    static Cipher createDecipher(String algorithm, Buffer|String key, (Integer authTagLength) options = {});
 
     /*! @brief Creates a decryption object with an explicit key and IV
 
@@ -384,7 +384,7 @@ module crypto
      @param options the cipher options
      @return returns the decryption object
      */
-    static Cipher createDecipheriv(String algorithm, Buffer|KeyObject|String key, Buffer|String iv, Object options = {});
+    static Cipher createDecipheriv(String algorithm, Buffer|KeyObject|String key, Buffer|String iv, (Integer authTagLength) options = {});
 
     /*! @brief Lists the ECC curve names supported by createECDH and accepted by
      `generateKeyPair('ec', ...)` and `generateKeyPair('sm2')`
@@ -635,7 +635,7 @@ module crypto
      @param options reserved; not used
      @return returns the UUID string
      */
-    static String randomUUID(Object options = {});
+    static String randomUUID((Boolean disableEntropyCache = false) options = {});
 
     /*! @brief Generates a cryptographically secure random integer in a range
 
@@ -819,10 +819,12 @@ module crypto
      @param password the password to derive from
      @param salt the random salt
      @param keylen the number of bytes to derive
-     @param options the N, r, p and maxmem parameters
+     @param options the N, r, p and maxmem parameters; `N` must be a power of 2
+     greater than 1, `r` and `p` must be positive and `maxmem` caps the memory in
+     bytes
      @return returns the derived key
      */
-    static Buffer scrypt(Buffer|String password, Buffer|String salt, Integer keylen, Object options = {}) async;
+    static Buffer scrypt(Buffer|String password, Buffer|String salt, Integer keylen, (Long N = 16384, Integer r = 8, Integer p = 1, Long maxmem = 33554432) options = {}) async;
 
     /*! @brief Decrypts data that was encrypted with the matching public key
 

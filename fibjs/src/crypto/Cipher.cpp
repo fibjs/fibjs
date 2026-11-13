@@ -75,7 +75,7 @@ static const char* GetCipherMode(int mode)
 
 // Helper function to create cipher info object
 static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
-    v8::Local<v8::Object> options, obj_ptr<crypto_base::GetCipherInfoType>& retVal)
+    Options_crypto_getCipherInfo_options* options, obj_ptr<crypto_base::GetCipherInfoType>& retVal)
 {
     if (!cipher)
         return result_t::return_undefined();
@@ -93,26 +93,16 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
     std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), ::tolower);
 
     // Check optional filters
-    result_t hr;
-    int32_t expected_key_length;
-    int32_t expected_iv_length;
-
     // Check keyLength filter
-    hr = GetConfigValue(options, "keyLength", expected_key_length, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
-    if (hr.ok()) {
-        if (key_length != expected_key_length)
+    if (options->keyLength.has_value()) {
+        if (key_length != options->keyLength.value())
             return result_t::return_undefined();
     }
 
     // Check ivLength filter
-    hr = GetConfigValue(options, "ivLength", expected_iv_length, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    if (options->ivLength.has_value()) {
+        int32_t expected_iv_length = options->ivLength.value();
 
-    if (hr.ok()) {
         // Special handling for CCM and OCB modes which support variable IV lengths
         if (mode == EVP_CIPH_CCM_MODE) {
             // CCM mode supports IV length from 7 to 13 bytes
@@ -139,7 +129,7 @@ static result_t CreateCipherInfo(const EVP_CIPHER* cipher,
     return result_t();
 }
 
-result_t crypto_base::getCipherInfo(Union_getCipherInfo_nameOrNid nameOrNid, v8::Local<v8::Object> options,
+result_t crypto_base::getCipherInfo(Union_getCipherInfo_nameOrNid nameOrNid, Options_crypto_getCipherInfo_options* options,
     obj_ptr<GetCipherInfoType>& retVal)
 {
     const EVP_CIPHER* cipher = std::holds_alternative<exlib::string>(nameOrNid)
@@ -177,16 +167,17 @@ static result_t cipher_key_args(crypto_base::Union_createCipheriv_key& key, obj_
 }
 
 result_t crypto_base::createCipher(exlib::string algorithm, Union_createCipher_key key,
-    v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
+    Options_crypto_createCipher_options* options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<Cipher> ci = new Cipher(Cipher::kCipher);
+    int32_t auth_tag_len = options->authTagLength.value_or(static_cast<int32_t>(Cipher::kNoAuthTagLength));
 
     obj_ptr<Buffer_base> keyBuf;
     result_t hr = cipher_string_arg(key, keyBuf);
     if (hr.failed())
         return hr;
 
-    hr = ci->init(algorithm, keyBuf, options);
+    hr = ci->init(algorithm, keyBuf, auth_tag_len);
     if (hr.failed())
         return hr;
 
@@ -196,10 +187,11 @@ result_t crypto_base::createCipher(exlib::string algorithm, Union_createCipher_k
 }
 
 result_t crypto_base::createCipheriv(exlib::string algorithm, Union_createCipheriv_key key,
-    Union_createCipheriv_iv iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
+    Union_createCipheriv_iv iv, Options_crypto_createCipheriv_options* options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<Cipher> ci = new Cipher(Cipher::kCipher);
     KeyObject* ko = NULL;
+    int32_t auth_tag_len = options->authTagLength.value_or(static_cast<int32_t>(Cipher::kNoAuthTagLength));
 
     obj_ptr<Buffer_base> keyBuf;
     result_t hr = cipher_key_args(key, keyBuf, ko);
@@ -211,8 +203,8 @@ result_t crypto_base::createCipheriv(exlib::string algorithm, Union_createCipher
     if (hr.failed())
         return hr;
 
-    hr = ko ? ci->initiv(algorithm, ko->data(), ko->length(), ivBuf, options)
-            : ci->initiv(algorithm, keyBuf, ivBuf, options);
+    hr = ko ? ci->initiv(algorithm, ko->data(), ko->length(), ivBuf, auth_tag_len)
+            : ci->initiv(algorithm, keyBuf, ivBuf, auth_tag_len);
     if (hr.failed())
         return hr;
 
@@ -222,16 +214,17 @@ result_t crypto_base::createCipheriv(exlib::string algorithm, Union_createCipher
 }
 
 result_t crypto_base::createDecipher(exlib::string algorithm, Union_createDecipher_key key,
-    v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
+    Options_crypto_createDecipher_options* options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<Cipher> ci = new Cipher(Cipher::kDecipher);
+    int32_t auth_tag_len = options->authTagLength.value_or(static_cast<int32_t>(Cipher::kNoAuthTagLength));
 
     obj_ptr<Buffer_base> keyBuf;
     result_t hr = cipher_string_arg(key, keyBuf);
     if (hr.failed())
         return hr;
 
-    hr = ci->init(algorithm, keyBuf, options);
+    hr = ci->init(algorithm, keyBuf, auth_tag_len);
     if (hr.failed())
         return hr;
 
@@ -241,10 +234,11 @@ result_t crypto_base::createDecipher(exlib::string algorithm, Union_createDeciph
 }
 
 result_t crypto_base::createDecipheriv(exlib::string algorithm, Union_createDecipheriv_key key,
-    Union_createDecipheriv_iv iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
+    Union_createDecipheriv_iv iv, Options_crypto_createDecipheriv_options* options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<Cipher> ci = new Cipher(Cipher::kDecipher);
     KeyObject* ko = NULL;
+    int32_t auth_tag_len = options->authTagLength.value_or(static_cast<int32_t>(Cipher::kNoAuthTagLength));
 
     obj_ptr<Buffer_base> keyBuf;
     result_t hr = cipher_key_args(key, keyBuf, ko);
@@ -256,8 +250,8 @@ result_t crypto_base::createDecipheriv(exlib::string algorithm, Union_createDeci
     if (hr.failed())
         return hr;
 
-    hr = ko ? ci->initiv(algorithm, ko->data(), ko->length(), ivBuf, options)
-            : ci->initiv(algorithm, keyBuf, ivBuf, options);
+    hr = ko ? ci->initiv(algorithm, ko->data(), ko->length(), ivBuf, auth_tag_len)
+            : ci->initiv(algorithm, keyBuf, ivBuf, auth_tag_len);
     if (hr.failed())
         return hr;
 
@@ -356,7 +350,7 @@ result_t Cipher::InitAuthenticated(int iv_len, unsigned int auth_tag_len)
     return result_t();
 }
 
-result_t Cipher::init(const exlib::string& name, Buffer_base* key, v8::Local<v8::Object> options)
+result_t Cipher::init(const exlib::string& name, Buffer_base* key, int32_t auth_tag_len)
 {
     const EVP_CIPHER* cipher = EVP_get_cipherbyname(name.c_str());
     if (cipher == NULL)
@@ -371,10 +365,10 @@ result_t Cipher::init(const exlib::string& name, Buffer_base* key, v8::Local<v8:
     int key_len = EVP_BytesToKey(cipher, EVP_md5(), nullptr, key_buf->data(),
         key_buf->length(), 1, key1, iv1);
 
-    return CommonInit(cipher, key1, key_len, iv1, EVP_CIPHER_iv_length(cipher), options);
+    return CommonInit(cipher, key1, key_len, iv1, EVP_CIPHER_iv_length(cipher), auth_tag_len);
 }
 
-result_t Cipher::initiv(const exlib::string& name, const unsigned char* key, size_t size, Buffer_base* iv, v8::Local<v8::Object> options)
+result_t Cipher::initiv(const exlib::string& name, const unsigned char* key, size_t size, Buffer_base* iv, int32_t auth_tag_len)
 {
     const EVP_CIPHER* cipher = EVP_get_cipherbyname(name.c_str());
     if (cipher == NULL)
@@ -403,17 +397,17 @@ result_t Cipher::initiv(const exlib::string& name, const unsigned char* key, siz
             return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_CRYPTO_INVALID_IV").with_message("Cipher: Invalid iv size");
     }
 
-    return CommonInit(cipher, key, size, (const unsigned char*)iv_buf->data(), iv_len, options);
+    return CommonInit(cipher, key, size, (const unsigned char*)iv_buf->data(), iv_len, auth_tag_len);
 }
 
-result_t Cipher::initiv(const exlib::string& name, Buffer_base* key, Buffer_base* iv, v8::Local<v8::Object> options)
+result_t Cipher::initiv(const exlib::string& name, Buffer_base* key, Buffer_base* iv, int32_t auth_tag_len)
 {
     Buffer* key_buf = Buffer::Cast(key);
-    return initiv(name, (const unsigned char*)key_buf->data(), key_buf->length(), iv, options);
+    return initiv(name, (const unsigned char*)key_buf->data(), key_buf->length(), iv, auth_tag_len);
 }
 
 result_t Cipher::CommonInit(const EVP_CIPHER* cipher, const unsigned char* key, unsigned int key_len,
-    const unsigned char* iv, unsigned int iv_len, v8::Local<v8::Object> options)
+    const unsigned char* iv, unsigned int iv_len, int32_t auth_tag_len)
 {
     result_t hr;
 
@@ -430,12 +424,6 @@ result_t Cipher::CommonInit(const EVP_CIPHER* cipher, const unsigned char* key, 
         return openssl_error();
 
     if (IsSupportedAuthenticatedMode(cipher)) {
-        int auth_tag_len = kNoAuthTagLength;
-
-        hr = GetConfigValue(options, "authTagLength", auth_tag_len, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
-
         hr = InitAuthenticated(iv_len, auth_tag_len);
         if (hr.failed())
             return hr;
@@ -511,7 +499,7 @@ result_t Cipher::getAuthTag(obj_ptr<Buffer_base>& retVal)
     return result_t();
 }
 
-result_t Cipher::setAAD(const char* data, int data_len, v8::Local<v8::Object> options)
+result_t Cipher::setAAD(const char* data, int data_len, int32_t plaintext_len)
 {
     if (auth_tag_state_ == kAuthTagFinalized || !IsAuthenticatedMode())
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Cipher: Invalid setAAD");
@@ -520,11 +508,6 @@ result_t Cipher::setAAD(const char* data, int data_len, v8::Local<v8::Object> op
     const int mode = EVP_CIPHER_CTX_mode(m_ctx);
 
     if (mode == EVP_CIPH_CCM_MODE) {
-        int plaintext_len = kNoAuthTagLength;
-        result_t hr = GetConfigValue(options, "plaintextLength", plaintext_len, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
-
         if (plaintext_len < 0)
             return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Cipher: Invalid plaintextLength");
 
@@ -546,29 +529,26 @@ result_t Cipher::setAAD(const char* data, int data_len, v8::Local<v8::Object> op
     return result_t();
 }
 
-result_t Cipher::setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
+result_t Cipher::setAAD(Union_setAAD_buffer buffer, Options_Cipher_setAAD_options* options, obj_ptr<Cipher_base>& retVal)
 {
     result_t hr;
+    int32_t plaintext_len = options->plaintextLength.value();
 
     if (std::holds_alternative<exlib::string>(buffer)) {
         exlib::string _buffer = std::get<exlib::string>(buffer);
-        exlib::string encoding = "utf8";
-
-        hr = GetConfigValue(options, "encoding", encoding, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
+        exlib::string encoding = options->encoding.value();
 
         hr = commonDecode(encoding, _buffer, _buffer);
         if (hr.failed())
             return hr;
 
-        hr = setAAD(_buffer.c_str(), _buffer.length(), options);
+        hr = setAAD(_buffer.c_str(), _buffer.length(), plaintext_len);
     } else {
         // the buffer form takes the bytes as they are, as it did before the
         // merge (it had no encoding option)
         Buffer* buf = Buffer::Cast(std::get<obj_ptr<Buffer_base>>(buffer));
 
-        hr = setAAD((const char*)buf->data(), buf->length(), options);
+        hr = setAAD((const char*)buf->data(), buf->length(), plaintext_len);
     }
 
     if (hr.failed())

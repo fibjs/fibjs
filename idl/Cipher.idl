@@ -171,7 +171,7 @@ interface Cipher : object
      @param options the additional authenticated data options to use
      @return returns the current Cipher object
     */
-    Cipher setAAD(Buffer|String buffer, Object options = {});
+    Cipher setAAD(Buffer|String buffer, (String encoding = "utf8", Integer plaintextLength = -1) options = {});
 
     /*! @brief Enables or disables automatic PKCS#7 padding
 

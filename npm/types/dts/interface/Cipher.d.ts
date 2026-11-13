@@ -181,7 +181,10 @@ declare class Class_Cipher extends Class_object {
      *      @return returns the current Cipher object
      *
      */
-    setAAD(buffer: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Cipher;
+    setAAD(buffer: Class_Buffer | string, options?: {
+        encoding?: string;
+        plaintextLength?: number;
+    }): Class_Cipher;
 
     /**
      * @description Enables or disables automatic PKCS#7 padding

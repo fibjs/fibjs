@@ -177,10 +177,15 @@ result_t crypto_base::getRandomValues(v8::Local<v8::TypedArray> data, v8::Local<
     return webcrypto_base::getRandomValues(data, retVal);
 }
 
-result_t crypto_base::randomUUID(v8::Local<v8::Object> options, exlib::string& retVal)
+result_t crypto_base::randomUUID(Options_crypto_randomUUID_options* options, exlib::string& retVal)
 {
-    // Generate UUID v4 using uuid module
-    return uuid_base::v4(options, retVal);
+    // Node's only documented option is disableEntropyCache. fibjs does not
+    // keep an entropy cache, so accepting the flag is enough; `random` remains
+    // a uuid.v4 extension and is deliberately not forwarded here.
+    (void)options;
+
+    Isolate* isolate = Isolate::current();
+    return uuid_base::v4(v8::Object::New(isolate->m_isolate), retVal);
 }
 
 }

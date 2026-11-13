@@ -39,15 +39,15 @@ public:
     // Cipher_base
     virtual result_t setAuthTag(Union_setAuthTag_buffer buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal);
     virtual result_t getAuthTag(obj_ptr<Buffer_base>& retVal);
-    virtual result_t setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
+    virtual result_t setAAD(Union_setAAD_buffer buffer, Options_Cipher_setAAD_options* options, obj_ptr<Cipher_base>& retVal);
     virtual result_t setAutoPadding(bool autoPadding, obj_ptr<Cipher_base>& retVal);
     virtual result_t update(Union_update_data data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
     virtual result_t final(exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
 
 public:
-    result_t init(const exlib::string& name, Buffer_base* key, v8::Local<v8::Object> options);
-    result_t initiv(const exlib::string& name, const unsigned char* key, size_t size, Buffer_base* iv, v8::Local<v8::Object> options);
-    result_t initiv(const exlib::string& name, Buffer_base* key, Buffer_base* iv, v8::Local<v8::Object> options);
+    result_t init(const exlib::string& name, Buffer_base* key, int32_t auth_tag_len);
+    result_t initiv(const exlib::string& name, const unsigned char* key, size_t size, Buffer_base* iv, int32_t auth_tag_len);
+    result_t initiv(const exlib::string& name, Buffer_base* key, Buffer_base* iv, int32_t auth_tag_len);
 
 private:
     bool IsAuthenticatedMode() const;
@@ -55,9 +55,9 @@ private:
     bool CheckCCMMessageLength(int message_len);
     bool MaybePassAuthTagToOpenSSL();
     result_t setAuthTag(const char* tag, int tag_len);
-    result_t setAAD(const char* data, int data_len, v8::Local<v8::Object> options);
+    result_t setAAD(const char* data, int data_len, int32_t plaintext_len);
     result_t CommonInit(const EVP_CIPHER* cipher, const unsigned char* key, unsigned int key_len,
-        const unsigned char* iv, unsigned int iv_len, v8::Local<v8::Object> options);
+        const unsigned char* iv, unsigned int iv_len, int32_t auth_tag_len);
     result_t update(const unsigned char* data, size_t len, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
     result_t get_result(Buffer* out, exlib::string outputEncoding, v8::Local<v8::Value>& retVal, bool final);
 

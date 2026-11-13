@@ -12,7 +12,6 @@
 #include "KeyObject.h"
 #include "crypto_util.h"
 #include <openssl/kdf.h>
-#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
@@ -102,16 +101,12 @@ static result_t union_to_buffer(T& v, obj_ptr<Buffer_base>& buf, const char* enc
 }
 
 result_t crypto_base::createHmac(exlib::string algo, Union_createHmac_key key,
-    v8::Local<v8::Object> options, obj_ptr<Digest_base>& retVal)
+    Options_crypto_createHmac_options* options, obj_ptr<Digest_base>& retVal)
 {
     // Node.js applies options.encoding to a string key, so the same key material
-    // can be written as hex or base64 instead of as a Buffer literal.  A Buffer
+    // can be written as hex or base64 instead of as a Buffer literal. A Buffer
     // or KeyObject key ignores it.
-    exlib::string key_encoding = "utf8";
-    // Node validates it: a non-string encoding is ERR_INVALID_ARG_TYPE.
-    result_t enc_hr = GetConfigValue(options, "encoding", key_encoding, true);
-    if (enc_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return enc_hr;
+    exlib::string key_encoding = options->encoding.value();
 
     if (std::holds_alternative<obj_ptr<KeyObject_base>>(key)) {
         KeyObject* ko = (KeyObject*)std::get<obj_ptr<KeyObject_base>>(key).get();
@@ -256,27 +251,12 @@ result_t crypto_base::pbkdf2(Union_pbkdf2_password password, Union_pbkdf2_salt s
     return result_t();
 }
 
-class ScryptOptions : public obj_base {
-public:
-    LOAD_OPTIONS(ScryptOptions, (N)(r)(p)(maxmem));
+using ScryptOptions = Options_crypto_scrypt_options;
 
-public:
-    std::optional<int64_t> N = 16384; // CPU/memory cost parameter (must be power of 2)
-    std::optional<int32_t> r = 8; // Block size parameter
-    std::optional<int32_t> p = 1; // Parallelization parameter
-    std::optional<int64_t> maxmem = 32 * 1024 * 1024; // Default 32MB
-};
-
-result_t scrypt_load_options(v8::Local<v8::Object> options, AsyncHandle& ac)
+static result_t scrypt_validate_options(ScryptOptions* options)
 {
-    obj_ptr<ScryptOptions> opt;
-    Isolate* isolate = Isolate::current(options);
-    result_t hr = ScryptOptions::load(options, opt);
-    if (hr.failed())
-        return hr;
-
     // Validate N is a power of 2 and greater than 1
-    uint64_t N = opt->N.value();
+    uint64_t N = options->N.value();
     if (N < 2 || (N & (N - 1)) != 0)
         return result_t::make(CALL_E_OVERFLOW)
             .with_type_name(errtype::kRangeError)
@@ -284,23 +264,20 @@ result_t scrypt_load_options(v8::Local<v8::Object> options, AsyncHandle& ac)
             .with_format("scrypt: N must be a power of 2 greater than 1, received %lld.", (long long)N);
 
     // Validate r and p are not zero
-    if (opt->r.value() == 0 || opt->p.value() == 0)
+    if (options->r.value() == 0 || options->p.value() == 0)
         return result_t::make(CALL_E_OVERFLOW)
             .with_type_name(errtype::kRangeError)
             .with_code("ERR_CRYPTO_INVALID_SCRYPT_PARAMS")
             .with_message("scrypt: r and p must be positive.");
 
-    ac.ctxv().resize(1);
-    ac.ctxv()[0] = opt;
-
     return result_t::nosync();
 }
 
 result_t crypto_base::scrypt(Union_scrypt_password password, Union_scrypt_salt salt, int32_t keylen,
-    v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
+    ScryptOptions* options, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
-        return scrypt_load_options(options, ac);
+        return scrypt_validate_options(options);
 
     if (keylen < 1)
         return result_t::make(CALL_E_OVERFLOW)
@@ -308,11 +285,9 @@ result_t crypto_base::scrypt(Union_scrypt_password password, Union_scrypt_salt s
             .with_code("ERR_CRYPTO_INVALID_SCRYPT_PARAMS")
             .with_format("scrypt: keylen must be positive, received %d.", keylen);
 
-    result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr.failed())
-        return ctx_hr;
-
-    ScryptOptions* opt = (ScryptOptions*)ac.ctxv()[0].object();
+    // The async call re-invokes this function with the same converted argument
+    // slots; the sync phase's validation ran on this very object.
+    ScryptOptions* opt = options;
 
     obj_ptr<Buffer_base> passwordBuf, saltOut;
     result_t hr;

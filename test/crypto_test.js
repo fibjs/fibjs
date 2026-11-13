@@ -3081,6 +3081,14 @@ describe('crypto', () => {
             });
 
             describe("setAAD", () => {
+                it("names the invalid encoding field", () => {
+                    const cipher = crypto.createCipheriv('aes-256-gcm',
+                        Buffer.alloc(32), Buffer.alloc(12));
+
+                    assert.throws(() => cipher.setAAD('aad', { encoding: 1 }),
+                        /"encoding" argument must be of type string/);
+                });
+
                 it("invalid plaintext length", () => {
                     const cipher = crypto.createCipheriv('aes-256-ccm',
                         'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
@@ -4525,6 +4533,11 @@ describe('crypto', () => {
             assert(crypto.getCipherInfo('aes-128-cbc', { ivLength: 16 }));
         });
 
+        it('names the invalid filter field', () => {
+            assert.throws(() => crypto.getCipherInfo('aes-128-cbc', { keyLength: '16' }),
+                /"keyLength" argument must be of type number/);
+        });
+
         it('CCM mode ivLength validation', () => {
             assert(!crypto.getCipherInfo('aes-128-ccm', { ivLength: 1 }));
             assert(!crypto.getCipherInfo('aes-128-ccm', { ivLength: 14 }));
@@ -4585,6 +4598,11 @@ describe('crypto', () => {
             assert.match(uuid1, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
             assert.match(uuid2, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
             assert.notStrictEqual(uuid1, uuid2);
+        });
+
+        it('names the invalid disableEntropyCache field', () => {
+            assert.throws(() => crypto.randomUUID({ disableEntropyCache: 1 }),
+                /"disableEntropyCache" argument must be of type boolean/);
         });
     });
 
@@ -4732,6 +4750,11 @@ describe('crypto', () => {
                     crypto.createHmac('sha256', Buffer.from('k'), { encoding: 'hex' })
                         .update('m').digest('hex'),
                     crypto.createHmac('sha256', Buffer.from('k')).update('m').digest('hex'));
+            });
+
+            it('names the invalid encoding field', () => {
+                assert.throws(() => crypto.createHmac('sha256', 'secret', { encoding: 1 }),
+                    /"encoding" argument must be of type string/);
             });
         });
 

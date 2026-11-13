@@ -12,10 +12,12 @@
  */
 
 #include "../object.h"
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
 class Buffer_base;
+class Options_Cipher_setAAD_options;
 
 class Cipher_base : public object_base {
     DECLARE_CLASS(Cipher_base);
@@ -29,7 +31,7 @@ public:
     // Cipher_base
     virtual result_t setAuthTag(Union_setAuthTag_buffer buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal) = 0;
     virtual result_t getAuthTag(obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t setAAD(Union_setAAD_buffer buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal) = 0;
+    virtual result_t setAAD(Union_setAAD_buffer buffer, Options_Cipher_setAAD_options* options, obj_ptr<Cipher_base>& retVal) = 0;
     virtual result_t setAutoPadding(bool autoPadding, obj_ptr<Cipher_base>& retVal) = 0;
     virtual result_t update(Union_update_data data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t final(exlib::string outputEncoding, v8::Local<v8::Value>& retVal) = 0;
@@ -58,6 +60,15 @@ public:
 #include "ifs/Buffer.h"
 
 namespace fibjs {
+class Options_Cipher_setAAD_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_Cipher_setAAD_options, (encoding)(plaintextLength));
+
+public:
+    std::optional<exlib::string> encoding = "utf8";
+    std::optional<int32_t> plaintextLength = -1;
+};
+
 inline ClassInfo& Cipher_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
@@ -121,7 +132,7 @@ inline void Cipher_base::s_setAAD(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_OVER_NAMED(2, 1, "buffer");
 
     ARG(Union_setAAD_buffer, 0);
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_Cipher_setAAD_options>, 1, new Options_Cipher_setAAD_options(), "options");
 
     hr = pInst->setAAD(v0, v1, vr);
 
