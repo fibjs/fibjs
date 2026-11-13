@@ -1,0 +1,9 @@
+/*! @brief Options for PerformanceObserver.observe.
+
+     At least one of `entryTypes` and `type` is required; `entryTypes` takes
+     precedence when both are present.
+ */
+struct PerformanceObserverOptions {
+    String[] entryTypes;
+    String type;
+};

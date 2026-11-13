@@ -55,24 +55,21 @@ result_t PerformanceObserver_base::_new(v8::Local<v8::Function> callback, obj_pt
     return result_t();
 }
 
-result_t PerformanceObserver::observe(v8::Local<v8::Object> options)
+result_t PerformanceObserver::observe(PerformanceObserverOptions* options)
 {
     Isolate* isolate = holder();
+
     std::vector<exlib::string> entryTypes;
-    result_t hr;
+    if (options) {
+        if (options->entryTypes.has_value())
+            entryTypes = options->entryTypes.value();
 
-    hr = GetConfigValue(options, "entryTypes", entryTypes, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
-    if (entryTypes.empty()) {
-        exlib::string type;
-        hr = GetConfigValue(options, "type", type, true);
-        if (hr.failed())
-            return hr;
-
-        entryTypes.push_back(type);
+        if (entryTypes.empty() && options->type.has_value())
+            entryTypes.push_back(options->type.value());
     }
+
+    if (entryTypes.empty())
+        return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, "type");
 
     isolate->m_perfLock.lock();
     for (auto& entryType : entryTypes) {

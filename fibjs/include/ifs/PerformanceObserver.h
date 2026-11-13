@@ -15,6 +15,7 @@
 
 namespace fibjs {
 
+class PerformanceObserverOptions;
 class PerformanceEntry_base;
 
 class PerformanceObserver_base : public object_base {
@@ -23,7 +24,7 @@ class PerformanceObserver_base : public object_base {
 public:
     // PerformanceObserver_base
     static result_t _new(v8::Local<v8::Function> callback, obj_ptr<PerformanceObserver_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t observe(v8::Local<v8::Object> options) = 0;
+    virtual result_t observe(PerformanceObserverOptions* options) = 0;
     virtual result_t disconnect() = 0;
     virtual result_t takeRecords(std::vector<obj_ptr<PerformanceEntry_base>>& retVal) = 0;
 
@@ -39,6 +40,7 @@ public:
 };
 }
 
+#include "ifs/PerformanceObserverOptions.h"
 #include "ifs/PerformanceEntry.h"
 
 namespace fibjs {
@@ -104,9 +106,9 @@ inline void PerformanceObserver_base::s_observe(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<PerformanceObserverOptions>, 0, "options");
 
-    hr = pInst->observe(v0);
+    hr = pInst->observe((PerformanceObserverOptions*)v0);
 
     METHOD_VOID();
 }

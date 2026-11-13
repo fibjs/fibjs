@@ -142,7 +142,7 @@ interface PerformanceObserver : object
 
      @param options the entry types to observe
     */
-    observe(Object options);
+    observe(PerformanceObserverOptions options);
 
     /*! @brief Stops delivering records and unregisters the observer
 

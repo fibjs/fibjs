@@ -17,7 +17,7 @@ namespace fibjs {
 class PerformanceObserver : public PerformanceObserver_base {
 public:
     // PerformanceObserver_base
-    virtual result_t observe(v8::Local<v8::Object> options);
+    virtual result_t observe(PerformanceObserverOptions* options);
     virtual result_t disconnect();
     virtual result_t takeRecords(std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
 

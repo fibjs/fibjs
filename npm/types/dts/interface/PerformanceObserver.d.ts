@@ -151,7 +151,10 @@ declare class Class_PerformanceObserver extends Class_object {
      *      @param options the entry types to observe
      *
      */
-    observe(options: FIBJS.GeneralObject): void;
+    observe(options: {
+        entryTypes?: string[];
+        type?: string;
+    }): void;
 
     /**
      * @description Stops delivering records and unregisters the observer
