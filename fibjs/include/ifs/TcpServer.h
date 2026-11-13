@@ -18,6 +18,7 @@ namespace fibjs {
 
 class EventEmitter_base;
 class Handler_base;
+class TcpServerOptions;
 class Socket_base;
 
 class TcpServer_base : public EventEmitter_base {
@@ -55,7 +56,7 @@ public:
     // TcpServer_base
     static result_t _new(int32_t port, Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, int32_t port, Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> options, Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(TcpServerOptions* options, Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Union_TcpServer_listener listener, obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t start(obj_ptr<TcpServer_base>& retVal) = 0;
@@ -102,6 +103,7 @@ public:
 }
 
 #include "ifs/Handler.h"
+#include "ifs/TcpServerOptions.h"
 #include "ifs/Socket.h"
 
 namespace fibjs {
@@ -165,10 +167,10 @@ inline void TcpServer_base::__new(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER_NAMED(2, 2, "listener");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<TcpServerOptions>, 0, "options");
     ARG(Union_TcpServer_listener, 1);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new((TcpServerOptions*)v0, v1, vr, args.This());
 
     METHOD_OVER_NAMED(2, 2, "listener");
 

@@ -1,0 +1,11 @@
+/*! @brief Options for binding a TCP server.
+
+     With both fields the server binds `address:port` immediately; with address
+     only it binds that address with an OS-assigned port (or a unix path when the
+     address is not an IP literal); with neither it only stores the handler and
+     listen() must be called.
+ */
+struct TcpServerOptions {
+    String address;
+    Integer port;
+};

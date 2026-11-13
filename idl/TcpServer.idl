@@ -131,7 +131,7 @@ interface TcpServer : EventEmitter
      @param options server options
      @param listener the connection handler
    */
-    TcpServer(Object options, Handler|Handler[]|Function(Socket socket) => Value|Object|String listener);
+    TcpServer(TcpServerOptions options, Handler|Handler[]|Function(Socket socket) => Value|Object|String listener);
 
     /*! @brief TcpServer constructor, binds a unix socket or Windows pipe
 

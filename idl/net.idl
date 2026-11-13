@@ -357,7 +357,7 @@ module net
      @param listener the connection handler
      @return returns the TcpServer object
      */
-    static TcpServer createServer(Object options, Handler|Handler[]|Function(Socket socket) => Value|Object|String listener);
+    static TcpServer createServer(TcpServerOptions options, Handler|Handler[]|Function(Socket socket) => Value|Object|String listener);
 
     /*! @brief Creates a TCP server
 

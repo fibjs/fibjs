@@ -20,6 +20,7 @@ class Stream_base;
 class ConnectOptions;
 class Smtp_base;
 class TcpServer_base;
+class TcpServerOptions;
 class Handler_base;
 class UrlObject_base;
 
@@ -54,7 +55,7 @@ public:
     static result_t connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     static result_t connect(exlib::string path, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
     static result_t openSmtp(exlib::string url, int32_t timeout, obj_ptr<Smtp_base>& retVal, AsyncHandle ac);
-    static result_t createServer(v8::Local<v8::Object> options, Union_createServer_listener listener, obj_ptr<TcpServer_base>& retVal);
+    static result_t createServer(TcpServerOptions* options, Union_createServer_listener listener, obj_ptr<TcpServer_base>& retVal);
     static result_t createServer(Union_createServer_listener listener, obj_ptr<TcpServer_base>& retVal);
     static result_t backend(exlib::string& retVal);
     static result_t isIP(v8::Local<v8::Value> ip, int32_t& retVal);
@@ -115,6 +116,7 @@ public:
 #include "ifs/ConnectOptions.h"
 #include "ifs/Smtp.h"
 #include "ifs/TcpServer.h"
+#include "ifs/TcpServerOptions.h"
 #include "ifs/Handler.h"
 #include "ifs/UrlObject.h"
 
@@ -372,10 +374,10 @@ inline void net_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER_NAMED(2, 2, "listener");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<TcpServerOptions>, 0, "options");
     ARG(Union_createServer_listener, 1);
 
-    hr = createServer(v0, v1, vr);
+    hr = createServer((TcpServerOptions*)v0, v1, vr);
 
     METHOD_OVER_NAMED(1, 1, "listener");
 

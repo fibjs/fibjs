@@ -623,18 +623,6 @@ declare module 'net/promises' {
     /**
      * @description Creates a TCP server
      *
-     *      The deferred form: only the handler is stored, no address is bound. Call listen(port[, addr[,
-     *      backlog]]) or start() after a bind before clients can connect. See the options overload for the
-     *      accepted listener forms and the handler model.
-     *      @param listener the connection handler
-     *      @return returns a TcpServer object not bound to a port; listen() must be called to start it
-     *
-     */
-    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
-
-    /**
-     * @description Creates a TCP server
-     *
      *      options supports two bind properties:
      *      ```JavaScript
      *      // fragment: options
@@ -664,7 +652,22 @@ declare module 'net/promises' {
      *      @return returns the TcpServer object
      *
      */
-    function createServer(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
+    function createServer(options: {
+        address?: string;
+        port?: number;
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
+
+    /**
+     * @description Creates a TCP server
+     *
+     *      The deferred form: only the handler is stored, no address is bound. Call listen(port[, addr[,
+     *      backlog]]) or start() after a bind before clients can connect. See the options overload for the
+     *      accepted listener forms and the handler model.
+     *      @param listener the connection handler
+     *      @return returns a TcpServer object not bound to a port; listen() must be called to start it
+     *
+     */
+    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
 
     /**
      * @description The alias of the UrlObject class, see UrlObject

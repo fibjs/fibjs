@@ -124,17 +124,6 @@ declare class Class_TcpServer extends Class_EventEmitter {
     constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description TcpServer constructor, does not bind a port, listen() must be called to start
-     *
-     *     The fully deferred form: only the handler is stored. Call listen(port[, addr[, backlog]]) or
-     *     bind through another constructor later; address() and socket throw until the server is bound.
-     *     The listener forms are described on the port-only overload.
-     *     @param listener the connection handler
-     *
-     */
-    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
-
-    /**
      * @description TcpServer constructor, binds from an options object
      *
      *      options supports:
@@ -153,7 +142,10 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(options: {
+        address?: string;
+        port?: number;
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor, binds a unix socket or Windows pipe
@@ -167,6 +159,17 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *
      */
     constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+
+    /**
+     * @description TcpServer constructor, does not bind a port, listen() must be called to start
+     *
+     *     The fully deferred form: only the handler is stored. Call listen(port[, addr[, backlog]]) or
+     *     bind through another constructor later; address() and socket throw until the server is bound.
+     *     The listener forms are described on the port-only overload.
+     *     @param listener the connection handler
+     *
+     */
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description Starts the current server
@@ -578,17 +581,6 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
-     * @description TcpServer constructor, does not bind a port, listen() must be called to start
-     *
-     *     The fully deferred form: only the handler is stored. Call listen(port[, addr[, backlog]]) or
-     *     bind through another constructor later; address() and socket throw until the server is bound.
-     *     The listener forms are described on the port-only overload.
-     *     @param listener the connection handler
-     *
-     */
-    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
-
-    /**
      * @description TcpServer constructor, binds from an options object
      *
      *      options supports:
@@ -607,7 +599,10 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(options: {
+        address?: string;
+        port?: number;
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description TcpServer constructor, binds a unix socket or Windows pipe
@@ -621,6 +616,17 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *
      */
     constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+
+    /**
+     * @description TcpServer constructor, does not bind a port, listen() must be called to start
+     *
+     *     The fully deferred form: only the handler is stored. Call listen(port[, addr[, backlog]]) or
+     *     bind through another constructor later; address() and socket throw until the server is bound.
+     *     The listener forms are described on the port-only overload.
+     *     @param listener the connection handler
+     *
+     */
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
 
     /**
      * @description Starts the current server

@@ -435,7 +435,7 @@ result_t net_base::isIPv6(v8::Local<v8::Value> ip, bool& retVal)
     return result_t();
 }
 
-result_t net_base::createServer(v8::Local<v8::Object> options, Union_createServer_listener listener, obj_ptr<TcpServer_base>& retVal)
+result_t net_base::createServer(TcpServerOptions* options, Union_createServer_listener listener, obj_ptr<TcpServer_base>& retVal)
 {
     return TcpServer_base::_new(options, listener, retVal);
 }

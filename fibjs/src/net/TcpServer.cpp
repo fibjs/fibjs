@@ -9,6 +9,7 @@
 #include "TcpServer.h"
 #include "ifs/mq.h"
 #include "ifs/console.h"
+#include "ifs/TcpServerOptions.h"
 #include "Url.h"
 #include "union_helpers.h"
 
@@ -74,21 +75,24 @@ result_t TcpServer_base::_new(Union_TcpServer_listener listener,
     return result_t();
 }
 
-result_t TcpServer_base::_new(v8::Local<v8::Object> options, Union_TcpServer_listener listener,
+result_t TcpServer_base::_new(TcpServerOptions* options, Union_TcpServer_listener listener,
     obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This)
 {
     exlib::string address;
-    result_t hr = GetConfigValue(options, "address", address, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    int32_t port = 0;
+    bool has_port = false;
 
-    int32_t port;
-    hr = GetConfigValue(options, "port", port, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    if (options) {
+        if (options->address.has_value())
+            address = options->address.value();
+        if (options->port.has_value()) {
+            port = options->port.value();
+            has_port = true;
+        }
+    }
 
     // if port is provided, bind immediately; otherwise deferred mode
-    if (hr.is_param_missing()) {
+    if (!has_port) {
         if (!address.empty())
             return _new(address, listener, retVal, This);
         return _new(listener, retVal, This);
