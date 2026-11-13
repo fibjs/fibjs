@@ -1,0 +1,10 @@
+/*! @brief Options for fs.appendFile.
+
+     `encoding` only validates/encodes the string form; `flag` and `mode` are
+     used when the first argument is a path (the descriptor form ignores them).
+ */
+struct AppendFileOptions {
+    String encoding = "";
+    String flag = "a";
+    Integer mode = 0666;
+};

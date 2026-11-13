@@ -25,6 +25,9 @@ class FileHandle_base;
 class Buffer_base;
 class SeekableStream_base;
 class BufferedStream_base;
+class ReadFileOptions;
+class WriteFileOptions;
+class AppendFileOptions;
 class FSWatcher_base;
 class WatchOptions;
 class StatsWatcher_base;
@@ -57,14 +60,11 @@ public:
     using Union_openFile_flags = std::variant<exlib::string, int32_t>;
     using Union_close_fd = std::variant<int32_t, obj_ptr<FileHandle_base>>;
     using Union_readFile_fname = std::variant<obj_ptr<FileHandle_base>, exlib::string, int32_t>;
-    using Union_readFile_options = std::variant<v8::Local<v8::Object>, exlib::string>;
     using Union_write_fd = std::variant<int32_t, obj_ptr<FileHandle_base>>;
     using Union_writeFile_fname = std::variant<obj_ptr<FileHandle_base>, exlib::string, int32_t>;
     using Union_writeFile_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_writeFile_opt = std::variant<v8::Local<v8::Object>, exlib::string>;
     using Union_appendFile_fname = std::variant<obj_ptr<FileHandle_base>, exlib::string, int32_t>;
     using Union_appendFile_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_appendFile_options = std::variant<v8::Local<v8::Object>, exlib::string>;
     using Union_setZipFS_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
 
 public:
@@ -168,13 +168,16 @@ public:
     static result_t close(Union_close_fd fd, AsyncHandle ac);
     static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncHandle ac);
     static result_t readTextFile(exlib::string fname, exlib::string& retVal, AsyncHandle ac);
-    static result_t readFile(Union_readFile_fname fname, Union_readFile_options options, Variant& retVal, AsyncHandle ac);
+    static result_t readFile(Union_readFile_fname fname, ReadFileOptions* options, Variant& retVal, AsyncHandle ac);
+    static result_t readFile(Union_readFile_fname fname, exlib::string options, Variant& retVal, AsyncHandle ac);
     static result_t readLines(exlib::string fname, int32_t maxlines, std::vector<exlib::string>& retVal);
     static result_t write(Union_write_fd fd, Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncHandle ac);
     static result_t write(Union_write_fd fd, exlib::string string, int32_t position, exlib::string encoding, int32_t& retVal, AsyncHandle ac);
     static result_t writeTextFile(exlib::string fname, exlib::string txt, int32_t& retVal, AsyncHandle ac);
-    static result_t writeFile(Union_writeFile_fname fname, Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncHandle ac);
-    static result_t appendFile(Union_appendFile_fname fname, Union_appendFile_data data, Union_appendFile_options options, int32_t& retVal, AsyncHandle ac);
+    static result_t writeFile(Union_writeFile_fname fname, Union_writeFile_data data, WriteFileOptions* opt, int32_t& retVal, AsyncHandle ac);
+    static result_t writeFile(Union_writeFile_fname fname, Union_writeFile_data data, exlib::string opt, int32_t& retVal, AsyncHandle ac);
+    static result_t appendFile(Union_appendFile_fname fname, Union_appendFile_data data, AppendFileOptions* options, int32_t& retVal, AsyncHandle ac);
+    static result_t appendFile(Union_appendFile_fname fname, Union_appendFile_data data, exlib::string options, int32_t& retVal, AsyncHandle ac);
     static result_t setZipFS(exlib::string fname, Union_setZipFS_data data);
     static result_t clearZipFS(exlib::string fname);
     static result_t watch(exlib::string fname, obj_ptr<FSWatcher_base>& retVal);
@@ -305,12 +308,15 @@ public:
     ASYNC_STATIC1(fs_base, close, Union_close_fd);
     ASYNC_STATICVALUE3(fs_base, openTextStream, exlib::string, exlib::string, obj_ptr<BufferedStream_base>);
     ASYNC_STATICVALUE2(fs_base, readTextFile, exlib::string, exlib::string);
-    ASYNC_STATICVALUE3(fs_base, readFile, Union_readFile_fname, Union_readFile_options, Variant);
+    ASYNC_STATICVALUE3(fs_base, readFile, Union_readFile_fname, obj_ptr<ReadFileOptions>, Variant);
+    ASYNC_STATICVALUE3(fs_base, readFile, Union_readFile_fname, exlib::string, Variant);
     ASYNC_STATICVALUE6(fs_base, write, Union_write_fd, Buffer_base*, int32_t, int32_t, int32_t, int32_t);
     ASYNC_STATICVALUE5(fs_base, write, Union_write_fd, exlib::string, int32_t, exlib::string, int32_t);
     ASYNC_STATICVALUE3(fs_base, writeTextFile, exlib::string, exlib::string, int32_t);
-    ASYNC_STATICVALUE4(fs_base, writeFile, Union_writeFile_fname, Union_writeFile_data, Union_writeFile_opt, int32_t);
-    ASYNC_STATICVALUE4(fs_base, appendFile, Union_appendFile_fname, Union_appendFile_data, Union_appendFile_options, int32_t);
+    ASYNC_STATICVALUE4(fs_base, writeFile, Union_writeFile_fname, Union_writeFile_data, obj_ptr<WriteFileOptions>, int32_t);
+    ASYNC_STATICVALUE4(fs_base, writeFile, Union_writeFile_fname, Union_writeFile_data, exlib::string, int32_t);
+    ASYNC_STATICVALUE4(fs_base, appendFile, Union_appendFile_fname, Union_appendFile_data, obj_ptr<AppendFileOptions>, int32_t);
+    ASYNC_STATICVALUE4(fs_base, appendFile, Union_appendFile_fname, Union_appendFile_data, exlib::string, int32_t);
 };
 }
 
@@ -323,6 +329,9 @@ public:
 #include "ifs/Buffer.h"
 #include "ifs/SeekableStream.h"
 #include "ifs/BufferedStream.h"
+#include "ifs/ReadFileOptions.h"
+#include "ifs/WriteFileOptions.h"
+#include "ifs/AppendFileOptions.h"
 #include "ifs/FSWatcher.h"
 #include "ifs/WatchOptions.h"
 #include "ifs/StatsWatcher.h"
@@ -1335,7 +1344,17 @@ inline void fs_base::s_static_readFile(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_OVER_NAMED(2, 1, "fname");
 
     ARG(Union_readFile_fname, 0);
-    OPT_ARG_NAMED(Union_readFile_options, 1, exlib::string(""), "options");
+    OPT_ARG_NAMED(obj_ptr<ReadFileOptions>, 1, new ReadFileOptions(), "options");
+
+    if (!cb.IsEmpty())
+        hr = acb_readFile(v0, v1, cb, args);
+    else
+        hr = ac_readFile(v0, v1, vr);
+
+    METHOD_OVER_NAMED(2, 1, "fname");
+
+    ARG(Union_readFile_fname, 0);
+    OPT_ARG_NAMED(exlib::string, 1, "", "options");
 
     if (!cb.IsEmpty())
         hr = acb_readFile(v0, v1, cb, args);
@@ -1424,7 +1443,18 @@ inline void fs_base::s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(Union_writeFile_fname, 0);
     ARG(Union_writeFile_data, 1);
-    OPT_ARG_NAMED(Union_writeFile_opt, 2, exlib::string("utf8"), "opt");
+    OPT_ARG_NAMED(obj_ptr<WriteFileOptions>, 2, new WriteFileOptions(), "opt");
+
+    if (!cb.IsEmpty())
+        hr = acb_writeFile(v0, v1, v2, cb, args);
+    else
+        hr = ac_writeFile(v0, v1, v2, vr);
+
+    METHOD_OVER_NAMED(3, 2, "data");
+
+    ARG(Union_writeFile_fname, 0);
+    ARG(Union_writeFile_data, 1);
+    OPT_ARG_NAMED(exlib::string, 2, "utf8", "opt");
 
     if (!cb.IsEmpty())
         hr = acb_writeFile(v0, v1, v2, cb, args);
@@ -1444,7 +1474,18 @@ inline void fs_base::s_static_appendFile(const v8::FunctionCallbackInfo<v8::Valu
 
     ARG(Union_appendFile_fname, 0);
     ARG(Union_appendFile_data, 1);
-    OPT_ARG_NAMED(Union_appendFile_options, 2, exlib::string(""), "options");
+    OPT_ARG_NAMED(obj_ptr<AppendFileOptions>, 2, new AppendFileOptions(), "options");
+
+    if (!cb.IsEmpty())
+        hr = acb_appendFile(v0, v1, v2, cb, args);
+    else
+        hr = ac_appendFile(v0, v1, v2, vr);
+
+    METHOD_OVER_NAMED(3, 2, "data");
+
+    ARG(Union_appendFile_fname, 0);
+    ARG(Union_appendFile_data, 1);
+    OPT_ARG_NAMED(exlib::string, 2, "", "options");
 
     if (!cb.IsEmpty())
         hr = acb_appendFile(v0, v1, v2, cb, args);

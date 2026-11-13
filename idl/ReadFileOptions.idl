@@ -1,0 +1,9 @@
+/*! @brief Options for fs.readFile.
+
+     `encoding` empty returns a Buffer; `flag` is the open mode used when the
+     first argument is a path (the descriptor form ignores it).
+ */
+struct ReadFileOptions {
+    String encoding = "";
+    String flag = "r";
+};

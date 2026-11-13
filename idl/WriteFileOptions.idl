@@ -1,0 +1,10 @@
+/*! @brief Options for fs.writeFile.
+
+     `encoding` applies to string data; `flag` and `mode` are used when the
+     first argument is a path (the descriptor form ignores them).
+ */
+struct WriteFileOptions {
+    String encoding = "utf8";
+    String flag = "w";
+    Integer mode = 0666;
+};

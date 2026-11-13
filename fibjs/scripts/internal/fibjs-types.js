@@ -91642,11 +91642,17 @@ declare module 'fs' {
      *      @return the file content
      *
      */
-    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): any;
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: {
+        encoding?: string;
+        flag?: string;
+    }): any;
 
     function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
-    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options: {
+        encoding?: string;
+        flag?: string;
+    }, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Reads the whole content of a file, by its file descriptor or by its name
@@ -91687,7 +91693,10 @@ declare module 'fs' {
      *      @return the file content
      *
      */
-    function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): any;
+    function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: {
+        encoding?: string;
+        flag?: string;
+    }): any;
 
     /**
      * @description Reads the whole content of a file, by its file descriptor or by its name
@@ -91728,7 +91737,47 @@ declare module 'fs' {
      *      @return the file content
      *
      */
-    function readFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): Promise<any>;
+    function readFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: {
+        encoding?: string;
+        flag?: string;
+    }): Promise<any>;
+
+    /**
+     * @description Reads a file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param fname the file name or descriptor
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: string): any;
+
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description Reads a file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param fname the file name or descriptor
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: string): any;
+
+    /**
+     * @description Reads a file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param fname the file name or descriptor
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    function readFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: string): Promise<any>;
 
     /**
      * @description Opens a file and reads a set of text lines into an array; the line ending follows the EOL property: "\\n" on posix and "\\r\\n" on windows by default
@@ -91922,11 +91971,19 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): number;
 
     function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file, by its file descriptor or by its name
@@ -91967,7 +92024,11 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): number;
 
     /**
      * @description Writes content into a file, by its file descriptor or by its name
@@ -92008,7 +92069,54 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): Promise<number>;
+
+    /**
+     * @description Writes a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'w'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes written
+     *
+     */
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): number;
+
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description Writes a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'w'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes written
+     *
+     */
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): number;
+
+    /**
+     * @description Writes a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'w'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes written
+     *
+     */
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): Promise<number>;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -92031,11 +92139,19 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): number;
 
     function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -92058,7 +92174,11 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): number;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -92081,7 +92201,54 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): Promise<number>;
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): Promise<number>;
+
+    /**
+     * @description Appends to a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'a'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to append
+     *      @param options the encoding label
+     *      @return the number of bytes appended
+     *
+     */
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): number;
+
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description Appends to a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'a'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to append
+     *      @param options the encoding label
+     *      @return the number of bytes appended
+     *
+     */
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): number;
+
+    /**
+     * @description Appends to a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'a'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to append
+     *      @param options the encoding label
+     *      @return the number of bytes appended
+     *
+     */
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): Promise<number>;
 
     /**
      * @description Sets a zip virtual file mapping
@@ -94942,7 +95109,10 @@ declare module 'fs/promises' {
      *      @return the file content
      *
      */
-    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): Promise<any>;
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: {
+        encoding?: string;
+        flag?: string;
+    }): Promise<any>;
 
     /**
      * @description Reads the whole content of a file, by its file descriptor or by its name
@@ -94983,7 +95153,10 @@ declare module 'fs/promises' {
      *      @return the file content
      *
      */
-    function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): any;
+    function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: {
+        encoding?: string;
+        flag?: string;
+    }): any;
 
     /**
      * @description Reads the whole content of a file, by its file descriptor or by its name
@@ -95024,7 +95197,43 @@ declare module 'fs/promises' {
      *      @return the file content
      *
      */
-    function readFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: FIBJS.GeneralObject | string): Promise<any>;
+    function readFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: {
+        encoding?: string;
+        flag?: string;
+    }): Promise<any>;
+
+    /**
+     * @description Reads a file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param fname the file name or descriptor
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    function readFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: string): Promise<any>;
+
+    /**
+     * @description Reads a file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param fname the file name or descriptor
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: string): any;
+
+    /**
+     * @description Reads a file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param fname the file name or descriptor
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    function readFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, options?: string): Promise<any>;
 
     /**
      * @description Opens a file and reads a set of text lines into an array; the line ending follows the EOL property: "\\n" on posix and "\\r\\n" on windows by default
@@ -95202,7 +95411,11 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): Promise<number>;
 
     /**
      * @description Writes content into a file, by its file descriptor or by its name
@@ -95243,7 +95456,11 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): number;
 
     /**
      * @description Writes content into a file, by its file descriptor or by its name
@@ -95284,7 +95501,50 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): Promise<number>;
+
+    /**
+     * @description Writes a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'w'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes written
+     *
+     */
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): Promise<number>;
+
+    /**
+     * @description Writes a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'w'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes written
+     *
+     */
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): number;
+
+    /**
+     * @description Writes a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'w'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes written
+     *
+     */
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): Promise<number>;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -95307,7 +95567,11 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): Promise<number>;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): Promise<number>;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -95330,7 +95594,11 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): number;
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): number;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -95353,7 +95621,50 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: FIBJS.GeneralObject | string): Promise<number>;
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+        encoding?: string;
+        flag?: string;
+        mode?: number;
+    }): Promise<number>;
+
+    /**
+     * @description Appends to a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'a'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to append
+     *      @param options the encoding label
+     *      @return the number of bytes appended
+     *
+     */
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): Promise<number>;
+
+    /**
+     * @description Appends to a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'a'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to append
+     *      @param options the encoding label
+     *      @return the number of bytes appended
+     *
+     */
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): number;
+
+    /**
+     * @description Appends to a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'a'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to append
+     *      @param options the encoding label
+     *      @return the number of bytes appended
+     *
+     */
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): Promise<number>;
 
     /**
      * @description Sets a zip virtual file mapping
