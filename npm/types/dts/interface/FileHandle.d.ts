@@ -700,11 +700,15 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns the file content
      *
      */
-    readFile(options?: FIBJS.GeneralObject | string): any;
+    readFile(options?: {
+        encoding?: string;
+    }): any;
 
     readFile(callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
-    readFile(options: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    readFile(options: {
+        encoding?: string;
+    }, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description Reads the whole file from the beginning and leaves the handle open
@@ -745,7 +749,9 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns the file content
      *
      */
-    readFileSync(options?: FIBJS.GeneralObject | string): any;
+    readFileSync(options?: {
+        encoding?: string;
+    }): any;
 
     /**
      * @description Reads the whole file from the beginning and leaves the handle open
@@ -786,7 +792,43 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns the file content
      *
      */
-    readFileAsync(options?: FIBJS.GeneralObject | string): Promise<any>;
+    readFileAsync(options?: {
+        encoding?: string;
+    }): Promise<any>;
+
+    /**
+     * @description Reads the whole file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    readFile(options?: string): any;
+
+    readFile(callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    readFile(options: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description Reads the whole file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    readFileSync(options?: string): any;
+
+    /**
+     * @description Reads the whole file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    readFileAsync(options?: string): Promise<any>;
 
     /**
      * @description Replaces the content of the file and returns the number of bytes written
@@ -832,11 +874,15 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
+    writeFile(data: Class_Buffer | string, opt?: {
+        encoding?: string;
+    }): number;
 
     writeFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    writeFile(data: Class_Buffer | string, opt: FIBJS.GeneralObject | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    writeFile(data: Class_Buffer | string, opt: {
+        encoding?: string;
+    }, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Replaces the content of the file and returns the number of bytes written
@@ -882,7 +928,9 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileSync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
+    writeFileSync(data: Class_Buffer | string, opt?: {
+        encoding?: string;
+    }): number;
 
     /**
      * @description Replaces the content of the file and returns the number of bytes written
@@ -928,7 +976,49 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
+    writeFileAsync(data: Class_Buffer | string, opt?: {
+        encoding?: string;
+    }): Promise<number>;
+
+    /**
+     * @description Replaces the file content with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; a Buffer is written
+     *      as it is.
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes actually written
+     *
+     */
+    writeFile(data: Class_Buffer | string, opt?: string): number;
+
+    writeFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    writeFile(data: Class_Buffer | string, opt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description Replaces the file content with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; a Buffer is written
+     *      as it is.
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes actually written
+     *
+     */
+    writeFileSync(data: Class_Buffer | string, opt?: string): number;
+
+    /**
+     * @description Replaces the file content with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; a Buffer is written
+     *      as it is.
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes actually written
+     *
+     */
+    writeFileAsync(data: Class_Buffer | string, opt?: string): Promise<number>;
 
     /**
      * @description Sets the access and modification times of the open file (futimes)
@@ -1771,7 +1861,9 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns the file content
      *
      */
-    readFile(options?: FIBJS.GeneralObject | string): Promise<any>;
+    readFile(options?: {
+        encoding?: string;
+    }): Promise<any>;
 
     /**
      * @description Reads the whole file from the beginning and leaves the handle open
@@ -1812,7 +1904,9 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns the file content
      *
      */
-    readFileSync(options?: FIBJS.GeneralObject | string): any;
+    readFileSync(options?: {
+        encoding?: string;
+    }): any;
 
     /**
      * @description Reads the whole file from the beginning and leaves the handle open
@@ -1853,7 +1947,39 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns the file content
      *
      */
-    readFileAsync(options?: FIBJS.GeneralObject | string): Promise<any>;
+    readFileAsync(options?: {
+        encoding?: string;
+    }): Promise<any>;
+
+    /**
+     * @description Reads the whole file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    readFile(options?: string): Promise<any>;
+
+    /**
+     * @description Reads the whole file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    readFileSync(options?: string): any;
+
+    /**
+     * @description Reads the whole file and decodes it with an encoding label
+     *
+     *      The string form is the encoding; an empty label returns a Buffer.
+     *      @param options the encoding label
+     *      @return returns the file content
+     *
+     */
+    readFileAsync(options?: string): Promise<any>;
 
     /**
      * @description Replaces the content of the file and returns the number of bytes written
@@ -1899,7 +2025,9 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
+    writeFile(data: Class_Buffer | string, opt?: {
+        encoding?: string;
+    }): Promise<number>;
 
     /**
      * @description Replaces the content of the file and returns the number of bytes written
@@ -1945,7 +2073,9 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileSync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): number;
+    writeFileSync(data: Class_Buffer | string, opt?: {
+        encoding?: string;
+    }): number;
 
     /**
      * @description Replaces the content of the file and returns the number of bytes written
@@ -1991,7 +2121,45 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer | string, opt?: FIBJS.GeneralObject | string): Promise<number>;
+    writeFileAsync(data: Class_Buffer | string, opt?: {
+        encoding?: string;
+    }): Promise<number>;
+
+    /**
+     * @description Replaces the file content with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; a Buffer is written
+     *      as it is.
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes actually written
+     *
+     */
+    writeFile(data: Class_Buffer | string, opt?: string): Promise<number>;
+
+    /**
+     * @description Replaces the file content with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; a Buffer is written
+     *      as it is.
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes actually written
+     *
+     */
+    writeFileSync(data: Class_Buffer | string, opt?: string): number;
+
+    /**
+     * @description Replaces the file content with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; a Buffer is written
+     *      as it is.
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes actually written
+     *
+     */
+    writeFileAsync(data: Class_Buffer | string, opt?: string): Promise<number>;
 
     /**
      * @description Sets the access and modification times of the open file (futimes)

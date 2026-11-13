@@ -390,35 +390,24 @@ result_t FileHandle::write(exlib::string string, int32_t position, exlib::string
 }
 
 
-result_t FileHandle::readFile(Union_readFile_options options, Variant& retVal, AsyncHandle ac)
+result_t FileHandle::readFile(FileHandleReadFileOptions* options, Variant& retVal, AsyncHandle ac)
 {
-    exlib::string encoding;
+    if (ac.isSync())
+        return result_t::nosync();
 
-    if (std::holds_alternative<exlib::string>(options))
-        encoding = std::get<exlib::string>(options);
-    else {
-        // the options object is readable in the synchronous phase only: the
-        // callback phase receives an empty handle
-        if (ac.isSync()) {
-            ac.ctxv().resize(1);
+    return read_file(options ? options->encoding.value_or("") : "", retVal, std::move(ac));
+}
 
-            result_t e_hr = GetConfigValue(std::get<v8::Local<v8::Object>>(options), "encoding", encoding, true);
-            if (e_hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-                return e_hr;
-            ac.ctxv()[0] = encoding;
+result_t FileHandle::readFile(exlib::string options, Variant& retVal, AsyncHandle ac)
+{
+    if (ac.isSync())
+        return result_t::nosync();
 
-            return result_t::nosync();
-        }
+    return read_file(options, retVal, std::move(ac));
+}
 
-        // the object form is carried in ctx[0]; an entry that never ran the
-        // sync phase (the async-only compile cache one) must report that
-        result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr.failed())
-            return ctx_hr;
-
-        encoding = ac.ctxv()[0].string();
-    }
-
+result_t FileHandle::read_file(exlib::string encoding, Variant& retVal, AsyncHandle ac)
+{
     if (ac.isSync())
         return result_t::nosync();
 
@@ -458,39 +447,30 @@ result_t FileHandle::readFile(Union_readFile_options options, Variant& retVal, A
 }
 
 
-result_t FileHandle::writeFile(Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncHandle ac)
+result_t FileHandle::writeFile(Union_writeFile_data data, FileHandleWriteFileOptions* opt, int32_t& retVal, AsyncHandle ac)
 {
+    if (ac.isSync())
+        return result_t::nosync();
+
     bool bBuffer = std::holds_alternative<obj_ptr<Buffer_base>>(data);
     exlib::string encoding;
+    if (!bBuffer)
+        encoding = opt ? opt->encoding.value_or("utf8") : "utf8";
 
-    if (std::holds_alternative<exlib::string>(opt))
-        encoding = std::get<exlib::string>(opt);
-    else {
-        // the options object is readable in the synchronous phase only: the
-        // callback phase receives an empty handle. A Buffer only validates the
-        // empty label, a string takes its encoding from the options.
-        if (ac.isSync()) {
-            ac.ctxv().resize(1);
+    return write_file(data, encoding, retVal, std::move(ac));
+}
 
-            if (!bBuffer) {
-                encoding = "utf8";
+result_t FileHandle::writeFile(Union_writeFile_data data, exlib::string opt, int32_t& retVal, AsyncHandle ac)
+{
+    if (ac.isSync())
+        return result_t::nosync();
 
-                result_t hr = GetConfigValue(std::get<v8::Local<v8::Object>>(opt), "encoding", encoding, true);
-                if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-                    return hr;
-            }
+    return write_file(data, opt, retVal, std::move(ac));
+}
 
-            ac.ctxv()[0] = encoding;
-
-            return result_t::nosync();
-        }
-
-        result_t ctx_hr = ac.ctx(0);
-        if (ctx_hr.failed())
-            return ctx_hr;
-
-        encoding = ac.ctxv()[0].string();
-    }
+result_t FileHandle::write_file(Union_writeFile_data data, exlib::string encoding, int32_t& retVal, AsyncHandle ac)
+{
+    bool bBuffer = std::holds_alternative<obj_ptr<Buffer_base>>(data);
 
     // Node.js validates the encoding even when the data is a Buffer.
     {

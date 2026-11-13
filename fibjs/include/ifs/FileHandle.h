@@ -18,14 +18,14 @@ namespace fibjs {
 class Stat_base;
 class Buffer_base;
 class FileHandleReadOptions;
+class FileHandleReadFileOptions;
+class FileHandleWriteFileOptions;
 
 class FileHandle_base : public object_base {
     DECLARE_CLASS(FileHandle_base);
 
 public:
-    using Union_readFile_options = std::variant<v8::Local<v8::Object>, exlib::string>;
     using Union_writeFile_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
-    using Union_writeFile_opt = std::variant<v8::Local<v8::Object>, exlib::string>;
     using Union_appendFile_data = std::variant<obj_ptr<Buffer_base>, exlib::string>;
 
 public:
@@ -78,8 +78,10 @@ public:
     virtual result_t read(FileHandleReadOptions* options, obj_ptr<ReadType>& retVal, AsyncHandle ac) = 0;
     virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncHandle ac) = 0;
     virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncHandle ac) = 0;
-    virtual result_t readFile(Union_readFile_options options, Variant& retVal, AsyncHandle ac) = 0;
-    virtual result_t writeFile(Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t readFile(FileHandleReadFileOptions* options, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t readFile(exlib::string options, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t writeFile(Union_writeFile_data data, FileHandleWriteFileOptions* opt, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t writeFile(Union_writeFile_data data, exlib::string opt, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t utimes(Variant atime, Variant mtime, AsyncHandle ac) = 0;
     virtual result_t chown(int32_t uid, int32_t gid, AsyncHandle ac) = 0;
     virtual result_t sync(AsyncHandle ac) = 0;
@@ -116,8 +118,10 @@ public:
     ASYNC_MEMBERVALUE2(FileHandle_base, read, obj_ptr<FileHandleReadOptions>, obj_ptr<ReadType>);
     ASYNC_MEMBERVALUE5(FileHandle_base, write, Buffer_base*, int32_t, int32_t, int32_t, obj_ptr<WriteType>);
     ASYNC_MEMBERVALUE4(FileHandle_base, write, exlib::string, int32_t, exlib::string, obj_ptr<WriteType>);
-    ASYNC_MEMBERVALUE2(FileHandle_base, readFile, Union_readFile_options, Variant);
-    ASYNC_MEMBERVALUE3(FileHandle_base, writeFile, Union_writeFile_data, Union_writeFile_opt, int32_t);
+    ASYNC_MEMBERVALUE2(FileHandle_base, readFile, obj_ptr<FileHandleReadFileOptions>, Variant);
+    ASYNC_MEMBERVALUE2(FileHandle_base, readFile, exlib::string, Variant);
+    ASYNC_MEMBERVALUE3(FileHandle_base, writeFile, Union_writeFile_data, obj_ptr<FileHandleWriteFileOptions>, int32_t);
+    ASYNC_MEMBERVALUE3(FileHandle_base, writeFile, Union_writeFile_data, exlib::string, int32_t);
     ASYNC_MEMBER2(FileHandle_base, utimes, Variant, Variant);
     ASYNC_MEMBER2(FileHandle_base, chown, int32_t, int32_t);
     ASYNC_MEMBER0(FileHandle_base, sync);
@@ -131,6 +135,8 @@ public:
 #include "ifs/Stat.h"
 #include "ifs/Buffer.h"
 #include "ifs/FileHandleReadOptions.h"
+#include "ifs/FileHandleReadFileOptions.h"
+#include "ifs/FileHandleWriteFileOptions.h"
 
 namespace fibjs {
 inline ClassInfo& FileHandle_base::class_info()
@@ -323,7 +329,16 @@ inline void FileHandle_base::s_readFile(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(Union_readFile_options, 0, exlib::string(""), "options");
+    OPT_ARG_NAMED(obj_ptr<FileHandleReadFileOptions>, 0, new FileHandleReadFileOptions(), "options");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_readFile(v0, cb, args);
+    else
+        hr = pInst->ac_readFile(v0, vr);
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG_NAMED(exlib::string, 0, "", "options");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_readFile(v0, cb, args);
@@ -343,7 +358,17 @@ inline void FileHandle_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_OVER_NAMED(2, 1, "data");
 
     ARG(Union_writeFile_data, 0);
-    OPT_ARG_NAMED(Union_writeFile_opt, 1, exlib::string("utf8"), "opt");
+    OPT_ARG_NAMED(obj_ptr<FileHandleWriteFileOptions>, 1, new FileHandleWriteFileOptions(), "opt");
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_writeFile(v0, v1, cb, args);
+    else
+        hr = pInst->ac_writeFile(v0, v1, vr);
+
+    METHOD_OVER_NAMED(2, 1, "data");
+
+    ARG(Union_writeFile_data, 0);
+    OPT_ARG_NAMED(exlib::string, 1, "utf8", "opt");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_writeFile(v0, v1, cb, args);

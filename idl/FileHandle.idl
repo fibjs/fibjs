@@ -273,7 +273,15 @@ interface FileHandle : object
      @param options the decoding method or the read options
      @return returns the file content
      */
-    Variant readFile(Object|String options = "") async;
+    Variant readFile(FileHandleReadFileOptions options = {}) async;
+
+    /*! @brief Reads the whole file and decodes it with an encoding label
+
+     The string form is the encoding; an empty label returns a Buffer.
+     @param options the encoding label
+     @return returns the file content
+     */
+    Variant readFile(String options = "") async;
 
     /*! @brief Replaces the content of the file and returns the number of bytes written
 
@@ -317,7 +325,17 @@ interface FileHandle : object
      @param opt the encoding or the write options
      @return the number of bytes actually written
      */
-    Integer writeFile(Buffer|String data, Object|String opt = "utf8") async;
+    Integer writeFile(Buffer|String data, FileHandleWriteFileOptions opt = {}) async;
+
+    /*! @brief Replaces the file content with string data encoded by a label
+
+     The string form is the encoding used for string data; a Buffer is written
+     as it is.
+     @param data the data to write
+     @param opt the encoding label
+     @return the number of bytes actually written
+     */
+    Integer writeFile(Buffer|String data, String opt = "utf8") async;
 
     /*! @brief Sets the access and modification times of the open file (futimes)
 

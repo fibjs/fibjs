@@ -1,0 +1,4 @@
+/*! @brief Options for FileHandle.writeFile. */
+struct FileHandleWriteFileOptions {
+    String encoding = "utf8";
+};

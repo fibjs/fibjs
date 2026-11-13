@@ -312,8 +312,10 @@ public:
     virtual result_t read(FileHandleReadOptions* options, obj_ptr<ReadType>& retVal, AsyncHandle ac);
     virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, obj_ptr<WriteType>& retVal, AsyncHandle ac);
     virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, obj_ptr<WriteType>& retVal, AsyncHandle ac);
-    virtual result_t readFile(Union_readFile_options options, Variant& retVal, AsyncHandle ac);
-    virtual result_t writeFile(Union_writeFile_data data, Union_writeFile_opt opt, int32_t& retVal, AsyncHandle ac);
+    virtual result_t readFile(FileHandleReadFileOptions* options, Variant& retVal, AsyncHandle ac);
+    virtual result_t readFile(exlib::string options, Variant& retVal, AsyncHandle ac);
+    virtual result_t writeFile(Union_writeFile_data data, FileHandleWriteFileOptions* opt, int32_t& retVal, AsyncHandle ac);
+    virtual result_t writeFile(Union_writeFile_data data, exlib::string opt, int32_t& retVal, AsyncHandle ac);
     virtual result_t utimes(Variant atime, Variant mtime, AsyncHandle ac);
     virtual result_t chown(int32_t uid, int32_t gid, AsyncHandle ac);
     virtual result_t sync(AsyncHandle ac);
@@ -323,6 +325,8 @@ public:
     virtual result_t close(AsyncHandle ac);
 
 private:
+    result_t read_file(exlib::string encoding, Variant& retVal, AsyncHandle ac);
+    result_t write_file(Union_writeFile_data data, exlib::string encoding, int32_t& retVal, AsyncHandle ac);
     int32_t m_fd;
 };
 
