@@ -130,6 +130,13 @@ public:
     virtual result_t get_form(obj_ptr<FormData_base>& retVal);
     virtual result_t get_query(obj_ptr<URLSearchParams_base>& retVal);
     virtual result_t abort();
+    virtual result_t get_path(exlib::string& retVal);
+    virtual result_t get_destroyed(bool& retVal);
+    virtual result_t setTimeout(int32_t msecs, v8::Local<v8::Value> callback, obj_ptr<HttpRequest_base>& retVal);
+    virtual result_t destroy(v8::Local<v8::Value> err, obj_ptr<HttpRequest_base>& retVal);
+    virtual result_t setNoDelay(bool noDelay, obj_ptr<HttpRequest_base>& retVal);
+    virtual result_t setSocketKeepAlive(bool enable, int32_t initialDelay, obj_ptr<HttpRequest_base>& retVal);
+    virtual result_t flushHeaders(obj_ptr<HttpRequest_base>& retVal);
 
 public:
     // Options holds all parsed fetch/request parameters.
@@ -194,8 +201,23 @@ public:
     AsyncHandle m_asyncState;
 
     // Set the connection socket for abort support.
-    void _set_socket(Stream_base* socket) { m_socket = socket; }
+    void _set_socket(Stream_base* socket)
+    {
+        m_socket = socket;
+        _apply_timeout();
+    }
     Stream_base* _get_socket() const { return m_socket; }
+
+    // Node's ClientRequest.setTimeout: the idle timeout the caller asked for, which
+    // outlives the client's own `timeout` option (-1 when it was never set)
+    int32_t _node_timeout() const { return m_has_node_timeout ? m_node_timeout : -1; }
+
+    // Called by the client when the request failed with a timeout, to run the
+    // callback passed to setTimeout(). Must run inside a JS scope.
+    void _fire_timeout();
+
+    // destroy(): no transport error is reported for a request the caller dropped
+    bool _is_destroyed() const { return m_destroyed; }
 
     // Abort a socket (TCP or TLS-wrapped). Used by abort() and BodyStream.
     static void abort_socket(Stream_base* socket);
@@ -221,6 +243,11 @@ public:
     }
 
 private:
+    // Push the timeout setTimeout() recorded onto the connection, if one is
+    // assigned. The client also reads `_node_timeout()` for the operations that
+    // start after this call, so a socket that appears later is covered too
+    void _apply_timeout();
+
     obj_ptr<HttpResponse_base> m_response;
     obj_ptr<HttpMessage> m_message;
     obj_ptr<Stream_base> m_socket;
@@ -230,6 +257,13 @@ private:
     obj_ptr<HttpCollection_base> m_cookies;
     obj_ptr<URLSearchParams_base> m_query;
     obj_ptr<FormData_base> m_form;
+
+    // request.setTimeout(): the value the caller asked for, whether it was set at
+    // all, the one-shot callback, and whether destroy() has been called
+    v8::Global<v8::Function> m_timeout_cb;
+    int32_t m_node_timeout = 0;
+    bool m_has_node_timeout = false;
+    bool m_destroyed = false;
 };
 
 } /* namespace fibjs */

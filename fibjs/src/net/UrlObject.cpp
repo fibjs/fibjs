@@ -61,6 +61,22 @@ inline bool is_slash(char ch)
     return ch == '/' || ch == '\\';
 }
 
+// does the legacy `host` field already spell out a port? The authority form used
+// here is `host[:port]`, and an IPv6 literal is bracketed, so a colon before the
+// closing bracket belongs to the address, not to a port
+static bool host_has_port(const exlib::string& host)
+{
+    if (host.empty())
+        return false;
+
+    if (host[0] == '[') {
+        size_t pos = host.find(']');
+        return pos != exlib::string::npos && pos + 1 < host.length() && host[pos + 1] == ':';
+    }
+
+    return host.find(':') != exlib::string::npos;
+}
+
 result_t UrlObject_base::_new(exlib::string url, Union_UrlObject_base base,
     obj_ptr<UrlObject_base>& retVal, v8::Local<v8::Object> This)
 {
@@ -288,7 +304,18 @@ result_t Url::format(v8::Local<v8::Object> args)
 
     bool hasHost = false;
     if (GetConfigValue(args, "host", str, true).ok()) {
+        // the legacy format renders the port as part of the authority, so a number
+        // is accepted here like in node: `http.request({ host, port })` used to drop
+        // the port, which connected to port 80 instead of the one asked for
+        bool has_port = host_has_port(str);
+
         url += ada::idna::to_ascii(str);
+
+        JSValue port;
+
+        if (!has_port && GetConfigValue(args, "port", port).ok())
+            url += ":" + isolate->toString(port);
+
         hasHost = true;
     } else if (GetConfigValue(args, "hostname", str, true).ok()) {
         if (str.find(':') != exlib::string::npos && str[0] != '[')

@@ -27614,6 +27614,26 @@ declare class Class_HttpRequest extends Class_HttpMessage {
     readonly query: Class_URLSearchParams;
 
     /**
+     * @description The request target, read-only
+     *
+     *      Node's \`request.path\`: the request line target, the address and the query string
+     *      together (\`/a/b?x=1\`). It is the same string as \`url\` and carries no protocol or
+     *      authority, which is the form a client request is sent with even when it was
+     *      created from a full URL.
+     *
+     */
+    readonly path: string;
+
+    /**
+     * @description Whether destroy() has been called on this request, read-only
+     *
+     *      Node's \`request.destroyed\`. Once set, the request reports no further transport
+     *      failure: the caller has already dropped it.
+     *
+     */
+    readonly destroyed: boolean;
+
+    /**
      * @description Aborts the request and closes the underlying connection
      *
      *      Closes the TCP socket or TLS stream the message was read from; a message built in
@@ -27623,6 +27643,74 @@ declare class Class_HttpRequest extends Class_HttpMessage {
      *
      */
     abort(): void;
+
+    /**
+     * @description Sets the connection idle timeout, with an optional callback
+     *
+     *      Node's \`request.setTimeout(msecs, callback)\`. The value is the idle timeout of the
+     *      connection: it bounds every read and write, so a transfer that keeps making
+     *      progress never reaches it while a stalled one fails with error 20021. 0 disables
+     *      it. The callback, when given, is invoked once when the timeout expires; unlike
+     *      Node's \`'timeout'\` event the operation has already failed here, so an \`'error'\`
+     *      event follows unless the callback drops the request with destroy().
+     *
+     *      @param msecs the idle timeout in milliseconds, 0 disables it
+     *      @param callback called once when the timeout expires
+     *      @return the request itself, so calls can be chained
+     *
+     */
+    setTimeout(msecs: number, callback?: any): Class_HttpRequest;
+
+    /**
+     * @description Destroys the request and its connection, as Node's request.destroy()
+     *
+     *      Closes the underlying TCP socket or TLS stream, like abort(). With an error the
+     *      request emits \`'error'\` with that value and the transport failure that follows is
+     *      not reported again; without one no \`'error'\` is emitted, so a handler that drops a
+     *      request it is replacing (a redirect, for example) does not fail the caller.
+     *      Destroying an already destroyed request is a no-op.
+     *
+     *      @param err the error to report, if any
+     *      @return the request itself
+     *
+     */
+    destroy(err?: any): Class_HttpRequest;
+
+    /**
+     * @description Accepted for Node compatibility and does nothing
+     *
+     *      fibjs has no per-request Nagle switch; the call exists so code written against
+     *      Node's ClientRequest runs unchanged.
+     *
+     *      @param noDelay ignored
+     *      @return the request itself
+     *
+     */
+    setNoDelay(noDelay?: boolean): Class_HttpRequest;
+
+    /**
+     * @description Accepted for Node compatibility and does nothing
+     *
+     *      The connection pool already keeps idle sockets alive; this call exists so code
+     *      written against Node's ClientRequest runs unchanged.
+     *
+     *      @param enable ignored
+     *      @param initialDelay ignored
+     *      @return the request itself
+     *
+     */
+    setSocketKeepAlive(enable?: boolean, initialDelay?: number): Class_HttpRequest;
+
+    /**
+     * @description Accepted for Node compatibility and does nothing
+     *
+     *      The request has no header buffer to flush ahead of the body; the call exists so
+     *      code written against Node's ClientRequest runs unchanged.
+     *
+     *      @return the request itself
+     *
+     */
+    flushHeaders(): Class_HttpRequest;
 
 }
 
@@ -27824,6 +27912,26 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
     readonly query: Class_URLSearchParams;
 
     /**
+     * @description The request target, read-only
+     *
+     *      Node's \`request.path\`: the request line target, the address and the query string
+     *      together (\`/a/b?x=1\`). It is the same string as \`url\` and carries no protocol or
+     *      authority, which is the form a client request is sent with even when it was
+     *      created from a full URL.
+     *
+     */
+    readonly path: string;
+
+    /**
+     * @description Whether destroy() has been called on this request, read-only
+     *
+     *      Node's \`request.destroyed\`. Once set, the request reports no further transport
+     *      failure: the caller has already dropped it.
+     *
+     */
+    readonly destroyed: boolean;
+
+    /**
      * @description Aborts the request and closes the underlying connection
      *
      *      Closes the TCP socket or TLS stream the message was read from; a message built in
@@ -27833,6 +27941,74 @@ declare class Class_HttpRequestPromise extends Class_HttpMessagePromise {
      *
      */
     abort(): void;
+
+    /**
+     * @description Sets the connection idle timeout, with an optional callback
+     *
+     *      Node's \`request.setTimeout(msecs, callback)\`. The value is the idle timeout of the
+     *      connection: it bounds every read and write, so a transfer that keeps making
+     *      progress never reaches it while a stalled one fails with error 20021. 0 disables
+     *      it. The callback, when given, is invoked once when the timeout expires; unlike
+     *      Node's \`'timeout'\` event the operation has already failed here, so an \`'error'\`
+     *      event follows unless the callback drops the request with destroy().
+     *
+     *      @param msecs the idle timeout in milliseconds, 0 disables it
+     *      @param callback called once when the timeout expires
+     *      @return the request itself, so calls can be chained
+     *
+     */
+    setTimeout(msecs: number, callback?: any): Class_HttpRequest;
+
+    /**
+     * @description Destroys the request and its connection, as Node's request.destroy()
+     *
+     *      Closes the underlying TCP socket or TLS stream, like abort(). With an error the
+     *      request emits \`'error'\` with that value and the transport failure that follows is
+     *      not reported again; without one no \`'error'\` is emitted, so a handler that drops a
+     *      request it is replacing (a redirect, for example) does not fail the caller.
+     *      Destroying an already destroyed request is a no-op.
+     *
+     *      @param err the error to report, if any
+     *      @return the request itself
+     *
+     */
+    destroy(err?: any): Class_HttpRequest;
+
+    /**
+     * @description Accepted for Node compatibility and does nothing
+     *
+     *      fibjs has no per-request Nagle switch; the call exists so code written against
+     *      Node's ClientRequest runs unchanged.
+     *
+     *      @param noDelay ignored
+     *      @return the request itself
+     *
+     */
+    setNoDelay(noDelay?: boolean): Class_HttpRequest;
+
+    /**
+     * @description Accepted for Node compatibility and does nothing
+     *
+     *      The connection pool already keeps idle sockets alive; this call exists so code
+     *      written against Node's ClientRequest runs unchanged.
+     *
+     *      @param enable ignored
+     *      @param initialDelay ignored
+     *      @return the request itself
+     *
+     */
+    setSocketKeepAlive(enable?: boolean, initialDelay?: number): Class_HttpRequest;
+
+    /**
+     * @description Accepted for Node compatibility and does nothing
+     *
+     *      The request has no header buffer to flush ahead of the body; the call exists so
+     *      code written against Node's ClientRequest runs unchanged.
+     *
+     *      @return the request itself
+     *
+     */
+    flushHeaders(): Class_HttpRequest;
 
 }
 
@@ -98994,7 +99170,8 @@ declare module 'hex' {
  *  - **Aliases and unsupported options**: \`require('https')\` returns this same module, there is no separate
  *    https module and no \`globalAgent\`; the module also provides synchronous forms of the
  *    request functions; the client keeps a cookie jar and follows redirects and decompresses
- *    bodies automatically; \`request.setTimeout\` fails the request; and the
+ *    bodies automatically; \`request.setTimeout\` sets the connection idle timeout and runs its
+ *    callback when it expires; and the
  *    options such as \`auth\`, \`createConnection\`, \`lookup\`, \`family\`, \`insecureHTTPParser\`,
  *    \`joinDuplicateHeaders\`, \`localPort\` and \`socketPath\` are not supported (basic authentication
  *    can be written into the URL as \`http://user:pass@host/\`).

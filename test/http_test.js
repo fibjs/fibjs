@@ -7722,5 +7722,268 @@ describe("http", () => {
             assert.equal(res.cookies[1].name, 'c');
         });
     });
+
+    // Node's ClientRequest surface, which is what a library written against node
+    // reaches for. Playwright's `httpRequest` helper is the case that found it:
+    // with `socketTimeout` set it calls `request.setTimeout(...)` on the object
+    // `http.request` returned, and the call used to be a TypeError — a browser
+    // download never started.
+    describe('ClientRequest (Node compatibility)', () => {
+        var svr;
+        var cr_port = 8960 + base_port;
+        var seen = {};
+
+        before(() => {
+            svr = new http.Server(cr_port, (r) => {
+                seen[r.address] = (seen[r.address] || 0) + 1;
+
+                if (r.address == '/slow') {
+                    coroutine.sleep(400);
+                    r.response.write('slow');
+                } else if (r.address == '/stall') {
+                    coroutine.sleep(3000);
+                    r.response.write('late');
+                } else {
+                    r.response.write('ok:' + r.url);
+                }
+            });
+            svr.start();
+            test_util.push(svr.socket);
+        });
+
+        beforeEach(() => {
+            seen = {};
+        });
+
+        function cr_url(path) {
+            return 'http://127.0.0.1:' + cr_port + path;
+        }
+
+        /**
+         * @description finish the test exactly once, and fail with a message
+         *              instead of hanging when the expected event never comes
+         */
+        function once(done, what, ms) {
+            var finished = false;
+            var timer = setTimeout(() => {
+                if (finished)
+                    return;
+                finished = true;
+                done(() => { throw new Error('timed out waiting for ' + what); });
+            }, ms || 4000);
+
+            return function (asserts) {
+                if (finished)
+                    return;
+                finished = true;
+                clearTimeout(timer);
+                done(asserts);
+            };
+        }
+
+        it('has the methods, the chainable returns and the node properties', () => {
+            var req = http.request(cr_url('/node'));
+
+            ['setTimeout', 'destroy', 'setNoDelay', 'setSocketKeepAlive',
+                'flushHeaders', 'abort', 'write', 'end', 'on'].forEach(name => {
+                    assert.equal(typeof req[name], 'function', name + ' is not a function');
+                });
+
+            assert.equal(req.destroyed, false, 'a fresh request is not destroyed');
+            assert.equal(req.path, '/node', 'path is the request line target');
+
+            var ret = req.setTimeout(1000)
+                .setNoDelay()
+                .setSocketKeepAlive(true, 1000)
+                .flushHeaders();
+
+            assert.equal(ret, req, 'the node methods return the request');
+
+            req.destroy();
+
+            assert.equal(req.destroyed, true, 'destroy() is reported');
+            assert.equal(typeof req.destroy, 'function', 'destroy is idempotent');
+            req.destroy();
+            assert.equal(req.destroyed, true);
+        });
+
+        it('path is the address and the query string, like node', () => {
+            var req = http.request(cr_url('/a/b?x=1&y=2'));
+
+            assert.equal(req.path, '/a/b?x=1&y=2');
+            assert.equal(req.url, '/a/b?x=1&y=2', 'and it is the same string as url');
+
+            req.destroy();
+        });
+
+        it('refuses a callback that is not a function', () => {
+            var req = http.request(cr_url('/node'));
+
+            assert.throws(() => req.setTimeout(100, 'soon'), /callback/);
+
+            req.destroy();
+        });
+
+        it('a request that set a timeout is served normally', (ctx, done) => {
+            var finish = once(done, 'the response');
+
+            var req = http.request(cr_url('/node'), (r) => {
+                finish(() => {
+                    assert.equal(r.statusCode, 200);
+                    assert.equal(r.text(), 'ok:/node');
+                });
+            });
+
+            req.on('error', (err) => finish(() => { throw err; }));
+
+            req.setTimeout(30000, () => {
+                finish(() => { throw new Error('the timeout fired on a fast request'); });
+            });
+
+            req.end();
+        });
+
+        it('a stalled response runs the callback and fails with a timeout', (ctx, done) => {
+            var finish = once(done, 'the timeout');
+            var fired = 0;
+
+            var req = http.request(cr_url('/stall'), () => {
+                finish(() => { throw new Error('a stalled request answered'); });
+            });
+
+            req.setTimeout(80, () => { fired++; });
+
+            req.on('error', (err) => {
+                finish(() => {
+                    assert.equal(fired, 1, 'the callback ran once');
+                    assert.ok(err, 'the request failed');
+                    assert.ok(String(err).indexOf('20021') > -1 ||
+                        /timeout/i.test(String(err)), 'with a timeout: ' + err);
+                });
+            });
+
+            req.end();
+        });
+
+        it('destroy() drops a request without reporting a transport failure', (ctx, done) => {
+            var finish = once(done, 'the destroy');
+            var errors = [];
+
+            var req = http.request(cr_url('/slow'), () => {
+                finish(() => { throw new Error('a destroyed request answered'); });
+            });
+
+            req.on('error', (err) => { errors.push(err); });
+
+            req.end();
+            coroutine.sleep(20);
+            req.destroy();
+
+            // the server answers at 400ms; the destroyed socket is gone by then
+            coroutine.sleep(500);
+
+            finish(() => {
+                assert.equal(errors.length, 0,
+                    'nothing is reported for a request the caller dropped: ' + errors);
+                assert.equal(req.destroyed, true);
+            });
+        });
+
+        it('destroy(err) reports the error it was given', (ctx, done) => {
+            var finish = once(done, 'the error');
+            var given = new Error('replaced');
+
+            var req = http.request(cr_url('/slow'));
+
+            req.on('error', (err) => {
+                finish(() => {
+                    assert.equal(err, given, 'the caller\'s error is what is emitted');
+                });
+            });
+
+            req.end();
+            req.destroy(given);
+        });
+
+        // node's destroy() before send leaves nothing pending: the request is
+        // never sent, nothing is reported, and the operation completes — a
+        // request that kept the process alive forever is what a library that
+        // drops a request it replaced would hit
+        it('destroy() before end() sends nothing and reports nothing', (ctx, done) => {
+            var finish = once(done, 'the destroy');
+            var errored = false;
+
+            var req = http.request(cr_url('/never-sent'), () => {
+                finish(() => { throw new Error('a destroyed request answered'); });
+            });
+
+            req.on('error', () => { errored = true; });
+
+            req.destroy();
+            coroutine.sleep(100);
+
+            finish(() => {
+                assert.equal(errored, false, 'no error is reported for a request the caller dropped');
+                assert.equal(seen['/never-sent'], undefined, 'and it was never sent');
+                assert.equal(req.destroyed, true);
+            });
+        });
+
+        // The options-object form names the target as host/port/path, which is
+        // how node's `http.request` is called by most code. The `host` branch of
+        // the URL builder did not read `port`, so the request went to port 80.
+        describe('options object with host and port', () => {
+            it('reaches the port it names', (ctx, done) => {
+                var finish = once(done, 'the response');
+
+                var req = http.request({
+                    host: '127.0.0.1',
+                    port: cr_port,
+                    path: '/host-port',
+                }, (r) => {
+                    finish(() => {
+                        assert.equal(r.statusCode, 200);
+                        assert.equal(r.text(), 'ok:/host-port');
+                    });
+                });
+
+                req.on('error', (err) => finish(() => { throw err; }));
+                req.end();
+            });
+
+            it('accepts a host that already carries the port', (ctx, done) => {
+                var finish = once(done, 'the response');
+
+                var req = http.request({
+                    host: '127.0.0.1:' + cr_port,
+                    path: '/host-with-port',
+                }, (r) => {
+                    finish(() => {
+                        assert.equal(r.text(), 'ok:/host-with-port');
+                    });
+                });
+
+                req.on('error', (err) => finish(() => { throw err; }));
+                req.end();
+            });
+
+            it('still takes hostname, which reads the port already', (ctx, done) => {
+                var finish = once(done, 'the response');
+
+                var req = http.request({
+                    hostname: '127.0.0.1',
+                    port: cr_port,
+                    path: '/hostname',
+                }, (r) => {
+                    finish(() => {
+                        assert.equal(r.text(), 'ok:/hostname');
+                    });
+                });
+
+                req.on('error', (err) => finish(() => { throw err; }));
+                req.end();
+            });
+        });
+    });
 });
 

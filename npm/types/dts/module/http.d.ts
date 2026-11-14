@@ -83,7 +83,8 @@
  *  - **Aliases and unsupported options**: `require('https')` returns this same module, there is no separate
  *    https module and no `globalAgent`; the module also provides synchronous forms of the
  *    request functions; the client keeps a cookie jar and follows redirects and decompresses
- *    bodies automatically; `request.setTimeout` fails the request; and the
+ *    bodies automatically; `request.setTimeout` sets the connection idle timeout and runs its
+ *    callback when it expires; and the
  *    options such as `auth`, `createConnection`, `lookup`, `family`, `insecureHTTPParser`,
  *    `joinDuplicateHeaders`, `localPort` and `socketPath` are not supported (basic authentication
  *    can be written into the URL as `http://user:pass@host/`).

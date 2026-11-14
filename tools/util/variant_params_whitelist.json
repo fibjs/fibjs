@@ -357,6 +357,18 @@
             "reason": "the error payload is the caller's own value (plan section 4)"
         },
         {
+            "def": "HttpRequest",
+            "member": "destroy",
+            "param": "err",
+            "reason": "the error payload is the caller's own value, the same position Stream.destroy takes (plan section 4)"
+        },
+        {
+            "def": "HttpRequest",
+            "member": "setTimeout",
+            "param": "callback",
+            "reason": "the callback is optional and an omitted one is undefined; a Function-typed optional parameter has no representable default in the generator (it would initialize Local<Function> from Local<Primitive>)"
+        },
+        {
             "def": "Message",
             "member": "pipe",
             "param": "destination",

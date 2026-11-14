@@ -1404,6 +1404,12 @@ public:
 
     ON_STATE(asyncRequest, prepare)
     {
+        // a caller that destroyed the request before end() settles the pending
+        // wait with an abort: the request is not sent, and the error below is
+        // swallowed by the 'destroyed' rule in `error`
+        if (n.failed())
+            return n;
+
         if (!m_req) {
             if (m_o->req)
                 m_req = m_o->req;
@@ -2338,11 +2344,17 @@ public:
             v = result_t(std::move(b));
         }
 
-        // Emit 'error' event on the request when in async (callback/deferred) mode
-        if (m_o->is_async && m_req) {
+        // Emit 'error' event on the request when in async (callback/deferred) mode.
+        // A request the caller destroyed reports nothing: destroy() either carried
+        // the error already or dropped the request on purpose (Node's 'close' path)
+        if (m_o->is_async && m_req && !static_cast<HttpRequest*>(m_req.get())->_is_destroyed()) {
             obj_ptr<HttpRequest> req = m_req;
-            req->holder()->sync([req, v]() {
+            bool timed_out = v.is(CALL_E_TIMEOUT);
+            req->holder()->sync([req, v, timed_out]() {
                 JSFiber::EnterJsScope s;
+
+                if (timed_out)
+                    req->_fire_timeout();
 
                 v8::Local<v8::Value> err = FillError(v);
                 bool retVal;
@@ -2457,6 +2469,14 @@ private:
 
     int32_t timeout() const
     {
+        // request.setTimeout() outranks the client's `timeout` option: it was asked
+        // for on this request, and Node reads it from the socket the request owns
+        if (m_req) {
+            int32_t t = static_cast<HttpRequest*>(m_req.get())->_node_timeout();
+            if (t >= 0)
+                return t;
+        }
+
         return m_o->has_timeout ? m_o->timeout : m_hc->m_timeout;
     }
 
@@ -2573,6 +2593,16 @@ result_t HttpClient::get_request_opts(exlib::string method, exlib::string url, v
     }
 
     o->req = new HttpRequest();
+
+    // Node's ClientRequest carries its target from the moment it is created:
+    // `request.path` is read before `end()`, while the address here was only
+    // assigned when the send started. The absolute form a proxy needs is still
+    // written at send time, where the proxy decision is known
+    exlib::string path;
+    o->u->get_path(path);
+    if (!path.empty())
+        o->req->set_address(path);
+
     if (!callback.IsEmpty()) {
         o->is_async = true;
         o->req_holder = new ValueHolder(o->req->wrap());

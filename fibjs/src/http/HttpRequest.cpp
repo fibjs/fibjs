@@ -1206,6 +1206,125 @@ result_t HttpRequest::abort()
     return result_t();
 }
 
+void HttpRequest::_apply_timeout()
+{
+    if (!m_has_node_timeout || m_node_timeout <= 0 || !m_socket)
+        return;
+
+    Socket_base* sock = Socket_base::getInstance(m_socket);
+    if (sock) {
+        sock->set_timeout(m_node_timeout);
+        return;
+    }
+
+    // a TLS stream carries no timer of its own: the timeout belongs to the TCP
+    // socket underneath it
+    TLSSocket* tls = (TLSSocket*)TLSSocket_base::getInstance(m_socket);
+    if (tls && tls->m_stream) {
+        Socket_base* inner = Socket_base::getInstance(tls->m_stream);
+        if (inner)
+            inner->set_timeout(m_node_timeout);
+    }
+}
+
+void HttpRequest::_fire_timeout()
+{
+    if (m_timeout_cb.IsEmpty())
+        return;
+
+    Isolate* isolate = holder();
+    v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(isolate->m_isolate, m_timeout_cb);
+
+    // one shot, and cleared before the call: a callback that arms the timer again
+    // must not be overwritten by the reset that follows it
+    m_timeout_cb.Reset();
+
+    v8::Local<v8::Context> context = isolate->context();
+    v8::TryCatch try_catch(isolate->m_isolate);
+
+    callback->Call(context, wrap(), 0, nullptr);
+}
+
+result_t HttpRequest::get_path(exlib::string& retVal)
+{
+    return get_url(retVal);
+}
+
+result_t HttpRequest::get_destroyed(bool& retVal)
+{
+    retVal = m_destroyed;
+    return result_t();
+}
+
+result_t HttpRequest::setTimeout(int32_t msecs, v8::Local<v8::Value> callback, obj_ptr<HttpRequest_base>& retVal)
+{
+    retVal = this;
+
+    m_node_timeout = msecs > 0 ? msecs : 0;
+    m_has_node_timeout = true;
+
+    if (callback->IsFunction())
+        m_timeout_cb.Reset(holder()->m_isolate, callback.As<v8::Function>());
+    else if (!callback->IsUndefined() && !callback->IsNull())
+        return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_TYPE")
+            .with_type_name(errtype::kTypeError)
+            .with_message("HttpRequest.setTimeout: the callback must be a function");
+    else
+        m_timeout_cb.Reset();
+
+    _apply_timeout();
+
+    return result_t();
+}
+
+result_t HttpRequest::destroy(v8::Local<v8::Value> err, obj_ptr<HttpRequest_base>& retVal)
+{
+    retVal = this;
+
+    bool has_error = !err.IsEmpty() && !err->IsUndefined() && !err->IsNull();
+
+    // a destroyed request reports no transport failure of its own: Node's redirect
+    // path drops the request it replaces, and an 'error' there would fail a caller
+    // that is already asking for something else
+    m_destroyed = true;
+    abort();
+
+    // A request dropped before end() still owns the client's wait-for-end state:
+    // without settling it the operation never completes and the process never
+    // ends (node's destroy() before send leaves nothing pending either)
+    if (m_asyncState) {
+        m_asyncState.post(result_t::make(CALL_E_ABORT)
+            .with_type_name(errtype::kAbortError)
+            .with_code("ABORT_ERR")
+            .with_message("The operation was aborted."));
+    }
+
+    if (has_error) {
+        bool emitted;
+        return _emit("error", &err, 1, emitted);
+    }
+
+    return result_t();
+}
+
+result_t HttpRequest::setNoDelay(bool noDelay, obj_ptr<HttpRequest_base>& retVal)
+{
+    retVal = this;
+    return result_t();
+}
+
+result_t HttpRequest::setSocketKeepAlive(bool enable, int32_t initialDelay, obj_ptr<HttpRequest_base>& retVal)
+{
+    retVal = this;
+    return result_t();
+}
+
+result_t HttpRequest::flushHeaders(obj_ptr<HttpRequest_base>& retVal)
+{
+    retVal = this;
+    return result_t();
+}
+
 result_t HttpRequest::clone(obj_ptr<Message_base>& retVal)
 {
     obj_ptr<HttpRequest> req = new HttpRequest();

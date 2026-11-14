@@ -43,7 +43,14 @@ public:
     virtual result_t get_cookies(obj_ptr<HttpCollection_base>& retVal) = 0;
     virtual result_t get_form(obj_ptr<FormData_base>& retVal) = 0;
     virtual result_t get_query(obj_ptr<URLSearchParams_base>& retVal) = 0;
+    virtual result_t get_path(exlib::string& retVal) = 0;
+    virtual result_t get_destroyed(bool& retVal) = 0;
     virtual result_t abort() = 0;
+    virtual result_t setTimeout(int32_t msecs, v8::Local<v8::Value> callback, obj_ptr<HttpRequest_base>& retVal) = 0;
+    virtual result_t destroy(v8::Local<v8::Value> err, obj_ptr<HttpRequest_base>& retVal) = 0;
+    virtual result_t setNoDelay(bool noDelay, obj_ptr<HttpRequest_base>& retVal) = 0;
+    virtual result_t setSocketKeepAlive(bool enable, int32_t initialDelay, obj_ptr<HttpRequest_base>& retVal) = 0;
+    virtual result_t flushHeaders(obj_ptr<HttpRequest_base>& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -64,7 +71,14 @@ public:
     static void s_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_form(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_query(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_path(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_destroyed(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_abort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_destroy(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setNoDelay(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setSocketKeepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_flushHeaders(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -77,7 +91,12 @@ namespace fibjs {
 inline ClassInfo& HttpRequest_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "abort", s_abort, false, ClassData::ASYNC_SYNC }
+        { "abort", s_abort, false, ClassData::ASYNC_SYNC },
+        { "setTimeout", s_setTimeout, false, ClassData::ASYNC_SYNC },
+        { "destroy", s_destroy, false, ClassData::ASYNC_SYNC },
+        { "setNoDelay", s_setNoDelay, false, ClassData::ASYNC_SYNC },
+        { "setSocketKeepAlive", s_setSocketKeepAlive, false, ClassData::ASYNC_SYNC },
+        { "flushHeaders", s_flushHeaders, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -89,7 +108,9 @@ inline ClassInfo& HttpRequest_base::class_info()
         { "queryString", s_get_queryString, s_set_queryString, false },
         { "cookies", s_get_cookies, block_set, false },
         { "form", s_get_form, block_set, false },
-        { "query", s_get_query, block_set, false }
+        { "query", s_get_query, block_set, false },
+        { "path", s_get_path, block_set, false },
+        { "destroyed", s_get_destroyed, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -334,6 +355,34 @@ inline void HttpRequest_base::s_get_query(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
+inline void HttpRequest_base::s_get_path(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(HttpRequest_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_path(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpRequest_base::s_get_destroyed(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(HttpRequest_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_destroyed(vr);
+
+    METHOD_RETURN();
+}
+
 inline void HttpRequest_base::s_abort(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpRequest_base);
@@ -344,5 +393,85 @@ inline void HttpRequest_base::s_abort(const v8::FunctionCallbackInfo<v8::Value>&
     hr = pInst->abort();
 
     METHOD_VOID();
+}
+
+inline void HttpRequest_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpRequest_base> vr;
+
+    METHOD_INSTANCE(HttpRequest_base);
+    METHOD_ENTER();
+
+    METHOD_OVER_NAMED(2, 1, "msecs");
+
+    ARG_NAMED(int32_t, 0, "msecs");
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate), "callback");
+
+    hr = pInst->setTimeout(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpRequest_base::s_destroy(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpRequest_base> vr;
+
+    METHOD_INSTANCE(HttpRequest_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG_NAMED(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate), "err");
+
+    hr = pInst->destroy(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpRequest_base::s_setNoDelay(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpRequest_base> vr;
+
+    METHOD_INSTANCE(HttpRequest_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG_NAMED(bool, 0, true, "noDelay");
+
+    hr = pInst->setNoDelay(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpRequest_base::s_setSocketKeepAlive(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpRequest_base> vr;
+
+    METHOD_INSTANCE(HttpRequest_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 0);
+
+    OPT_ARG_NAMED(bool, 0, false, "enable");
+    OPT_ARG_NAMED(int32_t, 1, 0, "initialDelay");
+
+    hr = pInst->setSocketKeepAlive(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpRequest_base::s_flushHeaders(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpRequest_base> vr;
+
+    METHOD_INSTANCE(HttpRequest_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->flushHeaders(vr);
+
+    METHOD_RETURN();
 }
 }
