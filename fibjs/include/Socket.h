@@ -24,6 +24,12 @@ result_t socket_isAlive(SOCKET fd, bool& retVal);
 // plans/async-phase-discipline-audit-2026-10-05.md §3-F14).
 result_t create_socket(int32_t family, obj_ptr<Socket_base>& retVal);
 
+// Deliver a failed connect to a once listener after the caller had a chance to
+// attach its error/close handlers. The keep reference holds the socket for the
+// duration of the deferred task.
+void report_connect_error_deferred(obj_ptr<Socket_base> keep, Isolate* isolate,
+    std::function<void()> emit);
+
 class Socket : public AsyncStream<Socket_base> {
     FIBER_FREE();
 
@@ -106,6 +112,13 @@ public:
 
 private:
     result_t create(int32_t family);
+    result_t connect_address(int32_t port, exlib::string address, int32_t timeout,
+        exlib::string target, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    result_t connect_resolved(int32_t port, exlib::string host, int32_t timeout,
+        int32_t family, int32_t hints, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    result_t connect_target(int32_t port, exlib::string host, int32_t timeout,
+        int32_t family, int32_t hints, obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+    void report_connect_error(result_t err, Isolate* isolate);
 
 private:
     AsyncIO m_aio;

@@ -70,6 +70,11 @@ public:
     static result_t create(int32_t family, obj_ptr<Socket_base>& retVal);
 
 private:
+    void report_connect_error(result_t err, Isolate* isolate);
+    result_t connect_uv(int32_t port, exlib::string host, int32_t timeout,
+        obj_ptr<Stream_base>& retVal, AsyncHandle ac);
+
+private:
     static void on_listen(uv_stream_t* server, int status);
     void on_listen(int status);
 

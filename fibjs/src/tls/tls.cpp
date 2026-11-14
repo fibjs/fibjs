@@ -16,6 +16,7 @@
 #include "options.h"
 #include "openssl/provider.h"
 #include "union_helpers.h"
+#include "net_resolve.h"
 
 namespace fibjs {
 
@@ -46,12 +47,12 @@ result_t tls_base::get_secureContext(obj_ptr<SecureContext_base>& retVal)
 
 class asyncConnect : public AsyncState {
 public:
-    asyncConnect(const exlib::string host, int32_t port, bool ipv6, TLSSocket_base* ssl_sock,
+    asyncConnect(const exlib::string host, int32_t port, int32_t family, TLSSocket_base* ssl_sock,
         int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
         : AsyncState(ac)
         , m_host(host)
         , m_port(port)
-        , m_ipv6(ipv6)
+        , m_family(family)
         , m_ssl_sock(ssl_sock)
         , m_timeout(timeout)
         , m_retVal(retVal)
@@ -61,8 +62,18 @@ public:
 
     ON_STATE(asyncConnect, connect)
     {
-        Socket_base::_new(m_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET, m_sock);
-        return m_sock->connect(m_port, m_host, m_timeout,
+        ResolvedHost resolved;
+        result_t hr = resolve_host(m_host, m_family,
+            connect_lookup_hints(m_family, 0), "ipv4first", resolved,
+            isolate());
+        if (hr.failed())
+            return hr;
+
+        hr = Socket_base::_new(resolved.family == 6 ? net_base::C_AF_INET6 : net_base::C_AF_INET, m_sock);
+        if (hr.failed())
+            return hr;
+
+        return m_sock->connect(m_port, resolved.address, m_timeout,
             reinterpret_cast<obj_ptr<Stream_base>&>(m_sock), next(handshake));
     }
 
@@ -80,7 +91,7 @@ public:
 private:
     const exlib::string m_host;
     int32_t m_port;
-    bool m_ipv6;
+    int32_t m_family;
     obj_ptr<TLSSocket_base> m_ssl_sock;
     int32_t m_timeout;
     obj_ptr<Stream_base>& m_retVal;
@@ -177,7 +188,7 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
     } else
         ssl_sock = (TLSSocket*)ac.ctxv()[0].object();
 
-    return (new asyncConnect(u->hostname(), nPort, u->isIPv6(), ssl_sock, timeout, retVal, std::move(ac)))
+    return (new asyncConnect(u->hostname(), nPort, u->isIPv6() ? 6 : (Url::isIPv4(u->hostname()) ? 4 : 0), ssl_sock, timeout, retVal, std::move(ac)))
         ->post(result_t());
 }
 
@@ -285,7 +296,7 @@ result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Objec
         ssl_sock->init(ac.isolate()->m_ctx);
     }
 
-    return (new asyncConnect(host, port, Url::isIPv6(host), ssl_sock, timeout, retVal, std::move(ac)))
+    return (new asyncConnect(host, port, Url::isIPv6(host) ? 6 : (Url::isIPv4(host) ? 4 : 0), ssl_sock, timeout, retVal, std::move(ac)))
         ->post(result_t());
 }
 
@@ -332,7 +343,7 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
     exlib::string host = opts->host.value();
     int32_t port = opts->port.value();
     int32_t timeout = opts->timeout.value();
-    return (new asyncConnect(host, port, Url::isIPv6(host), ssl_sock, timeout, retVal, std::move(ac)))
+    return (new asyncConnect(host, port, Url::isIPv6(host) ? 6 : (Url::isIPv4(host) ? 4 : 0), ssl_sock, timeout, retVal, std::move(ac)))
         ->post(result_t());
 }
 

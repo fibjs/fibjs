@@ -21,6 +21,7 @@
               // breaks ON_STATE(asyncRequest, close) macro expansion
 #include "inetAddr.h"
 #include "ifs/net.h"
+#include "net_resolve.h"
 #include "ifs/tls.h"
 #include "ifs/zlib.h"
 #include "ifs/json.h"
@@ -1657,15 +1658,20 @@ public:
         if (Url::isIPv4(u->hostname()) || u->isIPv6() || u->port().empty())
             return next(connect);
 
-        exlib::string addr;
-        hr = net_base::cc_resolve(u->hostname(), net_base::C_AF_INET, addr);
+        ResolvedHost resolved;
+        hr = resolve_host(u->hostname(), 0, connect_lookup_hints(0, 0),
+            "ipv4first", resolved, Isolate::current());
         if (hr.failed())
             return hr;
 
         // Hand the address down: the connect that follows must not resolve
         // again (the SNI / verification host stays with m_sslhost).
         exlib::string url = "tcp://";
-        url.append(addr).append(1, ':').append(u->port());
+        if (resolved.family == 6)
+            url.append(1, '[').append(resolved.address).append(1, ']');
+        else
+            url.append(resolved.address);
+        url.append(1, ':').append(u->port());
         m_connectUrl = url;
 
         return next(connect);
@@ -2330,7 +2336,8 @@ public:
             result_t::builder b = result_t::from_system(std::move(v));
 
             if (at(resolve))
-                b = std::move(b).with_syscall("getaddrinfo");
+                b = std::move(b).with_syscall("getaddrinfo")
+                        .with_hostname(m_o->u->hostname());
             else if (at(connect))
                 b = std::move(b).with_syscall("connect");
 

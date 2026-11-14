@@ -12,6 +12,8 @@
 #include "Buffer.h"
 #include "EventInfo.h"
 #include "EventEmitter.h"
+#include "net_resolve.h"
+#include "AsyncUV.h"
 
 namespace fibjs {
 
@@ -19,7 +21,8 @@ result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
 {
     if (family != net_base::C_AF_INET
         && family != net_base::C_AF_INET6
-        && family != net_base::C_AF_UNIX)
+        && family != net_base::C_AF_UNIX
+        && family != 0)
         return result_t::invalid_arg();
 
     obj_ptr<UVSocket> sock = new UVSocket(family);
@@ -221,13 +224,12 @@ result_t UVSocket::listen(int32_t backlog)
     return result_t();
 }
 
-result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
-{
+namespace {
     class AsyncConnect : public uv_connect_t,
-                         public UVTimeout {
+                         public UVSocket::UVTimeout {
     public:
         AsyncConnect(UVSocket* pThis, int32_t timeout, AsyncHandle ac, exlib::string target, bool use_path, int32_t port)
-            : UVTimeout(pThis, timeout)
+            : UVSocket::UVTimeout(pThis, timeout)
             , m_sock(pThis)
             , m_ac(std::move(ac))
             , m_bEvent(false)
@@ -240,7 +242,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
         }
 
         AsyncConnect(Isolate* isolate, UVSocket* pThis, int32_t timeout, exlib::string target, bool use_path, int32_t port)
-            : UVTimeout(pThis, timeout)
+            : UVSocket::UVTimeout(pThis, timeout)
             , m_isolate(isolate)
             , m_sock(pThis)
             , m_ac(nullptr)
@@ -280,7 +282,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
         virtual void on_timeout_handler() override
         {
             m_timedout = true;
-            UVTimeout::on_timeout_handler();
+            UVSocket::UVTimeout::on_timeout_handler();
         }
 
         void finish(int status)
@@ -310,7 +312,7 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
                 m_ac.apost(err);
 
             if (m_timer_started)
-                uv_close((uv_handle_t*)(uv_timer_t*)this, on_timer_closed);
+                uv_close((uv_handle_t*)(uv_timer_t*)this, UVSocket::UVTimeout::on_timer_closed);
             else
                 delete this;
         }
@@ -337,12 +339,47 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
         int32_t m_port;
         bool m_timedout = false;
     };
+} // namespace
 
+result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
+{
     startConnectEvent();
 
     if (ac.isSync())
         return result_t::nosync();
 
+    if (port != 0 && m_family != net_base::C_AF_UNIX) {
+        int32_t requested = m_family == net_base::C_AF_INET6 ? 6
+            : (m_family == net_base::C_AF_INET ? 4 : 0);
+
+        ResolvedHost resolved;
+        result_t hr = resolve_host(host, requested,
+            connect_lookup_hints(requested, 0), "ipv4first", resolved,
+            ac.isolate());
+        if (hr.failed()) {
+            report_connect_error(hr, ac.isolate());
+            return hr;
+        }
+
+        if (m_family == 0)
+            m_family = resolved.family == 6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+        host = resolved.address;
+    } else if (port != 0 && m_family == net_base::C_AF_UNIX) {
+        result_t hr = result_t::invalid_arg();
+        report_connect_error(hr, ac.isolate());
+        return hr;
+    } else if (port == 0 && m_family == 0) {
+        result_t hr = result_t::invalid_arg();
+        report_connect_error(hr, ac.isolate());
+        return hr;
+    }
+
+    return connect_uv(port, host, timeout, retVal, std::move(ac));
+}
+
+result_t UVSocket::connect_uv(int32_t port, exlib::string host, int32_t timeout,
+    obj_ptr<Stream_base>& retVal, AsyncHandle ac)
+{
     retVal = this;
     bool use_path = m_family == net_base::C_AF_UNIX || port == 0;
     if (m_family == net_base::C_AF_UNIX) {
@@ -363,15 +400,8 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
 
         addr_info.init(m_family);
         addr_info.setPort(port);
-        if (addr_info.addr(host) < 0) {
-            exlib::string strAddr;
-            result_t hr = net_base::cc_resolve(host, m_family, strAddr);
-            if (hr.failed())
-                return hr;
-
-            if (addr_info.addr(strAddr) < 0)
-                return result_t::invalid_arg();
-        }
+        if (addr_info.addr(host) < 0)
+            return result_t::invalid_arg();
 
         if (!m_connect_event)
             return uv_async([&] {
@@ -386,6 +416,20 @@ result_t UVSocket::connect(int32_t port, exlib::string host, int32_t timeout, ob
     }
 }
 
+void UVSocket::report_connect_error(result_t err, Isolate* isolate)
+{
+    if (m_connect_event) {
+        obj_ptr<Socket_base> keep = this;
+        report_connect_error_deferred(keep, isolate, [this, err]() {
+            (new EventInfo(this, "error", err))->emit();
+            emitClose(this, true);
+            on_connected(err);
+        });
+        return;
+    }
+    on_connected(err);
+}
+
 result_t UVSocket::connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
     return connect(0, path, timeout, retVal, std::move(ac));
@@ -398,7 +442,38 @@ result_t UVSocket::connect(ConnectOptions* options, obj_ptr<Stream_base>& retVal
         return result_t::nosync();
     }
 
-    return connect(options->port.value(), options->host.value(), options->timeout.value(), retVal, std::move(ac));
+    startConnectEvent();
+
+    int32_t family = options->family.value_or(0);
+    int32_t current = m_family == net_base::C_AF_INET6 ? 6
+        : (m_family == net_base::C_AF_INET ? 4 : 0);
+    int32_t requested = family == 0 ? current : family;
+
+    if (current != 0 && requested != 0 && current != requested) {
+        result_t hr = result_t::make(CALL_E_INVALID_DATA)
+            .with_type_name(errtype::kTypeError)
+            .with_code("ERR_INVALID_ARG_VALUE")
+            .with_format("the socket was created for IPv%d and cannot connect with family %d",
+                current, requested)
+            .arg("family", family);
+        report_connect_error(hr, ac.isolate());
+        return hr;
+    }
+
+    ResolvedHost resolved;
+    result_t hr = resolve_host(options->host.value(), requested,
+        connect_lookup_hints(requested, options->hints.value_or(0)),
+        "ipv4first", resolved, ac.isolate());
+    if (hr.failed()) {
+        report_connect_error(hr, ac.isolate());
+        return hr;
+    }
+
+    if (m_family == 0)
+        m_family = resolved.family == 6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+
+    return connect_uv(options->port.value(), resolved.address,
+        options->timeout.value(), retVal, std::move(ac));
 }
 
 result_t UVSocket::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)

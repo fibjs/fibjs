@@ -1,12 +1,32 @@
 /*! @brief Options shared by the socket connect entry points.
 
      All fields are optional; the generated record keeps them as std::optional so
-     that an absent key is distinguishable from a provided default. Only these
-     three keys are read; path, family, lookup, localAddress, localPort, signal,
-     noDelay and keepAlive are not part of this record.
+     that an absent key is distinguishable from a provided default. host, port,
+     timeout, family and hints are read; path, lookup, localAddress, localPort,
+     signal, noDelay and keepAlive are not part of this record.
  */
 struct ConnectOptions {
+    /*! @brief Target host name or address literal, default localhost */
     String host = "localhost";
+
+    /*! @brief Remote port; 0 selects the unix-socket / named-pipe path form where supported */
     Integer port = 0;
+
+    /*! @brief Connect timeout in milliseconds, 0 disables the fibjs timer */
     Integer timeout = 0;
+
+    /*! @brief Address family preference: 0 selects from the resolved addresses, 4 or 6 restricts it
+
+     A value other than 0, 4 or 6 is rejected with ERR_INVALID_ARG_VALUE. When the host is an
+     address literal, a conflicting family fails with ENOTFOUND and syscall getaddrinfo without a
+     lookup.
+     */
+    Integer family = 0;
+
+    /*! @brief getaddrinfo hints bit mask: ADDRCONFIG, ALL and V4MAPPED
+
+     When family is 0 and hints is 0, ADDRCONFIG is applied on platforms that expose it. Other
+     bits are rejected with ERR_INVALID_ARG_VALUE.
+     */
+    Integer hints = 0;
 };

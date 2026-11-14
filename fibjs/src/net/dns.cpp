@@ -236,7 +236,7 @@ static result_t run_lookup(const exlib::string& name, LookupOptions* options,
         return result_t();
 
     if (order.empty())
-        dns_cares_get_default_order(Isolate::current(), order);
+        dns_cares_get_default_order(ac.isolate(), order);
 
     if (order.empty())
         order = "verbatim";

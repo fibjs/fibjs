@@ -16,6 +16,12 @@
       `Resolver#setServers` refuses to change servers while queries are in
       flight (`ERR_DNS_SET_SERVERS_FAILED`), while module-level `dns.setServers`
       swaps in a fresh default resolver.
+    * net - `connect` resolves the host name before creating the socket and
+      selects IPv4/IPv6 from the result; `ConnectOptions` accepts `family`
+      (0/4/6) and `hints`, and `tls.connect` / `HttpClient` use the same
+      lookup path. A family-neutral `new net.Socket(0)` selects its family at
+      the first connect. Internal connections stay on `dns.lookup` / libuv,
+      never c-ares record queries.
 * **breaking** :
     * dns - `resolve(name)` now returns A records (add rrtype as the second
       argument); use `lookup(name, { all: true })` or `net.resolve` for the

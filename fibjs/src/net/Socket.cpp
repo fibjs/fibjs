@@ -16,6 +16,8 @@
 #include "options.h"
 #include "EventInfo.h"
 #include "EventEmitter.h"
+#include "net_resolve.h"
+#include "AsyncUV.h"
 #ifndef _WIN32
 #include <poll.h>
 #endif
@@ -162,6 +164,11 @@ result_t Socket::create(int32_t family)
 
     m_aio.m_family = family;
 
+    // A family-neutral socket defers the fd until connect() resolves the
+    // target.  It is used by net.connect's listener form and by Socket(0).
+    if (family == 0)
+        return result_t();
+
     if (family == net_base::C_AF_INET)
         family = AF_INET;
     else if (family == net_base::C_AF_INET6)
@@ -228,7 +235,9 @@ result_t Socket::close(AsyncHandle ac)
 
 result_t Socket::get_family(int32_t& retVal)
 {
-    if (m_aio.m_fd == INVALID_SOCKET)
+    // A family-neutral socket has no fd until its first connect(); its family
+    // is still meaningful (0 = select from the resolved address).
+    if (m_aio.m_fd == INVALID_SOCKET && m_aio.m_family != 0)
         return result_t::invalid_call();
 
     retVal = m_aio.m_family;
@@ -471,6 +480,133 @@ private:
     int32_t m_port;
 };
 
+void report_connect_error_deferred(obj_ptr<Socket_base> keep, Isolate* isolate,
+    std::function<void()> emit)
+{
+    if (!isolate || isolate->is_terminating())
+        return;
+
+    async([keep, isolate, emit]() {
+        uv_sleep(1);
+        if (!isolate || isolate->is_terminating())
+            return;
+        isolate->sync([keep, isolate, emit]() {
+            if (!isolate->is_terminating())
+                emit();
+        });
+    });
+}
+
+void Socket::report_connect_error(result_t err, Isolate* isolate)
+{
+    if (m_connect_event) {
+        obj_ptr<Socket_base> keep = this;
+        report_connect_error_deferred(keep, isolate, [this, err]() {
+            (new EventInfo(this, "error", err))->emit();
+            emitClose(this, true);
+            on_connected(err);
+        });
+        return;
+    }
+    on_connected(err);
+}
+
+result_t Socket::connect_address(int32_t port, exlib::string address,
+    int32_t timeout, exlib::string target, obj_ptr<Stream_base>& retVal,
+    AsyncHandle ac)
+{
+    retVal = this;
+
+    bool use_path = port == 0;
+
+#ifdef _WIN32
+    if (!m_bBind && !use_path) {
+        result_t hr = bind(0, TRUE);
+        if (hr.failed())
+            return hr;
+    }
+#endif
+
+    if (!m_connect_event)
+        return m_aio.connect(address, port, new connectWrapper(this, std::move(ac), target, use_path, port), timeout);
+
+    m_aio.connect(address, port, new connectWrapper(holder(), this, target, use_path, port), timeout);
+    return result_t();
+}
+
+result_t Socket::connect_resolved(int32_t port, exlib::string host, int32_t timeout,
+    int32_t family, int32_t hints, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
+{
+    // Direct Socket options may be used from a fiber without a JS isolate (for
+    // example during worker teardown); keep the old AsyncIO resolution path in
+    // that case instead of posting through a dying isolate.
+    Isolate* isolate = Isolate::current();
+    if (!isolate) {
+        if (m_aio.m_family == 0) {
+            result_t hr = create(net_base::C_AF_INET);
+            if (hr.failed()) {
+                on_connected(hr);
+                return hr;
+            }
+        }
+
+        return connect_address(port, host, timeout, host, retVal, std::move(ac));
+    }
+
+    ResolvedHost resolved;
+    result_t hr = resolve_host(host, family,
+        connect_lookup_hints(family, hints), "ipv4first", resolved, isolate);
+    if (hr.failed()) {
+        report_connect_error(hr, isolate);
+        return hr;
+    }
+
+    if (m_aio.m_family == 0) {
+        hr = create(resolved.family == 6 ? net_base::C_AF_INET6 : net_base::C_AF_INET);
+        if (hr.failed()) {
+            report_connect_error(hr, isolate);
+            return hr;
+        }
+    }
+
+    return connect_address(port, resolved.address, timeout, host, retVal,
+        std::move(ac));
+}
+
+result_t Socket::connect_target(int32_t port, exlib::string host, int32_t timeout,
+    int32_t family, int32_t hints, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
+{
+    if (port == 0) {
+        if (m_aio.m_family == 0) {
+            result_t hr = create(net_base::C_AF_UNIX);
+            if (hr.failed()) {
+                report_connect_error(hr, Isolate::current());
+                return hr;
+            }
+        }
+
+        return connect_address(0, host, timeout, host, retVal, std::move(ac));
+    }
+
+    int32_t current = m_aio.m_family == net_base::C_AF_INET6 ? 6
+        : (m_aio.m_family == net_base::C_AF_INET ? 4 : 0);
+    int32_t requested = family == 0 ? current : family;
+
+    if (current != 0 && requested != 0 && current != requested) {
+        result_t hr = result_t::make(CALL_E_INVALID_DATA)
+            .with_type_name(errtype::kTypeError)
+            .with_code("ERR_INVALID_ARG_VALUE")
+            .with_format("the socket was created for IPv%d and cannot connect with family %d",
+                current, requested)
+            .arg("family", family);
+        report_connect_error(hr, Isolate::current());
+        return hr;
+    }
+
+    return connect_resolved(port, host, timeout, requested, hints, retVal,
+        std::move(ac));
+}
+
 result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
     startConnectEvent();
@@ -478,21 +614,16 @@ result_t Socket::connect(int32_t port, exlib::string host, int32_t timeout, obj_
     if (ac.isSync())
         return result_t::nosync();
 
-#ifdef _WIN32
-    if (!m_bBind) {
-        result_t hr = bind(0, TRUE);
-        if (hr.failed())
-            return hr;
+    if (m_aio.m_family != 0) {
+        if (port == 0)
+            return connect_address(0, host, timeout, host, retVal, std::move(ac));
+
+        int32_t family = m_aio.m_family == net_base::C_AF_INET6 ? 6 : 4;
+        return connect_resolved(port, host, timeout, family, 0, retVal,
+            std::move(ac));
     }
-#endif
 
-    retVal = this;
-    bool use_path = port == 0;
-    if (!m_connect_event)
-        return m_aio.connect(host, port, new connectWrapper(this, std::move(ac), host, use_path, port), timeout);
-
-    m_aio.connect(host, port, new connectWrapper(holder(), this, host, use_path, port), timeout);
-    return result_t();
+    return connect_target(port, host, timeout, 0, 0, retVal, std::move(ac));
 }
 
 result_t Socket::connect(exlib::string path, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
@@ -507,7 +638,11 @@ result_t Socket::connect(ConnectOptions* options, obj_ptr<Stream_base>& retVal, 
         return result_t::nosync();
     }
 
-    return connect(options->port.value(), options->host.value(), options->timeout.value(), retVal, std::move(ac));
+    int32_t family = options->family.value_or(0);
+    int32_t hints = options->hints.value_or(0);
+
+    return connect_target(options->port.value(), options->host.value(),
+        options->timeout.value(), family, hints, retVal, std::move(ac));
 }
 
 result_t Socket::connect(int32_t port, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)

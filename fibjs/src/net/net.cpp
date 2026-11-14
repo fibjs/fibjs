@@ -15,6 +15,7 @@
 #include "AsyncUV.h"
 #include "Socket.h"
 #include "union_helpers.h"
+#include "net_resolve.h"
 
 namespace fibjs {
 
@@ -80,91 +81,14 @@ result_t net_base::resolve(exlib::string name, int32_t family,
     if (family != net_base::C_AF_INET && family != net_base::C_AF_INET6)
         return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_format("resolve: invalid address family %d.", family);
 
-    class resolve_data : public uv_getaddrinfo_t {
-    public:
-        resolve_data(int32_t family, exlib::string name, exlib::string& retVal, AsyncHandle ac)
-            : _family(family)
-            , _name(name)
-            , _retVal(retVal)
-            , _ac(std::move(ac))
-        {
-        }
+    ResolvedHost resolved;
+    result_t hr = resolve_host(name, family == net_base::C_AF_INET ? 4 : 6,
+        0, "", resolved, ac.isolate());
+    if (hr.failed())
+        return hr;
 
-    public:
-        int32_t _family;
-        exlib::string _name;
-        exlib::string& _retVal;
-        AsyncHandle _ac;
-    };
-
-    addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
-
-    resolve_data* resolver = new resolve_data(family, name, retVal, std::move(ac));
-    int r = uv_getaddrinfo(
-        s_uv_loop, resolver,
-        [](uv_getaddrinfo_t* _resolver, int status, struct addrinfo* res) {
-            resolve_data* resolver = (resolve_data*)_resolver;
-
-            if (status < 0) {
-                uv_freeaddrinfo(res);
-                // 先投递再释放：resolver 在 post 之前保持有效；投递即移交，无需中转
-                exlib::string hostname = resolver->_name;
-                int32_t family = resolver->_family;
-                exlib::string code;
-                if (status == UV_EAI_NODATA || status == UV_EAI_NONAME)
-                    code = "ENOTFOUND";
-
-                resolver->_ac.post(result_t::from_system(status)
-                    .with_syscall("getaddrinfo")
-                    .with_hostname(hostname)
-                    .with_code(code)
-                    .arg("hostname", hostname)
-                    .arg("family", family));
-                delete resolver;
-                return;
-            }
-
-            struct addrinfo* ptr = NULL;
-            for (ptr = res; ptr != NULL; ptr = ptr->ai_next) {
-                if (ptr->ai_family == resolver->_family) {
-                    inetAddr addr_info;
-                    addr_info.init(ptr->ai_addr);
-                    resolver->_retVal = addr_info.str();
-                    break;
-                }
-            }
-
-            if (ptr == NULL) {
-                exlib::string hostname = resolver->_name;
-                int32_t family = resolver->_family;
-#ifdef _WIN32
-                resolver->_ac.post(result_t::from_system(-WSAHOST_NOT_FOUND)
-                    .with_syscall("getaddrinfo")
-                    .with_hostname(hostname)
-                    .with_code("ENOTFOUND")
-                    .arg("hostname", hostname)
-                    .arg("family", family));
-#else
-                resolver->_ac.post(result_t::from_system(-ETIME)
-                    .with_syscall("getaddrinfo")
-                    .with_hostname(hostname)
-                    .arg("hostname", hostname)
-                    .arg("family", family));
-#endif
-            } else
-                resolver->_ac.post(result_t());
-
-            uv_freeaddrinfo(res);
-            delete resolver;
-        },
-        name.c_str(), NULL, &hints);
-
-    if (r < 0) {
-        delete resolver;
-        return result_t::from_system(r);
-    }
-
-    return result_t::pending();
+    retVal = resolved.address;
+    return result_t();
 }
 
 result_t net_base::ip(exlib::string name, exlib::string& retVal,
@@ -177,6 +101,49 @@ result_t net_base::ipv6(exlib::string name, exlib::string& retVal,
     AsyncHandle ac)
 {
     return resolve(name, net_base::C_AF_INET6, retVal, std::move(ac));
+}
+
+// Resolve a name and create the socket with the resulting family. A background
+// fiber without a JS isolate (a worker being torn down) keeps the old
+// literal-family path instead of posting a lookup through a dying isolate.
+static result_t connect_resolved(exlib::string host, int32_t port, int32_t timeout,
+    int32_t family, int32_t hints, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
+{
+    obj_ptr<Socket_base> socket;
+
+    if (port == 0) {
+        result_t hr = Socket_base::_new(net_base::C_AF_UNIX, socket);
+        if (hr.failed())
+            return hr;
+
+        return socket->connect(0, host, timeout, retVal, std::move(ac));
+    }
+
+    Isolate* isolate = Isolate::current();
+    if (!isolate) {
+        int32_t literal_family = Url::isIPv6(host) ? net_base::C_AF_INET6
+                                                   : net_base::C_AF_INET;
+
+        result_t hr = Socket_base::_new(literal_family, socket);
+        if (hr.failed())
+            return hr;
+
+        return socket->connect(port, host, timeout, retVal, std::move(ac));
+    }
+
+    ResolvedHost resolved;
+    result_t hr = resolve_host(host, family,
+        connect_lookup_hints(family, hints), "ipv4first", resolved, isolate);
+    if (hr.failed())
+        return hr;
+
+    hr = Socket_base::_new(resolved.family == 6 ? net_base::C_AF_INET6
+                                                : net_base::C_AF_INET,
+        socket);
+    if (hr.failed())
+        return hr;
+
+    return socket->connect(port, resolved.address, timeout, retVal, std::move(ac));
 }
 
 result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal,
@@ -204,15 +171,9 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
             return result_t::make(CALL_E_INVALID_DATA).with_code("ERR_INVALID_ARG_VALUE").with_type_name(errtype::kTypeError).with_result(result_t::invalid_arg()).with_format("connect: missing port in url '%s'.", url.c_str());
 
         int32_t nPort = atoi(port.c_str());
-        int32_t family = u->isIPv6() ? net_base::C_AF_INET6 : net_base::C_AF_INET;
 
-        obj_ptr<Socket_base> socket;
-
-        hr = Socket_base::_new(family, socket);
-        if (hr.failed())
-            return hr;
-
-        return socket->connect(nPort, u->hostname(), timeout, retVal, std::move(ac));
+        return connect_resolved(u->hostname(), nPort, timeout, 0, 0, retVal,
+            std::move(ac));
     } else {
         obj_ptr<Socket_base> socket;
 
@@ -229,15 +190,7 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, ob
     if (ac.isSync())
         return result_t::nosync();
 
-    bool is_ipv6 = Url::isIPv6(host);
-    int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
-
-    obj_ptr<Socket_base> socket;
-    result_t hr = Socket_base::_new(family, socket);
-    if (hr.failed())
-        return hr;
-
-    return socket->connect(port, host, timeout, retVal, std::move(ac));
+    return connect_resolved(host, port, timeout, 0, 0, retVal, std::move(ac));
 }
 
 result_t net_base::connect(ConnectOptions* options, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
@@ -245,7 +198,9 @@ result_t net_base::connect(ConnectOptions* options, obj_ptr<Stream_base>& retVal
     if (ac.isSync())
         return result_t::nosync();
 
-    return connect(options->port.value(), options->host.value(), options->timeout.value(), retVal, std::move(ac));
+    return connect_resolved(options->host.value(), options->port.value(),
+        options->timeout.value(), options->family.value_or(0),
+        options->hints.value_or(0), retVal, std::move(ac));
 }
 
 // the three forms of the merged arity-2 entry: an options object, a port and a
@@ -266,21 +221,33 @@ result_t net_base::connect(int32_t port, exlib::string host, v8::Local<v8::Funct
 result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync()) {
+        result_t hr;
+
         // the listener registration needs the socket wrapper, so the socket is
         // built in the sync phase only when a listener is present; otherwise
         // it is built in the async phase (no `_new` off the JS thread,
         // plans/async-phase-discipline-audit-2026-10-05.md §3-F14)
         if (!connectListener.IsEmpty()) {
-            bool is_ipv6 = Url::isIPv6(host);
-            int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+            ResolvedHost resolved;
+            int32_t family = net_base::C_AF_UNIX;
+
+            if (port != 0) {
+                hr = resolve_host(host, 0, connect_lookup_hints(0, 0),
+                    "ipv4first", resolved, ac.isolate());
+                if (hr.failed())
+                    return hr;
+                family = resolved.family == 6 ? net_base::C_AF_INET6
+                                              : net_base::C_AF_INET;
+            }
 
             obj_ptr<Socket_base> socket;
-            result_t hr = create_socket(family, socket);
+            hr = create_socket(family, socket);
             if (hr.failed())
                 return hr;
 
-            ac.ctxv().resize(1);
+            ac.ctxv().resize(2);
             ac.ctxv()[0] = socket;
+            ac.ctxv()[1] = port == 0 ? host : resolved.address;
 
             v8::Local<v8::Object> _retVal;
             socket->once(socket->holder()->NewString("connect"), connectListener, _retVal);
@@ -296,8 +263,7 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8
         socket = Socket_base::getInstance(ac.ctxv()[0].object());
 
     if (socket == NULL) {
-        bool is_ipv6 = Url::isIPv6(host);
-        int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+        int32_t family = port == 0 ? net_base::C_AF_UNIX : 0;
 
         result_t hr = create_socket(family, holder);
         if (hr.failed())
@@ -306,7 +272,11 @@ result_t net_base::connect(int32_t port, exlib::string host, int32_t timeout, v8
         socket = holder;
     }
 
-    return socket->connect(port, host, timeout, retVal, std::move(ac));
+    exlib::string target = host;
+    if (ac.ctxv().size() > 1)
+        target = ac.ctxv()[1].string();
+
+    return socket->connect(port, target, timeout, retVal, std::move(ac));
 }
 
 static result_t connect_by_path(exlib::string path, v8::Local<v8::Function> connectListener, obj_ptr<Stream_base>& retVal, AsyncHandle ac)
@@ -338,14 +308,22 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
         if (hr.failed())
             return hr;
 
-        ac.ctxv().resize(2);
-        ac.ctxv()[0] = opts;
+        int32_t family = opts->family.value_or(0);
+        ResolvedHost resolved;
+        hr = resolve_host(opts->host.value(), family,
+            connect_lookup_hints(family, opts->hints.value_or(0)),
+            "ipv4first", resolved, ac.isolate());
+        if (hr.failed())
+            return hr;
 
-        bool is_ipv6 = Url::isIPv6(opts->host.value());
-        int32_t family = is_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+        ac.ctxv().resize(3);
+        ac.ctxv()[0] = opts;
+        ac.ctxv()[2] = resolved.address;
 
         obj_ptr<Socket_base> socket;
-        hr = Socket_base::_new(family, socket);
+        hr = Socket_base::_new(resolved.family == 6 ? net_base::C_AF_INET6
+                                                     : net_base::C_AF_INET,
+            socket);
         if (hr.failed())
             return hr;
 
@@ -363,10 +341,14 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
     ctx_hr = ac.ctx(1);
     if (ctx_hr.failed())
         return ctx_hr;
+    ctx_hr = ac.ctx(2);
+    if (ctx_hr.failed())
+        return ctx_hr;
 
     ConnectOptions* opts = (ConnectOptions*)ac.ctxv()[0].object();
     Socket_base* socket = (Socket_base*)ac.ctxv()[1].object();
-    return socket->connect(opts->port.value(), opts->host.value(), opts->timeout.value(), retVal, std::move(ac));
+    return socket->connect(opts->port.value(), ac.ctxv()[2].string(),
+        opts->timeout.value(), retVal, std::move(ac));
 }
 
 result_t net_base::openSmtp(exlib::string url, int32_t timeout,
