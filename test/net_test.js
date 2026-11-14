@@ -955,6 +955,118 @@ function test_net(eng, use_uv) {
             c1.close();
         });
 
+        describe("dns family selection", () => {
+            function startServer() {
+                var svr = new net.Socket(net_config.family);
+                svr.bind(0);
+                svr.listen();
+                test_util.push(svr);
+
+                coroutine.start(() => {
+                    try {
+                        while (true)
+                            svr.accept().close();
+                    } catch (e) {
+                    }
+                });
+
+                return svr;
+            }
+
+            var family = net_config.family === net.AF_INET6 ? 6 : 4;
+            var address = family === 6 ? '::1' : '127.0.0.1';
+            var hostname = 'localhost';
+
+            if (family === 6) {
+                try {
+                    if (net.resolve('ip6-localhost', net.AF_INET6) === '::1')
+                        hostname = 'ip6-localhost';
+                } catch (e) {
+                }
+            }
+
+            it("family selects the socket family for a literal", () => {
+                var svr = startServer();
+                var port = svr.localPort;
+                var c = net.connect({ host: address, port, family });
+                assert.equal(c.family, net_config.family);
+                assert.equal(c.remotePort, port);
+                c.close();
+                svr.close();
+            });
+
+            it("family 0 resolves a literal without a lookup", () => {
+                var svr = startServer();
+                var port = svr.localPort;
+                var c = net.connect({ host: address, port });
+                assert.equal(c.family, net_config.family);
+                c.close();
+                svr.close();
+            });
+
+            it("a family-neutral Socket selects the family at connect", () => {
+                var svr = startServer();
+                var port = svr.localPort;
+                var s = new net.Socket(0);
+                assert.equal(s.family, 0);
+                s.connect({ host: address, port, family });
+                assert.equal(s.family, net_config.family);
+                s.close();
+                svr.close();
+            });
+
+            it("family resolves a host name", () => {
+                var svr = startServer();
+                var port = svr.localPort;
+                var c = net.connect({ host: hostname, port, family });
+                assert.equal(c.family, net_config.family);
+                c.close();
+                svr.close();
+            });
+
+            it("family conflict is a getaddrinfo failure", () => {
+                var other = family === 6 ? '127.0.0.1' : '::1';
+                assert.throws(() => net.connect({ host: other, port: 1, family }), (err) => {
+                    assert.equal(err.code, 'ENOTFOUND');
+                    assert.equal(err.syscall, 'getaddrinfo');
+                    assert.equal(err.hostname, other);
+                    return true;
+                });
+            });
+
+            it("rejects an unknown family and hints", () => {
+                assert.throws(() => net.connect({ host: address, port: 1, family: 5 }),
+                    { code: 'ERR_INVALID_ARG_VALUE' });
+                assert.throws(() => net.connect({ host: address, port: 1, hints: 0x100 }),
+                    { code: 'ERR_INVALID_ARG_VALUE' });
+            });
+
+            it("listener form honors the resolved family", () => {
+                var svr = startServer();
+                var port = svr.localPort;
+                var ev = new coroutine.Event();
+                var connected = false;
+
+                var c = net.connect({ host: hostname, port, family }, () => {
+                    connected = true;
+                    c.close();
+                    ev.set();
+                });
+
+                ev.wait();
+                assert.ok(connected);
+                svr.close();
+            });
+
+            it("net.resolve reports getaddrinfo instead of ETIME", () => {
+                assert.throws(() => net.resolve('no-such-host.invalid', net.AF_INET), (err) => {
+                    assert.equal(err.syscall, 'getaddrinfo');
+                    assert.notEqual(err.code, 'ETIME');
+                    return true;
+                });
+            });
+        });
+
         describe("re-entrant", () => {
 
             it("accept", () => {
