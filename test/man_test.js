@@ -139,14 +139,18 @@ describe('fibjs --man', { skip: !isFibjs }, () => {
 
             assert.equal(r.code, 0, r.stderr);
             // the merged Buffer/String and FileHandle/string overload families
-            // render as one signature carrying the parameter unions; a class
-            // parameter carries both flavors (the runtime accepts a fiber object
-            // and its promise variant - same ClassInfo, see
-            // plans/idl-event-types-2026-10-03.md §15)
+            // render as their own signatures; a class parameter carries both
+            // flavors (the runtime accepts a fiber object and its promise variant -
+            // same ClassInfo, see plans/idl-event-types-2026-10-03.md §15)
             assert.ok(r.stdout.includes('function readFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string'),
                 'the fname union is missing');
-            assert.ok(r.stdout.includes('options?: FIBJS.GeneralObject | string'),
-                'the options union is missing');
+            // 3d7a35554 split the old Object|String options parameter into a
+            // typed ReadFileOptions overload and a String overload; each one is
+            // rendered as its own signature.
+            assert.ok(r.stdout.includes('options?: {'),
+                'the typed options overload is missing');
+            assert.ok(r.stdout.includes('options?: string): any'),
+                'the string options overload is missing');
         });
 
         it('accepts the node:/fibjs: prefixes', () => {
