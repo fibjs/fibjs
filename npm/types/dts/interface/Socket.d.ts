@@ -199,14 +199,17 @@ declare class Class_Socket extends Class_Stream {
      *      ({
      *          "port": 80,          // the remote port, required
      *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "timeout": 0,        // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "family": 0,         // 0 selects from the result, 4 or 6 restricts it
+     *          "hints": 0           // ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      })
      *      ```
-     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
-     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
-     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
-     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
-     *      expired timer throws error number 20021.
+     *      `path`, `lookup`, `localAddress`, `localPort`, `signal`, `noDelay` and `keepAlive` are not
+     *      read; pass a path to the path overload instead. A family that conflicts with the address
+     *      literal or with the family this socket was created with fails with ENOTFOUND or
+     *      ERR_INVALID_ARG_VALUE. With timeout 0 the operating system connect timeout applies. A refused
+     *      or unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED;
+     *      an expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -215,12 +218,16 @@ declare class Class_Socket extends Class_Stream {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }): Class_Stream;
 
     connect(options: {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
@@ -233,14 +240,17 @@ declare class Class_Socket extends Class_Stream {
      *      ({
      *          "port": 80,          // the remote port, required
      *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "timeout": 0,        // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "family": 0,         // 0 selects from the result, 4 or 6 restricts it
+     *          "hints": 0           // ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      })
      *      ```
-     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
-     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
-     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
-     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
-     *      expired timer throws error number 20021.
+     *      `path`, `lookup`, `localAddress`, `localPort`, `signal`, `noDelay` and `keepAlive` are not
+     *      read; pass a path to the path overload instead. A family that conflicts with the address
+     *      literal or with the family this socket was created with fails with ENOTFOUND or
+     *      ERR_INVALID_ARG_VALUE. With timeout 0 the operating system connect timeout applies. A refused
+     *      or unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED;
+     *      an expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -249,6 +259,8 @@ declare class Class_Socket extends Class_Stream {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }): Class_Stream;
 
     /**
@@ -261,14 +273,17 @@ declare class Class_Socket extends Class_Stream {
      *      ({
      *          "port": 80,          // the remote port, required
      *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "timeout": 0,        // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "family": 0,         // 0 selects from the result, 4 or 6 restricts it
+     *          "hints": 0           // ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      })
      *      ```
-     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
-     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
-     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
-     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
-     *      expired timer throws error number 20021.
+     *      `path`, `lookup`, `localAddress`, `localPort`, `signal`, `noDelay` and `keepAlive` are not
+     *      read; pass a path to the path overload instead. A family that conflicts with the address
+     *      literal or with the family this socket was created with fails with ENOTFOUND or
+     *      ERR_INVALID_ARG_VALUE. With timeout 0 the operating system connect timeout applies. A refused
+     *      or unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED;
+     *      an expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -277,6 +292,8 @@ declare class Class_Socket extends Class_Stream {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }): Promise<Class_StreamPromise>;
 
     /**
@@ -284,14 +301,17 @@ declare class Class_Socket extends Class_Stream {
      *
      *      The method returns immediately and the connection continues in the background;
      *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
-     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
-     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
-     *      listener form exists for the options object only; the port/host/path overloads have their own
-     *      listener signatures.
+     *      transport failure is delivered to the 'error' event as an event object carrying errno/code,
+     *      syscall, hostname and args, not as an Error, and no exception is thrown; a host name that
+     *      cannot be resolved fails in the calling fiber with ENOTFOUND and syscall getaddrinfo before
+     *      the connection starts. See the net module. This listener form exists for the options object
+     *      only; the port/host/path overloads have their own listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
      *       - port: specifies the remote port
      *       - host: specifies the remote address or host name
      *       - timeout: specifies the timeout in milliseconds, default is 0
+     *       - family: 0 selects from the result, 4 or 6 restricts it
+     *       - hints: ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -300,6 +320,8 @@ declare class Class_Socket extends Class_Stream {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
@@ -307,14 +329,17 @@ declare class Class_Socket extends Class_Stream {
      *
      *      The method returns immediately and the connection continues in the background;
      *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
-     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
-     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
-     *      listener form exists for the options object only; the port/host/path overloads have their own
-     *      listener signatures.
+     *      transport failure is delivered to the 'error' event as an event object carrying errno/code,
+     *      syscall, hostname and args, not as an Error, and no exception is thrown; a host name that
+     *      cannot be resolved fails in the calling fiber with ENOTFOUND and syscall getaddrinfo before
+     *      the connection starts. See the net module. This listener form exists for the options object
+     *      only; the port/host/path overloads have their own listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
      *       - port: specifies the remote port
      *       - host: specifies the remote address or host name
      *       - timeout: specifies the timeout in milliseconds, default is 0
+     *       - family: 0 selects from the result, 4 or 6 restricts it
+     *       - hints: ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -323,6 +348,8 @@ declare class Class_Socket extends Class_Stream {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
@@ -330,14 +357,17 @@ declare class Class_Socket extends Class_Stream {
      *
      *      The method returns immediately and the connection continues in the background;
      *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
-     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
-     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
-     *      listener form exists for the options object only; the port/host/path overloads have their own
-     *      listener signatures.
+     *      transport failure is delivered to the 'error' event as an event object carrying errno/code,
+     *      syscall, hostname and args, not as an Error, and no exception is thrown; a host name that
+     *      cannot be resolved fails in the calling fiber with ENOTFOUND and syscall getaddrinfo before
+     *      the connection starts. See the net module. This listener form exists for the options object
+     *      only; the port/host/path overloads have their own listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
      *       - port: specifies the remote port
      *       - host: specifies the remote address or host name
      *       - timeout: specifies the timeout in milliseconds, default is 0
+     *       - family: 0 selects from the result, 4 or 6 restricts it
+     *       - hints: ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -346,6 +376,8 @@ declare class Class_Socket extends Class_Stream {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
@@ -985,14 +1017,17 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      ({
      *          "port": 80,          // the remote port, required
      *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "timeout": 0,        // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "family": 0,         // 0 selects from the result, 4 or 6 restricts it
+     *          "hints": 0           // ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      })
      *      ```
-     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
-     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
-     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
-     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
-     *      expired timer throws error number 20021.
+     *      `path`, `lookup`, `localAddress`, `localPort`, `signal`, `noDelay` and `keepAlive` are not
+     *      read; pass a path to the path overload instead. A family that conflicts with the address
+     *      literal or with the family this socket was created with fails with ENOTFOUND or
+     *      ERR_INVALID_ARG_VALUE. With timeout 0 the operating system connect timeout applies. A refused
+     *      or unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED;
+     *      an expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -1001,6 +1036,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }): Promise<Class_StreamPromise>;
 
     /**
@@ -1013,14 +1050,17 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      ({
      *          "port": 80,          // the remote port, required
      *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "timeout": 0,        // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "family": 0,         // 0 selects from the result, 4 or 6 restricts it
+     *          "hints": 0           // ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      })
      *      ```
-     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
-     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
-     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
-     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
-     *      expired timer throws error number 20021.
+     *      `path`, `lookup`, `localAddress`, `localPort`, `signal`, `noDelay` and `keepAlive` are not
+     *      read; pass a path to the path overload instead. A family that conflicts with the address
+     *      literal or with the family this socket was created with fails with ENOTFOUND or
+     *      ERR_INVALID_ARG_VALUE. With timeout 0 the operating system connect timeout applies. A refused
+     *      or unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED;
+     *      an expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -1029,6 +1069,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }): Class_Stream;
 
     /**
@@ -1041,14 +1083,17 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      ({
      *          "port": 80,          // the remote port, required
      *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "timeout": 0,        // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "family": 0,         // 0 selects from the result, 4 or 6 restricts it
+     *          "hints": 0           // ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      })
      *      ```
-     *      Only these three keys are read; the option keys path, family, lookup, localAddress,
-     *      localPort, signal, noDelay and keepAlive are not supported, pass a path to the path
-     *      overload instead. With timeout 0 the operating system connect timeout applies. A refused or
-     *      unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED; an
-     *      expired timer throws error number 20021.
+     *      `path`, `lookup`, `localAddress`, `localPort`, `signal`, `noDelay` and `keepAlive` are not
+     *      read; pass a path to the path overload instead. A family that conflicts with the address
+     *      literal or with the family this socket was created with fails with ENOTFOUND or
+     *      ERR_INVALID_ARG_VALUE. With timeout 0 the operating system connect timeout applies. A refused
+     *      or unreachable peer throws an Error with syscall 'connect' and a code such as ECONNREFUSED;
+     *      an expired timer throws error number 20021.
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
      *
@@ -1057,6 +1102,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }): Promise<Class_StreamPromise>;
 
     /**
@@ -1064,14 +1111,17 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      The method returns immediately and the connection continues in the background;
      *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
-     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
-     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
-     *      listener form exists for the options object only; the port/host/path overloads have their own
-     *      listener signatures.
+     *      transport failure is delivered to the 'error' event as an event object carrying errno/code,
+     *      syscall, hostname and args, not as an Error, and no exception is thrown; a host name that
+     *      cannot be resolved fails in the calling fiber with ENOTFOUND and syscall getaddrinfo before
+     *      the connection starts. See the net module. This listener form exists for the options object
+     *      only; the port/host/path overloads have their own listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
      *       - port: specifies the remote port
      *       - host: specifies the remote address or host name
      *       - timeout: specifies the timeout in milliseconds, default is 0
+     *       - family: 0 selects from the result, 4 or 6 restricts it
+     *       - hints: ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -1080,6 +1130,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**
@@ -1087,14 +1139,17 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      The method returns immediately and the connection continues in the background;
      *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
-     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
-     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
-     *      listener form exists for the options object only; the port/host/path overloads have their own
-     *      listener signatures.
+     *      transport failure is delivered to the 'error' event as an event object carrying errno/code,
+     *      syscall, hostname and args, not as an Error, and no exception is thrown; a host name that
+     *      cannot be resolved fails in the calling fiber with ENOTFOUND and syscall getaddrinfo before
+     *      the connection starts. See the net module. This listener form exists for the options object
+     *      only; the port/host/path overloads have their own listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
      *       - port: specifies the remote port
      *       - host: specifies the remote address or host name
      *       - timeout: specifies the timeout in milliseconds, default is 0
+     *       - family: 0 selects from the result, 4 or 6 restricts it
+     *       - hints: ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -1103,6 +1158,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }, connectListener: (ev: FIBJS.GeneralObject)=>void): Class_Stream;
 
     /**
@@ -1110,14 +1167,17 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *
      *      The method returns immediately and the connection continues in the background;
      *      connectListener is registered as a once 'connect' listener whose `this` is the socket. A
-     *      failure is delivered to the 'error' event as an event object carrying errno/code, syscall,
-     *      hostname and args, not as an Error, and no exception is thrown; see the net module. This
-     *      listener form exists for the options object only; the port/host/path overloads have their own
-     *      listener signatures.
+     *      transport failure is delivered to the 'error' event as an event object carrying errno/code,
+     *      syscall, hostname and args, not as an Error, and no exception is thrown; a host name that
+     *      cannot be resolved fails in the calling fiber with ENOTFOUND and syscall getaddrinfo before
+     *      the connection starts. See the net module. This listener form exists for the options object
+     *      only; the port/host/path overloads have their own listener signatures.
      *      @param options specifies the connection options object, which can contain the following properties:
      *       - port: specifies the remote port
      *       - host: specifies the remote address or host name
      *       - timeout: specifies the timeout in milliseconds, default is 0
+     *       - family: 0 selects from the result, 4 or 6 restricts it
+     *       - hints: ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      @param connectListener specifies the once connect event listener
      *      @return returns the connected Socket object
      *
@@ -1126,6 +1186,8 @@ declare class Class_SocketPromise extends Class_StreamPromise {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }, connectListener: (ev: FIBJS.GeneralObject)=>void): Promise<Class_StreamPromise>;
 
     /**

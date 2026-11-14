@@ -191,15 +191,19 @@ declare module 'net/promises' {
      *      ({
      *          "port": 80,          // the remote port, required
      *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "timeout": 0,        // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "family": 0,         // 0 selects from the result, 4 or 6 restricts it
+     *          "hints": 0           // ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      })
      *      ```
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
      *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
-     *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
-     *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
-     *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
-     *      and a code such as ECONNREFUSED; an expired fibjs timer throws error number 20021.
+     *      keys such as path, localAddress, localPort, lookup, signal, keepAlive or noDelay are
+     *      not read; `family` (0, 4 or 6) and `hints` select the resolved family, and to connect to a
+     *      unix socket use the path form of Socket.connect or a unix:/ URL through the module entry. A
+     *      refused or unreachable peer throws an Error with syscall 'connect' and a code such as
+     *      ECONNREFUSED; an unavailable family or a failed lookup throws ENOTFOUND (or the resolver's
+     *      code) with syscall 'getaddrinfo'; an expired fibjs timer throws error number 20021.
      *
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
@@ -209,6 +213,8 @@ declare module 'net/promises' {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }): Promise<Class_StreamPromise>;
 
     /**
@@ -221,15 +227,19 @@ declare module 'net/promises' {
      *      ({
      *          "port": 80,          // the remote port, required
      *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "timeout": 0,        // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "family": 0,         // 0 selects from the result, 4 or 6 restricts it
+     *          "hints": 0           // ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      })
      *      ```
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
      *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
-     *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
-     *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
-     *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
-     *      and a code such as ECONNREFUSED; an expired fibjs timer throws error number 20021.
+     *      keys such as path, localAddress, localPort, lookup, signal, keepAlive or noDelay are
+     *      not read; `family` (0, 4 or 6) and `hints` select the resolved family, and to connect to a
+     *      unix socket use the path form of Socket.connect or a unix:/ URL through the module entry. A
+     *      refused or unreachable peer throws an Error with syscall 'connect' and a code such as
+     *      ECONNREFUSED; an unavailable family or a failed lookup throws ENOTFOUND (or the resolver's
+     *      code) with syscall 'getaddrinfo'; an expired fibjs timer throws error number 20021.
      *
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
@@ -239,6 +249,8 @@ declare module 'net/promises' {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }): Class_Stream;
 
     /**
@@ -251,15 +263,19 @@ declare module 'net/promises' {
      *      ({
      *          "port": 80,          // the remote port, required
      *          "host": "localhost", // the remote address or host name
-     *          "timeout": 0         // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "timeout": 0,        // the connect timeout in milliseconds, 0 disables the fibjs timer
+     *          "family": 0,         // 0 selects from the result, 4 or 6 restricts it
+     *          "hints": 0           // ADDRCONFIG / ALL / V4MAPPED for the lookup
      *      })
      *      ```
      *      With timeout 0 the operating system connect timeout applies, which can be minutes on an
      *      unroutable address, so pass an explicit value when the peer may be unreachable. Option
-     *      keys such as path, family, localAddress, localPort, lookup, signal, keepAlive or noDelay are
-     *      not read; to connect to a unix socket use the path form of Socket.connect or a unix:/ URL
-     *      through the module entry. A refused or unreachable peer throws an Error with syscall 'connect'
-     *      and a code such as ECONNREFUSED; an expired fibjs timer throws error number 20021.
+     *      keys such as path, localAddress, localPort, lookup, signal, keepAlive or noDelay are
+     *      not read; `family` (0, 4 or 6) and `hints` select the resolved family, and to connect to a
+     *      unix socket use the path form of Socket.connect or a unix:/ URL through the module entry. A
+     *      refused or unreachable peer throws an Error with syscall 'connect' and a code such as
+     *      ECONNREFUSED; an unavailable family or a failed lookup throws ENOTFOUND (or the resolver's
+     *      code) with syscall 'getaddrinfo'; an expired fibjs timer throws error number 20021.
      *
      *      @param options specifies the connection options object
      *      @return returns the connected Socket object
@@ -269,6 +285,8 @@ declare module 'net/promises' {
         host?: string;
         port?: number;
         timeout?: number;
+        family?: number;
+        hints?: number;
     }): Promise<Class_StreamPromise>;
 
     /**
@@ -277,10 +295,11 @@ declare module 'net/promises' {
      *      The non-blocking arity-2 form. `options` may be the options object above, the remote port (the
      *      host defaults to localhost) or the unix socket path. The method returns the Socket immediately
      *      and the connection continues in the background; connectListener is registered as a once
-     *      'connect' listener whose `this` is the socket. A failure is delivered to the 'error' event as
-     *      an event object carrying errno/code, syscall, hostname and args, not as an Error, and no
-     *      exception is thrown; this differs from the blocking form, which throws. See the Socket class
-     *      for the events of a connected socket.
+     *      'connect' listener whose `this` is the socket. A transport failure is delivered to the 'error'
+     *      event as an event object carrying errno/code, syscall, hostname and args, not as an Error; a
+     *      host name that cannot be resolved fails in the calling fiber with ENOTFOUND and syscall
+     *      getaddrinfo before the socket is created. See the Socket class for the events of a connected
+     *      socket.
      *
      *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
@@ -295,10 +314,11 @@ declare module 'net/promises' {
      *      The non-blocking arity-2 form. `options` may be the options object above, the remote port (the
      *      host defaults to localhost) or the unix socket path. The method returns the Socket immediately
      *      and the connection continues in the background; connectListener is registered as a once
-     *      'connect' listener whose `this` is the socket. A failure is delivered to the 'error' event as
-     *      an event object carrying errno/code, syscall, hostname and args, not as an Error, and no
-     *      exception is thrown; this differs from the blocking form, which throws. See the Socket class
-     *      for the events of a connected socket.
+     *      'connect' listener whose `this` is the socket. A transport failure is delivered to the 'error'
+     *      event as an event object carrying errno/code, syscall, hostname and args, not as an Error; a
+     *      host name that cannot be resolved fails in the calling fiber with ENOTFOUND and syscall
+     *      getaddrinfo before the socket is created. See the Socket class for the events of a connected
+     *      socket.
      *
      *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
@@ -313,10 +333,11 @@ declare module 'net/promises' {
      *      The non-blocking arity-2 form. `options` may be the options object above, the remote port (the
      *      host defaults to localhost) or the unix socket path. The method returns the Socket immediately
      *      and the connection continues in the background; connectListener is registered as a once
-     *      'connect' listener whose `this` is the socket. A failure is delivered to the 'error' event as
-     *      an event object carrying errno/code, syscall, hostname and args, not as an Error, and no
-     *      exception is thrown; this differs from the blocking form, which throws. See the Socket class
-     *      for the events of a connected socket.
+     *      'connect' listener whose `this` is the socket. A transport failure is delivered to the 'error'
+     *      event as an event object carrying errno/code, syscall, hostname and args, not as an Error; a
+     *      host name that cannot be resolved fails in the calling fiber with ENOTFOUND and syscall
+     *      getaddrinfo before the socket is created. See the Socket class for the events of a connected
+     *      socket.
      *
      *      @param options the connection target
      *      @param connectListener specifies the once connect event listener
@@ -729,8 +750,9 @@ declare module 'net/promises' {
      * @description Queries whether net.connect enables automatic address selection by default
      *
      *      Compatibility accessor: the value is stored so consumers that read it at module load
-     *      (for example playwright-core) work unmodified, but connect never performs family
-     *      autodetection. The companion timeout is getDefaultAutoSelectFamilyAttemptTimeout.
+     *      (for example playwright-core) work unmodified, but connect does not perform multi-address
+     *      Happy Eyeballs; it resolves one IPv4-first address. The companion timeout is
+     *      getDefaultAutoSelectFamilyAttemptTimeout.
      *      @return returns the current default value, default is true
      *
      */
@@ -739,8 +761,9 @@ declare module 'net/promises' {
     /**
      * @description Sets whether net.connect enables automatic address selection by default
      *
-     *      Stores the value only; it does not change the behavior of connect, which always uses the family
-     *      implied by the host name or the address family of the Socket. The setter returns nothing.
+     *      Stores the value only; it does not enable multi-address Happy Eyeballs. connect resolves one
+     *      address with the IPv4-first order and uses that address; the family can still be restricted
+     *      with the `family` option of connect. The setter returns nothing.
      *      @param enabled specifies the default value, which must be a boolean
      *
      */
