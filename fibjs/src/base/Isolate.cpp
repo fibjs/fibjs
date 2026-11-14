@@ -28,6 +28,10 @@ using namespace v8;
 
 namespace fibjs {
 
+// Defined in src/net/dns_cares.cpp: releases the per-isolate default resolver
+// (and its c-ares channel) when the worker is torn down.
+void dns_cares_cleanup_isolate(Isolate* isolate);
+
 void init_process_ipc(Isolate* isolate);
 
 static exlib::LockedList<Isolate> s_isolates;
@@ -522,6 +526,7 @@ void Isolate::wakeSyncWaiters()
 
 void Isolate::stopHoldingObjects()
 {
+    dns_cares_cleanup_isolate(this);
     // 先唤醒 park 在 util.sync 上的 fiber：它们没有其他唤醒源（见 addSyncWaiter
     // 的说明），不唤醒就会一直挂着，worker 无法退出。
     wakeSyncWaiters();

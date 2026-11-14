@@ -1,3 +1,28 @@
+## Unreleased
+* **feature** :
+    * dns - implement the Node.js resolver surface through c-ares:
+      `resolve` rrtype semantics, `resolve4/6/Any/Caa/Cname/Mx/Naptr/Ns/Ptr/
+      Soa/Srv/Tlsa/Txt`, `reverse`, `lookupService`, `Resolver`,
+      `getServers`/`setServers`, `get/setDefaultResultOrder`, the 23 error
+      code constants and `ADDRCONFIG`/`ALL`/`V4MAPPED`.
+    * dns - `lookup` supports `hints`, `order`, `verbatim`, numeric families,
+      IP literal short-circuiting, Node's empty-hostname validation and Node's
+      address ordering.
+    * dns - IPv6 formatting matches Node: canonical AAAA strings, bracketed
+      `[v6]:port` server strings, default-port omission, Node's lenient
+      bracketed-port parsing, and `reverse()` returning only PTR names.
+    * dns - `resolveAny` groups records in Node's order (CNAME suppresses A),
+      `resolveSoa` counters are Numbers, and TLSA data is an ArrayBuffer;
+      `Resolver#setServers` refuses to change servers while queries are in
+      flight (`ERR_DNS_SET_SERVERS_FAILED`), while module-level `dns.setServers`
+      swaps in a fresh default resolver.
+* **breaking** :
+    * dns - `resolve(name)` now returns A records (add rrtype as the second
+      argument); use `lookup(name, { all: true })` or `net.resolve` for the
+      old all-address behavior.
+    * dns - the synchronous and promise forms of `lookup` now return
+      `{ address, family }`.
+
 ## 2024-02-07, Version 0.37.0
 * **feature** :
     * addons:
