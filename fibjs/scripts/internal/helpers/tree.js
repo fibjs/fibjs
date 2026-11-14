@@ -1026,7 +1026,8 @@ function diff(actual, ideal, opts) {
         if (o.omit) {
             const flags = node.flags || {};
 
-            if ((flags.dev && o.omit.dev) || (flags.optional && o.omit.optional))
+            if ((flags.dev && o.omit.dev) || (flags.optional && o.omit.optional) ||
+                (flags.peer && o.omit.peer))
                 return true;
         }
 

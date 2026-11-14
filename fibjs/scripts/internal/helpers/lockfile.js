@@ -614,7 +614,7 @@ function resolve_path(packages, name, from) {
  * @param opts { workspaces: [{ path, pkgjson }] } — a member's manifest, which a
  *              lockfile written before members recorded their dependencies does not
  *              carry: without it the tree a member reaches is not part of the graph
- * @returns { dev, optional, devOptional } — each a `{ [path]: true }` map
+ * @returns { dev, optional, devOptional, peer } — each a `{ [path]: true }` map
  */
 function graph_flags(packages, root_entry, opts) {
     const o = opts || {};
@@ -709,9 +709,12 @@ function graph_flags(packages, root_entry, opts) {
     const without = {
         dev: reach(['devDependencies']),
         optional: reach(['optionalDependencies']),
+        // npm marks `peer: true` on an entry nothing but a peer edge reaches,
+        // which is the entry `--omit=peer` leaves out
+        peer: reach(['peerDependencies']),
         devOptional: reach(['devDependencies', 'optionalDependencies']),
     };
-    const flags = { dev: {}, optional: {}, devOptional: {} };
+    const flags = { dev: {}, optional: {}, devOptional: {}, peer: {} };
 
     Object.keys(any).forEach(p => {
         if (!p)
@@ -809,7 +812,15 @@ function check_sync(root_pkgjson, lock, opts) {
 
             Object.keys(deps).forEach(name => {
                 const spec = deps[name];
-                const entry = lookup_entry(packages, name, spec, semver, root.where);
+
+                // node resolves the *nearest* copy of a name, not the nearest copy
+                // that happens to satisfy the spec: a stale nested copy shadows a
+                // good hoisted one, and asking for a satisfying copy anywhere along
+                // the path is how the lockfile came to be "in sync" while the
+                // runtime got a version the manifest never asked for (`npm ls`
+                // calls that invalid)
+                const nearest = resolve_path(packages, name, root.where);
+                const entry = nearest ? packages[nearest] : null;
 
                 if (!entry) {
                     errors.push({ kind: 'Missing', name: name, spec: spec, via: root.label });
@@ -820,7 +831,8 @@ function check_sync(root_pkgjson, lock, opts) {
                 if (!verdict.ok)
                     errors.push({
                         kind: 'Invalid', name: name, spec: spec,
-                        locked: entry.version, via: root.label, why: verdict.reason,
+                        locked: entry.version, via: root.label, at: nearest,
+                        why: verdict.reason,
                     });
             });
         });
@@ -841,12 +853,15 @@ function check_sync(root_pkgjson, lock, opts) {
             const spec = declared[name];
             const optional = !!(entry.optionalDependencies && entry.optionalDependencies[name] !== undefined);
 
-            // `nested` on purpose: npm writes lockfiles in which a package's edge is
-            // satisfied by a copy that sits beside it rather than above it (its own
-            // trees do this), and `npm ci` accepts those — only an entry that is
-            // missing from the whole table is a hole. A *manifest* edge is held to the
-            // path it resolves along (step 1), which is where a stale lockfile lies
-            const found = lookup_entry(packages, name, spec, semver, p, { nested: true });
+            // the copy the runtime actually gets: the first one on the dependent's
+            // path. A nearest copy that does not satisfy the edge is an invalid
+            // tree even when a farther one would (`npm ls` says so), so the exact
+            // geometry is asked first — the `nested` search is only the fallback
+            // for a lockfile whose copy is not reachable at all
+            const nearest_path = resolve_path(packages, name, p);
+            const found = nearest_path
+                ? packages[nearest_path]
+                : lookup_entry(packages, name, spec, semver, p, { nested: true });
 
             // a v1 `requires` mixes dependency kinds (npm 5/6 era), so a miss there is
             // reported without blocking: v2/v3 entries are checked strictly
@@ -863,7 +878,8 @@ function check_sync(root_pkgjson, lock, opts) {
             if (!verdict.ok)
                 (soft ? warnings : errors).push({
                     kind: 'Invalid', name: name, spec: spec,
-                    locked: found.version, via: p, why: verdict.reason,
+                    locked: found.version, via: p, at: nearest_path || undefined,
+                    why: verdict.reason,
                 });
         });
     });

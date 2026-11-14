@@ -424,6 +424,22 @@ function find_provided_node(m, level_info) {
     return undefined;
 }
 
+/**
+ * @description whether a level sits under a workspace member. A member is an
+ *              install root of its own — npm installs it into its own directory
+ *              and lets what it needs live there — so a placement question the
+ *              project's tree cannot answer may still be answered inside the
+ *              member (a peer edge whose range the project's copy misses)
+ */
+function under_workspace_member(level_info) {
+    for (let cur = level_info && level_info.parent; cur; cur = cur.parent) {
+        if (cur.workspace_package === true)
+            return true;
+    }
+
+    return false;
+}
+
 function normalize_registry_origin(registry) {
     const urlObj = url.parse(registry)
 
@@ -2217,6 +2233,37 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                     child_level_info = level_info.node_modules[dname] = locked;
             }
 
+            // node resolves the *nearest* copy of a name, not the nearest copy that
+            // satisfies the spec, so a nested copy that misses the range shadows a
+            // good one further out. The walk used to ask `find_version` "is it
+            // provided anywhere above me" and keep the stale child: after a member
+            // widened its spec, `b/node_modules/dep@1.0.0` stayed in front of the
+            // root's 1.2.0, `npm ls --all` called the tree invalid and `--ci` called
+            // the lockfile in sync. An ancestor that already provides the version is
+            // the copy to keep, and this one is what has to go
+            if (child_level_info !== undefined && !refresh && !node_satisfies(child_level_info, v)) {
+                const provided = find_provided_node(dname, level_info.parent);
+
+                if (provided && node_satisfies(provided, v)) {
+                    const stale = child_level_info;
+
+                    delete level_info.node_modules[dname];
+                    child_level_info = provided;
+                    _deps[dname] = provided.version;
+
+                    // the copy is out of the tree this run builds, and the
+                    // lockfile it replaces still describes it: without this the
+                    // prune would keep it, because the inputs — the file being
+                    // replaced — are what decides which paths belong, and the
+                    // member would go on resolving the shadow until a second
+                    // install read the new file
+                    if (!stale.local_package && !stale.workspace_package) {
+                        ctx.stale_copies = ctx.stale_copies || new Set();
+                        ctx.stale_copies.add(path.join(base_dir, 'node_modules', dname));
+                    }
+                }
+            }
+
             if (child_level_info === undefined || !node_satisfies(child_level_info, v)) {
                 // a peer dependency is a placement requirement, not a second install:
                 // when the tree already holds the package at another version npm keeps
@@ -2227,6 +2274,10 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                     const provided = find_provided_node(dname, level_info);
 
                     if (provided) {
+                        // the copy the tree answered with is kept for everything
+                        // else; this level falls through to a fetch of its own when
+                        // the answer is a conflict it can nest out of
+                        let keep_provided = true;
                         // the nearest copy in the tree is what the requirement resolves
                         // to. One that meets it is npm's ordinary placement — a hoisted
                         // peer — and saying "not satisfied" about it is what printed two
@@ -2274,7 +2325,7 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                                 reconcilable = true;
                             }
 
-                            if (!reconcilable) {
+                            if (!reconcilable && !under_workspace_member(level_info)) {
                                 ctx.peer_conflicts = ctx.peer_conflicts || [];
                                 ctx.peer_conflicts.push({
                                     name: dname,
@@ -2282,14 +2333,34 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                                     found: provided.version,
                                     from: describe_require_chain(level_info),
                                 });
+                            } else if (!reconcilable) {
+                                // a workspace member is an install root of its own: npm
+                                // lets the project's copy and the member's coexist, and
+                                // nesting the version the member asks for under its
+                                // dependent is how it does that. Refusing here failed a
+                                // project npm installed without complaint, and the two
+                                // copies are on different paths — which is exactly the
+                                // case the singleton warning above is not about
+                                if (ctx.verbose)
+                                    console.warn(`[install] peer ${dname}@${v} of ` +
+                                        `${describe_require_chain(level_info)} is satisfied by neither the ` +
+                                        `project's ${provided.version} nor its declaration - nesting a copy`);
+
+                                keep_provided = false;
                             } else if (ctx.verbose) {
                                 console.warn(`[install] peer ${dname}@${v} is not satisfied by the installed ` +
                                     `${provided.version} (${describe_require_chain(level_info)}) - keeping it`);
                             }
                         }
 
-                        _deps[dname] = provided.version;
-                        return;
+                        if (keep_provided) {
+                            _deps[dname] = provided.version;
+                            return;
+                        }
+
+                        // the tree keeps its copy for everything else; this level
+                        // needs its own, and the fetch below is what places it
+                        child_level_info = undefined;
                     }
                 }
 
@@ -4452,7 +4523,12 @@ function describe_sync_error(e) {
     // version that is off (a link that points elsewhere, an alias that is not one)
     const why = e.why && e.why.indexOf('does not satisfy') < 0 ? ` (${e.why})` : '';
 
-    return `Invalid: lock file's ${e.name}@${e.locked} does not satisfy ${e.name}@${e.spec}${why}`;
+    // a copy that is not where the root keeps it: the shadowing one under a
+    // package or a member, which is the whole reason the answer is not what the
+    // name suggests
+    const at = e.at && e.at !== 'node_modules/' + e.name ? ` (at ${e.at})` : '';
+
+    return `Invalid: lock file's ${e.name}@${e.locked} does not satisfy ${e.name}@${e.spec}${at}${why}`;
 }
 
 /**
@@ -4765,9 +4841,13 @@ function plan_lock_install(lock, opts) {
         // them says nothing, and the graph is the answer then
         const optional = entry.optional === true || graph.optional[p] === true;
         const dev = entry.dev === true || graph.dev[p] === true;
+        // an entry nothing but a peer edge reaches, which npm records as
+        // `peer: true` — the one `--omit=peer` leaves off the disk
+        const peer = entry.peer === true || graph.peer[p] === true;
 
         // `omit` is about the disk, not about the lockfile: the entry stays described
-        if ((dev && o.omit && o.omit.dev) || (optional && o.omit && o.omit.optional)) {
+        if ((dev && o.omit && o.omit.dev) || (optional && o.omit && o.omit.optional) ||
+            (peer && o.omit && o.omit.peer)) {
             plan.skipped++;
             install_log('skip (omit):', p);
             return;
@@ -5445,6 +5525,15 @@ function prune_ideal(rootsnap, root) {
                 added = true;
             });
         }
+    }
+
+    // a copy this run dropped as debris is still described by the lockfile it is
+    // about to replace, and the inputs are what decides which paths belong: naming
+    // it here is what takes it off the disk in this run instead of the next one
+    if (ctx.stale_copies) {
+        ctx.stale_copies.forEach(p => {
+            unioned.delete(path.relative(process.cwd(), p).replace(/\\/g, '/'));
+        });
     }
 
     return { tree: unioned, dropped: [] };
@@ -6702,10 +6791,6 @@ if (args.flags.frozen) {
 
     sync.warnings.forEach(w => console.warn(`[install] ${describe_sync_error(w)}`));
 
-    if (ctx.omit.peer)
-        console.warn('[install] --omit=peer cannot be honoured from a lockfile: ' +
-            'neither npm nor this writes a peer mark into it');
-
     if (!sync.ok) {
         print_sync_errors(lock, sync);
         process.exit(1);
@@ -6784,10 +6869,6 @@ if (lock && !ctx.new_pkgname && !args.flags.update) {
     const sync = check_project_sync(rootsnap, lock);
 
     sync.warnings.forEach(w => console.warn(`[install] ${describe_sync_error(w)}`));
-
-    if (ctx.omit.peer)
-        console.warn('[install] --omit=peer cannot be honoured from a lockfile: ' +
-            'neither npm nor this writes a peer mark into it');
 
     if (sync.ok) {
         install_log(`[install] ${lock.filename} covers package.json (lockfileVersion ${lock.lockfileVersion})`);

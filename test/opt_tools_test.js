@@ -3490,6 +3490,332 @@ describe('opt_tools install lifecycle', function () {
         });
     });
 
+    // ===== Phase 15: the copy that shadows, and where a peer belongs =====
+    // two placement questions the walk answered by looking at the wrong node. A
+    // nested copy left over from an earlier install shadows a good hoisted one
+    // (node resolves the nearest copy, not the nearest satisfying one), and a
+    // workspace member is an install root of its own, so a peer edge that the
+    // project's copy does not answer can be met by a copy nested under the
+    // member instead of refusing the whole tree
+    if (isFibjs) describe('install / shadowing copies and peer placement (Phase 15)', function () {
+        var http = require('http');
+        var crypto = require('crypto');
+
+        var server = null;
+        var port = 0;
+        var fixtureDir = '';
+        var registry = {};   // name -> version -> { tarball, integrity, manifest }
+        var targets = [];
+
+        function pack(name, version, extra) {
+            var dir = path.join(fixtureDir, name + '-' + version);
+            var pkgDir = path.join(dir, 'package');
+
+            var manifest = Object.assign({ name: name, version: version }, extra || {});
+
+            fs.mkdirSync(pkgDir, { recursive: true });
+            fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify(manifest));
+            fs.writeFileSync(path.join(pkgDir, 'index.js'), 'module.exports = ' + JSON.stringify(version) + ';\n');
+
+            var file = name + '-' + version + '.tgz';
+
+            var res = child_process.spawnSync('tar', ['czf', file, 'package'], { cwd: dir, stdio: 'pipe' });
+
+            assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
+
+            var buf = fs.readFileSync(path.join(dir, file));
+
+            return {
+                tarball: buf,
+                manifest: manifest,
+                integrity: 'sha512-' + crypto.createHash('sha512').update(buf).digest('base64'),
+                shasum: crypto.createHash('sha1').update(buf).digest('hex'),
+            };
+        }
+
+        function tarball_url(name, version) {
+            return 'http://127.0.0.1:' + port + '/' + name + '/-/' + name + '-' + version + '.tgz';
+        }
+
+        before(function () {
+            fixtureDir = path.join(TMP_DIR, 'geom_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+            fs.mkdirSync(fixtureDir, { recursive: true });
+
+            // the project asks for `dep@^1.1.0`, so 1.2.0 sits at the root; a
+            // member pinned to 1.0.0 then nests a copy of its own
+            registry['dep'] = {
+                '1.0.0': pack('dep', '1.0.0'),
+                '1.2.0': pack('dep', '1.2.0'),
+            };
+
+            // a peer nothing else reaches, which is npm's `peer: true` entry
+            registry['peer-host'] = {
+                '1.0.0': pack('peer-host', '1.0.0', { peerDependencies: { 'peer-only': '^1.0.0' } }),
+            };
+            registry['peer-only'] = {
+                '1.0.0': pack('peer-only', '1.0.0'),
+            };
+
+            // the peer the project's copy cannot answer: `cad-viewer` wants
+            // `shape@^2`, the project holds 3.0.0, and the member that depends on
+            // the viewer is an install root of its own
+            registry['shape'] = {
+                '2.1.0': pack('shape', '2.1.0'),
+                '3.0.0': pack('shape', '3.0.0'),
+            };
+            registry['cad-viewer'] = {
+                '1.0.0': pack('cad-viewer', '1.0.0', { peerDependencies: { shape: '^2.0.0' } }),
+            };
+
+            function handler(r) {
+                var tb = /^\/([^/]+)\/-\/([^/]+)\.tgz$/.exec(r.address);
+
+                if (tb) {
+                    var name = tb[1];
+                    var version = tb[2].slice(name.length + 1);
+
+                    if (registry[name] && registry[name][version]) {
+                        r.response.write(registry[name][version].tarball);
+                        return;
+                    }
+                } else {
+                    var wanted = r.address.slice(1);
+
+                    if (registry[wanted]) {
+                        var versions = {};
+
+                        Object.keys(registry[wanted]).forEach(function (v) {
+                            var entry = registry[wanted][v];
+
+                            versions[v] = Object.assign({}, entry.manifest, {
+                                dist: {
+                                    tarball: tarball_url(wanted, v),
+                                    integrity: entry.integrity,
+                                    shasum: entry.shasum,
+                                },
+                            });
+                        });
+
+                        r.response.write(JSON.stringify({
+                            name: wanted,
+                            'dist-tags': { latest: Object.keys(registry[wanted]).sort().pop() },
+                            versions: versions,
+                        }));
+                        return;
+                    }
+                }
+
+                r.response.statusCode = 404;
+                r.response.write('not found');
+            }
+
+            for (var attempt = 0; attempt < 20 && !server; attempt++) {
+                var candidate = 52000 + Math.floor(Math.random() * 4000);
+                var candidateServer = http.createServer(handler);
+
+                try {
+                    candidateServer.listen(candidate);
+                    port = candidate;
+                    server = candidateServer;
+                } catch (e) {
+                    try { candidateServer.stop(); } catch (e2) { /* ignore */ }
+                }
+            }
+
+            assert.ok(server, 'no free port for the local registry');
+        });
+
+        after(function () {
+            if (server) server.stop();
+            try { rmdirSync(fixtureDir); } catch (e) { /* ignore */ }
+        });
+
+        afterEach(function () {
+            // the outer cleanup only knows node_modules and the two json files: a
+            // workspace member's directory and the .npmrc are this describe's
+            targets.forEach(function (d) {
+                try { rmdirSync(d); } catch (e) { /* ignore */ }
+            });
+            targets = [];
+        });
+
+        function makeProject() {
+            var dir = makeTargetDir();
+            targets.push(dir);
+            return dir;
+        }
+
+        function offline() {
+            return { env: { HTTP_PROXY: '', HTTPS_PROXY: '', http_proxy: '', https_proxy: '', NO_PROXY: '*' } };
+        }
+
+        function writeProject(dir, pkgjson) {
+            fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(pkgjson, null, 2));
+            fs.writeFileSync(path.join(dir, '.npmrc'), 'registry=http://127.0.0.1:' + port + '/\n');
+        }
+
+        function writeMember(dir, name, pkgjson) {
+            var memberDir = path.join(dir, 'packages', name);
+            fs.mkdirSync(memberDir, { recursive: true });
+            fs.writeFileSync(path.join(memberDir, 'package.json'), JSON.stringify(pkgjson, null, 2));
+        }
+
+        function versionOnDisk(dir, rel) {
+            var p = path.join(dir, rel, 'package.json');
+
+            if (!fs.existsSync(p))
+                return null;
+
+            return JSON.parse(fs.readFileSync(p, 'utf8')).version;
+        }
+
+        function lockOf(dir) {
+            return JSON.parse(fs.readFileSync(path.join(dir, 'package-lock.json'), 'utf8'));
+        }
+
+        function entriesEndingWith(dir, suffix) {
+            var lock = lockOf(dir);
+
+            return Object.keys(lock.packages).filter(function (p) { return p.slice(-suffix.length) === suffix; });
+        }
+
+        it('drops the copy a member no longer needs when an ancestor serves it', function () {
+            var dir = makeProject();
+
+            writeProject(dir, {
+                name: 'shadow-proj', version: '1.0.0',
+                dependencies: { dep: '^1.1.0' },
+                workspaces: ['packages/*'],
+            });
+            writeMember(dir, 'b', {
+                name: 'member-b', version: '1.0.0',
+                dependencies: { dep: '1.0.0' },
+            });
+
+            var first = runInstaller(dir, ['--install'], offline());
+            var first_out = outputOf(first);
+
+            assert.equal(first.status, 0, diag(dir, first) + '\n' + first_out);
+            assert.equal(versionOnDisk(dir, 'node_modules/dep'), '1.2.0',
+                'the project range keeps 1.2.0 at the root: ' + listDir(path.join(dir, 'node_modules')));
+            assert.equal(versionOnDisk(dir, 'packages/b/node_modules/dep'), '1.0.0',
+                'the member pinned 1.0.0 and nests it: ' +
+                listDir(path.join(dir, 'packages/b/node_modules')));
+
+            // the member widens its range past the copy it nested
+            writeMember(dir, 'b', {
+                name: 'member-b', version: '1.0.0',
+                dependencies: { dep: '^1.1.0' },
+            });
+
+            // the file is not in sync with that: the member's nearest copy is
+            // 1.0.0, which the range does not accept
+            var check = runInstaller(dir, ['--install', '--ci', '--dry-run'], offline());
+            var check_out = outputOf(check);
+
+            assert.equal(check.status, 1, 'the stale copy is caught, not reported in sync: ' +
+                diag(dir, check) + '\n' + check_out);
+            assert.ok(check_out.indexOf('dep@1.0.0') > -1, 'the version it resolves is named:\n' + check_out);
+            assert.ok(check_out.indexOf('packages/b/node_modules/dep') > -1,
+                'and the copy that shadows the root\'s is named:\n' + check_out);
+            assert.ok(/invalid/i.test(check_out), 'in npm\'s words:\n' + check_out);
+
+            var second = runInstaller(dir, ['--install'], offline());
+            var second_out = outputOf(second);
+
+            assert.equal(second.status, 0, diag(dir, second) + '\n' + second_out);
+            assert.equal(versionOnDisk(dir, 'packages/b/node_modules/dep'), null,
+                'the shadow is gone: ' + listDir(path.join(dir, 'packages/b/node_modules')));
+            assert.equal(versionOnDisk(dir, 'node_modules/dep'), '1.2.0', 'and the copy above serves it');
+
+            assert.deepEqual(entriesEndingWith(dir, '/dep'), ['node_modules/dep'],
+                'the file describes the tree: ' + JSON.stringify(Object.keys(lockOf(dir).packages)));
+
+            var again = runInstaller(dir, ['--install', '--ci', '--dry-run'], offline());
+
+            assert.equal(again.status, 0, 'the file it wrote is in sync with itself: ' +
+                diag(dir, again) + '\n' + outputOf(again));
+        });
+
+        it('leaves a peer-only package off the disk on --omit=peer', function () {
+            var dir = makeProject();
+
+            writeProject(dir, {
+                name: 'omit-proj', version: '1.0.0',
+                dependencies: { 'peer-host': '1.0.0' },
+            });
+
+            var first = runInstaller(dir, ['--install'], offline());
+
+            assert.equal(first.status, 0, diag(dir, first) + '\n' + outputOf(first));
+
+            var peer_paths = entriesEndingWith(dir, '/peer-only');
+
+            assert.equal(peer_paths.length, 1, 'npm 7+ installs the peer: ' +
+                JSON.stringify(Object.keys(lockOf(dir).packages)));
+            assert.equal(versionOnDisk(dir, peer_paths[0]), '1.0.0', 'and puts it on the disk');
+
+            var omitted = runInstaller(dir, ['--install', '--omit=peer'], offline());
+            var omitted_out = outputOf(omitted);
+
+            assert.equal(omitted.status, 0, diag(dir, omitted) + '\n' + omitted_out);
+            assert.equal(versionOnDisk(dir, peer_paths[0]), null,
+                'the peer install leaves the disk: ' + listDir(path.join(dir, 'node_modules')));
+            assert.ok(omitted_out.indexOf('cannot be honoured') < 0,
+                '--omit=peer is honoured instead of warned about:\n' + omitted_out);
+            assert.ok(versionOnDisk(dir, 'node_modules/peer-host') === '1.0.0',
+                'its dependent stays: ' + listDir(path.join(dir, 'node_modules')));
+
+            // `omit` is about the disk: the entry stays in the file, because a
+            // lockfile describes the whole graph
+            assert.equal(entriesEndingWith(dir, '/peer-only').length, 1,
+                'the file still describes it: ' + JSON.stringify(Object.keys(lockOf(dir).packages)));
+
+            var ci = runInstaller(dir, ['--install', '--ci', '--omit=peer'], offline());
+
+            assert.equal(ci.status, 0, 'a frozen install honours it too: ' +
+                diag(dir, ci) + '\n' + outputOf(ci));
+            assert.equal(versionOnDisk(dir, peer_paths[0]), null,
+                'and installs no peer: ' + listDir(path.join(dir, 'node_modules')));
+        });
+
+        it('nests a member\'s own copy for a peer the project does not answer', function () {
+            var dir = makeProject();
+
+            writeProject(dir, {
+                name: 'peer-ws-proj', version: '1.0.0',
+                dependencies: { shape: '3.0.0' },
+                workspaces: ['packages/*'],
+            });
+            writeMember(dir, 'widget', {
+                name: 'widget', version: '1.0.0',
+                dependencies: { 'cad-viewer': '1.0.0' },
+            });
+
+            var res = runInstaller(dir, ['--install'], offline());
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, 'a member may hold its own copy: ' +
+                diag(dir, res) + '\n' + out);
+            assert.ok(out.indexOf('ERESOLVE') < 0, 'the tree is not refused:\n' + out);
+
+            assert.equal(versionOnDisk(dir, 'node_modules/shape'), '3.0.0',
+                'the project keeps what it asked for: ' + listDir(path.join(dir, 'node_modules')));
+
+            var copies = entriesEndingWith(dir, '/shape');
+            var nested = copies.filter(function (p) { return p !== 'node_modules/shape'; });
+
+            assert.equal(nested.length, 1, 'one copy beside the viewer: ' + copies.join(', '));
+            assert.equal(lockOf(dir).packages[nested[0]].version, '2.1.0',
+                'the version the peer asks for: ' + JSON.stringify(lockOf(dir).packages[nested[0]]));
+
+            var ci = runInstaller(dir, ['--install', '--ci', '--dry-run'], offline());
+
+            assert.equal(ci.status, 0, 'the lockfile meets its own peer edge: ' +
+                diag(dir, ci) + '\n' + outputOf(ci));
+        });
+    });
+
     // ===== Phase 13: what a tarball carries, and what npm refuses =====
     // two things an install has to get right at the end: a package that bundles its
     // own copy of a dependency must not leave that older copy where the install
@@ -5827,6 +6153,73 @@ if (isFibjs) (function () {
             assert.equal(res.ok, false);
             assert.equal(res.errors[0].via, 'workspace w');
             assert.equal(res.errors[0].kind, 'Invalid');
+        });
+
+        // node resolves the *nearest* copy of a name, so a copy that misses the
+        // range shadows a good one further out. Asking for a satisfying copy
+        // anywhere along the path made this file report "in sync" about a tree
+        // `npm ls --all` calls invalid — a member that widened its range kept
+        // running the version it nested before the change
+        it('reports the copy a nested one shadows, not the one above it', function () {
+            var lock = lock_of({
+                'node_modules/a': { version: '2.1.0' },
+                'packages/w/node_modules/a': { version: '1.5.0' },
+            });
+            var res = lockfile.check_sync({ name: 'root' }, lock, {
+                semver: semver,
+                workspaces: [{ name: 'w', path: 'packages/w', pkgjson: { name: 'w', dependencies: { a: '^2.0.0' } } }],
+            });
+
+            assert.equal(res.ok, false, JSON.stringify(res.errors));
+            assert.equal(res.errors[0].kind, 'Invalid');
+            assert.equal(res.errors[0].name, 'a');
+            assert.equal(res.errors[0].locked, '1.5.0',
+                'the shadowing copy is the one named: ' + JSON.stringify(res.errors[0]));
+            assert.equal(res.errors[0].at, 'packages/w/node_modules/a',
+                'and where it is: ' + JSON.stringify(res.errors[0]));
+            assert.equal(res.errors[0].via, 'workspace w');
+        });
+
+        it('reports an edge the copy on its path misses, even when another copy satisfies it', function () {
+            var lock = lock_of({
+                '': { name: 'root', dependencies: { a: '1.0.0' } },
+                'node_modules/a': { version: '1.0.0', dependencies: { c: '^2.0.0' } },
+                'node_modules/c': { version: '1.0.0' },
+                // a deeper copy that satisfies the range, but is not on the
+                // path `node_modules/a` resolves along
+                'node_modules/b': { version: '1.0.0' },
+                'node_modules/b/node_modules/c': { version: '2.1.0' },
+            });
+            var res = lockfile.check_sync({ name: 'root', dependencies: { a: '1.0.0' } }, lock, { semver: semver });
+
+            assert.equal(res.ok, false, JSON.stringify(res.errors));
+            assert.equal(res.errors[0].kind, 'Invalid');
+            assert.equal(res.errors[0].name, 'c');
+            assert.equal(res.errors[0].locked, '1.0.0',
+                'the copy it actually resolves to: ' + JSON.stringify(res.errors[0]));
+            assert.equal(res.errors[0].via, 'node_modules/a');
+        });
+
+        it('accepts an edge the copy on its path satisfies', function () {
+            var lock = lock_of({
+                '': { name: 'root', dependencies: { a: '1.0.0' } },
+                'node_modules/a': { version: '1.0.0', dependencies: { c: '^2.0.0' } },
+                'node_modules/c': { version: '2.3.0' },
+            });
+            var res = lockfile.check_sync({ name: 'root', dependencies: { a: '1.0.0' } }, lock, { semver: semver });
+
+            assert.equal(res.ok, true, JSON.stringify(res.errors));
+        });
+
+        it('accepts a copy nested under the dependent itself', function () {
+            var lock = lock_of({
+                '': { name: 'root', dependencies: { a: '1.0.0' } },
+                'node_modules/a': { version: '1.0.0', dependencies: { c: '^2.0.0' } },
+                'node_modules/a/node_modules/c': { version: '2.1.0' },
+            });
+            var res = lockfile.check_sync({ name: 'root', dependencies: { a: '1.0.0' } }, lock, { semver: semver });
+
+            assert.equal(res.ok, true, JSON.stringify(res.errors));
         });
 
         it('skips bundled dependencies (they live inside the tarball)', function () {
