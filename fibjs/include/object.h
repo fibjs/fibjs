@@ -521,6 +521,16 @@ public:
         m_v.Reset(m_isolate->m_isolate, v);
     }
 
+    // Any value, not only an object: an AbortSignal keeps a custom abort
+    // reason (which may be a primitive) alive here. Storing it on the JS
+    // wrapper (its private object) loses it when the wrapper is collected
+    // and the getter re-wraps the native object.
+    ValueHolder(v8::Local<v8::Value> v, Isolate* isolate)
+        : m_isolate(isolate)
+    {
+        m_v.Reset(m_isolate->m_isolate, v);
+    }
+
 public:
     virtual void Unref()
     {
@@ -530,8 +540,13 @@ public:
             });
     }
 
+    v8::Local<v8::Value> value()
+    {
+        return m_v.Get(m_isolate->m_isolate);
+    }
+
 private:
-    v8::Global<v8::Object> m_v;
+    v8::Global<v8::Value> m_v;
     Isolate* m_isolate;
 };
 

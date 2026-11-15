@@ -130,6 +130,7 @@ result_t AbortSignal::do_abort(exlib::string reason, obj_ptr<AbortSignal_base>& 
     m_aborted = true;
     m_reason = reason;
     m_has_value_reason = false;
+    m_value_reason = NULL;
 
     obj_ptr<EventInfo> info = new EventInfo(this, "abort", result_t(), m_reason);
     v8::Local<v8::Value> _info;
@@ -148,12 +149,18 @@ result_t AbortSignal::do_abort(v8::Local<v8::Value> reason, obj_ptr<AbortSignal_
 
     m_aborted = true;
     m_reason.clear();
+    m_value_reason = NULL;
 
     if (reason->IsUndefined()) {
         m_reason = "AbortError";
         m_has_value_reason = false;
     } else {
-        SetPrivate("reason", reason);
+        // Hold the value natively: the reason has to outlive the JS wrapper.
+        Isolate* isolate = holder();
+        if (!isolate)
+            isolate = Isolate::current();
+
+        m_value_reason = new ValueHolder(reason, isolate);
         m_has_value_reason = true;
     }
 
@@ -192,9 +199,12 @@ result_t AbortSignal::get_reason(v8::Local<v8::Value>& retVal)
     if (!m_aborted)
         return result_t::return_undefined();
 
-    if (m_has_value_reason)
-        retVal = GetPrivate("reason");
-    else
+    if (m_has_value_reason) {
+        if (m_value_reason)
+            retVal = m_value_reason->value();
+        else
+            retVal = v8::Undefined(Isolate::current()->m_isolate);
+    } else
         retVal = Isolate::current()->NewString(m_reason);
 
     return result_t();

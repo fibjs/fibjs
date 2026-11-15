@@ -114,6 +114,11 @@ private:
     std::atomic_bool m_aborted = false;
     exlib::string m_reason;
     bool m_has_value_reason = false; // whether a v8::Value reason was used
+    // The custom (non-string) reason, held natively: the JS wrapper (and the
+    // private object a SetPrivate would land on) can be collected while the
+    // signal is still reachable through its controller, which used to make
+    // signal.reason undefined after a GC.
+    obj_ptr<ValueHolder> m_value_reason;
 };
 
 // Timer subclass that aborts an AbortSignal when it fires.
