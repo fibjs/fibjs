@@ -2220,7 +2220,11 @@ describe('worker_threads fibjs target behavior', () => {
             stderr += data.toString();
         });
         child.on('error', (err) => settle(err));
-        child.on('exit', (code) => {
+        // 'close', not 'exit': the assertions read the collected stdout, and
+        // 'exit' can fire while the tail of the output is still in the pipe
+        // (visible on loaded/emulated runners; fibjs also emits 'close' only
+        // after the process exited and stdout closed).
+        child.on('close', (code) => {
             const elapsed = Date.now() - startedAt;
 
             try {
@@ -2285,7 +2289,7 @@ describe('worker_threads fibjs target behavior', () => {
             stderr += data.toString();
         });
         child.on('error', (err) => settle(err));
-        child.on('exit', (code) => {
+        child.on('close', (code) => {
             const elapsed = Date.now() - startedAt;
 
             try {
@@ -2352,7 +2356,9 @@ describe('worker_threads fibjs target behavior', () => {
             stderr += data.toString();
         });
         child.on('error', (err) => settle(err));
-        child.on('exit', (code) => {
+        // 'close' drains stdout before the text is asserted, see the note on
+        // the first spawn test above.
+        child.on('close', (code) => {
             try {
                 assert.strictEqual(code, 0, 'child exit code (stderr: ' + stderr.trim() + ')');
                 // Node 循环语义：unref'd worker 不阻止退出，但 beforeExit 里新安排的工作必须跑完
