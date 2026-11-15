@@ -264,28 +264,45 @@ describe('MessageChannel', () => {
         it('should stop receiving messages after close', () => {
             return new Promise((resolve, reject) => {
                 var mc = new MessageChannel();
+                // Hold the ports: the listener is stored on the JS object, so
+                // a transient `mc.port2` can be collected (and take its
+                // listener with it) before the queued message is delivered.
+                var port1 = mc.port1;
+                var port2 = mc.port2;
                 var received = [];
 
-                mc.port2.onmessage = (ev) => {
+                port2.onmessage = (ev) => {
                     received.push(ev.data);
                 };
 
-                mc.port1.postMessage('before');
+                // The port is started by the listener above, so 'before' is
+                // already queued when close() runs. close() keeps delivering
+                // what was queued before it (D2); 'after' has no peer left and
+                // can never arrive.
+                port1.postMessage('before');
+                port2.close();
+                port1.postMessage('after');
 
-                setTimeout(() => {
-                    mc.port2.close();
-                    mc.port1.postMessage('after');
+                // Delivery is a queued task and can trail well behind
+                // postMessage() on a loaded event loop, so wait for it here
+                // instead of racing a fixed timer.
+                var waited = 0;
+                (function wait() {
+                    if (received.length === 0 && waited < 5000) {
+                        waited += 10;
+                        return setTimeout(wait, 10);
+                    }
 
-                    setTimeout(() => {
-                        try {
-                            assert.deepStrictEqual(received, ['before']);
-                            mc.port1.close();
-                            resolve();
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }, 50);
-                }, 50);
+                    try {
+                        assert.deepStrictEqual(received, ['before'],
+                            'the message queued before close() must still be delivered');
+                        port1.close();
+                        resolve();
+                    } catch (e) {
+                        port1.close();
+                        reject(e);
+                    }
+                })();
             });
         });
 
