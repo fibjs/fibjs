@@ -347,8 +347,19 @@ static result_t connect_by_options(v8::Local<v8::Object> options, v8::Local<v8::
 
     ConnectOptions* opts = (ConnectOptions*)ac.ctxv()[0].object();
     Socket_base* socket = (Socket_base*)ac.ctxv()[1].object();
-    return socket->connect(opts->port.value(), ac.ctxv()[2].string(),
-        opts->timeout.value(), retVal, std::move(ac));
+
+    // Every read of `ac` has to happen before the handle is moved: the
+    // parameter initializations of one call are only indeterminately
+    // sequenced, so `ac.ctxv()[2].string()` next to `std::move(ac)` may run
+    // after the move has already nulled the handle. clang on Windows/ARM64
+    // orders it that way and folds `ac.ctxv()` on the moved-from (null)
+    // handle into `mov w8, #0x20; ldr x8, [x8]` (m_ctx is at 0x20), which
+    // faults on `net.connect(options, connectListener)`.
+    int32_t port = opts->port.value();
+    int32_t timeout = opts->timeout.value();
+    exlib::string host = ac.ctxv()[2].string();
+
+    return socket->connect(port, std::move(host), timeout, retVal, std::move(ac));
 }
 
 result_t net_base::openSmtp(exlib::string url, int32_t timeout,
