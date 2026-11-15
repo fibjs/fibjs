@@ -334,26 +334,9 @@ static void worker_terminate_interrupt(v8::Isolate* isolate, void* data)
     isolate->TerminateExecution();
 }
 
-// 硬中断开关。必须用 uv_os_getenv 而不是 ::getenv 读取：process.env 的赋值走
-// uv_os_setenv，Windows 上它调的是 SetEnvironmentVariableW（只更新进程的 Win32 环境块），
-// 而 CRT 的 getenv 读的是自己那份环境表副本（_environ），两者在 Windows 上互不同步，
-// 于是「运行时 process.env.FIBJS_WORKER_HARD_TERMINATE = '1'」在 Windows 上读不到，
-// 开关静默失效（表现：worker.terminate() 打不断死循环，用例超时）。
-// uv_os_getenv 在 unix 上就等价于 getenv，两侧行为一致。
-static bool worker_hard_terminate_enabled()
-{
-    char value[64];
-    size_t size = sizeof(value);
-
-    if (uv_os_getenv("FIBJS_WORKER_HARD_TERMINATE", value, &size) != 0)
-        return false;
-
-    return size > 0 && value[0] != '0';
-}
-
 // 终止 worker（同步发起，不等待退出）
 //
-// 硬中断（G2-b，可开关）：worker.terminate() 把终止请求投递到 worker isolate 的 V8 中断队列，
+// 硬中断（G2-b，始终开启）：worker.terminate() 把终止请求投递到 worker isolate 的 V8 中断队列，
 // 由 V8 在正在执行的 JS 的下一个 interrupt check 点回调 —— **不依赖 worker 的事件循环**，
 // 所以纯 JS 死循环、Atomics.wait 这类场景也能被终止；软中断（只在 fibjs 可控的
 // JS/native 边界生效）做不到这一点（实测 terminate() 永不返回）。
@@ -366,7 +349,7 @@ static bool worker_hard_terminate_enabled()
 //      （require 被中断时 _buffer 是空句柄却传给了 Object::Set，崩溃栈为
 //      Object::Set → PropertySetterCallback → Handle<Object>::operator*）。
 //
-// 生产环境暂时默认关闭，仅测试环境显式打开（FIBJS_WORKER_HARD_TERMINATE=1）。
+// 该行为始终开启，不再提供环境变量开关。
 void Worker::requestTerminate()
 {
     if (m_exited || m_terminating)
@@ -377,7 +360,7 @@ void Worker::requestTerminate()
     m_isolate->m_terminating = true;
 
     // 粘性终止标志由收尾任务「借用后还原」/ _main 的解栈路径负责处理。
-    if (worker_hard_terminate_enabled() && m_isolate->m_isolate)
+    if (m_isolate->m_isolate)
         m_isolate->m_isolate->RequestInterrupt(worker_terminate_interrupt, nullptr);
 
     obj_ptr<MessagePort> mainPort = m_port;

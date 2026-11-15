@@ -28,7 +28,6 @@ const {
 let wsPort = 0;
 let h2Port = 0;
 let ssePort = 0;
-let previousHardTerminateEnv;
 
 // 下面几条「必须收敛」的用例共用的看门狗预算。它是**快速失败**的护栏，不是功能
 // 超时：原生硬件上计算型 worker 从 terminate() 到 exit 实测只要 45-56ms（8 路
@@ -170,17 +169,6 @@ describe('worker_threads fibjs target behavior', () => {
     let throwWorkerFile;
     let watchTargetFile;
 
-    before(() => {
-        previousHardTerminateEnv = process.env.FIBJS_WORKER_HARD_TERMINATE;
-        process.env.FIBJS_WORKER_HARD_TERMINATE = '1';
-    });
-
-    after(() => {
-        if (previousHardTerminateEnv == null)
-            delete process.env.FIBJS_WORKER_HARD_TERMINATE;
-        else
-            process.env.FIBJS_WORKER_HARD_TERMINATE = previousHardTerminateEnv;
-    });
     let wsServer;
     let wsClients;
     let h2Server;

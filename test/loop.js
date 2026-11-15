@@ -41,11 +41,10 @@ if (!(maxRounds > 0))
     maxRounds = Infinity;
 var pattern = argv[1] || DEFAULT_PATTERN;
 var target = path.join(__dirname, argv[2] || DEFAULT_TARGET);
-var childEnv = Object.assign({}, process.env, { FIBJS_WORKER_HARD_TERMINATE: '1' });
 
 // 把本轮实际使用的模式打出来：读写代码才能确认“测的是哪一支”实在不方便。
-// 硬中断是生产默认关闭、此处显式打开的实验特性（见 Worker::requestTerminate）。
-console.log(`[loop] worker hard-terminate (interrupt): ${childEnv.FIBJS_WORKER_HARD_TERMINATE === '0' ? 'OFF' : 'ON'}`);
+// 硬中断始终开启（见 Worker::requestTerminate）。
+console.log('[loop] worker hard-terminate (interrupt): ON');
 console.log(`[loop] target=${path.basename(target)} pattern=${JSON.stringify(pattern)}`);
 
 // 从 runner 的汇总行（"N tests passed"）里取数，避免把汇总行本身当成用例统计。
@@ -66,9 +65,7 @@ function runOnce() {
         '--test',
         '--test-name-pattern=' + pattern,
         target
-    ], {
-        env: childEnv
-    });
+    ]);
 
     function checkDone() {
         if (exited && stdoutClosed && stderrClosed)
