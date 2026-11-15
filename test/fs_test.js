@@ -19,6 +19,31 @@ function rmdir(pathname) {
     } catch (e) { }
 }
 
+// Windows releases some handles asynchronously (a stream that dropped its last
+// reference closes the descriptor on a background fiber), so a recursive remove
+// can still see EBUSY/EPERM right after the owning object is gone. Retry with a
+// GC + short sleep, like the fixture helpers in worker_threads_fibjs_test.js
+// and file_url_support_test.js.
+function rmSyncRetry(target) {
+    for (var attempt = 0; attempt < 10; attempt++) {
+        try {
+            fs.rmSync(target, { recursive: true, force: true });
+            return;
+        } catch (err) {
+            if (!err || (err.code !== 'EBUSY' && err.code !== 'EPERM'))
+                throw err;
+
+            if (typeof gc == 'function')
+                gc();
+
+            coroutine.sleep(Math.min(20 * (attempt + 1), 200));
+        }
+    }
+
+    // The handles never drained: let the removal report the real error.
+    fs.rmSync(target, { recursive: true, force: true });
+}
+
 var homedir = os.homedir();
 
 var pathname = path.join(homedir, 'test_dir' + vmid);
@@ -2768,7 +2793,7 @@ describe('fs', () => {
 
             after(() => {
                 if (fs.exists(rsBase))
-                    fs.rmSync(rsBase, { recursive: true, force: true });
+                    rmSyncRetry(rsBase);
             });
 
             it("exports both names as constructors", () => {
@@ -2849,8 +2874,16 @@ describe('fs', () => {
                 // than the caller asked for.
                 assert.throws(() => new fs.ReadStream(rsFile, { end: 4 }),
                     (e) => e.code === 'ERR_INVALID_ARG_VALUE');
-                assert.equal(fs.createReadStream(rsFile, { start: 0, end: 4 })
-                    .readAll().toString(), 'hello');
+
+                // readAll() stops at the end of the range but leaves the
+                // descriptor open, and Windows then refuses to remove the
+                // directory in the after hook (EBUSY): close it here.
+                var bounded = fs.createReadStream(rsFile, { start: 0, end: 4 });
+                try {
+                    assert.equal(bounded.readAll().toString(), 'hello');
+                } finally {
+                    bounded.close();
+                }
             });
         });
 
