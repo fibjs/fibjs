@@ -443,7 +443,13 @@ result_t dns_base::lookupService(exlib::string address, double port,
     lookup_service_data* resolver = new lookup_service_data(retVal, address,
         std::move(ac));
 
-    resolver->_addr.init(family);
+    // inetAddr::init takes the fibjs family constants (net.AF_INET /
+    // net.AF_INET6), not the platform AF_* values: they only coincide for
+    // AF_INET, so passing AF_INET6 here left sin6_family unset and
+    // uv_getnameinfo rejected the address with UV_EINVAL on Darwin and
+    // Windows.
+    resolver->_addr.init(family == AF_INET ? net_base::C_AF_INET
+                                           : net_base::C_AF_INET6);
     if (family == AF_INET) {
         resolver->_addr.addr4.sin_addr = addr4;
         resolver->_addr.addr4.sin_port = htons((uint16_t)port);

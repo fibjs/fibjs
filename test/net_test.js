@@ -1037,7 +1037,11 @@ function test_net(eng, use_uv) {
             it("rejects an unknown family and hints", () => {
                 assert.throws(() => net.connect({ host: address, port: 1, family: 5 }),
                     { code: 'ERR_INVALID_ARG_VALUE' });
-                assert.throws(() => net.connect({ host: address, port: 1, hints: 0x100 }),
+                // 1 << 20 is outside the accepted mask on every platform: the
+                // accepted bits are the platform AI_* values (AI_ALL is 0x100
+                // on Darwin, for example), so a hard coded small value is not
+                // portable.
+                assert.throws(() => net.connect({ host: address, port: 1, hints: 1 << 20 }),
                     { code: 'ERR_INVALID_ARG_VALUE' });
             });
 
@@ -1167,7 +1171,13 @@ function test_net(eng, use_uv) {
                 svr.listen();
 
                 var c = new net.Socket();
-                c.timeout = 50;
+                // The close below lands a few milliseconds after the read is
+                // posted and is what has to abort it; the timeout only keeps a
+                // broken close from hanging the suite. Keep it far above the
+                // close delay: with 50ms a loaded CI runner can deliver the
+                // timeout first, which reports CALL_E_TIMEOUT (number 20021,
+                // no code property) instead of the closed-socket error.
+                c.timeout = 5000;
                 c.connect(port, '127.0.0.1');
 
                 coroutine.start(() => {
