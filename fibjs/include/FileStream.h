@@ -103,6 +103,27 @@ protected:
     int32_t m_fd;
 };
 
+#ifndef _WIN32
+// POSIX open(2) accepts O_RDONLY on directories: the fd works with
+// fstat/futimes, while read/write fail with EISDIR in the kernel. Node does the
+// same, so only opens that request write access are rejected here.
+inline result_t check_open_dir(int32_t& fd, int32_t flags, const exlib::string& fname)
+{
+    struct stat64 st;
+    fstat64(fd, &st);
+
+    if (S_IFDIR & st.st_mode) {
+        if ((flags & O_ACCMODE) != O_RDONLY) {
+            ::_close(fd);
+            fd = -1;
+            return result_t::from_system(UV_EISDIR).with_syscall("open").with_path(fname);
+        }
+    }
+
+    return result_t();
+}
+#endif
+
 inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode, int32_t& fd)
 {
 #ifdef _WIN32
@@ -198,15 +219,9 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
     }
 
 #ifndef _WIN32
-    struct stat64 st;
-    fstat64(fd, &st);
-
-    if (S_IFDIR & st.st_mode) {
-        ::_close(fd);
-        fd = -1;
-        // Node.js compatibility: opening a directory as a file reports EISDIR
-        return result_t::from_system(UV_EISDIR).with_syscall("open").with_path(fname);
-    }
+    result_t hr = check_open_dir(fd, _flags, fname);
+    if (hr.failed())
+        return hr;
 
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
         return LastError("fcntl", fname);
@@ -280,15 +295,9 @@ inline result_t file_open(exlib::string fname, int32_t flags, int32_t mode, int3
     }
 
 #ifndef _WIN32
-    struct stat64 st;
-    fstat64(fd, &st);
-
-    if (S_IFDIR & st.st_mode) {
-        ::_close(fd);
-        fd = -1;
-        // Node.js compatibility: opening a directory as a file reports EISDIR
-        return result_t::from_system(UV_EISDIR).with_syscall("open").with_path(fname);
-    }
+    result_t hr = check_open_dir(fd, _flags, fname);
+    if (hr.failed())
+        return hr;
 
     if (::fcntl(fd, F_SETFD, FD_CLOEXEC))
         return LastError("fcntl", fname);

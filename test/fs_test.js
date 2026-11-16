@@ -2755,6 +2755,29 @@ describe('fs', () => {
             it("closeSync on an invalid fd reports EBADF", () => {
                 assert.throws(() => fs.closeSync(123456), /bad file descriptor/);
             });
+
+            it("opens a directory read-only, like Node", () => {
+                if (win)
+                    return; // _wopen still refuses directories; POSIX open(2) allows O_RDONLY
+
+                var dir = fs.mkdtempSync(path.join(homedir, 'fibjs-opendir-'));
+                try {
+                    var fd = fs.openSync(dir, 'r');
+                    var fdnum = typeof fd === 'number' ? fd : fd.fd;
+                    try {
+                        assert.equal(fs.fstatSync(fdnum).isDirectory(), true);
+                        // Reading the directory fd still fails; Node reports EISDIR too.
+                        assert.throws(() => fs.readSync(fdnum, Buffer.alloc(1), 0, 1, 0), { code: 'EISDIR' });
+                    } finally {
+                        fs.closeSync(fdnum);
+                    }
+
+                    // Any write intent must still be rejected.
+                    assert.throws(() => fs.openSync(dir, 'r+'), { code: 'EISDIR' });
+                } finally {
+                    fs.rmdirSync(dir);
+                }
+            });
         });
 
         describe("createWriteStream start (Node.js compatibility)", () => {
