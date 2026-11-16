@@ -4,8 +4,6 @@ var fs = require('fs');
 var path = require('path');
 var coroutine = require('coroutine');
 
-var win32 = process.platform === 'win32';
-
 // Windows releases host handles asynchronously, so a directory the host just
 // closed can still look busy to a recursive remove: the file delete fails and
 // the rmdir then reports ENOTEMPTY. Retry with a GC and a short sleep, like the
@@ -908,8 +906,10 @@ describe('wasi', () => {
             // flag validation mirrors uvwasi
             assert.strictEqual(wasi.sock_recv(conn, 1000, 1, 1, 760, 764), 58);
             assert.strictEqual(wasi.sock_send(conn, 1010, 1, 1, 760), 28);
-            assert.strictEqual(wasi.sock_shutdown(conn, 2), 58);
+            // uvwasi implements only SHUT_WR; SHUT_RD reports NOTSUP
+            assert.strictEqual(wasi.sock_shutdown(conn, 1), 58);
             assert.strictEqual(wasi.sock_shutdown(conn, 0), 0);
+            assert.strictEqual(wasi.sock_shutdown(conn, 2), 0);
 
             // a listener is a socket but not a connection
             assert.strictEqual(wasi.sock_recv(3, 1000, 1, 0, 760, 764), 57);
@@ -925,10 +925,9 @@ describe('wasi', () => {
         }
     });
 
-    // Windows reports descriptor readiness without waiting: the host keeps no
-    // pollable handle for a socket there, so the blocking path only exists on
-    // POSIX.
-    it('blocks in poll_oneoff until a socket becomes readable', { skip: win32 }, () => {
+    // Windows waits on the socket handle through uv_poll_init_socket, so both
+    // platforms block here; only the handle the host watches differs.
+    it('blocks in poll_oneoff until a socket becomes readable', () => {
         var { WASI } = require('wasi');
         var net = require('net');
 

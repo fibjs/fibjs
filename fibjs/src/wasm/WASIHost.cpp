@@ -484,6 +484,41 @@ struct PollEvent {
     uint16_t flags = 0;
 };
 
+// One host descriptor a poll call waits on. POSIX watches the descriptor, while
+// Windows only accepts sockets (uv_poll_init and select() reject everything
+// else), so there the socket handle is carried instead.
+struct PollFd {
+    int32_t fd = -1;
+    uv_os_sock_t sock = (uv_os_sock_t)-1;
+    int32_t mask = 0;
+};
+
+// Resolves the handle the host can wait on. Sockets go through their uv handle
+// (which owns the descriptor on POSIX and the socket handle on Windows) because
+// a listener never stores a host descriptor; everything else uses the
+// descriptor opened at construction. A virtual preopened directory has neither.
+static bool poll_handle(const FdEntry* entry, PollFd& out)
+{
+    if (entry->sock && entry->sock->handle) {
+        uv_os_fd_t osfd;
+        if (uv_fileno((uv_handle_t*)entry->sock->handle, &osfd) == 0) {
+#ifdef _WIN32
+            out.sock = (uv_os_sock_t)osfd;
+#else
+            out.fd = (int32_t)osfd;
+#endif
+            return true;
+        }
+    }
+
+    if (entry->host_fd >= 0) {
+        out.fd = entry->host_fd;
+        return true;
+    }
+
+    return false;
+}
+
 // Event flags: bit 0 is WASI_EVENT_FD_READWRITE_HANGUP.
 static bool poll_fd_ready(const FdEntry* entry, uint8_t type, uint16_t& flags,
     uint16_t& error)
@@ -491,38 +526,78 @@ static bool poll_fd_ready(const FdEntry* entry, uint8_t type, uint16_t& flags,
     flags = 0;
     error = 0;
 
-    // Virtual preopened directories have no host descriptor.
-    if (entry->host_fd < 0)
-        return true;
+    PollFd pfd;
+    if (!poll_handle(entry, pfd))
+        return true; // virtual preopened directory: nothing to wait on
 
 #ifdef _WIN32
+    // Only sockets can be watched on Windows; files, pipes and the console have
+    // no readiness the host could ask for, so report them ready instead of
+    // blocking a guest forever.
+    if (pfd.sock == (uv_os_sock_t)-1)
+        return true;
+
+    fd_set rfds;
+    fd_set wfds;
+    FD_ZERO(&rfds);
+    FD_ZERO(&wfds);
+    if (type == 1)
+        FD_SET(pfd.sock, &rfds);
+    else
+        FD_SET(pfd.sock, &wfds);
+
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+
+    int32_t r = ::select(0, type == 1 ? &rfds : nullptr,
+        type == 1 ? nullptr : &wfds, nullptr, &tv);
+    if (r == SOCKET_ERROR) {
+        error = WASI_ERRNO_IO;
+        return true;
+    }
+    if (r == 0)
+        return false;
+
+    // A closed peer shows up as readable; peek at the stream so the guest gets
+    // the HANGUP flag instead of a read that returns 0 bytes. A listener is
+    // readable because a connection is pending, not because the peer closed.
+    if (type == 1 && entry->sock && !entry->sock->listener) {
+        char peek;
+        int32_t n = ::recv(pfd.sock, &peek, 1, MSG_PEEK);
+        if (n == 0)
+            flags = 1;
+        else if (n == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
+            error = WASI_ERRNO_IO;
+    }
+
     return true;
 #else
-    struct pollfd pfd;
-    pfd.fd = entry->host_fd;
-    pfd.events = type == 1 ? POLLIN : POLLOUT;
-    pfd.revents = 0;
+    struct pollfd ready;
+    ready.fd = pfd.fd;
+    ready.events = type == 1 ? POLLIN : POLLOUT;
+    ready.revents = 0;
 
-    int32_t r = ::poll(&pfd, 1, 0);
+    int32_t r = ::poll(&ready, 1, 0);
     if (r < 0) {
         error = WASI_ERRNO_IO;
         return true;
     }
     if (r == 0)
         return false;
-    if (pfd.revents & POLLNVAL) {
+    if (ready.revents & POLLNVAL) {
         error = WASI_ERRNO_BADF;
         return true;
     }
-    if (pfd.revents & POLLERR) {
+    if (ready.revents & POLLERR) {
         error = WASI_ERRNO_IO;
         return true;
     }
-    if (pfd.revents & POLLHUP) {
+    if (ready.revents & POLLHUP) {
         flags = 1;
         return true;
     }
-    return (pfd.revents & (POLLIN | POLLOUT)) != 0;
+    return (ready.revents & (POLLIN | POLLOUT)) != 0;
 #endif
 }
 
@@ -580,7 +655,7 @@ struct WasiCall {
     // poll_oneoff
     std::vector<std::pair<uint64_t, uint64_t>> clocks;
     std::vector<PollSub> poll_subs;
-    std::vector<std::pair<int32_t, int32_t>> poll_host_fds; // fd, uv poll mask
+    std::vector<PollFd> poll_host_fds;
     uint64_t userdata = 0;
     uint64_t timeout_ms = 0;
     bool timer_fired = false;
@@ -858,13 +933,18 @@ public:
 
             for (auto& item : m_call->poll_host_fds) {
                 uv_poll_t* handle = new uv_poll_t;
-                if (uv_poll_init(s_uv_loop, handle, item.first) != 0) {
+#ifdef _WIN32
+                int32_t r = uv_poll_init_socket(s_uv_loop, handle, item.sock);
+#else
+                int32_t r = uv_poll_init(s_uv_loop, handle, item.fd);
+#endif
+                if (r != 0) {
                     delete handle;
                     continue;
                 }
 
                 handle->data = this;
-                if (uv_poll_start(handle, item.second, on_poll) != 0) {
+                if (uv_poll_start(handle, item.mask, on_poll) != 0) {
                     uv_close((uv_handle_t*)handle, [](uv_handle_t* h) {
                         delete (uv_poll_t*)h;
                     });
@@ -2747,22 +2827,29 @@ result_t WASIHost::poll_oneoff(int32_t in_ptr, int32_t out_ptr, int32_t nsubscri
                             call->poll_subs.push_back(WasiCall::PollSub {
                                 userdata, type, subscribed_fd });
 
-                            if (entry->host_fd >= 0) {
-                                // One uv_poll per host fd; only the
+                            PollFd pfd;
+                            if (poll_handle(entry, pfd)) {
+                                // One uv_poll per host handle; only the
                                 // subscribed direction is watched, so a
-                                // writable socket does not wake a read.
+                                // writable socket does not wake a read. A
+                                // listener shares its descriptor with the
+                                // uv_tcp_t that accepts the connections, and
+                                // libuv keeps one watcher per fd, so the wait on
+                                // a listener may fail with EEXIST; the probe
+                                // still answers and finish() re-probes.
                                 int32_t mask = (type == 1 ? UV_READABLE : UV_WRITABLE)
                                     | UV_DISCONNECT;
                                 bool seen = false;
                                 for (auto& item : call->poll_host_fds) {
-                                    if (item.first == entry->host_fd) {
-                                        item.second |= mask;
+                                    if (item.fd == pfd.fd && item.sock == pfd.sock) {
+                                        item.mask |= mask;
                                         seen = true;
                                     }
                                 }
-                                if (!seen)
-                                    call->poll_host_fds.push_back(
-                                        std::make_pair(entry->host_fd, mask));
+                                if (!seen) {
+                                    pfd.mask = mask;
+                                    call->poll_host_fds.push_back(pfd);
+                                }
                             }
                         }
 
@@ -4662,8 +4749,9 @@ result_t WASIHost::sock_shutdown(int32_t fd, int32_t how, int32_t& retVal, Async
         return not_started();
 
     if (ac.isSync()) {
-        // uvwasi rejects unsupported how values before resolving the fd.
-        if (how & ~1) {
+        // uvwasi only implements SHUT_WR: any other bit is NOTSUP before the
+        // descriptor is resolved.
+        if (how & ~2) {
             retVal = WASI_ERRNO_NOTSUP;
             return result_t();
         }
@@ -4681,7 +4769,7 @@ result_t WASIHost::sock_shutdown(int32_t fd, int32_t how, int32_t& retVal, Async
             retVal = WASI_ERRNO_NOTSOCK;
             return result_t();
         }
-        if (how == 0) {
+        if (!(how & 2)) {
             retVal = WASI_ERRNO_SUCCESS;
             return result_t();
         }

@@ -358,9 +358,11 @@ declare class Class_WASIHost extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
-     *      descriptor subscription is reported ready without waiting; the guest still blocks in
-     *      `sock_recv` until data arrives.
+     *      reported as a BADF event. Sockets are watched through their uv handle, which carries the host
+     *      descriptor on POSIX and the socket handle on Windows (`uv_poll_init_socket`), so a socket
+     *      subscription blocks on both platforms and a closed peer reports the HANGUP flag. Files, pipes
+     *      and the console cannot be observed on Windows, so those subscriptions are reported ready
+     *      without waiting.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions
@@ -381,9 +383,11 @@ declare class Class_WASIHost extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
-     *      descriptor subscription is reported ready without waiting; the guest still blocks in
-     *      `sock_recv` until data arrives.
+     *      reported as a BADF event. Sockets are watched through their uv handle, which carries the host
+     *      descriptor on POSIX and the socket handle on Windows (`uv_poll_init_socket`), so a socket
+     *      subscription blocks on both platforms and a closed peer reports the HANGUP flag. Files, pipes
+     *      and the console cannot be observed on Windows, so those subscriptions are reported ready
+     *      without waiting.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions
@@ -402,9 +406,11 @@ declare class Class_WASIHost extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
-     *      descriptor subscription is reported ready without waiting; the guest still blocks in
-     *      `sock_recv` until data arrives.
+     *      reported as a BADF event. Sockets are watched through their uv handle, which carries the host
+     *      descriptor on POSIX and the socket handle on Windows (`uv_poll_init_socket`), so a socket
+     *      subscription blocks on both platforms and a closed peer reports the HANGUP flag. Files, pipes
+     *      and the console cannot be observed on Windows, so those subscriptions are reported ready
+     *      without waiting.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions
@@ -1821,7 +1827,8 @@ declare class Class_WASIHost extends Class_object {
      * @description Implements the WASI `sock_shutdown` syscall
      *
      *      Shuts down the write direction of a socket and suspends the fiber until libuv completes the
-     *      shutdown. `how == 0` is a successful no-op; other unsupported bits report NOTSUP.
+     *      shutdown. `how == 0` is a successful no-op; `SHUT_WR` performs the shutdown. Any other bit,
+     *      including `SHUT_RD`, reports NOTSUP before the descriptor is resolved, matching uvwasi.
      *      @param fd the socket descriptor
      *      @param how the shutdown flags (0 or SHUT_WR)
      *      @return 0 on success, or a WASI errno value
@@ -1835,7 +1842,8 @@ declare class Class_WASIHost extends Class_object {
      * @description Implements the WASI `sock_shutdown` syscall
      *
      *      Shuts down the write direction of a socket and suspends the fiber until libuv completes the
-     *      shutdown. `how == 0` is a successful no-op; other unsupported bits report NOTSUP.
+     *      shutdown. `how == 0` is a successful no-op; `SHUT_WR` performs the shutdown. Any other bit,
+     *      including `SHUT_RD`, reports NOTSUP before the descriptor is resolved, matching uvwasi.
      *      @param fd the socket descriptor
      *      @param how the shutdown flags (0 or SHUT_WR)
      *      @return 0 on success, or a WASI errno value
@@ -1847,7 +1855,8 @@ declare class Class_WASIHost extends Class_object {
      * @description Implements the WASI `sock_shutdown` syscall
      *
      *      Shuts down the write direction of a socket and suspends the fiber until libuv completes the
-     *      shutdown. `how == 0` is a successful no-op; other unsupported bits report NOTSUP.
+     *      shutdown. `how == 0` is a successful no-op; `SHUT_WR` performs the shutdown. Any other bit,
+     *      including `SHUT_RD`, reports NOTSUP before the descriptor is resolved, matching uvwasi.
      *      @param fd the socket descriptor
      *      @param how the shutdown flags (0 or SHUT_WR)
      *      @return 0 on success, or a WASI errno value
@@ -2092,9 +2101,11 @@ declare class Class_WASIHostPromise extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
-     *      descriptor subscription is reported ready without waiting; the guest still blocks in
-     *      `sock_recv` until data arrives.
+     *      reported as a BADF event. Sockets are watched through their uv handle, which carries the host
+     *      descriptor on POSIX and the socket handle on Windows (`uv_poll_init_socket`), so a socket
+     *      subscription blocks on both platforms and a closed peer reports the HANGUP flag. Files, pipes
+     *      and the console cannot be observed on Windows, so those subscriptions are reported ready
+     *      without waiting.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions
@@ -2113,9 +2124,11 @@ declare class Class_WASIHostPromise extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
-     *      descriptor subscription is reported ready without waiting; the guest still blocks in
-     *      `sock_recv` until data arrives.
+     *      reported as a BADF event. Sockets are watched through their uv handle, which carries the host
+     *      descriptor on POSIX and the socket handle on Windows (`uv_poll_init_socket`), so a socket
+     *      subscription blocks on both platforms and a closed peer reports the HANGUP flag. Files, pipes
+     *      and the console cannot be observed on Windows, so those subscriptions are reported ready
+     *      without waiting.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions
@@ -2134,9 +2147,11 @@ declare class Class_WASIHostPromise extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
-     *      descriptor subscription is reported ready without waiting; the guest still blocks in
-     *      `sock_recv` until data arrives.
+     *      reported as a BADF event. Sockets are watched through their uv handle, which carries the host
+     *      descriptor on POSIX and the socket handle on Windows (`uv_poll_init_socket`), so a socket
+     *      subscription blocks on both platforms and a closed peer reports the HANGUP flag. Files, pipes
+     *      and the console cannot be observed on Windows, so those subscriptions are reported ready
+     *      without waiting.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions
@@ -3503,7 +3518,8 @@ declare class Class_WASIHostPromise extends Class_object {
      * @description Implements the WASI `sock_shutdown` syscall
      *
      *      Shuts down the write direction of a socket and suspends the fiber until libuv completes the
-     *      shutdown. `how == 0` is a successful no-op; other unsupported bits report NOTSUP.
+     *      shutdown. `how == 0` is a successful no-op; `SHUT_WR` performs the shutdown. Any other bit,
+     *      including `SHUT_RD`, reports NOTSUP before the descriptor is resolved, matching uvwasi.
      *      @param fd the socket descriptor
      *      @param how the shutdown flags (0 or SHUT_WR)
      *      @return 0 on success, or a WASI errno value
@@ -3515,7 +3531,8 @@ declare class Class_WASIHostPromise extends Class_object {
      * @description Implements the WASI `sock_shutdown` syscall
      *
      *      Shuts down the write direction of a socket and suspends the fiber until libuv completes the
-     *      shutdown. `how == 0` is a successful no-op; other unsupported bits report NOTSUP.
+     *      shutdown. `how == 0` is a successful no-op; `SHUT_WR` performs the shutdown. Any other bit,
+     *      including `SHUT_RD`, reports NOTSUP before the descriptor is resolved, matching uvwasi.
      *      @param fd the socket descriptor
      *      @param how the shutdown flags (0 or SHUT_WR)
      *      @return 0 on success, or a WASI errno value
@@ -3527,7 +3544,8 @@ declare class Class_WASIHostPromise extends Class_object {
      * @description Implements the WASI `sock_shutdown` syscall
      *
      *      Shuts down the write direction of a socket and suspends the fiber until libuv completes the
-     *      shutdown. `how == 0` is a successful no-op; other unsupported bits report NOTSUP.
+     *      shutdown. `how == 0` is a successful no-op; `SHUT_WR` performs the shutdown. Any other bit,
+     *      including `SHUT_RD`, reports NOTSUP before the descriptor is resolved, matching uvwasi.
      *      @param fd the socket descriptor
      *      @param how the shutdown flags (0 or SHUT_WR)
      *      @return 0 on success, or a WASI errno value
