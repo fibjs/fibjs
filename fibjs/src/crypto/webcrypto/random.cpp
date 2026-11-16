@@ -13,15 +13,25 @@ namespace fibjs {
 
 result_t webcrypto_base::getRandomValues(v8::Local<v8::TypedArray> data, v8::Local<v8::TypedArray>& retVal)
 {
-    std::shared_ptr<v8::BackingStore> buffer = data->Buffer()->GetBackingStore();
-    uint8_t* ptr = static_cast<uint8_t*>(buffer->Data());
-    size_t len = buffer->ByteLength();
+    // WebCrypto limits the *view* to 65536 bytes, not the whole backing store:
+    // a small Uint8Array over a large WebAssembly.Memory must still work.
+    size_t len = data->ByteLength();
 
     if (len > 65536)
         return result_t::out_of_range();
 
-    if (len > 0 && RAND_bytes(ptr, len) != 1)
-        return openssl_error();
+    if (len > 0) {
+        std::shared_ptr<v8::BackingStore> buffer = data->Buffer()->GetBackingStore();
+        size_t offset = data->ByteOffset();
+
+        if (!buffer || offset > buffer->ByteLength() || len > buffer->ByteLength() - offset)
+            return result_t::out_of_range();
+
+        // Only fill the bytes covered by the view; the backing store may be
+        // much larger (e.g. wasm linear memory).
+        if (RAND_bytes(static_cast<uint8_t*>(buffer->Data()) + offset, (int)len) != 1)
+            return openssl_error();
+    }
 
     retVal = data;
 

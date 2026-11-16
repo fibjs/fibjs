@@ -159,6 +159,32 @@ describe("webcrypto", () => {
                 }
                 assert.strictEqual(hasNonZero, true);
             });
+
+            it("should fill a view over a large backing store, not the whole buffer", () => {
+                // WebAssembly.Memory is normally > 64KB, so the 65536-byte
+                // limit must apply to the view, not to the backing store.
+                const memory = new WebAssembly.Memory({ initial: 2 }); // 128KB
+                const all = new Uint8Array(memory.buffer);
+                all.fill(0xaa);
+
+                const view = new Uint8Array(memory.buffer, 1000, 16);
+                const result = global.crypto.getRandomValues(view);
+
+                assert.strictEqual(result, view);
+                assert.ok(view.some(x => x !== 0xaa), "view was not filled");
+                assert.ok(all.subarray(0, 1000).every(x => x === 0xaa),
+                    "bytes before the view were modified");
+                assert.ok(all.subarray(1016).every(x => x === 0xaa),
+                    "bytes after the view were modified");
+            });
+
+            it("should fill a view over shared WebAssembly memory", () => {
+                const memory = new WebAssembly.Memory({ initial: 2, maximum: 2, shared: true });
+                const view = new Uint8Array(memory.buffer, 64, 16);
+
+                global.crypto.getRandomValues(view);
+                assert.ok(view.some(x => x !== 0), "shared memory view was not filled");
+            });
         });
     });
 
