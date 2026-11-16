@@ -98,6 +98,9 @@ SandBox::SandBox(bool extLoader)
     loader = new json_Loader();
     m_loaders.push_back(loader);
 
+    loader = new wasm_Loader();
+    m_loaders.push_back(loader);
+
     m_global = false;
 
     initModule();

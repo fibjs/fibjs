@@ -135,6 +135,18 @@ public:
         exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs);
 };
 
+class wasm_Loader : public SandBox::ExtLoader {
+public:
+    wasm_Loader()
+        : ExtLoader(".wasm")
+    {
+    }
+
+public:
+    virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs);
+};
+
 class custom_Loader : public cjs_Loader {
 public:
     custom_Loader(exlib::string extname)

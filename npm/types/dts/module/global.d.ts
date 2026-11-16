@@ -638,8 +638,13 @@ declare module 'global' {
      *      accepted, so `require("node:fs")` is the same as `require("fs")`.
      *
      *      File modules are referenced by a path starting with ./ or ../, or by an
-     *      absolute path; the .js, .jsc and .json extensions are supported, and a .js
-     *      file written with ESM syntax is retried as an ES module. When the path is a
+     *      absolute path; the .js, .jsc, .json and .wasm extensions are supported, and
+     *      a .js file written with ESM syntax is retried as an ES module. A .wasm file
+     *      is compiled, linked and instantiated on first load and
+     *      the exports become the module exports; its import namespaces are resolved
+     *      from a namespace registered by `WASI.registerAsImport()` first and then
+     *      with `require(name)` relative to the wasm file, and an unknown namespace
+     *      throws a `WebAssembly.LinkError`. When the path is a
      *      directory, a package.json `exports` entry takes precedence over `main`, and
      *      when neither is usable, index.js, index.jsc or index.json under the path is
      *      tried. A path that is not internal and does not start with ./ or ../ is

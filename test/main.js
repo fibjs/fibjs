@@ -161,6 +161,10 @@ run("./atomics_wait_timeout_test.js");
 // the uv completion without blocking the isolate.
 run("./wasi_test.js");
 
+// `.wasm` modules: require()/import() compile, link and instantiate a binary,
+// with WASI (or any other import namespace) injected explicitly.
+run("./wasm_module_test.js");
+
 run("./getter_throw.js")
 
 run("./internal_test/helpers.js")
