@@ -154,6 +154,9 @@ run("./v8_test.js");
 
 run("./v8_bug_test.js");
 
+// Atomics.wait 超时单位回归：V8 平台补丁曾把微秒传给 exlib 的毫秒接口，导致超时放大 1000 倍。
+run("./atomics_wait_timeout_test.js");
+
 run("./getter_throw.js")
 
 run("./internal_test/helpers.js")
