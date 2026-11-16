@@ -1658,7 +1658,7 @@ result_t WASIHost::configure(std::vector<exlib::string>&& args, std::vector<exli
 
         uv_fs_t stat_req;
         r = uv_fs_stat(NULL, &stat_req, real_path.c_str(), NULL);
-        bool is_dir = r == 0 && S_ISDIR(stat_req.statbuf.st_mode);
+        bool is_dir = r == 0 && filetype_from_mode(stat_req.statbuf.st_mode) == WASI_FILETYPE_DIRECTORY;
         uv_fs_req_cleanup(&stat_req);
 
         if (!is_dir) {
