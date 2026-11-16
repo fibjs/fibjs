@@ -42,6 +42,27 @@ static result_t file_closed()
     return errhelp::closed("EBADF", "FileStream: file is closed.");
 }
 
+// A zero-length size probe (lseek END) cannot tell an empty regular file from
+// a directory: on XFS an empty directory answers 0 from lseek while fstat
+// reports its own size. Only read(2) distinguishes them - the empty file
+// returns 0 bytes, the directory fails with EISDIR, which is what Node reports
+// for readFile()/createReadStream() over a directory.
+//
+// `c` receives the byte if the file grew after the size probe (nothing is lost
+// on that race); the result is CALL_RETURN_NULL when there is nothing to read.
+static result_t read_zero_size_probe(int32_t fd, const exlib::string& name, char& c)
+{
+    int32_t n = (int32_t)::_read(fd, &c, 1);
+
+    if (n < 0)
+        return ReadError("read", name);
+
+    if (n == 0)
+        return result_t::return_null();
+
+    return result_t();
+}
+
 result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncHandle ac)
 {
@@ -52,6 +73,7 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         return file_closed();
 
     exlib::string strBuf;
+    bool probe_empty = false;
 
     if (bytes < 0) {
         int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
@@ -71,6 +93,7 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             sz = STREAM_BUFF_SIZE;
 
         bytes = (int32_t)sz;
+        probe_empty = (bytes == 0);
     }
 
     if (bytes > 0) {
@@ -90,6 +113,14 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         }
 
         strBuf.resize(bytes - sz);
+    } else if (probe_empty) {
+        char c;
+        result_t hr = read_zero_size_probe(m_fd, name, c);
+        if (hr.failed())
+            return hr;
+
+        if (!hr.is_return_null())
+            strBuf.assign(&c, 1);
     }
 
     if (strBuf.length() == 0)
@@ -123,8 +154,15 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
 
     int32_t bytes = (int32_t)sz;
 
-    if (bytes <= 0)
-        return result_t::return_null();
+    if (bytes <= 0) {
+        char c;
+        result_t hr = read_zero_size_probe(m_fd, name, c);
+        if (hr.failed() || hr.is_return_null())
+            return hr;
+
+        retVal = new Buffer(&c, 1);
+        return result_t();
+    }
 
     // Allocate Buffer directly and read into it to avoid extra copy
     std::shared_ptr<v8::BackingStore> store = NewBackingStore(bytes);
@@ -172,7 +210,17 @@ result_t FileStream::readAllText(exlib::string& retVal)
     int32_t bytes = (int32_t)sz;
 
     if (bytes <= 0) {
-        retVal.clear();
+        char c;
+        result_t hr = read_zero_size_probe(m_fd, name, c);
+        if (hr.failed())
+            return hr;
+
+        if (hr.is_return_null()) {
+            retVal.clear();
+            return result_t();
+        }
+
+        retVal.assign(&c, 1);
         return result_t();
     }
 

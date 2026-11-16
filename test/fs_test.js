@@ -3276,7 +3276,11 @@ describe('fs', () => {
                 // UV_EACCES; written against the raw Win32 constant it matched
                 // nothing and the open reported EPERM instead.
                 assert.equal(require('util').getSystemErrorName(err.errno), 'EISDIR');
-                assert.equal(err.syscall, 'open');
+
+                // POSIX allows the read-only open of a directory (fstat/futimes
+                // work on the fd) and reports the failure from read(2), as Node
+                // does; Windows still refuses the open itself.
+                assert.ok(err.syscall === 'read' || err.syscall === 'open', err.syscall);
             });
 
             it("accessSync rejects an out of range mode", () => {
@@ -3355,12 +3359,18 @@ describe('fs', () => {
                 return code;
             }
 
-            // same, but keeps the error object for the assertions that need it
-            function waitForError(stm) {
+            // same, but keeps the error object for the assertions that need it.
+            // `consume` starts the flow: a read-time failure (EISDIR from read(2)
+            // on a directory) only happens once something reads the stream -
+            // Node behaves the same way, an error-only listener never reads.
+            function waitForError(stm, consume) {
                 var err;
                 stm.on('error', (e) => {
                     err = e;
                 });
+
+                if (consume)
+                    stm.on('data', () => { });
 
                 var waited = 0;
                 while (err === undefined && waited < 2000) {
@@ -3376,7 +3386,7 @@ describe('fs', () => {
             });
 
             it("createReadStream on a directory emits EISDIR", () => {
-                var err = waitForError(fs.createReadStream(sbase));
+                var err = waitForError(fs.createReadStream(sbase), true);
 
                 assert.ok(err, 'the stream must emit an error');
                 assert.equal(err.code, 'EISDIR');
