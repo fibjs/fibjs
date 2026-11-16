@@ -123,6 +123,9 @@ public:
         , m_abort_version(pThis ? pThis->get_abort_version() : 0)
         , m_timedout(false)
         , m_watching(false)
+        , m_retry_armed(false)
+        , m_retry_index(0)
+        , m_retry_rearmed(false)
         , m_completed(false)
     {
         // Create timer if timeout specified
@@ -181,6 +184,91 @@ public:
         ev_io_init(&m_io_watcher, io_cb, m_sockfd, m_ev_op_t);
         ev_io_start(s_loop, &m_io_watcher);
         m_watching = true;
+
+        arm_retry();
+    }
+
+    // kqueue reports socket readiness as a transition: one that races the
+    // filter registration (the readiness happens while the kevent() call
+    // carrying the change scans) is dropped, and the operation parks forever
+    // on a socket that is already ready. fibjs arms a fresh watcher for every
+    // operation, so that window is met repeatedly.
+    //
+    // Re-check after the change reached the kernel: the first zero delay
+    // fires after the poll that applied it, the second after one more poll
+    // round, and the later ones cover the round trip of a peer whose ACK was
+    // in flight. A final re-add of the filter (kqueue re-reads the socket
+    // state on EV_ADD) covers a wakeup the kernel dropped while the filter
+    // was registered; after that the operation may park.
+#ifdef Darwin
+    static const int32_t kRetryDelays[];
+    static const int32_t kRetryDelayCount;
+    static const int32_t kRearmDelay = 5;
+
+    void arm_retry()
+    {
+        stop_retry();
+        m_retry_rearmed = false;
+        m_retry_index = 0;
+        start_retry_timer(kRetryDelays[m_retry_index++]);
+    }
+
+    void start_retry_timer(int32_t ms)
+    {
+        ev_timer_init(&m_retry, retry_cb, ms / 1000., 0.);
+        ev_timer_start(s_loop, &m_retry);
+        m_retry_armed = true;
+    }
+
+    void rearm_watcher()
+    {
+        ev_io_stop(s_loop, &m_io_watcher);
+
+        if (m_sockfd != INVALID_SOCKET) {
+            // EV__IOFDSET makes the next fd_reify call the backend even
+            // without a mask change, which re-adds the filter.
+            ev_io_init(&m_io_watcher, io_cb, m_sockfd, m_ev_op_t);
+            ev_io_start(s_loop, &m_io_watcher);
+        }
+    }
+#else
+    void arm_retry()
+    {
+    }
+#endif
+
+    void stop_retry()
+    {
+        if (m_retry_armed) {
+            ev_timer_stop(s_loop, &m_retry);
+            m_retry_armed = false;
+        }
+    }
+
+    void on_retry()
+    {
+        m_retry_armed = false;
+
+        if (m_completed.load() || !m_watching)
+            return;
+
+        result_t hr = recheck();
+        if (!hr.is_pending()) {
+            m_watching = false;
+            ev_io_stop(s_loop, &m_io_watcher);
+            ready(hr);
+            return;
+        }
+
+#ifdef Darwin
+        if (m_retry_index < kRetryDelayCount)
+            start_retry_timer(kRetryDelays[m_retry_index++]);
+        else if (!m_retry_rearmed) {
+            m_retry_rearmed = true;
+            rearm_watcher();
+            start_retry_timer(kRearmDelay);
+        }
+#endif
     }
 
 public:
@@ -207,6 +295,13 @@ public:
         return result_t();
     }
 
+    // Re-run the operation's non-blocking check; the watcher stays armed when
+    // it finds nothing (see arm_retry).
+    virtual result_t recheck()
+    {
+        return process();
+    }
+
     virtual void after_unwatch()
     {
         result_t hr = process();
@@ -225,6 +320,8 @@ public:
     {
         if (m_completed.exchange(true))
             return;
+
+        stop_retry();
 
         m_opt = NULL;
         m_watching = false;
@@ -246,6 +343,8 @@ public:
     {
         if (!m_watching)
             return;
+
+        stop_retry();
 
         m_watching = false;
         ev_io_stop(s_loop, &m_io_watcher);
@@ -288,10 +387,14 @@ public:
     void*& m_opt;
     AsyncIO* m_pThis;
     ev_io m_io_watcher;
+    ev_timer m_retry;
     obj_ptr<AsyncIOTimer> m_timer;
     intptr_t m_abort_version;
     bool m_timedout;
     bool m_watching;
+    bool m_retry_armed;
+    int32_t m_retry_index;
+    bool m_retry_rearmed;
     std::atomic<bool> m_completed;
 
 private:
@@ -300,7 +403,21 @@ private:
         AsyncSockProc* p = NULL;
         ((AsyncSockProc*)((intptr_t)watcher - (intptr_t)&p->m_io_watcher))->on_watched();
     }
+
+    static void retry_cb(struct ev_loop* loop, struct ev_timer* watcher, int32_t revents)
+    {
+        AsyncSockProc* p = NULL;
+        ((AsyncSockProc*)((intptr_t)watcher - (intptr_t)&p->m_retry))->on_retry();
+    }
 };
+
+#ifdef Darwin
+// Two zero delays: the first check runs after the poll that applied the
+// registration, the second after one more poll round (the handshake of a
+// connection that was in flight completes in that window on loopback).
+const int32_t AsyncSockProc::kRetryDelays[] = { 0, 0, 1, 10, 100 };
+const int32_t AsyncSockProc::kRetryDelayCount = (int32_t)(sizeof(kRetryDelays) / sizeof(kRetryDelays[0]));
+#endif
 
 class _acIO : public exlib::OSThread {
 public:
@@ -421,6 +538,24 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
                 setOption(m_sockfd);
                 ready(result_t());
             }
+        }
+
+        virtual result_t recheck()
+        {
+            // EISCONN: connected; EALREADY/EINPROGRESS: still in flight;
+            // anything else is the connect error itself.
+            if (::connect(m_sockfd, (struct sockaddr*)&m_ai, m_ai.size()) == SOCKET_ERROR) {
+                int32_t nError = errno;
+
+                if (nError == EALREADY || nError == EINPROGRESS || nError == EWOULDBLOCK)
+                    return result_t::pending();
+
+                if (nError != EISCONN)
+                    return result_t::from_system(-nError);
+            }
+
+            setOption(m_sockfd);
+            return result_t();
         }
 
     public:
