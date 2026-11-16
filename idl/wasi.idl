@@ -1,0 +1,95 @@
+/*! @brief The wasi module exposes the WebAssembly System Interface (WASI) preview1 host to wasm modules
+
+ WASI is the system-call layer a wasm binary imports when it is compiled against wasi-libc, the
+ Rust `wasm32-wasip1` target or Emscripten's standalone-wasm mode. The module exports the `WASI`
+ constructor; an instance owns the argument list, the environment and the preopened directories
+ that the guest sees, and `getImportObject()` returns the import object to instantiate the module
+ with. Every syscall runs on the host side and the wasm module never touches the operating system
+ directly.
+
+ Concepts:
+
+ - **Instance state**: the constructor stores the options; `start(instance)` or
+   `initialize(instance)` binds a `WebAssembly.Instance` and makes its exported memory available to
+   the syscalls. A wasm module must export `memory`, because WASI passes all pointers and results
+   through the guest memory.
+ - **Command vs reactor**: `start()` calls the `_start` export once (the command model), while
+   `initialize()` calls `_initialize` and leaves the instance alive for later calls (the reactor
+   model). The two entry points are mutually exclusive.
+ - **Import object**: `getImportObject()` returns an object whose `wasi_snapshot_preview1` key is
+   the WASI host instance itself: its syscall methods are bound to the instance in the
+   constructor, so wasm can call them as plain functions. The same instance is exposed as the
+   `wasiImport` property (`wasiImport === wasi`), which keeps the value recognizable by
+   `instanceof` and `getInstance()`.
+ - **fibjs integration**: the WASI instance is a fibjs built-in object. The syscalls follow the
+   fibjs conventions (fiber-blocking without a callback, asynchronous with a callback), so a
+   blocking guest call suspends only the calling fiber and other fibers keep running.
+ - **Loading `.wasm` files**: `require('./app.wasm')` compiles, links and instantiates a wasm
+   binary and returns its exports (`import()` reaches the same value through the CommonJS
+   interop). Import namespaces are resolved from the isolate registry first, then with
+   `require(name)` from the directory of the wasm file, so a namespace such as
+   `import_module("./helper.js")` works without extra code. `registerAsImport()` is what
+   lets a `.wasm` file import a WASI host: it publishes the host under
+   `wasi_snapshot_preview1` (or `wasi_unstable`), and because the exports carry a link to the
+   instance behind them, they can be passed straight to `start()`. A namespace that resolves
+   to neither the registry nor a module throws a `WebAssembly.LinkError`.
+
+ Import:
+ ```JavaScript
+ const wasi = require('wasi');
+ ```
+
+ Example 1 — create a preview1 host and inspect the import object:
+ ```JavaScript
+ const { WASI } = require('wasi');
+
+ const wasi = new WASI({ version: 'preview1', args: ['app', '--help'] });
+ const imports = wasi.getImportObject();
+ console.log(Object.keys(imports)); // [ 'wasi_snapshot_preview1' ]
+ ```
+
+ Example 2 — the import object is the host instance:
+ ```JavaScript
+ const { WASI } = require('wasi');
+
+ const wasi = new WASI({ version: 'preview1' });
+ console.log(typeof wasi.wasiImport.fd_write); // function
+ console.log(wasi.wasiImport === wasi); // true
+ ```
+
+ Example 3 — load a command module from a `.wasm` file:
+ ```JavaScript
+ const { WASI } = require('wasi');
+
+ const wasi = new WASI({ version: 'preview1', args: ['app'] });
+ wasi.registerAsImport();
+ try {
+     const app = require('./app.wasm');   // exports: memory, _start, ...
+     wasi.start(app);                    // binds the linked instance
+ } finally {
+     wasi.unregisterAsImport();
+ }
+ ```
+
+ Notes:
+
+ - Only the preview1 ABI (`wasi_snapshot_preview1`) is implemented; preview2 and the component
+   model are out of scope.
+ - The syscalls run on the isolate thread and use the fibjs uv worker for the asynchronous part;
+   no additional OS thread is created per instance.
+ - `require()` of a `.wasm` file is a fibjs extension: Node.js supports wasm modules only as
+   ESM and only behind `--experimental-wasm-modules`, and it never resolves import namespaces
+   for you.
+ */
+module wasi
+{
+    /*! @brief The WASI host class, see WASIHost
+
+     The class is exported as `require('wasi').WASI`; construct it with the version and the guest
+     environment, then pass `getImportObject()` to `WebAssembly.instantiate`. The underlying IDL
+     interface is named `WASIHost` so that the generated header does not differ from `wasi.h` only
+     by letter case, which would collide on case-insensitive file systems such as the macOS
+     default; the JavaScript export and the constructor options are the same.
+     */
+    static WASI = WASIHost;
+};

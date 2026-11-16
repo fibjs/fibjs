@@ -11,6 +11,7 @@
         "timers",
         "tty",
         "vm",
+        "wasi",
         "worker_threads"
     ],
     "File System": [

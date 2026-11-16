@@ -18,6 +18,11 @@
             "reason": "isXxx(value) is the type predicate entry point (plan section 4)"
         },
         {
+            "def": "WASIHost",
+            "param": "instance",
+            "reason": "start/initialize/finalizeBindings take a WebAssembly.Instance, an exotic object that the plain Object conversion rejects (plans/wasm-host-interface-feasibility.md)"
+        },
+        {
             "def": "EventEmitter",
             "param": "ev",
             "reason": "the 20 event-name positions stay Value: Symbol keys are supported and the string/symbol envelope was kept on 2026-10-05 (plan section 5.1 decision 3)"

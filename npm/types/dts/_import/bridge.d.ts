@@ -9,6 +9,7 @@
 /// <reference path="../module/timers.d.ts" />
 /// <reference path="../module/tty.d.ts" />
 /// <reference path="../module/vm.d.ts" />
+/// <reference path="../module/wasi.d.ts" />
 /// <reference path="../module/worker_threads.d.ts" />
 /// <reference path="../module/fs.d.ts" />
 /// <reference path="../module/io.d.ts" />
