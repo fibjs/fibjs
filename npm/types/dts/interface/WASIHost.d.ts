@@ -358,7 +358,9 @@ declare class Class_WASIHost extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event.
+     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
+     *      descriptor subscription is reported ready without waiting; the guest still blocks in
+     *      `sock_recv` until data arrives.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions
@@ -379,7 +381,9 @@ declare class Class_WASIHost extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event.
+     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
+     *      descriptor subscription is reported ready without waiting; the guest still blocks in
+     *      `sock_recv` until data arrives.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions
@@ -398,7 +402,9 @@ declare class Class_WASIHost extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event.
+     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
+     *      descriptor subscription is reported ready without waiting; the guest still blocks in
+     *      `sock_recv` until data arrives.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions
@@ -2086,7 +2092,9 @@ declare class Class_WASIHostPromise extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event.
+     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
+     *      descriptor subscription is reported ready without waiting; the guest still blocks in
+     *      `sock_recv` until data arrives.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions
@@ -2105,7 +2113,9 @@ declare class Class_WASIHostPromise extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event.
+     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
+     *      descriptor subscription is reported ready without waiting; the guest still blocks in
+     *      `sock_recv` until data arrives.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions
@@ -2124,7 +2134,9 @@ declare class Class_WASIHostPromise extends Class_object {
      *      are written immediately; otherwise the fiber suspends on `uv_poll` and the earliest clock
      *      timer, and the ready descriptors are collected when it wakes up. A descriptor subscription
      *      without POLL_FD_READWRITE plus FD_READ/FD_WRITE reports NOTCAPABLE; an unknown descriptor is
-     *      reported as a BADF event.
+     *      reported as a BADF event. On Windows the host keeps no pollable handle for a socket, so every
+     *      descriptor subscription is reported ready without waiting; the guest still blocks in
+     *      `sock_recv` until data arrives.
      *      @param in_ptr the guest address of the subscription array
      *      @param out_ptr the guest address of the event array
      *      @param nsubscriptions the number of subscriptions

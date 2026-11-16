@@ -2,6 +2,34 @@ var { describe, it } = require('node:test');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
+var coroutine = require('coroutine');
+
+var win32 = process.platform === 'win32';
+
+// Windows releases host handles asynchronously, so a directory the host just
+// closed can still look busy to a recursive remove: the file delete fails and
+// the rmdir then reports ENOTEMPTY. Retry with a GC and a short sleep, like the
+// fs suite does.
+function rmSyncRetry(target) {
+    for (var attempt = 0; attempt < 10; attempt++) {
+        try {
+            fs.rmSync(target, { recursive: true, force: true });
+            return;
+        } catch (err) {
+            var code = err && err.code;
+            if (code !== 'EBUSY' && code !== 'EPERM' && code !== 'EACCES'
+                && code !== 'ENOTEMPTY')
+                throw err;
+
+            if (typeof gc == 'function')
+                gc();
+            coroutine.sleep(Math.min(20 * (attempt + 1), 200));
+        }
+    }
+
+    // The handles never drained: let the removal report the real error.
+    fs.rmSync(target, { recursive: true, force: true });
+}
 
 // wasm32 fixture compiled with clang --target=wasm32 -nostdlib (Homebrew LLVM
 // 22). It imports fd_write, fd_read and poll_oneoff, exports memory, _start and
@@ -220,7 +248,7 @@ describe('wasi', () => {
             assert.strictEqual(wasi.clock_res_get(0, 2112), 0);
             assert.strictEqual(wasi.sched_yield(), 0);
         } finally {
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
@@ -267,7 +295,7 @@ describe('wasi', () => {
             // only the host-created file is left
             assert.deepStrictEqual(fs.readdirSync(dir), ['hello.txt']);
         } finally {
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
@@ -376,7 +404,7 @@ describe('wasi', () => {
             assert.strictEqual(wasi.sock_recv(99, 0, 0, 1, 728, 732), 58);
             assert.strictEqual(wasi.sock_shutdown(99, 9), 58);
         } finally {
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
@@ -475,7 +503,7 @@ describe('wasi', () => {
             assert.strictEqual(wasi.fd_readdir(dfd, 1300, 512, 0, 760), 0);
             assert.strictEqual(wasi.fd_close(dfd), 0);
         } finally {
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
@@ -536,7 +564,7 @@ describe('wasi', () => {
             assert.strictEqual(wasi.path_open(3, 0, 230, 5, 0, 2, 0, 0, 304), 0);
             assert.strictEqual(wasi.fd_close(view().getUint32(304, true)), 0);
         } finally {
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
@@ -655,7 +683,7 @@ describe('wasi', () => {
 
             assert.strictEqual(reader.fd_close(fd), 0);
         } finally {
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
@@ -804,7 +832,7 @@ describe('wasi', () => {
             assert.strictEqual(text(1200, 1), 'Z');
             assert.strictEqual(wasi.fd_close(fd), 0);
         } finally {
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
@@ -897,7 +925,10 @@ describe('wasi', () => {
         }
     });
 
-    it('blocks in poll_oneoff until a socket becomes readable', () => {
+    // Windows reports descriptor readiness without waiting: the host keeps no
+    // pollable handle for a socket there, so the blocking path only exists on
+    // POSIX.
+    it('blocks in poll_oneoff until a socket becomes readable', { skip: win32 }, () => {
         var { WASI } = require('wasi');
         var net = require('net');
 
@@ -1136,7 +1167,7 @@ describe('wasi', () => {
             try {
                 assert.strictEqual(fs.readFileSync(output, 'utf8'), 'x');
             } finally {
-                fs.rmSync(dir, { recursive: true, force: true });
+                rmSyncRetry(dir);
             }
         }
     });

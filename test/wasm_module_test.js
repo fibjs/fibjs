@@ -4,6 +4,7 @@ var fs = require('fs');
 var os = require('os');
 var path = require('path');
 var vm = require('vm');
+var coroutine = require('coroutine');
 
 // wasm32 fixtures built with Homebrew LLVM:
 //
@@ -38,6 +39,31 @@ function copyFixture(src, dir, name) {
     return dest;
 }
 
+// Windows releases host handles asynchronously, so a directory the host just
+// closed can still look busy to a recursive remove: the file delete fails and
+// the rmdir then reports ENOTEMPTY. Retry with a GC and a short sleep, like the
+// fs suite does.
+function rmSyncRetry(target) {
+    for (var attempt = 0; attempt < 10; attempt++) {
+        try {
+            fs.rmSync(target, { recursive: true, force: true });
+            return;
+        } catch (err) {
+            var code = err && err.code;
+            if (code !== 'EBUSY' && code !== 'EPERM' && code !== 'EACCES'
+                && code !== 'ENOTEMPTY')
+                throw err;
+
+            if (typeof gc == 'function')
+                gc();
+            coroutine.sleep(Math.min(20 * (attempt + 1), 200));
+        }
+    }
+
+    // The handles never drained: let the removal report the real error.
+    fs.rmSync(target, { recursive: true, force: true });
+}
+
 // A temp directory holding one copy of the module fixture plus the `./helper.js`
 // namespace it imports.
 function linkedModule(name) {
@@ -59,7 +85,7 @@ describe('wasm module', () => {
             assert.strictEqual(exports.run(3), 8);
             assert.strictEqual(exports.run(-1), 0);
         } finally {
-            fs.rmSync(fixture.dir, { recursive: true, force: true });
+            rmSyncRetry(fixture.dir);
         }
     });
 
@@ -72,7 +98,7 @@ describe('wasm module', () => {
             assert.strictEqual(first, second);
             assert.strictEqual(first.run(1), 4);
         } finally {
-            fs.rmSync(fixture.dir, { recursive: true, force: true });
+            rmSyncRetry(fixture.dir);
         }
     });
 
@@ -89,7 +115,7 @@ describe('wasm module', () => {
             assert.deepStrictEqual(Object.keys(exports).sort(), ['memory', 'run']);
             assert.strictEqual(JSON.stringify(exports), '{"memory":{}}');
         } finally {
-            fs.rmSync(fixture.dir, { recursive: true, force: true });
+            rmSyncRetry(fixture.dir);
         }
     });
 
@@ -107,7 +133,7 @@ describe('wasm module', () => {
                 return true;
             });
         } finally {
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
@@ -125,7 +151,7 @@ describe('wasm module', () => {
                 return true;
             });
         } finally {
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
@@ -138,7 +164,7 @@ describe('wasm module', () => {
             assert.strictEqual(ns.run(2), 6);
             assert.strictEqual(ns.default.run, ns.run);
         } finally {
-            fs.rmSync(fixture.dir, { recursive: true, force: true });
+            rmSyncRetry(fixture.dir);
         }
     });
 });
@@ -170,7 +196,7 @@ describe('wasm module with wasi', () => {
             } catch (e) {
                 // already closed
             }
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
@@ -191,7 +217,7 @@ describe('wasm module with wasi', () => {
                 return true;
             });
         } finally {
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
@@ -217,7 +243,7 @@ describe('wasm module with wasi', () => {
             } catch (e) {
                 // already closed
             }
-            fs.rmSync(dir, { recursive: true, force: true });
+            rmSyncRetry(dir);
         }
     });
 
