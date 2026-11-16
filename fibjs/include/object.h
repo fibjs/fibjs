@@ -18,6 +18,16 @@
 #undef min
 #undef max
 
+#ifdef _WIN32
+// ucrt maps `environ` onto _environ/__p__environ with a macro (seen with
+// Windows SDK 10.0.26100), so any identifier named `environ` - such as the
+// WASI parameter in the generated idl headers - is rewritten into a function
+// type. Include <stdlib.h> first so its include guard keeps later, indirect
+// inclusions from defining the macro again.
+#include <stdlib.h>
+#undef environ
+#endif
+
 namespace fibjs {
 
 class EventEmitter_base;
