@@ -559,6 +559,12 @@ describe("module", () => {
             fs.rmSync(container, { recursive: true, force: true });
             fs.writeFileSync(container, 'not a zip at all');
             probeError();
+
+            // 0 字节容器：readAll 用 CALL_RETURN_NULL 报告“没有数据”，
+            // 曾把这个成功态直接交给 zip 解析（空 Buffer 指针解引用）而崩溃
+            fs.rmSync(container, { recursive: true, force: true });
+            fs.writeFileSync(container, '');
+            probeError();
         } finally {
             fs.rmSync(container, { recursive: true, force: true });
         }
