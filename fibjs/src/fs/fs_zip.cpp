@@ -207,6 +207,14 @@ public:
 
     ON_STATE(asyncResolveZipFile, open_zip)
     {
+        // An empty container (0-byte file, or a directory that opens but reads
+        // nothing) reports "no bytes" as CALL_RETURN_NULL, a *success* status.
+        // There is no data to hand to zip_base::open, whose Buffer form
+        // dereferences its argument; treat the container as unresolvable
+        // instead (the caller's literal-path probe then reports not-found).
+        if (n.is_return_null())
+            return next(result_t(CALL_E_FILE_NOT_FOUND));
+
         return zip_base::open(m_data, "r", "utf-8", m_zfile, next(read_all));
     }
 
