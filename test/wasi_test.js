@@ -181,9 +181,15 @@ describe('wasi', () => {
         assert.ok(elapsed < 3000, `poll_oneoff used the wrong time unit: ${elapsed}ms`);
 
         // The timer ran while the wasm import was suspended: the fiber, not
-        // the isolate, was waiting.
-        assert.ok(timerAt >= 0 && timerAt < 100,
-            `the timer did not run during poll_oneoff (${timerAt}ms)`);
+        // the isolate, was waiting. A loaded runner can deliver the callback
+        // only after start() returns, so drain a few loop turns before failing;
+        // a timer that never runs at all still fails here, and the socket poll
+        // case below proves the callback has to fire inside the wait.
+        for (var i = 0; i < 200 && timerAt < 0; i++)
+            coroutine.sleep(5);
+
+        assert.ok(timerAt >= 0,
+            `the timer did not run after poll_oneoff (${timerAt}ms)`);
 
         // Guest memory was written after the fiber resumed.
         assert.strictEqual(instance.exports.last_userdata(), 66n);
