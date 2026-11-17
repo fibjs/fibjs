@@ -527,13 +527,59 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
             return result_t();
         }
 
-        virtual void after_unwatch()
+        // State of the non-blocking connect: the queued error (the real
+        // failure), success, or still in flight. A repeated connect() is not
+        // used: after a failed attempt Darwin leaves the socket half
+        // connected, and what the next connect() reports (EISCONN, EPIPE or
+        // the queued errno) changed between releases. SO_ERROR carries the
+        // failure verbatim on every version; getpeername() tells a finished
+        // handshake from one that is still running.
+        result_t connect_state()
         {
+            int32_t nError = 0;
+            socklen_t nErrorSize = sizeof(nError);
+
+            if (::getsockopt(m_sockfd, SOL_SOCKET, SO_ERROR, (char*)&nError,
+                    &nErrorSize)
+                == SOCKET_ERROR)
+                return result_t::from_system(-errno);
+
+            // Reading SO_ERROR clears it, so report it now and never retry.
+            if (nError != 0)
+                return result_t::from_system(-nError);
+
             inetAddr addr_info;
             socklen_t sz1 = sizeof(addr_info);
-            
-            if (::getpeername(m_sockfd, (sockaddr*)&addr_info, &sz1) == SOCKET_ERROR)
-                ready(result_t::from_system(-ECONNREFUSED));
+            if (::getpeername(m_sockfd, (sockaddr*)&addr_info, &sz1) == SOCKET_ERROR) {
+                int32_t nPeerError = errno;
+
+                // ENOTCONN/EINPROGRESS: the handshake has not finished;
+                // EINVAL: Darwin reports it for a socket whose attempt failed
+                // and whose SO_ERROR was already consumed by an earlier probe.
+                if (nPeerError == ENOTCONN || nPeerError == EINPROGRESS
+                    || nPeerError == EINVAL)
+                    return result_t::pending();
+
+                return result_t::from_system(-nPeerError);
+            }
+
+            return result_t();
+        }
+
+        virtual void after_unwatch()
+        {
+            // A closed descriptor has no state to query (the operation was
+            // cancelled by close()); keep the historical answer for it, like the
+            // writable event that arrives with the handshake still pending.
+            result_t hr = m_sockfd == INVALID_SOCKET
+                ? result_t::from_system(-ECONNREFUSED)
+                : connect_state();
+
+            if (hr.is_pending())
+                hr = result_t::from_system(-ECONNREFUSED);
+
+            if (hr.failed())
+                ready(hr);
             else {
                 setOption(m_sockfd);
                 ready(result_t());
@@ -542,17 +588,12 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncHandle ac, int3
 
         virtual result_t recheck()
         {
-            // EISCONN: connected; EALREADY/EINPROGRESS: still in flight;
-            // anything else is the connect error itself.
-            if (::connect(m_sockfd, (struct sockaddr*)&m_ai, m_ai.size()) == SOCKET_ERROR) {
-                int32_t nError = errno;
+            result_t hr = connect_state();
+            if (hr.failed())
+                return hr;
 
-                if (nError == EALREADY || nError == EINPROGRESS || nError == EWOULDBLOCK)
-                    return result_t::pending();
-
-                if (nError != EISCONN)
-                    return result_t::from_system(-nError);
-            }
+            if (hr.is_pending())
+                return hr;
 
             setOption(m_sockfd);
             return result_t();
