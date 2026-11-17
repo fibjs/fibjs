@@ -23,7 +23,19 @@ if [[ $HOST_OS == 'Linux' ]]; then
         # "localhost" fails with EAI_NODATA), and fibjs runs shell commands
         # through /system/bin/sh, which is not there either.  Provide all three,
         # otherwise the file, network and child_process suites cannot run.
-        TEST_CMD="mkdir -p /data/local/tmp /system/etc /system/bin && cp -f /etc/hosts /system/etc/hosts && ln -sf /bin/sh /system/bin/sh && ${TEST_CMD}"
+        if [[ $BUILD_ARCH == "x64" ]]; then
+            # A fatal signal must leave the faulting thread's registers and maps
+            # in the job log: bionic's handler prints only the fault address and
+            # the core written inside the container does not carry the crashing
+            # thread, which made the android/x64 SIGSEGV undebuggable.  The
+            # reporter is built by the image's own $CC and clears LD_PRELOAD
+            # from the environment, so the suite's glibc children (sh, node) are
+            # not affected by it.
+            CRASH_REPORT="\$CC -O1 -fPIC -shared -o /tmp/crash_report.so ${CUR}/tools/ci/crash_report.c && LD_PRELOAD=/tmp/crash_report.so "
+        else
+            CRASH_REPORT=""
+        fi
+        TEST_CMD="mkdir -p /data/local/tmp /system/etc /system/bin && cp -f /etc/hosts /system/etc/hosts && ln -sf /bin/sh /system/bin/sh && ${CRASH_REPORT}${TEST_CMD}"
     fi
 
     if [[ $BUILD_TARGET == "linux" && $BUILD_ARCH == 'x64' ]]; then
