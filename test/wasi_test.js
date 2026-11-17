@@ -1,13 +1,22 @@
-var { describe, it } = require('node:test');
+var { describe, it, after } = require('node:test');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 var coroutine = require('coroutine');
 
+// Temp directories a suite could not remove. Reported once by the after() hook
+// below instead of from the teardown.
+var leftovers = [];
+
 // Windows releases host handles asynchronously, so a directory the host just
 // closed can still look busy to a recursive remove: the file delete fails and
 // the rmdir then reports ENOTEMPTY. Retry with a GC and a short sleep, like the
 // fs suite does.
+//
+// A directory that stays busy means an assertion threw before fd_close, so the
+// host still holds a descriptor. Throwing here would replace that assertion - a
+// throw inside finally wins over the error already in flight - and turn a clear
+// failure into an EPERM on a temp path. Record it and let the suite report it.
 function rmSyncRetry(target) {
     for (var attempt = 0; attempt < 10; attempt++) {
         try {
@@ -16,8 +25,10 @@ function rmSyncRetry(target) {
         } catch (err) {
             var code = err && err.code;
             if (code !== 'EBUSY' && code !== 'EPERM' && code !== 'EACCES'
-                && code !== 'ENOTEMPTY')
-                throw err;
+                && code !== 'ENOTEMPTY') {
+                leftovers.push(target + ': ' + err.message);
+                return;
+            }
 
             if (typeof gc == 'function')
                 gc();
@@ -25,8 +36,11 @@ function rmSyncRetry(target) {
         }
     }
 
-    // The handles never drained: let the removal report the real error.
-    fs.rmSync(target, { recursive: true, force: true });
+    try {
+        fs.rmSync(target, { recursive: true, force: true });
+    } catch (err) {
+        leftovers.push(target + ': ' + err.message);
+    }
 }
 
 // uvwasi returns ENOSYS from fd_fdstat_set_flags on Windows: there is no fcntl(),
@@ -136,6 +150,12 @@ var FILE_RIGHTS = 0x08E001FF;
 var PREOPEN_INHERITING = 0x0FFFFFFF;
 
 describe('wasi', () => {
+    // A directory the suites could not remove is a failure of its own: the
+    // teardown cannot report it without hiding the assertion that left it.
+    after(() => {
+        assert.deepStrictEqual(leftovers, [], 'temp directories left behind');
+    });
+
     it('exports the WASI constructor and a self-bound import object', () => {
         var { WASI } = require('wasi');
 
@@ -465,7 +485,9 @@ describe('wasi', () => {
             assert.strictEqual(wasi.fd_allocate(fd, 0, 0), 76);
             assert.strictEqual(wasi.fd_sync(fd), 76);
             assert.strictEqual(wasi.fd_datasync(fd), 76);
-            assert.strictEqual(wasi.fd_fdstat_set_flags(fd, 0), 76);
+            // Windows reports NOSYS before it looks at the descriptor or the
+            // rights, so the missing right is not reported there
+            assert.strictEqual(wasi.fd_fdstat_set_flags(fd, 0), isWindows ? 52 : 76);
             assert.strictEqual(wasi.fd_filestat_get(fd, 448), 76);
             assert.strictEqual(wasi.fd_filestat_set_times(fd, 0, 0, 10), 76);
             assert.strictEqual(wasi.fd_filestat_set_size(fd, 0), 76);
