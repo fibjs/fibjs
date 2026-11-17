@@ -1188,7 +1188,12 @@ private:
             return;
         }
 
-        if ((op->m_call->op == 0 || op->m_call->op == 1) && r >= 0)
+        if (op->m_call->op == 17 && r == UV_UNKNOWN)
+            // Windows reports ERROR_NOT_A_REPARSE_POINT for a plain file, which
+            // libuv has no errno for; POSIX reports EINVAL for the same call, so
+            // the guest sees INVAL on every platform.
+            op->complete(WASI_ERRNO_INVAL, 0);
+        else if ((op->m_call->op == 0 || op->m_call->op == 1) && r >= 0)
             op->complete(WASI_ERRNO_SUCCESS, (uint32_t)r);
         else
             op->complete(r < 0 ? wasi_errno(r) : WASI_ERRNO_SUCCESS, 0);
@@ -4339,20 +4344,32 @@ result_t WASIHost::fd_allocate(int32_t fd, int64_t offset, int64_t len, int32_t&
         return result_t();
     }
 
-#ifndef _WIN32
-    // macOS has no posix_fallocate(); uvwasi's fallback is fstat + ftruncate,
-    // which grows the file to the requested end offset.
+    // uvwasi grows the file with fstat + ftruncate because macOS has no
+    // posix_fallocate(); the same pair covers Windows, where the descriptor is
+    // a CRT fd that uv_fs_ftruncate() accepts.
     if (entry->host_fd >= 0 && len > 0) {
+        uv_fs_t req;
         uint64_t end = (uint64_t)offset + (uint64_t)len;
-        struct stat st;
-        if (::fstat(entry->host_fd, &st) == 0 && (uint64_t)st.st_size < end) {
-            if (::ftruncate(entry->host_fd, (off_t)end) != 0) {
-                retVal = wasi_errno(uv_translate_sys_error(errno));
+        uint64_t size = 0;
+        bool measured = false;
+
+        if (uv_fs_fstat(nullptr, &req, entry->host_fd, nullptr) == 0) {
+            size = (uint64_t)req.statbuf.st_size;
+            measured = true;
+        }
+        uv_fs_req_cleanup(&req);
+
+        if (measured && size < end) {
+            int32_t r = uv_fs_ftruncate(nullptr, &req, entry->host_fd, (int64_t)end, nullptr);
+            int32_t err = r < 0 ? (int32_t)uv_fs_get_result(&req) : 0;
+            uv_fs_req_cleanup(&req);
+
+            if (err < 0) {
+                retVal = wasi_errno(err);
                 return result_t();
             }
         }
     }
-#endif
 
     retVal = WASI_ERRNO_SUCCESS;
     return result_t();

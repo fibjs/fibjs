@@ -1270,8 +1270,9 @@ declare class Class_WASIHost extends Class_object {
      *
      *      Reads a symbolic link below a directory descriptor into the guest buffer. When the target does
      *      not fit, the call reports NOBUFS (42) instead of truncating, matching uvwasi; on success the
-     *      target is NUL-terminated and `bufused` excludes the terminator. A descriptor without
-     *      PATH_READLINK reports NOTCAPABLE.
+     *      target is NUL-terminated and `bufused` excludes the terminator. A path that is not a symbolic
+     *      link reports INVAL (28) on every platform, including Windows, where libuv has no errno for it.
+     *      A descriptor without PATH_READLINK reports NOTCAPABLE.
      *      @param fd the directory descriptor
      *      @param path the guest address of the link path
      *      @param path_len the path length in bytes
@@ -1290,8 +1291,9 @@ declare class Class_WASIHost extends Class_object {
      *
      *      Reads a symbolic link below a directory descriptor into the guest buffer. When the target does
      *      not fit, the call reports NOBUFS (42) instead of truncating, matching uvwasi; on success the
-     *      target is NUL-terminated and `bufused` excludes the terminator. A descriptor without
-     *      PATH_READLINK reports NOTCAPABLE.
+     *      target is NUL-terminated and `bufused` excludes the terminator. A path that is not a symbolic
+     *      link reports INVAL (28) on every platform, including Windows, where libuv has no errno for it.
+     *      A descriptor without PATH_READLINK reports NOTCAPABLE.
      *      @param fd the directory descriptor
      *      @param path the guest address of the link path
      *      @param path_len the path length in bytes
@@ -1308,8 +1310,9 @@ declare class Class_WASIHost extends Class_object {
      *
      *      Reads a symbolic link below a directory descriptor into the guest buffer. When the target does
      *      not fit, the call reports NOBUFS (42) instead of truncating, matching uvwasi; on success the
-     *      target is NUL-terminated and `bufused` excludes the terminator. A descriptor without
-     *      PATH_READLINK reports NOTCAPABLE.
+     *      target is NUL-terminated and `bufused` excludes the terminator. A path that is not a symbolic
+     *      link reports INVAL (28) on every platform, including Windows, where libuv has no errno for it.
+     *      A descriptor without PATH_READLINK reports NOTCAPABLE.
      *      @param fd the directory descriptor
      *      @param path the guest address of the link path
      *      @param path_len the path length in bytes
@@ -1495,9 +1498,10 @@ declare class Class_WASIHost extends Class_object {
     /**
      * @description Implements the WASI `fd_allocate` syscall
      *
-     *      Grows the file to `offset + len` when it is shorter. macOS has no `posix_fallocate`, so the
-     *      host uses the uvwasi fallback (`fstat` + `ftruncate`); the file is not physically reserved.
-     *      Directories report ISDIR, a descriptor without FD_ALLOCATE reports NOTCAPABLE.
+     *      Grows the file to `offset + len` when it is shorter, like uvwasi's `fstat` + `ftruncate`
+     *      fallback: macOS has no `posix_fallocate`, and Windows exposes the same pair, so the file is not
+     *      physically reserved anywhere. A range that already fits is left untouched. Directories report
+     *      ISDIR, a descriptor without FD_ALLOCATE reports NOTCAPABLE.
      *      @param fd the descriptor to allocate for
      *      @param offset the start of the range
      *      @param len the number of bytes to add
@@ -2990,8 +2994,9 @@ declare class Class_WASIHostPromise extends Class_object {
      *
      *      Reads a symbolic link below a directory descriptor into the guest buffer. When the target does
      *      not fit, the call reports NOBUFS (42) instead of truncating, matching uvwasi; on success the
-     *      target is NUL-terminated and `bufused` excludes the terminator. A descriptor without
-     *      PATH_READLINK reports NOTCAPABLE.
+     *      target is NUL-terminated and `bufused` excludes the terminator. A path that is not a symbolic
+     *      link reports INVAL (28) on every platform, including Windows, where libuv has no errno for it.
+     *      A descriptor without PATH_READLINK reports NOTCAPABLE.
      *      @param fd the directory descriptor
      *      @param path the guest address of the link path
      *      @param path_len the path length in bytes
@@ -3008,8 +3013,9 @@ declare class Class_WASIHostPromise extends Class_object {
      *
      *      Reads a symbolic link below a directory descriptor into the guest buffer. When the target does
      *      not fit, the call reports NOBUFS (42) instead of truncating, matching uvwasi; on success the
-     *      target is NUL-terminated and `bufused` excludes the terminator. A descriptor without
-     *      PATH_READLINK reports NOTCAPABLE.
+     *      target is NUL-terminated and `bufused` excludes the terminator. A path that is not a symbolic
+     *      link reports INVAL (28) on every platform, including Windows, where libuv has no errno for it.
+     *      A descriptor without PATH_READLINK reports NOTCAPABLE.
      *      @param fd the directory descriptor
      *      @param path the guest address of the link path
      *      @param path_len the path length in bytes
@@ -3026,8 +3032,9 @@ declare class Class_WASIHostPromise extends Class_object {
      *
      *      Reads a symbolic link below a directory descriptor into the guest buffer. When the target does
      *      not fit, the call reports NOBUFS (42) instead of truncating, matching uvwasi; on success the
-     *      target is NUL-terminated and `bufused` excludes the terminator. A descriptor without
-     *      PATH_READLINK reports NOTCAPABLE.
+     *      target is NUL-terminated and `bufused` excludes the terminator. A path that is not a symbolic
+     *      link reports INVAL (28) on every platform, including Windows, where libuv has no errno for it.
+     *      A descriptor without PATH_READLINK reports NOTCAPABLE.
      *      @param fd the directory descriptor
      *      @param path the guest address of the link path
      *      @param path_len the path length in bytes
@@ -3205,9 +3212,10 @@ declare class Class_WASIHostPromise extends Class_object {
     /**
      * @description Implements the WASI `fd_allocate` syscall
      *
-     *      Grows the file to `offset + len` when it is shorter. macOS has no `posix_fallocate`, so the
-     *      host uses the uvwasi fallback (`fstat` + `ftruncate`); the file is not physically reserved.
-     *      Directories report ISDIR, a descriptor without FD_ALLOCATE reports NOTCAPABLE.
+     *      Grows the file to `offset + len` when it is shorter, like uvwasi's `fstat` + `ftruncate`
+     *      fallback: macOS has no `posix_fallocate`, and Windows exposes the same pair, so the file is not
+     *      physically reserved anywhere. A range that already fits is left untouched. Directories report
+     *      ISDIR, a descriptor without FD_ALLOCATE reports NOTCAPABLE.
      *      @param fd the descriptor to allocate for
      *      @param offset the start of the range
      *      @param len the number of bytes to add
