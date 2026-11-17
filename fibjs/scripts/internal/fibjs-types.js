@@ -63070,7 +63070,9 @@ declare class Class_WASIHost extends Class_object {
      *      confined to the preopened directory tree. Like uvwasi, the directory must hold PATH_OPEN plus
      *      the rights implied by the flags, and its inheriting rights must cover the requested base and
      *      inheriting masks (otherwise NOTCAPABLE); the granted rights are intersected with the maximum
-     *      the opened file type supports.
+     *      the opened file type supports. \`O_DIRECTORY\` on an entry that is not a directory reports
+     *      NOTDIR; the check runs after the open, because not every platform can ask the host to open a
+     *      directory only (uvwasi does the same).
      *      @param fd the directory descriptor
      *      @param dirflags the lookup flags (symlink follow)
      *      @param path the guest address of the path bytes
@@ -63096,7 +63098,9 @@ declare class Class_WASIHost extends Class_object {
      *      confined to the preopened directory tree. Like uvwasi, the directory must hold PATH_OPEN plus
      *      the rights implied by the flags, and its inheriting rights must cover the requested base and
      *      inheriting masks (otherwise NOTCAPABLE); the granted rights are intersected with the maximum
-     *      the opened file type supports.
+     *      the opened file type supports. \`O_DIRECTORY\` on an entry that is not a directory reports
+     *      NOTDIR; the check runs after the open, because not every platform can ask the host to open a
+     *      directory only (uvwasi does the same).
      *      @param fd the directory descriptor
      *      @param dirflags the lookup flags (symlink follow)
      *      @param path the guest address of the path bytes
@@ -63120,7 +63124,9 @@ declare class Class_WASIHost extends Class_object {
      *      confined to the preopened directory tree. Like uvwasi, the directory must hold PATH_OPEN plus
      *      the rights implied by the flags, and its inheriting rights must cover the requested base and
      *      inheriting masks (otherwise NOTCAPABLE); the granted rights are intersected with the maximum
-     *      the opened file type supports.
+     *      the opened file type supports. \`O_DIRECTORY\` on an entry that is not a directory reports
+     *      NOTDIR; the check runs after the open, because not every platform can ask the host to open a
+     *      directory only (uvwasi does the same).
      *      @param fd the directory descriptor
      *      @param dirflags the lookup flags (symlink follow)
      *      @param path the guest address of the path bytes
@@ -63872,7 +63878,8 @@ declare class Class_WASIHost extends Class_object {
      *
      *      Stores the descriptor flags and, on POSIX, applies them to the host descriptor with \`fcntl\`
      *      (append, sync modes, non-blocking) like uvwasi. A descriptor without FD_FDSTAT_SET_FLAGS
-     *      reports NOTCAPABLE.
+     *      reports NOTCAPABLE. Windows has no \`fcntl\`, so the call reports NOSYS there without looking
+     *      at the descriptor or its rights, exactly like uvwasi.
      *      @param fd the descriptor to update
      *      @param flags the new descriptor flags
      *      @return 0 on success, or a WASI errno value
@@ -64805,7 +64812,9 @@ declare class Class_WASIHostPromise extends Class_object {
      *      confined to the preopened directory tree. Like uvwasi, the directory must hold PATH_OPEN plus
      *      the rights implied by the flags, and its inheriting rights must cover the requested base and
      *      inheriting masks (otherwise NOTCAPABLE); the granted rights are intersected with the maximum
-     *      the opened file type supports.
+     *      the opened file type supports. \`O_DIRECTORY\` on an entry that is not a directory reports
+     *      NOTDIR; the check runs after the open, because not every platform can ask the host to open a
+     *      directory only (uvwasi does the same).
      *      @param fd the directory descriptor
      *      @param dirflags the lookup flags (symlink follow)
      *      @param path the guest address of the path bytes
@@ -64829,7 +64838,9 @@ declare class Class_WASIHostPromise extends Class_object {
      *      confined to the preopened directory tree. Like uvwasi, the directory must hold PATH_OPEN plus
      *      the rights implied by the flags, and its inheriting rights must cover the requested base and
      *      inheriting masks (otherwise NOTCAPABLE); the granted rights are intersected with the maximum
-     *      the opened file type supports.
+     *      the opened file type supports. \`O_DIRECTORY\` on an entry that is not a directory reports
+     *      NOTDIR; the check runs after the open, because not every platform can ask the host to open a
+     *      directory only (uvwasi does the same).
      *      @param fd the directory descriptor
      *      @param dirflags the lookup flags (symlink follow)
      *      @param path the guest address of the path bytes
@@ -64853,7 +64864,9 @@ declare class Class_WASIHostPromise extends Class_object {
      *      confined to the preopened directory tree. Like uvwasi, the directory must hold PATH_OPEN plus
      *      the rights implied by the flags, and its inheriting rights must cover the requested base and
      *      inheriting masks (otherwise NOTCAPABLE); the granted rights are intersected with the maximum
-     *      the opened file type supports.
+     *      the opened file type supports. \`O_DIRECTORY\` on an entry that is not a directory reports
+     *      NOTDIR; the check runs after the open, because not every platform can ask the host to open a
+     *      directory only (uvwasi does the same).
      *      @param fd the directory descriptor
      *      @param dirflags the lookup flags (symlink follow)
      *      @param path the guest address of the path bytes
@@ -65575,7 +65588,8 @@ declare class Class_WASIHostPromise extends Class_object {
      *
      *      Stores the descriptor flags and, on POSIX, applies them to the host descriptor with \`fcntl\`
      *      (append, sync modes, non-blocking) like uvwasi. A descriptor without FD_FDSTAT_SET_FLAGS
-     *      reports NOTCAPABLE.
+     *      reports NOTCAPABLE. Windows has no \`fcntl\`, so the call reports NOSYS there without looking
+     *      at the descriptor or its rights, exactly like uvwasi.
      *      @param fd the descriptor to update
      *      @param flags the new descriptor flags
      *      @return 0 on success, or a WASI errno value

@@ -403,6 +403,19 @@ static void close_tcp(uv_tcp_t* handle)
         uv_close((uv_handle_t*)handle, delete_tcp);
 }
 
+// Closes a host descriptor from the uv thread, which owns the file requests: a
+// descriptor the guest never received has no owner left on the JS thread.
+static void close_host_fd(int32_t fd)
+{
+    uv_post([fd]() {
+        uv_fs_t* req = new uv_fs_t;
+        uv_fs_close(s_uv_loop, req, fd, [](uv_fs_t* req) {
+            uv_fs_req_cleanup(req);
+            delete req;
+        });
+    });
+}
+
 // Mirrors uvwasi_fd_table_get: a descriptor may only use the rights it was
 // granted, and path_* calls additionally need the directory's inheriting bits.
 static bool capable(const FdEntry* entry, uint64_t rights_base,
@@ -424,8 +437,9 @@ static bool valid_fstflags(uint32_t flags)
 }
 
 // uvwasi__get_rights for a host descriptor: the masks depend on the file type,
-// and read/write are masked by the open mode.
-static void host_rights(int32_t fd, int32_t open_flags, uint64_t& rights_base,
+// and read/write are masked by the open mode. Returns the WASI file type the
+// descriptor turned out to be.
+static uint8_t host_rights(int32_t fd, int32_t open_flags, uint64_t& rights_base,
     uint64_t& rights_inheriting)
 {
     uv_fs_t req;
@@ -474,6 +488,8 @@ static void host_rights(int32_t fd, int32_t open_flags, uint64_t& rights_base,
         rights_base &= ~WASI_RIGHT_FD_WRITE;
     else if (access_mode == O_WRONLY)
         rights_base &= ~WASI_RIGHT_FD_READ;
+
+    return type;
 }
 
 // One completed poll subscription, written to the guest event array.
@@ -669,6 +685,7 @@ struct WasiCall {
     exlib::string host_path;
     exlib::string target_path;
     int32_t open_flags = 0;
+    int32_t open_oflags = 0;
     int32_t open_mode = 0;
     uint64_t open_rights_base = 0;
     uint64_t open_rights_inheriting = 0;
@@ -826,8 +843,9 @@ public:
     // FdEntry::id captured by the sync phase; the entry is looked up by id
     // because the fd number may have been renumbered or closed meanwhile.
     void on_io_done(uint64_t fd_id, uint32_t nbytes);
-    bool on_open_done(uint64_t fd_id, int32_t host_fd, int32_t open_flags,
-        uint64_t rights_base, uint64_t rights_inheriting, int32_t& guest_fd);
+    int32_t on_open_done(uint64_t fd_id, int32_t host_fd, int32_t open_oflags,
+        int32_t open_flags, uint64_t rights_base, uint64_t rights_inheriting,
+        int32_t& guest_fd);
     void on_open_failed(uint64_t fd_id);
     void on_seek_done(uint64_t fd_id, int64_t offset);
     void on_renumber_done(uint64_t from_id, int32_t to);
@@ -1493,11 +1511,14 @@ private:
                 return;
 
             int32_t guest_fd = m_call->guest_fd;
-            if (!m_host->on_open_done(m_call->fd_id, m_call->host_fd, m_call->open_flags,
-                    m_call->open_rights_base, m_call->open_rights_inheriting, guest_fd)) {
-                // The reservation was closed meanwhile; the host descriptor has
-                // been closed and the guest must not see a success.
-                m_call->err = WASI_ERRNO_BADF;
+            int32_t err = m_host->on_open_done(m_call->fd_id, m_call->host_fd,
+                m_call->open_oflags, m_call->open_flags, m_call->open_rights_base,
+                m_call->open_rights_inheriting, guest_fd);
+            if (err != WASI_ERRNO_SUCCESS) {
+                // The reservation was closed meanwhile or the entry cannot be
+                // handed out; the host descriptor has been closed and the guest
+                // must not see a success.
+                m_call->err = err;
                 return;
             }
 
@@ -1835,6 +1856,17 @@ WASIHost::~WASIHost()
     for (SocketState* state : sockets)
         close_socket_state(state);
     m_sockets.clear();
+
+    // The table owns every host descriptor it handed out: a guest that never
+    // closed a file must not leak the handle past the instance. Sockets close
+    // above (their descriptor belongs to the uv handle), and preopened
+    // directories have no host descriptor at all.
+    for (auto& item : m_fds) {
+        FdEntry& entry = item.second;
+        if (entry.owned && entry.kind == FdEntry::FILE && entry.host_fd >= 0)
+            close_host_fd(entry.host_fd);
+    }
+    m_fds.clear();
 }
 
 void WASIHost::on_new_connection(uv_stream_t* server, int status)
@@ -2081,36 +2113,37 @@ void WASIHost::on_open_failed(uint64_t fd_id)
         m_fds.erase(fd);
 }
 
-bool WASIHost::on_open_done(uint64_t fd_id, int32_t host_fd, int32_t open_flags,
-    uint64_t rights_base, uint64_t rights_inheriting, int32_t& guest_fd)
+int32_t WASIHost::on_open_done(uint64_t fd_id, int32_t host_fd, int32_t open_oflags,
+    int32_t open_flags, uint64_t rights_base, uint64_t rights_inheriting,
+    int32_t& guest_fd)
 {
     FdEntry* entry = find_fd_by_id(fd_id, &guest_fd);
     if (!entry) {
-        // The placeholder was closed while the open was in flight; the host
-        // descriptor has no owner left, so close it on the uv thread that
-        // created it.
-        uv_post([host_fd]() {
-            uv_fs_t* req = new uv_fs_t;
-            uv_fs_close(s_uv_loop, req, host_fd, [](uv_fs_t* req) {
-                uv_fs_req_cleanup(req);
-                delete req;
-            });
-        });
-        return false;
+        // The placeholder was closed while the open was in flight.
+        close_host_fd(host_fd);
+        return WASI_ERRNO_BADF;
+    }
+
+    // rights are intersected with the maximum the opened file type supports,
+    // exactly like uvwasi_path_open(). The type is needed here because not
+    // every platform can express O_DIRECTORY in the host open flags, so the
+    // check has to happen after the open.
+    uint64_t max_base = 0;
+    uint64_t max_inheriting = 0;
+    uint8_t type = host_rights(host_fd, open_flags, max_base, max_inheriting);
+
+    if ((open_oflags & WASI_O_DIRECTORY) && type != WASI_FILETYPE_DIRECTORY) {
+        // uvwasi_path_open() reports ENOTDIR when the entry is not a directory.
+        close_host_fd(host_fd);
+        return WASI_ERRNO_NOTDIR;
     }
 
     entry->host_fd = host_fd;
     entry->owned = true;
-
-    // rights are intersected with the maximum the opened file type supports,
-    // exactly like uvwasi_path_open().
-    uint64_t max_base = 0;
-    uint64_t max_inheriting = 0;
-    host_rights(host_fd, open_flags, max_base, max_inheriting);
     entry->rights_base = rights_base & max_base;
     entry->rights_inheriting = rights_inheriting & max_inheriting;
-    entry->kind = max_base == DIR_RIGHTS ? FdEntry::DIR : FdEntry::FILE;
-    return true;
+    entry->kind = type == WASI_FILETYPE_DIRECTORY ? FdEntry::DIR : FdEntry::FILE;
+    return WASI_ERRNO_SUCCESS;
 }
 
 void WASIHost::on_seek_done(uint64_t fd_id, int64_t offset)
@@ -3582,6 +3615,7 @@ result_t WASIHost::path_open(int32_t fd, int32_t dirflags, int32_t path, int32_t
         call->op = 6;
         call->host_path = host_path;
         call->open_flags = flags;
+        call->open_oflags = oflags;
         call->open_mode = 0666;
         call->open_rights_base = requested_base;
         call->open_rights_inheriting = requested_inheriting;
@@ -4329,6 +4363,14 @@ result_t WASIHost::fd_fdstat_set_flags(int32_t fd, int32_t flags, int32_t& retVa
     if (!m_bound)
         return not_started();
 
+#ifdef _WIN32
+    // uvwasi returns ENOSYS before it looks at the descriptor or the rights:
+    // Windows has no fcntl(), so the guest cannot change descriptor flags.
+    (void)fd;
+    (void)flags;
+    retVal = WASI_ERRNO_NOSYS;
+    return result_t();
+#else
     FdEntry* entry = find_fd(fd);
     if (!entry) {
         retVal = WASI_ERRNO_BADF;
@@ -4338,13 +4380,6 @@ result_t WASIHost::fd_fdstat_set_flags(int32_t fd, int32_t flags, int32_t& retVa
         retVal = WASI_ERRNO_NOTCAPABLE;
         return result_t();
     }
-
-#ifdef _WIN32
-    // uvwasi does not implement descriptor flag updates on Windows.
-    (void)flags;
-    retVal = WASI_ERRNO_NOSYS;
-    return result_t();
-#else
     // uvwasi maps the WASI flags onto the host descriptor with fcntl().
     if (entry->host_fd >= 0) {
         int32_t mapped = 0;
@@ -4372,11 +4407,11 @@ result_t WASIHost::fd_fdstat_set_flags(int32_t fd, int32_t flags, int32_t& retVa
             return result_t();
         }
     }
-#endif
 
     entry->fdflags = (uint16_t)flags;
     retVal = WASI_ERRNO_SUCCESS;
     return result_t();
+#endif
 }
 
 result_t WASIHost::fd_fdstat_set_rights(int32_t fd, int64_t rights_base,
