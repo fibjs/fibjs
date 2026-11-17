@@ -4,6 +4,8 @@ var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
 var url = require('url');
+var os = require('os');
+var vm = require('vm');
 var coroutine = require('coroutine');
 var a, b;
 
@@ -812,6 +814,33 @@ describe("module", () => {
             var module = require('module');
 
             assert.strictEqual(new module.Module().id, '');
+        });
+    });
+
+    // JIT-less builds (iOS/iPadOS compile V8 with V8_JITLESS) have no
+    // WebAssembly global at all. The .wasm loader used to dereference the
+    // empty intrinsic lookup: requiring a wasm file in such a context crashed
+    // with SIGSEGV instead of reporting that WebAssembly is unavailable.
+    describe("wasm loader without WebAssembly", () => {
+        it("reports a missing WebAssembly instead of crashing", () => {
+            // A standalone global gives the sandbox its own context, so
+            // deleting the global there leaves the host one alone.
+            var box = new vm.SandBox({}, {});
+            box.addScript('no-wasm.js',
+                'delete globalThis.WebAssembly; module.exports = typeof WebAssembly;');
+            assert.strictEqual(box.require('no-wasm', __dirname), 'undefined');
+
+            var dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-no-wasm-'));
+            var file = path.join(dir, 'mod.wasm');
+            fs.writeFileSync(file,
+                fs.readFileSync(path.join(__dirname, 'wasm_module.wasm')));
+
+            try {
+                assert.throws(() => box.require('./mod.wasm', dir),
+                    /WebAssembly is not available in this context/);
+            } finally {
+                fs.rmSync(dir, { recursive: true, force: true });
+            }
         });
     });
 });
