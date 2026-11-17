@@ -20,7 +20,46 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 }
 #else
 #include <libproc.h>
+#include <mach/mach_time.h>
+#include <sys/sysctl.h>
 namespace fibjs {
+
+// proc_pid_rusage() reports ri_user_time/ri_system_time in mach absolute time
+// ticks although libproc.h declares them as nanoseconds: dividing by 1000
+// under-reports the CPU time by the tick length (~42x on Apple Silicon). The
+// tick rate has to come from the host, because an x86_64 build running under
+// Rosetta sees a 1:1 timebase of its own while the kernel keeps accounting in
+// host ticks.
+static double ns_per_tick()
+{
+    static double cached = 0;
+
+    if (cached == 0) {
+        uint64_t frequency = 0;
+        size_t size = sizeof(frequency);
+
+        if (sysctlbyname("hw.tbfrequency", &frequency, &size, NULL, 0) == 0
+            && frequency > 0)
+            cached = 1e9 / (double)frequency;
+        else {
+            mach_timebase_info_data_t timebase = { 0, 0 };
+            mach_timebase_info(&timebase);
+            cached = timebase.denom
+                ? (double)timebase.numer / (double)timebase.denom
+                : 1.0;
+        }
+    }
+
+    return cached;
+}
+
+// Rounds to whole microseconds: the other platforms report integers too, and a
+// tick is far coarser than that.
+static double ticks_to_us(uint64_t ticks)
+{
+    return (double)(int64_t)((double)ticks * ns_per_tick() / 1000.0 + 0.5);
+}
+
 result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 {
     struct rusage_info_v2 ri;
@@ -32,8 +71,8 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, ri.ri_user_time / 1000)).IsJust();
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, ri.ri_system_time / 1000)).IsJust();
+    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, ticks_to_us(ri.ri_user_time))).IsJust();
+    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, ticks_to_us(ri.ri_system_time))).IsJust();
     o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, ri.ri_resident_size)).IsJust();
 
     retVal = o;
