@@ -29,6 +29,11 @@ function rmSyncRetry(target) {
     fs.rmSync(target, { recursive: true, force: true });
 }
 
+// uvwasi returns ENOSYS from fd_fdstat_set_flags on Windows: there is no fcntl(),
+// so a guest cannot switch a descriptor to append mode, and fd_fdstat_get keeps
+// reporting the flags the descriptor was opened with.
+var isWindows = process.platform === 'win32';
+
 // wasm32 fixture compiled with clang --target=wasm32 -nostdlib (Homebrew LLVM
 // 22). It imports fd_write, fd_read and poll_oneoff, exports memory, _start and
 // three getters. Kept inline so the test has no build-time toolchain
@@ -347,10 +352,19 @@ describe('wasi', () => {
             assert.strictEqual(wasi.fd_sync(99), 8);
 
             // fd flags are stored and reported by fd_fdstat_get
-            assert.strictEqual(wasi.fd_fdstat_set_flags(fd, 1), 0);
-            assert.strictEqual(wasi.fd_fdstat_get(fd, 400), 0);
-            assert.strictEqual(view().getUint16(402, true), 1);
-            assert.strictEqual(wasi.fd_fdstat_set_flags(99, 1), 8);
+            if (isWindows) {
+                // uvwasi refuses the call before it even looks at the
+                // descriptor, so an unknown descriptor reports ENOSYS too
+                assert.strictEqual(wasi.fd_fdstat_set_flags(fd, 1), 52);
+                assert.strictEqual(wasi.fd_fdstat_set_flags(99, 1), 52);
+                assert.strictEqual(wasi.fd_fdstat_get(fd, 400), 0);
+                assert.strictEqual(view().getUint16(402, true), 0);
+            } else {
+                assert.strictEqual(wasi.fd_fdstat_set_flags(fd, 1), 0);
+                assert.strictEqual(wasi.fd_fdstat_get(fd, 400), 0);
+                assert.strictEqual(view().getUint16(402, true), 1);
+                assert.strictEqual(wasi.fd_fdstat_set_flags(99, 1), 8);
+            }
 
             // ATIM_NOW | MTIM_NOW
             assert.strictEqual(wasi.fd_filestat_set_times(fd, 0, 0, 10), 0);
@@ -821,19 +835,30 @@ describe('wasi', () => {
             assert.strictEqual(wasi.fd_allocate(fd, 0, 8), 0);
             assert.strictEqual(fs.statSync(file).size, 8);
 
-            // append ignores the tracked offset and moves the host position
-            assert.strictEqual(wasi.fd_fdstat_set_flags(fd, 1), 0);
+            // append ignores the tracked offset and moves the host position;
+            // Windows cannot enable append-on-write, so there the call reports
+            // ENOSYS and the write lands at the tracked position instead
             new Uint8Array(memory.buffer, 1300, 1).set(Buffer.from('Z'));
-            assert.strictEqual(wasi.fd_write(fd, 1010, 1, 760), 0);
-            assert.strictEqual(view().getUint32(760, true), 1);
-            assert.strictEqual(fs.statSync(file).size, 9);
-            assert.strictEqual(wasi.fd_tell(fd, 760), 0);
-            assert.strictEqual(Number(view().getBigUint64(760, true)), 9);
+            if (isWindows) {
+                assert.strictEqual(wasi.fd_fdstat_set_flags(fd, 1), 52);
+                assert.strictEqual(wasi.fd_write(fd, 1010, 1, 760), 0);
+                assert.strictEqual(view().getUint32(760, true), 1);
+                assert.strictEqual(fs.statSync(file).size, 8);
+                assert.strictEqual(wasi.fd_tell(fd, 760), 0);
+                assert.strictEqual(Number(view().getBigUint64(760, true)), 3);
+            } else {
+                assert.strictEqual(wasi.fd_fdstat_set_flags(fd, 1), 0);
+                assert.strictEqual(wasi.fd_write(fd, 1010, 1, 760), 0);
+                assert.strictEqual(view().getUint32(760, true), 1);
+                assert.strictEqual(fs.statSync(file).size, 9);
+                assert.strictEqual(wasi.fd_tell(fd, 760), 0);
+                assert.strictEqual(Number(view().getBigUint64(760, true)), 9);
 
-            // seek from the end sees the appended byte
-            assert.strictEqual(wasi.fd_seek(fd, -1, 2, 760), 0);
-            assert.strictEqual(wasi.fd_read(fd, 1000, 1, 760), 0);
-            assert.strictEqual(text(1200, 1), 'Z');
+                // seek from the end sees the appended byte
+                assert.strictEqual(wasi.fd_seek(fd, -1, 2, 760), 0);
+                assert.strictEqual(wasi.fd_read(fd, 1000, 1, 760), 0);
+                assert.strictEqual(text(1200, 1), 'Z');
+            }
             assert.strictEqual(wasi.fd_close(fd), 0);
         } finally {
             rmSyncRetry(dir);
