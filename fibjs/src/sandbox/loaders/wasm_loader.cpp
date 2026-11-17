@@ -54,6 +54,15 @@ static v8::Local<v8::Value> wasm_member(Isolate* isolate, v8::Local<v8::Object> 
     return value;
 }
 
+// A failed intrinsic lookup comes back as an empty handle: a JIT-less build
+// (iOS/iPadOS) exposes no WebAssembly at all, and a tampered intrinsic can
+// throw. Dereferencing an empty Local is a null-pointer crash, so every
+// function check goes through here.
+static bool is_function(v8::Local<v8::Value> value)
+{
+    return !value.IsEmpty() && value->IsFunction();
+}
+
 // Rethrows a captured V8 exception after prefixing its message with the module
 // path, which is what Node does for wasm compile and link failures.
 //
@@ -99,7 +108,7 @@ static result_t throw_link_error(Isolate* isolate, const exlib::string& message)
     v8::Local<v8::Value> ctor = wasm_member(isolate, wasm_intrinsic(isolate), "LinkError");
     v8::Local<v8::Value> error;
 
-    if (ctor->IsFunction()) {
+    if (is_function(ctor)) {
         v8::Local<v8::Value> arg = isolate->NewString(message);
         if (!ctor.As<v8::Function>()->NewInstance(context, 1, &arg).ToLocal(&error))
             error = v8::Local<v8::Value>();
@@ -139,7 +148,7 @@ result_t wasm_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string
 
     v8::Local<v8::Value> module_ctor = wasm_member(isolate, wasm_intrinsic(isolate), "Module");
     v8::Local<v8::Value> instance_ctor = wasm_member(isolate, wasm_intrinsic(isolate), "Instance");
-    if (!module_ctor->IsFunction() || !instance_ctor->IsFunction())
+    if (!is_function(module_ctor) || !is_function(instance_ctor))
         return result_t::make(CALL_E_INVALID_CALL).with_message(
             "WebAssembly is not available in this context.");
 
@@ -171,7 +180,7 @@ result_t wasm_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string
     std::vector<exlib::string> namespaces;
     {
         v8::Local<v8::Value> list_fn = wasm_member(isolate, module_ctor.As<v8::Object>(), "imports");
-        if (!list_fn->IsFunction())
+        if (!is_function(list_fn))
             return result_t::make(CALL_E_INVALID_CALL).with_message(
                 "WebAssembly.Module.imports is not available in this context.");
 
