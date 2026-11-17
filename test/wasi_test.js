@@ -8,6 +8,11 @@ var coroutine = require('coroutine');
 // below instead of from the teardown.
 var leftovers = [];
 
+// JIT-less builds (iOS/iPadOS compile V8 with V8_JITLESS) execute JavaScript
+// only through the interpreter and do not expose the WebAssembly API at all,
+// so the wasm fixtures cannot be instantiated there.
+var hasWasm = typeof WebAssembly !== 'undefined';
+
 // Windows releases host handles asynchronously, so a directory the host just
 // closed can still look busy to a recursive remove: the file delete fails and
 // the rmdir then reports ENOTEMPTY. Retry with a GC and a short sleep, like the
@@ -149,7 +154,7 @@ var FILE_RIGHTS = 0x08E001FF;
 // Bits 0..27: everything a preopened directory can hand out to a new file.
 var PREOPEN_INHERITING = 0x0FFFFFFF;
 
-describe('wasi', () => {
+describe('wasi', { skip: !hasWasm }, () => {
     // A directory the suites could not remove is a failure of its own: the
     // teardown cannot report it without hiding the assertion that left it.
     after(() => {

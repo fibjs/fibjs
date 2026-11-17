@@ -26,6 +26,11 @@ var coroutine = require('coroutine');
 //                  import_name("fd_write")))
 //   extern int fd_write(int fd, const void* iovs, int iovs_len, int* nwritten);
 //   __attribute__((export_name("_start"))) void _start(void) { ... }
+
+// JIT-less builds (iOS/iPadOS compile V8 with V8_JITLESS) do not expose the
+// WebAssembly API, so none of the fixtures can be loaded there.
+var hasWasm = typeof WebAssembly !== 'undefined';
+
 var MODULE_FIXTURE = path.join(__dirname, 'wasm_module.wasm');
 var WASI_FIXTURE = path.join(__dirname, 'wasm_wasi_module.wasm');
 
@@ -74,7 +79,7 @@ function linkedModule(name) {
     return { dir: dir, file: file };
 }
 
-describe('wasm module', () => {
+describe('wasm module', { skip: !hasWasm }, () => {
     it('loads a wasm file and resolves its import namespace as a module', () => {
         var fixture = linkedModule('mod.wasm');
         try {
@@ -169,7 +174,7 @@ describe('wasm module', () => {
     });
 });
 
-describe('wasm module with wasi', () => {
+describe('wasm module with wasi', { skip: !hasWasm }, () => {
     it('starts a registered host on the value returned by require', () => {
         var dir = tempDir();
         var output = path.join(dir, 'out.txt');

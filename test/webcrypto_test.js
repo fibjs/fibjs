@@ -5,6 +5,10 @@ const crypto = require('crypto');
 // Detect if running in fibjs or nodejs
 const isFibjs = typeof process !== 'undefined' && process.versions && process.versions.fibjs;
 
+// JIT-less builds (iOS/iPadOS compile V8 with V8_JITLESS) have no WebAssembly,
+// so the cases that need a WebAssembly.Memory cannot run there.
+const hasWasm = typeof WebAssembly !== 'undefined';
+
 describe("webcrypto", () => {
     it("global.crypto should equal require('crypto').webcrypto", () => {
         assert.strictEqual(global.crypto, require('crypto').webcrypto);
@@ -160,7 +164,8 @@ describe("webcrypto", () => {
                 assert.strictEqual(hasNonZero, true);
             });
 
-            it("should fill a view over a large backing store, not the whole buffer", () => {
+            it("should fill a view over a large backing store, not the whole buffer",
+                { skip: !hasWasm }, () => {
                 // WebAssembly.Memory is normally > 64KB, so the 65536-byte
                 // limit must apply to the view, not to the backing store.
                 const memory = new WebAssembly.Memory({ initial: 2 }); // 128KB
@@ -178,7 +183,8 @@ describe("webcrypto", () => {
                     "bytes after the view were modified");
             });
 
-            it("should fill a view over shared WebAssembly memory", () => {
+            it("should fill a view over shared WebAssembly memory",
+                { skip: !hasWasm }, () => {
                 const memory = new WebAssembly.Memory({ initial: 2, maximum: 2, shared: true });
                 const view = new Uint8Array(memory.buffer, 64, 16);
 
