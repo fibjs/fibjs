@@ -2211,8 +2211,28 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
 
             // `--update`: ask the registry again instead of keeping what is
             // already there, and pass that down to the subtree (npm's
-            // `update <pkg>` refreshes what that package needs too)
+            // `update <pkg>` refreshes what that package needs too).
+            //
+            // A copy an *earlier level of this run* resolved is not "what is
+            // already there": it is the newest the range allowed, and reusing it
+            // is what keeps a dependency that points back at its own provider
+            // finite (`mlly` requires `pkg-types`, whose edge asks for `mlly`
+            // again). Refreshing those too nested another copy at every level and
+            // the walk went down until the stack was gone, so `--update` could not
+            // install a real project at all. A copy that was on disk *before* this
+            // run is still refreshed: that is what the flag is for
             const refresh = should_update(dname, level_info);
+
+            let reuse_fresh = false;
+
+            if (refresh) {
+                const fresh = find_provided_node(dname, level_info.parent);
+
+                // `from_lock` is a node the lockfile described, not one this run
+                // resolved: it is exactly what `--update` has to ask about again
+                reuse_fresh = fresh !== undefined && fresh.new_module === true &&
+                    fresh.from_lock !== true && node_satisfies(fresh, v);
+            }
 
             if (refresh) {
                 level_info.updated = true;
@@ -2365,8 +2385,10 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                 }
 
                 // `find_version` answers "an ancestor already provides this",
-                // which is not the answer a refresh is looking for
-                if (refresh || !find_version(dname, v, level_info))
+                // which is not the answer a refresh is looking for — unless that
+                // copy is one this run resolved (`reuse_fresh`), which is the
+                // newest the range allowed and must not be asked for again
+                if ((refresh && !reuse_fresh) || !find_version(dname, v, level_info))
                     child_level_info = level_info.node_modules[dname] = fetch_leveled_module_info(dname, v, level_info, base_dir);
 
                 // check platform compatibility; skip optional deps that don't match

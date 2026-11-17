@@ -4578,6 +4578,18 @@ describe('opt_tools install lifecycle', function () {
                 '1.0.1': pack('day2-extra', '1.0.1'),
             };
 
+            // two packages that require each other: refreshing every edge of the
+            // walk has to reuse what the run itself resolved, or the pair nests a
+            // new level for ever
+            registry['day2-loop-a'] = {
+                '1.0.0': pack('day2-loop-a', '1.0.0', { dependencies: { 'day2-loop-b': '^1.0.0' } }),
+                '1.0.1': pack('day2-loop-a', '1.0.1', { dependencies: { 'day2-loop-b': '^1.0.0' } }),
+            };
+            registry['day2-loop-b'] = {
+                '1.0.0': pack('day2-loop-b', '1.0.0', { dependencies: { 'day2-loop-a': '^1.0.0' } }),
+                '1.0.1': pack('day2-loop-b', '1.0.1', { dependencies: { 'day2-loop-a': '^1.0.0' } }),
+            };
+
             // a package that ships a binary for every platform as an optional
             // dependency, the way esbuild and sharp do: only the entry that matches
             // this machine is installed, and a lockfile describes them all
@@ -4770,6 +4782,28 @@ describe('opt_tools install lifecycle', function () {
             assert.equal(installed(targetDir, 'day2-pkg'), '1.0.1', 'the disk follows the lockfile');
             assert.equal(JSON.parse(fs.readFileSync(path.join(targetDir, 'package.json'), 'utf8'))
                 .dependencies['day2-pkg'], '^1.0.0', 'package.json is not touched');
+        });
+
+        it('--update resolves a pair of packages that require each other', function () {
+            var targetDir = makeProject({ 'day2-loop-a': '1.0.0' });
+
+            assert.equal(runDay2(targetDir).status, 0);
+            assert.equal(locked(targetDir, 'day2-loop-a'), '1.0.0');
+            assert.equal(locked(targetDir, 'day2-loop-b'), '1.0.1', 'what it needs is installed too');
+
+            writePkgjson(targetDir, { 'day2-loop-a': '^1.0.0' });
+
+            // every level asks the registry again: the copy this run already put in
+            // place is the answer, and without that the pair nested a new level per
+            // turn until the stack was gone
+            var res = runDay2(targetDir, ['--install', '--update']);
+            var out = outputOf(res);
+
+            assert.equal(res.status, 0, diag(targetDir, res) + '\n' + out);
+            assert.ok(out.indexOf('Maximum call stack size exceeded') === -1,
+                'the walk ends:\n' + out);
+            assert.equal(locked(targetDir, 'day2-loop-a'), '1.0.1', 'the refreshed copy');
+            assert.equal(locked(targetDir, 'day2-loop-b'), '1.0.1', 'and the one it requires back');
         });
 
         it('--update <pkg> refreshes that package only', function () {
