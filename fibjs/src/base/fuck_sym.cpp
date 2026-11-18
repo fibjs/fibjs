@@ -200,7 +200,7 @@ float powf(float x, float y)
 #endif
 
 #ifdef GLIB_C_MATH2
-__asm__(".symver _log2,log2@GLIBC_" GLIB_C_MATH);
+__asm__(".symver _log2,log2@GLIBC_" GLIB_C_MATH2);
 double _log2(double x);
 double log2(double x)
 {
