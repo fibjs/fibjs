@@ -1,0 +1,5 @@
+{
+  "name": "npx-arraybin",
+  "version": "1.0.0",
+  "bin": ["cli/array-tool.js"]
+}

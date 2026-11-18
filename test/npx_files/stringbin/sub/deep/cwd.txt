@@ -1,0 +1,1 @@
+nested working directory for the string-bin lookup test

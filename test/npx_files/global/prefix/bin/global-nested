@@ -1,0 +1,3 @@
+#!/usr/bin/env node
+const { execFileSync } = require('child_process');
+process.stdout.write(execFileSync('global-helper', { encoding: 'utf8' }));

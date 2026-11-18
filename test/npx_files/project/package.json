@@ -1,0 +1,7 @@
+{
+  "name": "npx-project",
+  "version": "1.0.0",
+  "bin": {
+    "own-tool": "cli/own-tool.js"
+  }
+}

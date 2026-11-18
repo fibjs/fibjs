@@ -1,0 +1,8 @@
+{
+  "name": "npx-binpath",
+  "version": "1.0.0",
+  "bin": {
+    "binpath-rel": "../cli/tool.js",
+    "binpath-abs": "/cli/tool.js"
+  }
+}

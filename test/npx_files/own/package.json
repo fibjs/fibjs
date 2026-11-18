@@ -1,0 +1,7 @@
+{
+  "name": "npx-own",
+  "version": "1.0.0",
+  "bin": {
+    "own-only": "cli/own-only.js"
+  }
+}

@@ -1,0 +1,1 @@
+nested working directory for npx lookup tests

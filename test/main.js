@@ -129,6 +129,7 @@ if (process.platform != "android") {
     run("./cov_test.js");
     run("./opt_tools_test.js");
     run("./scripts_test.js");
+    run("./npx_test.js");
 
     // selfzip repackages the running binary and loads a prebuilt helper addon
     // (fib-inject) to do it; that addon has no iOS build, and iOS does not
