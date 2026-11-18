@@ -675,14 +675,15 @@ result_t HttpRequest::end(obj_ptr<Message_base>& retVal, AsyncHandle ac)
 
         ON_STATE(AsyncEnd, end)
         {
-            result_t hr = m_pThis->m_message->end(m_retVal, next(resume));
-            // the inner message wrote itself; the caller keeps the request
-            m_retVal = m_pThis;
-            return hr;
+            return m_pThis->m_message->end(m_retVal, next(resume));
         }
 
         ON_STATE(AsyncEnd, resume)
         {
+            // the inner message wrote itself; the caller keeps the request.
+            // 只在 resume 覆盖：end 阶段交出票据后本机可能已被内层完成而退休。
+            m_retVal = m_pThis;
+
             if (m_ac)
                 m_ac.post(result_t());
             return next();
@@ -725,13 +726,15 @@ result_t HttpRequest::end(Buffer_base* data, obj_ptr<Message_base>& retVal, Asyn
 
         ON_STATE(AsyncEnd, end)
         {
-            result_t hr = m_pThis->m_message->end(m_data, m_retVal, next(resume));
-            m_retVal = m_pThis;
-            return hr;
+            return m_pThis->m_message->end(m_data, m_retVal, next(resume));
         }
 
         ON_STATE(AsyncEnd, resume)
         {
+            // the inner message wrote itself; the caller keeps the request.
+            // 只在 resume 覆盖：end 阶段交出票据后本机可能已被内层完成而退休。
+            m_retVal = m_pThis;
+
             if (m_ac)
                 m_ac.post(result_t());
             return next();
@@ -776,13 +779,15 @@ result_t HttpRequest::end(Buffer_base* data, exlib::string encoding, obj_ptr<Mes
 
         ON_STATE(AsyncEnd, end)
         {
-            result_t hr = m_pThis->m_message->end(m_data, m_encoding, m_retVal, next(resume));
-            m_retVal = m_pThis;
-            return hr;
+            return m_pThis->m_message->end(m_data, m_encoding, m_retVal, next(resume));
         }
 
         ON_STATE(AsyncEnd, resume)
         {
+            // the inner message wrote itself; the caller keeps the request.
+            // 只在 resume 覆盖：end 阶段交出票据后本机可能已被内层完成而退休。
+            m_retVal = m_pThis;
+
             if (m_ac)
                 m_ac.post(result_t());
             return next();
@@ -828,13 +833,15 @@ result_t HttpRequest::end(exlib::string data, exlib::string encoding, obj_ptr<Me
 
         ON_STATE(AsyncEnd, end)
         {
-            result_t hr = m_pThis->m_message->end(m_data, m_encoding, m_retVal, next(resume));
-            m_retVal = m_pThis;
-            return hr;
+            return m_pThis->m_message->end(m_data, m_encoding, m_retVal, next(resume));
         }
 
         ON_STATE(AsyncEnd, resume)
         {
+            // the inner message wrote itself; the caller keeps the request.
+            // 只在 resume 覆盖：end 阶段交出票据后本机可能已被内层完成而退休。
+            m_retVal = m_pThis;
+
             if (m_ac)
                 m_ac.post(result_t());
             return next();
