@@ -17,6 +17,7 @@
 #include "ifs/encoding.h"
 #include "ifs/process.h"
 #include "ifs/fs.h"
+#include "ifs/json.h"
 #undef stdout
 #undef stderr
 #include "ifs/child_process.h"
@@ -187,24 +188,15 @@ static int32_t path_type(const exlib::string& path)
     return isolate->m_topSandbox->file_type(path);
 }
 
-// <name> in node_modules/.bin, nearest ancestor first. Absolute paths and names
-// carrying a separator are left to the caller: only bare command names are
-// resolved like npm exec does.
-static bool find_bin_upward(const exlib::string& name, exlib::string& retVal)
+// Walk from `start` to the filesystem root. `fn` returns true to stop early.
+template <typename Fn>
+static bool walk_up(const exlib::string& start, Fn fn)
 {
-    if (name.empty() || name.find('/') != exlib::string::npos || name.find('\\') != exlib::string::npos)
-        return false;
-
-    exlib::string dir;
-    process_base::cwd(dir);
+    exlib::string dir = start;
 
     while (!dir.empty()) {
-        exlib::string path = dir + "/node_modules/.bin/" + name;
-
-        if (path_type(path) == 0) {
-            retVal = path;
+        if (fn(dir))
             return true;
-        }
 
         exlib::string parent;
         os_dirname(dir, parent);
@@ -218,28 +210,418 @@ static bool find_bin_upward(const exlib::string& name, exlib::string& retVal)
     return false;
 }
 
+// Only bare command names are resolved like npm exec: absolute paths and
+// names carrying a separator are left to the caller.
+static bool is_bare_name(const exlib::string& name)
+{
+    return !name.empty() && name.find('/') == exlib::string::npos && name.find('\\') == exlib::string::npos;
+}
+
+// <name> in node_modules/.bin, nearest ancestor first.
+static bool find_bin_upward(const exlib::string& name, exlib::string& retVal)
+{
+    if (!is_bare_name(name))
+        return false;
+
+    exlib::string dir;
+    process_base::cwd(dir);
+
+    return walk_up(dir, [&](const exlib::string& current) {
+        exlib::string path = current + "/node_modules/.bin/" + name;
+
+        if (path_type(path) != 0)
+            return false;
+
+        retVal = path;
+        return true;
+    });
+}
+
 // Nearest ancestor that holds a package.json.
 static bool find_package_root(exlib::string& retVal)
 {
     exlib::string dir;
     process_base::cwd(dir);
 
-    while (!dir.empty()) {
-        if (path_type(dir + "/package.json") == 0) {
-            retVal = dir;
-            return true;
-        }
+    return walk_up(dir, [&](const exlib::string& current) {
+        if (path_type(current + "/package.json") != 0)
+            return false;
 
-        exlib::string parent;
-        os_dirname(dir, parent);
+        retVal = current;
+        return true;
+    });
+}
 
-        if (parent.empty() || parent == dir)
+// Nearest ancestor that anchors a project the way npm does: a folder holding
+// either a package.json or a node_modules directory. `npm exec` uses this as
+// its local prefix, so a workspace package (node_modules only) still counts.
+static bool find_local_prefix(exlib::string& retVal)
+{
+    exlib::string dir;
+    process_base::cwd(dir);
+
+    return walk_up(dir, [&](const exlib::string& current) {
+        if (path_type(current + "/package.json") != 0 && path_type(current + "/node_modules") != 1)
+            return false;
+
+        retVal = current;
+        return true;
+    });
+}
+
+// Read <dir>/package.json. Returns false when it is missing or is not a JSON
+// object.
+static bool load_package_json(const exlib::string& dir, v8::Local<v8::Value>& retVal)
+{
+    Variant var;
+    result_t hr = fs_base::cc_readFile(dir + "/package.json", "", var, Isolate::current());
+
+    if (hr.failed())
+        return false;
+
+    Buffer* b = (Buffer*)var.object();
+
+    if (!b)
+        return false;
+
+    exlib::string buf;
+    b->toString(buf);
+    hr = json_base::decode(buf, retVal);
+
+    return hr.ok() && !retVal.IsEmpty() && retVal->IsObject();
+}
+
+// npm-normalize-package-bin makes every bin target relative to the package
+// root: backslashes become '/', and `..` (or a leading '/') can never leave
+// the package. `../cli.js` and `/cli.js` both mean `<pkg>/cli.js`.
+static exlib::string normalize_bin_target(const exlib::string& target)
+{
+    exlib::string unix_target;
+
+    for (size_t i = 0; i < target.length(); i++) {
+        char c = target[i];
+        unix_target += (c == '\\') ? '/' : c;
+    }
+
+    std::vector<exlib::string> parts;
+    size_t i = 0;
+
+    while (i <= unix_target.length()) {
+        size_t end = unix_target.find('/', i);
+
+        if (end == exlib::string::npos)
+            end = unix_target.length();
+
+        exlib::string part = unix_target.substr(i, end - i);
+
+        if (part.empty() || part == ".") {
+            // nothing to add
+        } else if (part == "..") {
+            if (!parts.empty())
+                parts.pop_back();
+        } else
+            parts.push_back(part);
+
+        if (end == unix_target.length())
             break;
 
-        dir = parent;
+        i = end + 1;
+    }
+
+    exlib::string retVal;
+
+    for (auto& part : parts) {
+        if (!retVal.empty())
+            retVal += '/';
+        retVal += part;
+    }
+
+    return retVal;
+}
+
+// A normalized `package.json#bin` entry. `name` is the command exposed in
+// node_modules/.bin; `target` is package-relative (npm-normalize-package-bin).
+struct bin_entry {
+    exlib::string name;
+    exlib::string target;
+};
+
+// Read the package name and normalized bin entries. The command name is the
+// basename of the key (or of the package name for `bin: "cli.js"`, or of the
+// target for the legacy array form).
+static bool read_package_bins(const v8::Local<v8::Value>& v, std::vector<bin_entry>& bins, exlib::string& pkg_name)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> o = v.As<v8::Object>();
+    v8::Local<v8::Value> namev = o->Get(context, isolate->NewString("name")).FromMaybe(v8::Local<v8::Value>());
+
+    if (!namev.IsEmpty() && namev->IsString())
+        pkg_name = isolate->toString(namev);
+
+    v8::Local<v8::Value> binv = o->Get(context, isolate->NewString("bin")).FromMaybe(v8::Local<v8::Value>());
+
+    if (binv.IsEmpty())
+        return false;
+
+    auto add = [&](const exlib::string& name, const exlib::string& target) {
+        exlib::string bin_name = path_basename(name);
+        exlib::string bin_target = normalize_bin_target(target);
+
+        if (bin_name.empty() || bin_target.empty())
+            return;
+
+        // normalizeObject: a later duplicate key replaces the earlier one.
+        for (auto& entry : bins) {
+            if (entry.name == bin_name) {
+                entry.target = bin_target;
+                return;
+            }
+        }
+
+        bins.push_back({ bin_name, bin_target });
+    };
+
+    if (binv->IsString()) {
+        if (pkg_name.empty())
+            return false;
+        add(pkg_name, isolate->toString(binv));
+    } else if (binv->IsArray()) {
+        // Legacy array form: every entry is exposed under its basename.
+        v8::Local<v8::Array> arr = binv.As<v8::Array>();
+
+        for (uint32_t i = 0; i < arr->Length(); i++) {
+            v8::Local<v8::Value> value;
+
+            if (!arr->Get(context, i).ToLocal(&value) || !value->IsString())
+                continue;
+
+            exlib::string target = isolate->toString(value);
+            add(target, target);
+        }
+    } else if (binv->IsObject()) {
+        v8::Local<v8::Object> obj = binv.As<v8::Object>();
+        v8::Local<v8::Array> keys;
+
+        if (!obj->GetOwnPropertyNames(context).ToLocal(&keys))
+            return false;
+
+        for (uint32_t i = 0; i < keys->Length(); i++) {
+            v8::Local<v8::Value> key;
+
+            if (!keys->Get(context, i).ToLocal(&key) || !key->IsString())
+                continue;
+
+            v8::Local<v8::Value> value;
+
+            if (!obj->Get(context, key).ToLocal(&value) || !value->IsString())
+                continue;
+
+            add(isolate->toString(key), isolate->toString(value));
+        }
+    } else
+        return false;
+
+    return !bins.empty();
+}
+
+static bool load_package_bins(const exlib::string& pkg_dir, std::vector<bin_entry>& bins, exlib::string& pkg_name)
+{
+    v8::Local<v8::Value> v;
+
+    return load_package_json(pkg_dir, v) && read_package_bins(v, bins, pkg_name);
+}
+
+// A bin entry of the local project's own package.json. npm exec checks this
+// before node_modules/.bin, so a package can run its own cli even when it was
+// never linked into .bin (`npm exec` installs the local directory into its
+// cache instead; fibjs runs the file in place). `bin_dir` is the package's
+// .bin directory, which npm puts first on PATH for the command.
+static bool find_package_bin(const exlib::string& name, exlib::string& retVal, exlib::string& bin_dir)
+{
+    if (!is_bare_name(name))
+        return false;
+
+    exlib::string pkg_root;
+
+    if (!find_local_prefix(pkg_root))
+        return false;
+
+    std::vector<bin_entry> bins;
+    exlib::string pkg_name;
+
+    if (!load_package_bins(pkg_root, bins, pkg_name))
+        return false;
+
+    exlib::string target;
+
+    for (auto& entry : bins) {
+        if (entry.name == name) {
+            target = entry.target;
+            break;
+        }
+    }
+
+    if (target.empty())
+        return false;
+
+    exlib::string path = pkg_root + "/" + target;
+    path_base::normalize(path, path);
+
+    if (path_type(path) != 0)
+        return false;
+
+    bin_dir = pkg_root + "/node_modules/.bin";
+    retVal = path;
+    return true;
+}
+
+static bool get_env_string(const char* key, exlib::string& retVal)
+{
+    const char* value = getenv(key);
+
+    if (!value || !*value)
+        return false;
+
+    retVal = value;
+    return true;
+}
+
+// <global prefix>/bin/<name>, matching npm's globalPrefix derivation: an
+// explicit prefix wins, otherwise the runtime's install prefix. `npm exec`
+// checks this after node_modules/.bin and before resolving a package spec.
+static bool find_global_bin(const exlib::string& name, exlib::string& retVal)
+{
+    if (!is_bare_name(name))
+        return false;
+
+    exlib::string prefix;
+    bool from_exec_path = false;
+
+    if (!get_env_string("npm_config_prefix", prefix) && !get_env_string("NPM_CONFIG_PREFIX", prefix)) {
+        if (!get_env_string("PREFIX", prefix)) {
+            exlib::string execPath;
+
+            if (process_base::get_execPath(execPath).failed())
+                return false;
+
+#ifdef _WIN32
+            os_dirname(execPath, prefix);
+#else
+            exlib::string bin_dir;
+            os_dirname(execPath, bin_dir);
+            os_dirname(bin_dir, prefix);
+#endif
+            from_exec_path = true;
+        }
+    }
+
+#ifndef _WIN32
+    // npm applies DESTDIR only to the prefix derived from the executable.
+    exlib::string destdir;
+
+    if (from_exec_path && get_env_string("DESTDIR", destdir))
+        prefix = destdir + prefix;
+#endif
+
+#ifdef _WIN32
+    exlib::string path = prefix + "/" + name;
+#else
+    exlib::string path = prefix + "/bin/" + name;
+#endif
+
+    path_base::normalize(path, path);
+
+    if (path_type(path) != 0)
+        return false;
+
+    retVal = path;
+    return true;
+}
+
+// npm's get-bin-from-manifest: when every bin aliases the same target the
+// first key wins; otherwise the bin named after the unscoped package name is
+// selected. Anything else has no executable npm can pick.
+static bool select_package_bin(const std::vector<bin_entry>& bins, const exlib::string& pkg_name, exlib::string& retVal)
+{
+    if (bins.empty())
+        return false;
+
+    bool same_target = true;
+
+    for (size_t i = 1; i < bins.size(); i++) {
+        if (bins[i].target != bins[0].target) {
+            same_target = false;
+            break;
+        }
+    }
+
+    if (same_target) {
+        retVal = bins[0].name;
+        return true;
+    }
+
+    exlib::string unscoped = path_basename(pkg_name);
+
+    for (auto& entry : bins) {
+        if (entry.name == unscoped) {
+            retVal = entry.name;
+            return true;
+        }
     }
 
     return false;
+}
+
+// A bare package name, or a scoped `@scope/name`. Path-like arguments are not
+// package specs and must not probe node_modules.
+static bool is_package_name(const exlib::string& name)
+{
+    if (name.empty() || name[0] == '.' || name[0] == '/' || name[0] == '\\')
+        return false;
+
+    if (name.find('\\') != exlib::string::npos)
+        return false;
+
+    size_t slash = name.find('/');
+
+    if (slash == exlib::string::npos)
+        return true;
+
+    exlib::string rest = name.substr(slash + 1);
+
+    return name[0] == '@' && slash > 1 && !rest.empty()
+        && rest != "." && rest != ".."
+        && name.find('/', slash + 1) == exlib::string::npos;
+}
+
+// `npx <package>` translates the package name to its bin name through the
+// top-level local tree (npm's Arborist can also find nested nodes), then runs
+// the resulting .bin entry; npm runs it by name, so the link has to exist. The
+// global equivalent needs the registry manifest first in npm, so it is
+// intentionally not part of this offline lookup.
+static bool find_local_package_bin(const exlib::string& name, exlib::string& retVal)
+{
+    if (!is_package_name(name))
+        return false;
+
+    exlib::string prefix;
+
+    if (!find_local_prefix(prefix))
+        return false;
+
+    std::vector<bin_entry> bins;
+    exlib::string pkg_name;
+
+    if (!load_package_bins(prefix + "/node_modules/" + name, bins, pkg_name))
+        return false;
+
+    exlib::string bin_name;
+
+    if (!select_package_bin(bins, pkg_name, bin_name))
+        return false;
+
+    return find_bin_upward(bin_name, retVal);
 }
 
 // Is <cmd> a node script installed in node_modules/.bin? Used by the command
@@ -479,7 +861,67 @@ static exlib::string replace_node_command(exlib::string cmd_str)
     return result;
 }
 
-static result_t run_shell(exlib::string cmd_str, const std::vector<char*>& args, exlib::string cwd)
+// npm's set-path: <start>/node_modules/.bin and every ancestor's, nearest
+// first. Missing directories stay on PATH, exactly like npm.
+static exlib::string build_bin_path(const exlib::string& start)
+{
+    exlib::string retVal;
+
+    walk_up(start, [&](const exlib::string& dir) {
+        if (!retVal.empty())
+            retVal += PATH_DELIMITER;
+        retVal += dir + "/node_modules/.bin";
+        return false;
+    });
+
+    return retVal;
+}
+
+static exlib::string join_bin_path(const exlib::string& extra_bin, const exlib::string& start, const exlib::string& inherited)
+{
+    exlib::string retVal;
+
+    if (!extra_bin.empty()) {
+        retVal = extra_bin;
+        retVal += PATH_DELIMITER;
+    }
+
+    retVal += build_bin_path(start);
+
+    if (!inherited.empty()) {
+        retVal += PATH_DELIMITER;
+        retVal += inherited;
+    }
+
+    return retVal;
+}
+
+// A node/fibjs script stays in this process, so its child_process calls have
+// to see the same PATH a spawned script would get.
+static void prepend_process_path(const exlib::string& start, const exlib::string& extra_bin)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Object> env;
+    result_t hr = process_base::get_env(env);
+
+    if (hr.failed())
+        return;
+
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Value> path_val = env->Get(context, isolate->NewString("PATH")).FromMaybe(v8::Local<v8::Value>());
+    exlib::string inherited;
+
+    if (!IsEmpty(path_val))
+        inherited = isolate->toString(path_val);
+
+    env->Set(context, isolate->NewString("PATH"),
+                isolate->NewString(join_bin_path(extra_bin, start, inherited)))
+        .IsJust();
+    // npm exports INIT_CWD for the command it runs, including a .bin script.
+    env->Set(context, isolate->NewString("INIT_CWD"), isolate->NewString(start)).IsJust();
+}
+
+static result_t run_shell(exlib::string cmd_str, const std::vector<char*>& args, exlib::string cwd, const exlib::string& extra_bin = "")
 {
     exlib::string cmd = replace_node_command(cmd_str);
 
@@ -509,22 +951,22 @@ static result_t run_shell(exlib::string cmd_str, const std::vector<char*>& args,
     if (!cwd.empty())
         opts->Set(context, isolate->NewString("cwd"), isolate->NewString(cwd)).IsJust();
 
-    // Add node_modules/.bin to PATH. The tooling comes from the directory the
-    // command runs in: a package script runs from the root of its package, a
-    // .bin entry from the directory it was typed in.
+    // Add every ancestor node_modules/.bin to PATH, like npm's run-script:
+    // the tooling of a project is visible to the command and to the commands
+    // it spawns even when the working directory is deeply nested. When the
+    // command came from the global prefix, that directory comes first.
     v8::Local<v8::Object> env;
     process_base::get_env(env);
 
     exlib::string workdir;
     process_base::cwd(workdir);
 
-    exlib::string bin_path = (cwd.empty() ? workdir : cwd) + "/node_modules/.bin";
     v8::Local<v8::Value> path_val = env->Get(context, isolate->NewString("PATH")).FromMaybe(v8::Local<v8::Value>());
-    exlib::string new_path = bin_path;
-    if (!IsEmpty(path_val)) {
-        new_path += PATH_DELIMITER;
-        new_path += isolate->toString(path_val);
-    }
+    exlib::string inherited;
+    if (!IsEmpty(path_val))
+        inherited = isolate->toString(path_val);
+
+    exlib::string new_path = join_bin_path(extra_bin, cwd.empty() ? workdir : cwd, inherited);
     env->Set(context, isolate->NewString("PATH"), isolate->NewString(new_path)).IsJust();
     env->Set(context, isolate->NewString("INIT_CWD"), isolate->NewString(workdir)).IsJust();
     opts->Set(context, isolate->NewString("env"), env).IsJust();
@@ -553,6 +995,41 @@ static result_t run_shell(exlib::string cmd_str, const std::vector<char*>& args,
 
     process_base::exit(code);
     return result_t();
+}
+
+// Try to use `path` as the command implementation. A node/fibjs shebang is
+// left to run_main's in-process loader; anything else (shell script, binary,
+// no shebang) goes to the shell. `handled` is false when the file cannot be
+// resolved as a command, so the caller can try the next lookup layer.
+static result_t run_bin_candidate(const exlib::string& path, const exlib::string& extra_bin,
+    const exlib::string& workdir, obj_ptr<Buffer_base>& bin, exlib::string& fname,
+    bool& needUpdateArgv, bool& handled)
+{
+    handled = false;
+
+    Isolate* isolate = Isolate::current();
+
+    if (!isolate || !isolate->m_topSandbox)
+        return result_t();
+
+    exlib::string resolved = path;
+    result_t hr = isolate->m_topSandbox->resolveFile(resolved, "", bin, SandBox::kCommonJS, resolved, NULL);
+
+    if (hr.failed())
+        return result_t();
+
+    handled = true;
+
+    Buffer* b = Buffer::Cast(bin);
+
+    if (is_node_shebang((const char*)b->data(), b->length())) {
+        prepend_process_path(workdir, extra_bin);
+        fname = resolved;
+        needUpdateArgv = true;
+        return result_t();
+    }
+
+    return run_shell(resolved, s_argv, workdir, extra_bin);
 }
 
 result_t SandBox::run_main(exlib::string fname)
@@ -590,66 +1067,88 @@ result_t SandBox::run_main(exlib::string fname)
             exlib::string workdir;
             process_base::cwd(workdir);
 
-            // node_modules/.bin/<name>, nearest ancestor first: like `npm exec`,
-            // a script started in a subdirectory finds the tooling installed at
-            // the root of the project.
+            // `npm exec` order: the local package's own bin entries, then
+            // node_modules/.bin from the working directory upward, then the
+            // global prefix, then a locally installed package name translated
+            // to its bin. fibjs keeps its package.json scripts fallback
+            // between the local bins and the global prefix, so a project
+            // command is not shadowed by an unrelated global binary.
+            hr = result_t();
+
             exlib::string bin_path;
+            exlib::string bin_dir;
+            bool handled = false;
 
-            if (find_bin_upward(rname, bin_path)) {
-                exlib::string resolved = bin_path;
+            if (find_package_bin(rname, bin_path, bin_dir))
+                hr = run_bin_candidate(bin_path, bin_dir, workdir, bin, fname, needUpdateArgv, handled);
 
-                hr = resolveFile(resolved, "", bin, kCommonJS, resolved, NULL);
-                if (hr.ok()) {
-                    Buffer* b = Buffer::Cast(bin);
-
-                    // A node/fibjs script runs on fibjs itself; anything else
-                    // (shell script, binary, no shebang) goes to the shell.
-                    if (is_node_shebang((const char*)b->data(), b->length())) {
-                        // run in-process, argv[1] is updated below
-                        fname = resolved;
-                        needUpdateArgv = true;
-                    } else {
-                        return run_shell(resolved, s_argv, workdir);
-                    }
-                }
+            if (hr.ok() && !handled && find_bin_upward(rname, bin_path)) {
+                // npm puts the directory the command came from first on PATH,
+                // before the working directory's own ancestors.
+                os_dirname(bin_path, bin_dir);
+                hr = run_bin_candidate(bin_path, bin_dir, workdir, bin, fname, needUpdateArgv, handled);
             }
 
-            if (hr.failed()) {
+            if (hr.failed())
+                return hr;
+
+            if (!handled) {
                 // package.json scripts of the nearest package, run from its root
                 exlib::string pkg_root;
 
-                if (!find_package_root(pkg_root))
+                if (find_package_root(pkg_root)) {
+                    v8::Local<v8::Value> v;
+                    exlib::string buf;
+                    Isolate* isolate = holder();
+                    v8::Local<v8::Context> context = isolate->context();
+
+                    hr = loadFile(pkg_root + "/package.json", bin);
+                    if (hr.failed())
+                        return result_t(CALL_E_FILE_NOT_FOUND);
+
+                    bin->toString(buf);
+                    hr = json_base::decode(buf, v);
+                    if (hr.failed())
+                        return hr;
+
+                    if (v.IsEmpty() || !v->IsObject())
+                        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_PACKAGE_CONFIG").with_message("SandBox: Invalid package.json");
+
+                    v8::Local<v8::Object> o = v.As<v8::Object>();
+                    v8::Local<v8::Value> scripts = o->Get(context, isolate->NewString("scripts", 7)).FromMaybe(v8::Local<v8::Value>());
+
+                    if (!IsEmpty(scripts) && scripts->IsObject()) {
+                        o = scripts.As<v8::Object>();
+
+                        v8::Local<v8::Value> cmd = o->Get(context, isolate->NewString(rname)).FromMaybe(v8::Local<v8::Value>());
+                        if (!IsEmpty(cmd) && cmd->IsString())
+                            return run_shell(isolate->toString(cmd), s_argv, pkg_root);
+                    }
+                }
+
+                // Last resort: a bin under npm's global prefix.
+                exlib::string global_path;
+
+                if (find_global_bin(rname, global_path)) {
+                    exlib::string global_dir;
+
+                    os_dirname(global_path, global_dir);
+                    hr = run_bin_candidate(global_path, global_dir, workdir, bin, fname, needUpdateArgv, handled);
+                    if (hr.failed())
+                        return hr;
+                }
+
+                // `npm exec <package>`: translate a locally installed package
+                // name to the bin npm would pick from its manifest.
+                if (!handled && find_local_package_bin(rname, bin_path)) {
+                    os_dirname(bin_path, bin_dir);
+                    hr = run_bin_candidate(bin_path, bin_dir, workdir, bin, fname, needUpdateArgv, handled);
+                    if (hr.failed())
+                        return hr;
+                }
+
+                if (!handled)
                     return result_t(CALL_E_FILE_NOT_FOUND);
-
-                v8::Local<v8::Value> v;
-                exlib::string buf;
-                Isolate* isolate = holder();
-                v8::Local<v8::Context> context = isolate->context();
-
-                hr = loadFile(pkg_root + "/package.json", bin);
-                if (hr.failed())
-                    return result_t(CALL_E_FILE_NOT_FOUND);
-
-                bin->toString(buf);
-                hr = json_base::decode(buf, v);
-                if (hr.failed())
-                    return hr;
-
-                if (v.IsEmpty() || !v->IsObject())
-                    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_PACKAGE_CONFIG").with_message("SandBox: Invalid package.json");
-
-                v8::Local<v8::Object> o = v.As<v8::Object>();
-                v8::Local<v8::Value> scripts = o->Get(context, isolate->NewString("scripts", 7)).FromMaybe(v8::Local<v8::Value>());
-                if (IsEmpty(scripts) || !scripts->IsObject())
-                    return result_t(CALL_E_FILE_NOT_FOUND);
-
-                o = scripts.As<v8::Object>();
-
-                v8::Local<v8::Value> cmd = o->Get(context, isolate->NewString(rname)).FromMaybe(v8::Local<v8::Value>());
-                if (IsEmpty(cmd) || !cmd->IsString())
-                    return result_t(CALL_E_FILE_NOT_FOUND);
-
-                return run_shell(isolate->toString(cmd), s_argv, pkg_root);
             }
         }
     }
