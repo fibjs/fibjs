@@ -42,14 +42,35 @@ static result_t file_closed()
     return errhelp::closed("EBADF", "FileStream: file is closed.");
 }
 
+#ifndef _WIN32
+// A read-only directory descriptor is valid on POSIX (fstat/futimes work on it,
+// as Node permits), but its contents cannot be read. The whole-file reads below
+// take their allocation size from lseek(SEEK_END), and that value is
+// meaningless for a directory: filesystems disagree (0, EINVAL, or an offset
+// unrelated to the byte length). On 32-bit a bogus offset truncated into a
+// plausible large length, so the allocation aborted with std::bad_alloc (or
+// faulted while the buffer was touched) instead of reporting EISDIR. Detect
+// the directory before sizing; the error is the one read(2) would have
+// produced.
+static result_t check_read_dir(int32_t fd, const exlib::string& name)
+{
+    struct stat64 st;
+
+    if (fstat64(fd, &st) < 0)
+        return LastError("fstat", name);
+
+    if (!S_ISDIR(st.st_mode))
+        return result_t();
+
+    return result_t::from_system(UV_EISDIR).with_syscall("read").with_path(name);
+}
+#endif
+
 // A zero-length size probe (lseek END) cannot tell an empty regular file from
-// a directory: on XFS an empty directory answers 0 from lseek while fstat
-// reports its own size. Only read(2) distinguishes them - the empty file
-// returns 0 bytes, the directory fails with EISDIR, which is what Node reports
-// for readFile()/createReadStream() over a directory.
-//
-// `c` receives the byte if the file grew after the size probe (nothing is lost
-// on that race); the result is CALL_RETURN_NULL when there is nothing to read.
+// one that grew after the probe: only read(2) does, and it returns the byte so
+// nothing is lost on that race. The result is CALL_RETURN_NULL when there is
+// nothing to read. (A directory never reaches this probe: check_read_dir()
+// reports it as EISDIR before any size is trusted.)
 static result_t read_zero_size_probe(int32_t fd, const exlib::string& name, char& c)
 {
     int32_t n = (int32_t)::_read(fd, &c, 1);
@@ -76,6 +97,12 @@ result_t FileStream::readBuffer(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     bool probe_empty = false;
 
     if (bytes < 0) {
+#ifndef _WIN32
+        result_t dir_hr = check_read_dir(m_fd, name);
+        if (dir_hr.failed())
+            return dir_hr;
+#endif
+
         int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
         if (p < 0)
             return LastError("lseek", name);
@@ -139,6 +166,12 @@ result_t FileStream::readAll(obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
     if (m_fd == -1)
         return file_closed();
 
+#ifndef _WIN32
+    result_t dir_hr = check_read_dir(m_fd, name);
+    if (dir_hr.failed())
+        return dir_hr;
+#endif
+
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
         return LastError("lseek", name);
@@ -193,6 +226,12 @@ result_t FileStream::readAllText(exlib::string& retVal)
 {
     if (m_fd == -1)
         return file_closed();
+
+#ifndef _WIN32
+    result_t dir_hr = check_read_dir(m_fd, name);
+    if (dir_hr.failed())
+        return dir_hr;
+#endif
 
     int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
     if (p < 0)
