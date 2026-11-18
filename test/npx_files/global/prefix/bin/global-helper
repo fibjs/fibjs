@@ -1,2 +1,2 @@
-#!/usr/bin/env node
-console.log('GLOBAL-HELPER');
+#!/bin/sh
+echo GLOBAL-HELPER
