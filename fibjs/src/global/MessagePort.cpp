@@ -209,18 +209,48 @@ void MessagePort::flush()
 
     m_flush_pending = true;
     Isolate* isolate = holder();
-    isolate->sync([this]() {
+
+    // The delivery is a task queued behind the current JS turn, and close()
+    // severs the two ports from each other. Neither endpoint then keeps this
+    // port reachable, but the task still has to run: a full GC in between
+    // collected the wrapper (taking its `message` listeners with it, so the
+    // queue drained into nothing) and could free the port that the task only
+    // names by raw pointer. Hold both until the task has drained the queue;
+    // Node keeps an active port alive the same way.
+    //
+    // A holder is used because a v8::Global is move-only while the task's
+    // std::function has to stay copyable.
+    struct FlushKeepAlive {
+        obj_ptr<MessagePort> port;
+        v8::Global<v8::Object> wrapper;
+    };
+
+    std::shared_ptr<FlushKeepAlive> keep = std::make_shared<FlushKeepAlive>();
+    keep->port = this;
+    // A port without a JS wrapper has no listeners, so there is nothing to
+    // keep alive for the delivery; only take the strong handle when one exists
+    // (taking it must not create a wrapper during isolate termination).
+    if (hasJSHandle()) {
+        v8::Local<v8::Object> o = wrap(isolate);
+        if (!o.IsEmpty())
+            keep->wrapper.Reset(isolate->m_isolate, o);
+    }
+
+    isolate->sync([keep]() {
         JSFiber::EnterJsScope s;
 
-        while (!m_queue.empty()) {
-            obj_ptr<Buffer_base> data = m_queue.front();
-            m_queue.pop_front();
+        // `keep->port` keeps the port alive; `keep->wrapper` the listeners.
+        MessagePort* port = keep->port;
 
-            emitSerializedMessage(data);
+        while (!port->m_queue.empty()) {
+            obj_ptr<Buffer_base> data = port->m_queue.front();
+            port->m_queue.pop_front();
+
+            port->emitSerializedMessage(data);
         }
 
-        isolate_unref();
-        m_flush_pending = false;
+        port->isolate_unref();
+        port->m_flush_pending = false;
 
     });
 }
