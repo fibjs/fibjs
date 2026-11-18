@@ -17,7 +17,9 @@
 namespace fibjs {
 
 class EventEmitter_base;
+class RTCPeerConnectionOptions;
 class RTCDataChannel_base;
+class RTCDataChannelOptions;
 class RTCSessionDescription_base;
 class RTCIceCandidate_base;
 
@@ -32,8 +34,8 @@ public:
 
 public:
     // RTCPeerConnection_base
-    static result_t _new(v8::Local<v8::Object> options, obj_ptr<RTCPeerConnection_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t createDataChannel(exlib::string label, v8::Local<v8::Object> options, obj_ptr<RTCDataChannel_base>& retVal) = 0;
+    static result_t _new(RTCPeerConnectionOptions* options, obj_ptr<RTCPeerConnection_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t createDataChannel(exlib::string label, RTCDataChannelOptions* options, obj_ptr<RTCDataChannel_base>& retVal) = 0;
     virtual result_t setLocalDescription(AsyncHandle ac) = 0;
     virtual result_t setLocalDescription(Union_setLocalDescription_description description, AsyncHandle ac) = 0;
     virtual result_t setRemoteDescription(Union_setRemoteDescription_description description, AsyncHandle ac) = 0;
@@ -85,6 +87,8 @@ public:
     static void s_set_onlocaldescription(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onsignalingstatechange(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onsignalingstatechange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onsecure(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onsecure(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_ontrack(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_ontrack(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -99,7 +103,9 @@ public:
 };
 }
 
+#include "ifs/RTCPeerConnectionOptions.h"
 #include "ifs/RTCDataChannel.h"
+#include "ifs/RTCDataChannelOptions.h"
 #include "ifs/RTCSessionDescription.h"
 #include "ifs/RTCIceCandidate.h"
 
@@ -132,6 +138,7 @@ inline ClassInfo& RTCPeerConnection_base::class_info()
         { "onicegatheringstatechange", s_get_onicegatheringstatechange, s_set_onicegatheringstatechange, false },
         { "onlocaldescription", s_get_onlocaldescription, s_set_onlocaldescription, false },
         { "onsignalingstatechange", s_get_onsignalingstatechange, s_set_onsignalingstatechange, false },
+        { "onsecure", s_get_onsecure, s_set_onsecure, false },
         { "ontrack", s_get_ontrack, s_set_ontrack, false }
     };
 
@@ -160,9 +167,9 @@ inline void RTCPeerConnection_base::__new(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<RTCPeerConnectionOptions>, 0, new RTCPeerConnectionOptions(), "options");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((RTCPeerConnectionOptions*)v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -175,9 +182,9 @@ inline result_t RTCPeerConnection_base::load(v8::Local<v8::Value> v, obj_ptr<RTC
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<RTCPeerConnectionOptions>, 0, new RTCPeerConnectionOptions(), "options");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((RTCPeerConnectionOptions*)v0, vr, args.This());
 
     LOAD_RETURN();
 }
@@ -192,9 +199,9 @@ inline void RTCPeerConnection_base::s_createDataChannel(const v8::FunctionCallba
     METHOD_OVER_NAMED(2, 1, "label");
 
     ARG_NAMED(exlib::string, 0, "label");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<RTCDataChannelOptions>, 1, new RTCDataChannelOptions(), "options");
 
-    hr = pInst->createDataChannel(v0, v1, vr);
+    hr = pInst->createDataChannel(v0, (RTCDataChannelOptions*)v1, vr);
 
     METHOD_RETURN();
 }
@@ -614,6 +621,34 @@ inline void RTCPeerConnection_base::s_set_onsignalingstatechange(const v8::Funct
     ARG_NAMED(v8::Local<v8::Function>, 0, "onsignalingstatechange");
 
     hr = pInst->setListener("signalingstatechange", v0);
+
+    METHOD_VOID();
+}
+
+inline void RTCPeerConnection_base::s_get_onsecure(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(RTCPeerConnection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getListener("secure", vr);
+
+    METHOD_RETURN();
+}
+
+inline void RTCPeerConnection_base::s_set_onsecure(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(RTCPeerConnection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG_NAMED(v8::Local<v8::Function>, 0, "onsecure");
+
+    hr = pInst->setListener("secure", v0);
 
     METHOD_VOID();
 }

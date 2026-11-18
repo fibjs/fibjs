@@ -1,0 +1,54 @@
+/*! @brief Options for rtc.startServer.
+
+ `credentials` maps a TURN username to its password; when it is unset the
+ server accepts no allocation. The remaining fields tune the embedded
+ STUN/TURN server and keep the library default when they are not given.
+
+ Example 1 — the standard port with one TURN credential:
+ ```JavaScript
+ // requires: network
+ const rtc = require('rtc');
+
+ rtc.startServer({
+     credentials: { user: 'secret' },
+     maxAllocations: 64,
+     maxPeers: 64,
+     port: 3478
+ });
+ ```
+
+ Example 2 — a relay range on the loopback address:
+ ```JavaScript
+ // requires: long-running
+ const rtc = require('rtc');
+
+ rtc.startServer({
+     bindAddress: '127.0.0.1',
+     port: 0,
+     relayPortRangeBegin: 49152,
+     relayPortRangeEnd: 49200
+ });
+ ```
+ */
+struct RTCServerOptions {
+    /*! @brief object of 'username': 'password' pairs accepted by TURN */
+    Object credentials;
+
+    /*! @brief maximum number of TURN allocations, 0 for the library default */
+    Integer maxAllocations = 0;
+
+    /*! @brief maximum number of peers, 0 for the library default */
+    Integer maxPeers = 0;
+
+    /*! @brief local address to bind, any by default */
+    String bindAddress;
+
+    /*! @brief listening port, 3478 by default */
+    Integer port = 3478;
+
+    /*! @brief first port of the TURN relay range, 0 for the library default */
+    Integer relayPortRangeBegin = 0;
+
+    /*! @brief last port of the TURN relay range, 0 for the library default */
+    Integer relayPortRangeEnd = 0;
+};

@@ -34,6 +34,13 @@ public:
     virtual result_t get_label(exlib::string& retVal) = 0;
     virtual result_t get_protocol(exlib::string& retVal) = 0;
     virtual result_t get_bufferedAmount(double& retVal) = 0;
+    virtual result_t get_bufferedAmountLowThreshold(double& retVal) = 0;
+    virtual result_t set_bufferedAmountLowThreshold(double newVal) = 0;
+    virtual result_t get_readyState(exlib::string& retVal) = 0;
+    virtual result_t get_ordered(bool& retVal) = 0;
+    virtual result_t get_maxPacketLifeTime(int32_t& retVal) = 0;
+    virtual result_t get_maxRetransmits(int32_t& retVal) = 0;
+    virtual result_t get_negotiated(bool& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -53,6 +60,13 @@ public:
     static void s_get_label(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_protocol(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_bufferedAmount(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_bufferedAmountLowThreshold(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_bufferedAmountLowThreshold(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_readyState(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_ordered(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_maxPacketLifeTime(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_maxRetransmits(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_negotiated(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onopen(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onopen(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -81,6 +95,12 @@ inline ClassInfo& RTCDataChannel_base::class_info()
         { "label", s_get_label, block_set, false },
         { "protocol", s_get_protocol, block_set, false },
         { "bufferedAmount", s_get_bufferedAmount, block_set, false },
+        { "bufferedAmountLowThreshold", s_get_bufferedAmountLowThreshold, s_set_bufferedAmountLowThreshold, false },
+        { "readyState", s_get_readyState, block_set, false },
+        { "ordered", s_get_ordered, block_set, false },
+        { "maxPacketLifeTime", s_get_maxPacketLifeTime, block_set, false },
+        { "maxRetransmits", s_get_maxRetransmits, block_set, false },
+        { "negotiated", s_get_negotiated, block_set, false },
         { "onopen", s_get_onopen, s_set_onopen, false },
         { "onmessage", s_get_onmessage, s_set_onmessage, false },
         { "onclose", s_get_onclose, s_set_onclose, false },
@@ -177,6 +197,104 @@ inline void RTCDataChannel_base::s_get_bufferedAmount(const v8::FunctionCallback
     METHOD_OVER(0, 0);
 
     hr = pInst->get_bufferedAmount(vr);
+
+    METHOD_RETURN();
+}
+
+inline void RTCDataChannel_base::s_get_bufferedAmountLowThreshold(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    double vr;
+
+    METHOD_INSTANCE(RTCDataChannel_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_bufferedAmountLowThreshold(vr);
+
+    METHOD_RETURN();
+}
+
+inline void RTCDataChannel_base::s_set_bufferedAmountLowThreshold(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(RTCDataChannel_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG_NAMED(double, 0, "bufferedAmountLowThreshold");
+
+    hr = pInst->set_bufferedAmountLowThreshold(v0);
+
+    METHOD_VOID();
+}
+
+inline void RTCDataChannel_base::s_get_readyState(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(RTCDataChannel_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_readyState(vr);
+
+    METHOD_RETURN();
+}
+
+inline void RTCDataChannel_base::s_get_ordered(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(RTCDataChannel_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_ordered(vr);
+
+    METHOD_RETURN();
+}
+
+inline void RTCDataChannel_base::s_get_maxPacketLifeTime(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(RTCDataChannel_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_maxPacketLifeTime(vr);
+
+    METHOD_RETURN();
+}
+
+inline void RTCDataChannel_base::s_get_maxRetransmits(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(RTCDataChannel_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_maxRetransmits(vr);
+
+    METHOD_RETURN();
+}
+
+inline void RTCDataChannel_base::s_get_negotiated(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(RTCDataChannel_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_negotiated(vr);
 
     METHOD_RETURN();
 }

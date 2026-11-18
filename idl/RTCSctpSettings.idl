@@ -1,0 +1,59 @@
+/*! @brief Process-wide SCTP parameters set by rtc.setSctpSettings.
+
+ Every field is optional: only the fields that are given are applied, and an
+ unset field keeps the optimized default of the library (1MiB buffers, 10K
+ queued chunks, 10 MTU windows, 20ms delayed SACK, 200ms..10s retransmission
+ timeouts, 5 attempts and a 10s heartbeat).
+
+ Example 1 — enlarge the receive buffer before the connections are created:
+ ```JavaScript
+ const rtc = require('rtc');
+
+ rtc.setSctpSettings({ recvBufferSize: 2 * 1024 * 1024 });
+ console.log('SCTP settings applied');
+ ```
+
+ Example 2 — shorten the retransmission backoff:
+ ```JavaScript
+ const rtc = require('rtc');
+
+ rtc.setSctpSettings({ maxRetransmitAttempts: 3, maxRetransmitTimeoutMs: 5000 });
+ ```
+ */
+struct RTCSctpSettings {
+    /*! @brief receive buffer size in bytes */
+    Integer recvBufferSize;
+
+    /*! @brief send buffer size in bytes */
+    Integer sendBufferSize;
+
+    /*! @brief maximum number of chunks in the queue */
+    Integer maxChunksOnQueue;
+
+    /*! @brief initial congestion window in MTU */
+    Integer initialCongestionWindow;
+
+    /*! @brief maximum burst size in MTU */
+    Integer maxBurst;
+
+    /*! @brief congestion control module: 0 RFC2581, 1 HSTCP, 2 H-TCP, 3 RTCC */
+    Integer congestionControlModule;
+
+    /*! @brief delayed acknowledgement time in milliseconds */
+    Integer delayedSackTimeMs;
+
+    /*! @brief minimum retransmit timeout in milliseconds */
+    Integer minRetransmitTimeoutMs;
+
+    /*! @brief maximum retransmit timeout in milliseconds */
+    Integer maxRetransmitTimeoutMs;
+
+    /*! @brief initial retransmit timeout in milliseconds */
+    Integer initialRetransmitTimeoutMs;
+
+    /*! @brief maximum number of retransmit attempts */
+    Integer maxRetransmitAttempts;
+
+    /*! @brief heartbeat interval in milliseconds */
+    Integer heartbeatIntervalMs;
+};

@@ -17,9 +17,11 @@
    answer and `rollback` cancels a pending offer; a type the library does not know is reported as
    `unspec`.
  - **Normalization**: the constructor parses the text and `sdp` returns the description regenerated
-   from the parsed fields, which is not necessarily byte-identical to the input - the origin
-   session id is regenerated on every construction, so two round trips of the same text differ.
-   Compare parsed content, not strings.
+   from the parsed fields, which is not necessarily byte-identical to the input. An input without
+   an `o=` line receives a generated origin session id; an existing one is preserved. The
+   regenerator adds the lines the library needs (`a=group:BUNDLE`, `c=`, `a=sendrecv`, ...) and
+   may move attributes, so a second construction of the regenerated text can still differ from
+   the first. Compare parsed content, not strings.
  - **Acceptance**: the connection methods take either an instance or a plain object with `type` and
    `sdp`, which is converted through this constructor, so both fields are required either way.
 
@@ -104,8 +106,10 @@ interface RTCSessionDescription : object
 {
     /*! @brief constructs a session description object from a description object
 
-     The description object must contain both `type` (the kind of the description) and `sdp` (the
-     SDP text, a string; another type throws 20005). A missing field throws TypeError 20002. The
+     The description object must contain `type` (the kind of the description) and may give `sdp`
+     (the SDP text); the standard defaults `sdp` to an empty string, which is what a `rollback`
+     needs, so it is optional here too and a missing field or a `null`/`undefined` value means
+     `""`. Another type of `sdp` throws 20005 and a missing `type` throws TypeError 20002. The
      text is parsed at construction, so text the library cannot parse may throw ERR_INVALID_STATE, and an
      unknown `type` is accepted and reported as `unspec` by the `type` member.
 
@@ -132,9 +136,10 @@ interface RTCSessionDescription : object
     /*! @brief gets the session description text
 
      Returns the SDP regenerated from the parsed fields, not the exact text passed to the
-     constructor: lines may be normalized or added and the origin session id is regenerated, so
-     two constructions of the same text can differ. This is the effective description and the
-     value to send to the peer.
+     constructor: missing lines are added, attributes may be reordered and an input without an
+     `o=` line receives a generated session id (an existing id is preserved). This is the
+     effective description and the value to send to the peer; compare parsed content rather than
+     strings when two descriptions must be compared.
     */
     readonly String sdp;
 };

@@ -15,7 +15,7 @@
  *   fibjs --man    parses the same map, the IDL comments are the manual.
  *
  * source : npm/types (version 0.33.0-dev)
- * files  : 242 corpus files + dts/_builtin/globals.d.ts
+ * files  : 243 corpus files + dts/_builtin/globals.d.ts
  * globals: Buffer URLSearchParams URL Blob File Headers FormData Request Response TextDecoder TextEncoder AbortController AbortSignal Event EventTarget MessageEvent MessagePort MessageChannel Worker CryptoKey DOMParser CSSStyleDeclaration DOMStringMap XMLSerializer XMLDocument WebSocket console process performance PerformanceObserver crypto global run require setTimeout clearTimeout setInterval clearInterval setHrInterval clearHrInterval setImmediate clearImmediate btoa atob structuredClone fetch fetchSync fetchAsync queueMicrotask
  */
 module.exports = {
@@ -38834,8 +38834,8 @@ declare class Class_PerformanceObserverEntryList extends Class_object {
  *  A channel carries text and binary messages between the two peers of a session. The application
  *  obtains it by creating it locally with \`RTCPeerConnection.createDataChannel\` or from the
  *  \`datachannel\` event when the peer creates one; it cannot be constructed directly
- *  (\`new RTCDataChannel()\` throws a TypeError). A channel has no \`readyState\` member: the \`open\`,
- *  \`message\` and \`close\` events are the observable states of its life cycle.
+ *  (\`new RTCDataChannel()\` throws a TypeError). \`readyState\` reports the state of the channel and
+ *  the \`open\`, \`message\` and \`close\` events announce its transitions.
  *
  *  Concepts:
  *
@@ -38848,11 +38848,12 @@ declare class Class_PerformanceObserverEntryList extends Class_object {
  *    travels as binary; the receiver gets a string or a Buffer in \`ev.data\` respectively, so binary
  *    payloads stay binary and are not re-encoded.
  *  - **Buffering**: \`send\` queues the message and returns immediately; \`bufferedAmount\` reports the
- *    bytes still queued. The \`bufferedamountlow\` event exists but fibjs has no threshold setter, so
- *    the application cannot request it at a chosen queue level.
+ *    bytes still queued and \`bufferedAmountLowThreshold\` sets the queue level at which the
+ *    \`bufferedamountlow\` event is emitted.
  *  - **Life cycle**: a channel exists before the transport is ready, opens only after ICE and DTLS
  *    complete, and closes by \`close()\`, by the peer, or by closing the connection. Sending outside
- *    the open state throws ERR_INVALID_STATE, and the \`close\` event reports either side closing.
+ *    the open state throws ERR_INVALID_STATE, and the \`close\` event reports either side closing;
+ *    \`readyState\` reports the same states as a value.
  *
  *  Obtained from:
  *  - \`RTCPeerConnection#createDataChannel\` — the local side creates the channel;
@@ -38963,8 +38964,9 @@ declare class Class_PerformanceObserverEntryList extends Class_object {
  *
  *  Notes:
  *
- *  - The channel does not expose the creation options back: there is no \`readyState\`, \`binaryType\`,
- *    \`ordered\`, \`maxPacketLifeTime\`, \`maxRetransmits\` or \`negotiated\` member.
+ *  - The channel exposes the creation options back through \`ordered\`, \`maxPacketLifeTime\`,
+ *    \`maxRetransmits\` and \`negotiated\`; there is no \`binaryType\`, because a fibjs \`Buffer\` is a real
+ *    \`Uint8Array\`, so received binary data is already usable as an ArrayBuffer view.
  *
  */
 declare class Class_RTCDataChannel extends Class_EventEmitter {
@@ -39019,7 +39021,8 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      *
      *      Returns the SCTP stream id between 0 and 65534, or 65535 while no id has been assigned, that
      *      is before the channel is negotiated; a channel created with an explicit \`id\` option reports
-     *      it immediately. See the \`id\` option of \`RTCPeerConnection.createDataChannel\`.
+     *      it immediately. The id is the same on both peers, which makes it usable for out-of-band
+     *      signaling. See the \`id\` option of \`RTCPeerConnection.createDataChannel\`.
      *
      */
     readonly id: number;
@@ -39047,12 +39050,68 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      * @description gets the number of bytes of data currently queued to be sent
      *
      *      Reports the size in bytes of the send queue of the channel: it grows while messages wait for
-     *      the transport and returns to 0 when everything has been handed over. fibjs exposes no
-     *      \`bufferedAmountLowThreshold\`, so the \`bufferedamountlow\` event fires only at the internal
-     *      threshold of the library.
+     *      the transport and returns to 0 when everything has been handed over. \`send\` returns as soon
+     *      as the message is queued, so this is the way to apply backpressure: wait for it to fall below
+     *      \`bufferedAmountLowThreshold\` (or for the \`bufferedamountlow\` event) before sending more.
      *
      */
     readonly bufferedAmount: number;
+
+    /**
+     * @description gets the send queue level considered low by the bufferedamountlow event
+     *
+     *      The threshold in bytes of \`bufferedAmount\` at or below which the \`bufferedamountlow\` event
+     *      is emitted; it defaults to 0, which means the event fires when the queue fully drains. Set a
+     *      positive value to be notified while the queue still holds data, then send more when it fires.
+     *
+     */
+    bufferedAmountLowThreshold: number;
+
+    /**
+     * @description gets the state of the channel
+     *
+     *      Returns \`connecting\` while the transport is not ready, \`open\` once the channel can carry
+     *      messages and \`closed\` after it was closed by either side. The standard \`closing\` state is
+     *      never reported because the underlying library closes the channel in one step.
+     *
+     */
+    readonly readyState: string;
+
+    /**
+     * @description reports whether the channel guarantees in-order delivery
+     *
+     *      True by default; false when the channel was created with \`ordered: false\`, which allows
+     *      out-of-order delivery and lowers latency.
+     *
+     */
+    readonly ordered: boolean;
+
+    /**
+     * @description gets the retransmission time limit of a message in milliseconds
+     *
+     *      Returns the \`maxPacketLifeTime\` the channel was created with, or null when no limit is set
+     *      and messages are retransmitted until they arrive.
+     *
+     */
+    readonly maxPacketLifeTime: number;
+
+    /**
+     * @description gets the retransmission limit of a message
+     *
+     *      Returns the \`maxRetransmits\` the channel was created with, or null when retransmission is
+     *      unlimited.
+     *
+     */
+    readonly maxRetransmits: number;
+
+    /**
+     * @description reports whether the channel was created without in-band negotiation
+     *
+     *      True when the channel was created with \`negotiated: true\`; the peer then creates the same
+     *      channel with the same id instead of receiving a \`datachannel\` event.
+     *
+     */
+    readonly negotiated: boolean;
 
     /**
      * @description channel open event, emitted when the channel is opened
@@ -39205,11 +39264,11 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
     onerror: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
-     * @description channel buffered amount low event, emitted when the queue falls below the threshold
+     * @description channel buffered amount low event, emitted when the queue falls to the threshold
      *
-     *      Fired when the send queue of the channel falls below the internal threshold of the library.
-     *      fibjs has no \`bufferedAmountLowThreshold\` setter, so the event cannot be requested at a
-     *      chosen queue level and is rarely observed in practice; it carries no payload.
+     *      Fired when \`bufferedAmount\` falls to or below \`bufferedAmountLowThreshold\` (0 by default,
+     *      which means the queue drained). Use it to resume sending after applying backpressure; it
+     *      carries no payload.
      *
      */
     on(event: "bufferedamountlow", listener: ()=>void): this;
@@ -39231,11 +39290,11 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
     prependOnceListener(event: "bufferedamountlow", listener: ()=>void): this;
 
     /**
-     * @description channel buffered amount low event, emitted when the queue falls below the threshold
+     * @description channel buffered amount low event, emitted when the queue falls to the threshold
      *
-     *      Fired when the send queue of the channel falls below the internal threshold of the library.
-     *      fibjs has no \`bufferedAmountLowThreshold\` setter, so the event cannot be requested at a
-     *      chosen queue level and is rarely observed in practice; it carries no payload.
+     *      Fired when \`bufferedAmount\` falls to or below \`bufferedAmountLowThreshold\` (0 by default,
+     *      which means the queue drained). Use it to resume sending after applying backpressure; it
+     *      carries no payload.
      *
      */
     onbufferedamountlow: (()=>void) | null;
@@ -39301,7 +39360,9 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
  *    ICE agent, so they are always \`undefined\` on an instance built from a string. The plain objects
  *    of the \`icecandidate\` event carry all of them.
  *  - **sdpMid and sdpMLineIndex**: the standard pairs a candidate with its media line through
- *    \`sdpMid\` or \`sdpMLineIndex\`; fibjs implements \`sdpMid\` only and ignores \`sdpMLineIndex\`.
+ *    \`sdpMid\` or \`sdpMLineIndex\`. Both are optional here: without \`sdpMid\` the candidate belongs to
+ *    the bundle media line (\`0\`), the only one a data-channel-only session has, and
+ *    \`sdpMLineIndex\` is accepted and ignored.
  *  - **fibjs extension**: \`priority\`, \`transport\` and \`type\` are fibjs additions; MDN's
  *    RTCIceCandidate exposes \`protocol\`, \`foundation\`, \`component\`, \`relatedAddress\`/\`relatedPort\`
  *    and other fields instead, which fibjs does not implement.
@@ -39396,29 +39457,31 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
  *  Notes:
  *
  *  - An instance is immutable: \`candidate\` is regenerated by the library from its parsed fields.
- *  - The constructor rejects text that is not a candidate with ERR_INVALID_STATE (\`Invalid candidate format\`)
- *    and a missing \`candidate\` or \`sdpMid\` with a TypeError 20002.
+ *  - The constructor rejects text that is not a candidate with ERR_INVALID_STATE (\`Invalid candidate
+ *    format\`). An object without a \`candidate\`, or with an empty one, is the end-of-candidates
+ *    marker of the standard: it has an empty \`candidate\` and a null \`sdpMid\`.
  *
  */
 declare class Class_RTCIceCandidate extends Class_object {
     /**
      * @description constructs a candidate object from a description object
      *
-     *      The description object must contain both \`candidate\` (the candidate string) and \`sdpMid\` (the
-     *      media line identification). A missing field throws TypeError 20002 and a string that cannot
-     *      be parsed throws ERR_INVALID_STATE (\`Invalid candidate format\`). The other fields of the standard
-     *      dictionary, such as \`sdpMLineIndex\` and \`usernameFragment\`, are accepted and ignored.
+     *      Both fields of the standard dictionary are optional: \`candidate\` defaults to an empty string,
+     *      the end-of-candidates marker, and \`sdpMid\` defaults to null, which pairs the candidate with
+     *      the bundle media line (\`0\`) of a data-channel-only session. A string that cannot be parsed
+     *      throws ERR_INVALID_STATE (\`Invalid candidate format\`), and the other fields of the standard
+     *      dictionary (\`sdpMLineIndex\`, \`usernameFragment\`) are accepted and ignored.
      *
      *      Example — build a candidate and read the parsed fields:
      *      \`\`\`JavaScript
      *      const rtc = require('rtc');
      *
      *      const candidate = new rtc.RTCIceCandidate({
-     *          candidate: 'candidate:1467250027 1 UDP 1467250027 192.168.1.2 3478 typ srflx',
-     *          sdpMid: '0'
+     *          candidate: 'candidate:1467250027 1 UDP 1467250027 192.168.1.2 3478 typ srflx'
      *      });
      *      console.log(candidate.type);      // srflx
      *      console.log(candidate.priority);  // 1467250027
+     *      console.log(candidate.sdpMid);    // 0: the bundle media line
      *      console.log(candidate.transport); // undefined: not resolved by the ICE agent
      *      \`\`\`
      *
@@ -39442,8 +39505,9 @@ declare class Class_RTCIceCandidate extends Class_object {
      * @description gets the media line identification
      *
      *      Returns the \`sdpMid\` given at construction, which pairs the candidate with the media line
-     *      (\`m=\` section) of the session description. The standard alternative \`sdpMLineIndex\` is not
-     *      supported.
+     *      (\`m=\` section) of the session description; when none was given, the candidate belongs to the
+     *      bundle media line and \`0\` is reported. The standard alternative \`sdpMLineIndex\` is not
+     *      supported. An end-of-candidates object (no \`candidate\`) reports null.
      *
      */
     readonly sdpMid: string;
@@ -39497,6 +39561,335 @@ declare class Class_RTCIceCandidate extends Class_object {
      *
      */
     readonly type: string;
+
+}
+
+`,
+        "dts/interface/RTCListener.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/EventEmitter.d.ts" />
+/**
+ * @description RTCListener accepts incoming WebRTC Direct connections on one UDP port
+ *
+ * A WebRTC Direct peer connects without a signaling exchange: the client sends an
+ * ICE binding request to a UDP port, and the ICE credentials in that request are all
+ * the server needs to build the answer. One RTCListener owns one UDP port, one
+ * certificate and the admission policy for the sessions accepted on that port.
+ *
+ * Concepts:
+ *
+ * - **Endpoint**: \`listen(port, addr)\` binds the port; \`address()\` reports it and
+ *   \`close()\` releases it. Several listeners may coexist on different ports.
+ * - **Handshake**: when a binding request arrives, the listener validates its ICE
+ *   credentials, runs \`authorize\`, creates an \`RTCPeerConnection\` on the mux port,
+ *   applies a synthetic remote offer built from the request and generates the
+ *   answer. The application receives the ready connection through the \`connection\`
+ *   event and never handles SDP, ICE credentials or the mux port itself.
+ * - **Identity**: the synthetic offer cannot carry the client's certificate
+ *   fingerprint, so the DTLS handshake accepts any certificate. The \`secure\` event
+ *   of the accepted connection reports the real fingerprint once the handshake is
+ *   complete; use it to authenticate the peer, for example with Noise.
+ * - **Versions**: v1 requests reuse the ICE ufrag as password; requests whose server
+ *   ufrag starts with the libp2p v2 prefix carry the client password in that ufrag
+ *   and are decoded automatically. Other requests are treated as v1 after the
+ *   credential validation.
+ *
+ * Example 1 — accept connections and echo on the first data channel:
+ * \`\`\`JavaScript
+ * const rtc = require('rtc');
+ *
+ * const listener = new rtc.RTCListener({
+ *     certPem: process.env.RTC_CERT_PEM,
+ *     keyPem: process.env.RTC_KEY_PEM
+ * });
+ *
+ * listener.on('connection', (ev) => {
+ *     const pc = ev.peerConnection;
+ *     pc.ondatachannel = (dcEv) => {
+ *         const dc = dcEv.channel;
+ *         dc.onmessage = (msg) => dc.send(msg.data);
+ *     };
+ * });
+ *
+ * listener.listen(3222, '127.0.0.1');
+ * console.log('listening on', listener.address().port);
+ * // ...
+ * listener.close();
+ * \`\`\`
+ *
+ * Example 2 — reject peers before any native connection is created:
+ * \`\`\`JavaScript
+ * const rtc = require('rtc');
+ *
+ * const listener = new rtc.RTCListener({
+ *     certPem: process.env.RTC_CERT_PEM,
+ *     keyPem: process.env.RTC_KEY_PEM,
+ *     authorize: (request) => request.clientUfrag.startsWith('libp2p+webrtc+v1/')
+ * });
+ *
+ * listener.on('connection', (ev) => {
+ *     console.log('accepted', ev.request.remoteAddress, ev.request.remotePort);
+ * });
+ * listener.listen(3223);
+ * \`\`\`
+ *
+ * Notes:
+ *
+ * - \`certPem\` and \`keyPem\` are required unless a certificate is generated; the
+ *   certificate is shared by every accepted connection, so clients can pin its
+ *   fingerprint in the dialed address.
+ * - Only an explicit port is accepted: port 0 is reserved because the listener is
+ *   tracked and unregistered by its port.
+ * - \`authorize\` runs synchronously on the JavaScript thread before the native peer
+ *   connection is built; throwing or returning a falsy value drops the request.
+ * - A listener holds the process alive while it is bound; \`close()\` releases the
+ *   hold. Connections accepted before \`close()\` keep running.
+ *
+ */
+declare class Class_RTCListener extends Class_EventEmitter {
+    /**
+     * @description creates a listener, without binding a port
+     *
+     *      Parses and validates the options. The listener is bound later with
+     *      \`listen\`; binding in the constructor is not supported because the mux port
+     *      must be reserved before any accepted connection exists.
+     *
+     *      options supports the following options:
+     *      \`\`\`JavaScript
+     *      // fragment: options
+     *      ({
+     *          "certPem": "",    // certificate as PEM text; generated when omitted
+     *          "keyPem": "",     // private key as PEM text; generated when omitted
+     *          "keyPass": "",    // passphrase of an encrypted private key
+     *          "maxMessageSize": 262144, // largest SCTP message accepted from a peer
+     *          "maxConnections": 1024,   // accepted sessions kept open at the same time
+     *          "maxConnectionsPerAddress": 16, // accepted sessions per remote IP
+     *          "authorize": undefined // function (request) => Boolean, optional
+     *      })
+     *      \`\`\`
+     *
+     *      \`authorize\` receives the parsed request before the native connection is
+     *      created; returning \`false\`, \`null\` or \`undefined\`, or throwing, rejects the
+     *      request. It is called synchronously on the JavaScript thread and cannot be
+     *      asynchronous: a returned promise is rejected as well.
+     *
+     *      @param options initialization parameters
+     *
+     */
+    constructor(options?: {
+        certPem?: string;
+        keyPem?: string;
+        keyPass?: string;
+        maxMessageSize?: number;
+        maxConnections?: number;
+        maxConnectionsPerAddress?: number;
+        authorize?: (...args: any[])=>any;
+    });
+
+    /**
+     * @description binds the listening UDP port
+     *
+     *      Creates the process-wide mux listener for \`port\` and starts accepting
+     *      WebRTC Direct binding requests. The port must be explicit and between 1 and
+     *      65535; a second listener on the same port fails. \`addr\` is an IP literal;
+     *      an empty string binds all local addresses of both families.
+     *
+     *      Throws ERR_INVALID_STATE when the listener is already bound and
+     *      ERR_SOCKET_BIND_FAILED when the address cannot be bound.
+     *
+     *      @param port the UDP port to bind
+     *      @param addr the local address to bind, empty for all addresses
+     *      @return returns the listener itself
+     *
+     */
+    listen(port: number, addr?: string): Class_RTCListener;
+
+    /**
+     * @description reports the bound address and port
+     *
+     *      Returns the configured bind address (an empty address is reported as \`::\`,
+     *      which means all addresses), its family and the port. The method throws
+     *      ERR_INVALID_STATE before \`listen\` succeeds.
+     *
+     *      @return returns the bound address, its family ("IPv4" or "IPv6") and the port
+     *
+     */
+    address(): {
+        address: string;
+        family: string;
+        port: number;
+    };
+
+    /**
+     * @description stops accepting connections and releases the process hold
+     *
+     *      Unbinds the UDP port, clears the pending handshakes and releases the hold
+     *      installed by \`listen\`. Connections accepted before the call are not closed
+     *      and keep running; closing a listener that was never bound is a no-op.
+     *
+     *      @return returns the listener itself
+     *
+     */
+    close(): Class_RTCListener;
+
+    /**
+     * @description closes the listener; an alias of close()
+     *
+     *      Identical to \`close()\`: it unbinds the port, clears pending handshakes and
+     *      releases the process hold, while connections accepted before the call keep
+     *      running. The alias exists so the listener can be released with the same
+     *      method name as the other fibjs servers.
+     *
+     *      @return returns the listener itself
+     *
+     */
+    stop(): Class_RTCListener;
+
+    /**
+     * @description the certificate shared by every accepted connection
+     *
+     *      The object has the \`certPem\` and \`keyPem\` fields and the SHA-256
+     *      \`fingerprint\` of the certificate. A certificate supplied through the
+     *      constructor is reused; otherwise a self-signed ECDSA P-256 certificate is
+     *      generated when the listener is created.
+     *
+     *      The fingerprint is the value clients pin in the dialed address, so persist
+     *      \`certPem\`/\`keyPem\` when the listener must keep the same identity across
+     *      restarts.
+     *
+     */
+    readonly certificate: FIBJS.GeneralObject;
+
+    /**
+     * @description emitted when an incoming peer has been accepted
+     *
+     *      The event object carries the ready connection in \`peerConnection\` and the
+     *      parsed request in \`request\`. \`peerConnection\` is a normal
+     *      RTCPeerConnection whose remote and local descriptions have already been
+     *      applied: attach \`ondatachannel\` immediately, the connection is still
+     *      connecting. The request has the fields \`version\`, \`serverUfrag\`,
+     *      \`clientUfrag\`, \`clientPwd\`, \`remoteAddress\`, \`remotePort\` and \`localPort\`.
+     *
+     *      The connection is not authenticated yet: the DTLS handshake accepts any
+     *      peer certificate, and the real fingerprint becomes available through the
+     *      \`secure\` event of the connection.
+     *
+     *      @param ev the event object, carrying peerConnection and request
+     *
+     */
+    on(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    once(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    off(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    addListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    removeListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    addEventListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    prependOnceListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    /**
+     * @description emitted when an incoming peer has been accepted
+     *
+     *      The event object carries the ready connection in \`peerConnection\` and the
+     *      parsed request in \`request\`. \`peerConnection\` is a normal
+     *      RTCPeerConnection whose remote and local descriptions have already been
+     *      applied: attach \`ondatachannel\` immediately, the connection is still
+     *      connecting. The request has the fields \`version\`, \`serverUfrag\`,
+     *      \`clientUfrag\`, \`clientPwd\`, \`remoteAddress\`, \`remotePort\` and \`localPort\`.
+     *
+     *      The connection is not authenticated yet: the DTLS handshake accepts any
+     *      peer certificate, and the real fingerprint becomes available through the
+     *      \`secure\` event of the connection.
+     *
+     *      @param ev the event object, carrying peerConnection and request
+     *
+     */
+    onconnection: ((ev: FIBJS.GeneralObject)=>void) | null;
+
+    /**
+     * @description emitted when the listener cannot process an incoming peer
+     *
+     *      Fires when building the synthetic offer or creating the native connection
+     *      fails after a request was accepted. Malformed binding requests are dropped
+     *      silently and do not emit this event, so a public listener is not flooded by
+     *      invalid traffic.
+     *
+     *      @param ev the event object, carrying the error message in its message property
+     *
+     */
+    on(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    once(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    off(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    addListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    removeListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    addEventListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    prependOnceListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    /**
+     * @description emitted when the listener cannot process an incoming peer
+     *
+     *      Fires when building the synthetic offer or creating the native connection
+     *      fails after a request was accepted. Malformed binding requests are dropped
+     *      silently and do not emit this event, so a public listener is not flooded by
+     *      invalid traffic.
+     *
+     *      @param ev the event object, carrying the error message in its message property
+     *
+     */
+    onerror: ((ev: FIBJS.GeneralObject)=>void) | null;
+
+    on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    off(ev: any): FIBJS.GeneralObject;
+
+    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    removeListener(ev: any): FIBJS.GeneralObject;
+
+    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
 }
 
@@ -39698,7 +40091,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> ERR_INVALID_STATE
      *          "iceServers": [],             // [{ urls: 'stun:host:port', username: '', credential: '' }]
      *          "maxMessageSize": 262144,     // largest SCTP message accepted from the peer
-     *          "enableIceUdpMux": false,     // multiplex ICE and DTLS on one UDP port (rtc.listen)
+     *          "enableIceUdpMux": false,     // multiplex ICE and DTLS on one UDP port (used by RTCListener)
      *          "disableFingerprintVerification": false, // skip DTLS verification (insecure, tests only)
      *          "bindAddress": "",            // local address to bind, empty binds every interface
      *          "port": 0,                    // fixed local UDP port, 0 uses the ephemeral range
@@ -39721,12 +40114,33 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      together: giving only one of them, or material that cannot be read, aborts the process in the
      *      underlying library instead of raising a JavaScript error. \`iceUfrag\`/\`icePwd\` override the
      *      generated ICE credentials and are needed when answering a peer whose description is built by
-     *      the application itself (see rtc.listen).
+     *      the application itself (see RTCListener). Supplying both disables the automatic negotiation:
+     *      \`createOffer()\` generates the offer and \`setRemoteDescription()\` generates the answer, both
+     *      with the forced credentials, so a later renegotiation of the same connection is not started
+     *      automatically.
      *
      *      @param options initialization parameters
      *
      */
-    constructor(options?: FIBJS.GeneralObject);
+    constructor(options?: {
+        certificateType?: string;
+        iceTransportPolicy?: string;
+        iceServers?: {
+            urls?: string | string[];
+            username?: string;
+            credential?: string;
+        }[];
+        maxMessageSize?: number;
+        enableIceUdpMux?: boolean;
+        disableFingerprintVerification?: boolean;
+        bindAddress?: string;
+        port?: number;
+        iceUfrag?: string;
+        icePwd?: string;
+        certPem?: string;
+        keyPem?: string;
+        keyPass?: string;
+    });
 
     /**
      * @description creates a new channel linked to a remote peer
@@ -39748,10 +40162,10 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      })
      *      \`\`\`
      *
-     *      The standard treats \`maxPacketLifeTime\` and \`maxRetransmits\` as mutually exclusive; fibjs
-     *      forwards both when both are given and the library applies its own precedence. An explicit
-     *      \`id\` is returned by \`RTCDataChannel.id\` immediately, while a channel without one reports
-     *      65535 until the id is negotiated. Wrong option types throw 20005.
+     *      The standard treats \`maxPacketLifeTime\` and \`maxRetransmits\` as mutually exclusive; giving
+     *      both throws ERR_INVALID_ARG_VALUE instead of picking one. An explicit \`id\` is returned by
+     *      \`RTCDataChannel.id\` immediately, while a channel without one reports 65535 until the id is
+     *      negotiated. Wrong option types throw 20005.
      *
      *      Example — create a channel and inspect it before the connection starts:
      *      \`\`\`JavaScript
@@ -39770,7 +40184,14 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      @return returns the created channel object
      *
      */
-    createDataChannel(label: string, options?: FIBJS.GeneralObject): Class_RTCDataChannel;
+    createDataChannel(label: string, options?: {
+        ordered?: boolean;
+        maxPacketLifeTime?: number;
+        maxRetransmits?: number;
+        protocol?: string;
+        negotiated?: boolean;
+        id?: number;
+    }): Class_RTCDataChannel;
 
     /**
      * @description changes the local description associated with the connection
@@ -39808,16 +40229,17 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      Applies the local description of the session. Only an \`offer\` has an effect: the library
-     *      takes the offer created by \`createOffer\`, announces it to the peer and starts gathering
-     *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
-     *      resolves without changing anything, because the library creates and applies the answer when
-     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with ERR_INVALID_STATE.
+     *      Applies the local description of the session. An \`offer\` announces the offer created by
+     *      \`createOffer\` to the peer and starts gathering candidates, and the \`sdp\` field of the
+     *      argument is not re-parsed. An \`answer\` or \`pranswer\` resolves without changing anything,
+     *      because the library creates and applies the answer when the remote offer is set. A
+     *      \`rollback\` cancels a pending local offer and returns the connection to \`stable\`, as in the
+     *      standard. Applying an offer to a connection with nothing to negotiate (no data channel or
+     *      track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
-     *      (both fields are then required).
+     *      (\`sdp\` defaults to an empty string, which is what a \`rollback\` needs).
      *
      *      @param description the session description
      *
@@ -39827,16 +40249,17 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      Applies the local description of the session. Only an \`offer\` has an effect: the library
-     *      takes the offer created by \`createOffer\`, announces it to the peer and starts gathering
-     *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
-     *      resolves without changing anything, because the library creates and applies the answer when
-     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with ERR_INVALID_STATE.
+     *      Applies the local description of the session. An \`offer\` announces the offer created by
+     *      \`createOffer\` to the peer and starts gathering candidates, and the \`sdp\` field of the
+     *      argument is not re-parsed. An \`answer\` or \`pranswer\` resolves without changing anything,
+     *      because the library creates and applies the answer when the remote offer is set. A
+     *      \`rollback\` cancels a pending local offer and returns the connection to \`stable\`, as in the
+     *      standard. Applying an offer to a connection with nothing to negotiate (no data channel or
+     *      track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
-     *      (both fields are then required).
+     *      (\`sdp\` defaults to an empty string, which is what a \`rollback\` needs).
      *
      *      @param description the session description
      *
@@ -39846,16 +40269,17 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      Applies the local description of the session. Only an \`offer\` has an effect: the library
-     *      takes the offer created by \`createOffer\`, announces it to the peer and starts gathering
-     *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
-     *      resolves without changing anything, because the library creates and applies the answer when
-     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with ERR_INVALID_STATE.
+     *      Applies the local description of the session. An \`offer\` announces the offer created by
+     *      \`createOffer\` to the peer and starts gathering candidates, and the \`sdp\` field of the
+     *      argument is not re-parsed. An \`answer\` or \`pranswer\` resolves without changing anything,
+     *      because the library creates and applies the answer when the remote offer is set. A
+     *      \`rollback\` cancels a pending local offer and returns the connection to \`stable\`, as in the
+     *      standard. Applying an offer to a connection with nothing to negotiate (no data channel or
+     *      track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
-     *      (both fields are then required).
+     *      (\`sdp\` defaults to an empty string, which is what a \`rollback\` needs).
      *
      *      @param description the session description
      *
@@ -39926,9 +40350,14 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
      *      \`address\` and \`port\`.
      *
+     *      A candidate object without a usable \`candidate\` string (an empty object, \`{ candidate: '' }\`
+     *      or \`{ candidate: null }\`) is the end-of-candidates marker of the standard: it resolves
+     *      without adding anything, which is how a peer that finished gathering is signaled. A real
+     *      candidate needs no \`sdpMid\`: the media line of the remote description is applied by the
+     *      library, and the \`sdpMLineIndex\` field of the standard is ignored.
+     *
      *      The candidate may be an RTCIceCandidate object, or a plain object with the same \`candidate\`
-     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor (both fields
-     *      are then required, and the MDN \`sdpMLineIndex\` field is ignored).
+     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor.
      *
      *      @param candidate the ICE candidate
      *
@@ -39945,9 +40374,14 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
      *      \`address\` and \`port\`.
      *
+     *      A candidate object without a usable \`candidate\` string (an empty object, \`{ candidate: '' }\`
+     *      or \`{ candidate: null }\`) is the end-of-candidates marker of the standard: it resolves
+     *      without adding anything, which is how a peer that finished gathering is signaled. A real
+     *      candidate needs no \`sdpMid\`: the media line of the remote description is applied by the
+     *      library, and the \`sdpMLineIndex\` field of the standard is ignored.
+     *
      *      The candidate may be an RTCIceCandidate object, or a plain object with the same \`candidate\`
-     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor (both fields
-     *      are then required, and the MDN \`sdpMLineIndex\` field is ignored).
+     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor.
      *
      *      @param candidate the ICE candidate
      *
@@ -39964,9 +40398,14 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
      *      \`address\` and \`port\`.
      *
+     *      A candidate object without a usable \`candidate\` string (an empty object, \`{ candidate: '' }\`
+     *      or \`{ candidate: null }\`) is the end-of-candidates marker of the standard: it resolves
+     *      without adding anything, which is how a peer that finished gathering is signaled. A real
+     *      candidate needs no \`sdpMid\`: the media line of the remote description is applied by the
+     *      library, and the \`sdpMLineIndex\` field of the standard is ignored.
+     *
      *      The candidate may be an RTCIceCandidate object, or a plain object with the same \`candidate\`
-     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor (both fields
-     *      are then required, and the MDN \`sdpMLineIndex\` field is ignored).
+     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor.
      *
      *      @param candidate the ICE candidate
      *
@@ -40076,7 +40515,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      * @description gets the statistics of the connection
      *
      *      Resolves with an NMap - a Map subclass, so use \`size\`, \`get(id)\` and \`entries()\` rather than
-     *      property access - that holds four plain objects:
+     *      property access - that holds four plain objects once a candidate pair is selected:
      *         - \`RTCIceCandidate_<local id>\` - the selected local candidate, \`type: 'localcandidate'\`,
      *           with \`candidateType\`, \`ip\` and \`port\`;
      *         - \`RTCIceCandidate_<remote id>\` - the selected remote candidate, \`type: 'remotecandidate'\`;
@@ -40090,10 +40529,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
      *      completes.
      *
-     *      A candidate pair must have been selected before the call: invoking this method before
-     *      \`connectionState\` becomes \`connected\` aborts the process inside the underlying library (an
-     *      uncaught C++ \`std::bad_optional_access\` that JavaScript cannot catch), so call it only after
-     *      the connection is up.
+     *      Before a candidate pair is selected - that is before \`connectionState\` reaches \`connected\` -
+     *      the report still resolves with the single \`RTCTransport_0_1\` entry, without the candidate
+     *      entries and without \`selectedCandidatePairId\`, mirroring the standard where a report exists
+     *      from the start and only the selected pair is absent. Poll it or call it from the
+     *      \`connectionstatechange\` handler once the connection is up to read the full report.
      *
      *      Example — inspect the statistics of a connected pair:
      *      \`\`\`JavaScript
@@ -40152,7 +40592,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      * @description gets the statistics of the connection
      *
      *      Resolves with an NMap - a Map subclass, so use \`size\`, \`get(id)\` and \`entries()\` rather than
-     *      property access - that holds four plain objects:
+     *      property access - that holds four plain objects once a candidate pair is selected:
      *         - \`RTCIceCandidate_<local id>\` - the selected local candidate, \`type: 'localcandidate'\`,
      *           with \`candidateType\`, \`ip\` and \`port\`;
      *         - \`RTCIceCandidate_<remote id>\` - the selected remote candidate, \`type: 'remotecandidate'\`;
@@ -40166,10 +40606,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
      *      completes.
      *
-     *      A candidate pair must have been selected before the call: invoking this method before
-     *      \`connectionState\` becomes \`connected\` aborts the process inside the underlying library (an
-     *      uncaught C++ \`std::bad_optional_access\` that JavaScript cannot catch), so call it only after
-     *      the connection is up.
+     *      Before a candidate pair is selected - that is before \`connectionState\` reaches \`connected\` -
+     *      the report still resolves with the single \`RTCTransport_0_1\` entry, without the candidate
+     *      entries and without \`selectedCandidatePairId\`, mirroring the standard where a report exists
+     *      from the start and only the selected pair is absent. Poll it or call it from the
+     *      \`connectionstatechange\` handler once the connection is up to read the full report.
      *
      *      Example — inspect the statistics of a connected pair:
      *      \`\`\`JavaScript
@@ -40228,7 +40669,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      * @description gets the statistics of the connection
      *
      *      Resolves with an NMap - a Map subclass, so use \`size\`, \`get(id)\` and \`entries()\` rather than
-     *      property access - that holds four plain objects:
+     *      property access - that holds four plain objects once a candidate pair is selected:
      *         - \`RTCIceCandidate_<local id>\` - the selected local candidate, \`type: 'localcandidate'\`,
      *           with \`candidateType\`, \`ip\` and \`port\`;
      *         - \`RTCIceCandidate_<remote id>\` - the selected remote candidate, \`type: 'remotecandidate'\`;
@@ -40242,10 +40683,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
      *      completes.
      *
-     *      A candidate pair must have been selected before the call: invoking this method before
-     *      \`connectionState\` becomes \`connected\` aborts the process inside the underlying library (an
-     *      uncaught C++ \`std::bad_optional_access\` that JavaScript cannot catch), so call it only after
-     *      the connection is up.
+     *      Before a candidate pair is selected - that is before \`connectionState\` reaches \`connected\` -
+     *      the report still resolves with the single \`RTCTransport_0_1\` entry, without the candidate
+     *      entries and without \`selectedCandidatePairId\`, mirroring the standard where a report exists
+     *      from the start and only the selected pair is absent. Poll it or call it from the
+     *      \`connectionstatechange\` handler once the connection is up to read the full report.
      *
      *      Example — inspect the statistics of a connected pair:
      *      \`\`\`JavaScript
@@ -40475,11 +40917,12 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      enumerated. The event object carries the candidate in its \`candidate\` property as a plain
      *      object with the fields \`candidate\`, \`sdpMid\`, \`priority\`, \`type\` and, once the candidate is
      *      resolved, \`transport\`, \`address\` and \`port\`. It is not an RTCIceCandidate instance, although
-     *      the constructor accepts it: \`new rtc.RTCIceCandidate(ev.candidate)\` works. Use
-     *      \`iceGatheringState === 'complete'\` or a timeout to detect the end of gathering, because
-     *      fibjs never delivers an end-of-candidates event.
+     *      the constructor accepts it: \`new rtc.RTCIceCandidate(ev.candidate)\` works. When gathering
+     *      completes, one more event is delivered with a \`null\` candidate, the end-of-candidates marker
+     *      of the standard, so a signaling loop that forwards every candidate can forward it as
+     *      \`{ candidate: '' }\` and stop looking at \`iceGatheringState\`.
      *
-     *      @param ev the event object, carrying the candidate
+     *      @param ev the event object, carrying the candidate or a null candidate at the end
      *
      */
     on(event: "icecandidate", listener: (ev: FIBJS.GeneralObject)=>void): this;
@@ -40507,11 +40950,12 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
      *      enumerated. The event object carries the candidate in its \`candidate\` property as a plain
      *      object with the fields \`candidate\`, \`sdpMid\`, \`priority\`, \`type\` and, once the candidate is
      *      resolved, \`transport\`, \`address\` and \`port\`. It is not an RTCIceCandidate instance, although
-     *      the constructor accepts it: \`new rtc.RTCIceCandidate(ev.candidate)\` works. Use
-     *      \`iceGatheringState === 'complete'\` or a timeout to detect the end of gathering, because
-     *      fibjs never delivers an end-of-candidates event.
+     *      the constructor accepts it: \`new rtc.RTCIceCandidate(ev.candidate)\` works. When gathering
+     *      completes, one more event is delivered with a \`null\` candidate, the end-of-candidates marker
+     *      of the standard, so a signaling loop that forwards every candidate can forward it as
+     *      \`{ candidate: '' }\` and stop looking at \`iceGatheringState\`.
      *
-     *      @param ev the event object, carrying the candidate
+     *      @param ev the event object, carrying the candidate or a null candidate at the end
      *
      */
     onicecandidate: ((ev: FIBJS.GeneralObject)=>void) | null;
@@ -40681,6 +41125,50 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     onsignalingstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
+     * @description DTLS handshake completion event
+     *
+     *      Fired once, when the connection first reaches the \`connected\` state and the DTLS handshake
+     *      has completed. The event object carries the fingerprint of the peer certificate in its
+     *      \`fingerprint\` property, in the same shape as \`remoteFingerprint\`. For a connection accepted
+     *      by an RTCListener this is the first point where the peer identity is available, because the
+     *      synthetic offer used to bootstrap the connection cannot carry it.
+     *
+     *      @param ev the event object, carrying the peer certificate fingerprint
+     *
+     */
+    on(event: "secure", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    once(event: "secure", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    off(event: "secure", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    addListener(event: "secure", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    removeListener(event: "secure", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    addEventListener(event: "secure", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "secure", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "secure", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    prependOnceListener(event: "secure", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    /**
+     * @description DTLS handshake completion event
+     *
+     *      Fired once, when the connection first reaches the \`connected\` state and the DTLS handshake
+     *      has completed. The event object carries the fingerprint of the peer certificate in its
+     *      \`fingerprint\` property, in the same shape as \`remoteFingerprint\`. For a connection accepted
+     *      by an RTCListener this is the first point where the peer identity is available, because the
+     *      synthetic offer used to bootstrap the connection cannot carry it.
+     *
+     *      @param ev the event object, carrying the peer certificate fingerprint
+     *
+     */
+    onsecure: ((ev: FIBJS.GeneralObject)=>void) | null;
+
+    /**
      * @description media track event, reserved and never emitted by fibjs
      *
      *      The event exists for interface compatibility only: fibjs exposes data channels, there is no
@@ -40777,7 +41265,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *          "iceTransportPolicy": "all", // 'all' (default) | 'relay'; unknown -> ERR_INVALID_STATE
      *          "iceServers": [],             // [{ urls: 'stun:host:port', username: '', credential: '' }]
      *          "maxMessageSize": 262144,     // largest SCTP message accepted from the peer
-     *          "enableIceUdpMux": false,     // multiplex ICE and DTLS on one UDP port (rtc.listen)
+     *          "enableIceUdpMux": false,     // multiplex ICE and DTLS on one UDP port (used by RTCListener)
      *          "disableFingerprintVerification": false, // skip DTLS verification (insecure, tests only)
      *          "bindAddress": "",            // local address to bind, empty binds every interface
      *          "port": 0,                    // fixed local UDP port, 0 uses the ephemeral range
@@ -40800,12 +41288,33 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      together: giving only one of them, or material that cannot be read, aborts the process in the
      *      underlying library instead of raising a JavaScript error. \`iceUfrag\`/\`icePwd\` override the
      *      generated ICE credentials and are needed when answering a peer whose description is built by
-     *      the application itself (see rtc.listen).
+     *      the application itself (see RTCListener). Supplying both disables the automatic negotiation:
+     *      \`createOffer()\` generates the offer and \`setRemoteDescription()\` generates the answer, both
+     *      with the forced credentials, so a later renegotiation of the same connection is not started
+     *      automatically.
      *
      *      @param options initialization parameters
      *
      */
-    constructor(options?: FIBJS.GeneralObject);
+    constructor(options?: {
+        certificateType?: string;
+        iceTransportPolicy?: string;
+        iceServers?: {
+            urls?: string | string[];
+            username?: string;
+            credential?: string;
+        }[];
+        maxMessageSize?: number;
+        enableIceUdpMux?: boolean;
+        disableFingerprintVerification?: boolean;
+        bindAddress?: string;
+        port?: number;
+        iceUfrag?: string;
+        icePwd?: string;
+        certPem?: string;
+        keyPem?: string;
+        keyPass?: string;
+    });
 
     /**
      * @description creates a new channel linked to a remote peer
@@ -40827,10 +41336,10 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      })
      *      \`\`\`
      *
-     *      The standard treats \`maxPacketLifeTime\` and \`maxRetransmits\` as mutually exclusive; fibjs
-     *      forwards both when both are given and the library applies its own precedence. An explicit
-     *      \`id\` is returned by \`RTCDataChannel.id\` immediately, while a channel without one reports
-     *      65535 until the id is negotiated. Wrong option types throw 20005.
+     *      The standard treats \`maxPacketLifeTime\` and \`maxRetransmits\` as mutually exclusive; giving
+     *      both throws ERR_INVALID_ARG_VALUE instead of picking one. An explicit \`id\` is returned by
+     *      \`RTCDataChannel.id\` immediately, while a channel without one reports 65535 until the id is
+     *      negotiated. Wrong option types throw 20005.
      *
      *      Example — create a channel and inspect it before the connection starts:
      *      \`\`\`JavaScript
@@ -40849,7 +41358,14 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      @return returns the created channel object
      *
      */
-    createDataChannel(label: string, options?: FIBJS.GeneralObject): Class_RTCDataChannel;
+    createDataChannel(label: string, options?: {
+        ordered?: boolean;
+        maxPacketLifeTime?: number;
+        maxRetransmits?: number;
+        protocol?: string;
+        negotiated?: boolean;
+        id?: number;
+    }): Class_RTCDataChannel;
 
     /**
      * @description changes the local description associated with the connection
@@ -40887,16 +41403,17 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      Applies the local description of the session. Only an \`offer\` has an effect: the library
-     *      takes the offer created by \`createOffer\`, announces it to the peer and starts gathering
-     *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
-     *      resolves without changing anything, because the library creates and applies the answer when
-     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with ERR_INVALID_STATE.
+     *      Applies the local description of the session. An \`offer\` announces the offer created by
+     *      \`createOffer\` to the peer and starts gathering candidates, and the \`sdp\` field of the
+     *      argument is not re-parsed. An \`answer\` or \`pranswer\` resolves without changing anything,
+     *      because the library creates and applies the answer when the remote offer is set. A
+     *      \`rollback\` cancels a pending local offer and returns the connection to \`stable\`, as in the
+     *      standard. Applying an offer to a connection with nothing to negotiate (no data channel or
+     *      track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
-     *      (both fields are then required).
+     *      (\`sdp\` defaults to an empty string, which is what a \`rollback\` needs).
      *
      *      @param description the session description
      *
@@ -40906,16 +41423,17 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      Applies the local description of the session. Only an \`offer\` has an effect: the library
-     *      takes the offer created by \`createOffer\`, announces it to the peer and starts gathering
-     *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
-     *      resolves without changing anything, because the library creates and applies the answer when
-     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with ERR_INVALID_STATE.
+     *      Applies the local description of the session. An \`offer\` announces the offer created by
+     *      \`createOffer\` to the peer and starts gathering candidates, and the \`sdp\` field of the
+     *      argument is not re-parsed. An \`answer\` or \`pranswer\` resolves without changing anything,
+     *      because the library creates and applies the answer when the remote offer is set. A
+     *      \`rollback\` cancels a pending local offer and returns the connection to \`stable\`, as in the
+     *      standard. Applying an offer to a connection with nothing to negotiate (no data channel or
+     *      track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
-     *      (both fields are then required).
+     *      (\`sdp\` defaults to an empty string, which is what a \`rollback\` needs).
      *
      *      @param description the session description
      *
@@ -40925,16 +41443,17 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     /**
      * @description changes the local description associated with the connection
      *
-     *      Applies the local description of the session. Only an \`offer\` has an effect: the library
-     *      takes the offer created by \`createOffer\`, announces it to the peer and starts gathering
-     *      candidates, and the \`sdp\` field of the argument is not re-parsed. An \`answer\` or \`pranswer\`
-     *      resolves without changing anything, because the library creates and applies the answer when
-     *      the remote offer is set. Applying an offer to a connection with nothing to negotiate (no
-     *      data channel or track) rejects with ERR_INVALID_STATE.
+     *      Applies the local description of the session. An \`offer\` announces the offer created by
+     *      \`createOffer\` to the peer and starts gathering candidates, and the \`sdp\` field of the
+     *      argument is not re-parsed. An \`answer\` or \`pranswer\` resolves without changing anything,
+     *      because the library creates and applies the answer when the remote offer is set. A
+     *      \`rollback\` cancels a pending local offer and returns the connection to \`stable\`, as in the
+     *      standard. Applying an offer to a connection with nothing to negotiate (no data channel or
+     *      track) rejects with ERR_INVALID_STATE.
      *
      *      The description may be an RTCSessionDescription object, or a plain object with the same
      *      \`type\` and \`sdp\` fields, which is converted through the RTCSessionDescription constructor
-     *      (both fields are then required).
+     *      (\`sdp\` defaults to an empty string, which is what a \`rollback\` needs).
      *
      *      @param description the session description
      *
@@ -41005,9 +41524,14 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
      *      \`address\` and \`port\`.
      *
+     *      A candidate object without a usable \`candidate\` string (an empty object, \`{ candidate: '' }\`
+     *      or \`{ candidate: null }\`) is the end-of-candidates marker of the standard: it resolves
+     *      without adding anything, which is how a peer that finished gathering is signaled. A real
+     *      candidate needs no \`sdpMid\`: the media line of the remote description is applied by the
+     *      library, and the \`sdpMLineIndex\` field of the standard is ignored.
+     *
      *      The candidate may be an RTCIceCandidate object, or a plain object with the same \`candidate\`
-     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor (both fields
-     *      are then required, and the MDN \`sdpMLineIndex\` field is ignored).
+     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor.
      *
      *      @param candidate the ICE candidate
      *
@@ -41024,9 +41548,14 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
      *      \`address\` and \`port\`.
      *
+     *      A candidate object without a usable \`candidate\` string (an empty object, \`{ candidate: '' }\`
+     *      or \`{ candidate: null }\`) is the end-of-candidates marker of the standard: it resolves
+     *      without adding anything, which is how a peer that finished gathering is signaled. A real
+     *      candidate needs no \`sdpMid\`: the media line of the remote description is applied by the
+     *      library, and the \`sdpMLineIndex\` field of the standard is ignored.
+     *
      *      The candidate may be an RTCIceCandidate object, or a plain object with the same \`candidate\`
-     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor (both fields
-     *      are then required, and the MDN \`sdpMLineIndex\` field is ignored).
+     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor.
      *
      *      @param candidate the ICE candidate
      *
@@ -41043,9 +41572,14 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      delivered by the \`icecandidate\` event are accepted; the latter already carry \`transport\`,
      *      \`address\` and \`port\`.
      *
+     *      A candidate object without a usable \`candidate\` string (an empty object, \`{ candidate: '' }\`
+     *      or \`{ candidate: null }\`) is the end-of-candidates marker of the standard: it resolves
+     *      without adding anything, which is how a peer that finished gathering is signaled. A real
+     *      candidate needs no \`sdpMid\`: the media line of the remote description is applied by the
+     *      library, and the \`sdpMLineIndex\` field of the standard is ignored.
+     *
      *      The candidate may be an RTCIceCandidate object, or a plain object with the same \`candidate\`
-     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor (both fields
-     *      are then required, and the MDN \`sdpMLineIndex\` field is ignored).
+     *      and \`sdpMid\` fields, which is converted through the RTCIceCandidate constructor.
      *
      *      @param candidate the ICE candidate
      *
@@ -41155,7 +41689,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      * @description gets the statistics of the connection
      *
      *      Resolves with an NMap - a Map subclass, so use \`size\`, \`get(id)\` and \`entries()\` rather than
-     *      property access - that holds four plain objects:
+     *      property access - that holds four plain objects once a candidate pair is selected:
      *         - \`RTCIceCandidate_<local id>\` - the selected local candidate, \`type: 'localcandidate'\`,
      *           with \`candidateType\`, \`ip\` and \`port\`;
      *         - \`RTCIceCandidate_<remote id>\` - the selected remote candidate, \`type: 'remotecandidate'\`;
@@ -41169,10 +41703,11 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
      *      completes.
      *
-     *      A candidate pair must have been selected before the call: invoking this method before
-     *      \`connectionState\` becomes \`connected\` aborts the process inside the underlying library (an
-     *      uncaught C++ \`std::bad_optional_access\` that JavaScript cannot catch), so call it only after
-     *      the connection is up.
+     *      Before a candidate pair is selected - that is before \`connectionState\` reaches \`connected\` -
+     *      the report still resolves with the single \`RTCTransport_0_1\` entry, without the candidate
+     *      entries and without \`selectedCandidatePairId\`, mirroring the standard where a report exists
+     *      from the start and only the selected pair is absent. Poll it or call it from the
+     *      \`connectionstatechange\` handler once the connection is up to read the full report.
      *
      *      Example — inspect the statistics of a connected pair:
      *      \`\`\`JavaScript
@@ -41231,7 +41766,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      * @description gets the statistics of the connection
      *
      *      Resolves with an NMap - a Map subclass, so use \`size\`, \`get(id)\` and \`entries()\` rather than
-     *      property access - that holds four plain objects:
+     *      property access - that holds four plain objects once a candidate pair is selected:
      *         - \`RTCIceCandidate_<local id>\` - the selected local candidate, \`type: 'localcandidate'\`,
      *           with \`candidateType\`, \`ip\` and \`port\`;
      *         - \`RTCIceCandidate_<remote id>\` - the selected remote candidate, \`type: 'remotecandidate'\`;
@@ -41245,10 +41780,11 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
      *      completes.
      *
-     *      A candidate pair must have been selected before the call: invoking this method before
-     *      \`connectionState\` becomes \`connected\` aborts the process inside the underlying library (an
-     *      uncaught C++ \`std::bad_optional_access\` that JavaScript cannot catch), so call it only after
-     *      the connection is up.
+     *      Before a candidate pair is selected - that is before \`connectionState\` reaches \`connected\` -
+     *      the report still resolves with the single \`RTCTransport_0_1\` entry, without the candidate
+     *      entries and without \`selectedCandidatePairId\`, mirroring the standard where a report exists
+     *      from the start and only the selected pair is absent. Poll it or call it from the
+     *      \`connectionstatechange\` handler once the connection is up to read the full report.
      *
      *      Example — inspect the statistics of a connected pair:
      *      \`\`\`JavaScript
@@ -41307,7 +41843,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      * @description gets the statistics of the connection
      *
      *      Resolves with an NMap - a Map subclass, so use \`size\`, \`get(id)\` and \`entries()\` rather than
-     *      property access - that holds four plain objects:
+     *      property access - that holds four plain objects once a candidate pair is selected:
      *         - \`RTCIceCandidate_<local id>\` - the selected local candidate, \`type: 'localcandidate'\`,
      *           with \`candidateType\`, \`ip\` and \`port\`;
      *         - \`RTCIceCandidate_<remote id>\` - the selected remote candidate, \`type: 'remotecandidate'\`;
@@ -41321,10 +41857,11 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      at 0 and grow with the traffic; the round-trip times are 0 until the first connectivity check
      *      completes.
      *
-     *      A candidate pair must have been selected before the call: invoking this method before
-     *      \`connectionState\` becomes \`connected\` aborts the process inside the underlying library (an
-     *      uncaught C++ \`std::bad_optional_access\` that JavaScript cannot catch), so call it only after
-     *      the connection is up.
+     *      Before a candidate pair is selected - that is before \`connectionState\` reaches \`connected\` -
+     *      the report still resolves with the single \`RTCTransport_0_1\` entry, without the candidate
+     *      entries and without \`selectedCandidatePairId\`, mirroring the standard where a report exists
+     *      from the start and only the selected pair is absent. Poll it or call it from the
+     *      \`connectionstatechange\` handler once the connection is up to read the full report.
      *
      *      Example — inspect the statistics of a connected pair:
      *      \`\`\`JavaScript
@@ -41498,11 +42035,12 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
      *      enumerated. The event object carries the candidate in its \`candidate\` property as a plain
      *      object with the fields \`candidate\`, \`sdpMid\`, \`priority\`, \`type\` and, once the candidate is
      *      resolved, \`transport\`, \`address\` and \`port\`. It is not an RTCIceCandidate instance, although
-     *      the constructor accepts it: \`new rtc.RTCIceCandidate(ev.candidate)\` works. Use
-     *      \`iceGatheringState === 'complete'\` or a timeout to detect the end of gathering, because
-     *      fibjs never delivers an end-of-candidates event.
+     *      the constructor accepts it: \`new rtc.RTCIceCandidate(ev.candidate)\` works. When gathering
+     *      completes, one more event is delivered with a \`null\` candidate, the end-of-candidates marker
+     *      of the standard, so a signaling loop that forwards every candidate can forward it as
+     *      \`{ candidate: '' }\` and stop looking at \`iceGatheringState\`.
      *
-     *      @param ev the event object, carrying the candidate
+     *      @param ev the event object, carrying the candidate or a null candidate at the end
      *
      */
     onicecandidate: ((ev: FIBJS.GeneralObject)=>void) | null;
@@ -41558,6 +42096,20 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
     onsignalingstatechange: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
+     * @description DTLS handshake completion event
+     *
+     *      Fired once, when the connection first reaches the \`connected\` state and the DTLS handshake
+     *      has completed. The event object carries the fingerprint of the peer certificate in its
+     *      \`fingerprint\` property, in the same shape as \`remoteFingerprint\`. For a connection accepted
+     *      by an RTCListener this is the first point where the peer identity is available, because the
+     *      synthetic offer used to bootstrap the connection cannot carry it.
+     *
+     *      @param ev the event object, carrying the peer certificate fingerprint
+     *
+     */
+    onsecure: ((ev: FIBJS.GeneralObject)=>void) | null;
+
+    /**
      * @description media track event, reserved and never emitted by fibjs
      *
      *      The event exists for interface compatibility only: fibjs exposes data channels, there is no
@@ -41595,9 +42147,11 @@ declare namespace Class_RTCPeerConnection {
  *    answer and \`rollback\` cancels a pending offer; a type the library does not know is reported as
  *    \`unspec\`.
  *  - **Normalization**: the constructor parses the text and \`sdp\` returns the description regenerated
- *    from the parsed fields, which is not necessarily byte-identical to the input - the origin
- *    session id is regenerated on every construction, so two round trips of the same text differ.
- *    Compare parsed content, not strings.
+ *    from the parsed fields, which is not necessarily byte-identical to the input. An input without
+ *    an \`o=\` line receives a generated origin session id; an existing one is preserved. The
+ *    regenerator adds the lines the library needs (\`a=group:BUNDLE\`, \`c=\`, \`a=sendrecv\`, ...) and
+ *    may move attributes, so a second construction of the regenerated text can still differ from
+ *    the first. Compare parsed content, not strings.
  *  - **Acceptance**: the connection methods take either an instance or a plain object with \`type\` and
  *    \`sdp\`, which is converted through this constructor, so both fields are required either way.
  *
@@ -41683,8 +42237,10 @@ declare class Class_RTCSessionDescription extends Class_object {
     /**
      * @description constructs a session description object from a description object
      *
-     *      The description object must contain both \`type\` (the kind of the description) and \`sdp\` (the
-     *      SDP text, a string; another type throws 20005). A missing field throws TypeError 20002. The
+     *      The description object must contain \`type\` (the kind of the description) and may give \`sdp\`
+     *      (the SDP text); the standard defaults \`sdp\` to an empty string, which is what a \`rollback\`
+     *      needs, so it is optional here too and a missing field or a \`null\`/\`undefined\` value means
+     *      \`""\`. Another type of \`sdp\` throws 20005 and a missing \`type\` throws TypeError 20002. The
      *      text is parsed at construction, so text the library cannot parse may throw ERR_INVALID_STATE, and an
      *      unknown \`type\` is accepted and reported as \`unspec\` by the \`type\` member.
      *
@@ -41715,9 +42271,10 @@ declare class Class_RTCSessionDescription extends Class_object {
      * @description gets the session description text
      *
      *      Returns the SDP regenerated from the parsed fields, not the exact text passed to the
-     *      constructor: lines may be normalized or added and the origin session id is regenerated, so
-     *      two constructions of the same text can differ. This is the effective description and the
-     *      value to send to the peer.
+     *      constructor: missing lines are added, attributes may be reordered and an input without an
+     *      \`o=\` line receives a generated session id (an existing id is preserved). This is the
+     *      effective description and the value to send to the peer; compare parsed content rather than
+     *      strings when two descriptions must be compared.
      *
      */
     readonly sdp: string;
@@ -122163,6 +122720,7 @@ declare module 'registry' {
 /// <reference path="../interface/RTCPeerConnection.d.ts" />
 /// <reference path="../interface/RTCSessionDescription.d.ts" />
 /// <reference path="../interface/RTCIceCandidate.d.ts" />
+/// <reference path="../interface/RTCListener.d.ts" />
 /**
  * @description The rtc module establishes WebRTC peer connections: it negotiates a session between two endpoints through the signaling channel of the application and then carries text or binary data over data channels without a central relay, which suits file transfer, chat and bidirectional streams between browsers or between fibjs processes
  *
@@ -122174,8 +122732,9 @@ declare module 'registry' {
  *    \`RTCDataChannel\` objects that carry \`String\` or \`Buffer\` messages;
  *  - **Signaling objects**: \`RTCSessionDescription\` and \`RTCIceCandidate\` hold the two object types
  *    exchanged during signaling;
- *  - **Incoming handshakes**: \`listen()\` binds the local mux port that accepts WebRTC handshakes
- *    from peers whose connection is not established yet, and \`stopListen()\` releases it;
+ *  - **Incoming handshakes**: \`RTCListener\` binds a UDP port, validates the incoming WebRTC
+ *    Direct credentials and creates the answering peer connection; several listeners may coexist
+ *    on different ports;
  *  - **Servers and tuning**: \`startServer()\` runs an embedded STUN/TURN server, \`setSctpSettings()\`
  *    tunes the global SCTP parameters and \`loglevel\` controls the library log.
  *
@@ -122311,25 +122870,29 @@ declare module 'registry' {
  *      });
  *  \`\`\`
  *
- *  Example 3 — bind and release the incoming-handshake listener:
+ *  Example 3 — accept an incoming WebRTC Direct peer:
  *  \`\`\`JavaScript
  *  const rtc = require('rtc');
  *
- *  rtc.listen(0, (binding) => {
- *      console.log('incoming peer', binding.remote_ufrag);
+ *  const listener = new rtc.RTCListener({
+ *      certPem: process.env.RTC_CERT_PEM,
+ *      keyPem: process.env.RTC_KEY_PEM
  *  });
- *  console.log('listening');
- *  rtc.stopListen(0);
- *  console.log('released');
+ *  listener.on('connection', (ev) => {
+ *      ev.peerConnection.ondatachannel = (dcEv) => console.log('channel', dcEv.channel.label);
+ *  });
+ *  listener.listen(3222, '127.0.0.1');
+ *  console.log('listening on', listener.address().port);
+ *  // ...
+ *  listener.close();
  *  \`\`\`
  *
  *  Notes:
  *
  *  - \`RTCDataChannel\` is not a member of the module: obtain it from
  *    \`RTCPeerConnection.createDataChannel()\` or from the \`datachannel\` event.
- *  - \`listen()\` can be called only once per process, only from the main isolate and only before the
- *    first RTCPeerConnection is created; it holds the process alive until the matching
- *    \`stopListen()\` call.
+ *  - \`RTCListener\` holds the process alive while it is bound; \`close()\` releases the hold and
+ *    stops accepting, while connections accepted before the call keep running.
  *  - A connection with a remote description holds the process alive until \`close()\` is called; on a
  *    connection with nothing to negotiate, \`createOffer()\` never resolves and also holds the
  *    process.
@@ -122372,84 +122935,15 @@ declare module 'rtc' {
     type RTCIceCandidate = Class_RTCIceCandidate;
 
     /**
-     * @description binds a WebRTC listening service on the specified address and port
+     * @description The WebRTC Direct listener class, see RTCListener
      *
-     *      A WebRTC session normally starts with a signaling exchange between two peers; \`listen\` binds
-     *      the local UDP mux that receives WebRTC handshakes so that a peer whose connection is not
-     *      established yet can be adopted before its transport is complete. The callback is invoked
-     *      with an object carrying \`local_ufrag\`, \`remote_ufrag\`, \`address\` and \`port\`; the application
-     *      then creates an RTCPeerConnection configured with the reported remote ufrag (see the
-     *      \`iceUfrag\`/\`icePwd\` options) and answers the incoming session with a remote description of
-     *      its own.
-     *
-     *      The call binds the process-wide mux: it can be made only once, only before the first
-     *      RTCPeerConnection is created and only from the main isolate. It holds the process alive
-     *      until the matching \`stopListen\` call, so a program that listens must release the listener
-     *      before it can exit. An empty bind_address listens on all interfaces and port 0 lets the
-     *      system choose the port.
-     *
-     *      Example — bind an ephemeral port and release it again:
-     *      \`\`\`JavaScript
-     *      const rtc = require('rtc');
-     *
-     *      rtc.listen(0, (binding) => {
-     *          console.log('incoming peer', binding.remote_ufrag);
-     *      });
-     *      console.log('listening');
-     *      rtc.stopListen(0);
-     *      console.log('released');
-     *      \`\`\`
-     *
-     *      Throws ERR_INVALID_STATE when a PeerConnection was already created, when the mux is already bound, or
-     *      when the address or port cannot be used.
-     *
-     *      @param bind_address binding address, empty to listen on all interfaces
-     *      @param local_port local port, 0 to let the system choose one
-     *      @param cb callback invoked with the handshake metadata of an incoming peer
+     *      One RTCListener owns one UDP port, one certificate and the admission policy for incoming
+     *      WebRTC Direct connections; accepted peers are delivered as ready RTCPeerConnection objects.
      *
      */
-    function listen(bind_address: string, local_port: number, cb: (info: FIBJS.GeneralObject)=>void): void;
+    const RTCListener: typeof Class_RTCListener;
 
-    /**
-     * @description binds a WebRTC listening service on the specified port
-     *
-     *      Equivalent to the three-argument overload with an empty bind address; see the first overload
-     *      for the full description, the callback fields and the limitations.
-     *
-     *      @param local_port local port
-     *      @param cb callback invoked with the handshake metadata of an incoming peer
-     *
-     */
-    function listen(local_port: number, cb: (info: FIBJS.GeneralObject)=>void): void;
-
-    /**
-     * @description unbinds the WebRTC listening service and releases its hold on the process
-     *
-     *      Releases the listener created by \`listen\` and the process hold it installed; the call must
-     *      use the same address and port as the matching \`listen\` call. Stopping a listener that was
-     *      never bound is a silent no-op.
-     *
-     *      The underlying mux is process-wide and its native teardown ignores the address and port, so
-     *      only one listener exists at a time: a \`stopListen\` call made with a different port stops the
-     *      listener while leaving the hold of the original \`listen\` call behind, and the process then
-     *      cannot exit. Always release the listener with the exact address and port it was bound with.
-     *
-     *      @param bind_address binding address used by the listen call
-     *      @param local_port local port used by the listen call
-     *
-     */
-    function stopListen(bind_address: string, local_port: number): void;
-
-    /**
-     * @description unbinds the WebRTC listening service and releases its hold on the process
-     *
-     *      Equivalent to the two-argument overload with an empty bind address; see the first overload
-     *      for the exact port matching rule.
-     *
-     *      @param local_port local port used by the listen call
-     *
-     */
-    function stopListen(local_port: number): void;
+    type RTCListener = Class_RTCListener;
 
     /**
      * @description starts the embedded STUN/TURN server
@@ -122478,7 +122972,15 @@ declare module 'rtc' {
      *      @param config server configuration
      *
      */
-    function startServer(config: FIBJS.GeneralObject): void;
+    function startServer(config: {
+        credentials?: FIBJS.GeneralObject;
+        maxAllocations?: number;
+        maxPeers?: number;
+        bindAddress?: string;
+        port?: number;
+        relayPortRangeBegin?: number;
+        relayPortRangeEnd?: number;
+    }): void;
 
     /**
      * @description sets the WebRTC global SCTP parameters
@@ -122513,7 +123015,20 @@ declare module 'rtc' {
      *      @param settings SCTP parameters
      *
      */
-    function setSctpSettings(settings: FIBJS.GeneralObject): void;
+    function setSctpSettings(settings: {
+        recvBufferSize?: number;
+        sendBufferSize?: number;
+        maxChunksOnQueue?: number;
+        initialCongestionWindow?: number;
+        maxBurst?: number;
+        congestionControlModule?: number;
+        delayedSackTimeMs?: number;
+        minRetransmitTimeoutMs?: number;
+        maxRetransmitTimeoutMs?: number;
+        initialRetransmitTimeoutMs?: number;
+        maxRetransmitAttempts?: number;
+        heartbeatIntervalMs?: number;
+    }): void;
 
     /**
      * @description queries and sets the WebRTC log level
@@ -139486,8 +140001,6 @@ declare module "fibjs:v8" { export * from "v8"; }
 declare module "node:v8" { export * from "v8"; }
 declare module "fibjs:vm" { export * from "vm"; }
 declare module "node:vm" { export * from "vm"; }
-declare module "fibjs:wasi" { export * from "wasi"; }
-declare module "node:wasi" { export * from "wasi"; }
 declare module "fibjs:worker_threads" { export * from "worker_threads"; }
 declare module "node:worker_threads" { export * from "worker_threads"; }
 declare module "fibjs:xml" { export * from "xml"; }

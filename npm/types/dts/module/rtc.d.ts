@@ -2,6 +2,7 @@
 /// <reference path="../interface/RTCPeerConnection.d.ts" />
 /// <reference path="../interface/RTCSessionDescription.d.ts" />
 /// <reference path="../interface/RTCIceCandidate.d.ts" />
+/// <reference path="../interface/RTCListener.d.ts" />
 /**
  * @description The rtc module establishes WebRTC peer connections: it negotiates a session between two endpoints through the signaling channel of the application and then carries text or binary data over data channels without a central relay, which suits file transfer, chat and bidirectional streams between browsers or between fibjs processes
  *
@@ -13,8 +14,9 @@
  *    `RTCDataChannel` objects that carry `String` or `Buffer` messages;
  *  - **Signaling objects**: `RTCSessionDescription` and `RTCIceCandidate` hold the two object types
  *    exchanged during signaling;
- *  - **Incoming handshakes**: `listen()` binds the local mux port that accepts WebRTC handshakes
- *    from peers whose connection is not established yet, and `stopListen()` releases it;
+ *  - **Incoming handshakes**: `RTCListener` binds a UDP port, validates the incoming WebRTC
+ *    Direct credentials and creates the answering peer connection; several listeners may coexist
+ *    on different ports;
  *  - **Servers and tuning**: `startServer()` runs an embedded STUN/TURN server, `setSctpSettings()`
  *    tunes the global SCTP parameters and `loglevel` controls the library log.
  *
@@ -150,25 +152,29 @@
  *      });
  *  ```
  *
- *  Example 3 — bind and release the incoming-handshake listener:
+ *  Example 3 — accept an incoming WebRTC Direct peer:
  *  ```JavaScript
  *  const rtc = require('rtc');
  *
- *  rtc.listen(0, (binding) => {
- *      console.log('incoming peer', binding.remote_ufrag);
+ *  const listener = new rtc.RTCListener({
+ *      certPem: process.env.RTC_CERT_PEM,
+ *      keyPem: process.env.RTC_KEY_PEM
  *  });
- *  console.log('listening');
- *  rtc.stopListen(0);
- *  console.log('released');
+ *  listener.on('connection', (ev) => {
+ *      ev.peerConnection.ondatachannel = (dcEv) => console.log('channel', dcEv.channel.label);
+ *  });
+ *  listener.listen(3222, '127.0.0.1');
+ *  console.log('listening on', listener.address().port);
+ *  // ...
+ *  listener.close();
  *  ```
  *
  *  Notes:
  *
  *  - `RTCDataChannel` is not a member of the module: obtain it from
  *    `RTCPeerConnection.createDataChannel()` or from the `datachannel` event.
- *  - `listen()` can be called only once per process, only from the main isolate and only before the
- *    first RTCPeerConnection is created; it holds the process alive until the matching
- *    `stopListen()` call.
+ *  - `RTCListener` holds the process alive while it is bound; `close()` releases the hold and
+ *    stops accepting, while connections accepted before the call keep running.
  *  - A connection with a remote description holds the process alive until `close()` is called; on a
  *    connection with nothing to negotiate, `createOffer()` never resolves and also holds the
  *    process.
@@ -211,84 +217,15 @@ declare module 'rtc' {
     type RTCIceCandidate = Class_RTCIceCandidate;
 
     /**
-     * @description binds a WebRTC listening service on the specified address and port
+     * @description The WebRTC Direct listener class, see RTCListener
      *
-     *      A WebRTC session normally starts with a signaling exchange between two peers; `listen` binds
-     *      the local UDP mux that receives WebRTC handshakes so that a peer whose connection is not
-     *      established yet can be adopted before its transport is complete. The callback is invoked
-     *      with an object carrying `local_ufrag`, `remote_ufrag`, `address` and `port`; the application
-     *      then creates an RTCPeerConnection configured with the reported remote ufrag (see the
-     *      `iceUfrag`/`icePwd` options) and answers the incoming session with a remote description of
-     *      its own.
-     *
-     *      The call binds the process-wide mux: it can be made only once, only before the first
-     *      RTCPeerConnection is created and only from the main isolate. It holds the process alive
-     *      until the matching `stopListen` call, so a program that listens must release the listener
-     *      before it can exit. An empty bind_address listens on all interfaces and port 0 lets the
-     *      system choose the port.
-     *
-     *      Example — bind an ephemeral port and release it again:
-     *      ```JavaScript
-     *      const rtc = require('rtc');
-     *
-     *      rtc.listen(0, (binding) => {
-     *          console.log('incoming peer', binding.remote_ufrag);
-     *      });
-     *      console.log('listening');
-     *      rtc.stopListen(0);
-     *      console.log('released');
-     *      ```
-     *
-     *      Throws ERR_INVALID_STATE when a PeerConnection was already created, when the mux is already bound, or
-     *      when the address or port cannot be used.
-     *
-     *      @param bind_address binding address, empty to listen on all interfaces
-     *      @param local_port local port, 0 to let the system choose one
-     *      @param cb callback invoked with the handshake metadata of an incoming peer
+     *      One RTCListener owns one UDP port, one certificate and the admission policy for incoming
+     *      WebRTC Direct connections; accepted peers are delivered as ready RTCPeerConnection objects.
      *
      */
-    function listen(bind_address: string, local_port: number, cb: (info: FIBJS.GeneralObject)=>void): void;
+    const RTCListener: typeof Class_RTCListener;
 
-    /**
-     * @description binds a WebRTC listening service on the specified port
-     *
-     *      Equivalent to the three-argument overload with an empty bind address; see the first overload
-     *      for the full description, the callback fields and the limitations.
-     *
-     *      @param local_port local port
-     *      @param cb callback invoked with the handshake metadata of an incoming peer
-     *
-     */
-    function listen(local_port: number, cb: (info: FIBJS.GeneralObject)=>void): void;
-
-    /**
-     * @description unbinds the WebRTC listening service and releases its hold on the process
-     *
-     *      Releases the listener created by `listen` and the process hold it installed; the call must
-     *      use the same address and port as the matching `listen` call. Stopping a listener that was
-     *      never bound is a silent no-op.
-     *
-     *      The underlying mux is process-wide and its native teardown ignores the address and port, so
-     *      only one listener exists at a time: a `stopListen` call made with a different port stops the
-     *      listener while leaving the hold of the original `listen` call behind, and the process then
-     *      cannot exit. Always release the listener with the exact address and port it was bound with.
-     *
-     *      @param bind_address binding address used by the listen call
-     *      @param local_port local port used by the listen call
-     *
-     */
-    function stopListen(bind_address: string, local_port: number): void;
-
-    /**
-     * @description unbinds the WebRTC listening service and releases its hold on the process
-     *
-     *      Equivalent to the two-argument overload with an empty bind address; see the first overload
-     *      for the exact port matching rule.
-     *
-     *      @param local_port local port used by the listen call
-     *
-     */
-    function stopListen(local_port: number): void;
+    type RTCListener = Class_RTCListener;
 
     /**
      * @description starts the embedded STUN/TURN server
@@ -317,7 +254,15 @@ declare module 'rtc' {
      *      @param config server configuration
      *
      */
-    function startServer(config: FIBJS.GeneralObject): void;
+    function startServer(config: {
+        credentials?: FIBJS.GeneralObject;
+        maxAllocations?: number;
+        maxPeers?: number;
+        bindAddress?: string;
+        port?: number;
+        relayPortRangeBegin?: number;
+        relayPortRangeEnd?: number;
+    }): void;
 
     /**
      * @description sets the WebRTC global SCTP parameters
@@ -352,7 +297,20 @@ declare module 'rtc' {
      *      @param settings SCTP parameters
      *
      */
-    function setSctpSettings(settings: FIBJS.GeneralObject): void;
+    function setSctpSettings(settings: {
+        recvBufferSize?: number;
+        sendBufferSize?: number;
+        maxChunksOnQueue?: number;
+        initialCongestionWindow?: number;
+        maxBurst?: number;
+        congestionControlModule?: number;
+        delayedSackTimeMs?: number;
+        minRetransmitTimeoutMs?: number;
+        maxRetransmitTimeoutMs?: number;
+        initialRetransmitTimeoutMs?: number;
+        maxRetransmitAttempts?: number;
+        heartbeatIntervalMs?: number;
+    }): void;
 
     /**
      * @description queries and sets the WebRTC log level

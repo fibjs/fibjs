@@ -105,6 +105,7 @@ run("./sse_test.js");
 run("./sse_ticket_test.js");
 run("./mq_test.js");
 run("./rtc_test.js");
+run("./rtc_listener_test.js");
 
 // iOS has no GUI: the gui module is a stub (no_gui.cpp) and every webview call
 // just throws "Webview not supported in this platform".

@@ -7,8 +7,8 @@
  *  A channel carries text and binary messages between the two peers of a session. The application
  *  obtains it by creating it locally with `RTCPeerConnection.createDataChannel` or from the
  *  `datachannel` event when the peer creates one; it cannot be constructed directly
- *  (`new RTCDataChannel()` throws a TypeError). A channel has no `readyState` member: the `open`,
- *  `message` and `close` events are the observable states of its life cycle.
+ *  (`new RTCDataChannel()` throws a TypeError). `readyState` reports the state of the channel and
+ *  the `open`, `message` and `close` events announce its transitions.
  *
  *  Concepts:
  *
@@ -21,11 +21,12 @@
  *    travels as binary; the receiver gets a string or a Buffer in `ev.data` respectively, so binary
  *    payloads stay binary and are not re-encoded.
  *  - **Buffering**: `send` queues the message and returns immediately; `bufferedAmount` reports the
- *    bytes still queued. The `bufferedamountlow` event exists but fibjs has no threshold setter, so
- *    the application cannot request it at a chosen queue level.
+ *    bytes still queued and `bufferedAmountLowThreshold` sets the queue level at which the
+ *    `bufferedamountlow` event is emitted.
  *  - **Life cycle**: a channel exists before the transport is ready, opens only after ICE and DTLS
  *    complete, and closes by `close()`, by the peer, or by closing the connection. Sending outside
- *    the open state throws ERR_INVALID_STATE, and the `close` event reports either side closing.
+ *    the open state throws ERR_INVALID_STATE, and the `close` event reports either side closing;
+ *    `readyState` reports the same states as a value.
  *
  *  Obtained from:
  *  - `RTCPeerConnection#createDataChannel` — the local side creates the channel;
@@ -136,8 +137,9 @@
  *
  *  Notes:
  *
- *  - The channel does not expose the creation options back: there is no `readyState`, `binaryType`,
- *    `ordered`, `maxPacketLifeTime`, `maxRetransmits` or `negotiated` member.
+ *  - The channel exposes the creation options back through `ordered`, `maxPacketLifeTime`,
+ *    `maxRetransmits` and `negotiated`; there is no `binaryType`, because a fibjs `Buffer` is a real
+ *    `Uint8Array`, so received binary data is already usable as an ArrayBuffer view.
  *
  */
 declare class Class_RTCDataChannel extends Class_EventEmitter {
@@ -192,7 +194,8 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      *
      *      Returns the SCTP stream id between 0 and 65534, or 65535 while no id has been assigned, that
      *      is before the channel is negotiated; a channel created with an explicit `id` option reports
-     *      it immediately. See the `id` option of `RTCPeerConnection.createDataChannel`.
+     *      it immediately. The id is the same on both peers, which makes it usable for out-of-band
+     *      signaling. See the `id` option of `RTCPeerConnection.createDataChannel`.
      *
      */
     readonly id: number;
@@ -220,12 +223,68 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      * @description gets the number of bytes of data currently queued to be sent
      *
      *      Reports the size in bytes of the send queue of the channel: it grows while messages wait for
-     *      the transport and returns to 0 when everything has been handed over. fibjs exposes no
-     *      `bufferedAmountLowThreshold`, so the `bufferedamountlow` event fires only at the internal
-     *      threshold of the library.
+     *      the transport and returns to 0 when everything has been handed over. `send` returns as soon
+     *      as the message is queued, so this is the way to apply backpressure: wait for it to fall below
+     *      `bufferedAmountLowThreshold` (or for the `bufferedamountlow` event) before sending more.
      *
      */
     readonly bufferedAmount: number;
+
+    /**
+     * @description gets the send queue level considered low by the bufferedamountlow event
+     *
+     *      The threshold in bytes of `bufferedAmount` at or below which the `bufferedamountlow` event
+     *      is emitted; it defaults to 0, which means the event fires when the queue fully drains. Set a
+     *      positive value to be notified while the queue still holds data, then send more when it fires.
+     *
+     */
+    bufferedAmountLowThreshold: number;
+
+    /**
+     * @description gets the state of the channel
+     *
+     *      Returns `connecting` while the transport is not ready, `open` once the channel can carry
+     *      messages and `closed` after it was closed by either side. The standard `closing` state is
+     *      never reported because the underlying library closes the channel in one step.
+     *
+     */
+    readonly readyState: string;
+
+    /**
+     * @description reports whether the channel guarantees in-order delivery
+     *
+     *      True by default; false when the channel was created with `ordered: false`, which allows
+     *      out-of-order delivery and lowers latency.
+     *
+     */
+    readonly ordered: boolean;
+
+    /**
+     * @description gets the retransmission time limit of a message in milliseconds
+     *
+     *      Returns the `maxPacketLifeTime` the channel was created with, or null when no limit is set
+     *      and messages are retransmitted until they arrive.
+     *
+     */
+    readonly maxPacketLifeTime: number;
+
+    /**
+     * @description gets the retransmission limit of a message
+     *
+     *      Returns the `maxRetransmits` the channel was created with, or null when retransmission is
+     *      unlimited.
+     *
+     */
+    readonly maxRetransmits: number;
+
+    /**
+     * @description reports whether the channel was created without in-band negotiation
+     *
+     *      True when the channel was created with `negotiated: true`; the peer then creates the same
+     *      channel with the same id instead of receiving a `datachannel` event.
+     *
+     */
+    readonly negotiated: boolean;
 
     /**
      * @description channel open event, emitted when the channel is opened
@@ -378,11 +437,11 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
     onerror: ((ev: FIBJS.GeneralObject)=>void) | null;
 
     /**
-     * @description channel buffered amount low event, emitted when the queue falls below the threshold
+     * @description channel buffered amount low event, emitted when the queue falls to the threshold
      *
-     *      Fired when the send queue of the channel falls below the internal threshold of the library.
-     *      fibjs has no `bufferedAmountLowThreshold` setter, so the event cannot be requested at a
-     *      chosen queue level and is rarely observed in practice; it carries no payload.
+     *      Fired when `bufferedAmount` falls to or below `bufferedAmountLowThreshold` (0 by default,
+     *      which means the queue drained). Use it to resume sending after applying backpressure; it
+     *      carries no payload.
      *
      */
     on(event: "bufferedamountlow", listener: ()=>void): this;
@@ -404,11 +463,11 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
     prependOnceListener(event: "bufferedamountlow", listener: ()=>void): this;
 
     /**
-     * @description channel buffered amount low event, emitted when the queue falls below the threshold
+     * @description channel buffered amount low event, emitted when the queue falls to the threshold
      *
-     *      Fired when the send queue of the channel falls below the internal threshold of the library.
-     *      fibjs has no `bufferedAmountLowThreshold` setter, so the event cannot be requested at a
-     *      chosen queue level and is rarely observed in practice; it carries no payload.
+     *      Fired when `bufferedAmount` falls to or below `bufferedAmountLowThreshold` (0 by default,
+     *      which means the queue drained). Use it to resume sending after applying backpressure; it
+     *      carries no payload.
      *
      */
     onbufferedamountlow: (()=>void) | null;

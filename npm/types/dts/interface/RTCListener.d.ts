@@ -1,0 +1,328 @@
+/// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/EventEmitter.d.ts" />
+/**
+ * @description RTCListener accepts incoming WebRTC Direct connections on one UDP port
+ *
+ * A WebRTC Direct peer connects without a signaling exchange: the client sends an
+ * ICE binding request to a UDP port, and the ICE credentials in that request are all
+ * the server needs to build the answer. One RTCListener owns one UDP port, one
+ * certificate and the admission policy for the sessions accepted on that port.
+ *
+ * Concepts:
+ *
+ * - **Endpoint**: `listen(port, addr)` binds the port; `address()` reports it and
+ *   `close()` releases it. Several listeners may coexist on different ports.
+ * - **Handshake**: when a binding request arrives, the listener validates its ICE
+ *   credentials, runs `authorize`, creates an `RTCPeerConnection` on the mux port,
+ *   applies a synthetic remote offer built from the request and generates the
+ *   answer. The application receives the ready connection through the `connection`
+ *   event and never handles SDP, ICE credentials or the mux port itself.
+ * - **Identity**: the synthetic offer cannot carry the client's certificate
+ *   fingerprint, so the DTLS handshake accepts any certificate. The `secure` event
+ *   of the accepted connection reports the real fingerprint once the handshake is
+ *   complete; use it to authenticate the peer, for example with Noise.
+ * - **Versions**: v1 requests reuse the ICE ufrag as password; requests whose server
+ *   ufrag starts with the libp2p v2 prefix carry the client password in that ufrag
+ *   and are decoded automatically. Other requests are treated as v1 after the
+ *   credential validation.
+ *
+ * Example 1 — accept connections and echo on the first data channel:
+ * ```JavaScript
+ * const rtc = require('rtc');
+ *
+ * const listener = new rtc.RTCListener({
+ *     certPem: process.env.RTC_CERT_PEM,
+ *     keyPem: process.env.RTC_KEY_PEM
+ * });
+ *
+ * listener.on('connection', (ev) => {
+ *     const pc = ev.peerConnection;
+ *     pc.ondatachannel = (dcEv) => {
+ *         const dc = dcEv.channel;
+ *         dc.onmessage = (msg) => dc.send(msg.data);
+ *     };
+ * });
+ *
+ * listener.listen(3222, '127.0.0.1');
+ * console.log('listening on', listener.address().port);
+ * // ...
+ * listener.close();
+ * ```
+ *
+ * Example 2 — reject peers before any native connection is created:
+ * ```JavaScript
+ * const rtc = require('rtc');
+ *
+ * const listener = new rtc.RTCListener({
+ *     certPem: process.env.RTC_CERT_PEM,
+ *     keyPem: process.env.RTC_KEY_PEM,
+ *     authorize: (request) => request.clientUfrag.startsWith('libp2p+webrtc+v1/')
+ * });
+ *
+ * listener.on('connection', (ev) => {
+ *     console.log('accepted', ev.request.remoteAddress, ev.request.remotePort);
+ * });
+ * listener.listen(3223);
+ * ```
+ *
+ * Notes:
+ *
+ * - `certPem` and `keyPem` are required unless a certificate is generated; the
+ *   certificate is shared by every accepted connection, so clients can pin its
+ *   fingerprint in the dialed address.
+ * - Only an explicit port is accepted: port 0 is reserved because the listener is
+ *   tracked and unregistered by its port.
+ * - `authorize` runs synchronously on the JavaScript thread before the native peer
+ *   connection is built; throwing or returning a falsy value drops the request.
+ * - A listener holds the process alive while it is bound; `close()` releases the
+ *   hold. Connections accepted before `close()` keep running.
+ *
+ */
+declare class Class_RTCListener extends Class_EventEmitter {
+    /**
+     * @description creates a listener, without binding a port
+     *
+     *      Parses and validates the options. The listener is bound later with
+     *      `listen`; binding in the constructor is not supported because the mux port
+     *      must be reserved before any accepted connection exists.
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "certPem": "",    // certificate as PEM text; generated when omitted
+     *          "keyPem": "",     // private key as PEM text; generated when omitted
+     *          "keyPass": "",    // passphrase of an encrypted private key
+     *          "maxMessageSize": 262144, // largest SCTP message accepted from a peer
+     *          "maxConnections": 1024,   // accepted sessions kept open at the same time
+     *          "maxConnectionsPerAddress": 16, // accepted sessions per remote IP
+     *          "authorize": undefined // function (request) => Boolean, optional
+     *      })
+     *      ```
+     *
+     *      `authorize` receives the parsed request before the native connection is
+     *      created; returning `false`, `null` or `undefined`, or throwing, rejects the
+     *      request. It is called synchronously on the JavaScript thread and cannot be
+     *      asynchronous: a returned promise is rejected as well.
+     *
+     *      @param options initialization parameters
+     *
+     */
+    constructor(options?: {
+        certPem?: string;
+        keyPem?: string;
+        keyPass?: string;
+        maxMessageSize?: number;
+        maxConnections?: number;
+        maxConnectionsPerAddress?: number;
+        authorize?: (...args: any[])=>any;
+    });
+
+    /**
+     * @description binds the listening UDP port
+     *
+     *      Creates the process-wide mux listener for `port` and starts accepting
+     *      WebRTC Direct binding requests. The port must be explicit and between 1 and
+     *      65535; a second listener on the same port fails. `addr` is an IP literal;
+     *      an empty string binds all local addresses of both families.
+     *
+     *      Throws ERR_INVALID_STATE when the listener is already bound and
+     *      ERR_SOCKET_BIND_FAILED when the address cannot be bound.
+     *
+     *      @param port the UDP port to bind
+     *      @param addr the local address to bind, empty for all addresses
+     *      @return returns the listener itself
+     *
+     */
+    listen(port: number, addr?: string): Class_RTCListener;
+
+    /**
+     * @description reports the bound address and port
+     *
+     *      Returns the configured bind address (an empty address is reported as `::`,
+     *      which means all addresses), its family and the port. The method throws
+     *      ERR_INVALID_STATE before `listen` succeeds.
+     *
+     *      @return returns the bound address, its family ("IPv4" or "IPv6") and the port
+     *
+     */
+    address(): {
+        address: string;
+        family: string;
+        port: number;
+    };
+
+    /**
+     * @description stops accepting connections and releases the process hold
+     *
+     *      Unbinds the UDP port, clears the pending handshakes and releases the hold
+     *      installed by `listen`. Connections accepted before the call are not closed
+     *      and keep running; closing a listener that was never bound is a no-op.
+     *
+     *      @return returns the listener itself
+     *
+     */
+    close(): Class_RTCListener;
+
+    /**
+     * @description closes the listener; an alias of close()
+     *
+     *      Identical to `close()`: it unbinds the port, clears pending handshakes and
+     *      releases the process hold, while connections accepted before the call keep
+     *      running. The alias exists so the listener can be released with the same
+     *      method name as the other fibjs servers.
+     *
+     *      @return returns the listener itself
+     *
+     */
+    stop(): Class_RTCListener;
+
+    /**
+     * @description the certificate shared by every accepted connection
+     *
+     *      The object has the `certPem` and `keyPem` fields and the SHA-256
+     *      `fingerprint` of the certificate. A certificate supplied through the
+     *      constructor is reused; otherwise a self-signed ECDSA P-256 certificate is
+     *      generated when the listener is created.
+     *
+     *      The fingerprint is the value clients pin in the dialed address, so persist
+     *      `certPem`/`keyPem` when the listener must keep the same identity across
+     *      restarts.
+     *
+     */
+    readonly certificate: FIBJS.GeneralObject;
+
+    /**
+     * @description emitted when an incoming peer has been accepted
+     *
+     *      The event object carries the ready connection in `peerConnection` and the
+     *      parsed request in `request`. `peerConnection` is a normal
+     *      RTCPeerConnection whose remote and local descriptions have already been
+     *      applied: attach `ondatachannel` immediately, the connection is still
+     *      connecting. The request has the fields `version`, `serverUfrag`,
+     *      `clientUfrag`, `clientPwd`, `remoteAddress`, `remotePort` and `localPort`.
+     *
+     *      The connection is not authenticated yet: the DTLS handshake accepts any
+     *      peer certificate, and the real fingerprint becomes available through the
+     *      `secure` event of the connection.
+     *
+     *      @param ev the event object, carrying peerConnection and request
+     *
+     */
+    on(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    once(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    off(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    addListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    removeListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    addEventListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    prependOnceListener(event: "connection", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    /**
+     * @description emitted when an incoming peer has been accepted
+     *
+     *      The event object carries the ready connection in `peerConnection` and the
+     *      parsed request in `request`. `peerConnection` is a normal
+     *      RTCPeerConnection whose remote and local descriptions have already been
+     *      applied: attach `ondatachannel` immediately, the connection is still
+     *      connecting. The request has the fields `version`, `serverUfrag`,
+     *      `clientUfrag`, `clientPwd`, `remoteAddress`, `remotePort` and `localPort`.
+     *
+     *      The connection is not authenticated yet: the DTLS handshake accepts any
+     *      peer certificate, and the real fingerprint becomes available through the
+     *      `secure` event of the connection.
+     *
+     *      @param ev the event object, carrying peerConnection and request
+     *
+     */
+    onconnection: ((ev: FIBJS.GeneralObject)=>void) | null;
+
+    /**
+     * @description emitted when the listener cannot process an incoming peer
+     *
+     *      Fires when building the synthetic offer or creating the native connection
+     *      fails after a request was accepted. Malformed binding requests are dropped
+     *      silently and do not emit this event, so a public listener is not flooded by
+     *      invalid traffic.
+     *
+     *      @param ev the event object, carrying the error message in its message property
+     *
+     */
+    on(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    once(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    off(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    addListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    removeListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    addEventListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+
+    removeEventListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+
+    prependListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    prependOnceListener(event: "error", listener: (ev: FIBJS.GeneralObject)=>void): this;
+
+    /**
+     * @description emitted when the listener cannot process an incoming peer
+     *
+     *      Fires when building the synthetic offer or creating the native connection
+     *      fails after a request was accepted. Malformed binding requests are dropped
+     *      silently and do not emit this event, so a public listener is not flooded by
+     *      invalid traffic.
+     *
+     *      @param ev the event object, carrying the error message in its message property
+     *
+     */
+    onerror: ((ev: FIBJS.GeneralObject)=>void) | null;
+
+    on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    off(ev: any): FIBJS.GeneralObject;
+
+    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    removeListener(ev: any): FIBJS.GeneralObject;
+
+    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    removeEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
+
+    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+}
+

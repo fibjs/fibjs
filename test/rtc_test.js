@@ -1,19 +1,22 @@
-var { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+var { describe, it } = require('node:test');
 var assert = require('assert');
 
 var test_util = require('./test_util');
-const child_process = require('child_process');
 const coroutine = require('coroutine');
-const path = require('path');
-const io = require('io');
 const rtc = require("rtc");
 
-const cmd = process.execPath;
+function catchOf(fn) {
+    try {
+        fn();
+    } catch (e) {
+        return e;
+    }
+    return null;
+}
 
 function munge(desc, ufrag) {
-    if (desc.sdp === undefined) {
-        throw invalidArgument("Can't munge a missing SDP");
-    }
+    assert.ok(desc.sdp !== undefined, "Can't munge a missing SDP");
+
     desc.sdp = desc.sdp
         .replace(/\na=ice-ufrag:[^\n]*\n/, '\na=ice-ufrag:' + ufrag + '\n')
         .replace(/\na=ice-pwd:[^\n]*\n/, '\na=ice-pwd:' + ufrag + '\n');
@@ -40,11 +43,7 @@ function connect(ip, port, ufrag) {
         maxMessageSize: 16384
     });
 
-    const handshakeDataChannel = peerConnection.createDataChannel('temp');
-
-    handshakeDataChannel.onopen = (_) => {
-        // peerConnection.close();
-    };
+    peerConnection.createDataChannel('temp');
 
     peerConnection.createOffer().then(offerSdp => {
         const mungedOfferSdp = munge(offerSdp, ufrag);
@@ -59,74 +58,6 @@ function connect(ip, port, ufrag) {
 }
 
 describe('rtc', function () {
-    it('listen will hold the process', function () {
-        var p = child_process.spawn(cmd, [path.join(__dirname, 'rtc_files', 'listen.js')]);
-        var stdout = new io.BufferedStream(p.stdout);
-        assert.deepEqual(stdout.readLines(), ["0", "1", "2", "3"]);
-    });
-
-    it('binding information', function () {
-        var p = child_process.spawn(cmd, [path.join(__dirname, 'rtc_files', 'accept_info.js')]);
-        const ufrag = 'libp2p+webrtc+v1/' + genUfrag(16);
-        const peerConnection = connect('127.0.0.1', 3223, ufrag);
-
-        var stdout = new io.BufferedStream(p.stdout);
-        const binding = JSON.parse(stdout.readLine());
-
-        assert.equal(binding.local_ufrag, ufrag);
-        assert.equal(binding.remote_ufrag, ufrag);
-
-        peerConnection.close();
-    });
-
-    it('accept', function () {
-        var p = child_process.spawn(cmd, [path.join(__dirname, 'rtc_files', 'accept.js')]);
-        const ufrag = 'libp2p+webrtc+v1/' + genUfrag(16);
-        const peerConnection = connect('127.0.0.1', 3224, ufrag);
-
-        var stdout = new io.BufferedStream(p.stdout);
-        assert.deepEqual(stdout.readLines(), [
-            "ondatachannel",
-            "closed"
-        ]);
-
-        peerConnection.close();
-    });
-
-    it('datachannel', function () {
-        var p = child_process.spawn(cmd, [path.join(__dirname, 'rtc_files', 'datachannel.js')], {
-            stdio: "inherit"
-        });
-
-        const ufrag = 'libp2p+webrtc+v1/' + genUfrag(16);
-        const peerConnection = connect('127.0.0.1', 3225, ufrag);
-
-        for (var i = 0; i < 10; i++) {
-            var msg = '';
-
-            console.log(`channel_${i}`);
-            var test_channel = peerConnection.createDataChannel(`channel_${i}`);
-
-            test_channel.onmessage = (ev) => {
-                console.log('client accept message:', ev.data);
-                msg = ev.data;
-            };
-
-            test_channel.onopen = (_) => {
-                console.log('client onopen');
-                test_channel.send('hello');
-            };
-
-            for (var j = 0; j < 100 && msg !== 'hello'; j++)
-                coroutine.sleep(100);
-
-            assert.equal(msg, 'hello');
-        }
-
-        p.kill(0);
-        peerConnection.close();
-    });
-
     it('connect timeout', function () {
         const ufrag = 'libp2p+webrtc+v1/' + genUfrag(16);
         const peerConnection = connect('127.0.0.1', 60919, ufrag);
@@ -141,15 +72,6 @@ describe('rtc', function () {
 // The RTC init-object unions (RTCSessionDescription|Object,
 // RTCIceCandidate|Object) in every call form.
 describe('the RTC parameter unions', () => {
-    function catchOf(fn) {
-        try {
-            fn();
-        } catch (e) {
-            return e;
-        }
-        return null;
-    }
-
     function asyncForm(promise) {
         var got;
         promise.then(function (res) {
@@ -184,6 +106,256 @@ describe('the RTC parameter unions', () => {
         // the class form reaches the same domain error
         assertConverted(catchOf(() =>
             new rtc.RTCPeerConnection().setLocalDescriptionSync(new rtc.RTCSessionDescription(desc))));
+    });
+});
+
+// The option records (RTCPeerConnectionOptions, RTCDataChannelOptions,
+// RTCServerOptions, RTCSctpSettings, RTCListenerOptions) are typed by the IDL:
+// a field of the wrong type is rejected at the call boundary with the field
+// name, and unknown keys are ignored as before.
+describe('the RTC option records', () => {
+    it('rejects a field of the wrong type', () => {
+        var pcErr = catchOf(() => new rtc.RTCPeerConnection({ maxMessageSize: 'big' }));
+        assert.ok(pcErr, 'a string maxMessageSize must not be accepted');
+        assert.equal(pcErr.number, 20005);
+        assert.ok(pcErr.message.indexOf('maxMessageSize') >= 0, 'the message names the field: ' + pcErr.message);
+
+        var iceErr = catchOf(() => new rtc.RTCPeerConnection({ iceServers: {} }));
+        assert.ok(iceErr, 'iceServers must be an array');
+        assert.equal(iceErr.number, 20005);
+
+        var sctpErr = catchOf(() => rtc.setSctpSettings({ maxBurst: 'many' }));
+        assert.ok(sctpErr);
+        assert.equal(sctpErr.number, 20005);
+
+        var serverErr = catchOf(() => rtc.startServer({ port: 'x' }));
+        assert.ok(serverErr);
+        assert.equal(serverErr.number, 20005);
+    });
+
+    it('accepts the documented shapes and ignores unknown keys', () => {
+        var pc = new rtc.RTCPeerConnection({
+            certificateType: 'ecdsa',
+            iceTransportPolicy: 'all',
+            iceServers: [
+                { urls: 'stun:127.0.0.1:3478', username: 'user', credential: 'secret' },
+                { urls: ['stun:127.0.0.1:3478', 'stun:127.0.0.1:3479'] }
+            ],
+            maxMessageSize: 16384,
+            enableIceUdpMux: false,
+            disableFingerprintVerification: false,
+            bindAddress: '127.0.0.1',
+            unknownKey: 1
+        });
+        assert.equal(pc.connectionState, 'new');
+
+        var dc = pc.createDataChannel('options', {
+            ordered: false,
+            maxPacketLifeTime: 100,
+            protocol: 'json',
+            negotiated: true,
+            id: 42
+        });
+        assert.equal(dc.id, 42);
+        assert.equal(dc.protocol, 'json');
+        pc.close();
+    });
+
+    it('applies only the SCTP fields that are given', () => {
+        // the call has no return value: the contract is that a partial record
+        // is accepted and the library keeps its defaults for the other fields
+        rtc.setSctpSettings({ recvBufferSize: 1024 * 1024 });
+        rtc.setSctpSettings({});
+    });
+});
+
+// The MDN-facing surface: the channel state and creation options, the channel
+// events on both sides, the end-of-candidates markers and the state
+// transitions the standard defines.
+describe('the RTC MDN surface', () => {
+    function pair() {
+        var pc1 = new rtc.RTCPeerConnection({ iceServers: [] });
+        var pc2 = new rtc.RTCPeerConnection({ iceServers: [] });
+        var toPc1 = [];
+        var toPc2 = [];
+
+        pc1.onicecandidate = function (ev) {
+            if (ev.candidate) toPc2.push(ev.candidate);
+        };
+        pc2.onicecandidate = function (ev) {
+            if (ev.candidate) toPc1.push(ev.candidate);
+        };
+
+        return { pc1: pc1, pc2: pc2, toPc1: toPc1, toPc2: toPc2 };
+    }
+
+    function exchange(ctx) {
+        var done = null;
+        ctx.pc1.createOffer()
+            .then(function (offer) {
+                return ctx.pc1.setLocalDescription(offer)
+                    .then(function () { return ctx.pc2.setRemoteDescription(offer); });
+            })
+            .then(function () { return ctx.pc2.createAnswer(); })
+            .then(function (answer) {
+                return ctx.pc2.setLocalDescription(answer)
+                    .then(function () { return ctx.pc1.setRemoteDescription(answer); });
+            })
+            .then(function () { done = 'ok'; }, function (e) { done = e; });
+
+        assert.ok(test_util.waitUntil(function () { return done !== null; }),
+            'the signaling exchange did not settle');
+        assert.equal(done, 'ok');
+    }
+
+    function pump(ctx, ready, ms) {
+        var deadline = Date.now() + (ms || 8000);
+        while (!ready() && Date.now() < deadline) {
+            while (ctx.toPc1.length) ctx.pc1.addIceCandidate(ctx.toPc1.shift());
+            while (ctx.toPc2.length) ctx.pc2.addIceCandidate(ctx.toPc2.shift());
+            coroutine.sleep(10);
+        }
+        return ready();
+    }
+
+    it('reports the channel state and the creation options', () => {
+        var pc = new rtc.RTCPeerConnection({ iceServers: [] });
+        var dc = pc.createDataChannel('options', {
+            ordered: false,
+            maxPacketLifeTime: 120,
+            protocol: 'json',
+            negotiated: true,
+            id: 9
+        });
+
+        assert.equal(dc.readyState, 'connecting');
+        assert.equal(dc.ordered, false);
+        assert.equal(dc.maxPacketLifeTime, 120);
+        assert.equal(dc.maxRetransmits, null);
+        assert.equal(dc.negotiated, true);
+        assert.equal(dc.protocol, 'json');
+        assert.equal(dc.id, 9);
+
+        assert.equal(dc.bufferedAmountLowThreshold, 0);
+        dc.bufferedAmountLowThreshold = 4096;
+        assert.equal(dc.bufferedAmountLowThreshold, 4096);
+        assert.throws(function () { dc.bufferedAmountLowThreshold = -1; });
+
+        // the standard makes the reliability limits exclusive and bounds the id
+        assert.throws(function () {
+            pc.createDataChannel('both', { maxPacketLifeTime: 1, maxRetransmits: 1 });
+        });
+        assert.throws(function () { pc.createDataChannel('negative', { maxPacketLifeTime: -1 }); });
+        assert.throws(function () {
+            pc.createDataChannel('id', { negotiated: true, id: 65535 });
+        });
+
+        pc.close();
+    });
+
+    it('opens a remote channel with an open event and closes a local one with close', () => {
+        var ctx = pair();
+        var remoteOpen = false;
+        var remoteState = null;
+        var remoteNegotiated = null;
+
+        ctx.pc2.ondatachannel = function (ev) {
+            remoteState = ev.channel.readyState;
+            remoteNegotiated = ev.channel.negotiated;
+            ev.channel.onopen = function () { remoteOpen = true; };
+        };
+
+        var endOfCandidates = 0;
+        ctx.pc1.onicecandidate = function (ev) {
+            if (ev.candidate) ctx.toPc2.push(ev.candidate);
+            else endOfCandidates++;
+        };
+
+        var dc = ctx.pc1.createDataChannel('events');
+        assert.equal(dc.readyState, 'connecting');
+
+        var localClose = 0;
+        dc.onclose = function () { localClose++; };
+
+        exchange(ctx);
+        assert.ok(pump(ctx, function () { return remoteOpen; }), 'the remote channel did not open');
+
+        assert.equal(remoteState, 'open');
+        assert.equal(remoteNegotiated, false);
+        assert.equal(endOfCandidates, 1, 'the end-of-candidates event did not fire once');
+        assert.equal(dc.readyState, 'open');
+
+        dc.close();
+        assert.ok(test_util.waitUntil(function () { return localClose > 0; }),
+            'the local close event did not fire');
+        assert.equal(dc.readyState, 'closed');
+
+        ctx.pc1.close();
+        ctx.pc2.close();
+    });
+
+    it('resolves getStats before a pair is selected and rejects a pending offer on close', () => {
+        var pc = new rtc.RTCPeerConnection({ iceServers: [] });
+
+        var stats = null;
+        var statsError = null;
+        pc.getStats().then(function (s) { stats = s; }, function (e) { statsError = e; });
+        assert.ok(test_util.waitUntil(function () { return stats || statsError; }),
+            'getStats did not settle');
+        assert.equal(statsError, null);
+        assert.equal(stats.size, 1);
+
+        var transport = stats.get('RTCTransport_0_1');
+        assert.equal(transport.dtlsState, 'new');
+        assert.equal(transport.selectedCandidatePairChanges, 0);
+        assert.equal(transport.selectedCandidatePairId, undefined);
+
+        var offer = 'pending';
+        pc.createOffer().then(function () { offer = 'resolved'; }, function () { offer = 'rejected'; });
+        pc.close();
+        assert.ok(test_util.waitUntil(function () { return offer !== 'pending'; }),
+            'the pending offer did not settle');
+        assert.equal(offer, 'rejected');
+    });
+
+    it('accepts candidate dictionaries without sdpMid and rolls back a local offer', () => {
+        var cand = new rtc.RTCIceCandidate({
+            candidate: 'candidate:1 1 UDP 1 127.0.0.1 1000 typ host'
+        });
+        assert.equal(cand.sdpMid, '0');
+        assert.equal(cand.type, 'host');
+
+        var marker = new rtc.RTCIceCandidate({});
+        assert.equal(marker.candidate, '');
+        assert.equal(marker.sdpMid, null);
+
+        var pc = new rtc.RTCPeerConnection({ iceServers: [] });
+        var markerAdded = false;
+        var markerError = null;
+        pc.addIceCandidate({}).then(function () { markerAdded = true; }, function (e) { markerError = e; });
+        assert.ok(test_util.waitUntil(function () { return markerAdded || markerError; }),
+            'the end-of-candidates marker did not settle');
+        assert.equal(markerError, null);
+
+        pc.createDataChannel('rollback');
+        var offered = null;
+        var rolledBack = null;
+        var error = null;
+        pc.createOffer()
+            .then(function (offer) { return pc.setLocalDescription(offer); })
+            .then(function () {
+                offered = pc.signalingState;
+                return pc.setLocalDescription({ type: 'rollback' });
+            })
+            .then(function () { rolledBack = pc.signalingState; }, function (e) { error = e; });
+
+        assert.ok(test_util.waitUntil(function () { return rolledBack || error; }),
+            'the rollback did not settle');
+        assert.equal(error, null);
+        assert.equal(offered, 'have-local-offer');
+        assert.equal(rolledBack, 'stable');
+
+        pc.close();
     });
 });
 

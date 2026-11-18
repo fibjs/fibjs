@@ -14,7 +14,9 @@
 #include "ifs/RTCPeerConnection.h"
 #include "datachannel/include/rtc/rtc.hpp"
 #include "RTCDataChannel.h"
+#include <functional>
 #include <list>
+#include <optional>
 
 namespace fibjs {
 
@@ -29,7 +31,7 @@ public:
     }
 
     // RTCPeerConnection_base
-    virtual result_t createDataChannel(exlib::string label, v8::Local<v8::Object> options, obj_ptr<RTCDataChannel_base>& retVal);
+    virtual result_t createDataChannel(exlib::string label, RTCDataChannelOptions* options, obj_ptr<RTCDataChannel_base>& retVal);
     virtual result_t setLocalDescription(AsyncHandle ac);
     virtual result_t setLocalDescription(Union_setLocalDescription_description description, AsyncHandle ac);
     virtual result_t setRemoteDescription(Union_setRemoteDescription_description description, AsyncHandle ac);
@@ -47,10 +49,20 @@ public:
     virtual result_t get_signalingState(exlib::string& retVal);
 
 public:
-    result_t create(v8::Local<v8::Object> options);
+    result_t create(RTCPeerConnectionOptions* options);
     obj_ptr<NObject> description_to_object(rtc::Description description);
 
+    // Internal entry used by RTCListener: applies a synthetic remote offer and
+    // generates the answer with the ICE credentials derived from the incoming
+    // STUN request. Not exposed to JavaScript.
+    result_t accept(std::shared_ptr<rtc::PeerConnection> peer, rtc::LocalDescriptionInit init,
+        exlib::string remoteSdp, std::function<void()> onClose);
+
 private:
+    result_t init(std::shared_ptr<rtc::PeerConnection> peer,
+        std::optional<rtc::LocalDescriptionInit> localInit);
+    obj_ptr<NObject> fingerprint_to_object(rtc::CertificateFingerprint fingerprint);
+
     void onStateChange(rtc::PeerConnection::State state);
     void onLocalCandidate(rtc::Candidate candidate);
     void onLocalDescription(rtc::Description description);
@@ -64,6 +76,12 @@ private:
     std::shared_ptr<rtc::PeerConnection> m_peerConnection;
     exlib::string m_local_id, m_remote_id;
 
+    // libdatachannel applies forced ICE credentials only when the local
+    // description is set explicitly; keep them here instead of adding fields
+    // to the library Configuration. Set only when both iceUfrag and icePwd
+    // are supplied, which also turns off the implicit negotiation below.
+    std::optional<rtc::LocalDescriptionInit> m_local_description_init;
+
     obj_ptr<ValueHolder> m_self;
 
     exlib::spinlock m_lock;
@@ -75,6 +93,9 @@ private:
     std::list<std::pair<Variant&, AsyncHandle>> m_answers;
 
     std::list<obj_ptr<RTCDataChannel>> m_dataChannels;
+
+    std::function<void()> m_on_close;
+    bool m_secure_emitted = false;
 };
 
 } /* namespace fibjs */

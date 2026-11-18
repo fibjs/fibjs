@@ -5,11 +5,9 @@
  */
 
 #include "object.h"
-#include "RTCPeerConnection.h"
-#include "Fiber.h"
 #include "ifs/rtc.h"
 
-#include <boost/preprocessor.hpp>
+#include "datachannel/include/rtc/rtc.hpp"
 
 #ifndef JUICE_STATIC
 #define JUICE_STATIC
@@ -19,213 +17,14 @@
 namespace fibjs {
 DECLARE_MODULE(rtc);
 
-namespace {
-
-static exlib::string rtc_listen_key(const exlib::string& bind_address, int32_t local_port)
+result_t rtc_base::startServer(RTCServerOptions* options)
 {
-    char port_buf[32];
-    snprintf(port_buf, sizeof(port_buf), "%d", local_port);
-
-    exlib::string key = bind_address;
-    key.append(1, '|');
-    key.append(port_buf);
-    return key;
-}
-
-class RTCListenHoldToken : public object_base {
-public:
-    RTCListenHoldToken(Isolate* isolate, exlib::string bind_address, int32_t local_port)
-        : m_bind_address(bind_address)
-        , m_local_port(local_port)
-        , m_key(rtc_listen_key(bind_address, local_port))
-    {
-        holder(isolate);
-        isolate_ref();
-    }
-
-    // 显式结束（rtc.stopListen）：只有真正停止成功才结束这条持有
-    void endListen()
-    {
-        if (m_ended)
-            return;
-
-        if (juice_mux_stop_listen(listen_addr(), m_local_port) != 0)
-            return;
-
-        detach();
-    }
-
-    // isolate 终止时的中断：尽力停止监听，但无论成功与否都必须回收 hold，
-    // 否则 isolate 永远拿不到 idle（worker 无法回收）。
-    virtual result_t stop()
-    {
-        if (m_ended)
-            return result_t();
-
-        juice_mux_stop_listen(listen_addr(), m_local_port);
-        detach();
-
-        return result_t();
-    }
-
-private:
-    // 结束策略：摘除注册表项 + 释放 hold（幂等）。
-    // 本 token 由 Isolate::m_rtcListenHolders 持有，析构发生在 isolate 拆除期，
-    // 因此不提供析构 unref，释放只走这里。
-    void detach()
-    {
-        if (m_ended)
-            return;
-
-        m_ended = true;
-
-        // 自持一份引用：erase() 会释放 map 持有的最后一份引用（refcount 归零即
-        // Delete()，对象当场销毁），若接着在已释放内存上执行 isolate_unref()，
-        // 其 CAS(m_holding) 读回的已不是 true —— CAS 失败会跳过
-        // unregisterHoldingObject() 与 Isolate::Unref()，isolate hold 永不释放
-        // （表现为 rtc.stopListen() 之后进程无法退出）。先自持一份即可保证 unref
-        // 发生在有效对象上，作用域结束时的析构再真正销毁本对象。
-        obj_ptr<RTCListenHoldToken> self = this;
-
-        Isolate* isolate = holder();
-        auto it = isolate->m_rtcListenHolders.find(m_key);
-        if (it != isolate->m_rtcListenHolders.end() && (object_base*)it->second == this)
-            isolate->m_rtcListenHolders.erase(it);
-
-        isolate_unref();
-    }
-
-    const char* listen_addr()
-    {
-        return m_bind_address.empty() ? nullptr : m_bind_address.c_str();
-    }
-
-private:
-    exlib::string m_bind_address;
-    int32_t m_local_port;
-    exlib::string m_key;
-    bool m_ended = false;
-};
-
-} // namespace
-
-result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Local<v8::Function> cb)
-{
-    struct cb_data {
-        exlib::string local_ufrag;
-        exlib::string remote_ufrag;
-        exlib::string address;
-        uint16_t port;
-    };
-
-    Isolate* isolate = Isolate::current(cb);
-    if (isolate->m_id != 1)
-        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("rtc.bind() can only be called in the main isolate");
-
-    static v8::Global<v8::Function> s_cb_global;
-    s_cb_global.Reset(isolate->m_isolate, cb);
-    const char* bind_address_ = bind_address.empty() ? nullptr : bind_address.c_str();
-
-    int ret = juice_mux_listen(bind_address_, local_port, [](const juice_mux_incoming_t* incoming_info, void* user_data) {
-            cb_data* data_ = new cb_data();
-
-            data_->local_ufrag = incoming_info->local_ufrag;
-            data_->remote_ufrag = incoming_info->remote_ufrag;
-            data_->address = incoming_info->address;
-            data_->port = incoming_info->port;
-
-            ((Isolate*)user_data)->sync([data_]() {
-                Isolate* isolate = Isolate::current();
-                JSFiber::EnterJsScope s;
-
-                v8::Local<v8::Function> cb = v8::Local<v8::Function>::New(isolate->m_isolate, s_cb_global);
-                if (cb.IsEmpty()) {
-                    delete data_;
-                    return;
-                }
-
-                v8::Local<v8::Object> data = v8::Object::New(isolate->m_isolate);
-
-                data->Set(isolate->context(), isolate->NewString("local_ufrag"), isolate->NewString(data_->local_ufrag)).FromMaybe(false);
-                data->Set(isolate->context(), isolate->NewString("remote_ufrag"), isolate->NewString(data_->remote_ufrag)).FromMaybe(false);
-                data->Set(isolate->context(), isolate->NewString("address"), isolate->NewString(data_->address)).FromMaybe(false);
-                data->Set(isolate->context(), isolate->NewString("port"), v8::Number::New(isolate->m_isolate, data_->port)).FromMaybe(false);
-                delete data_;
-
-                v8::Local<v8::Value> argv[] = { data };
-
-                v8::Local<v8::Value> result = cb->Call(isolate->context(), v8::Undefined(isolate->m_isolate), 1, argv).FromMaybe(v8::Local<v8::Value>());
-
-                return;
-            }); }, isolate);
-
-    if (ret == -1)
-        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("rtc.listen() need to be called before RTCPeerConnection object is created");
-    else if (ret < 0)
-        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SOCKET_BIND_FAILED").with_message("rtc.listen() failed to bind to the specified port");
-
-    exlib::string key = rtc_listen_key(bind_address, local_port);
-    isolate->m_rtcListenHolders[key] = new RTCListenHoldToken(isolate, bind_address, local_port);
-
-    return result_t();
-}
-
-result_t rtc_base::listen(int32_t local_port, v8::Local<v8::Function> cb)
-{
-    return listen("", local_port, cb);
-}
-
-result_t rtc_base::stopListen(exlib::string bind_address, int32_t local_port)
-{
-    Isolate* isolate = Isolate::current();
-    if (isolate->m_id != 1)
-        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("rtc.stopListen() can only be called in the main isolate");
-
-    auto it = isolate->m_rtcListenHolders.find(rtc_listen_key(bind_address, local_port));
-    if (it == isolate->m_rtcListenHolders.end()) {
-        // 没有对应的 holder（例如非 listen() 建立的监听）：保持原行为，仅停监听
-        juice_mux_stop_listen(bind_address.empty() ? nullptr : bind_address.c_str(), local_port);
-        return result_t();
-    }
-
-    // 结束策略：停监听 + 摘表 + 释放 hold，与 isolate 终止路径共用
-    static_cast<RTCListenHoldToken*>((object_base*)it->second)->endListen();
-
-    return result_t();
-}
-
-result_t rtc_base::stopListen(int32_t local_port)
-{
-    return stopListen("", local_port);
-}
-
-result_t rtc_base::startServer(v8::Local<v8::Object> config)
-{
-    class ServerOptions : public obj_base {
-    public:
-        LOAD_OPTIONS(ServerOptions, (credentials)(maxAllocations)(maxPeers)(bindAddress)(port)(relayPortRangeBegin)(relayPortRangeEnd));
-
-    public:
-        std::optional<v8::Local<v8::Object>> credentials;
-        std::optional<int32_t> maxAllocations = 0;
-        std::optional<int32_t> maxPeers = 0;
-        std::optional<exlib::string> bindAddress;
-        std::optional<int32_t> port = 3478;
-        std::optional<int32_t> relayPortRangeBegin = 0;
-        std::optional<int32_t> relayPortRangeEnd = 0;
-    };
-
-    obj_ptr<ServerOptions> options;
-    Isolate* isolate = Isolate::current(config);
-    result_t hr = ServerOptions::load(config, options);
-    if (hr.failed())
-        return hr;
-
     juice_server_config_t server_config = {};
     std::vector<juice_server_credentials> server_credentials;
     std::vector<std::pair<std::string, std::string>> credentials_;
 
-    if (options->credentials.has_value()) {
+    if (options && options->credentials.has_value()) {
+        Isolate* isolate = Isolate::current();
         v8::Local<v8::Object> credentials = options->credentials.value();
         v8::Local<v8::Array> keys = credentials->GetPropertyNames(isolate->context()).ToLocalChecked();
         for (uint32_t i = 0; i < keys->Length(); i++) {
@@ -251,12 +50,14 @@ result_t rtc_base::startServer(v8::Local<v8::Object> config)
         server_config.credentials_count = server_credentials.size();
     }
 
-    server_config.max_allocations = options->maxAllocations.value();
-    server_config.max_peers = options->maxPeers.value();
-    server_config.bind_address = options->bindAddress.has_value() ? options->bindAddress.value().c_str() : nullptr;
-    server_config.port = options->port.value();
-    server_config.relay_port_range_begin = options->relayPortRangeBegin.value();
-    server_config.relay_port_range_end = options->relayPortRangeEnd.value();
+    if (options) {
+        server_config.max_allocations = options->maxAllocations.value_or(0);
+        server_config.max_peers = options->maxPeers.value_or(0);
+        server_config.bind_address = options->bindAddress.has_value() ? options->bindAddress.value().c_str() : nullptr;
+        server_config.port = options->port.value_or(3478);
+        server_config.relay_port_range_begin = options->relayPortRangeBegin.value_or(0);
+        server_config.relay_port_range_end = options->relayPortRangeEnd.value_or(0);
+    }
 
     juice_server_t* server = juice_server_create(&server_config);
     if (!server)
@@ -265,46 +66,39 @@ result_t rtc_base::startServer(v8::Local<v8::Object> config)
     return result_t();
 }
 
-result_t rtc_base::setSctpSettings(v8::Local<v8::Object> settings)
+result_t rtc_base::setSctpSettings(RTCSctpSettings* options)
 {
-    class SctpOptions : public obj_base {
-    public:
-        LOAD_OPTIONS(SctpOptions, (recvBufferSize)(sendBufferSize)(maxChunksOnQueue)(initialCongestionWindow)(maxBurst)(congestionControlModule)(delayedSackTimeMs)(minRetransmitTimeoutMs)(maxRetransmitTimeoutMs)(initialRetransmitTimeoutMs)(maxRetransmitAttempts)(heartbeatIntervalMs));
-
-    public:
-        std::optional<int32_t> recvBufferSize = 0;
-        std::optional<int32_t> sendBufferSize = 0;
-        std::optional<int32_t> maxChunksOnQueue = 0;
-        std::optional<int32_t> initialCongestionWindow = 0;
-        std::optional<int32_t> maxBurst = 0;
-        std::optional<int32_t> congestionControlModule = 0;
-        std::optional<int32_t> delayedSackTimeMs = 0;
-        std::optional<int32_t> minRetransmitTimeoutMs = 0;
-        std::optional<int32_t> maxRetransmitTimeoutMs = 0;
-        std::optional<int32_t> initialRetransmitTimeoutMs = 0;
-        std::optional<int32_t> maxRetransmitAttempts = 0;
-        std::optional<int32_t> heartbeatIntervalMs = 0;
-    };
-
-    obj_ptr<SctpOptions> options;
-    Isolate* isolate = Isolate::current(settings);
-    result_t hr = SctpOptions::load(settings, options);
-    if (hr.failed())
-        return hr;
-
+    // rtc::SctpSettings keeps every field optional and applies the optimized
+    // library default to the ones that stay disengaged, so only the fields the
+    // caller provided are copied here.
     rtc::SctpSettings s = {};
-    s.recvBufferSize = options->recvBufferSize.value();
-    s.sendBufferSize = options->sendBufferSize.value();
-    s.maxChunksOnQueue = options->maxChunksOnQueue.value();
-    s.initialCongestionWindow = options->initialCongestionWindow.value();
-    s.maxBurst = options->maxBurst.value();
-    s.congestionControlModule = options->congestionControlModule.value();
-    s.delayedSackTime = std::chrono::milliseconds(options->delayedSackTimeMs.value());
-    s.minRetransmitTimeout = std::chrono::milliseconds(options->minRetransmitTimeoutMs.value());
-    s.maxRetransmitTimeout = std::chrono::milliseconds(options->maxRetransmitTimeoutMs.value());
-    s.initialRetransmitTimeout = std::chrono::milliseconds(options->initialRetransmitTimeoutMs.value());
-    s.maxRetransmitAttempts = options->maxRetransmitAttempts.value();
-    s.heartbeatInterval = std::chrono::milliseconds(options->heartbeatIntervalMs.value());
+
+    if (options) {
+        if (options->recvBufferSize.has_value())
+            s.recvBufferSize = options->recvBufferSize.value();
+        if (options->sendBufferSize.has_value())
+            s.sendBufferSize = options->sendBufferSize.value();
+        if (options->maxChunksOnQueue.has_value())
+            s.maxChunksOnQueue = options->maxChunksOnQueue.value();
+        if (options->initialCongestionWindow.has_value())
+            s.initialCongestionWindow = options->initialCongestionWindow.value();
+        if (options->maxBurst.has_value())
+            s.maxBurst = options->maxBurst.value();
+        if (options->congestionControlModule.has_value())
+            s.congestionControlModule = options->congestionControlModule.value();
+        if (options->delayedSackTimeMs.has_value())
+            s.delayedSackTime = std::chrono::milliseconds(options->delayedSackTimeMs.value());
+        if (options->minRetransmitTimeoutMs.has_value())
+            s.minRetransmitTimeout = std::chrono::milliseconds(options->minRetransmitTimeoutMs.value());
+        if (options->maxRetransmitTimeoutMs.has_value())
+            s.maxRetransmitTimeout = std::chrono::milliseconds(options->maxRetransmitTimeoutMs.value());
+        if (options->initialRetransmitTimeoutMs.has_value())
+            s.initialRetransmitTimeout = std::chrono::milliseconds(options->initialRetransmitTimeoutMs.value());
+        if (options->maxRetransmitAttempts.has_value())
+            s.maxRetransmitAttempts = options->maxRetransmitAttempts.value();
+        if (options->heartbeatIntervalMs.has_value())
+            s.heartbeatInterval = std::chrono::milliseconds(options->heartbeatIntervalMs.value());
+    }
 
     rtc::SetSctpSettings(s);
 

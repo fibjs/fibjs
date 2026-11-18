@@ -1,0 +1,46 @@
+/*! @brief Options for RTCPeerConnection.createDataChannel.
+
+ A channel is ordered and reliable by default. An unset `maxPacketLifeTime`
+ and an unset `maxRetransmits` leave retransmission unlimited; setting one of
+ them trades reliability for latency, and the two are meant to be mutually
+ exclusive.
+
+ Example 1 — an unordered channel carrying JSON:
+ ```JavaScript
+ const rtc = require('rtc');
+
+ const pc = new rtc.RTCPeerConnection({ iceServers: [] });
+ const dc = pc.createDataChannel('chat', { ordered: false, protocol: 'json' });
+ console.log(dc.label, dc.protocol); // chat json
+ pc.close();
+ ```
+
+ Example 2 — a negotiated channel with a fixed id:
+ ```JavaScript
+ const rtc = require('rtc');
+
+ const pc = new rtc.RTCPeerConnection({ iceServers: [] });
+ const dc = pc.createDataChannel('events', { negotiated: true, id: 42 });
+ console.log(dc.id); // 42
+ pc.close();
+ ```
+ */
+struct RTCDataChannelOptions {
+    /*! @brief ordered delivery, true by default */
+    Boolean ordered = true;
+
+    /*! @brief milliseconds a message may be retransmitted, unset leaves it unlimited */
+    Integer maxPacketLifeTime;
+
+    /*! @brief retransmissions allowed per message, unset leaves them unlimited */
+    Integer maxRetransmits;
+
+    /*! @brief subprotocol name exposed to the peer, empty by default */
+    String protocol = "";
+
+    /*! @brief create the channel without in-band negotiation, false by default */
+    Boolean negotiated = false;
+
+    /*! @brief channel id, unset lets the library assign one */
+    Integer id;
+};

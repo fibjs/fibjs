@@ -18,7 +18,15 @@ namespace fibjs {
 
 class RTCIceCandidate : public RTCIceCandidate_base {
 public:
-    RTCIceCandidate(rtc::Candidate& candidate)
+    // An empty candidate is the standard's end-of-candidates marker: it has
+    // no address and `addIceCandidate` only resolves it, so the wrapper keeps
+    // the flag instead of asking the library to parse an empty string.
+    RTCIceCandidate()
+        : m_empty(true)
+    {
+    }
+
+    RTCIceCandidate(exlib::string& candidate)
         : m_candidate(candidate)
     {
     }
@@ -29,6 +37,11 @@ public:
     }
 
 public:
+    bool is_empty() const
+    {
+        return m_empty;
+    }
+
     // RTCIceCandidate_base
     virtual result_t get_candidate(exlib::string& retVal);
     virtual result_t get_sdpMid(exlib::string& retVal);
@@ -40,6 +53,7 @@ public:
 
 public:
     rtc::Candidate m_candidate;
+    bool m_empty = false;
 };
 
 } /* namespace fibjs */

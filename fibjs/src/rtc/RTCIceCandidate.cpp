@@ -13,8 +13,10 @@ result_t RTCIceCandidate_base::_new(v8::Local<v8::Object> description,
     obj_ptr<RTCIceCandidate_base>& retVal, v8::Local<v8::Object> This)
 {
     result_t hr;
-    exlib::string candidate, sdpMid;
+    std::optional<exlib::string> candidate, sdpMid;
 
+    // The standard dictionary defaults `candidate` to an empty string (the
+    // end-of-candidates marker) and `sdpMid` to null, so neither is required.
     hr = GetConfigValue(description, "candidate", candidate, true);
     if (hr.failed())
         return hr;
@@ -24,7 +26,12 @@ result_t RTCIceCandidate_base::_new(v8::Local<v8::Object> description,
         return hr;
 
     try {
-        retVal = new RTCIceCandidate(candidate, sdpMid);
+        if (!candidate.has_value() || candidate->empty())
+            retVal = new RTCIceCandidate();
+        else if (sdpMid.has_value())
+            retVal = new RTCIceCandidate(candidate.value(), sdpMid.value());
+        else
+            retVal = new RTCIceCandidate(candidate.value());
     } catch (std::exception& e) {
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }
@@ -34,12 +41,21 @@ result_t RTCIceCandidate_base::_new(v8::Local<v8::Object> description,
 
 result_t RTCIceCandidate::get_candidate(exlib::string& retVal)
 {
-    retVal = m_candidate.candidate();
+    if (m_empty)
+        retVal.clear();
+    else
+        retVal = m_candidate.candidate();
+
     return result_t();
 }
 
 result_t RTCIceCandidate::get_sdpMid(exlib::string& retVal)
 {
+    // A candidate built without a media line reports the bundle media line
+    // (`0`), the only one a data-channel-only session has.
+    if (m_empty)
+        return result_t::return_null();
+
     retVal = m_candidate.mid();
     return result_t();
 }

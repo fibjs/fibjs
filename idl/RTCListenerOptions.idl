@@ -1,0 +1,58 @@
+/*! @brief Options for the RTCListener constructor.
+
+ `certPem` and `keyPem` accept PEM text and must be given together; when both
+ are omitted the listener generates a self-signed ECDSA P-256 certificate. The
+ certificate is shared by every accepted connection, so its fingerprint can be
+ pinned by the dialing peer and should be persisted when the listener must keep
+ the same identity across restarts.
+
+ `authorize` runs synchronously before the native peer connection is created and
+ receives the parsed request; returning a falsy value or throwing drops the
+ request. It cannot be asynchronous: a returned promise is rejected.
+
+ Example 1 — an admission hook together with the connection limits:
+ ```JavaScript
+ const rtc = require('rtc');
+
+ const listener = new rtc.RTCListener({
+     maxConnections: 8,
+     maxConnectionsPerAddress: 2,
+     authorize: (request) => request.remotePort !== 0
+ });
+ console.log(listener.certificate.fingerprint.length > 0); // true
+ listener.close();
+ ```
+
+ Example 2 — serve every interface of one UDP port:
+ ```JavaScript
+ // requires: network
+ const rtc = require('rtc');
+
+ const listener = new rtc.RTCListener({ maxConnections: 16 });
+ listener.listen(3222, '');
+ console.log(listener.address().port); // 3222
+ listener.close();
+ ```
+ */
+struct RTCListenerOptions {
+    /*! @brief Certificate as PEM text, empty to generate one */
+    String certPem = "";
+
+    /*! @brief Private key as PEM text, empty to generate one */
+    String keyPem = "";
+
+    /*! @brief Passphrase of an encrypted private key, empty when not encrypted */
+    String keyPass = "";
+
+    /*! @brief Largest SCTP message accepted from a peer, in bytes */
+    Integer maxMessageSize = 262144;
+
+    /*! @brief Accepted sessions kept open at the same time, 0 for unlimited */
+    Integer maxConnections = 1024;
+
+    /*! @brief Accepted sessions per remote IP, 0 for unlimited */
+    Integer maxConnectionsPerAddress = 16;
+
+    /*! @brief Admission hook invoked with the parsed request before the native connection is built */
+    Function authorize;
+};

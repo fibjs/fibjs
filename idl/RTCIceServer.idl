@@ -1,0 +1,42 @@
+/*! @brief One ICE server of an RTCPeerConnection.
+
+ `urls` is one URL or a list of URLs of the same server, each in the form
+ `stun:host:port` or `turn:host:port`. `username` and `credential` are the
+ long-term credentials of a TURN allocation and are ignored for a STUN server.
+
+ Example 1 — a STUN server, the shape the connection uses by default:
+ ```JavaScript
+ const rtc = require('rtc');
+
+ const pc = new rtc.RTCPeerConnection({
+     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+ });
+ console.log(pc.connectionState); // new
+ pc.close();
+ ```
+
+ Example 2 — a TURN server with its long-term credentials:
+ ```JavaScript
+ // requires: network
+ const rtc = require('rtc');
+
+ const pc = new rtc.RTCPeerConnection({
+     iceServers: [{
+         urls: ['turn:turn.example.com:3478'],
+         username: 'user',
+         credential: 'secret'
+     }]
+ });
+ pc.close();
+ ```
+ */
+struct RTCIceServer {
+    /*! @brief URL or list of URLs of the server, such as 'stun:host:port' */
+    String|String[] urls;
+
+    /*! @brief Username sent to a TURN server */
+    String username;
+
+    /*! @brief Credential sent to a TURN server */
+    String credential;
+};

@@ -14,7 +14,7 @@
 
 namespace fibjs {
 
-result_t RTCPeerConnection_base::_new(v8::Local<v8::Object> options,
+result_t RTCPeerConnection_base::_new(RTCPeerConnectionOptions* options,
     obj_ptr<RTCPeerConnection_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<RTCPeerConnection> peer = new RTCPeerConnection();
@@ -31,18 +31,23 @@ result_t RTCSessionDescription_base::_new(v8::Local<v8::Object> description,
     obj_ptr<RTCSessionDescription_base>& retVal, v8::Local<v8::Object> This)
 {
     result_t hr;
-    exlib::string type, sdp;
+    exlib::string type;
 
     hr = GetConfigValue(description, "type", type, true);
     if (hr.failed())
         return hr;
 
+    // The standard dictionary defaults `sdp` to an empty string, which is the
+    // value a rollback description needs, so the field is optional.
+    std::optional<exlib::string> sdp;
     hr = GetConfigValue(description, "sdp", sdp, true);
     if (hr.failed())
         return hr;
 
+    exlib::string sdp_val = sdp.value_or("");
+
     try {
-        retVal = new RTCSessionDescription(sdp, type);
+        retVal = new RTCSessionDescription(sdp_val, type);
     } catch (std::exception& e) {
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }
@@ -124,6 +129,28 @@ inline const char* signaling_state_str(rtc::PeerConnection::SignalingState state
     }
 }
 
+// The library does not expose the DTLS transport state directly; the peer
+// connection state is the closest public value (DTLS completes together with
+// the connection), and the values are the ones the standard uses.
+inline const char* dtls_state_str(rtc::PeerConnection::State state)
+{
+    switch (state) {
+    case rtc::PeerConnection::State::New:
+        return "new";
+    case rtc::PeerConnection::State::Connecting:
+    case rtc::PeerConnection::State::Disconnected:
+        return "connecting";
+    case rtc::PeerConnection::State::Connected:
+        return "connected";
+    case rtc::PeerConnection::State::Failed:
+        return "failed";
+    case rtc::PeerConnection::State::Closed:
+        return "closed";
+    default:
+        return "new";
+    }
+}
+
 inline exlib::string candidate_type_str(rtc::Candidate::Type type)
 {
     switch (type) {
@@ -176,67 +203,68 @@ obj_ptr<NObject> RTCPeerConnection::description_to_object(rtc::Description descr
 
 RTCPeerConnection::~RTCPeerConnection()
 {
-    m_peerConnection->resetCallbacks();
-    close();
+    if (m_peerConnection) {
+        m_peerConnection->resetCallbacks();
+        close();
+    }
+
+    // The listener counts accepted sessions and releases the slot on close. A
+    // connection destroyed before libdatachannel reports Closed must release it
+    // here, after resetCallbacks() suppressed the state callback.
+    auto on_close = std::move(m_on_close);
+    m_on_close = nullptr;
+    if (on_close)
+        on_close();
 }
 
-result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8::Object> options, obj_ptr<RTCDataChannel_base>& retVal)
+result_t RTCPeerConnection::createDataChannel(exlib::string label, RTCDataChannelOptions* options, obj_ptr<RTCDataChannel_base>& retVal)
 {
     Isolate* isolate = holder();
-    result_t hr;
     rtc::DataChannelInit init;
 
-    bool ordered;
-    hr = GetConfigValue(options, "ordered", ordered, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        init.reliability.unordered = !ordered;
-    }
+    if (options) {
+        // The standard makes the two reliability limits exclusive; the
+        // library throws a generic error when both reach it, so the option is
+        // rejected here with the argument name instead.
+        if (options->maxPacketLifeTime.has_value() && options->maxRetransmits.has_value())
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("maxPacketLifeTime and maxRetransmits are mutually exclusive");
 
-    int32_t maxPacketLifeTime;
-    hr = GetConfigValue(options, "maxPacketLifeTime", maxPacketLifeTime, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        init.reliability.maxPacketLifeTime = std::chrono::milliseconds(maxPacketLifeTime);
-    }
+        if (options->ordered.has_value())
+            init.reliability.unordered = !options->ordered.value();
 
-    int32_t maxRetransmits;
-    hr = GetConfigValue(options, "maxRetransmits", maxRetransmits, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        init.reliability.maxRetransmits = maxRetransmits;
-    }
+        if (options->maxPacketLifeTime.has_value()) {
+            if (options->maxPacketLifeTime.value() < 0)
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("maxPacketLifeTime must not be negative");
 
-    exlib::string protocol;
-    hr = GetConfigValue(options, "protocol", protocol, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        init.protocol = protocol;
-    }
+            init.reliability.maxPacketLifeTime = std::chrono::milliseconds(options->maxPacketLifeTime.value());
+        }
 
-    bool negotiated;
-    hr = GetConfigValue(options, "negotiated", negotiated, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        init.negotiated = negotiated;
-    }
+        if (options->maxRetransmits.has_value()) {
+            if (options->maxRetransmits.value() < 0)
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("maxRetransmits must not be negative");
 
-    int32_t id;
-    hr = GetConfigValue(options, "id", id, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        init.id = id;
+            init.reliability.maxRetransmits = options->maxRetransmits.value();
+        }
+
+        if (options->protocol.has_value())
+            init.protocol = options->protocol.value();
+
+        if (options->negotiated.has_value())
+            init.negotiated = options->negotiated.value();
+
+        if (options->id.has_value()) {
+            // 65535 is the sentinel of an unassigned id, so 65534 is the last
+            // usable stream id.
+            if (options->id.value() < 0 || options->id.value() > 65534)
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("id must be between 0 and 65534");
+
+            init.id = options->id.value();
+        }
     }
 
     obj_ptr<RTCDataChannel> dc;
     try {
-        dc = new RTCDataChannel(isolate, m_peerConnection->createDataChannel(label, init), false);
+        dc = new RTCDataChannel(isolate, m_peerConnection->createDataChannel(label, init), init.negotiated);
         retVal = dc;
     } catch (std::exception& e) {
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
@@ -267,12 +295,25 @@ result_t RTCPeerConnection::setLocalDescription(Union_setLocalDescription_descri
 
     RTCSessionDescription* desc = static_cast<RTCSessionDescription*>(description_.get());
 
-    if (desc->m_desc.type() == rtc::Description::Type::Offer) {
-        try {
-            m_peerConnection->setLocalDescription(rtc::Description::Type::Offer);
-        } catch (std::exception& e) {
-            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
+    try {
+        rtc::Description::Type type = desc->m_desc.type();
+        rtc::PeerConnection::SignalingState state = m_peerConnection->signalingState();
+
+        if (type == rtc::Description::Type::Offer) {
+            if (state == rtc::PeerConnection::SignalingState::Stable)
+                m_peerConnection->setLocalDescription(type,
+                    m_local_description_init.value_or(rtc::LocalDescriptionInit {}));
+        } else if (type == rtc::Description::Type::Rollback) {
+            // The library only rolls back a pending local offer; otherwise
+            // the call is a no-op, which is what the standard asks for.
+            m_peerConnection->setLocalDescription(type);
+        } else if ((type == rtc::Description::Type::Answer || type == rtc::Description::Type::Pranswer)
+            && state == rtc::PeerConnection::SignalingState::HaveRemoteOffer) {
+            m_peerConnection->setLocalDescription(type,
+                m_local_description_init.value_or(rtc::LocalDescriptionInit {}));
         }
+    } catch (std::exception& e) {
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }
 
     return result_t();
@@ -294,6 +335,14 @@ result_t RTCPeerConnection::setRemoteDescription(Union_setRemoteDescription_desc
     RTCSessionDescription* desc = static_cast<RTCSessionDescription*>(description_.get());
     try {
         m_peerConnection->setRemoteDescription(desc->m_desc);
+
+        // When custom ICE credentials are configured the automatic
+        // negotiation is disabled, so generate the answer here to keep the
+        // previous contract that setRemoteDescription also applies it.
+        if (m_local_description_init.has_value()
+            && m_peerConnection->signalingState() == rtc::PeerConnection::SignalingState::HaveRemoteOffer)
+            m_peerConnection->setLocalDescription(rtc::Description::Type::Answer, *m_local_description_init);
+
         isolate_ref();
     } catch (std::exception& e) {
         m_self.Release();
@@ -314,6 +363,13 @@ result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate cand
         return hr;
 
     RTCIceCandidate* cand = static_cast<RTCIceCandidate*>(candidate_.get());
+
+    // The standard's end-of-candidates marker: an object without a usable
+    // candidate string carries no address and only tells the agent that the
+    // peer finished gathering, which the library does not need.
+    if (cand->is_empty())
+        return result_t();
+
     try {
         m_peerConnection->addRemoteCandidate(cand->m_candidate);
     } catch (std::exception& e) {
@@ -327,6 +383,20 @@ result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& 
 {
     if (ac.isSync())
         return result_t::nosync();
+
+    // With custom ICE credentials the implicit negotiation is disabled, so
+    // create the local offer here before waiting for the localdescription
+    // callback that resolves the pending promise.
+    if (m_local_description_init.has_value()
+        && m_peerConnection->signalingState() == rtc::PeerConnection::SignalingState::Stable
+        && !m_peerConnection->localDescription().has_value()
+        && m_peerConnection->negotiationNeeded()) {
+        try {
+            m_peerConnection->setLocalDescription(rtc::Description::Type::Offer, *m_local_description_init);
+        } catch (std::exception& e) {
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
+        }
+    }
 
     m_lock.lock();
     if (m_offer_description) {
@@ -344,6 +414,17 @@ result_t RTCPeerConnection::createAnswer(v8::Local<v8::Object> options, Variant&
 {
     if (ac.isSync())
         return result_t::nosync();
+
+    // Same as createOffer: with custom ICE credentials the answer is not
+    // generated implicitly when the remote offer is applied.
+    if (m_local_description_init.has_value()
+        && m_peerConnection->signalingState() == rtc::PeerConnection::SignalingState::HaveRemoteOffer) {
+        try {
+            m_peerConnection->setLocalDescription(rtc::Description::Type::Answer, *m_local_description_init);
+        } catch (std::exception& e) {
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
+        }
+    }
 
     m_lock.lock();
     if (m_answer_description) {
@@ -365,57 +446,61 @@ result_t RTCPeerConnection::getStats(obj_ptr<NMap>& retVal, AsyncHandle ac)
     obj_ptr<NMap> stats = new NMap();
 
     rtc::Candidate local, remote;
-    size_t bytesSent, bytesReceived;
-    std::chrono::milliseconds rtt;
-    std::chrono::milliseconds timestamp;
+    std::chrono::milliseconds timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 
-    m_peerConnection->getSelectedCandidatePair(&local, &remote);
+    // The pair is selected only once the connectivity checks complete; the
+    // standard still resolves with a report before that, so the candidate
+    // entries are simply absent from it.
+    bool has_pair = m_peerConnection->getSelectedCandidatePair(&local, &remote);
 
-    bytesSent = m_peerConnection->bytesSent();
-    bytesReceived = m_peerConnection->bytesReceived();
-    rtt = m_peerConnection->rtt().value_or(std::chrono::milliseconds(0));
-    timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+    size_t bytesSent = m_peerConnection->bytesSent();
+    size_t bytesReceived = m_peerConnection->bytesReceived();
+    std::chrono::milliseconds rtt = m_peerConnection->rtt().value_or(std::chrono::milliseconds(0));
 
     obj_ptr<NObject> stat;
 
-    exlib::string local_id = "RTCIceCandidate_" + m_local_id;
-    stat = new NObject();
-    stats->add(local_id, stat);
+    exlib::string peer_id;
 
-    stat->add("id", local_id);
-    stat->add("type", "localcandidate");
-    stat->add("timestamp", (double)timestamp.count());
-    stat->add("candidateType", candidate_type_str(local.type()));
-    stat->add("ip", local.address().value());
-    stat->add("port", local.port().value());
+    if (has_pair) {
+        exlib::string local_id = "RTCIceCandidate_" + m_local_id;
+        stat = new NObject();
+        stats->add(local_id, stat);
 
-    exlib::string remote_id = "RTCIceCandidate_" + m_remote_id;
-    stat = new NObject();
-    stats->add(remote_id, stat);
+        stat->add("id", local_id);
+        stat->add("type", "localcandidate");
+        stat->add("timestamp", (double)timestamp.count());
+        stat->add("candidateType", candidate_type_str(local.type()));
+        stat->add("ip", local.address().value_or(""));
+        stat->add("port", (int32_t)local.port().value_or(0));
 
-    stat->add("id", remote_id);
-    stat->add("type", "remotecandidate");
-    stat->add("timestamp", (double)timestamp.count());
-    stat->add("candidateType", candidate_type_str(remote.type()));
-    stat->add("ip", remote.address().value());
-    stat->add("port", remote.port().value());
+        exlib::string remote_id = "RTCIceCandidate_" + m_remote_id;
+        stat = new NObject();
+        stats->add(remote_id, stat);
 
-    exlib::string peer_id = "RTCIceCandidatePair_" + m_local_id + "_" + m_remote_id;
-    stat = new NObject();
-    stats->add(peer_id, stat);
+        stat->add("id", remote_id);
+        stat->add("type", "remotecandidate");
+        stat->add("timestamp", (double)timestamp.count());
+        stat->add("candidateType", candidate_type_str(remote.type()));
+        stat->add("ip", remote.address().value_or(""));
+        stat->add("port", (int32_t)remote.port().value_or(0));
 
-    stat->add("id", peer_id);
-    stat->add("type", "candidate-pair");
-    stat->add("timestamp", (double)timestamp.count());
-    stat->add("localCandidateId", local_id);
-    stat->add("remoteCandidateId", remote_id);
-    stat->add("state", "succeeded");
-    stat->add("nominated", true);
-    stat->add("writable", true);
-    stat->add("bytesSent", (double)bytesSent);
-    stat->add("bytesReceived", (double)bytesReceived);
-    stat->add("totalRoundTripTime", (double)rtt.count());
-    stat->add("currentRoundTripTime", (double)rtt.count());
+        peer_id = "RTCIceCandidatePair_" + m_local_id + "_" + m_remote_id;
+        stat = new NObject();
+        stats->add(peer_id, stat);
+
+        stat->add("id", peer_id);
+        stat->add("type", "candidate-pair");
+        stat->add("timestamp", (double)timestamp.count());
+        stat->add("localCandidateId", local_id);
+        stat->add("remoteCandidateId", remote_id);
+        stat->add("state", "succeeded");
+        stat->add("nominated", true);
+        stat->add("writable", true);
+        stat->add("bytesSent", (double)bytesSent);
+        stat->add("bytesReceived", (double)bytesReceived);
+        stat->add("totalRoundTripTime", (double)rtt.count());
+        stat->add("currentRoundTripTime", (double)rtt.count());
+    }
 
     exlib::string transport_id = "RTCTransport_0_1";
     stat = new NObject();
@@ -426,9 +511,10 @@ result_t RTCPeerConnection::getStats(obj_ptr<NMap>& retVal, AsyncHandle ac)
     stat->add("timestamp", (double)timestamp.count());
     stat->add("bytesSent", (double)bytesSent);
     stat->add("bytesReceived", (double)bytesReceived);
-    stat->add("dtlsState", "connected");
-    stat->add("selectedCandidatePairId", peer_id);
-    stat->add("selectedCandidatePairChanges", 1);
+    stat->add("dtlsState", dtls_state_str(m_peerConnection->state()));
+    if (has_pair)
+        stat->add("selectedCandidatePairId", peer_id);
+    stat->add("selectedCandidatePairChanges", has_pair ? 1 : 0);
 
     retVal = stats;
 
@@ -438,6 +524,20 @@ result_t RTCPeerConnection::getStats(obj_ptr<NMap>& retVal, AsyncHandle ac)
 result_t RTCPeerConnection::close()
 {
     m_peerConnection->close();
+
+    // A pending createOffer/createAnswer can never settle once the connection
+    // is closed: reject it here instead of leaving the awaiting fiber - and
+    // therefore the process - held forever.
+    result_t hr = result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("The connection is closed");
+
+    m_lock.lock();
+    for (auto& [retVal, ac] : m_offers)
+        ac.post(hr);
+    m_offers.clear();
+    for (auto& [retVal, ac] : m_answers)
+        ac.post(hr);
+    m_answers.clear();
+    m_lock.unlock();
 
     return result_t();
 }
@@ -480,35 +580,35 @@ result_t RTCPeerConnection::get_remoteDescription(v8::Local<v8::Object>& retVal)
 
 result_t RTCPeerConnection::get_remoteFingerprint(v8::Local<v8::Object>& retVal)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
+    obj_ptr<NObject> obj = fingerprint_to_object(m_peerConnection->remoteFingerprint());
+    return obj->valueOf(retVal);
+}
 
-    rtc::CertificateFingerprint fingerprint = m_peerConnection->remoteFingerprint();
+obj_ptr<NObject> RTCPeerConnection::fingerprint_to_object(rtc::CertificateFingerprint fingerprint)
+{
+    NObject* obj = new NObject();
 
     switch (fingerprint.algorithm) {
     case rtc::CertificateFingerprint::Algorithm::Sha1:
-        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-1")).FromMaybe(false);
+        obj->add("algorithm", "SHA-1");
         break;
     case rtc::CertificateFingerprint::Algorithm::Sha224:
-        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-224")).FromMaybe(false);
+        obj->add("algorithm", "SHA-224");
         break;
     case rtc::CertificateFingerprint::Algorithm::Sha256:
-        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-256")).FromMaybe(false);
+        obj->add("algorithm", "SHA-256");
         break;
     case rtc::CertificateFingerprint::Algorithm::Sha384:
-        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-384")).FromMaybe(false);
+        obj->add("algorithm", "SHA-384");
         break;
     case rtc::CertificateFingerprint::Algorithm::Sha512:
-        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-512")).FromMaybe(false);
+        obj->add("algorithm", "SHA-512");
         break;
     }
 
-    obj->Set(context, isolate->NewString("fingerprint"), isolate->NewString(fingerprint.value)).FromMaybe(false);
+    obj->add("fingerprint", exlib::string(fingerprint.value));
 
-    retVal = obj;
-
-    return result_t();
+    return obj;
 }
 
 result_t RTCPeerConnection::get_signalingState(exlib::string& retVal)
@@ -523,6 +623,15 @@ void RTCPeerConnection::onStateChange(rtc::PeerConnection::State state)
         m_lock.lock();
         m_dataChannels.clear();
         m_lock.unlock();
+
+        if (!m_secure_emitted) {
+            m_secure_emitted = true;
+
+            obj_ptr<NObject> ev = new NObject();
+            obj_ptr<NObject> fp = fingerprint_to_object(m_peerConnection->remoteFingerprint());
+            ev->add("fingerprint", fp);
+            _emit("secure", ev);
+        }
     } else if (state == rtc::PeerConnection::State::Closed) {
         m_peerConnection->resetCallbacks();
 
@@ -541,6 +650,11 @@ void RTCPeerConnection::onStateChange(rtc::PeerConnection::State state)
     _emit("connectionstatechange", ev);
 
     if (state == rtc::PeerConnection::State::Closed) {
+        auto on_close = std::move(m_on_close);
+        m_on_close = nullptr;
+        if (on_close)
+            on_close();
+
         m_self.Release();
         isolate_unref();
     }
@@ -550,7 +664,7 @@ void RTCPeerConnection::onDataChannel(std::shared_ptr<rtc::DataChannel> dataChan
 {
     obj_ptr<NObject> ev = new NObject();
 
-    ev->add("channel", new RTCDataChannel(holder(), dataChannel, true));
+    ev->add("channel", new RTCDataChannel(holder(), dataChannel, false));
 
     _emit("datachannel", ev);
 }
@@ -608,6 +722,16 @@ void RTCPeerConnection::onIceStateChange(rtc::PeerConnection::IceState state)
 
 void RTCPeerConnection::onGatheringStateChange(rtc::PeerConnection::GatheringState state)
 {
+    if (state == rtc::PeerConnection::GatheringState::Complete) {
+        // The standard ends the candidate stream with one event carrying a
+        // null candidate, so the handler that forwards candidates can pass
+        // the end-of-candidates marker on and stop.
+        obj_ptr<NObject> ev = new NObject();
+
+        ev->add("candidate", Variant());
+        _emit("icecandidate", ev);
+    }
+
     obj_ptr<NObject> ev = new NObject();
 
     ev->add("state", ice_gathering_state_str(state));
@@ -657,188 +781,119 @@ void RTCPeerConnection::onTrack(std::shared_ptr<rtc::Track> track)
     _emit("track");
 }
 
-result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
+result_t RTCPeerConnection::create(RTCPeerConnectionOptions* options)
 {
-    Isolate* isolate = holder();
-    result_t hr;
     rtc::Configuration config;
+    std::optional<rtc::LocalDescriptionInit> local_init;
 
-    exlib::string bindAddress;
-    hr = GetConfigValue(options, "bindAddress", bindAddress, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        config.bindAddress = bindAddress;
-    }
+    if (options) {
+        if (options->bindAddress.has_value())
+            config.bindAddress = options->bindAddress.value();
 
-    exlib::string certificateType;
-    hr = GetConfigValue(options, "certificateType", certificateType, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        if (certificateType == "default")
-            config.certificateType = rtc::CertificateType::Default;
-        else if (certificateType == "ecdsa")
-            config.certificateType = rtc::CertificateType::Ecdsa;
-        else if (certificateType == "rsa")
-            config.certificateType = rtc::CertificateType::Rsa;
-        else
-            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid certificateType: '%s'.", certificateType.c_str()).with_result(result_t::invalid_arg());
-    }
+        if (options->certificateType.has_value()) {
+            exlib::string certificateType = options->certificateType.value();
+            if (certificateType == "default")
+                config.certificateType = rtc::CertificateType::Default;
+            else if (certificateType == "ecdsa")
+                config.certificateType = rtc::CertificateType::Ecdsa;
+            else if (certificateType == "rsa")
+                config.certificateType = rtc::CertificateType::Rsa;
+            else
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid certificateType: '%s'.", certificateType.c_str()).with_result(result_t::invalid_arg());
+        }
 
-    exlib::string iceTransportPolicy;
-    hr = GetConfigValue(options, "iceTransportPolicy", iceTransportPolicy, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        if (iceTransportPolicy == "all")
-            config.iceTransportPolicy = rtc::TransportPolicy::All;
-        else if (iceTransportPolicy == "relay")
-            config.iceTransportPolicy = rtc::TransportPolicy::Relay;
-        else
-            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid iceTransportPolicy: '%s'.", iceTransportPolicy.c_str()).with_result(result_t::invalid_arg());
-    }
+        if (options->iceTransportPolicy.has_value()) {
+            exlib::string iceTransportPolicy = options->iceTransportPolicy.value();
+            if (iceTransportPolicy == "all")
+                config.iceTransportPolicy = rtc::TransportPolicy::All;
+            else if (iceTransportPolicy == "relay")
+                config.iceTransportPolicy = rtc::TransportPolicy::Relay;
+            else
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("Invalid iceTransportPolicy: '%s'.", iceTransportPolicy.c_str()).with_result(result_t::invalid_arg());
+        }
 
-    v8::Local<v8::Array> iceServers;
-    hr = GetConfigValue(options, "iceServers", iceServers, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
+        if (options->iceServers.has_value()) {
+            try {
+                for (auto& entry : options->iceServers.value()) {
+                    if (!entry->urls.has_value())
+                        return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, "urls");
 
-        try {
-            for (uint32_t i = 0; i < iceServers->Length(); i++) {
-                v8::Local<v8::Object> iceServer;
-
-                hr = GetConfigValue(iceServers, i, iceServer, true);
-                if (hr.failed())
-                    return hr;
-
-                std::optional<exlib::string> username, credential;
-                hr = GetConfigValue(iceServer, "username", username, true);
-                if (hr.failed())
-                    return hr;
-                hr = GetConfigValue(iceServer, "credential", credential, true);
-                if (hr.failed())
-                    return hr;
-
-                v8::Local<v8::Value> urlv;
-                hr = GetConfigValue(iceServer, "urls", urlv, true);
-                if (hr.failed())
-                    return hr;
-
-                if (urlv->IsString()) {
-                    exlib::string url;
-                    GetArgumentValue(isolate, urlv, url);
-
-                    rtc::IceServer iceServer(url);
-                    if (username.has_value())
-                        iceServer.username = username.value();
-                    if (credential.has_value())
-                        iceServer.password = credential.value();
-
-                    config.iceServers.push_back(iceServer);
-                } else if (urlv->IsArray()) {
-                    v8::Local<v8::Array> urls;
-                    GetArgumentValue(isolate, urlv, urls);
-
-                    for (uint32_t j = 0; j < urls->Length(); j++) {
-                        exlib::string url;
-                        hr = GetConfigValue(urls, j, url, true);
-                        if (hr.failed())
-                            return hr;
-
+                    auto addServer = [&](exlib::string url) {
                         rtc::IceServer iceServer(url);
-                        if (username.has_value())
-                            iceServer.username = username.value();
-                        if (credential.has_value())
-                            iceServer.password = credential.value();
+                        if (entry->username.has_value())
+                            iceServer.username = entry->username.value();
+                        if (entry->credential.has_value())
+                            iceServer.password = entry->credential.value();
 
                         config.iceServers.push_back(iceServer);
-                    }
+                    };
+
+                    if (std::holds_alternative<exlib::string>(entry->urls.value()))
+                        addServer(std::get<exlib::string>(entry->urls.value()));
+                    else
+                        for (auto& url : std::get<std::vector<exlib::string>>(entry->urls.value()))
+                            addServer(url);
                 }
+            } catch (std::exception& e) {
+                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
             }
-        } catch (std::exception& e) {
-            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
+        } else
+            config.iceServers.push_back(rtc::IceServer("stun:stun.l.google.com:19302"));
+
+        if (options->port.has_value())
+            config.portRangeBegin = config.portRangeEnd = options->port.value();
+
+        if (options->maxMessageSize.has_value())
+            config.maxMessageSize = options->maxMessageSize.value();
+
+        if (options->enableIceUdpMux.has_value())
+            config.enableIceUdpMux = options->enableIceUdpMux.value();
+
+        if (options->disableFingerprintVerification.has_value())
+            config.disableFingerprintVerification = options->disableFingerprintVerification.value();
+
+        if (options->iceUfrag.has_value() && options->icePwd.has_value()
+            && !options->iceUfrag->empty() && !options->icePwd->empty()) {
+            rtc::LocalDescriptionInit init;
+            init.iceUfrag = std::string(options->iceUfrag.value());
+            init.icePwd = std::string(options->icePwd.value());
+            local_init = std::move(init);
+
+            // libdatachannel can apply custom ICE attributes only through
+            // setLocalDescription(type, init); the implicit offer/answer paths
+            // have no way to carry them, so fibjs generates both explicitly.
+            config.disableAutoNegotiation = true;
         }
-    } else
-        config.iceServers.push_back(rtc::IceServer("stun:stun.l.google.com:19302"));
 
-    int32_t port;
-    hr = GetConfigValue(options, "port", port, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        config.portRangeBegin = config.portRangeEnd = port;
+        if (options->certPem.has_value())
+            config.certificatePemFile = options->certPem.value();
+
+        if (options->keyPem.has_value())
+            config.keyPemFile = options->keyPem.value();
+
+        if (options->keyPass.has_value())
+            config.keyPemPass = options->keyPass.value();
     }
 
-    int32_t maxMessageSize;
-    hr = GetConfigValue(options, "maxMessageSize", maxMessageSize, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        config.maxMessageSize = maxMessageSize;
+    std::shared_ptr<rtc::PeerConnection> peer;
+    try {
+        peer = std::make_shared<rtc::PeerConnection>(config);
+    } catch (std::exception& e) {
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }
 
-    bool enableIceUdpMux;
-    hr = GetConfigValue(options, "enableIceUdpMux", enableIceUdpMux, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        config.enableIceUdpMux = enableIceUdpMux;
-    }
+    return init(std::move(peer), std::move(local_init));
+}
 
-    bool disableFingerprintVerification;
-    hr = GetConfigValue(options, "disableFingerprintVerification", disableFingerprintVerification, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        config.disableFingerprintVerification = disableFingerprintVerification;
-    }
-
-    exlib::string iceUfrag;
-    hr = GetConfigValue(options, "iceUfrag", iceUfrag, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        config.iceUfrag = iceUfrag;
-    }
-
-    exlib::string icePwd;
-    hr = GetConfigValue(options, "icePwd", icePwd, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        config.icePwd = icePwd;
-    }
-
-    exlib::string certPem;
-    hr = GetConfigValue(options, "certPem", certPem, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        config.certificatePemFile = certPem;
-    }
-
-    exlib::string keyPem;
-    hr = GetConfigValue(options, "keyPem", keyPem, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        config.keyPemFile = keyPem;
-    }
-
-    exlib::string keyPass;
-    hr = GetConfigValue(options, "keyPass", keyPass, true);
-    if (!hr.is_param_missing()) {
-        if (hr.failed())
-            return hr;
-        config.keyPemPass = keyPass;
-    }
+result_t RTCPeerConnection::init(std::shared_ptr<rtc::PeerConnection> peer,
+    std::optional<rtc::LocalDescriptionInit> localInit)
+{
+    m_local_description_init = std::move(localInit);
 
     m_local_id = std::to_string(rand());
     m_remote_id = std::to_string(rand());
 
-    m_peerConnection = std::make_shared<rtc::PeerConnection>(config);
+    m_peerConnection = std::move(peer);
 
     m_peerConnection->onStateChange([this](rtc::PeerConnection::State state) {
         onStateChange(state);
@@ -871,6 +926,33 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
     m_peerConnection->onDataChannel([this](std::shared_ptr<rtc::DataChannel> dataChannel) {
         onDataChannel(dataChannel);
     });
+
+    return result_t();
+}
+
+result_t RTCPeerConnection::accept(std::shared_ptr<rtc::PeerConnection> peer,
+    rtc::LocalDescriptionInit localInit, exlib::string remoteSdp,
+    std::function<void()> onClose)
+{
+    m_on_close = std::move(onClose);
+
+    result_t hr = init(std::move(peer), std::move(localInit));
+    if (hr.failed())
+        return hr;
+
+    // The listener-created connection owns the process hold until it closes,
+    // like a connection that applied a remote description through JavaScript.
+    isolate_ref();
+
+    try {
+        m_peerConnection->setRemoteDescription(
+            rtc::Description(remoteSdp, rtc::Description::Type::Offer));
+        m_peerConnection->setLocalDescription(rtc::Description::Type::Answer,
+            *m_local_description_init);
+    } catch (std::exception& e) {
+        isolate_unref();
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
+    }
 
     return result_t();
 }

@@ -1,0 +1,74 @@
+/*! @brief Options for the RTCPeerConnection constructor.
+
+ Every field is optional and a field that is not given keeps the default of
+ the underlying library, so `new RTCPeerConnection({})` produces a connection
+ with the public STUN server `stun:stun.l.google.com:19302`; pass
+ `iceServers: []` for a fully local connection.
+
+ `certPem` and `keyPem` accept either PEM text or a path to a PEM file and
+ must be given together. `iceUfrag` and `icePwd` override the generated ICE
+ credentials; supplying both also disables the automatic negotiation, so
+ `createOffer` and `setRemoteDescription` generate the descriptions with the
+ forced credentials.
+
+ Example 1 — a fully local connection, no ICE server at all:
+ ```JavaScript
+ const rtc = require('rtc');
+
+ const pc = new rtc.RTCPeerConnection({ iceServers: [] });
+ console.log(pc.connectionState); // new
+ pc.close();
+ ```
+
+ Example 2 — pin the certificate type and cap the SCTP message size:
+ ```JavaScript
+ const rtc = require('rtc');
+
+ const pc = new rtc.RTCPeerConnection({
+     certificateType: 'ecdsa',
+     maxMessageSize: 16384,
+     bindAddress: '127.0.0.1'
+ });
+ pc.close();
+ ```
+ */
+struct RTCPeerConnectionOptions {
+    /*! @brief certificate type: 'default', 'ecdsa' or 'rsa', unset for the library default */
+    String certificateType;
+
+    /*! @brief ICE transport policy: 'all' or 'relay', unset for 'all' */
+    String iceTransportPolicy;
+
+    /*! @brief ICE servers used for candidate gathering, unset for the public server stun:stun.l.google.com:19302 */
+    RTCIceServer[] iceServers;
+
+    /*! @brief largest SCTP message accepted from the peer, in bytes */
+    Integer maxMessageSize;
+
+    /*! @brief multiplex ICE and DTLS on one UDP port, used by RTCListener */
+    Boolean enableIceUdpMux;
+
+    /*! @brief skip the DTLS fingerprint verification, insecure and meant for tests */
+    Boolean disableFingerprintVerification;
+
+    /*! @brief local address to bind, empty binds every interface */
+    String bindAddress;
+
+    /*! @brief fixed local UDP port, 0 uses the ephemeral range */
+    Integer port;
+
+    /*! @brief forced local ICE username fragment */
+    String iceUfrag;
+
+    /*! @brief forced local ICE password, used with iceUfrag */
+    String icePwd;
+
+    /*! @brief certificate as PEM text or as a path to a PEM file */
+    String certPem;
+
+    /*! @brief private key as PEM text or as a path to a PEM file */
+    String keyPem;
+
+    /*! @brief passphrase of an encrypted private key */
+    String keyPass;
+};
