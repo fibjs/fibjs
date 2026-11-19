@@ -22,12 +22,38 @@
       lookup path. A family-neutral `new net.Socket(0)` selects its family at
       the first connect. Internal connections stay on `dns.lookup` / libuv,
       never c-ares record queries.
+    * idl - struct options support `required` fields: the generated C++ uses a
+      plain `T{}`, the d.ts property is non-optional, the manual signature
+      carries `required`, and a missing value reports `20002` with the field
+      name. A defaulted record (`opts = {}`) rejects top-level required fields
+      at generation time.
+    * rtc - `RTCSessionDescription` and `RTCIceCandidate` take typed init
+      records (`RTCSessionDescriptionInit`, `RTCIceCandidateInit`), and
+      `RTCIceServer.urls` is required.
+    * net - `DgramBindOptions.port` and `address` are required.
+    * crypto - the key records (`KeyOptions`, `SignOptions`, `EncryptOptions`,
+      `CertificateRequestOptions`, `CertificateIssueOptions`, `BbsOptions`)
+      require `key`, and `DiffieHellmanOptions` requires `privateKey` and
+      `publicKey`.
+    * global - the single-object `File` constructor uses `FileInit`, whose
+      `data` is required; the positional constructors keep `FileOptions`.
+    * wasi - `WASIHost` takes `WASIHostOptions` with a required `version` and
+      `WASISocketOption.port`; `args` keeps the JavaScript string conversion.
+    * gui - `createTray` takes `TrayOptions` with a required `icon`, and
+      `chooseFile` filters use `DialogFilter` with required `name` and
+      `extensions`.
 * **breaking** :
     * dns - `resolve(name)` now returns A records (add rrtype as the second
       argument); use `lookup(name, { all: true })` or `net.resolve` for the
       old all-address behavior.
     * dns - the synchronous and promise forms of `lookup` now return
       `{ address, family }`.
+    * idl - a missing required struct field now fails with `20002` and
+      `property <field> is not optional.` instead of the previous generic
+      message or custom `20011`; `WASI({})`, a socket entry without `port`, a
+      filter without `name`/`extensions` and `gui.createTray({})` are the
+      user-visible cases. `gui.createTray()` without an options object is
+      rejected, since the option record is no longer defaulted to `{}`.
 
 ## 2024-02-07, Version 0.37.0
 * **feature** :
