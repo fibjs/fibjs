@@ -263,7 +263,7 @@ module gui
      @param opt tray creation parameters
      @return returns the created tray icon object
     */
-    static Tray createTray(Object opt = {});
+    static Tray createTray(TrayOptions opt);
 
     /*! @brief Pops up a modal message box
 

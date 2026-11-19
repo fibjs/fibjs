@@ -17,8 +17,8 @@ namespace fibjs {
 
 result_t Tray::getMenu(obj_ptr<Menu_base>& retVal)
 {
-    if (m_options->menu.has_value()) {
-        retVal = m_options->menu.value();
+    if (m_menu_obj) {
+        retVal = m_menu_obj;
         return result_t();
     }
 
@@ -50,21 +50,27 @@ void Tray::release()
     }
 }
 
-result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& retVal)
+result_t gui_base::createTray(TrayOptions* opt, obj_ptr<Tray_base>& retVal)
 {
+    if (!opt)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
     obj_ptr<Tray> tray = new Tray();
     retVal = tray;
 
-    Isolate* isolate = Isolate::current(opt);
-    result_t hr = Tray::OpenOptions::load(opt, tray->m_options);
-    if (hr.failed())
-        return hr;
+    tray->m_options = opt;
 
-    if (!tray->m_options->icon.has_value())
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Tray icon is required");
+    result_t hr;
+    if (opt->menu.has_value()) {
+        obj_ptr<Menu> menu;
+        hr = GetArgumentValue(Isolate::current(), opt->menu.value(), menu);
+        if (hr.failed())
+            return hr;
+        tray->m_menu_obj = menu;
+    }
 
     Variant var;
-    hr = fs_base::ac_readFile(tray->m_options->icon.value(), "", var);
+    hr = fs_base::ac_readFile(opt->icon, "", var);
     if (hr.failed())
         return hr;
 
@@ -72,8 +78,8 @@ result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& ret
     if (!tray->m_icon)
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("Tray icon is empty");
 
-    if (tray->m_options->menu.has_value())
-        tray->m_menu = new ValueHolder(tray->m_options->menu.value()->wrap());
+    if (tray->m_menu_obj)
+        tray->m_menu = new ValueHolder(tray->m_menu_obj->wrap());
 
     return tray->async_open();
 }

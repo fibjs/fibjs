@@ -76,8 +76,8 @@ void Tray::createTray()
     [tray setTarget:eventHandler];
     [tray setAction:@selector(onClick:)];
 
-    if (m_options->menu.has_value()) {
-        NSMenu* menu = (NSMenu*)m_options->menu.value()->create_os_menu();
+    if (m_menu_obj) {
+        NSMenu* menu = (NSMenu*)m_menu_obj->create_os_menu();
         [tray setMenu:menu];
     }
 }

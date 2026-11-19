@@ -107,7 +107,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
             extensions.resize(opts->filters->size());
 
             for (int32_t i = 0; i < opts->filters->size(); ++i) {
-                DialogOptions::FilterItem* filter = opts->filters->at(i);
+                DialogFilter* filter = opts->filters->at(i);
                 COMDLG_FILTERSPEC spec;
                 names[i] = utf8to16String(filter->name);
                 spec.pszName = (LPCWSTR)names[i].c_str();

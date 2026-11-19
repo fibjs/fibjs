@@ -1,0 +1,35 @@
+/*! @brief Options of gui.createTray.
+
+ `icon` is required and is read immediately as a PNG file. `title` is the text
+ next to the icon and `tooltip` the hover text; both are ignored on Windows.
+ `menu` accepts a Menu object or a menu template array and is kept by the tray.
+
+ Example 1 — an icon only:
+ ```JavaScript
+ const options = { icon: '/path/to/icon.png' };
+ console.log(options.icon); // /path/to/icon.png
+ ```
+
+ Example 2 — an icon, a tooltip and a template menu:
+ ```JavaScript
+ const options = {
+     icon: '/path/to/icon.png',
+     tooltip: 'fibjs',
+     menu: [{ label: 'Quit' }]
+ };
+ console.log(options.tooltip, options.menu.length); // fibjs 1
+ ```
+ */
+struct TrayOptions {
+    /*! @brief icon file, required; must be a PNG */
+    required String icon;
+
+    /*! @brief text next to the icon, not shown on Windows */
+    String title;
+
+    /*! @brief hover text, not shown on Windows */
+    String tooltip;
+
+    /*! @brief a Menu object or a menu template array */
+    Value menu;
+};

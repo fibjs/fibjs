@@ -45,7 +45,7 @@ result_t gui_base::createMenu(std::vector<v8::Local<v8::Object>>& items, obj_ptr
     return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message("Menu not supported in this platform");
 }
 
-result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& retVal)
+result_t gui_base::createTray(TrayOptions* opt, obj_ptr<Tray_base>& retVal)
 {
     return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message("Tray not supported in this platform");
 }

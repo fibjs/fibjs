@@ -28,12 +28,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lParam == WM_LBUTTONUP) {
             Tray* _tray = reinterpret_cast<Tray*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
             if (_tray) {
-                if (_tray->m_options->menu.has_value()) {
+                if (_tray->m_menu_obj) {
                     POINT pt;
                     GetCursorPos(&pt);
                     SetForegroundWindow(hwnd);
 
-                    HMENU menu = (HMENU)_tray->m_options->menu.value()->create_os_menu();
+                    HMENU menu = (HMENU)_tray->m_menu_obj->create_os_menu();
                     TrackPopupMenu(menu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
                 }
             }

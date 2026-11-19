@@ -282,7 +282,12 @@ declare module 'gui' {
      *      @return returns the created tray icon object
      *
      */
-    function createTray(opt?: FIBJS.GeneralObject): Class_Tray;
+    function createTray(opt: {
+        icon: string;
+        title?: string;
+        tooltip?: string;
+        menu?: any;
+    }): Class_Tray;
 
     /**
      * @description Pops up a modal message box

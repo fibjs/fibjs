@@ -55,8 +55,8 @@ void Tray::createTray()
 
     app_indicator_set_status(tray, APP_INDICATOR_STATUS_ACTIVE);
 
-    if (m_options->menu.has_value()) {
-        GtkWidget* menu = (GtkWidget*)m_options->menu.value()->create_os_menu();
+    if (m_menu_obj) {
+        GtkWidget* menu = (GtkWidget*)m_menu_obj->create_os_menu();
         gtk_widget_show_all(menu);
         app_indicator_set_menu(tray, GTK_MENU(menu));
     }

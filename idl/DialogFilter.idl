@@ -1,0 +1,26 @@
+/*! @brief One file-type filter of the chooseFile dialog.
+
+ Both fields are required: `name` labels the filter in the native dialog and
+ `extensions` lists the accepted extensions without the leading dot. An empty
+ extension list is allowed and means "all files" on the platforms that support
+ it.
+
+ Example 1 — an image filter:
+ ```JavaScript
+ const filter = { name: 'Images', extensions: ['png', 'jpg'] };
+ console.log(filter.name, filter.extensions.length); // Images 2
+ ```
+
+ Example 2 — a text filter:
+ ```JavaScript
+ const filter = { name: 'Text', extensions: ['txt', 'md'] };
+ console.log(filter.name, filter.extensions.join(',')); // Text txt,md
+ ```
+ */
+struct DialogFilter {
+    /*! @brief label shown by the native file dialog */
+    required String name;
+
+    /*! @brief accepted extensions, written without the leading dot */
+    required String[] extensions;
+};

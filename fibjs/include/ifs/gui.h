@@ -18,6 +18,7 @@ namespace fibjs {
 class WebView_base;
 class Menu_base;
 class Tray_base;
+class TrayOptions;
 
 class gui_base : public object_base {
     DECLARE_CLASS(gui_base);
@@ -28,7 +29,7 @@ public:
     static result_t open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
     static result_t openFile(exlib::string file, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
     static result_t createMenu(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu_base>& retVal);
-    static result_t createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& retVal);
+    static result_t createTray(TrayOptions* opt, obj_ptr<Tray_base>& retVal);
     static result_t alert(exlib::string message, AsyncHandle ac);
     static result_t alert(exlib::string title, exlib::string message, AsyncHandle ac);
     static result_t confirm(exlib::string message, bool& retVal, AsyncHandle ac);
@@ -72,6 +73,7 @@ public:
 #include "ifs/WebView.h"
 #include "ifs/Menu.h"
 #include "ifs/Tray.h"
+#include "ifs/TrayOptions.h"
 
 namespace fibjs {
 inline ClassInfo& gui_base::class_info()
@@ -161,11 +163,11 @@ inline void gui_base::s_static_createTray(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_ENTER();
 
-    METHOD_OVER(1, 0);
+    METHOD_OVER_NAMED(1, 1, "opt");
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "opt");
+    ARG_NAMED(obj_ptr<TrayOptions>, 0, "opt");
 
-    hr = createTray(v0, vr);
+    hr = createTray((TrayOptions*)v0, vr);
 
     METHOD_RETURN();
 }

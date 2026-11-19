@@ -7,9 +7,8 @@
 
 #pragma once
 
-#include <boost/preprocessor.hpp>
-
 #include "ifs/Tray.h"
+#include "ifs/TrayOptions.h"
 #include "Buffer.h"
 #include "Event.h"
 #include "Menu.h"
@@ -17,18 +16,6 @@
 namespace fibjs {
 
 class Tray : public Tray_base {
-public:
-    class OpenOptions : public obj_base {
-    public:
-        LOAD_OPTIONS(OpenOptions, (icon)(title)(tooltip)(menu));
-
-    public:
-        std::optional<exlib::string> icon;
-        std::optional<exlib::string> title;
-        std::optional<exlib::string> tooltip;
-        std::optional<obj_ptr<Menu>> menu;
-    };
-
 public:
     Tray()
     {
@@ -59,10 +46,11 @@ public:
     }
 
 public:
-    obj_ptr<OpenOptions> m_options;
+    obj_ptr<TrayOptions> m_options;
 
     obj_ptr<ValueHolder> m_self;
     obj_ptr<ValueHolder> m_menu;
+    obj_ptr<Menu> m_menu_obj;
 
     obj_ptr<Buffer> m_icon;
 

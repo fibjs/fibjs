@@ -1612,11 +1612,22 @@ async function async_eval(func) {
         });
 
         it("tray", () => {
+            assert.throws(() => gui.createTray({}), { number: 20002 });
+
             const tray = gui.createTray({
                 icon: path.join(__dirname, "gui_files", "toolbox.512.png")
             });
             assert.isObject(tray);
             tray.close();
+        });
+
+        it("chooseFile validates the filter fields", () => {
+            assert.throws(() => gui.chooseFile({
+                filters: [{ name: "Images" }]
+            }), { number: 20002 });
+            assert.throws(() => gui.chooseFile({
+                filters: [{ extensions: ["png"] }]
+            }), { number: 20002 });
         });
     }
 });
