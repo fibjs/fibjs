@@ -23,7 +23,7 @@ public:
     LOAD_OPTIONS(CertificateIssueOptions, (key)(format)(passphrase)(encoding)(namedCurve)(toX25519)(issuer)(hashAlgorithm)(validFrom)(validTo)(days)(ca)(pathlen)(keyUsage)(type));
 
 public:
-    std::optional<std::variant<obj_ptr<KeyObject_base>, obj_ptr<Buffer_base>, exlib::string, obj_ptr<NObject>>> key;
+    std::variant<obj_ptr<KeyObject_base>, obj_ptr<Buffer_base>, exlib::string, obj_ptr<NObject>> key{};
     std::optional<exlib::string> format;
     std::optional<std::variant<exlib::string, obj_ptr<Buffer_base>>> passphrase;
     std::optional<exlib::string> encoding = "utf8";

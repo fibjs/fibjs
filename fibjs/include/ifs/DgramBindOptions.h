@@ -21,7 +21,7 @@ public:
     LOAD_OPTIONS(DgramBindOptions, (port)(address));
 
 public:
-    std::optional<int32_t> port;
-    std::optional<exlib::string> address;
+    int32_t port{};
+    exlib::string address{};
 };
 }

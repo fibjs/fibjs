@@ -4903,6 +4903,33 @@ describe('crypto', () => {
     require("./ecdh_test.js");
 });
 
+// The typed key records declare `key` as required: the rejection happens at
+// the record boundary, before the native code, and names the field.
+describe('the crypto required option records', () => {
+    function missing(number, field) {
+        return (err) => {
+            assert.equal(err.number, number);
+            assert.ok(err.message.indexOf(field) >= 0, err.message);
+            return true;
+        };
+    }
+
+    it('rejects a missing key in the key records', () => {
+        assert.throws(() => crypto.createPrivateKey({}), missing(20002, 'key'));
+        assert.throws(() => crypto.createPublicKey({}), missing(20002, 'key'));
+        assert.throws(() => crypto.sign('sha256', 'data', {}), missing(20002, 'key'));
+        assert.throws(() => crypto.publicEncrypt({}, Buffer.from('x')), missing(20002, 'key'));
+        assert.throws(() => crypto.createCertificateRequest({}), missing(20002, 'key'));
+    });
+
+    it('requires both keys in DiffieHellmanOptions', () => {
+        assert.throws(() => crypto.diffieHellman({}), missing(20002, 'privateKey'));
+
+        var key = crypto.createPrivateKey(privatePem);
+        assert.throws(() => crypto.diffieHellman({ privateKey: key }), missing(20002, 'publicKey'));
+    });
+});
+
 // The X509Certificate issuer union (X509Certificate|Buffer|String).
 describe('the X509 parameter unions', () => {
     it('checkIssued accepts a certificate, a PEM string and a Buffer', () => {

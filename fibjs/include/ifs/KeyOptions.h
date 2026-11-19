@@ -23,7 +23,7 @@ public:
     LOAD_OPTIONS(KeyOptions, (key)(format)(type)(passphrase)(encoding)(namedCurve)(toX25519));
 
 public:
-    std::optional<std::variant<obj_ptr<KeyObject_base>, obj_ptr<Buffer_base>, exlib::string, obj_ptr<NObject>>> key;
+    std::variant<obj_ptr<KeyObject_base>, obj_ptr<Buffer_base>, exlib::string, obj_ptr<NObject>> key{};
     std::optional<exlib::string> format;
     std::optional<exlib::string> type;
     std::optional<std::variant<exlib::string, obj_ptr<Buffer_base>>> passphrase;

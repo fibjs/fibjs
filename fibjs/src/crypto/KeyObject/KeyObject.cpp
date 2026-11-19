@@ -68,18 +68,18 @@ result_t crypto_base::createSecretKey(Union_createSecretKey_key key, exlib::stri
 
 result_t crypto_base::diffieHellman(DiffieHellmanOptions* options, obj_ptr<Buffer_base>& retVal)
 {
-    if (!options || !options->privateKey.has_value() || !options->publicKey.has_value())
+    if (!options)
         return result_t(CALL_E_PARAMNOTOPTIONAL);
 
     result_t hr;
 
-    obj_ptr<KeyObject_base> privateKey = options->privateKey.value();
+    obj_ptr<KeyObject_base> privateKey = options->privateKey;
     KeyObject* privateKey_ = privateKey.As<KeyObject>();
     if (privateKey_->type() != KeyObject::kKeyTypePrivate)
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("property 'privateKey' must be a private key");
     int32_t privateKeyType = EVP_PKEY_id(privateKey_->pkey());
 
-    obj_ptr<KeyObject_base> publicKey = options->publicKey.value();
+    obj_ptr<KeyObject_base> publicKey = options->publicKey;
     KeyObject* publicKey_ = publicKey.As<KeyObject>();
     if (publicKey_->type() != KeyObject::kKeyTypePublic)
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("property 'publicKey' must be a public key");

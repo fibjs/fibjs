@@ -23,7 +23,7 @@ public:
     LOAD_OPTIONS(SignOptions, (key)(format)(type)(passphrase)(encoding)(namedCurve)(toX25519)(dsaEncoding)(padding)(saltLength));
 
 public:
-    std::optional<std::variant<obj_ptr<KeyObject_base>, obj_ptr<Buffer_base>, exlib::string, obj_ptr<NObject>>> key;
+    std::variant<obj_ptr<KeyObject_base>, obj_ptr<Buffer_base>, exlib::string, obj_ptr<NObject>> key{};
     std::optional<exlib::string> format;
     std::optional<exlib::string> type;
     std::optional<std::variant<exlib::string, obj_ptr<Buffer_base>>> passphrase;

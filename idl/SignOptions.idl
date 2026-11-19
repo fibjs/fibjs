@@ -1,12 +1,12 @@
 /*! @brief Structured key and signing options for crypto.sign/crypto.verify,
      Sign.sign and Verify.verify.
 
-     The key-import fields are the same as in KeyOptions. `dsaEncoding`
-     selects 'der' (default) or 'ieee-p1363' for DSA/ECDSA; `padding` and
-     `saltLength` select the RSA padding and PSS salt length.
+     `key` is required. The key-import fields are the same as in KeyOptions.
+     `dsaEncoding` selects 'der' (default) or 'ieee-p1363' for DSA/ECDSA;
+     `padding` and `saltLength` select the RSA padding and PSS salt length.
  */
 struct SignOptions {
-    KeyObject|Buffer|String|NObject key;
+    required KeyObject|Buffer|String|NObject key;
     String format;
     String type;
     String|Buffer passphrase;

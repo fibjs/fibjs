@@ -143,7 +143,7 @@ declare class Class_Verify extends Class_object {
      *
      */
     verify(privateKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;

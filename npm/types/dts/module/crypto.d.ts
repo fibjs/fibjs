@@ -481,7 +481,7 @@ declare module 'crypto' {
      *
      */
     function createPrivateKey(key: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -513,7 +513,7 @@ declare module 'crypto' {
      *
      */
     function createPublicKey(key: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -650,7 +650,7 @@ declare module 'crypto' {
      *
      */
     function createCertificateRequest(csr: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -688,8 +688,8 @@ declare module 'crypto' {
      *
      */
     function diffieHellman(options: {
-        privateKey?: Class_KeyObject;
-        publicKey?: Class_KeyObject;
+        privateKey: Class_KeyObject;
+        publicKey: Class_KeyObject;
     }): Class_Buffer;
 
     /**
@@ -1459,7 +1459,7 @@ declare module 'crypto' {
      *
      */
     function privateDecrypt(privateKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -1498,7 +1498,7 @@ declare module 'crypto' {
      *
      */
     function privateEncrypt(privateKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -1536,7 +1536,7 @@ declare module 'crypto' {
      *
      */
     function publicDecrypt(publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -1599,7 +1599,7 @@ declare module 'crypto' {
      *
      */
     function publicEncrypt(publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -1661,7 +1661,7 @@ declare module 'crypto' {
      *
      */
     function sign(algorithm: any, data: Class_Buffer | string, key: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -1674,7 +1674,7 @@ declare module 'crypto' {
     }): Class_Buffer;
 
     function sign(algorithm: any, data: Class_Buffer | string, key: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -1724,7 +1724,7 @@ declare module 'crypto' {
      *
      */
     function signSync(algorithm: any, data: Class_Buffer | string, key: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -1774,7 +1774,7 @@ declare module 'crypto' {
      *
      */
     function signAsync(algorithm: any, data: Class_Buffer | string, key: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -1844,7 +1844,7 @@ declare module 'crypto' {
      *
      */
     function verify(algorithm: any, data: Class_Buffer | string, key: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -1857,7 +1857,7 @@ declare module 'crypto' {
     }, signature: Class_Buffer | string): boolean;
 
     function verify(algorithm: any, data: Class_Buffer | string, key: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -1886,7 +1886,7 @@ declare module 'crypto' {
      *
      */
     function verifySync(algorithm: any, data: Class_Buffer | string, key: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -1915,7 +1915,7 @@ declare module 'crypto' {
      *
      */
     function verifyAsync(algorithm: any, data: Class_Buffer | string, key: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2016,7 +2016,7 @@ declare module 'crypto' {
      *
      */
     function bbsSign(messages: (Class_Buffer | string)[], privateKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2029,7 +2029,7 @@ declare module 'crypto' {
     }): Class_Buffer;
 
     function bbsSign(messages: (Class_Buffer | string)[], privateKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2057,7 +2057,7 @@ declare module 'crypto' {
      *
      */
     function bbsSignSync(messages: (Class_Buffer | string)[], privateKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2085,7 +2085,7 @@ declare module 'crypto' {
      *
      */
     function bbsSignAsync(messages: (Class_Buffer | string)[], privateKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2145,7 +2145,7 @@ declare module 'crypto' {
      *
      */
     function bbsVerify(messages: (Class_Buffer | string)[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2158,7 +2158,7 @@ declare module 'crypto' {
     }, signature: Class_Buffer | string): boolean;
 
     function bbsVerify(messages: (Class_Buffer | string)[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2183,7 +2183,7 @@ declare module 'crypto' {
      *
      */
     function bbsVerifySync(messages: (Class_Buffer | string)[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2208,7 +2208,7 @@ declare module 'crypto' {
      *
      */
     function bbsVerifyAsync(messages: (Class_Buffer | string)[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2274,7 +2274,7 @@ declare module 'crypto' {
      *
      */
     function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2287,7 +2287,7 @@ declare module 'crypto' {
     }): Class_Buffer;
 
     function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2315,7 +2315,7 @@ declare module 'crypto' {
      *
      */
     function proofGenSync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2343,7 +2343,7 @@ declare module 'crypto' {
      *
      */
     function proofGenAsync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2411,7 +2411,7 @@ declare module 'crypto' {
      *
      */
     function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2424,7 +2424,7 @@ declare module 'crypto' {
     }, proof: Class_Buffer | string): boolean;
 
     function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2451,7 +2451,7 @@ declare module 'crypto' {
      *
      */
     function proofVerifySync(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;
@@ -2478,7 +2478,7 @@ declare module 'crypto' {
      *
      */
     function proofVerifyAsync(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;

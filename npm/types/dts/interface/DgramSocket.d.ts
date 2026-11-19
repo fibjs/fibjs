@@ -278,13 +278,13 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      */
     bind(opts: {
-        port?: number;
-        address?: string;
+        port: number;
+        address: string;
     }): Class_DgramSocket;
 
     bind(opts: {
-        port?: number;
-        address?: string;
+        port: number;
+        address: string;
     }, callback: (err: Error | undefined | null, retVal: Class_DgramSocket)=>any): void;
 
     /**
@@ -307,8 +307,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      */
     bindSync(opts: {
-        port?: number;
-        address?: string;
+        port: number;
+        address: string;
     }): Class_DgramSocket;
 
     /**
@@ -331,8 +331,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *
      */
     bindAsync(opts: {
-        port?: number;
-        address?: string;
+        port: number;
+        address: string;
     }): Promise<Class_DgramSocketPromise>;
 
     /**
@@ -1055,8 +1055,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      */
     bind(opts: {
-        port?: number;
-        address?: string;
+        port: number;
+        address: string;
     }): Promise<Class_DgramSocketPromise>;
 
     /**
@@ -1079,8 +1079,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      */
     bindSync(opts: {
-        port?: number;
-        address?: string;
+        port: number;
+        address: string;
     }): Class_DgramSocket;
 
     /**
@@ -1103,8 +1103,8 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *
      */
     bindAsync(opts: {
-        port?: number;
-        address?: string;
+        port: number;
+        address: string;
     }): Promise<Class_DgramSocketPromise>;
 
     /**

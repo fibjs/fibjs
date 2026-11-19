@@ -22,7 +22,7 @@ public:
     LOAD_OPTIONS(DiffieHellmanOptions, (privateKey)(publicKey));
 
 public:
-    std::optional<obj_ptr<KeyObject_base>> privateKey;
-    std::optional<obj_ptr<KeyObject_base>> publicKey;
+    obj_ptr<KeyObject_base> privateKey{};
+    obj_ptr<KeyObject_base> publicKey{};
 };
 }

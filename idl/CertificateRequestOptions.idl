@@ -1,11 +1,11 @@
 /*! @brief Options for creating an X.509 certificate request.
 
-     The key-import fields are the same as in KeyOptions. `subject` is a map of
-     subject entries (C, O, CN, ...) and `hashAlgorithm` selects the signature
-     digest (default 'sha256', or 'sm3' for SM2 keys).
+     `key` is required. The key-import fields are the same as in KeyOptions.
+     `subject` is a map of subject entries (C, O, CN, ...) and `hashAlgorithm`
+     selects the signature digest (default 'sha256', or 'sm3' for SM2 keys).
  */
 struct CertificateRequestOptions {
-    KeyObject|Buffer|String|NObject key;
+    required KeyObject|Buffer|String|NObject key;
     String format;
     String type;
     String|Buffer passphrase;

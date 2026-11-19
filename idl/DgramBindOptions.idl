@@ -4,6 +4,6 @@
      matching the positional port/address form.
  */
 struct DgramBindOptions {
-    Integer port;
-    String address;
+    required Integer port;
+    required String address;
 };

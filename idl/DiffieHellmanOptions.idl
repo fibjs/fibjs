@@ -2,6 +2,6 @@
      peer's public key. Both fields are required and must be KeyObjects.
  */
 struct DiffieHellmanOptions {
-    KeyObject privateKey;
-    KeyObject publicKey;
+    required KeyObject privateKey;
+    required KeyObject publicKey;
 };

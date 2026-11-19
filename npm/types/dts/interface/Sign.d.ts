@@ -154,7 +154,7 @@ declare class Class_Sign extends Class_object {
      *
      */
     sign(privateKey: {
-        key?: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
         passphrase?: string | Class_Buffer;

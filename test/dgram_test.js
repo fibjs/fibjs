@@ -54,6 +54,24 @@ describe('dgram', () => {
         s1.close();
     });
 
+    it('bind options require port and address', () => {
+        const s = dgram.createSocket('udp4');
+
+        assert.throws(() => s.bind({}), (err) => {
+            assert.equal(err.number, 20002);
+            assert.ok(err.message.indexOf('port') >= 0, err.message);
+            return true;
+        });
+
+        assert.throws(() => s.bind({ port: 0 }), (err) => {
+            assert.equal(err.number, 20002);
+            assert.ok(err.message.indexOf('address') >= 0, err.message);
+            return true;
+        });
+
+        s.close();
+    });
+
     it('throw bind on bound socket', () => {
         const s = dgram.createSocket('udp4');
         s.bind(base_port + 1001);

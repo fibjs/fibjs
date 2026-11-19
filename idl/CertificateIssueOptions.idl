@@ -1,11 +1,12 @@
 /*! @brief Options for issuing a certificate from a request.
 
-     The key-import fields select the issuer private key; `issuer` is the issuer
-     name map, `hashAlgorithm` the signature digest, and the remaining fields
-     set the validity and X.509 extensions.
+     `key` is required to sign the issued certificate. The key-import fields
+     select the issuer private key; `issuer` is the issuer name map,
+     `hashAlgorithm` the signature digest, and the remaining fields set the
+     validity and X.509 extensions.
  */
 struct CertificateIssueOptions {
-    KeyObject|Buffer|String|NObject key;
+    required KeyObject|Buffer|String|NObject key;
     String format;
     String|Buffer passphrase;
     String encoding = "utf8";

@@ -222,11 +222,11 @@ result_t DgramSocket::bind(DgramBindOptions* opts, obj_ptr<DgramSocket_base>& re
 {
     retVal = this;
 
-    if (!opts || !opts->port.has_value() || !opts->address.has_value())
+    if (!opts)
         return result_t(CALL_E_PARAMNOTOPTIONAL);
 
-    int32_t port = opts->port.value();
-    exlib::string addr = opts->address.value();
+    int32_t port = opts->port;
+    exlib::string addr = opts->address;
 
     if (ac.isSync()) {
         m_holder = new ValueHolder(wrap());
