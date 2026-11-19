@@ -1,8 +1,9 @@
 /*! @brief One ICE server of an RTCPeerConnection.
 
  `urls` is one URL or a list of URLs of the same server, each in the form
- `stun:host:port` or `turn:host:port`. `username` and `credential` are the
- long-term credentials of a TURN allocation and are ignored for a STUN server.
+ `stun:host:port` or `turn:host:port`. It is required: a server entry without
+ it throws TypeError 20002. `username` and `credential` are the long-term
+ credentials of a TURN allocation and are ignored for a STUN server.
 
  Example 1 — a STUN server, the shape the connection uses by default:
  ```JavaScript
@@ -32,7 +33,7 @@
  */
 struct RTCIceServer {
     /*! @brief URL or list of URLs of the server, such as 'stun:host:port' */
-    String|String[] urls;
+    required String|String[] urls;
 
     /*! @brief Username sent to a TURN server */
     String username;

@@ -15,12 +15,14 @@
 
 namespace fibjs {
 
+class RTCIceCandidateInit;
+
 class RTCIceCandidate_base : public object_base {
     DECLARE_CLASS(RTCIceCandidate_base);
 
 public:
     // RTCIceCandidate_base
-    static result_t _new(v8::Local<v8::Object> description, obj_ptr<RTCIceCandidate_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(RTCIceCandidateInit* description, obj_ptr<RTCIceCandidate_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_candidate(exlib::string& retVal) = 0;
     virtual result_t get_sdpMid(exlib::string& retVal) = 0;
     virtual result_t get_priority(int32_t& retVal) = 0;
@@ -44,6 +46,8 @@ public:
     static void s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/RTCIceCandidateInit.h"
 
 namespace fibjs {
 inline ClassInfo& RTCIceCandidate_base::class_info()
@@ -83,9 +87,9 @@ inline void RTCIceCandidate_base::__new(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "description");
+    OPT_ARG_NAMED(obj_ptr<RTCIceCandidateInit>, 0, new RTCIceCandidateInit(), "description");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((RTCIceCandidateInit*)v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -98,9 +102,9 @@ inline result_t RTCIceCandidate_base::load(v8::Local<v8::Value> v, obj_ptr<RTCIc
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "description");
+    OPT_ARG_NAMED(obj_ptr<RTCIceCandidateInit>, 0, new RTCIceCandidateInit(), "description");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((RTCIceCandidateInit*)v0, vr, args.This());
 
     LOAD_RETURN();
 }

@@ -28,8 +28,8 @@
  *    and other fields instead, which fibjs does not implement.
  *
  *  Obtained from:
- *  - `new rtc.RTCIceCandidate({ candidate, sdpMid })` — wraps one candidate string, both fields are
- *    required;
+ *  - `new rtc.RTCIceCandidate({ candidate, sdpMid })` — wraps one candidate string; both fields are
+ *    optional, an empty `candidate` being the end-of-candidates marker;
  *  - the `candidate` property of the `icecandidate` event — a plain object with the same fields plus
  *    `transport`, `address` and `port` for resolved candidates.
  *
@@ -126,7 +126,7 @@ declare class Class_RTCIceCandidate extends Class_object {
     /**
      * @description constructs a candidate object from a description object
      *
-     *      Both fields of the standard dictionary are optional: `candidate` defaults to an empty string,
+     *      Both fields of `RTCIceCandidateInit` are optional: `candidate` defaults to an empty string,
      *      the end-of-candidates marker, and `sdpMid` defaults to null, which pairs the candidate with
      *      the bundle media line (`0`) of a data-channel-only session. A string that cannot be parsed
      *      throws ERR_INVALID_STATE (`Invalid candidate format`), and the other fields of the standard
@@ -148,7 +148,10 @@ declare class Class_RTCIceCandidate extends Class_object {
      *      @param description initialization parameter
      *
      */
-    constructor(description?: FIBJS.GeneralObject);
+    constructor(description?: {
+        candidate?: string;
+        sdpMid?: string;
+    });
 
     /**
      * @description gets the candidate string

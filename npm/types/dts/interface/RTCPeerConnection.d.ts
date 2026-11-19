@@ -230,7 +230,7 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
         certificateType?: string;
         iceTransportPolicy?: string;
         iceServers?: {
-            urls?: string | string[];
+            urls: string | string[];
             username?: string;
             credential?: string;
         }[];
@@ -1404,7 +1404,7 @@ declare class Class_RTCPeerConnectionPromise extends Class_EventEmitter {
         certificateType?: string;
         iceTransportPolicy?: string;
         iceServers?: {
-            urls?: string | string[];
+            urls: string | string[];
             username?: string;
             credential?: string;
         }[];

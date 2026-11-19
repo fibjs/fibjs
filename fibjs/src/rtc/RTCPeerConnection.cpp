@@ -27,27 +27,15 @@ result_t RTCPeerConnection_base::_new(RTCPeerConnectionOptions* options,
     return result_t();
 }
 
-result_t RTCSessionDescription_base::_new(v8::Local<v8::Object> description,
+result_t RTCSessionDescription_base::_new(RTCSessionDescriptionInit* description,
     obj_ptr<RTCSessionDescription_base>& retVal, v8::Local<v8::Object> This)
 {
-    result_t hr;
-    exlib::string type;
-
-    hr = GetConfigValue(description, "type", type, true);
-    if (hr.failed())
-        return hr;
-
-    // The standard dictionary defaults `sdp` to an empty string, which is the
-    // value a rollback description needs, so the field is optional.
-    std::optional<exlib::string> sdp;
-    hr = GetConfigValue(description, "sdp", sdp, true);
-    if (hr.failed())
-        return hr;
-
-    exlib::string sdp_val = sdp.value_or("");
+    // LOAD_OPTIONS has already validated the required `type` and parsed `sdp`,
+    // whose record initializer is the empty string a rollback needs.
+    exlib::string sdp = description->sdp.value_or("");
 
     try {
-        retVal = new RTCSessionDescription(sdp_val, type);
+        retVal = new RTCSessionDescription(sdp, description->type);
     } catch (std::exception& e) {
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }
@@ -289,7 +277,7 @@ result_t RTCPeerConnection::setLocalDescription(Union_setLocalDescription_descri
     // built in the sync phase (it reads JS properties), the class alternative
     // is resolved in the async phase, so a cc_ caller can pass it directly
     obj_ptr<RTCSessionDescription_base> description_;
-    result_t hr = ctor_object_from_union<RTCSessionDescription_base>(description, description_, ac);
+    result_t hr = ctor_record_from_union<RTCSessionDescription_base, RTCSessionDescriptionInit>(description, description_, ac);
     if (hr.failed())
         return hr;
 
@@ -328,7 +316,7 @@ result_t RTCPeerConnection::setRemoteDescription(Union_setRemoteDescription_desc
         m_self = new ValueHolder(wrap());
 
     obj_ptr<RTCSessionDescription_base> description_;
-    result_t hr = ctor_object_from_union<RTCSessionDescription_base>(description, description_, ac);
+    result_t hr = ctor_record_from_union<RTCSessionDescription_base, RTCSessionDescriptionInit>(description, description_, ac);
     if (hr.failed())
         return hr;
 
@@ -358,7 +346,7 @@ result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate cand
     // built in the sync phase (it reads JS properties), the class alternative
     // is resolved in the async phase, so a cc_ caller can pass it directly
     obj_ptr<RTCIceCandidate_base> candidate_;
-    result_t hr = ctor_object_from_union<RTCIceCandidate_base>(candidate, candidate_, ac);
+    result_t hr = ctor_record_from_union<RTCIceCandidate_base, RTCIceCandidateInit>(candidate, candidate_, ac);
     if (hr.failed())
         return hr;
 
@@ -815,9 +803,6 @@ result_t RTCPeerConnection::create(RTCPeerConnectionOptions* options)
         if (options->iceServers.has_value()) {
             try {
                 for (auto& entry : options->iceServers.value()) {
-                    if (!entry->urls.has_value())
-                        return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, "urls");
-
                     auto addServer = [&](exlib::string url) {
                         rtc::IceServer iceServer(url);
                         if (entry->username.has_value())
@@ -828,10 +813,10 @@ result_t RTCPeerConnection::create(RTCPeerConnectionOptions* options)
                         config.iceServers.push_back(iceServer);
                     };
 
-                    if (std::holds_alternative<exlib::string>(entry->urls.value()))
-                        addServer(std::get<exlib::string>(entry->urls.value()));
+                    if (std::holds_alternative<exlib::string>(entry->urls))
+                        addServer(std::get<exlib::string>(entry->urls));
                     else
-                        for (auto& url : std::get<std::vector<exlib::string>>(entry->urls.value()))
+                        for (auto& url : std::get<std::vector<exlib::string>>(entry->urls))
                             addServer(url);
                 }
             } catch (std::exception& e) {

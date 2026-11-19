@@ -244,6 +244,64 @@ result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncHandle& 
     return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_UNION_NOT_PREPARED").with_message("the object union was not prepared: this entry requires the synchronous phase.").with_result(result_t::type_mismatch());
 }
 
+// RTCSessionDescription|Object, RTCIceCandidate|Object: the class alternative
+// is used as it is, while the object alternative is first loaded through the
+// typed initialization record (`Base::_new` takes the record, not the raw JS
+// object) and then handed to the class constructor. The phase rule is the same
+// as the helper above: the record reads JS properties, so it stays in the sync
+// phase; the class alternative needs no conversion and is resolved later.
+template <typename Base, typename Record, typename Variant>
+result_t ctor_record_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncHandle& ac)
+{
+    if (ac.isSync()) {
+        result_t hr = std::visit([&](auto&& value) -> result_t {
+            using T = std::decay_t<decltype(value)>;
+
+            if constexpr (std::is_same_v<T, obj_ptr<Base>>)
+                return result_t(); // already a C++ object: left to the async phase
+            else if constexpr (std::is_same_v<T, v8::Local<v8::Object>>) {
+                obj_ptr<Record> record;
+                result_t hr = Record::load(value, record);
+                if (hr.failed())
+                    return hr;
+                return Base::_new(record.get(), retVal);
+            } else
+                return result_t::type_mismatch();
+        }, v);
+        if (hr.failed())
+            return hr;
+
+        if (retVal != NULL) {
+            ac.ctxv().resize(1);
+            ac.ctxv()[0] = retVal;
+        }
+
+        return result_t::nosync();
+    }
+
+    // async / cc_: the slot prepared by the sync phase comes first
+    if (ac.ctxv().size() > 0 && ac.ctxv()[0].object() != NULL) {
+        retVal = Base::getInstance(ac.ctxv()[0].object());
+        if (retVal != NULL)
+            return result_t();
+    }
+
+    if (std::holds_alternative<obj_ptr<Base>>(v)) {
+        retVal = std::get<obj_ptr<Base>>(v);
+        return result_t();
+    }
+
+    return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_UNION_NOT_PREPARED").with_message("the object union was not prepared: this entry requires the synchronous phase.").with_result(result_t::type_mismatch());
+}
+
+// Raw-continuation bridge, same rule as handler_from_union above.
+template <typename Base, typename Record, typename Variant>
+result_t ctor_record_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncEvent* ac)
+{
+    AsyncHandle h(ac);
+    return ctor_record_from_union<Base, Record>(v, retVal, h);
+}
+
 // Raw-continuation bridge, same rule as handler_from_union above.
 template <typename Base, typename Variant>
 result_t ctor_object_from_union(Variant& v, obj_ptr<Base>& retVal, AsyncEvent* ac)

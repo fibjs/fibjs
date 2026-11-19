@@ -21,7 +21,7 @@ public:
     LOAD_OPTIONS(RTCIceServer, (urls)(username)(credential));
 
 public:
-    std::optional<std::variant<exlib::string, std::vector<exlib::string>>> urls;
+    std::variant<exlib::string, std::vector<exlib::string>> urls{};
     std::optional<exlib::string> username;
     std::optional<exlib::string> credential;
 };

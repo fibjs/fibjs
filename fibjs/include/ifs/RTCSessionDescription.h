@@ -15,12 +15,14 @@
 
 namespace fibjs {
 
+class RTCSessionDescriptionInit;
+
 class RTCSessionDescription_base : public object_base {
     DECLARE_CLASS(RTCSessionDescription_base);
 
 public:
     // RTCSessionDescription_base
-    static result_t _new(v8::Local<v8::Object> description, obj_ptr<RTCSessionDescription_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(RTCSessionDescriptionInit* description, obj_ptr<RTCSessionDescription_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t get_sdp(exlib::string& retVal) = 0;
 
@@ -34,6 +36,8 @@ public:
     static void s_get_sdp(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/RTCSessionDescriptionInit.h"
 
 namespace fibjs {
 inline ClassInfo& RTCSessionDescription_base::class_info()
@@ -66,11 +70,11 @@ inline void RTCSessionDescription_base::__new(const v8::FunctionCallbackInfo<v8:
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 0);
+    METHOD_OVER_NAMED(1, 1, "description");
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "description");
+    ARG_NAMED(obj_ptr<RTCSessionDescriptionInit>, 0, "description");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((RTCSessionDescriptionInit*)v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -81,11 +85,11 @@ inline result_t RTCSessionDescription_base::load(v8::Local<v8::Value> v, obj_ptr
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 0);
+    METHOD_OVER_NAMED(1, 1, "description");
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "description");
+    ARG_NAMED(obj_ptr<RTCSessionDescriptionInit>, 0, "description");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((RTCSessionDescriptionInit*)v0, vr, args.This());
 
     LOAD_RETURN();
 }

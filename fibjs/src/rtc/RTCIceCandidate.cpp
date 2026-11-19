@@ -9,29 +9,21 @@
 
 namespace fibjs {
 
-result_t RTCIceCandidate_base::_new(v8::Local<v8::Object> description,
+result_t RTCIceCandidate_base::_new(RTCIceCandidateInit* description,
     obj_ptr<RTCIceCandidate_base>& retVal, v8::Local<v8::Object> This)
 {
-    result_t hr;
-    std::optional<exlib::string> candidate, sdpMid;
-
-    // The standard dictionary defaults `candidate` to an empty string (the
-    // end-of-candidates marker) and `sdpMid` to null, so neither is required.
-    hr = GetConfigValue(description, "candidate", candidate, true);
-    if (hr.failed())
-        return hr;
-
-    hr = GetConfigValue(description, "sdpMid", sdpMid, true);
-    if (hr.failed())
-        return hr;
+    // The record defaults `candidate` to an empty string (the
+    // end-of-candidates marker) and leaves `sdpMid` disengaged when absent,
+    // so neither field is required.
+    exlib::string candidate = description->candidate.value_or("");
 
     try {
-        if (!candidate.has_value() || candidate->empty())
+        if (candidate.empty())
             retVal = new RTCIceCandidate();
-        else if (sdpMid.has_value())
-            retVal = new RTCIceCandidate(candidate.value(), sdpMid.value());
+        else if (description->sdpMid.has_value())
+            retVal = new RTCIceCandidate(candidate, description->sdpMid.value());
         else
-            retVal = new RTCIceCandidate(candidate.value());
+            retVal = new RTCIceCandidate(candidate);
     } catch (std::exception& e) {
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }

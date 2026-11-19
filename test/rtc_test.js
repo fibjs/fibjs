@@ -169,6 +169,44 @@ describe('the RTC option records', () => {
     });
 });
 
+// The typed initialization dictionaries and the one required field of
+// RTCIceServer. Field failures keep the option-record error shape: 20002 names
+// the missing field, 20005 names a field of the wrong type.
+describe('the RTC required fields', () => {
+    it('requires type in RTCSessionDescriptionInit', () => {
+        var missing = catchOf(() => new rtc.RTCSessionDescription({}));
+        assert.ok(missing, 'an empty description must not be accepted');
+        assert.equal(missing.number, 20002);
+        assert.equal(missing.name, 'TypeError');
+        assert.ok(missing.message.indexOf('type') >= 0, missing.message);
+
+        var noArg = catchOf(() => new rtc.RTCSessionDescription());
+        assert.ok(noArg, 'the description argument is required');
+        assert.equal(noArg.number, 20002);
+        assert.equal(noArg.name, 'TypeError');
+        assert.ok(noArg.message.indexOf('description') >= 0, noArg.message);
+    });
+
+    it('keeps sdp optional and validates its type', () => {
+        var desc = new rtc.RTCSessionDescription({ type: 'rollback' });
+        assert.equal(desc.type, 'rollback');
+        assert.equal(typeof desc.sdp, 'string');
+
+        var bad = catchOf(() => new rtc.RTCSessionDescription({ type: 'offer', sdp: 1 }));
+        assert.ok(bad, 'a numeric sdp must not be accepted');
+        assert.equal(bad.number, 20005);
+        assert.ok(bad.message.indexOf('sdp') >= 0, bad.message);
+    });
+
+    it('names the missing urls field of an ice server', () => {
+        var err = catchOf(() => new rtc.RTCPeerConnection({ iceServers: [{}] }));
+        assert.ok(err, 'an ice server without urls must not be accepted');
+        assert.equal(err.number, 20002);
+        assert.equal(err.name, 'TypeError');
+        assert.ok(err.message.indexOf('urls') >= 0, err.message);
+    });
+});
+
 // The MDN-facing surface: the channel state and creation options, the channel
 // events on both sides, the end-of-candidates markers and the state
 // transitions the standard defines.

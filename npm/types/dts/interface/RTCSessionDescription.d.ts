@@ -26,11 +26,12 @@
  *    may move attributes, so a second construction of the regenerated text can still differ from
  *    the first. Compare parsed content, not strings.
  *  - **Acceptance**: the connection methods take either an instance or a plain object with `type` and
- *    `sdp`, which is converted through this constructor, so both fields are required either way.
+ *    `sdp`, which is converted through this constructor; `type` is required and `sdp` defaults to an
+ *    empty string.
  *
  *  Obtained from:
- *  - `new rtc.RTCSessionDescription({ type, sdp })` — wraps one description text, both fields are
- *    required;
+ *  - `new rtc.RTCSessionDescription({ type, sdp })` — wraps one description text; `type` is required
+ *    and `sdp` defaults to an empty string;
  *  - `createOffer()` and `createAnswer()` — resolve with plain objects of the same shape; wrap them
  *    when a class instance is needed.
  *
@@ -110,12 +111,13 @@ declare class Class_RTCSessionDescription extends Class_object {
     /**
      * @description constructs a session description object from a description object
      *
-     *      The description object must contain `type` (the kind of the description) and may give `sdp`
-     *      (the SDP text); the standard defaults `sdp` to an empty string, which is what a `rollback`
-     *      needs, so it is optional here too and a missing field or a `null`/`undefined` value means
-     *      `""`. Another type of `sdp` throws 20005 and a missing `type` throws TypeError 20002. The
-     *      text is parsed at construction, so text the library cannot parse may throw ERR_INVALID_STATE, and an
-     *      unknown `type` is accepted and reported as `unspec` by the `type` member.
+     *      The `RTCSessionDescriptionInit` object must contain `type` (the kind of the description) and
+     *      may give `sdp` (the SDP text); the standard defaults `sdp` to an empty string, which is what a
+     *      `rollback` needs, so it is optional here too and a missing field or a `null`/`undefined` value
+     *      means `""`. Another type of `sdp` throws 20005 and a missing `type` (or a missing argument)
+     *      throws TypeError 20002. The text is parsed at construction, so text the library cannot parse
+     *      may throw ERR_INVALID_STATE, and an unknown `type` is accepted and reported as `unspec` by the
+     *      `type` member.
      *
      *      Example — wrap a short description and read its type:
      *      ```JavaScript
@@ -128,7 +130,10 @@ declare class Class_RTCSessionDescription extends Class_object {
      *      @param description initialization parameter
      *
      */
-    constructor(description?: FIBJS.GeneralObject);
+    constructor(description: {
+        type: string;
+        sdp?: string;
+    });
 
     /**
      * @description gets the type of the description

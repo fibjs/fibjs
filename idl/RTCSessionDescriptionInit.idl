@@ -1,0 +1,27 @@
+/*! @brief Initialization dictionary of RTCSessionDescription.
+
+ `type` is required: it names the kind of description. `sdp` is optional and
+ defaults to an empty string, the value a rollback description needs. The
+ RTCSessionDescription constructor reads both fields; unknown keys such as
+ `usernameFragment` are ignored.
+
+ Example 1 — create an offer description:
+ ```JavaScript
+ const rtc = require('rtc');
+ const desc = new rtc.RTCSessionDescription({ type: 'offer', sdp: 'v=0\r\n' });
+ console.log(desc.type); // offer
+ ```
+ Example 2 — a rollback carries no sdp:
+ ```JavaScript
+ const rtc = require('rtc');
+ const desc = new rtc.RTCSessionDescription({ type: 'rollback' });
+ console.log(desc.type); // rollback
+ ```
+ */
+struct RTCSessionDescriptionInit {
+    /*! @brief offer, answer, pranswer, rollback, or an unknown type */
+    required String type;
+
+    /*! @brief SDP text, empty by default */
+    String sdp = "";
+};
