@@ -60,20 +60,24 @@ result_t File_base::_new(Union_File_blobData blobData, exlib::string name, FileO
     return _new(blobParts, name, options, retVal, This);
 }
 
-result_t File_base::_new(FileOptions* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
+result_t File_base::_new(FileInit* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This)
 {
-    if (!options || !options->data.has_value())
+    if (!options)
         return result_t(CALL_E_PARAMNOTOPTIONAL);
 
-    exlib::string name = options->name.value_or("");
+    FileOptions opts;
+    opts.type = options->type;
+    opts.endings = options->endings;
+    opts.lastModified = options->lastModified;
+
     Union_File_blobData blobData;
 
-    if (std::holds_alternative<obj_ptr<Buffer_base>>(options->data.value()))
-        blobData = std::get<obj_ptr<Buffer_base>>(options->data.value());
+    if (std::holds_alternative<obj_ptr<Buffer_base>>(options->data))
+        blobData = std::get<obj_ptr<Buffer_base>>(options->data);
     else
-        blobData = std::get<exlib::string>(options->data.value());
+        blobData = std::get<exlib::string>(options->data);
 
-    return _new(blobData, name, options, retVal, This);
+    return _new(blobData, options->name.value_or(""), &opts, retVal, This);
 }
 
 result_t BlobImpl::get_type(exlib::string& retVal)

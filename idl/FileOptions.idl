@@ -1,7 +1,9 @@
-/*! @brief Options shared by the File constructors.
+/*! @brief Options shared by the positional File constructors.
 
-     `data` and `name` are read by the single-options form; `lastModified`
-     defaults to the current time when absent.
+     Only `type`, `endings` and `lastModified` are read here; `lastModified`
+     defaults to the current time when absent. `data` and `name` are legacy
+     fields kept for source compatibility and are ignored by these constructors:
+     the single-object form uses FileInit instead.
  */
 struct FileOptions {
     String type = "";

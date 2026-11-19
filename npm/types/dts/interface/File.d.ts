@@ -120,14 +120,14 @@ declare class Class_File extends Class_Blob {
      *      `data` is required and is treated as one Buffer|String part; `name` is optional and
      *      defaults to an empty string, unlike the positional forms. The remaining properties are
      *      the same options as in the parts form. This form is not part of the Web File API.
-     *      @param options optional parameter object
+     *      @param options the initial data and file metadata; `data` is required
      *
      */
-    constructor(options?: {
+    constructor(options: {
+        data: Class_Buffer | string;
         type?: string;
         endings?: string;
         lastModified?: number;
-        data?: Class_Buffer | string;
         name?: string;
     });
 
@@ -220,14 +220,14 @@ declare class Class_FilePromise extends Class_BlobPromise {
      *      `data` is required and is treated as one Buffer|String part; `name` is optional and
      *      defaults to an empty string, unlike the positional forms. The remaining properties are
      *      the same options as in the parts form. This form is not part of the Web File API.
-     *      @param options optional parameter object
+     *      @param options the initial data and file metadata; `data` is required
      *
      */
-    constructor(options?: {
+    constructor(options: {
+        data: Class_Buffer | string;
         type?: string;
         endings?: string;
         lastModified?: number;
-        data?: Class_Buffer | string;
         name?: string;
     });
 

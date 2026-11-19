@@ -1,0 +1,31 @@
+/*! @brief Options of the single-object File constructor.
+
+     `data` is required and is treated as one Buffer|String part; `name` defaults
+     to an empty string. `type` is lowercased and `lastModified` defaults to the
+     current time, exactly as in the positional constructor forms. This record is
+     the fibjs extension form of File, not part of the Web File API.
+
+ Example 1 — the minimal single-object form:
+ ```JavaScript
+ const file = new File({ data: 'hello' });
+ console.log(file.name, file.size); // "" 5
+ ```
+
+ Example 2 — with explicit metadata:
+ ```JavaScript
+ const file = new File({
+     data: Buffer.from([1, 2, 3]),
+     name: 'data.bin',
+     type: 'application/octet-stream'
+ });
+ console.log(file.name, file.type, file.size);
+ // data.bin application/octet-stream 3
+ ```
+ */
+struct FileInit {
+    required Buffer|String data;
+    String type = "";
+    String endings = "transparent";
+    Long lastModified;
+    String name = "";
+};

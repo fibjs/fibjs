@@ -19,6 +19,7 @@ namespace fibjs {
 class Blob_base;
 class FileOptions;
 class Buffer_base;
+class FileInit;
 
 class File_base : public Blob_base {
     DECLARE_CLASS(File_base);
@@ -30,7 +31,7 @@ public:
     // File_base
     static result_t _new(v8::Local<v8::Array> blobParts, exlib::string name, FileOptions* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Union_File_blobData blobData, exlib::string name, FileOptions* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(FileOptions* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(FileInit* options, obj_ptr<File_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t get_lastModified(double& retVal) = 0;
 
@@ -47,6 +48,7 @@ public:
 
 #include "ifs/FileOptions.h"
 #include "ifs/Buffer.h"
+#include "ifs/FileInit.h"
 
 namespace fibjs {
 inline ClassInfo& File_base::class_info()
@@ -95,11 +97,11 @@ inline void File_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     hr = _new(v0, v1, (FileOptions*)v2, vr, args.This());
 
-    METHOD_OVER(1, 0);
+    METHOD_OVER_NAMED(1, 1, "options");
 
-    OPT_ARG_NAMED(obj_ptr<FileOptions>, 0, new FileOptions(), "options");
+    ARG_NAMED(obj_ptr<FileInit>, 0, "options");
 
-    hr = _new((FileOptions*)v0, vr, args.This());
+    hr = _new((FileInit*)v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -110,11 +112,11 @@ inline result_t File_base::load(v8::Local<v8::Value> v, obj_ptr<File_base>& retV
 
     LOAD_ENTER();
 
-    METHOD_OVER(1, 0);
+    METHOD_OVER_NAMED(1, 1, "options");
 
-    OPT_ARG_NAMED(obj_ptr<FileOptions>, 0, new FileOptions(), "options");
+    ARG_NAMED(obj_ptr<FileInit>, 0, "options");
 
-    hr = _new((FileOptions*)v0, vr, args.This());
+    hr = _new((FileInit*)v0, vr, args.This());
 
     LOAD_RETURN();
 }
