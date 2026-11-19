@@ -15,12 +15,14 @@
 
 namespace fibjs {
 
+class WASIHostOptions;
+
 class WASIHost_base : public object_base {
     DECLARE_CLASS(WASIHost_base);
 
 public:
     // WASIHost_base
-    static result_t _new(v8::Local<v8::Object> options, obj_ptr<WASIHost_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(WASIHostOptions* options, obj_ptr<WASIHost_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t getImportObject(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t start(v8::Local<v8::Value> instance, int32_t& retVal) = 0;
     virtual result_t initialize(v8::Local<v8::Value> instance) = 0;
@@ -168,6 +170,8 @@ public:
 };
 }
 
+#include "ifs/WASIHostOptions.h"
+
 namespace fibjs {
 inline ClassInfo& WASIHost_base::class_info()
 {
@@ -255,9 +259,9 @@ inline void WASIHost_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<WASIHostOptions>, 0, "options");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((WASIHostOptions*)v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -270,9 +274,9 @@ inline result_t WASIHost_base::load(v8::Local<v8::Value> v, obj_ptr<WASIHost_bas
 
     METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<WASIHostOptions>, 0, "options");
 
-    hr = _new(v0, vr, args.This());
+    hr = _new((WASIHostOptions*)v0, vr, args.This());
 
     LOAD_RETURN();
 }

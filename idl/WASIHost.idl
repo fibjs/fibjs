@@ -136,7 +136,7 @@ interface WASIHost
      throws `ERR_WASI_SOCKET`.
      @param options the version, argument vector, environment, preopened directories, sockets and stdio descriptors
      */
-    WASIHost(Object options);
+    WASIHost(WASIHostOptions options);
 
     /*! @brief Returns the import object to pass to WebAssembly.instantiate
 

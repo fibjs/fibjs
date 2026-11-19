@@ -141,7 +141,20 @@ declare class Class_WASIHost extends Class_object {
      *      @param options the version, argument vector, environment, preopened directories, sockets and stdio descriptors
      *
      */
-    constructor(options: FIBJS.GeneralObject);
+    constructor(options: {
+        version: string;
+        args?: any[];
+        env?: FIBJS.GeneralObject;
+        preopens?: FIBJS.GeneralObject;
+        sockets?: {
+            address?: string;
+            port: number;
+        }[];
+        stdin?: number;
+        stdout?: number;
+        stderr?: number;
+        returnOnExit?: boolean;
+    });
 
     /**
      * @description Returns the import object to pass to WebAssembly.instantiate
@@ -1899,7 +1912,20 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @param options the version, argument vector, environment, preopened directories, sockets and stdio descriptors
      *
      */
-    constructor(options: FIBJS.GeneralObject);
+    constructor(options: {
+        version: string;
+        args?: any[];
+        env?: FIBJS.GeneralObject;
+        preopens?: FIBJS.GeneralObject;
+        sockets?: {
+            address?: string;
+            port: number;
+        }[];
+        stdin?: number;
+        stdout?: number;
+        stderr?: number;
+        returnOnExit?: boolean;
+    });
 
     /**
      * @description Returns the import object to pass to WebAssembly.instantiate

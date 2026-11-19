@@ -1,0 +1,25 @@
+/*! @brief One TCP listener exposed by WASIHost as a preopened socket.
+
+ `port` is required and must be between 0 and 65535; `address` defaults to
+ `'127.0.0.1'`. The listener is created during construction, so a port that
+ cannot be bound reports `ERR_WASI_SOCKET`.
+
+ Example 1 — a listener on the default loopback address:
+ ```JavaScript
+ const options = { port: 8080 };
+ console.log(options.port); // 8080
+ ```
+
+ Example 2 — a listener on every interface:
+ ```JavaScript
+ const options = { address: '0.0.0.0', port: 80 };
+ console.log(options.address, options.port); // 0.0.0.0 80
+ ```
+ */
+struct WASISocketOption {
+    /*! @brief local address to bind, '127.0.0.1' by default */
+    String address = "127.0.0.1";
+
+    /*! @brief TCP port to listen on, between 0 and 65535 */
+    required Integer port;
+};

@@ -1,0 +1,54 @@
+/*! @brief Options of the WASIHost constructor.
+
+ `version` is required and selects the import namespace: `'preview1'` (the
+ default namespace `wasi_snapshot_preview1`) or `'unstable'` (the legacy
+ `wasi_unstable`), matching Node. `args` is the guest argument vector without
+ the program name, `env` is the guest environment, `preopens` maps guest paths
+ to host paths, `sockets` lists the TCP listeners exposed as preopened socket
+ descriptors, and `stdin`/`stdout`/`stderr` select the host descriptors behind
+ guest 0/1/2.
+
+ Example 1 — a preview1 host with one argument:
+ ```JavaScript
+ const { WASI } = require('wasi');
+
+ const wasi = new WASI({ version: 'preview1', args: ['app'] });
+ console.log(Object.keys(wasi.getImportObject())[0]); // wasi_snapshot_preview1
+ ```
+
+ Example 2 — the legacy namespace with one environment entry:
+ ```JavaScript
+ const { WASI } = require('wasi');
+
+ const wasi = new WASI({ version: 'unstable', env: { LANG: 'C' } });
+ console.log(Object.keys(wasi.getImportObject())[0]); // wasi_unstable
+ ```
+ */
+struct WASIHostOptions {
+    /*! @brief import namespace selector, 'preview1' or 'unstable' */
+    required String version;
+
+    /*! @brief guest argument vector without the program name */
+    Value[] args;
+
+    /*! @brief guest environment map */
+    Object env;
+
+    /*! @brief map from guest path to host path */
+    Object preopens;
+
+    /*! @brief TCP listeners exposed as preopened socket descriptors */
+    WASISocketOption[] sockets;
+
+    /*! @brief host descriptor behind guest stdin, 0 by default */
+    Integer stdin = 0;
+
+    /*! @brief host descriptor behind guest stdout, 1 by default */
+    Integer stdout = 1;
+
+    /*! @brief host descriptor behind guest stderr, 2 by default */
+    Integer stderr = 2;
+
+    /*! @brief return the guest exit code from start() instead of exiting */
+    Boolean returnOnExit = true;
+};

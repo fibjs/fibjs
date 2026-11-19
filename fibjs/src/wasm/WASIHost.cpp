@@ -1636,41 +1636,23 @@ static bool read_js_string(v8::Local<v8::Context> context, v8::Local<v8::Value> 
     return true;
 }
 
-static result_t read_options(v8::Local<v8::Object> options, std::vector<exlib::string>& args,
+static result_t read_options(WASIHostOptions* options, std::vector<exlib::string>& args,
     std::vector<exlib::string>& env,
     std::vector<std::pair<exlib::string, exlib::string>>& preopens)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
 
-    v8::Local<v8::Value> argv;
-    if (options->Get(context, isolate->NewString("args")).ToLocal(&argv)
-        && !argv->IsUndefined() && !argv->IsNull()) {
-        if (!argv->IsArray())
-            return result_t::make(CALL_E_TYPEMISMATCH)
-                .with_type_name(errtype::kTypeError)
-                .with_code("ERR_INVALID_ARG_TYPE")
-                .with_message("The \"options.args\" property must be an instance of Array.");
-
-        v8::Local<v8::Array> array = argv.As<v8::Array>();
-        for (uint32_t i = 0; i < array->Length(); i++) {
-            v8::Local<v8::Value> value;
+    if (options->args.has_value()) {
+        for (auto& value : options->args.value()) {
             exlib::string text;
-            if (array->Get(context, i).ToLocal(&value) && read_js_string(context, value, text))
+            if (read_js_string(context, value, text))
                 args.push_back(text);
         }
     }
 
-    v8::Local<v8::Value> envv;
-    if (options->Get(context, isolate->NewString("env")).ToLocal(&envv)
-        && !envv->IsUndefined() && !envv->IsNull()) {
-        if (!envv->IsObject())
-            return result_t::make(CALL_E_TYPEMISMATCH)
-                .with_type_name(errtype::kTypeError)
-                .with_code("ERR_INVALID_ARG_TYPE")
-                .with_message("The \"options.env\" property must be of type object.");
-
-        v8::Local<v8::Object> object = envv.As<v8::Object>();
+    if (options->env.has_value()) {
+        v8::Local<v8::Object> object = options->env.value();
         v8::Local<v8::Array> names;
         if (object->GetPropertyNames(context).ToLocal(&names)) {
             for (uint32_t i = 0; i < names->Length(); i++) {
@@ -1692,16 +1674,8 @@ static result_t read_options(v8::Local<v8::Object> options, std::vector<exlib::s
         }
     }
 
-    v8::Local<v8::Value> preopens_value;
-    if (options->Get(context, isolate->NewString("preopens")).ToLocal(&preopens_value)
-        && !preopens_value->IsUndefined() && !preopens_value->IsNull()) {
-        if (!preopens_value->IsObject())
-            return result_t::make(CALL_E_TYPEMISMATCH)
-                .with_type_name(errtype::kTypeError)
-                .with_code("ERR_INVALID_ARG_TYPE")
-                .with_message("The \"options.preopens\" property must be of type object.");
-
-        v8::Local<v8::Object> object = preopens_value.As<v8::Object>();
+    if (options->preopens.has_value()) {
+        v8::Local<v8::Object> object = options->preopens.value();
         v8::Local<v8::Array> names;
         if (object->GetPropertyNames(context).ToLocal(&names)) {
             for (uint32_t i = 0; i < names->Length(); i++) {
@@ -2211,22 +2185,16 @@ std::unique_ptr<WasiCall> WASIHost::take_call(AsyncHandle& ac)
 
 static result_t bind_syscalls(v8::Local<v8::Object> self);
 
-result_t WASIHost_base::_new(v8::Local<v8::Object> options, obj_ptr<WASIHost_base>& retVal,
+result_t WASIHost_base::_new(WASIHostOptions* options, obj_ptr<WASIHost_base>& retVal,
     v8::Local<v8::Object> This)
 {
+    if (!options)
+        return result_t(CALL_E_PARAMNOTOPTIONAL);
+
     // Node requires an explicit version: the option selects the import
     // namespace ('wasi_snapshot_preview1' vs 'wasi_unstable') and cannot be
     // guessed from the guest.
-    exlib::string version;
-    result_t hr = GetConfigValue(options, "version", version, true);
-    if (hr.failed()) {
-        if (hr.is(CALL_E_PARAMNOTOPTIONAL))
-            return result_t::make(CALL_E_INVALID_DATA)
-                .with_type_name(errtype::kTypeError)
-                .with_code("ERR_INVALID_ARG_TYPE")
-                .with_message("The \"options.version\" property must be of type string.");
-        return hr;
-    }
+    exlib::string version = options->version;
 
     // Node accepts 'unstable' (namespace wasi_unstable) and 'preview1'.
     if (version == "unstable")
@@ -2244,46 +2212,16 @@ result_t WASIHost_base::_new(v8::Local<v8::Object> options, obj_ptr<WASIHost_bas
     std::vector<exlib::string> args;
     std::vector<exlib::string> env;
     std::vector<std::pair<exlib::string, exlib::string>> preopens;
-    hr = read_options(options, args, env, preopens);
+    result_t hr = read_options(options, args, env, preopens);
     if (hr.failed())
         return hr;
 
     std::vector<std::pair<exlib::string, int32_t>> sockets;
-    v8::Local<v8::Context> context = Isolate::current()->context();
-    v8::Local<v8::Value> sockets_value;
-    if (options->Get(context, Isolate::current()->NewString("sockets")).ToLocal(&sockets_value)
-        && !sockets_value->IsUndefined() && !sockets_value->IsNull()) {
-        if (!sockets_value->IsArray())
-            return result_t::make(CALL_E_TYPEMISMATCH)
-                .with_type_name(errtype::kTypeError)
-                .with_code("ERR_INVALID_ARG_TYPE")
-                .with_message("The \"options.sockets\" property must be an instance of Array.");
+    if (options->sockets.has_value()) {
+        for (auto& option : options->sockets.value()) {
+            exlib::string address = option->address.value_or("127.0.0.1");
+            int32_t port = option->port;
 
-        v8::Local<v8::Array> array = sockets_value.As<v8::Array>();
-        for (uint32_t i = 0; i < array->Length(); i++) {
-            v8::Local<v8::Value> item;
-            if (!array->Get(context, i).ToLocal(&item) || !item->IsObject())
-                return result_t::make(CALL_E_TYPEMISMATCH)
-                    .with_type_name(errtype::kTypeError)
-                    .with_code("ERR_INVALID_ARG_TYPE")
-                    .with_message("Each entry of \"options.sockets\" must be an object.");
-
-            v8::Local<v8::Object> object = item.As<v8::Object>();
-            exlib::string address = "127.0.0.1";
-            int32_t port = 0;
-
-            hr = GetConfigValue(object, "address", address, true);
-            if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
-                return hr;
-            hr = GetConfigValue(object, "port", port, true);
-            if (hr.failed()) {
-                if (hr.is(CALL_E_PARAMNOTOPTIONAL))
-                    return result_t::make(CALL_E_INVALID_DATA)
-                        .with_type_name(errtype::kTypeError)
-                        .with_code("ERR_INVALID_ARG_TYPE")
-                        .with_message("Each entry of \"options.sockets\" must have a numeric port.");
-                return hr;
-            }
             if (port < 0 || port > 65535)
                 return result_t::make(CALL_E_INVALID_DATA)
                     .with_type_name(errtype::kRangeError)
@@ -2294,18 +2232,9 @@ result_t WASIHost_base::_new(v8::Local<v8::Object> options, obj_ptr<WASIHost_bas
         }
     }
 
-    int32_t stdin_fd = 0;
-    int32_t stdout_fd = 1;
-    int32_t stderr_fd = 2;
-    hr = GetConfigValue(options, "stdin", stdin_fd, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-    hr = GetConfigValue(options, "stdout", stdout_fd, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-    hr = GetConfigValue(options, "stderr", stderr_fd, true);
-    if (hr.failed() && !hr.is(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    int32_t stdin_fd = options->stdin.value_or(0);
+    int32_t stdout_fd = options->stdout.value_or(1);
+    int32_t stderr_fd = options->stderr.value_or(2);
 
     // Node validates the stdio descriptors as non-negative int32 values.
     const char* stdio_names[3] = { "stdin", "stdout", "stderr" };
@@ -2323,19 +2252,7 @@ result_t WASIHost_base::_new(v8::Local<v8::Object> options, obj_ptr<WASIHost_bas
         }
     }
 
-    bool return_on_exit = true;
-    v8::Local<v8::Value> return_on_exit_value;
-    if (options->Get(Isolate::current()->context(), Isolate::current()->NewString("returnOnExit"))
-            .ToLocal(&return_on_exit_value)
-        && !return_on_exit_value->IsUndefined()
-        && !return_on_exit_value->IsNull()) {
-        if (!return_on_exit_value->IsBoolean())
-            return result_t::make(CALL_E_TYPEMISMATCH)
-                .with_type_name(errtype::kTypeError)
-                .with_code("ERR_INVALID_ARG_TYPE")
-                .with_message("The \"options.returnOnExit\" property must be of type boolean.");
-        return_on_exit = return_on_exit_value->BooleanValue(Isolate::current()->m_isolate);
-    }
+    bool return_on_exit = options->returnOnExit.value_or(true);
 
     obj_ptr<WASIHost> host = new WASIHost();
     host->set_version(version);

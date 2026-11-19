@@ -657,6 +657,13 @@ describe('wasi', { skip: !hasWasm }, () => {
 
         // Node requires an explicit version and rejects negative stdio fds
         assert.throws(function() { new WASI({}); }, /version/);
+        assert.throws(function() { new WASI({}); }, { number: 20002 });
+        assert.throws(function() {
+            new WASI({ version: 'preview1', sockets: [{ address: '127.0.0.1' }] });
+        }, /port/);
+        assert.throws(function() {
+            new WASI({ version: 'preview1', sockets: [{ address: '127.0.0.1' }] });
+        }, { number: 20002 });
         assert.throws(function() {
             new WASI({ version: 'preview1', stdin: -1 });
         }, /out of range/);
