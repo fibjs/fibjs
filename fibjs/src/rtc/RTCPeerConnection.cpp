@@ -367,6 +367,16 @@ result_t RTCPeerConnection::addIceCandidate(Union_addIceCandidate_candidate cand
     return result_t();
 }
 
+// The one rejection close() hands to the offers and answers it abandons, and
+// the one a late createOffer/createAnswer reports for itself.
+static result_t connection_closed_error()
+{
+    return result_t::make(CALL_E_INVALID_DATA)
+        .with_type_name(errtype::kError)
+        .with_code("ERR_INVALID_STATE")
+        .with_message("The connection is closed");
+}
+
 result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncHandle ac)
 {
     if (ac.isSync())
@@ -387,6 +397,11 @@ result_t RTCPeerConnection::createOffer(v8::Local<v8::Object> options, Variant& 
     }
 
     m_lock.lock();
+    if (m_closed) {
+        // close() already swept the list; this offer would never settle.
+        m_lock.unlock();
+        return connection_closed_error();
+    }
     if (m_offer_description) {
         retVal = m_offer_description;
         m_lock.unlock();
@@ -415,6 +430,10 @@ result_t RTCPeerConnection::createAnswer(v8::Local<v8::Object> options, Variant&
     }
 
     m_lock.lock();
+    if (m_closed) {
+        m_lock.unlock();
+        return connection_closed_error();
+    }
     if (m_answer_description) {
         retVal = m_answer_description;
         m_lock.unlock();
@@ -511,12 +530,23 @@ result_t RTCPeerConnection::getStats(obj_ptr<NMap>& retVal, AsyncHandle ac)
 
 result_t RTCPeerConnection::close()
 {
+    // Mark the connection closed before the library drops it, so a late
+    // createOffer/createAnswer finds the flag instead of a list that is no
+    // longer swept. Closing twice is a no-op.
+    m_lock.lock();
+    if (m_closed) {
+        m_lock.unlock();
+        return result_t();
+    }
+    m_closed = true;
+    m_lock.unlock();
+
     m_peerConnection->close();
 
     // A pending createOffer/createAnswer can never settle once the connection
     // is closed: reject it here instead of leaving the awaiting fiber - and
     // therefore the process - held forever.
-    result_t hr = result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("The connection is closed");
+    result_t hr = connection_closed_error();
 
     m_lock.lock();
     for (auto& [retVal, ac] : m_offers)

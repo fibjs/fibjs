@@ -96,6 +96,11 @@ private:
 
     std::function<void()> m_on_close;
     bool m_secure_emitted = false;
+
+    // close() sets this before it tears the library down: the async phase of a
+    // createOffer/createAnswer can still be on its way after the pending lists
+    // were swept, and only this flag can tell that late call it is too late.
+    bool m_closed = false;
 };
 
 } /* namespace fibjs */
