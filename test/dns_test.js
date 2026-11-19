@@ -310,16 +310,30 @@ describe('dns', () => {
         });
 
         it('NI_NAMEREQD failure and invalid ports', async () => {
-            await assert.rejects(
-                async () => dnsPromises.lookupService('192.0.2.1', 80),
-                { code: 'ENOTFOUND' });
+            // The reverse lookup of a TEST-NET address goes through the system
+            // resolver: NXDOMAIN surfaces as EAI_NONAME (ENOTFOUND) and a
+            // transient timeout as EAI_AGAIN. Both are valid outcomes of
+            // getnameinfo(NI_NAMEREQD), so only the error shape is checked.
+            function assertLookupError(err) {
+                assert.ok(err, 'a lookupService failure is expected');
+                assert.ok(err.code === 'ENOTFOUND' || err.code === 'EAI_AGAIN',
+                    'unexpected lookupService error: ' + err.code);
+                assert.equal(err.syscall, 'getnameinfo');
+                assert.equal(err.hostname, '192.0.2.1');
+            }
+
+            let promiseError = null;
+            try {
+                await dnsPromises.lookupService('192.0.2.1', 80);
+            } catch (e) {
+                promiseError = e;
+            }
+            assertLookupError(promiseError);
 
             const args = await callArgs((cb) =>
                 dns.lookupService('192.0.2.1', 80, cb));
             assert.equal(args.length, 1);
-            assert.equal(args[0].code, 'ENOTFOUND');
-            assert.equal(args[0].syscall, 'getnameinfo');
-            assert.equal(args[0].hostname, '192.0.2.1');
+            assertLookupError(args[0]);
 
             assert.throws(() => dns.lookupService('127.0.0.1', -1),
                 { code: 'ERR_SOCKET_BAD_PORT' });
