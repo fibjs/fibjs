@@ -12,6 +12,19 @@ add_library(${name} ${src_list} ${src_platform_list})
 
 set_target_properties(${name} PROPERTIES OUTPUT_NAME fibjs)
 
+# fibjs_core compiles against the vendored headers without linking the vender
+# targets (see below), so it has to repeat the definitions those libraries were
+# built with. datachannel is static and built without media/websocket: on
+# Windows its headers map the API to dllimport unless RTC_STATIC is defined,
+# and mismatched feature macros would change the declarations. Keep this list
+# in sync with the PUBLIC definitions in vender/datachannel/CMakeLists.txt;
+# the prebuilt dist archives carry no CMake metadata of their own.
+target_compile_definitions(${name} PRIVATE
+    RTC_STATIC
+    JUICE_STATIC
+    RTC_ENABLE_MEDIA=0
+    RTC_ENABLE_WEBSOCKET=0)
+
 if(TARGET bt_config)
 	target_link_libraries(${name} bt_config)
 endif()
