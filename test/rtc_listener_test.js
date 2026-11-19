@@ -53,11 +53,18 @@ const staticFingerprint = '07E56F2A1A0C2C320EC1C39C345A784EA58B3205D157D6F4E7024
 
 function connectV1(port, fingerprint, prefix = 'libp2p+webrtc+v1/', ip = '127.0.0.1') {
     const ufrag = prefix + genToken(16);
-    const pc = new rtc.RTCPeerConnection({
+    const options = {
         iceUfrag: ufrag,
         icePwd: ufrag,
         maxMessageSize: 16384
-    });
+    };
+    // juice never gathers loopback addresses (RFC 8445), so a host whose only
+    // IPv6 address is ::1 has no IPv6 host candidate. Binding the client to
+    // the loopback literal makes juice use it as that candidate.
+    if (ip.indexOf(':') >= 0)
+        options.bindAddress = ip;
+
+    const pc = new rtc.RTCPeerConnection(options);
 
     const state = { pc, reply: null, fingerprint: null, dc: null };
     const dc = pc.createDataChannel('temp');
