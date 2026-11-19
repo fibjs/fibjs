@@ -1,13 +1,14 @@
 // Unit coverage for the IDL validators run by tools/idlc.js:
 //
-//   tools/util/check_overloads.js        overload shadowing (String variants)
-//   tools/util/check_callback_shapes.js  bare Function before Function(...)
-//   tools/util/check_unions.js           parameter-position unions (A|B)
+//   tools/util/check_overloads.js      overload shadowing (String variants)
+//   tools/util/check_callback_shapes.js bare Function before Function(...)
+//   tools/util/check_unions.js         parameter-position unions (A|B)
+//   tools/util/check_struct_fields.js  defaulted records and required fields
 //
-// The three are pure functions of the parsed IDL (defs -> problems), so the
-// cases below feed them synthetic definitions. The last suite runs them over
-// the real corpus (idl/): idlc already fails on a problem, this keeps the
-// checks themselves honest — a validator that silently stops reporting is a
+// They are pure functions of the parsed IDL (defs -> problems), so the cases
+// below feed them synthetic definitions. The last suite runs them over the
+// real corpus (idl/): idlc already fails on a problem, this keeps the checks
+// themselves honest — a validator that silently stops reporting is a
 // regression the compiler cannot show on its own.
 
 var { describe, it } = require('node:test');
@@ -21,6 +22,7 @@ var check_overloads = require('../tools/util/check_overloads');
 var check_callback_shapes = require('../tools/util/check_callback_shapes');
 var check_idl_docs = require('../tools/util/check_idl_docs');
 var check_variant_params = require('../tools/util/check_variant_params');
+var check_struct_fields = require('../tools/util/check_struct_fields');
 
 function makeDef(members) {
     return {
@@ -495,14 +497,155 @@ describe('check_variant_params', () => {
     });
 });
 
+describe('check_struct_fields', () => {
+    function struct(name, fields) {
+        return {
+            declare: { name: name, type: 'struct', extend: 'object' },
+            members: [],
+            fields: fields
+        };
+    }
+
+    function withInterface(members) {
+        var defs = makeDef(members);
+        defs.Foo.declare.type = 'interface';
+        return defs;
+    }
+
+    it('accepts a defaulted record whose top-level fields are all optional', () => {
+        var defs = withInterface([method('bar', [{
+            type: [{ type: 'String', name: 'name', default: null }],
+            name: 'opts',
+            default: {}
+        }])]);
+
+        assert.deepStrictEqual(check_struct_fields(defs), []);
+    });
+
+    it('rejects a defaulted inline record with a required top-level field', () => {
+        var defs = withInterface([method('bar', [{
+            type: [{ type: 'String', name: 'name', required: true, default: null }],
+            name: 'opts',
+            default: {}
+        }])]);
+
+        var problems = check_struct_fields(defs);
+        assert.equal(problems.length, 1);
+        assert.equal(problems[0].def, 'Foo');
+        assert.equal(problems[0].member, 'bar');
+        assert.equal(problems[0].param, 'opts');
+        assert.equal(problems[0].field, 'name');
+        assert.ok(/required field 'name'/.test(problems[0].message));
+    });
+
+    it('rejects a defaulted named record with a required top-level field', () => {
+        var defs = withInterface([method('bar', [{
+            type: 'Opts',
+            name: 'opts',
+            default: {}
+        }])]);
+        defs.Opts = struct('Opts', [{ type: 'String', name: 'name', required: true, default: null }]);
+
+        var problems = check_struct_fields(defs);
+        assert.equal(problems.length, 1);
+        assert.equal(problems[0].field, 'name');
+        assert.ok(/Opts/.test(problems[0].message));
+    });
+
+    it('accepts a required field nested under an optional field', () => {
+        var defs = withInterface([method('bar', [{
+            type: [{
+                type: [{ type: 'String', name: 'name', required: true, default: null }],
+                name: 'inner',
+                default: null
+            }],
+            name: 'opts',
+            default: {}
+        }])]);
+
+        assert.deepStrictEqual(check_struct_fields(defs), []);
+    });
+
+    it('accepts a defaulted array of records with required element fields', () => {
+        var defs = withInterface([method('bar', [{
+            type: 'Opts',
+            name: 'opts',
+            isarray: true,
+            default: { value: 'v8::Array::New(isolate->m_isolate)' }
+        }])]);
+        defs.Opts = struct('Opts', [{ type: 'String', name: 'name', required: true, default: null }]);
+
+        assert.deepStrictEqual(check_struct_fields(defs), []);
+    });
+});
+
+// Syntax-level coverage for the `required` field modifier. The parser is
+// loaded only when the tool dependencies are present, like the corpus suite
+// below; the synthetic suites above do not need pegjs.
+describe('IDL struct required', { skip: !parser }, () => {
+    function parseIdl(text) {
+        var dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-idl-'));
+        try {
+            fs.writeFileSync(path.join(dir, 'test.idl'), text);
+            return parser(dir);
+        } finally {
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
+    }
+
+    it('marks required fields on a named struct', () => {
+        var defs = parseIdl('struct X { required String type; String sdp = ""; };');
+        var fields = defs.X.fields;
+
+        assert.equal(fields[0].name, 'type');
+        assert.equal(fields[0].required, true);
+        assert.equal(fields[1].name, 'sdp');
+        assert.equal(fields[1].required, undefined);
+    });
+
+    it('marks required fields on an inline parameter struct', () => {
+        var defs = parseIdl('interface Foo : object { void bar((required String type, String sdp) opts); };');
+        var fields = defs.Foo.members[0].params[0].type;
+
+        assert.equal(fields[0].required, true);
+        assert.equal(fields[1].required, undefined);
+    });
+
+    it('supports required arrays, unions and nested structs', () => {
+        var defs = parseIdl('struct X { required String|String[] urls; required Integer[] nums; required (required Integer n) inner; };');
+        var fields = defs.X.fields;
+
+        assert.equal(fields[0].type, 'String|String[]');
+        assert.equal(fields[0].required, true);
+        assert.equal(fields[1].type, 'Integer');
+        assert.equal(fields[1].isarray, true);
+        assert.equal(fields[1].required, true);
+        assert.equal(fields[2].required, true);
+        assert.equal(fields[2].type[0].required, true);
+    });
+
+    it('keeps a field named required an ordinary field', () => {
+        var defs = parseIdl('struct X { String required; };');
+
+        assert.equal(defs.X.fields[0].name, 'required');
+        assert.equal(defs.X.fields[0].required, undefined);
+    });
+
+    it('rejects a required field with a default value', () => {
+        assert.throws(() => parseIdl('struct X { required String type = ""; };'),
+            /required field "type" cannot declare a default value/);
+    });
+});
+
 describe('IDL corpus', { skip: !parser }, () => {
-    it('passes the three idlc validators', () => {
+    it('passes the four idlc validators', () => {
         var defs = parser(path.resolve(__dirname, '../idl'));
 
         assert.ok(Object.keys(defs).length > 100, 'the corpus must parse');
         assert.deepStrictEqual(check_unions(defs), []);
         assert.deepStrictEqual(check_overloads(defs), []);
         assert.deepStrictEqual(check_callback_shapes(defs), []);
+        assert.deepStrictEqual(check_struct_fields(defs), []);
     });
 
     it('keeps every Value/Variant parameter on the reviewed whitelist', () => {

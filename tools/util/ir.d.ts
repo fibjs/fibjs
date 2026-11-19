@@ -65,7 +65,13 @@ declare namespace FIBJS_IDL {
          */
         default: {
             value: string
-        } | null
+        } | null,
+        /**
+         * @description true only for a struct field declared `required`: the key
+         * must be present and non-null. Meaningless for a parameter (parameters
+         * are required by arity instead) and for return-position struct fields.
+         */
+        required?: boolean,
         /**
          * @description the inline callback shape when the parameter was declared
          * as `Function(...)`, or when the `Function` alternative of a union

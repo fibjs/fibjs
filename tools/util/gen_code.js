@@ -1822,11 +1822,13 @@ function gen_code(cls, def, baseFolder, allDefs) {
         txts.push("    static ClassInfo s_ci(s_cd);\n    return s_ci;\n}\n");
     }
 
-    // The options record of one struct parameter: fields are declared as
-    // std::optional<T>, and LOAD_OPTIONS expands the per-field GetConfigValue
-    // calls. The optional carries the two documented meanings: an engaged
-    // value (`= default`) covers absence, a disengaged one means the caller
-    // did not provide it.
+    // The options record of one struct parameter: optional fields are declared
+    // as std::optional<T>, required fields as a plain T (value-initialized).
+    // LOAD_OPTIONS expands the per-field GetConfigValue calls; the optional
+    // carries the two documented meanings: an engaged value (`= default`)
+    // covers absence, a disengaged one means the caller did not provide it.
+    // A plain field is the presence marker: GetConfigValue reports the missing
+    // key instead of silently leaving a default behind.
     function get_field_type(item, parentName) {
         if (Array.isArray(item.type)) {
             var nested = nested_option_name(parentName, item.name);
@@ -1852,7 +1854,10 @@ function gen_code(cls, def, baseFolder, allDefs) {
         sink.push('public:');
         fields.forEach(item => {
             var t = get_field_type(item, name);
-            sink.push(`    std::optional<${t}> ${item.name}${option_field_initializer(item, ownerCls)};`);
+            if (item.required)
+                sink.push(`    ${t} ${item.name}{};`);
+            else
+                sink.push(`    std::optional<${t}> ${item.name}${option_field_initializer(item, ownerCls)};`);
         });
         sink.push('};');
         sink.push('');

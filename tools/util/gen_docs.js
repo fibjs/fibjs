@@ -19,6 +19,8 @@ module.exports = function (defs, docsFolder) {
                 if (ts)
                     ts += ', ';
 
+                if (item.required)
+                    ts += 'required ';
                 if (item.type) {
                     ts += (Array.isArray(item.type) ? formatTypeName(item.type) : item.type) + ' ';
                 }

@@ -15,6 +15,22 @@ console.log(`📁 Code Output: ${baseCodeFolder}`);
 
 console.log('\n📖 Parsing IDL definitions...');
 var defs = parser(idlFolder);
+
+// A defaulted parameter (`opts = {}`) bypasses `load()`: the generated glue
+// hands `new T()` to the native code. Such a record may not declare a
+// top-level required field, or the caller could omit it silently. Run before
+// expandStructParams() so a named record can still be resolved by name.
+console.log('\n🔎 Checking struct required fields...');
+var structFieldProblems = require('./util/check_struct_fields')(defs);
+if (structFieldProblems.length) {
+    console.log(`   ❌ ${structFieldProblems.length} required field problem(s):`);
+    structFieldProblems.forEach((p) => {
+        console.log(`      ${p.def}.${p.member}${p.static ? ' [static]' : ''}: ${p.message}`);
+    });
+    process.exit(1);
+} else
+    console.log('✅ No required field problems');
+
 // C++ generation keeps the named records; the checks, the recorded IR and the
 // d.ts work on a copy where every named struct parameter is its field list.
 var resolvedDefs = struct_utils.expandStructParams(defs);

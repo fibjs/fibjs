@@ -354,12 +354,17 @@ paramStructNext
     }
 
 paramStructItem
-  = _* t:fieldType _* name:Identifier def:def? {
+  = _* required:requiredToken? _* t:fieldType _* name:Identifier def:def? {
+      if (required && def)
+        error('the required field "' + name + '" cannot declare a default value');
+
       var item = {
         type: t.type,
         name: name,
         default: def
       };
+      if (required)
+        item.required = true;
       if (t.isarray)
         item.isarray = t.isarray;
       if (t.callback)
@@ -625,6 +630,9 @@ SourceCharacter
 
 /* Tokens */
 
+// `required` is a field modifier, not a type name: the boundary check keeps
+// `requiredFoo` an ordinary identifier.
+requiredToken   = "required" !IdentifierChar
 ModuleToken     = "module"
 InterfaceToken  = "interface"
 StructToken     = "struct"

@@ -196,10 +196,15 @@ Runtime* Runtime::current()
 // The strict-option failure: the property name rides the value as the rendered
 // message (the thread-state channel is retired; getResultMessage reads the
 // payload). Without a name the bare code keeps its canned table message.
+// The name is also exposed as args.name: an options record load owns the call
+// even when a required field is missing, so errhelp::from_options_record can
+// stop the overload retry instead of letting a looser variant claim it.
 result_t setRuntimeError(int32_t code, const char* err)
 {
     if (err)
-        return result_t::make(code).with_message(exlib::string("property ") + err + " is not optional.");
+        return result_t::make(code)
+            .with_message(exlib::string("property ") + err + " is not optional.")
+            .arg("name", err);
 
     return result_t(code);
 }

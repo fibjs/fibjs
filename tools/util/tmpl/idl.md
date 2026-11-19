@@ -45,7 +45,7 @@ function type_name(t)
 {
     if(Array.isArray(t))
         return '(' + t.map(function(it){
-            return (it.type ? it.type + ' ' : '') + it.name + (it.isarray ? '[]' : '');
+            return (it.required ? 'required ' : '') + (it.type ? type_name(it.type) + ' ' : '') + it.name + (it.isarray ? '[]' : '');
         }).join(', ') + ')';
 
     return t;
@@ -68,7 +68,7 @@ function type_text(p)
         return s;
     }
 
-    return p.type;
+    return type_name(p.type);
 }
 
 function member_output(title, test){

@@ -350,7 +350,7 @@ function canConvert(from, to, extendOf) {
 function structSignature(items) {
     return '(' + items.map(function (x) {
         var t = Array.isArray(x.type) ? structSignature(x.type) : x.type;
-        return t + ' ' + x.name + (x.isarray ? '[]' : '');
+        return (x.required ? 'required ' : '') + t + ' ' + x.name + (x.isarray ? '[]' : '');
     }).join(',') + ')';
 }
 

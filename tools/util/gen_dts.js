@@ -635,13 +635,13 @@ function buildStructDtsType(items, {
     allInterfacesNames,
     allModuleNames,
     addRefToTripleSlashDirectivesHost,
-    // parameter-position structs are options records: every field may be
-    // omitted and the C++ side fills the IDL default; return-position structs
-    // keep their properties required
+    // parameter-position structs are options records: every field without a
+    // `required` marker may be omitted and the C++ side fills the IDL default;
+    // return-position structs keep their properties required
     optionalProperties = false,
 }) {
     const propertyMembers = items.map(item => {
-        const flags = optionalProperties ? dom.DeclarationFlags.Optional : dom.DeclarationFlags.None;
+        const flags = (optionalProperties && !item.required) ? dom.DeclarationFlags.Optional : dom.DeclarationFlags.None;
         let propertyType;
 
         if (Array.isArray(item.type)) {
