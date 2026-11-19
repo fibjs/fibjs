@@ -56,7 +56,11 @@ function connectV1(port, fingerprint, prefix = 'libp2p+webrtc+v1/', ip = '127.0.
     const options = {
         iceUfrag: ufrag,
         icePwd: ufrag,
-        maxMessageSize: 16384
+        maxMessageSize: 16384,
+        // The synthetic answer already carries the listener's host candidate,
+        // so no STUN is needed; resolving the default server would block
+        // gathering on a DNS lookup and make this test network dependent.
+        iceServers: []
     };
     // juice never gathers loopback addresses (RFC 8445), so a host whose only
     // IPv6 address is ::1 has no IPv6 host candidate. Binding the client to
@@ -94,7 +98,9 @@ function connectV2(port, fingerprint) {
     const pc = new rtc.RTCPeerConnection({
         iceUfrag: clientUfrag,
         icePwd: clientPwd,
-        maxMessageSize: 16384
+        maxMessageSize: 16384,
+        // See connectV1: the host candidate comes from the synthetic answer.
+        iceServers: []
     });
 
     const state = { pc, reply: null, clientPwd, fingerprint: null, dc: null };

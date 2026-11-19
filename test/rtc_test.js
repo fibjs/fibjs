@@ -40,7 +40,10 @@ function connect(ip, port, ufrag) {
     const peerConnection = new rtc.RTCPeerConnection({
         iceUfrag: ufrag,
         icePwd: ufrag,
-        maxMessageSize: 16384
+        maxMessageSize: 16384,
+        // The dead peer is a loopback address, so STUN is useless; the default
+        // server would only add a DNS lookup to the timeout test.
+        iceServers: []
     });
 
     peerConnection.createDataChannel('temp');
