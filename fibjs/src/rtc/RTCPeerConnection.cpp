@@ -955,6 +955,12 @@ result_t RTCPeerConnection::accept(std::shared_ptr<rtc::PeerConnection> peer,
     if (hr.failed())
         return hr;
 
+    // The listener exposes this connection only through the connection event:
+    // if the handler does not keep a reference, nothing else holds the wrapper
+    // and a collection during the handshake would run the destructor and close
+    // the transport. Pin it here and let onStateChange(Closed) release it.
+    m_self = new ValueHolder(wrap());
+
     // The listener-created connection owns the process hold until it closes,
     // like a connection that applied a remote description through JavaScript.
     isolate_ref();
@@ -965,6 +971,7 @@ result_t RTCPeerConnection::accept(std::shared_ptr<rtc::PeerConnection> peer,
         m_peerConnection->setLocalDescription(rtc::Description::Type::Answer,
             *m_local_description_init);
     } catch (std::exception& e) {
+        m_self.Release();
         isolate_unref();
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_RTC_ERROR").with_message(e.what());
     }

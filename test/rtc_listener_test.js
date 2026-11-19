@@ -411,6 +411,29 @@ describe('rtc listener', function () {
         client.pc.close();
     });
 
+    it('keeps an accepted session alive across a collection', function () {
+        const { listener, events } = makeListener();
+        listener.listen(4381, '127.0.0.1');
+
+        // The connection handler never keeps ev.peerConnection, so only the
+        // accepted connection itself keeps the session alive. A collection
+        // must not close it before the transport does.
+        const client = connectV1(4381, staticFingerprint);
+        assert.equal(waitFor(() => client.reply !== null), true);
+
+        gc();
+        coroutine.sleep(50);
+        gc();
+
+        client.reply = null;
+        client.dc.send('after-gc');
+        assert.equal(waitFor(() => client.reply === 'after-gc'), true);
+        assert.equal(events.accepted, 1);
+
+        client.pc.close();
+        listener.close();
+    });
+
     it('treats an unknown ufrag prefix as v1', function () {
         const { listener, events } = makeListener();
         listener.listen(4376, '127.0.0.1');
