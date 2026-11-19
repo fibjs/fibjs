@@ -1844,20 +1844,57 @@ function gen_code(cls, def, baseFolder, allDefs) {
         return get_rtype(item.type, item.isarray);
     }
 
+    // C++ member names cannot reuse a field name that the C library defines as
+    // a macro: macOS maps stdin/stdout/stderr to __stdinp/__stdoutp/__stderrp
+    // and MSVC to an expression, so a member spelled `stdin` is either
+    // silently renamed by the preprocessor (the JS key then becomes
+    // "__stdinp") or does not compile at all. Rename only the C++ member and
+    // keep the JS key intact.
+    function cpp_field_name(name) {
+        return name === 'stdin' || name === 'stdout' || name === 'stderr'
+            ? name + '_'
+            : name;
+    }
+
     function emit_option_class(name, fields, sink, ownerCls) {
-        var members = fields.map(item => item.name).join(')(');
+        var renamed = fields.some(item => cpp_field_name(item.name) !== item.name);
 
         sink.push(`class ${name} : public obj_base {`);
         sink.push('public:');
-        sink.push(`    LOAD_OPTIONS(${name}, (${members}));`);
+        if (renamed) {
+            // LOAD_OPTIONS derives the key from the member name, which is not
+            // the JS name for a renamed field; spell the loader out with the
+            // key as a string literal (a literal is never macro-expanded).
+            sink.push('    enum { kFibjsOptions = 1 };');
+            sink.push(`    static ${name}* getInstance(v8::Local<v8::Value> v) { return nullptr; }`);
+            sink.push(`    static result_t load(v8::Local<v8::Value> v, obj_ptr<${name}>& retVal)`);
+            sink.push('    {');
+            sink.push('        if (!IsJSObject(v))');
+            sink.push('            return result_t::type_mismatch();');
+            sink.push('        v8::Local<v8::Object> opt = v.As<v8::Object>();');
+            sink.push(`        obj_ptr<${name}> o = new ${name}();`);
+            sink.push('        result_t hr;');
+            fields.forEach(item => {
+                sink.push(`        hr = GetConfigValue(opt, "${item.name}", o->${cpp_field_name(item.name)}, true);`);
+                sink.push('        if (hr.failed())');
+                sink.push('            return errhelp::from_options_record(hr);');
+            });
+            sink.push('        retVal = o;');
+            sink.push('        return result_t();');
+            sink.push('    }');
+        } else {
+            var members = fields.map(item => item.name).join(')(');
+            sink.push(`    LOAD_OPTIONS(${name}, (${members}));`);
+        }
         sink.push('');
         sink.push('public:');
         fields.forEach(item => {
             var t = get_field_type(item, name);
+            var member = cpp_field_name(item.name);
             if (item.required)
-                sink.push(`    ${t} ${item.name}{};`);
+                sink.push(`    ${t} ${member}{};`);
             else
-                sink.push(`    std::optional<${t}> ${item.name}${option_field_initializer(item, ownerCls)};`);
+                sink.push(`    std::optional<${t}> ${member}${option_field_initializer(item, ownerCls)};`);
         });
         sink.push('};');
         sink.push('');

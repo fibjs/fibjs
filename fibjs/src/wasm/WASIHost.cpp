@@ -2232,9 +2232,9 @@ result_t WASIHost_base::_new(WASIHostOptions* options, obj_ptr<WASIHost_base>& r
         }
     }
 
-    int32_t stdin_fd = options->stdin.value_or(0);
-    int32_t stdout_fd = options->stdout.value_or(1);
-    int32_t stderr_fd = options->stderr.value_or(2);
+    int32_t stdin_fd = options->stdin_.value_or(0);
+    int32_t stdout_fd = options->stdout_.value_or(1);
+    int32_t stderr_fd = options->stderr_.value_or(2);
 
     // Node validates the stdio descriptors as non-negative int32 values.
     const char* stdio_names[3] = { "stdin", "stdout", "stderr" };
