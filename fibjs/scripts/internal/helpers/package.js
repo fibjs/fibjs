@@ -3,7 +3,7 @@ const path = require('path');
 
 const CST = require('internal/constant');
 const helpers_string = require('internal/helpers/string')
-const semver = require('internal/helpers/semver');
+const semver = require('semver');
 const SPECIAL_PKG_PATTERN = /^\@?([a-z][a-z0-9\-]*)?(\/[a-z][a-z0-9\-]*)?(\#[\w]+)?/
 
 exports.is_special_installname = function (pkg_name = '') {

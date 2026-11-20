@@ -46,6 +46,7 @@ void importBuiltinModule()
     IMPORT_MODULE(punycode);
     IMPORT_MODULE(querystring);
     IMPORT_MODULE(rtc);
+    IMPORT_MODULE(semver);
     IMPORT_MODULE(sse);
     IMPORT_MODULE(ssl);
     IMPORT_MODULE(string_decoder);

@@ -3,7 +3,7 @@
 module.exports = exports;
 
 const path = require('path');
-const semver = require('./semver');
+const semver = require('semver');
 const url = require('url');
 const napi = require('./napi.js');
 

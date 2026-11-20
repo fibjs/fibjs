@@ -5820,7 +5820,7 @@ if (isFibjs) (function () {
     });
 
     describe('lockfile helper: lookup and spec satisfaction (Phase 1)', function () {
-        var semver = require('internal/helpers/semver');
+        var semver = require('semver');
 
         function map_of(packages) {
             return lockfile.to_path_map({ lockfileVersion: 3, packages: packages });
@@ -6118,7 +6118,7 @@ if (isFibjs) (function () {
     });
 
     describe('lockfile helper: sync check (Phase 1)', function () {
-        var semver = require('internal/helpers/semver');
+        var semver = require('semver');
 
         function lock_of(packages, extra) {
             return Object.assign({ lockfileVersion: 3, packages: packages, legacy: null }, extra || {});

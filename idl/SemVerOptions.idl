@@ -1,0 +1,27 @@
+/*! @brief Options shared by the semver version, range and coercion helpers
+
+     `loose` accepts leading zeros in the main version and a prerelease written
+     without the hyphen (`1.2.3beta`), `includePrerelease` lets a prerelease
+     version match a range that would otherwise exclude it, and `rtl` makes
+     `coerce` scan the input from the right. Omitted fields use their default.
+
+     Example 1 — enable the loose syntax:
+     ```JavaScript
+     const semver = require('semver');
+
+     console.log(semver.valid('01.02.03')); // null
+     console.log(semver.valid('01.02.03', { loose: true })); // 1.2.3
+     ```
+     Example 2 — let prereleases match a range:
+     ```JavaScript
+     const semver = require('semver');
+
+     console.log(semver.satisfies('1.1.0-pre', '1.1.x')); // false
+     console.log(semver.satisfies('1.1.0-pre', '1.1.x', { includePrerelease: true })); // true
+     ```
+ */
+struct SemVerOptions {
+    Boolean loose = false;
+    Boolean includePrerelease = false;
+    Boolean rtl = false;
+};

@@ -572,12 +572,12 @@ function lookup_entry(packages, name, spec, semver, from, opts) {
 }
 
 /**
- * @description the embedded semver helper, loaded lazily so this module keeps
+ * @description the built-in semver module, loaded lazily so this module keeps
  *              working (and stays testable) without it; `opts.semver` overrides
  */
 function default_semver() {
     try {
-        return require('internal/helpers/semver');
+        return require('semver');
     } catch (e) {
         return null;
     }

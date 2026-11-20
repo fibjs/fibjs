@@ -67,6 +67,7 @@
 /// <reference path="../module/os_constants_errno.d.ts" />
 /// <reference path="../module/os_constants_priority.d.ts" />
 /// <reference path="../module/os_constants_signals.d.ts" />
+/// <reference path="../module/semver.d.ts" />
 /// <reference path="../module/sse.d.ts" />
 /// <reference path="../module/buffer.d.ts" />
 /// <reference path="../module/diagnostics_channel.d.ts" />

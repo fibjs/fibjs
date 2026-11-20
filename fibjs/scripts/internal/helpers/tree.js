@@ -594,13 +594,13 @@ function satisfies_node(node, spec) {
         if ((node.real_name || node.name) !== real)
             return false;
 
-        return !range || require('internal/helpers/semver').satisfies(node.version, range);
+        return !range || require('semver').satisfies(node.version, range);
     }
 
     if (!node.version)
         return false;
 
-    return require('internal/helpers/semver').satisfies(node.version, spec);
+    return require('semver').satisfies(node.version, spec);
 }
 
 /**

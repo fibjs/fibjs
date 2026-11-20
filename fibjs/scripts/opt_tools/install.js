@@ -12,7 +12,7 @@ const zlib = require('zlib');
 const zip = require('zip');
 const crypto = require('crypto');
 const child_process = require('child_process');
-const semver = require('internal/helpers/semver');
+const semver = require('semver');
 const untar = require('internal/helpers/untar');
 
 const helpers_pkg = require('internal/helpers/package');
