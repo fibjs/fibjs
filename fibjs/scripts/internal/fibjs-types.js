@@ -10095,23 +10095,68 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param rinfo the remote information of the sender
      *
      */
-    on(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    on(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    once(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    once(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    off(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    off(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    addListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    addListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    removeListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    removeListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    addEventListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    prependListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    prependOnceListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    prependOnceListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
     /**
      * @description Emitted for every received datagram
@@ -10124,7 +10169,12 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param rinfo the remote information of the sender
      *
      */
-    onmessage: ((msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void) | null;
+    onmessage: ((msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void) | null;
 
     /**
      * @description Keeps the fibjs process alive while the socket is bound (the default)
@@ -10784,7 +10834,12 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @param rinfo the remote information of the sender
      *
      */
-    onmessage: ((msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void) | null;
+    onmessage: ((msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void) | null;
 
     /**
      * @description Keeps the fibjs process alive while the socket is bound (the default)
@@ -43228,7 +43283,7 @@ declare class Class_Redis extends Class_object {
      *      @return an array of Buffer key names
      *
      */
-    keys(pattern: string): any[];
+    keys(pattern: string): Class_Buffer[];
 
     /**
      * @description Deletes the given keys
@@ -43848,7 +43903,7 @@ declare class Class_RedisHash extends Class_object {
      *      @return a flat array of alternating field and value Buffers
      *
      */
-    getAll(): any[];
+    getAll(): Class_Buffer[];
 
     /**
      * @description Returns every field name of the hash
@@ -43860,7 +43915,7 @@ declare class Class_RedisHash extends Class_object {
      *      @return an array of the field names as Buffers
      *
      */
-    keys(): any[];
+    keys(): Class_Buffer[];
 
     /**
      * @description Returns the number of fields in the hash
@@ -44197,7 +44252,7 @@ declare class Class_RedisList extends Class_object {
      *      @return an array of Buffer elements
      *
      */
-    range(start: number, stop: number): any[];
+    range(start: number, stop: number): Class_Buffer[];
 
 }
 
@@ -44401,7 +44456,7 @@ declare class Class_RedisSet extends Class_object {
      *      @return the members as an array of Buffers
      *
      */
-    members(): any[];
+    members(): Class_Buffer[];
 
     /**
      * @description Removes and returns one random member
@@ -44728,7 +44783,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the array of Buffers in ascending score order
      *
      */
-    range(start: number, stop: number, withScores?: boolean): any[];
+    range(start: number, stop: number, withScores?: boolean): Class_Buffer[];
 
     /**
      * @description Returns the members in the given range, from the highest score down
@@ -44743,7 +44798,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the array of Buffers in descending score order
      *
      */
-    rangeRev(start: number, stop: number, withScores?: boolean): any[];
+    rangeRev(start: number, stop: number, withScores?: boolean): Class_Buffer[];
 
     /**
      * @description Returns the ascending rank of member
@@ -52945,41 +53000,18 @@ declare class Class_Statement extends Class_object {
      *      conn.close();
      *      \`\`\`
      *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
+     *      @return returns an array of column metadata; each item contains name/type
      *
      */
-    columns(): any[];
+    columns(): {
+        name: string;
+        type: string;
+    }[];
 
-    columns(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
-
-    /**
-     * @description Returns the result column metadata
-     *
-     *      Returns one object per result column with the properties \`name\` and \`type\`; on
-     *      SQLite the type is the declared type of the column and an empty string for computed
-     *      columns such as aggregates. On MySQL and ODBC the method is not implemented and
-     *      fails with error number 20009 ("requires server-side prepared statements"), because
-     *      those engines do not send result metadata at prepare time. Reading the metadata does
-     *      not execute the statement; after close the call fails with 20027.
-     *
-     *      Example — inspect the column metadata of a query:
-     *      \`\`\`JavaScript
-     *      const db = require('db');
-     *      const conn = db.openSQLite(':memory:');
-     *      conn.execute('CREATE TABLE user (id INTEGER PRIMARY KEY, name TEXT)');
-     *
-     *      const stmt = conn.prepare('SELECT id, name, COUNT(*) AS n FROM user');
-     *      stmt.columns().forEach((col) => console.log(col.name, col.type));
-     *      // id INTEGER / name TEXT / n (computed columns have an empty type)
-     *
-     *      stmt.close();
-     *      conn.close();
-     *      \`\`\`
-     *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
-     *
-     */
-    columnsSync(): any[];
+    columns(callback: (err: Error | undefined | null, retVal: {
+        name: string;
+        type: string;
+    }[])=>any): void;
 
     /**
      * @description Returns the result column metadata
@@ -53005,10 +53037,45 @@ declare class Class_Statement extends Class_object {
      *      conn.close();
      *      \`\`\`
      *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
+     *      @return returns an array of column metadata; each item contains name/type
      *
      */
-    columnsAsync(): Promise<any[]>;
+    columnsSync(): {
+        name: string;
+        type: string;
+    }[];
+
+    /**
+     * @description Returns the result column metadata
+     *
+     *      Returns one object per result column with the properties \`name\` and \`type\`; on
+     *      SQLite the type is the declared type of the column and an empty string for computed
+     *      columns such as aggregates. On MySQL and ODBC the method is not implemented and
+     *      fails with error number 20009 ("requires server-side prepared statements"), because
+     *      those engines do not send result metadata at prepare time. Reading the metadata does
+     *      not execute the statement; after close the call fails with 20027.
+     *
+     *      Example — inspect the column metadata of a query:
+     *      \`\`\`JavaScript
+     *      const db = require('db');
+     *      const conn = db.openSQLite(':memory:');
+     *      conn.execute('CREATE TABLE user (id INTEGER PRIMARY KEY, name TEXT)');
+     *
+     *      const stmt = conn.prepare('SELECT id, name, COUNT(*) AS n FROM user');
+     *      stmt.columns().forEach((col) => console.log(col.name, col.type));
+     *      // id INTEGER / name TEXT / n (computed columns have an empty type)
+     *
+     *      stmt.close();
+     *      conn.close();
+     *      \`\`\`
+     *
+     *      @return returns an array of column metadata; each item contains name/type
+     *
+     */
+    columnsAsync(): Promise<{
+        name: string;
+        type: string;
+    }[]>;
 
     /**
      * @description The original SQL of the current statement
@@ -53449,10 +53516,13 @@ declare class Class_StatementPromise extends Class_object {
      *      conn.close();
      *      \`\`\`
      *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
+     *      @return returns an array of column metadata; each item contains name/type
      *
      */
-    columns(): Promise<any[]>;
+    columns(): Promise<{
+        name: string;
+        type: string;
+    }[]>;
 
     /**
      * @description Returns the result column metadata
@@ -53478,10 +53548,13 @@ declare class Class_StatementPromise extends Class_object {
      *      conn.close();
      *      \`\`\`
      *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
+     *      @return returns an array of column metadata; each item contains name/type
      *
      */
-    columnsSync(): any[];
+    columnsSync(): {
+        name: string;
+        type: string;
+    }[];
 
     /**
      * @description Returns the result column metadata
@@ -53507,10 +53580,13 @@ declare class Class_StatementPromise extends Class_object {
      *      conn.close();
      *      \`\`\`
      *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
+     *      @return returns an array of column metadata; each item contains name/type
      *
      */
-    columnsAsync(): Promise<any[]>;
+    columnsAsync(): Promise<{
+        name: string;
+        type: string;
+    }[]>;
 
     /**
      * @description The original SQL of the current statement
@@ -68500,24 +68576,9 @@ declare class Class_WebView extends Class_EventEmitter {
      *       and second element is the height
      *
      */
-    getSize(): any[];
+    getSize(): number[];
 
-    getSize(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
-
-    /**
-     * @description Queries the size of the window
-     *
-     *      Returns the current window size as [width, height] in logical window
-     *      pixels. The page uses CSS pixels scaled by \`window.devicePixelRatio\`, so a
-     *      screenshot of the visible area measures this size multiplied by that
-     *      ratio. The window manager can adjust the value shortly after \`setSize\`
-     *      while it applies its constraints.
-     *
-     *      @return returns the size of the window as an array whose first element is the width
-     *       and second element is the height
-     *
-     */
-    getSizeSync(): any[];
+    getSize(callback: (err: Error | undefined | null, retVal: number[])=>any): void;
 
     /**
      * @description Queries the size of the window
@@ -68532,7 +68593,22 @@ declare class Class_WebView extends Class_EventEmitter {
      *       and second element is the height
      *
      */
-    getSizeAsync(): Promise<any[]>;
+    getSizeSync(): number[];
+
+    /**
+     * @description Queries the size of the window
+     *
+     *      Returns the current window size as [width, height] in logical window
+     *      pixels. The page uses CSS pixels scaled by \`window.devicePixelRatio\`, so a
+     *      screenshot of the visible area measures this size multiplied by that
+     *      ratio. The window manager can adjust the value shortly after \`setSize\`
+     *      while it applies its constraints.
+     *
+     *      @return returns the size of the window as an array whose first element is the width
+     *       and second element is the height
+     *
+     */
+    getSizeAsync(): Promise<number[]>;
 
     /**
      * @description Sets the position of the window
@@ -68589,22 +68665,9 @@ declare class Class_WebView extends Class_EventEmitter {
      *       coordinate and second element is the y coordinate
      *
      */
-    getPosition(): any[];
+    getPosition(): number[];
 
-    getPosition(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
-
-    /**
-     * @description Queries the position of the window
-     *
-     *      Returns [left, top] in screen coordinates as currently reported by the
-     *      platform. The value can differ from the last \`setPosition\` request when
-     *      the window manager repositions, snaps or decorates the window.
-     *
-     *      @return returns the position of the window as an array whose first element is the x
-     *       coordinate and second element is the y coordinate
-     *
-     */
-    getPositionSync(): any[];
+    getPosition(callback: (err: Error | undefined | null, retVal: number[])=>any): void;
 
     /**
      * @description Queries the position of the window
@@ -68617,7 +68680,20 @@ declare class Class_WebView extends Class_EventEmitter {
      *       coordinate and second element is the y coordinate
      *
      */
-    getPositionAsync(): Promise<any[]>;
+    getPositionSync(): number[];
+
+    /**
+     * @description Queries the position of the window
+     *
+     *      Returns [left, top] in screen coordinates as currently reported by the
+     *      platform. The value can differ from the last \`setPosition\` request when
+     *      the window manager repositions, snaps or decorates the window.
+     *
+     *      @return returns the position of the window as an array whose first element is the x
+     *       coordinate and second element is the y coordinate
+     *
+     */
+    getPositionAsync(): Promise<number[]>;
 
     /**
      * @description Queries whether the window is the active window
@@ -70331,7 +70407,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       and second element is the height
      *
      */
-    getSize(): Promise<any[]>;
+    getSize(): Promise<number[]>;
 
     /**
      * @description Queries the size of the window
@@ -70346,7 +70422,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       and second element is the height
      *
      */
-    getSizeSync(): any[];
+    getSizeSync(): number[];
 
     /**
      * @description Queries the size of the window
@@ -70361,7 +70437,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       and second element is the height
      *
      */
-    getSizeAsync(): Promise<any[]>;
+    getSizeAsync(): Promise<number[]>;
 
     /**
      * @description Sets the position of the window
@@ -70416,7 +70492,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       coordinate and second element is the y coordinate
      *
      */
-    getPosition(): Promise<any[]>;
+    getPosition(): Promise<number[]>;
 
     /**
      * @description Queries the position of the window
@@ -70429,7 +70505,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       coordinate and second element is the y coordinate
      *
      */
-    getPositionSync(): any[];
+    getPositionSync(): number[];
 
     /**
      * @description Queries the position of the window
@@ -70442,7 +70518,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       coordinate and second element is the y coordinate
      *
      */
-    getPositionAsync(): Promise<any[]>;
+    getPositionAsync(): Promise<number[]>;
 
     /**
      * @description Queries whether the window is the active window
@@ -107165,52 +107241,27 @@ declare module 'gui' {
      *      @return returns the array of files chosen by the user
      *
      */
-    function chooseFile(options: FIBJS.GeneralObject): any[];
+    function chooseFile(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): string[];
 
-    function chooseFile(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
-
-    /**
-     * @description Pops up a modal file chooser and returns the selected paths
-     *
-     *      Cancelling the dialog returns undefined. The result is always an array, also
-     *      for a single selection; saveFile returns at most one path, openFile and
-     *      openDirectory return one or more paths according to multiSelections. Requires
-     *      a desktop session.
-     *
-     *      options supports the following options:
-     *      \`\`\`JavaScript
-     *      // fragment: options
-     *      ({
-     *          "title": "",              // dialog title
-     *          "type": "openFile",       // "openFile" | "openDirectory" | "saveFile"
-     *          "defaultPath": "",        // directory shown when the dialog opens
-     *          "multiSelections": false, // allow several files, ignored by saveFile
-     *          "filters": null           // [{ name: "Images", extensions: ["png", "jpg"] }]
-     *      })
-     *      \`\`\`
-     *      Filter extensions are written without the leading dot. An unknown type and,
-     *      on Windows, an invalid defaultPath throw an Error.
-     *
-     *      Example — pick one or more images (requires a desktop session):
-     *      \`\`\`JavaScript
-     *      // requires: long-running
-     *      const gui = require('gui');
-     *
-     *      const files = gui.chooseFile({
-     *          title: 'Select images',
-     *          type: 'openFile',
-     *          multiSelections: true,
-     *          filters: [{ name: 'Images', extensions: ['png', 'jpg'] }]
-     *      });
-     *
-     *      console.log(files ? files.length : 'cancelled');
-     *      \`\`\`
-     *
-     *      @param options file chooser dialog parameters
-     *      @return returns the array of files chosen by the user
-     *
-     */
-    function chooseFileSync(options: FIBJS.GeneralObject): any[];
+    function chooseFile(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }, callback: (err: Error | undefined | null, retVal: string[])=>any): void;
 
     /**
      * @description Pops up a modal file chooser and returns the selected paths
@@ -107253,7 +107304,68 @@ declare module 'gui' {
      *      @return returns the array of files chosen by the user
      *
      */
-    function chooseFileAsync(options: FIBJS.GeneralObject): Promise<any[]>;
+    function chooseFileSync(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): string[];
+
+    /**
+     * @description Pops up a modal file chooser and returns the selected paths
+     *
+     *      Cancelling the dialog returns undefined. The result is always an array, also
+     *      for a single selection; saveFile returns at most one path, openFile and
+     *      openDirectory return one or more paths according to multiSelections. Requires
+     *      a desktop session.
+     *
+     *      options supports the following options:
+     *      \`\`\`JavaScript
+     *      // fragment: options
+     *      ({
+     *          "title": "",              // dialog title
+     *          "type": "openFile",       // "openFile" | "openDirectory" | "saveFile"
+     *          "defaultPath": "",        // directory shown when the dialog opens
+     *          "multiSelections": false, // allow several files, ignored by saveFile
+     *          "filters": null           // [{ name: "Images", extensions: ["png", "jpg"] }]
+     *      })
+     *      \`\`\`
+     *      Filter extensions are written without the leading dot. An unknown type and,
+     *      on Windows, an invalid defaultPath throw an Error.
+     *
+     *      Example — pick one or more images (requires a desktop session):
+     *      \`\`\`JavaScript
+     *      // requires: long-running
+     *      const gui = require('gui');
+     *
+     *      const files = gui.chooseFile({
+     *          title: 'Select images',
+     *          type: 'openFile',
+     *          multiSelections: true,
+     *          filters: [{ name: 'Images', extensions: ['png', 'jpg'] }]
+     *      });
+     *
+     *      console.log(files ? files.length : 'cancelled');
+     *      \`\`\`
+     *
+     *      @param options file chooser dialog parameters
+     *      @return returns the array of files chosen by the user
+     *
+     */
+    function chooseFileAsync(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): Promise<string[]>;
 
 }
 
@@ -107721,7 +107833,16 @@ declare module 'gui/promises' {
      *      @return returns the array of files chosen by the user
      *
      */
-    function chooseFile(options: FIBJS.GeneralObject): Promise<any[]>;
+    function chooseFile(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): Promise<string[]>;
 
     /**
      * @description Pops up a modal file chooser and returns the selected paths
@@ -107764,7 +107885,16 @@ declare module 'gui/promises' {
      *      @return returns the array of files chosen by the user
      *
      */
-    function chooseFileSync(options: FIBJS.GeneralObject): any[];
+    function chooseFileSync(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): string[];
 
     /**
      * @description Pops up a modal file chooser and returns the selected paths
@@ -107807,7 +107937,16 @@ declare module 'gui/promises' {
      *      @return returns the array of files chosen by the user
      *
      */
-    function chooseFileAsync(options: FIBJS.GeneralObject): Promise<any[]>;
+    function chooseFileAsync(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): Promise<string[]>;
 
 }
 
@@ -118063,7 +118202,13 @@ declare module 'os' {
      *      @return information about the currently effective user
      *
      */
-    function userInfo(options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function userInfo(options?: FIBJS.GeneralObject): {
+        uid: number;
+        gid: number;
+        username: string | Class_Buffer;
+        homedir: string | Class_Buffer;
+        shell: any;
+    };
 
     /**
      * @description Queries the network information of the current runtime environment
@@ -131494,7 +131639,7 @@ declare module 'util' {
      *      @return returns the parsed parameter list
      *
      */
-    function parseArgs(command: string): any[];
+    function parseArgs(command: string): string[];
 
     /**
      * @description Compiles a script into binary code
