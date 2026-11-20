@@ -655,6 +655,8 @@ describe("db", () => {
 
             it("prepare run changes", () => {
                 var rr = conn.prepare("update test set t2 = 'stmt_run' where t1 = ?").run(1123);
+                assert.strictEqual(typeof rr.changes, 'bigint');
+                assert.strictEqual(typeof rr.lastInsertRowid, 'bigint');
                 assert.greaterThan(Number(rr.changes), 0);
                 // 还原
                 conn.execute("update test set t2 = ? where t1 = 1123", '哈哈哈哈');

@@ -38,7 +38,7 @@ public:
     virtual result_t environ_sizes_get(int32_t environ_count, int32_t environ_buf_size, int32_t& retVal) = 0;
     virtual result_t environ_get(int32_t environ, int32_t environ_buf, int32_t& retVal) = 0;
     virtual result_t clock_res_get(int32_t clock_id, int32_t resolution, int32_t& retVal) = 0;
-    virtual result_t clock_time_get(int32_t clock_id, int64_t precision, int32_t time, int32_t& retVal) = 0;
+    virtual result_t clock_time_get(int32_t clock_id, UInt64 precision, int32_t time, int32_t& retVal) = 0;
     virtual result_t random_get(int32_t buf, int32_t buf_len, int32_t& retVal) = 0;
     virtual result_t sched_yield(int32_t& retVal) = 0;
     virtual result_t proc_exit(int32_t code) = 0;
@@ -48,13 +48,13 @@ public:
     virtual result_t fd_filestat_get(int32_t fd, int32_t buf, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t fd_prestat_get(int32_t fd, int32_t buf, int32_t& retVal) = 0;
     virtual result_t fd_prestat_dir_name(int32_t fd, int32_t path, int32_t path_len, int32_t& retVal) = 0;
-    virtual result_t path_open(int32_t fd, int32_t dirflags, int32_t path, int32_t path_len, int32_t oflags, int64_t rights_base, int64_t rights_inheriting, int32_t fdflags, int32_t opened_fd, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t path_open(int32_t fd, int32_t dirflags, int32_t path, int32_t path_len, int32_t oflags, UInt64 rights_base, UInt64 rights_inheriting, int32_t fdflags, int32_t opened_fd, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t path_filestat_get(int32_t fd, int32_t flags, int32_t path, int32_t path_len, int32_t buf, int32_t& retVal, AsyncHandle ac) = 0;
-    virtual result_t fd_seek(int32_t fd, int64_t offset, int32_t whence, int32_t newoffset, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t fd_seek(int32_t fd, Int64 offset, int32_t whence, int32_t newoffset, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t fd_tell(int32_t fd, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t fd_pread(int32_t fd, int32_t iovs, int32_t iovs_len, int64_t offset, int32_t nread, int32_t& retVal, AsyncHandle ac) = 0;
-    virtual result_t fd_pwrite(int32_t fd, int32_t iovs, int32_t iovs_len, int64_t offset, int32_t nwritten, int32_t& retVal, AsyncHandle ac) = 0;
-    virtual result_t fd_readdir(int32_t fd, int32_t buf, int32_t buf_len, int64_t cookie, int32_t bufused, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t fd_pread(int32_t fd, int32_t iovs, int32_t iovs_len, Int64 offset, int32_t nread, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t fd_pwrite(int32_t fd, int32_t iovs, int32_t iovs_len, Int64 offset, int32_t nwritten, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t fd_readdir(int32_t fd, int32_t buf, int32_t buf_len, UInt64 cookie, int32_t bufused, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t path_create_directory(int32_t fd, int32_t path, int32_t path_len, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t path_remove_directory(int32_t fd, int32_t path, int32_t path_len, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t path_unlink_file(int32_t fd, int32_t path, int32_t path_len, int32_t& retVal, AsyncHandle ac) = 0;
@@ -62,15 +62,15 @@ public:
     virtual result_t path_link(int32_t old_fd, int32_t old_flags, int32_t old_path, int32_t old_path_len, int32_t new_fd, int32_t new_path, int32_t new_path_len, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t path_readlink(int32_t fd, int32_t path, int32_t path_len, int32_t buf, int32_t buf_len, int32_t bufused, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t path_symlink(int32_t old_path, int32_t old_path_len, int32_t fd, int32_t new_path, int32_t new_path_len, int32_t& retVal, AsyncHandle ac) = 0;
-    virtual result_t fd_filestat_set_size(int32_t fd, int64_t size, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t fd_filestat_set_size(int32_t fd, Int64 size, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t fd_sync(int32_t fd, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t fd_datasync(int32_t fd, int32_t& retVal, AsyncHandle ac) = 0;
-    virtual result_t fd_advise(int32_t fd, int64_t offset, int64_t len, int32_t advice, int32_t& retVal) = 0;
-    virtual result_t fd_allocate(int32_t fd, int64_t offset, int64_t len, int32_t& retVal) = 0;
+    virtual result_t fd_advise(int32_t fd, Int64 offset, Int64 len, int32_t advice, int32_t& retVal) = 0;
+    virtual result_t fd_allocate(int32_t fd, Int64 offset, Int64 len, int32_t& retVal) = 0;
     virtual result_t fd_fdstat_set_flags(int32_t fd, int32_t flags, int32_t& retVal) = 0;
-    virtual result_t fd_fdstat_set_rights(int32_t fd, int64_t rights_base, int64_t rights_inheriting, int32_t& retVal) = 0;
-    virtual result_t fd_filestat_set_times(int32_t fd, int64_t atim, int64_t mtim, int32_t flags, int32_t& retVal, AsyncHandle ac) = 0;
-    virtual result_t path_filestat_set_times(int32_t fd, int32_t flags, int32_t path, int32_t path_len, int64_t atim, int64_t mtim, int32_t fst_flags, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t fd_fdstat_set_rights(int32_t fd, UInt64 rights_base, UInt64 rights_inheriting, int32_t& retVal) = 0;
+    virtual result_t fd_filestat_set_times(int32_t fd, UInt64 atim, UInt64 mtim, int32_t flags, int32_t& retVal, AsyncHandle ac) = 0;
+    virtual result_t path_filestat_set_times(int32_t fd, int32_t flags, int32_t path, int32_t path_len, UInt64 atim, UInt64 mtim, int32_t fst_flags, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t fd_renumber(int32_t from, int32_t to, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t sock_accept(int32_t fd, int32_t flags, int32_t fd_out, int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t sock_recv(int32_t fd, int32_t ri_data, int32_t ri_data_len, int32_t ri_flags, int32_t ro_datalen, int32_t ro_flags, int32_t& retVal, AsyncHandle ac) = 0;
@@ -144,12 +144,12 @@ public:
     ASYNC_MEMBERVALUE2(WASIHost_base, fd_close, int32_t, int32_t);
     ASYNC_MEMBERVALUE3(WASIHost_base, fd_fdstat_get, int32_t, int32_t, int32_t);
     ASYNC_MEMBERVALUE3(WASIHost_base, fd_filestat_get, int32_t, int32_t, int32_t);
-    ASYNC_MEMBERVALUE10(WASIHost_base, path_open, int32_t, int32_t, int32_t, int32_t, int32_t, int64_t, int64_t, int32_t, int32_t, int32_t);
+    ASYNC_MEMBERVALUE10(WASIHost_base, path_open, int32_t, int32_t, int32_t, int32_t, int32_t, UInt64, UInt64, int32_t, int32_t, int32_t);
     ASYNC_MEMBERVALUE6(WASIHost_base, path_filestat_get, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
-    ASYNC_MEMBERVALUE5(WASIHost_base, fd_seek, int32_t, int64_t, int32_t, int32_t, int32_t);
-    ASYNC_MEMBERVALUE6(WASIHost_base, fd_pread, int32_t, int32_t, int32_t, int64_t, int32_t, int32_t);
-    ASYNC_MEMBERVALUE6(WASIHost_base, fd_pwrite, int32_t, int32_t, int32_t, int64_t, int32_t, int32_t);
-    ASYNC_MEMBERVALUE6(WASIHost_base, fd_readdir, int32_t, int32_t, int32_t, int64_t, int32_t, int32_t);
+    ASYNC_MEMBERVALUE5(WASIHost_base, fd_seek, int32_t, Int64, int32_t, int32_t, int32_t);
+    ASYNC_MEMBERVALUE6(WASIHost_base, fd_pread, int32_t, int32_t, int32_t, Int64, int32_t, int32_t);
+    ASYNC_MEMBERVALUE6(WASIHost_base, fd_pwrite, int32_t, int32_t, int32_t, Int64, int32_t, int32_t);
+    ASYNC_MEMBERVALUE6(WASIHost_base, fd_readdir, int32_t, int32_t, int32_t, UInt64, int32_t, int32_t);
     ASYNC_MEMBERVALUE4(WASIHost_base, path_create_directory, int32_t, int32_t, int32_t, int32_t);
     ASYNC_MEMBERVALUE4(WASIHost_base, path_remove_directory, int32_t, int32_t, int32_t, int32_t);
     ASYNC_MEMBERVALUE4(WASIHost_base, path_unlink_file, int32_t, int32_t, int32_t, int32_t);
@@ -157,11 +157,11 @@ public:
     ASYNC_MEMBERVALUE8(WASIHost_base, path_link, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
     ASYNC_MEMBERVALUE7(WASIHost_base, path_readlink, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
     ASYNC_MEMBERVALUE6(WASIHost_base, path_symlink, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
-    ASYNC_MEMBERVALUE3(WASIHost_base, fd_filestat_set_size, int32_t, int64_t, int32_t);
+    ASYNC_MEMBERVALUE3(WASIHost_base, fd_filestat_set_size, int32_t, Int64, int32_t);
     ASYNC_MEMBERVALUE2(WASIHost_base, fd_sync, int32_t, int32_t);
     ASYNC_MEMBERVALUE2(WASIHost_base, fd_datasync, int32_t, int32_t);
-    ASYNC_MEMBERVALUE5(WASIHost_base, fd_filestat_set_times, int32_t, int64_t, int64_t, int32_t, int32_t);
-    ASYNC_MEMBERVALUE8(WASIHost_base, path_filestat_set_times, int32_t, int32_t, int32_t, int32_t, int64_t, int64_t, int32_t, int32_t);
+    ASYNC_MEMBERVALUE5(WASIHost_base, fd_filestat_set_times, int32_t, UInt64, UInt64, int32_t, int32_t);
+    ASYNC_MEMBERVALUE8(WASIHost_base, path_filestat_set_times, int32_t, int32_t, int32_t, int32_t, UInt64, UInt64, int32_t, int32_t);
     ASYNC_MEMBERVALUE3(WASIHost_base, fd_renumber, int32_t, int32_t, int32_t);
     ASYNC_MEMBERVALUE4(WASIHost_base, sock_accept, int32_t, int32_t, int32_t, int32_t);
     ASYNC_MEMBERVALUE7(WASIHost_base, sock_recv, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
@@ -539,7 +539,7 @@ inline void WASIHost_base::s_clock_time_get(const v8::FunctionCallbackInfo<v8::V
     METHOD_OVER_NAMED(3, 3, "time");
 
     ARG_NAMED(int32_t, 0, "clock_id");
-    ARG_NAMED(int64_t, 1, "precision");
+    ARG_NAMED(UInt64, 1, "precision");
     ARG_NAMED(int32_t, 2, "time");
 
     hr = pInst->clock_time_get(v0, v1, v2, vr);
@@ -716,8 +716,8 @@ inline void WASIHost_base::s_path_open(const v8::FunctionCallbackInfo<v8::Value>
     ARG_NAMED(int32_t, 2, "path");
     ARG_NAMED(int32_t, 3, "path_len");
     ARG_NAMED(int32_t, 4, "oflags");
-    ARG_NAMED(int64_t, 5, "rights_base");
-    ARG_NAMED(int64_t, 6, "rights_inheriting");
+    ARG_NAMED(UInt64, 5, "rights_base");
+    ARG_NAMED(UInt64, 6, "rights_inheriting");
     ARG_NAMED(int32_t, 7, "fdflags");
     ARG_NAMED(int32_t, 8, "opened_fd");
 
@@ -762,7 +762,7 @@ inline void WASIHost_base::s_fd_seek(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_OVER_NAMED(4, 4, "newoffset");
 
     ARG_NAMED(int32_t, 0, "fd");
-    ARG_NAMED(int64_t, 1, "offset");
+    ARG_NAMED(Int64, 1, "offset");
     ARG_NAMED(int32_t, 2, "whence");
     ARG_NAMED(int32_t, 3, "newoffset");
 
@@ -803,7 +803,7 @@ inline void WASIHost_base::s_fd_pread(const v8::FunctionCallbackInfo<v8::Value>&
     ARG_NAMED(int32_t, 0, "fd");
     ARG_NAMED(int32_t, 1, "iovs");
     ARG_NAMED(int32_t, 2, "iovs_len");
-    ARG_NAMED(int64_t, 3, "offset");
+    ARG_NAMED(Int64, 3, "offset");
     ARG_NAMED(int32_t, 4, "nread");
 
     if (!cb.IsEmpty())
@@ -826,7 +826,7 @@ inline void WASIHost_base::s_fd_pwrite(const v8::FunctionCallbackInfo<v8::Value>
     ARG_NAMED(int32_t, 0, "fd");
     ARG_NAMED(int32_t, 1, "iovs");
     ARG_NAMED(int32_t, 2, "iovs_len");
-    ARG_NAMED(int64_t, 3, "offset");
+    ARG_NAMED(Int64, 3, "offset");
     ARG_NAMED(int32_t, 4, "nwritten");
 
     if (!cb.IsEmpty())
@@ -849,7 +849,7 @@ inline void WASIHost_base::s_fd_readdir(const v8::FunctionCallbackInfo<v8::Value
     ARG_NAMED(int32_t, 0, "fd");
     ARG_NAMED(int32_t, 1, "buf");
     ARG_NAMED(int32_t, 2, "buf_len");
-    ARG_NAMED(int64_t, 3, "cookie");
+    ARG_NAMED(UInt64, 3, "cookie");
     ARG_NAMED(int32_t, 4, "bufused");
 
     if (!cb.IsEmpty())
@@ -1029,7 +1029,7 @@ inline void WASIHost_base::s_fd_filestat_set_size(const v8::FunctionCallbackInfo
     METHOD_OVER_NAMED(2, 2, "size");
 
     ARG_NAMED(int32_t, 0, "fd");
-    ARG_NAMED(int64_t, 1, "size");
+    ARG_NAMED(Int64, 1, "size");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_fd_filestat_set_size(v0, v1, cb, args);
@@ -1087,8 +1087,8 @@ inline void WASIHost_base::s_fd_advise(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_OVER_NAMED(4, 4, "advice");
 
     ARG_NAMED(int32_t, 0, "fd");
-    ARG_NAMED(int64_t, 1, "offset");
-    ARG_NAMED(int64_t, 2, "len");
+    ARG_NAMED(Int64, 1, "offset");
+    ARG_NAMED(Int64, 2, "len");
     ARG_NAMED(int32_t, 3, "advice");
 
     hr = pInst->fd_advise(v0, v1, v2, v3, vr);
@@ -1106,8 +1106,8 @@ inline void WASIHost_base::s_fd_allocate(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_OVER_NAMED(3, 3, "len");
 
     ARG_NAMED(int32_t, 0, "fd");
-    ARG_NAMED(int64_t, 1, "offset");
-    ARG_NAMED(int64_t, 2, "len");
+    ARG_NAMED(Int64, 1, "offset");
+    ARG_NAMED(Int64, 2, "len");
 
     hr = pInst->fd_allocate(v0, v1, v2, vr);
 
@@ -1141,8 +1141,8 @@ inline void WASIHost_base::s_fd_fdstat_set_rights(const v8::FunctionCallbackInfo
     METHOD_OVER_NAMED(3, 3, "rights_inheriting");
 
     ARG_NAMED(int32_t, 0, "fd");
-    ARG_NAMED(int64_t, 1, "rights_base");
-    ARG_NAMED(int64_t, 2, "rights_inheriting");
+    ARG_NAMED(UInt64, 1, "rights_base");
+    ARG_NAMED(UInt64, 2, "rights_inheriting");
 
     hr = pInst->fd_fdstat_set_rights(v0, v1, v2, vr);
 
@@ -1159,8 +1159,8 @@ inline void WASIHost_base::s_fd_filestat_set_times(const v8::FunctionCallbackInf
     METHOD_OVER_NAMED(4, 4, "flags");
 
     ARG_NAMED(int32_t, 0, "fd");
-    ARG_NAMED(int64_t, 1, "atim");
-    ARG_NAMED(int64_t, 2, "mtim");
+    ARG_NAMED(UInt64, 1, "atim");
+    ARG_NAMED(UInt64, 2, "mtim");
     ARG_NAMED(int32_t, 3, "flags");
 
     if (!cb.IsEmpty())
@@ -1184,8 +1184,8 @@ inline void WASIHost_base::s_path_filestat_set_times(const v8::FunctionCallbackI
     ARG_NAMED(int32_t, 1, "flags");
     ARG_NAMED(int32_t, 2, "path");
     ARG_NAMED(int32_t, 3, "path_len");
-    ARG_NAMED(int64_t, 4, "atim");
-    ARG_NAMED(int64_t, 5, "mtim");
+    ARG_NAMED(UInt64, 4, "atim");
+    ARG_NAMED(UInt64, 5, "mtim");
     ARG_NAMED(int32_t, 6, "fst_flags");
 
     if (!cb.IsEmpty())

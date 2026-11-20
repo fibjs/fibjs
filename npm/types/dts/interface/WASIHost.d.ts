@@ -510,7 +510,7 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    clock_time_get(clock_id: number, precision: number, time: number): number;
+    clock_time_get(clock_id: number, precision: bigint, time: number): number;
 
     /**
      * @description Implements the WASI `random_get` syscall
@@ -731,35 +731,9 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    path_open(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: number, rights_inheriting: number, fdflags: number, opened_fd: number): number;
+    path_open(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: bigint, rights_inheriting: bigint, fdflags: number, opened_fd: number): number;
 
-    path_open(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: number, rights_inheriting: number, fdflags: number, opened_fd: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Implements the WASI `path_open` syscall
-     *
-     *      Resolves the guest path below a directory descriptor and opens it with the requested flags
-     *      and rights. The `oflags` bits map to create/exclusive/truncate/directory, `fdflags` maps to
-     *      append and the sync modes, and the new descriptor is written to `opened_fd`. Access is
-     *      confined to the preopened directory tree. Like uvwasi, the directory must hold PATH_OPEN plus
-     *      the rights implied by the flags, and its inheriting rights must cover the requested base and
-     *      inheriting masks (otherwise NOTCAPABLE); the granted rights are intersected with the maximum
-     *      the opened file type supports. `O_DIRECTORY` on an entry that is not a directory reports
-     *      NOTDIR; the check runs after the open, because not every platform can ask the host to open a
-     *      directory only (uvwasi does the same).
-     *      @param fd the directory descriptor
-     *      @param dirflags the lookup flags (symlink follow)
-     *      @param path the guest address of the path bytes
-     *      @param path_len the path length in bytes
-     *      @param oflags the open flags
-     *      @param rights_base the requested base rights
-     *      @param rights_inheriting the requested inheriting rights
-     *      @param fdflags the descriptor flags
-     *      @param opened_fd the guest address that receives the new descriptor
-     *      @return 0 on success, or a WASI errno value
-     *
-     */
-    path_openSync(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: number, rights_inheriting: number, fdflags: number, opened_fd: number): number;
+    path_open(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: bigint, rights_inheriting: bigint, fdflags: number, opened_fd: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Implements the WASI `path_open` syscall
@@ -785,7 +759,33 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    path_openAsync(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: number, rights_inheriting: number, fdflags: number, opened_fd: number): Promise<number>;
+    path_openSync(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: bigint, rights_inheriting: bigint, fdflags: number, opened_fd: number): number;
+
+    /**
+     * @description Implements the WASI `path_open` syscall
+     *
+     *      Resolves the guest path below a directory descriptor and opens it with the requested flags
+     *      and rights. The `oflags` bits map to create/exclusive/truncate/directory, `fdflags` maps to
+     *      append and the sync modes, and the new descriptor is written to `opened_fd`. Access is
+     *      confined to the preopened directory tree. Like uvwasi, the directory must hold PATH_OPEN plus
+     *      the rights implied by the flags, and its inheriting rights must cover the requested base and
+     *      inheriting masks (otherwise NOTCAPABLE); the granted rights are intersected with the maximum
+     *      the opened file type supports. `O_DIRECTORY` on an entry that is not a directory reports
+     *      NOTDIR; the check runs after the open, because not every platform can ask the host to open a
+     *      directory only (uvwasi does the same).
+     *      @param fd the directory descriptor
+     *      @param dirflags the lookup flags (symlink follow)
+     *      @param path the guest address of the path bytes
+     *      @param path_len the path length in bytes
+     *      @param oflags the open flags
+     *      @param rights_base the requested base rights
+     *      @param rights_inheriting the requested inheriting rights
+     *      @param fdflags the descriptor flags
+     *      @param opened_fd the guest address that receives the new descriptor
+     *      @return 0 on success, or a WASI errno value
+     *
+     */
+    path_openAsync(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: bigint, rights_inheriting: bigint, fdflags: number, opened_fd: number): Promise<number>;
 
     /**
      * @description Implements the WASI `path_filestat_get` syscall
@@ -850,24 +850,9 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_seek(fd: number, offset: number, whence: number, newoffset: number): number;
+    fd_seek(fd: number, offset: bigint, whence: number, newoffset: number): number;
 
-    fd_seek(fd: number, offset: number, whence: number, newoffset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Implements the WASI `fd_seek` syscall
-     *
-     *      Moves the file position of a regular file. `whence` is 0 (set), 1 (current) or 2 (end); the
-     *      end form stats the file first, the other two update the tracked position directly. The new
-     *      position is written to `newoffset`.
-     *      @param fd the guest descriptor
-     *      @param offset the signed byte offset
-     *      @param whence the seek origin
-     *      @param newoffset the guest address that receives the new position
-     *      @return 0 on success, or a WASI errno value
-     *
-     */
-    fd_seekSync(fd: number, offset: number, whence: number, newoffset: number): number;
+    fd_seek(fd: number, offset: bigint, whence: number, newoffset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Implements the WASI `fd_seek` syscall
@@ -882,7 +867,22 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_seekAsync(fd: number, offset: number, whence: number, newoffset: number): Promise<number>;
+    fd_seekSync(fd: number, offset: bigint, whence: number, newoffset: number): number;
+
+    /**
+     * @description Implements the WASI `fd_seek` syscall
+     *
+     *      Moves the file position of a regular file. `whence` is 0 (set), 1 (current) or 2 (end); the
+     *      end form stats the file first, the other two update the tracked position directly. The new
+     *      position is written to `newoffset`.
+     *      @param fd the guest descriptor
+     *      @param offset the signed byte offset
+     *      @param whence the seek origin
+     *      @param newoffset the guest address that receives the new position
+     *      @return 0 on success, or a WASI errno value
+     *
+     */
+    fd_seekAsync(fd: number, offset: bigint, whence: number, newoffset: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_tell` syscall
@@ -910,25 +910,9 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_pread(fd: number, iovs: number, iovs_len: number, offset: number, nread: number): number;
+    fd_pread(fd: number, iovs: number, iovs_len: number, offset: bigint, nread: number): number;
 
-    fd_pread(fd: number, iovs: number, iovs_len: number, offset: number, nread: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Implements the WASI `fd_pread` syscall
-     *
-     *      Reads from the descriptor at the given absolute offset without changing the file position.
-     *      The iovec list is validated and copied exactly like `fd_read`; the byte count is written to
-     *      `nread`.
-     *      @param fd the guest descriptor
-     *      @param iovs the guest address of the iovec array
-     *      @param iovs_len the number of iovec records
-     *      @param offset the absolute byte offset
-     *      @param nread the guest address that receives the byte count
-     *      @return 0 on success, or a WASI errno value
-     *
-     */
-    fd_preadSync(fd: number, iovs: number, iovs_len: number, offset: number, nread: number): number;
+    fd_pread(fd: number, iovs: number, iovs_len: number, offset: bigint, nread: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Implements the WASI `fd_pread` syscall
@@ -944,7 +928,23 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_preadAsync(fd: number, iovs: number, iovs_len: number, offset: number, nread: number): Promise<number>;
+    fd_preadSync(fd: number, iovs: number, iovs_len: number, offset: bigint, nread: number): number;
+
+    /**
+     * @description Implements the WASI `fd_pread` syscall
+     *
+     *      Reads from the descriptor at the given absolute offset without changing the file position.
+     *      The iovec list is validated and copied exactly like `fd_read`; the byte count is written to
+     *      `nread`.
+     *      @param fd the guest descriptor
+     *      @param iovs the guest address of the iovec array
+     *      @param iovs_len the number of iovec records
+     *      @param offset the absolute byte offset
+     *      @param nread the guest address that receives the byte count
+     *      @return 0 on success, or a WASI errno value
+     *
+     */
+    fd_preadAsync(fd: number, iovs: number, iovs_len: number, offset: bigint, nread: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_pwrite` syscall
@@ -960,25 +960,9 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_pwrite(fd: number, iovs: number, iovs_len: number, offset: number, nwritten: number): number;
+    fd_pwrite(fd: number, iovs: number, iovs_len: number, offset: bigint, nwritten: number): number;
 
-    fd_pwrite(fd: number, iovs: number, iovs_len: number, offset: number, nwritten: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Implements the WASI `fd_pwrite` syscall
-     *
-     *      Writes to the descriptor at the given absolute offset without changing the file position.
-     *      The iovec payload is gathered into a staging buffer first, then written on the uv worker; the
-     *      byte count is written to `nwritten`.
-     *      @param fd the guest descriptor
-     *      @param iovs the guest address of the iovec array
-     *      @param iovs_len the number of iovec records
-     *      @param offset the absolute byte offset
-     *      @param nwritten the guest address that receives the byte count
-     *      @return 0 on success, or a WASI errno value
-     *
-     */
-    fd_pwriteSync(fd: number, iovs: number, iovs_len: number, offset: number, nwritten: number): number;
+    fd_pwrite(fd: number, iovs: number, iovs_len: number, offset: bigint, nwritten: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Implements the WASI `fd_pwrite` syscall
@@ -994,7 +978,23 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_pwriteAsync(fd: number, iovs: number, iovs_len: number, offset: number, nwritten: number): Promise<number>;
+    fd_pwriteSync(fd: number, iovs: number, iovs_len: number, offset: bigint, nwritten: number): number;
+
+    /**
+     * @description Implements the WASI `fd_pwrite` syscall
+     *
+     *      Writes to the descriptor at the given absolute offset without changing the file position.
+     *      The iovec payload is gathered into a staging buffer first, then written on the uv worker; the
+     *      byte count is written to `nwritten`.
+     *      @param fd the guest descriptor
+     *      @param iovs the guest address of the iovec array
+     *      @param iovs_len the number of iovec records
+     *      @param offset the absolute byte offset
+     *      @param nwritten the guest address that receives the byte count
+     *      @return 0 on success, or a WASI errno value
+     *
+     */
+    fd_pwriteAsync(fd: number, iovs: number, iovs_len: number, offset: bigint, nwritten: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_readdir` syscall
@@ -1011,26 +1011,9 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_readdir(fd: number, buf: number, buf_len: number, cookie: number, bufused: number): number;
+    fd_readdir(fd: number, buf: number, buf_len: number, cookie: bigint, bufused: number): number;
 
-    fd_readdir(fd: number, buf: number, buf_len: number, cookie: number, bufused: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Implements the WASI `fd_readdir` syscall
-     *
-     *      Writes directory entries as 24-byte records (`d_next`, `d_ino`, `d_namlen`, `d_type`)
-     *      followed by the name bytes. `cookie` selects the starting entry and `bufused` receives the
-     *      number of bytes written; the caller repeats the call with the last `d_next` while the buffer
-     *      was full.
-     *      @param fd the directory descriptor
-     *      @param buf the guest address of the output buffer
-     *      @param buf_len the buffer length in bytes
-     *      @param cookie the directory cookie to start from
-     *      @param bufused the guest address that receives the bytes written
-     *      @return 0 on success, or a WASI errno value
-     *
-     */
-    fd_readdirSync(fd: number, buf: number, buf_len: number, cookie: number, bufused: number): number;
+    fd_readdir(fd: number, buf: number, buf_len: number, cookie: bigint, bufused: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Implements the WASI `fd_readdir` syscall
@@ -1047,7 +1030,24 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_readdirAsync(fd: number, buf: number, buf_len: number, cookie: number, bufused: number): Promise<number>;
+    fd_readdirSync(fd: number, buf: number, buf_len: number, cookie: bigint, bufused: number): number;
+
+    /**
+     * @description Implements the WASI `fd_readdir` syscall
+     *
+     *      Writes directory entries as 24-byte records (`d_next`, `d_ino`, `d_namlen`, `d_type`)
+     *      followed by the name bytes. `cookie` selects the starting entry and `bufused` receives the
+     *      number of bytes written; the caller repeats the call with the last `d_next` while the buffer
+     *      was full.
+     *      @param fd the directory descriptor
+     *      @param buf the guest address of the output buffer
+     *      @param buf_len the buffer length in bytes
+     *      @param cookie the directory cookie to start from
+     *      @param bufused the guest address that receives the bytes written
+     *      @return 0 on success, or a WASI errno value
+     *
+     */
+    fd_readdirAsync(fd: number, buf: number, buf_len: number, cookie: bigint, bufused: number): Promise<number>;
 
     /**
      * @description Implements the WASI `path_create_directory` syscall
@@ -1394,21 +1394,9 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_filestat_set_size(fd: number, size: number): number;
+    fd_filestat_set_size(fd: number, size: bigint): number;
 
-    fd_filestat_set_size(fd: number, size: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Implements the WASI `fd_filestat_set_size` syscall
-     *
-     *      Truncates or extends a regular file to the given size. The host `ftruncate` runs on the uv
-     *      worker and the descriptor rights are not enforced in this milestone.
-     *      @param fd the guest descriptor
-     *      @param size the new file size in bytes
-     *      @return 0 on success, or a WASI errno value
-     *
-     */
-    fd_filestat_set_sizeSync(fd: number, size: number): number;
+    fd_filestat_set_size(fd: number, size: bigint, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Implements the WASI `fd_filestat_set_size` syscall
@@ -1420,7 +1408,19 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_filestat_set_sizeAsync(fd: number, size: number): Promise<number>;
+    fd_filestat_set_sizeSync(fd: number, size: bigint): number;
+
+    /**
+     * @description Implements the WASI `fd_filestat_set_size` syscall
+     *
+     *      Truncates or extends a regular file to the given size. The host `ftruncate` runs on the uv
+     *      worker and the descriptor rights are not enforced in this milestone.
+     *      @param fd the guest descriptor
+     *      @param size the new file size in bytes
+     *      @return 0 on success, or a WASI errno value
+     *
+     */
+    fd_filestat_set_sizeAsync(fd: number, size: bigint): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_sync` syscall
@@ -1506,7 +1506,7 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_advise(fd: number, offset: number, len: number, advice: number): number;
+    fd_advise(fd: number, offset: bigint, len: bigint, advice: number): number;
 
     /**
      * @description Implements the WASI `fd_allocate` syscall
@@ -1521,7 +1521,7 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_allocate(fd: number, offset: number, len: number): number;
+    fd_allocate(fd: number, offset: bigint, len: bigint): number;
 
     /**
      * @description Implements the WASI `fd_fdstat_set_flags` syscall
@@ -1548,7 +1548,7 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_fdstat_set_rights(fd: number, rights_base: number, rights_inheriting: number): number;
+    fd_fdstat_set_rights(fd: number, rights_base: bigint, rights_inheriting: bigint): number;
 
     /**
      * @description Implements the WASI `fd_filestat_set_times` syscall
@@ -1563,24 +1563,9 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_filestat_set_times(fd: number, atim: number, mtim: number, flags: number): number;
+    fd_filestat_set_times(fd: number, atim: bigint, mtim: bigint, flags: number): number;
 
-    fd_filestat_set_times(fd: number, atim: number, mtim: number, flags: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Implements the WASI `fd_filestat_set_times` syscall
-     *
-     *      Updates the access and modification times. `fst_flags` accepts SET_ATIM/SET_MTIM and their
-     *      NOW variants; conflicting or unknown bits report INVAL before the rights check, like uvwasi.
-     *      Omitted times keep the current value, read with `fstat`.
-     *      @param fd the descriptor to update
-     *      @param atim the access time in nanoseconds (when SET_ATIM is set)
-     *      @param mtim the modification time in nanoseconds (when SET_MTIM is set)
-     *      @param flags the fstflags mask
-     *      @return 0 on success, or a WASI errno value
-     *
-     */
-    fd_filestat_set_timesSync(fd: number, atim: number, mtim: number, flags: number): number;
+    fd_filestat_set_times(fd: number, atim: bigint, mtim: bigint, flags: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Implements the WASI `fd_filestat_set_times` syscall
@@ -1595,7 +1580,22 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_filestat_set_timesAsync(fd: number, atim: number, mtim: number, flags: number): Promise<number>;
+    fd_filestat_set_timesSync(fd: number, atim: bigint, mtim: bigint, flags: number): number;
+
+    /**
+     * @description Implements the WASI `fd_filestat_set_times` syscall
+     *
+     *      Updates the access and modification times. `fst_flags` accepts SET_ATIM/SET_MTIM and their
+     *      NOW variants; conflicting or unknown bits report INVAL before the rights check, like uvwasi.
+     *      Omitted times keep the current value, read with `fstat`.
+     *      @param fd the descriptor to update
+     *      @param atim the access time in nanoseconds (when SET_ATIM is set)
+     *      @param mtim the modification time in nanoseconds (when SET_MTIM is set)
+     *      @param flags the fstflags mask
+     *      @return 0 on success, or a WASI errno value
+     *
+     */
+    fd_filestat_set_timesAsync(fd: number, atim: bigint, mtim: bigint, flags: number): Promise<number>;
 
     /**
      * @description Implements the WASI `path_filestat_set_times` syscall
@@ -1613,27 +1613,9 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    path_filestat_set_times(fd: number, flags: number, path: number, path_len: number, atim: number, mtim: number, fst_flags: number): number;
+    path_filestat_set_times(fd: number, flags: number, path: number, path_len: number, atim: bigint, mtim: bigint, fst_flags: number): number;
 
-    path_filestat_set_times(fd: number, flags: number, path: number, path_len: number, atim: number, mtim: number, fst_flags: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Implements the WASI `path_filestat_set_times` syscall
-     *
-     *      Updates the access and modification times of a path below a directory descriptor. The
-     *      lookup flags select whether a symbolic link is followed; the timestamp flags have the same
-     *      meaning as in `fd_filestat_set_times`.
-     *      @param fd the directory descriptor
-     *      @param flags the lookup flags
-     *      @param path the guest address of the path bytes
-     *      @param path_len the path length in bytes
-     *      @param atim the access time in nanoseconds
-     *      @param mtim the modification time in nanoseconds
-     *      @param fst_flags the timestamp update flags
-     *      @return 0 on success, or a WASI errno value
-     *
-     */
-    path_filestat_set_timesSync(fd: number, flags: number, path: number, path_len: number, atim: number, mtim: number, fst_flags: number): number;
+    path_filestat_set_times(fd: number, flags: number, path: number, path_len: number, atim: bigint, mtim: bigint, fst_flags: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Implements the WASI `path_filestat_set_times` syscall
@@ -1651,7 +1633,25 @@ declare class Class_WASIHost extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    path_filestat_set_timesAsync(fd: number, flags: number, path: number, path_len: number, atim: number, mtim: number, fst_flags: number): Promise<number>;
+    path_filestat_set_timesSync(fd: number, flags: number, path: number, path_len: number, atim: bigint, mtim: bigint, fst_flags: number): number;
+
+    /**
+     * @description Implements the WASI `path_filestat_set_times` syscall
+     *
+     *      Updates the access and modification times of a path below a directory descriptor. The
+     *      lookup flags select whether a symbolic link is followed; the timestamp flags have the same
+     *      meaning as in `fd_filestat_set_times`.
+     *      @param fd the directory descriptor
+     *      @param flags the lookup flags
+     *      @param path the guest address of the path bytes
+     *      @param path_len the path length in bytes
+     *      @param atim the access time in nanoseconds
+     *      @param mtim the modification time in nanoseconds
+     *      @param fst_flags the timestamp update flags
+     *      @return 0 on success, or a WASI errno value
+     *
+     */
+    path_filestat_set_timesAsync(fd: number, flags: number, path: number, path_len: number, atim: bigint, mtim: bigint, fst_flags: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_renumber` syscall
@@ -2275,7 +2275,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    clock_time_get(clock_id: number, precision: number, time: number): number;
+    clock_time_get(clock_id: number, precision: bigint, time: number): number;
 
     /**
      * @description Implements the WASI `random_get` syscall
@@ -2490,7 +2490,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    path_open(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: number, rights_inheriting: number, fdflags: number, opened_fd: number): Promise<number>;
+    path_open(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: bigint, rights_inheriting: bigint, fdflags: number, opened_fd: number): Promise<number>;
 
     /**
      * @description Implements the WASI `path_open` syscall
@@ -2516,7 +2516,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    path_openSync(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: number, rights_inheriting: number, fdflags: number, opened_fd: number): number;
+    path_openSync(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: bigint, rights_inheriting: bigint, fdflags: number, opened_fd: number): number;
 
     /**
      * @description Implements the WASI `path_open` syscall
@@ -2542,7 +2542,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    path_openAsync(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: number, rights_inheriting: number, fdflags: number, opened_fd: number): Promise<number>;
+    path_openAsync(fd: number, dirflags: number, path: number, path_len: number, oflags: number, rights_base: bigint, rights_inheriting: bigint, fdflags: number, opened_fd: number): Promise<number>;
 
     /**
      * @description Implements the WASI `path_filestat_get` syscall
@@ -2605,7 +2605,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_seek(fd: number, offset: number, whence: number, newoffset: number): Promise<number>;
+    fd_seek(fd: number, offset: bigint, whence: number, newoffset: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_seek` syscall
@@ -2620,7 +2620,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_seekSync(fd: number, offset: number, whence: number, newoffset: number): number;
+    fd_seekSync(fd: number, offset: bigint, whence: number, newoffset: number): number;
 
     /**
      * @description Implements the WASI `fd_seek` syscall
@@ -2635,7 +2635,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_seekAsync(fd: number, offset: number, whence: number, newoffset: number): Promise<number>;
+    fd_seekAsync(fd: number, offset: bigint, whence: number, newoffset: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_tell` syscall
@@ -2663,7 +2663,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_pread(fd: number, iovs: number, iovs_len: number, offset: number, nread: number): Promise<number>;
+    fd_pread(fd: number, iovs: number, iovs_len: number, offset: bigint, nread: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_pread` syscall
@@ -2679,7 +2679,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_preadSync(fd: number, iovs: number, iovs_len: number, offset: number, nread: number): number;
+    fd_preadSync(fd: number, iovs: number, iovs_len: number, offset: bigint, nread: number): number;
 
     /**
      * @description Implements the WASI `fd_pread` syscall
@@ -2695,7 +2695,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_preadAsync(fd: number, iovs: number, iovs_len: number, offset: number, nread: number): Promise<number>;
+    fd_preadAsync(fd: number, iovs: number, iovs_len: number, offset: bigint, nread: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_pwrite` syscall
@@ -2711,7 +2711,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_pwrite(fd: number, iovs: number, iovs_len: number, offset: number, nwritten: number): Promise<number>;
+    fd_pwrite(fd: number, iovs: number, iovs_len: number, offset: bigint, nwritten: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_pwrite` syscall
@@ -2727,7 +2727,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_pwriteSync(fd: number, iovs: number, iovs_len: number, offset: number, nwritten: number): number;
+    fd_pwriteSync(fd: number, iovs: number, iovs_len: number, offset: bigint, nwritten: number): number;
 
     /**
      * @description Implements the WASI `fd_pwrite` syscall
@@ -2743,7 +2743,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_pwriteAsync(fd: number, iovs: number, iovs_len: number, offset: number, nwritten: number): Promise<number>;
+    fd_pwriteAsync(fd: number, iovs: number, iovs_len: number, offset: bigint, nwritten: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_readdir` syscall
@@ -2760,7 +2760,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_readdir(fd: number, buf: number, buf_len: number, cookie: number, bufused: number): Promise<number>;
+    fd_readdir(fd: number, buf: number, buf_len: number, cookie: bigint, bufused: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_readdir` syscall
@@ -2777,7 +2777,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_readdirSync(fd: number, buf: number, buf_len: number, cookie: number, bufused: number): number;
+    fd_readdirSync(fd: number, buf: number, buf_len: number, cookie: bigint, bufused: number): number;
 
     /**
      * @description Implements the WASI `fd_readdir` syscall
@@ -2794,7 +2794,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_readdirAsync(fd: number, buf: number, buf_len: number, cookie: number, bufused: number): Promise<number>;
+    fd_readdirAsync(fd: number, buf: number, buf_len: number, cookie: bigint, bufused: number): Promise<number>;
 
     /**
      * @description Implements the WASI `path_create_directory` syscall
@@ -3127,7 +3127,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_filestat_set_size(fd: number, size: number): Promise<number>;
+    fd_filestat_set_size(fd: number, size: bigint): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_filestat_set_size` syscall
@@ -3139,7 +3139,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_filestat_set_sizeSync(fd: number, size: number): number;
+    fd_filestat_set_sizeSync(fd: number, size: bigint): number;
 
     /**
      * @description Implements the WASI `fd_filestat_set_size` syscall
@@ -3151,7 +3151,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_filestat_set_sizeAsync(fd: number, size: number): Promise<number>;
+    fd_filestat_set_sizeAsync(fd: number, size: bigint): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_sync` syscall
@@ -3233,7 +3233,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_advise(fd: number, offset: number, len: number, advice: number): number;
+    fd_advise(fd: number, offset: bigint, len: bigint, advice: number): number;
 
     /**
      * @description Implements the WASI `fd_allocate` syscall
@@ -3248,7 +3248,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_allocate(fd: number, offset: number, len: number): number;
+    fd_allocate(fd: number, offset: bigint, len: bigint): number;
 
     /**
      * @description Implements the WASI `fd_fdstat_set_flags` syscall
@@ -3275,7 +3275,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_fdstat_set_rights(fd: number, rights_base: number, rights_inheriting: number): number;
+    fd_fdstat_set_rights(fd: number, rights_base: bigint, rights_inheriting: bigint): number;
 
     /**
      * @description Implements the WASI `fd_filestat_set_times` syscall
@@ -3290,7 +3290,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_filestat_set_times(fd: number, atim: number, mtim: number, flags: number): Promise<number>;
+    fd_filestat_set_times(fd: number, atim: bigint, mtim: bigint, flags: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_filestat_set_times` syscall
@@ -3305,7 +3305,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_filestat_set_timesSync(fd: number, atim: number, mtim: number, flags: number): number;
+    fd_filestat_set_timesSync(fd: number, atim: bigint, mtim: bigint, flags: number): number;
 
     /**
      * @description Implements the WASI `fd_filestat_set_times` syscall
@@ -3320,7 +3320,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    fd_filestat_set_timesAsync(fd: number, atim: number, mtim: number, flags: number): Promise<number>;
+    fd_filestat_set_timesAsync(fd: number, atim: bigint, mtim: bigint, flags: number): Promise<number>;
 
     /**
      * @description Implements the WASI `path_filestat_set_times` syscall
@@ -3338,7 +3338,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    path_filestat_set_times(fd: number, flags: number, path: number, path_len: number, atim: number, mtim: number, fst_flags: number): Promise<number>;
+    path_filestat_set_times(fd: number, flags: number, path: number, path_len: number, atim: bigint, mtim: bigint, fst_flags: number): Promise<number>;
 
     /**
      * @description Implements the WASI `path_filestat_set_times` syscall
@@ -3356,7 +3356,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    path_filestat_set_timesSync(fd: number, flags: number, path: number, path_len: number, atim: number, mtim: number, fst_flags: number): number;
+    path_filestat_set_timesSync(fd: number, flags: number, path: number, path_len: number, atim: bigint, mtim: bigint, fst_flags: number): number;
 
     /**
      * @description Implements the WASI `path_filestat_set_times` syscall
@@ -3374,7 +3374,7 @@ declare class Class_WASIHostPromise extends Class_object {
      *      @return 0 on success, or a WASI errno value
      *
      */
-    path_filestat_set_timesAsync(fd: number, flags: number, path: number, path_len: number, atim: number, mtim: number, fst_flags: number): Promise<number>;
+    path_filestat_set_timesAsync(fd: number, flags: number, path: number, path_len: number, atim: bigint, mtim: bigint, fst_flags: number): Promise<number>;
 
     /**
      * @description Implements the WASI `fd_renumber` syscall

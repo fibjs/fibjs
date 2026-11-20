@@ -21,10 +21,31 @@ class Statement_base : public object_base {
     DECLARE_CLASS(Statement_base);
 
 public:
+    class RunType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("changes"), GetReturnValue(isolate, changes)).Check();
+            retVal->Set(context, isolate->NewString("lastInsertRowid"), GetReturnValue(isolate, lastInsertRowid)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, changes));
+            args.push_back(GetReturnValue(isolate, lastInsertRowid));
+        }
+
+    public:
+        UInt64 changes;
+        Int64 lastInsertRowid;
+    };
+
+public:
     // Statement_base
     virtual result_t get(OptArgs args, Variant& retVal, AsyncHandle ac) = 0;
     virtual result_t all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
-    virtual result_t run(OptArgs args, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t run(OptArgs args, obj_ptr<RunType>& retVal, AsyncHandle ac) = 0;
     virtual result_t iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t columns(obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
     virtual result_t get_sourceSQL(exlib::string& retVal) = 0;
@@ -53,7 +74,7 @@ public:
 public:
     ASYNC_MEMBERVALUE2(Statement_base, get, OptArgs, Variant);
     ASYNC_MEMBERVALUE2(Statement_base, all, OptArgs, obj_ptr<NArray>);
-    ASYNC_MEMBERVALUE2(Statement_base, run, OptArgs, Variant);
+    ASYNC_MEMBERVALUE2(Statement_base, run, OptArgs, obj_ptr<RunType>);
     ASYNC_MEMBERVALUE2(Statement_base, iterate, OptArgs, obj_ptr<Iterator_base>);
     ASYNC_MEMBERVALUE1(Statement_base, columns, obj_ptr<NArray>);
     ASYNC_MEMBER0(Statement_base, close);
@@ -129,7 +150,7 @@ inline void Statement_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Statement_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Variant vr;
+    obj_ptr<RunType> vr;
 
     ASYNC_METHOD_INSTANCE(Statement_base);
     ASYNC_METHOD_ENTER("Statement.run");

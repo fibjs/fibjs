@@ -145,7 +145,7 @@ interface Statement : object
      @param args the bound parameters
      @return returns a { changes, lastInsertRowid } object
      */
-    Variant run(...args) async;
+    (UInt64 changes, Int64 lastInsertRowid) run(...args) async;
 
     /*! @brief Executes the statement and returns an iterator for row-by-row reads
 

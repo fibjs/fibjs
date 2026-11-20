@@ -100,7 +100,7 @@ public:
     // Statement_base
     virtual result_t get(OptArgs args, Variant& retVal, AsyncHandle ac);
     virtual result_t all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac);
-    virtual result_t run(OptArgs args, Variant& retVal, AsyncHandle ac);
+    virtual result_t run(OptArgs args, obj_ptr<RunType>& retVal, AsyncHandle ac);
     virtual result_t iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac);
     virtual result_t columns(obj_ptr<NArray>& retVal, AsyncHandle ac);
     virtual result_t get_sourceSQL(exlib::string& retVal);

@@ -340,7 +340,7 @@ interface WASIHost
      @param time the guest address that receives the timestamp in nanoseconds
      @return 0 on success, or a WASI errno value
      */
-    Integer clock_time_get(Integer clock_id, Long precision, Integer time);
+    Integer clock_time_get(Integer clock_id, UInt64 precision, Integer time);
 
     /*! @brief Implements the WASI `random_get` syscall
 
@@ -460,7 +460,7 @@ interface WASIHost
      @return 0 on success, or a WASI errno value
      */
     Integer path_open(Integer fd, Integer dirflags, Integer path, Integer path_len, Integer oflags,
-                      Long rights_base, Long rights_inheriting, Integer fdflags, Integer opened_fd) async;
+                      UInt64 rights_base, UInt64 rights_inheriting, Integer fdflags, Integer opened_fd) async;
 
     /*! @brief Implements the WASI `path_filestat_get` syscall
 
@@ -487,7 +487,7 @@ interface WASIHost
      @param newoffset the guest address that receives the new position
      @return 0 on success, or a WASI errno value
      */
-    Integer fd_seek(Integer fd, Long offset, Integer whence, Integer newoffset) async;
+    Integer fd_seek(Integer fd, Int64 offset, Integer whence, Integer newoffset) async;
 
     /*! @brief Implements the WASI `fd_tell` syscall
 
@@ -511,7 +511,7 @@ interface WASIHost
      @param nread the guest address that receives the byte count
      @return 0 on success, or a WASI errno value
      */
-    Integer fd_pread(Integer fd, Integer iovs, Integer iovs_len, Long offset, Integer nread) async;
+    Integer fd_pread(Integer fd, Integer iovs, Integer iovs_len, Int64 offset, Integer nread) async;
 
     /*! @brief Implements the WASI `fd_pwrite` syscall
 
@@ -525,7 +525,7 @@ interface WASIHost
      @param nwritten the guest address that receives the byte count
      @return 0 on success, or a WASI errno value
      */
-    Integer fd_pwrite(Integer fd, Integer iovs, Integer iovs_len, Long offset, Integer nwritten) async;
+    Integer fd_pwrite(Integer fd, Integer iovs, Integer iovs_len, Int64 offset, Integer nwritten) async;
 
     /*! @brief Implements the WASI `fd_readdir` syscall
 
@@ -540,7 +540,7 @@ interface WASIHost
      @param bufused the guest address that receives the bytes written
      @return 0 on success, or a WASI errno value
      */
-    Integer fd_readdir(Integer fd, Integer buf, Integer buf_len, Long cookie, Integer bufused) async;
+    Integer fd_readdir(Integer fd, Integer buf, Integer buf_len, UInt64 cookie, Integer bufused) async;
 
     /*! @brief Implements the WASI `path_create_directory` syscall
 
@@ -647,7 +647,7 @@ interface WASIHost
      @param size the new file size in bytes
      @return 0 on success, or a WASI errno value
      */
-    Integer fd_filestat_set_size(Integer fd, Long size) async;
+    Integer fd_filestat_set_size(Integer fd, Int64 size) async;
 
     /*! @brief Implements the WASI `fd_sync` syscall
 
@@ -679,7 +679,7 @@ interface WASIHost
      @param advice the advice value
      @return 0 on success, or a WASI errno value
      */
-    Integer fd_advise(Integer fd, Long offset, Long len, Integer advice);
+    Integer fd_advise(Integer fd, Int64 offset, Int64 len, Integer advice);
 
     /*! @brief Implements the WASI `fd_allocate` syscall
 
@@ -692,7 +692,7 @@ interface WASIHost
      @param len the number of bytes to add
      @return 0 on success, or a WASI errno value
      */
-    Integer fd_allocate(Integer fd, Long offset, Long len);
+    Integer fd_allocate(Integer fd, Int64 offset, Int64 len);
 
     /*! @brief Implements the WASI `fd_fdstat_set_flags` syscall
 
@@ -715,7 +715,7 @@ interface WASIHost
      @param rights_inheriting the new inheriting rights
      @return 0 on success, or a WASI errno value
      */
-    Integer fd_fdstat_set_rights(Integer fd, Long rights_base, Long rights_inheriting);
+    Integer fd_fdstat_set_rights(Integer fd, UInt64 rights_base, UInt64 rights_inheriting);
 
     /*! @brief Implements the WASI `fd_filestat_set_times` syscall
 
@@ -728,7 +728,7 @@ interface WASIHost
      @param flags the fstflags mask
      @return 0 on success, or a WASI errno value
      */
-    Integer fd_filestat_set_times(Integer fd, Long atim, Long mtim, Integer flags) async;
+    Integer fd_filestat_set_times(Integer fd, UInt64 atim, UInt64 mtim, Integer flags) async;
 
     /*! @brief Implements the WASI `path_filestat_set_times` syscall
 
@@ -745,7 +745,7 @@ interface WASIHost
      @return 0 on success, or a WASI errno value
      */
     Integer path_filestat_set_times(Integer fd, Integer flags, Integer path, Integer path_len,
-                                    Long atim, Long mtim, Integer fst_flags) async;
+                                    UInt64 atim, UInt64 mtim, Integer fst_flags) async;
 
     /*! @brief Implements the WASI `fd_renumber` syscall
 

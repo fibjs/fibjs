@@ -253,7 +253,10 @@ declare class Class_Statement extends Class_object {
      *      @return returns a { changes, lastInsertRowid } object
      *
      */
-    run(...args: any[]): any;
+    run(...args: any[]): {
+        changes: bigint;
+        lastInsertRowid: bigint;
+    };
 
     /**
      * @description Executes a statement that returns no result set
@@ -284,7 +287,10 @@ declare class Class_Statement extends Class_object {
      *      @return returns a { changes, lastInsertRowid } object
      *
      */
-    runSync(...args: any[]): any;
+    runSync(...args: any[]): {
+        changes: bigint;
+        lastInsertRowid: bigint;
+    };
 
     /**
      * @description Executes a statement that returns no result set
@@ -315,7 +321,10 @@ declare class Class_Statement extends Class_object {
      *      @return returns a { changes, lastInsertRowid } object
      *
      */
-    runAsync(...args: any[]): Promise<any>;
+    runAsync(...args: any[]): Promise<{
+        changes: bigint;
+        lastInsertRowid: bigint;
+    }>;
 
     /**
      * @description Executes the statement and returns an iterator for row-by-row reads
@@ -748,7 +757,10 @@ declare class Class_StatementPromise extends Class_object {
      *      @return returns a { changes, lastInsertRowid } object
      *
      */
-    run(...args: any[]): Promise<any>;
+    run(...args: any[]): Promise<{
+        changes: bigint;
+        lastInsertRowid: bigint;
+    }>;
 
     /**
      * @description Executes a statement that returns no result set
@@ -779,7 +791,10 @@ declare class Class_StatementPromise extends Class_object {
      *      @return returns a { changes, lastInsertRowid } object
      *
      */
-    runSync(...args: any[]): any;
+    runSync(...args: any[]): {
+        changes: bigint;
+        lastInsertRowid: bigint;
+    };
 
     /**
      * @description Executes a statement that returns no result set
@@ -810,7 +825,10 @@ declare class Class_StatementPromise extends Class_object {
      *      @return returns a { changes, lastInsertRowid } object
      *
      */
-    runAsync(...args: any[]): Promise<any>;
+    runAsync(...args: any[]): Promise<{
+        changes: bigint;
+        lastInsertRowid: bigint;
+    }>;
 
     /**
      * @description Executes the statement and returns an iterator for row-by-row reads

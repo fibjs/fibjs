@@ -92,7 +92,7 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
     return result_t();
 }
 
-result_t Statement::run(OptArgs args, Variant& retVal, AsyncHandle ac)
+result_t Statement::run(OptArgs args, obj_ptr<RunType>& retVal, AsyncHandle ac)
 {
     if (ac.isSync()) {
         result_t hr = stashArgs(args, ac);
@@ -127,12 +127,11 @@ result_t Statement::run(OptArgs args, Variant& retVal, AsyncHandle ac)
     if (hr.failed())
         return hr;
 
-    // NObject is a fibjs wrapper (handles the v8 context internally) and is
-    // safe in a coroutine; do not create a bare v8::Object here (creating v8
-    // values inside a fiber crashes).
-    obj_ptr<NObject> o = new NObject();
-    o->add("changes", changes);
-    o->add("lastInsertRowid", lastInsertId);
+    // The generated record keeps the two counters typed as Int64, so they
+    // cross the JS boundary as BigInt without the precision loss of a Number.
+    obj_ptr<RunType> o = new RunType();
+    o->changes = changes;
+    o->lastInsertRowid = lastInsertId;
 
     retVal = o;
     return result_t();

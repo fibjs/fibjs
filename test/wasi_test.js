@@ -358,7 +358,7 @@ describe('wasi', { skip: !hasWasm }, () => {
 
             // open with the full regular-file rights; the preopen grants them
             put(200, 'file.txt');
-            assert.strictEqual(wasi.path_open(3, 0, 200, 8, 0, FILE_RIGHTS, 0, 0, 300), 0);
+            assert.strictEqual(wasi.path_open(3, 0, 200, 8, 0, BigInt(FILE_RIGHTS), 0n, 0, 300), 0);
             var fd = view().getUint32(300, true);
             assert.ok(fd > 3);
             assert.strictEqual(wasi.fd_fdstat_get(fd, 400), 0);
@@ -368,7 +368,7 @@ describe('wasi', { skip: !hasWasm }, () => {
             // sync/no-op advisory calls
             assert.strictEqual(wasi.fd_datasync(fd), 0);
             assert.strictEqual(wasi.fd_sync(fd), 0);
-            assert.strictEqual(wasi.fd_advise(fd, 0, 0, 3), 0);
+            assert.strictEqual(wasi.fd_advise(fd, 0n, 0n, 3), 0);
             assert.strictEqual(wasi.fd_advise(fd, 0, 0, 9), 28);
             assert.strictEqual(wasi.fd_advise(99, 0, 0, 3), 8);
             assert.strictEqual(wasi.fd_allocate(fd, 0, 0), 0);
@@ -400,7 +400,7 @@ describe('wasi', { skip: !hasWasm }, () => {
             assert.strictEqual(wasi.fd_filestat_set_times(99, 0, 0, 10), 8);
 
             // SET_ATIM | SET_MTIM on a path, following the entry
-            assert.strictEqual(wasi.path_filestat_set_times(3, 0, 200, 8, 1e9, 2e9, 5), 0);
+            assert.strictEqual(wasi.path_filestat_set_times(3, 0, 200, 8, 1000000000n, 2000000000n, 5), 0);
             var host = fs.statSync(file);
             assert.strictEqual(Math.round(host.mtimeMs), 2000);
             assert.strictEqual(Math.round(host.atimeMs), 1000);
@@ -423,6 +423,8 @@ describe('wasi', { skip: !hasWasm }, () => {
             assert.strictEqual(view().getUint16(608, true), 8);
 
             // rights may only shrink; FD_READDIR is not part of a file's set
+            assert.throws(function() { wasi.fd_fdstat_set_rights(fd, -1n, 0n); }, { code: 'ERR_OUT_OF_RANGE' });
+            assert.throws(function() { wasi.fd_fdstat_set_rights(fd, 1n << 64n, 0n); }, { code: 'ERR_OUT_OF_RANGE' });
             assert.strictEqual(wasi.fd_fdstat_set_rights(fd, 1 << 14, 0), 76);
             assert.strictEqual(wasi.fd_fdstat_set_rights(fd, 2, 0), 0);
             assert.strictEqual(wasi.fd_fdstat_set_rights(99, 0, 0), 8);
@@ -482,6 +484,7 @@ describe('wasi', { skip: !hasWasm }, () => {
 
             // with FD_READ only, every other right is refused
             assert.strictEqual(wasi.fd_write(fd, 1000, 1, 760), 76);
+            assert.throws(function() { wasi.fd_seek(fd, 1n << 63n, 0, 760); }, { code: 'ERR_OUT_OF_RANGE' });
             assert.strictEqual(wasi.fd_seek(fd, 0, 0, 760), 76);
             assert.strictEqual(wasi.fd_tell(fd, 760), 76);
             assert.strictEqual(wasi.fd_pread(fd, 1000, 1, 0, 760), 76);
@@ -846,7 +849,7 @@ describe('wasi', { skip: !hasWasm }, () => {
             assert.strictEqual(Number(view().getBigUint64(760, true)), 5);
 
             // seek sets it, read moves it again
-            assert.strictEqual(wasi.fd_seek(fd, 0, 0, 760), 0);
+            assert.strictEqual(wasi.fd_seek(fd, 0n, 0, 760), 0);
             view().setUint32(1004, 2, true);
             assert.strictEqual(wasi.fd_read(fd, 1000, 1, 760), 0);
             assert.strictEqual(text(1200, 2), 'he');
@@ -864,9 +867,9 @@ describe('wasi', { skip: !hasWasm }, () => {
             assert.strictEqual(fs.statSync(file).size, 7);
 
             // set_size truncates, allocate grows the host file
-            assert.strictEqual(wasi.fd_filestat_set_size(fd, 2), 0);
+            assert.strictEqual(wasi.fd_filestat_set_size(fd, 2n), 0);
             assert.strictEqual(fs.statSync(file).size, 2);
-            assert.strictEqual(wasi.fd_allocate(fd, 0, 8), 0);
+            assert.strictEqual(wasi.fd_allocate(fd, 0n, 8n), 0);
             assert.strictEqual(fs.statSync(file).size, 8);
 
             // append ignores the tracked offset and moves the host position;
@@ -889,7 +892,7 @@ describe('wasi', { skip: !hasWasm }, () => {
                 assert.strictEqual(Number(view().getBigUint64(760, true)), 9);
 
                 // seek from the end sees the appended byte
-                assert.strictEqual(wasi.fd_seek(fd, -1, 2, 760), 0);
+                assert.strictEqual(wasi.fd_seek(fd, -1n, 2, 760), 0);
                 assert.strictEqual(wasi.fd_read(fd, 1000, 1, 760), 0);
                 assert.strictEqual(text(1200, 1), 'Z');
             }

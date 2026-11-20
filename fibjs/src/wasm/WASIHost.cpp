@@ -772,7 +772,7 @@ public:
         int32_t& retVal);
     virtual result_t environ_get(int32_t environ, int32_t environ_buf, int32_t& retVal);
     virtual result_t clock_res_get(int32_t clock_id, int32_t resolution, int32_t& retVal);
-    virtual result_t clock_time_get(int32_t clock_id, int64_t precision, int32_t time,
+    virtual result_t clock_time_get(int32_t clock_id, UInt64 precision, int32_t time,
         int32_t& retVal);
     virtual result_t random_get(int32_t buf, int32_t buf_len, int32_t& retVal);
     virtual result_t sched_yield(int32_t& retVal);
@@ -785,18 +785,18 @@ public:
     virtual result_t fd_prestat_dir_name(int32_t fd, int32_t path, int32_t path_len,
         int32_t& retVal);
     virtual result_t path_open(int32_t fd, int32_t dirflags, int32_t path, int32_t path_len,
-        int32_t oflags, int64_t rights_base, int64_t rights_inheriting, int32_t fdflags,
+        int32_t oflags, UInt64 rights_base, UInt64 rights_inheriting, int32_t fdflags,
         int32_t opened_fd, int32_t& retVal, AsyncHandle ac);
     virtual result_t path_filestat_get(int32_t fd, int32_t flags, int32_t path,
         int32_t path_len, int32_t buf, int32_t& retVal, AsyncHandle ac);
-    virtual result_t fd_seek(int32_t fd, int64_t offset, int32_t whence, int32_t newoffset,
+    virtual result_t fd_seek(int32_t fd, Int64 offset, int32_t whence, int32_t newoffset,
         int32_t& retVal, AsyncHandle ac);
     virtual result_t fd_tell(int32_t fd, int32_t offset, int32_t& retVal);
-    virtual result_t fd_pread(int32_t fd, int32_t iovs, int32_t iovs_len, int64_t offset,
+    virtual result_t fd_pread(int32_t fd, int32_t iovs, int32_t iovs_len, Int64 offset,
         int32_t nread, int32_t& retVal, AsyncHandle ac);
-    virtual result_t fd_pwrite(int32_t fd, int32_t iovs, int32_t iovs_len, int64_t offset,
+    virtual result_t fd_pwrite(int32_t fd, int32_t iovs, int32_t iovs_len, Int64 offset,
         int32_t nwritten, int32_t& retVal, AsyncHandle ac);
-    virtual result_t fd_readdir(int32_t fd, int32_t buf, int32_t buf_len, int64_t cookie,
+    virtual result_t fd_readdir(int32_t fd, int32_t buf, int32_t buf_len, UInt64 cookie,
         int32_t bufused, int32_t& retVal, AsyncHandle ac);
     virtual result_t path_create_directory(int32_t fd, int32_t path, int32_t path_len,
         int32_t& retVal, AsyncHandle ac);
@@ -814,20 +814,20 @@ public:
         int32_t buf_len, int32_t bufused, int32_t& retVal, AsyncHandle ac);
     virtual result_t path_symlink(int32_t old_path, int32_t old_path_len, int32_t fd,
         int32_t new_path, int32_t new_path_len, int32_t& retVal, AsyncHandle ac);
-    virtual result_t fd_filestat_set_size(int32_t fd, int64_t size, int32_t& retVal,
+    virtual result_t fd_filestat_set_size(int32_t fd, Int64 size, int32_t& retVal,
         AsyncHandle ac);
     virtual result_t fd_sync(int32_t fd, int32_t& retVal, AsyncHandle ac);
     virtual result_t fd_datasync(int32_t fd, int32_t& retVal, AsyncHandle ac);
-    virtual result_t fd_advise(int32_t fd, int64_t offset, int64_t len, int32_t advice,
+    virtual result_t fd_advise(int32_t fd, Int64 offset, Int64 len, int32_t advice,
         int32_t& retVal);
-    virtual result_t fd_allocate(int32_t fd, int64_t offset, int64_t len, int32_t& retVal);
+    virtual result_t fd_allocate(int32_t fd, Int64 offset, Int64 len, int32_t& retVal);
     virtual result_t fd_fdstat_set_flags(int32_t fd, int32_t flags, int32_t& retVal);
-    virtual result_t fd_fdstat_set_rights(int32_t fd, int64_t rights_base,
-        int64_t rights_inheriting, int32_t& retVal);
-    virtual result_t fd_filestat_set_times(int32_t fd, int64_t atim, int64_t mtim,
+    virtual result_t fd_fdstat_set_rights(int32_t fd, UInt64 rights_base,
+        UInt64 rights_inheriting, int32_t& retVal);
+    virtual result_t fd_filestat_set_times(int32_t fd, UInt64 atim, UInt64 mtim,
         int32_t flags, int32_t& retVal, AsyncHandle ac);
     virtual result_t path_filestat_set_times(int32_t fd, int32_t flags, int32_t path,
-        int32_t path_len, int64_t atim, int64_t mtim, int32_t fst_flags, int32_t& retVal,
+        int32_t path_len, UInt64 atim, UInt64 mtim, int32_t fst_flags, int32_t& retVal,
         AsyncHandle ac);
     virtual result_t fd_renumber(int32_t from, int32_t to, int32_t& retVal, AsyncHandle ac);
     virtual result_t sock_accept(int32_t fd, int32_t flags, int32_t fd_out, int32_t& retVal,
@@ -2996,7 +2996,7 @@ result_t WASIHost::clock_res_get(int32_t clock_id, int32_t resolution, int32_t& 
     return result_t();
 }
 
-result_t WASIHost::clock_time_get(int32_t clock_id, int64_t precision, int32_t time,
+result_t WASIHost::clock_time_get(int32_t clock_id, UInt64 precision, int32_t time,
     int32_t& retVal)
 {
     if (!m_bound)
@@ -3436,7 +3436,7 @@ result_t WASIHost::fd_prestat_dir_name(int32_t fd, int32_t path, int32_t path_le
 }
 
 result_t WASIHost::path_open(int32_t fd, int32_t dirflags, int32_t path, int32_t path_len,
-    int32_t oflags, int64_t rights_base, int64_t rights_inheriting, int32_t fdflags,
+    int32_t oflags, UInt64 rights_base, UInt64 rights_inheriting, int32_t fdflags,
     int32_t opened_fd, int32_t& retVal, AsyncHandle ac)
 {
     if (!m_bound)
@@ -3599,7 +3599,7 @@ result_t WASIHost::path_filestat_get(int32_t fd, int32_t flags, int32_t path,
     return start_op(this, ac, retVal, take_call(ac));
 }
 
-result_t WASIHost::fd_seek(int32_t fd, int64_t offset, int32_t whence, int32_t newoffset,
+result_t WASIHost::fd_seek(int32_t fd, Int64 offset, int32_t whence, int32_t newoffset,
     int32_t& retVal, AsyncHandle ac)
 {
     if (!m_bound)
@@ -3699,7 +3699,7 @@ result_t WASIHost::fd_tell(int32_t fd, int32_t offset, int32_t& retVal)
     return result_t();
 }
 
-result_t WASIHost::fd_pread(int32_t fd, int32_t iovs, int32_t iovs_len, int64_t offset,
+result_t WASIHost::fd_pread(int32_t fd, int32_t iovs, int32_t iovs_len, Int64 offset,
     int32_t nread, int32_t& retVal, AsyncHandle ac)
 {
     if (!m_bound)
@@ -3742,7 +3742,7 @@ result_t WASIHost::fd_pread(int32_t fd, int32_t iovs, int32_t iovs_len, int64_t 
     return start_op(this, ac, retVal, take_call(ac));
 }
 
-result_t WASIHost::fd_pwrite(int32_t fd, int32_t iovs, int32_t iovs_len, int64_t offset,
+result_t WASIHost::fd_pwrite(int32_t fd, int32_t iovs, int32_t iovs_len, Int64 offset,
     int32_t nwritten, int32_t& retVal, AsyncHandle ac)
 {
     if (!m_bound)
@@ -3785,7 +3785,7 @@ result_t WASIHost::fd_pwrite(int32_t fd, int32_t iovs, int32_t iovs_len, int64_t
     return start_op(this, ac, retVal, take_call(ac));
 }
 
-result_t WASIHost::fd_readdir(int32_t fd, int32_t buf, int32_t buf_len, int64_t cookie,
+result_t WASIHost::fd_readdir(int32_t fd, int32_t buf, int32_t buf_len, UInt64 cookie,
     int32_t bufused, int32_t& retVal, AsyncHandle ac)
 {
     if (!m_bound)
@@ -4122,7 +4122,7 @@ result_t WASIHost::path_symlink(int32_t old_path, int32_t old_path_len, int32_t 
     return start_op(this, ac, retVal, take_call(ac));
 }
 
-result_t WASIHost::fd_filestat_set_size(int32_t fd, int64_t size, int32_t& retVal,
+result_t WASIHost::fd_filestat_set_size(int32_t fd, Int64 size, int32_t& retVal,
     AsyncHandle ac)
 {
     if (!m_bound)
@@ -4207,7 +4207,7 @@ result_t WASIHost::fd_datasync(int32_t fd, int32_t& retVal, AsyncHandle ac)
     return sync_fd(fd, true, retVal, ac);
 }
 
-result_t WASIHost::fd_advise(int32_t fd, int64_t offset, int64_t len, int32_t advice,
+result_t WASIHost::fd_advise(int32_t fd, Int64 offset, Int64 len, int32_t advice,
     int32_t& retVal)
 {
     if (!m_bound)
@@ -4238,7 +4238,7 @@ result_t WASIHost::fd_advise(int32_t fd, int64_t offset, int64_t len, int32_t ad
     return result_t();
 }
 
-result_t WASIHost::fd_allocate(int32_t fd, int64_t offset, int64_t len, int32_t& retVal)
+result_t WASIHost::fd_allocate(int32_t fd, Int64 offset, Int64 len, int32_t& retVal)
 {
     if (!m_bound)
         return not_started();
@@ -4348,8 +4348,8 @@ result_t WASIHost::fd_fdstat_set_flags(int32_t fd, int32_t flags, int32_t& retVa
 #endif
 }
 
-result_t WASIHost::fd_fdstat_set_rights(int32_t fd, int64_t rights_base,
-    int64_t rights_inheriting, int32_t& retVal)
+result_t WASIHost::fd_fdstat_set_rights(int32_t fd, UInt64 rights_base,
+    UInt64 rights_inheriting, int32_t& retVal)
 {
     if (!m_bound)
         return not_started();
@@ -4374,7 +4374,7 @@ result_t WASIHost::fd_fdstat_set_rights(int32_t fd, int64_t rights_base,
     return result_t();
 }
 
-result_t WASIHost::fd_filestat_set_times(int32_t fd, int64_t atim, int64_t mtim,
+result_t WASIHost::fd_filestat_set_times(int32_t fd, UInt64 atim, UInt64 mtim,
     int32_t flags, int32_t& retVal, AsyncHandle ac)
 {
     if (!m_bound)
@@ -4417,7 +4417,7 @@ result_t WASIHost::fd_filestat_set_times(int32_t fd, int64_t atim, int64_t mtim,
 }
 
 result_t WASIHost::path_filestat_set_times(int32_t fd, int32_t flags, int32_t path,
-    int32_t path_len, int64_t atim, int64_t mtim, int32_t fst_flags, int32_t& retVal,
+    int32_t path_len, UInt64 atim, UInt64 mtim, int32_t fst_flags, int32_t& retVal,
     AsyncHandle ac)
 {
     if (!m_bound)
