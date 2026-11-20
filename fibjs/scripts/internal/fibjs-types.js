@@ -88647,13 +88647,13 @@ declare module 'crypto' {
             passphrase?: string | Class_Buffer;
         };
     }): {
-        publicKey: any;
-        privateKey: any;
+        publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        privateKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
     };
 
     function generateKeyPair(type: string, callback: (err: Error | undefined | null, retVal: {
-        publicKey: any;
-        privateKey: any;
+        publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        privateKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
     })=>any): void;
 
     function generateKeyPair(type: string, options: {
@@ -88678,8 +88678,8 @@ declare module 'crypto' {
             passphrase?: string | Class_Buffer;
         };
     }, callback: (err: Error | undefined | null, retVal: {
-        publicKey: any;
-        privateKey: any;
+        publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        privateKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
     })=>any): void;
 
     /**
@@ -88743,8 +88743,8 @@ declare module 'crypto' {
             passphrase?: string | Class_Buffer;
         };
     }): {
-        publicKey: any;
-        privateKey: any;
+        publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        privateKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
     };
 
     /**
@@ -88808,8 +88808,8 @@ declare module 'crypto' {
             passphrase?: string | Class_Buffer;
         };
     }): Promise<{
-        publicKey: any;
-        privateKey: any;
+        publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        privateKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
     }>;
 
     /**
@@ -91046,8 +91046,8 @@ declare module 'crypto/promises' {
             passphrase?: string | Class_Buffer;
         };
     }): Promise<{
-        publicKey: any;
-        privateKey: any;
+        publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        privateKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
     }>;
 
     /**
@@ -91111,8 +91111,8 @@ declare module 'crypto/promises' {
             passphrase?: string | Class_Buffer;
         };
     }): {
-        publicKey: any;
-        privateKey: any;
+        publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        privateKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
     };
 
     /**
@@ -91176,8 +91176,8 @@ declare module 'crypto/promises' {
             passphrase?: string | Class_Buffer;
         };
     }): Promise<{
-        publicKey: any;
-        privateKey: any;
+        publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        privateKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
     }>;
 
     /**
@@ -123228,7 +123228,7 @@ declare module 'semver' {
         major: number;
         minor: number;
         patch: number;
-        prerelease: any[];
+        prerelease: (string | number)[];
         build: string[];
     };
 
@@ -123599,7 +123599,7 @@ declare module 'semver' {
         major: number;
         minor: number;
         patch: number;
-        prerelease: any[];
+        prerelease: (string | number)[];
         build: string[];
     };
 
@@ -123809,7 +123809,7 @@ declare module 'semver' {
         major: number;
         minor: number;
         patch: number;
-        prerelease: any[];
+        prerelease: (string | number)[];
         build: string[];
     };
 
