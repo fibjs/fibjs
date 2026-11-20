@@ -117990,7 +117990,17 @@ declare module 'os' {
      *      @return returns an array containing cpu parameters, each item corresponding to one cpu
      *
      */
-    function cpus(): any[];
+    function cpus(): {
+        model: string;
+        speed: number;
+        times: {
+            user: number;
+            nice: number;
+            sys: number;
+            idle: number;
+            irq: number;
+        };
+    }[];
 
     /**
      * @description Queries the number of CPUs in the current runtime environment
@@ -123219,7 +123229,7 @@ declare module 'semver' {
         minor: number;
         patch: number;
         prerelease: any[];
-        build: any[];
+        build: string[];
     };
 
     /**
@@ -123590,7 +123600,7 @@ declare module 'semver' {
         minor: number;
         patch: number;
         prerelease: any[];
-        build: any[];
+        build: string[];
     };
 
     /**
@@ -123800,7 +123810,7 @@ declare module 'semver' {
         minor: number;
         patch: number;
         prerelease: any[];
-        build: any[];
+        build: string[];
     };
 
 }
