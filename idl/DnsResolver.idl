@@ -376,5 +376,5 @@ interface DnsResolver : object
      ```
      @param servers the DNS server list
      */
-    setServers(Array servers);
+    setServers(String servers[]);
 };

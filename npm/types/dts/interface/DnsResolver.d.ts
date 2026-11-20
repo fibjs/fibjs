@@ -1045,7 +1045,7 @@ declare class Class_DnsResolver extends Class_object {
      *      @param servers the DNS server list
      *
      */
-    setServers(servers: any[]): void;
+    setServers(servers: string[]): void;
 
 }
 
@@ -2023,7 +2023,7 @@ declare class Class_DnsResolverPromise extends Class_object {
      *      @param servers the DNS server list
      *
      */
-    setServers(servers: any[]): void;
+    setServers(servers: string[]): void;
 
 }
 

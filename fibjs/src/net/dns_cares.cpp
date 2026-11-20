@@ -801,52 +801,21 @@ result_t dns_base::getServers(std::vector<exlib::string>& retVal)
     return channel->getServers(retVal);
 }
 
-static result_t array_to_strings(v8::Local<v8::Array> arr,
-    std::vector<exlib::string>& retVal)
+result_t dns_base::setServers(std::vector<exlib::string>& servers)
 {
-    int32_t len = arr->Length();
-
-    for (int32_t i = 0; i < len; i++) {
-        v8::Local<v8::Value> item = arr->Get(Isolate::current()->context(), i)
-                                       .ToLocalChecked();
-
-        if (!item->IsString()) {
-            char name[32];
-            snprintf(name, sizeof(name), "servers[%d]", i);
-            return errhelp::invalid_arg_type(name, "of type string",
-                Variant(item));
-        }
-
-        exlib::string s;
-        result_t hr = GetConfigValue(arr, i, s, true);
-        if (hr.failed())
-            return hr;
-        retVal.push_back(s);
-    }
-
-    return result_t();
-}
-
-result_t dns_base::setServers(v8::Local<v8::Array> servers)
-{
-    std::vector<exlib::string> list;
-    result_t hr = array_to_strings(servers, list);
-    if (hr.failed())
-        return hr;
-
     // Node creates a new default Resolver and swaps it in.  Pending queries on
     // the old channel keep it alive and still complete; they must not make the
     // module-level call fail (only Resolver.prototype.setServers checks pending).
     obj_ptr<CaresChannel> channel;
-    hr = CaresChannel::create(-1, 4, 0, channel);
+    result_t hr = CaresChannel::create(-1, 4, 0, channel);
     if (hr.failed())
         return hr;
 
-    hr = channel->setServers(list);
+    hr = channel->setServers(servers);
     if (hr.failed())
         return hr;
 
-    Isolate* isolate = Isolate::current(servers);
+    Isolate* isolate = Isolate::current();
     obj_ptr<DnsDefaultState> state = default_state(isolate);
 
     std::lock_guard<std::mutex> lock(s_defaults_lock);
@@ -1090,17 +1059,12 @@ public:
         return m_channel->getServers(retVal);
     }
 
-    virtual result_t setServers(v8::Local<v8::Array> servers)
+    virtual result_t setServers(std::vector<exlib::string>& servers)
     {
-        std::vector<exlib::string> list;
-        result_t hr = array_to_strings(servers, list);
-        if (hr.failed())
-            return hr;
-
         if (!m_channel)
             return cares_error(ARES_EDESTRUCTION, "setServers", "");
 
-        return m_channel->setServers(list);
+        return m_channel->setServers(servers);
     }
 
 private:

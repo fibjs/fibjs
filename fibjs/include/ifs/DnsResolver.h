@@ -44,7 +44,7 @@ public:
     virtual result_t cancel() = 0;
     virtual result_t setLocalAddress(exlib::string ipv4, exlib::string ipv6) = 0;
     virtual result_t getServers(std::vector<exlib::string>& retVal) = 0;
-    virtual result_t setServers(v8::Local<v8::Array> servers) = 0;
+    virtual result_t setServers(std::vector<exlib::string>& servers) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -525,7 +525,7 @@ inline void DnsResolver_base::s_setServers(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER_NAMED(1, 1, "servers");
 
-    ARG_NAMED(v8::Local<v8::Array>, 0, "servers");
+    ARG_NAMED(std::vector<exlib::string>, 0, "servers");
 
     hr = pInst->setServers(v0);
 

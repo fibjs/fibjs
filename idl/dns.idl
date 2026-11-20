@@ -453,7 +453,7 @@ module dns
      ```
      @param servers the DNS server list
      */
-    static setServers(Array servers);
+    static setServers(String servers[]);
 
     /*! @brief Reads the default result order used by lookup
 

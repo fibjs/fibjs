@@ -1405,7 +1405,7 @@ declare module 'dns' {
      *      @param servers the DNS server list
      *
      */
-    function setServers(servers: any[]): void;
+    function setServers(servers: string[]): void;
 
     /**
      * @description Reads the default result order used by lookup

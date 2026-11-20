@@ -85,7 +85,7 @@ public:
     static result_t reverse(exlib::string ip, std::vector<exlib::string>& retVal, AsyncHandle ac);
     static result_t lookupService(exlib::string address, double port, obj_ptr<LookupServiceType>& retVal, AsyncHandle ac);
     static result_t getServers(std::vector<exlib::string>& retVal);
-    static result_t setServers(v8::Local<v8::Array> servers);
+    static result_t setServers(std::vector<exlib::string>& servers);
     static result_t getDefaultResultOrder(exlib::string& retVal);
     static result_t setDefaultResultOrder(exlib::string order);
     static result_t get_ADDRCONFIG(int32_t& retVal);
@@ -596,7 +596,7 @@ inline void dns_base::s_static_setServers(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER_NAMED(1, 1, "servers");
 
-    ARG_NAMED(v8::Local<v8::Array>, 0, "servers");
+    ARG_NAMED(std::vector<exlib::string>, 0, "servers");
 
     hr = setServers(v0);
 
