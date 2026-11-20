@@ -492,12 +492,15 @@ nextitem
   }
 
 itemtype
-  = _* type:Identifier _* name:Identifier def:def? {
-    return {
+  = _* type:(paramStruct / Identifier) _* isarray:("[" _* "]")? _* name:Identifier def:def? {
+    var item = {
       type: type,
       name: name,
       default:def
-    }
+    };
+    if (isarray)
+      item.isarray = true;
+    return item;
   }
 
 

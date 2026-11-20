@@ -1396,11 +1396,59 @@ function gen_code(cls, def, baseFolder, allDefs) {
             var types = {};
             var bHasTypes = false;
 
+            function ret_field_type(parentName, item) {
+                if (Array.isArray(item.type)) {
+                    var nested = nested_option_name(parentName, item.name);
+                    return item.isarray ? `std::vector<obj_ptr<${nested}>>` : `obj_ptr<${nested}>`;
+                }
+                return get_rtype(item.type, item.isarray);
+            }
+
+            function emit_ret_type(name, fields) {
+                // A nested return record is emitted before its parent so the
+                // parent's inline to_value() sees the complete type.
+                fields.forEach(t => {
+                    if (Array.isArray(t.type))
+                        emit_ret_type(nested_option_name(name, t.name), t.type);
+                });
+
+                var ts = [];
+
+                ts.push(`    class ${name} : public NType {`);
+
+                ts.push('    public:');
+                ts.push('        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)');
+                ts.push('        {');
+                ts.push('            v8::Local<v8::Context> context = isolate->context();');
+
+                fields.forEach(t => {
+                    ts.push(`            retVal->Set(context, isolate->NewString("${t.name}"), GetReturnValue(isolate, ${t.name})).Check();`);
+                });
+
+                ts.push('        }\n');
+
+                ts.push('        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)');
+                ts.push('        {');
+
+                fields.forEach(t => {
+                    ts.push(`            args.push_back(GetReturnValue(isolate, ${t.name}));`);
+                });
+
+                ts.push('        }\n');
+
+                ts.push('    public:');
+                fields.forEach(t => {
+                    ts.push(`        ${ret_field_type(name, t)} ${t.name};`);
+                });
+
+                ts.push('    };');
+
+                types[name] = ts.join('\n');
+            }
+
             def.members.forEach(fn => {
                 if (Array.isArray(fn.type)) {
                     bHasTypes = true;
-
-                    var ts = [];
 
                     var name = fn.name;
                     name = name.substr(0, 1).toUpperCase() + name.substr(1) + "Type";
@@ -1409,36 +1457,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                         ofun.type.name = name;
                     })
 
-                    ts.push(`    class ${name} : public NType {`);
-
-                    ts.push('    public:');
-                    ts.push('        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)');
-                    ts.push('        {');
-                    ts.push('            v8::Local<v8::Context> context = isolate->context();');
-
-                    fn.type.forEach(t => {
-                        ts.push(`            retVal->Set(context, isolate->NewString("${t.name}"), GetReturnValue(isolate, ${t.name})).Check();`);
-                    });
-
-                    ts.push('        }\n');
-
-                    ts.push('        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)');
-                    ts.push('        {');
-
-                    fn.type.forEach(t => {
-                        ts.push(`            args.push_back(GetReturnValue(isolate, ${t.name}));`);
-                    });
-
-                    ts.push('        }\n');
-
-                    ts.push('    public:');
-                    fn.type.forEach(t => {
-                        ts.push(`        ${get_rtype(t.type)} ${t.name};`);
-                    });
-
-                    ts.push('    };');
-
-                    types[name] = ts.join('\n');
+                    emit_ret_type(name, fn.type);
                 }
             });
 
@@ -1994,7 +2013,7 @@ function gen_code(cls, def, baseFolder, allDefs) {
                 return;
 
             if (Array.isArray(m.type))
-                m.type.forEach(rt => add_type(rt.type));
+                m.type.forEach(add_field_type);
             else
                 add_type(m.type);
 
