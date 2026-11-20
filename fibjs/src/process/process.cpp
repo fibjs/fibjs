@@ -266,18 +266,15 @@ result_t process_base::umask(int32_t& retVal)
 #define NANOS_PER_SEC 1000000000LL
 #define MICROS_PER_SEC 1e6
 
-result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& retVal)
+result_t process_base::hrtime(std::vector<int64_t>& diff, std::vector<int64_t>& retVal)
 {
     uint64_t t = uv_hrtime();
 
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-
-    if (diff->Length() == 2) {
-        uint64_t seconds = isolate->toUint32Value(JSValue(diff->Get(context, 0)));
-        uint64_t nanos = isolate->toUint32Value(JSValue(diff->Get(context, 1)));
+    if (diff.size() == 2) {
+        uint64_t seconds = (uint64_t)diff[0];
+        uint64_t nanos = (uint64_t)diff[1];
         t -= (seconds * NANOS_PER_SEC) + nanos;
-    } else if (diff->Length() != 0) {
+    } else if (!diff.empty()) {
         // Node rejects a diff that is not a two-element tuple instead of
         // silently ignoring it, so a mistyped argument cannot turn into a
         // plausible-looking but wrong reading.
@@ -286,11 +283,8 @@ result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& r
             .with_message("The value of \"time\" is out of range. It must be an Array of two numbers.");
     }
 
-    v8::Local<v8::Array> tuple = v8::Array::New(isolate->m_isolate, 2);
-    tuple->Set(context, 0, v8::Integer::NewFromUnsigned(isolate->m_isolate, (uint32_t)(t / NANOS_PER_SEC))).IsJust();
-    tuple->Set(context, 1, v8::Integer::NewFromUnsigned(isolate->m_isolate, t % NANOS_PER_SEC)).IsJust();
-
-    retVal = tuple;
+    retVal.push_back((int64_t)(t / NANOS_PER_SEC));
+    retVal.push_back((int64_t)(t % NANOS_PER_SEC));
 
     return result_t();
 }
@@ -474,42 +468,30 @@ result_t process_base::resourceUsage(obj_ptr<ResourceUsageType>& retVal)
 
 extern exlib::atomic g_ExtStringCount;
 
-result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
+result_t process_base::memoryUsage(obj_ptr<MemoryUsageType>& retVal)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> info = v8::Object::New(isolate->m_isolate);
 
     size_t rss;
     int32_t ret = uv_resident_set_memory(&rss);
     if (ret < 0)
         return result_t::from_system(ret);
 
-    info->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss)).IsJust();
-
     v8::HeapStatistics v8_heap_stats;
     isolate->m_isolate->GetHeapStatistics(&v8_heap_stats);
-
-    info->Set(context, isolate->NewString("heapTotal"),
-            v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()))
-        .IsJust();
-    info->Set(context, isolate->NewString("heapUsed"),
-            v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()))
-        .IsJust();
-    info->Set(context, isolate->NewString("external"),
-            v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.external_memory()))
-        .IsJust();
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
     if (objs.IsEmpty())
         objs = v8::Object::New(isolate->m_isolate);
-    info->Set(context, isolate->NewString("nativeObjects"), objs).IsJust();
-    info->Set(context, isolate->NewString("ExtStrings"),
-            v8::Number::New(isolate->m_isolate, (double)g_ExtStringCount.value()))
-        .IsJust();
 
-    retVal = info;
+    retVal = new MemoryUsageType();
+    retVal->rss = (double)rss;
+    retVal->heapTotal = (double)v8_heap_stats.total_heap_size();
+    retVal->heapUsed = (double)v8_heap_stats.used_heap_size();
+    retVal->external = (double)v8_heap_stats.external_memory();
+    retVal->nativeObjects = objs;
+    retVal->ExtStrings = (double)g_ExtStringCount.value();
 
     return result_t();
 }

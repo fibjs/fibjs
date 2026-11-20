@@ -69,6 +69,37 @@ public:
         double user;
         double system;
     };
+    class MemoryUsageType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("rss"), GetReturnValue(isolate, rss)).Check();
+            retVal->Set(context, isolate->NewString("heapTotal"), GetReturnValue(isolate, heapTotal)).Check();
+            retVal->Set(context, isolate->NewString("heapUsed"), GetReturnValue(isolate, heapUsed)).Check();
+            retVal->Set(context, isolate->NewString("external"), GetReturnValue(isolate, external)).Check();
+            retVal->Set(context, isolate->NewString("nativeObjects"), GetReturnValue(isolate, nativeObjects)).Check();
+            retVal->Set(context, isolate->NewString("ExtStrings"), GetReturnValue(isolate, ExtStrings)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, rss));
+            args.push_back(GetReturnValue(isolate, heapTotal));
+            args.push_back(GetReturnValue(isolate, heapUsed));
+            args.push_back(GetReturnValue(isolate, external));
+            args.push_back(GetReturnValue(isolate, nativeObjects));
+            args.push_back(GetReturnValue(isolate, ExtStrings));
+        }
+
+    public:
+        double rss;
+        double heapTotal;
+        double heapUsed;
+        double external;
+        v8::Local<v8::Object> nativeObjects;
+        double ExtStrings;
+    };
     class ResourceUsageType : public NType {
     public:
         virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
@@ -153,7 +184,7 @@ public:
     static result_t set_exitCode(int32_t newVal);
     static result_t umask(Union_umask_mask mask, int32_t& retVal);
     static result_t umask(int32_t& retVal);
-    static result_t hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& retVal);
+    static result_t hrtime(std::vector<int64_t>& diff, std::vector<int64_t>& retVal);
     static result_t exit();
     static result_t exit(int32_t code);
     static result_t cwd(exlib::string& retVal);
@@ -162,7 +193,7 @@ public:
     static result_t loadEnvFile(exlib::string path);
     static result_t uptime(double& retVal);
     static result_t cpuUsage(v8::Local<v8::Object> previousValue, obj_ptr<CpuUsageType>& retVal);
-    static result_t memoryUsage(v8::Local<v8::Object>& retVal);
+    static result_t memoryUsage(obj_ptr<MemoryUsageType>& retVal);
     static result_t constrainedMemory(double& retVal);
     static result_t resourceUsage(obj_ptr<ResourceUsageType>& retVal);
     static result_t nextTick(v8::Local<v8::Function> func, OptArgs args);
@@ -557,13 +588,13 @@ inline void process_base::s_static_umask(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void process_base::s_static_hrtime(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    std::vector<int64_t> vr;
 
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate), "diff");
+    OPT_ARG_NAMED(std::vector<int64_t>, 0, std::vector<int64_t>(), "diff");
 
     hr = hrtime(v0, vr);
 
@@ -671,7 +702,7 @@ inline void process_base::s_static_cpuUsage(const v8::FunctionCallbackInfo<v8::V
 
 inline void process_base::s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<MemoryUsageType> vr;
 
     METHOD_ENTER();
 

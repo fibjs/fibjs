@@ -374,7 +374,7 @@ module process : EventEmitter
      @param diff the initial time to compare against
      @return returns the measured time in the format [seconds, nanoseconds]
     */
-    static Array hrtime(Array diff = []);
+    static Long[] hrtime(Long diff[] = []);
 
     /*! @brief Exits the current process, using exitCode as the process result
 
@@ -538,7 +538,7 @@ module process : EventEmitter
      ```
      @return returns the memory report
      */
-    static Object memoryUsage();
+    static (Number rss, Number heapTotal, Number heapUsed, Number external, Object nativeObjects, Number ExtStrings) memoryUsage();
 
     /*! @brief Reports the memory limit of the current process
 

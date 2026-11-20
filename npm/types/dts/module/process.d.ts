@@ -422,7 +422,7 @@ declare module 'process' {
      *      @return returns the measured time in the format [seconds, nanoseconds]
      *
      */
-    function hrtime(diff?: any[]): any[];
+    function hrtime(diff?: number[]): number[];
 
     /**
      * @description Exits the current process, using exitCode as the process result
@@ -607,7 +607,14 @@ declare module 'process' {
      *      @return returns the memory report
      *
      */
-    function memoryUsage(): FIBJS.GeneralObject;
+    function memoryUsage(): {
+        rss: number;
+        heapTotal: number;
+        heapUsed: number;
+        external: number;
+        nativeObjects: FIBJS.GeneralObject;
+        ExtStrings: number;
+    };
 
     /**
      * @description Reports the memory limit of the current process
