@@ -143,7 +143,7 @@ result_t util_base::has(v8::Local<v8::Value> v, exlib::string key, bool& retVal)
     return result_t();
 }
 
-result_t util_base::keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
+result_t util_base::keys(v8::Local<v8::Value> v, std::vector<exlib::string>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
@@ -151,17 +151,12 @@ result_t util_base::keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
         v8::Local<v8::Context> context = isolate->context();
 
         v8::Local<v8::Object> obj = v->ToObject(context).FromMaybe(v8::Local<v8::Object>());
+        v8::Local<v8::Array> names = JSArray(obj->GetPropertyNames(context));
+        int32_t len = names->Length();
 
-        retVal = JSArray(obj->GetPropertyNames(context));
-        if (obj->IsArray()) {
-            int32_t len = retVal->Length();
-            int32_t i;
-
-            for (i = 0; i < len; i++)
-                retVal->Set(context, i, isolate->toLocalString(JSValue(retVal->Get(context, i)))).IsJust();
-        }
-    } else
-        retVal = v8::Array::New(isolate->m_isolate);
+        for (int32_t i = 0; i < len; i++)
+            retVal.push_back(isolate->toString(JSValue(names->Get(context, i))));
+    }
 
     return result_t();
 }

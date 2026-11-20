@@ -795,7 +795,7 @@ module util
      @param v the object to query
      @return returns the array of enumerable property names
      */
-    static Array keys(Value v);
+    static String[] keys(Value v);
 
     /*! @brief Queries the array of all values of the specified object
 

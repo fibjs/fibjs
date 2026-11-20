@@ -924,7 +924,7 @@ declare module 'util' {
      *      @return returns the array of enumerable property names
      *
      */
-    function keys(v: any): any[];
+    function keys(v: any): string[];
 
     /**
      * @description Queries the array of all values of the specified object
