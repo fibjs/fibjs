@@ -843,8 +843,11 @@ private:
 template <typename T>
 class _at<std::vector<T>> {
 public:
+    // Copy rather than move: the *_ACB macros call the method once
+    // synchronously with the original argument after building the async
+    // storage, so moving here would leave that call with an empty vector.
     _at(std::vector<T>& v)
-        : m_v(std::move(v))
+        : m_v(v)
     {
     }
 
