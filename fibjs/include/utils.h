@@ -1301,6 +1301,11 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, obj_ptr<T>& obj)
     return v;
 }
 
+// Declared before the vector overload: a vector of a return-record union field
+// has to see this overload while the vector template is instantiated.
+template <typename... Ts>
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::variant<Ts...>& v);
+
 template <typename T>
 inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::vector<T>& vec)
 {
@@ -1311,6 +1316,14 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::vector<T>& vec
         arr->Set(context, i, GetReturnValue(isolate, vec[i]));
 
     return arr;
+}
+
+template <typename... Ts>
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::variant<Ts...>& v)
+{
+    return std::visit([isolate](auto& value) -> v8::Local<v8::Value> {
+        return GetReturnValue(isolate, value);
+    }, v);
 }
 
 // Render a bounded, secret-free summary of a value for error diagnostics.

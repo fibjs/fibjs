@@ -1401,6 +1401,12 @@ function gen_code(cls, def, baseFolder, allDefs) {
                     var nested = nested_option_name(parentName, item.name);
                     return item.isarray ? `std::vector<obj_ptr<${nested}>>` : `obj_ptr<${nested}>`;
                 }
+
+                if (isUnion(item.type)) {
+                    var base = `std::variant<${union_variants(item.type).join(', ')}>`;
+                    return item.isarray ? `std::vector<${base}>` : base;
+                }
+
                 return get_rtype(item.type, item.isarray);
             }
 

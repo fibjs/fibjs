@@ -336,8 +336,9 @@ paramType
 
 // A parameter-position struct is an options record: its fields may be
 // scalars, arrays (`String[]`), unions (`String|Integer`), nested structs or
-// shaped callbacks. The return-position `struct` above keeps the plain
-// Identifier fields it has always had.
+// shaped callbacks. The return-position `struct` below accepts the same
+// scalar/array/union/nested shapes; `fieldName[]` is the array spelling used
+// when the element is a union (`String|Long values[]`).
 paramStruct
   = "(" items:paramStructItems? _* ")" {
       return items;
@@ -492,13 +493,13 @@ nextitem
   }
 
 itemtype
-  = _* type:(paramStruct / Identifier) _* isarray:("[" _* "]")? _* name:Identifier def:def? {
+  = _* type:(paramStruct / UnionType / Identifier) _* isarray1:("[" _* "]")? _* name:Identifier isarray2:("[" _* "]")? def:def? {
     var item = {
       type: type,
       name: name,
       default:def
     };
-    if (isarray)
+    if (isarray1 || isarray2)
       item.isarray = true;
     return item;
   }
