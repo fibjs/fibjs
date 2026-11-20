@@ -100,7 +100,7 @@ result_t subtle_base::exportKey(exlib::string format, CryptoKey_base* key, Varia
 }
 
 result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyData, Union_importKey_algorithm algorithm,
-    bool extractable, v8::Local<v8::Array> usages, obj_ptr<CryptoKey_base>& retVal, AsyncHandle ac)
+    bool extractable, std::vector<exlib::string>& usages, obj_ptr<CryptoKey_base>& retVal, AsyncHandle ac)
 {
     if (ac.isSync()) {
         Isolate* isolate = ac.isolate();

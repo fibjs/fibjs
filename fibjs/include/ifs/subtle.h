@@ -37,8 +37,8 @@ public:
     // subtle_base
     static result_t digest(Union_digest_algorithm algorithm, Union_digest_data data, std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac);
     static result_t exportKey(exlib::string format, CryptoKey_base* key, Variant& retVal, AsyncHandle ac);
-    static result_t generateKey(Union_generateKey_algorithm algorithm, bool extractable, v8::Local<v8::Array> usages, Variant& retVal, AsyncHandle ac);
-    static result_t importKey(exlib::string format, v8::Local<v8::Value> keyData, Union_importKey_algorithm algorithm, bool extractable, v8::Local<v8::Array> usages, obj_ptr<CryptoKey_base>& retVal, AsyncHandle ac);
+    static result_t generateKey(Union_generateKey_algorithm algorithm, bool extractable, std::vector<exlib::string>& usages, Variant& retVal, AsyncHandle ac);
+    static result_t importKey(exlib::string format, v8::Local<v8::Value> keyData, Union_importKey_algorithm algorithm, bool extractable, std::vector<exlib::string>& usages, obj_ptr<CryptoKey_base>& retVal, AsyncHandle ac);
     static result_t sign(Union_sign_algorithm algorithm, CryptoKey_base* key, Union_sign_data data, std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac);
     static result_t verify(Union_verify_algorithm algorithm, CryptoKey_base* key, Union_verify_signature signature, Union_verify_data data, bool& retVal, AsyncHandle ac);
     static result_t deriveBits(Union_deriveBits_algorithm algorithm, CryptoKey_base* baseKey, int32_t length, std::shared_ptr<v8::BackingStore>& retVal, AsyncHandle ac);
@@ -66,8 +66,8 @@ public:
 public:
     ASYNC_STATICVALUE3(subtle_base, digest, Union_digest_algorithm, Union_digest_data, std::shared_ptr<v8::BackingStore>);
     ASYNC_STATICVALUE3(subtle_base, exportKey, exlib::string, CryptoKey_base*, Variant);
-    ASYNC_STATICVALUE4(subtle_base, generateKey, Union_generateKey_algorithm, bool, v8::Local<v8::Array>, Variant);
-    ASYNC_STATICVALUE6(subtle_base, importKey, exlib::string, v8::Local<v8::Value>, Union_importKey_algorithm, bool, v8::Local<v8::Array>, obj_ptr<CryptoKey_base>);
+    ASYNC_STATICVALUE4(subtle_base, generateKey, Union_generateKey_algorithm, bool, std::vector<exlib::string>, Variant);
+    ASYNC_STATICVALUE6(subtle_base, importKey, exlib::string, v8::Local<v8::Value>, Union_importKey_algorithm, bool, std::vector<exlib::string>, obj_ptr<CryptoKey_base>);
     ASYNC_STATICVALUE4(subtle_base, sign, Union_sign_algorithm, CryptoKey_base*, Union_sign_data, std::shared_ptr<v8::BackingStore>);
     ASYNC_STATICVALUE5(subtle_base, verify, Union_verify_algorithm, CryptoKey_base*, Union_verify_signature, Union_verify_data, bool);
     ASYNC_STATICVALUE4(subtle_base, deriveBits, Union_deriveBits_algorithm, CryptoKey_base*, int32_t, std::shared_ptr<v8::BackingStore>);
@@ -149,7 +149,7 @@ inline void subtle_base::s_static_generateKey(const v8::FunctionCallbackInfo<v8:
 
     ARG(Union_generateKey_algorithm, 0);
     ARG_NAMED(bool, 1, "extractable");
-    ARG_NAMED(v8::Local<v8::Array>, 2, "usages");
+    ARG_NAMED(std::vector<exlib::string>, 2, "usages");
 
     if (!cb.IsEmpty())
         hr = acb_generateKey(v0, v1, v2, cb, args);
@@ -171,7 +171,7 @@ inline void subtle_base::s_static_importKey(const v8::FunctionCallbackInfo<v8::V
     ARG_NAMED(v8::Local<v8::Value>, 1, "keyData");
     ARG(Union_importKey_algorithm, 2);
     ARG_NAMED(bool, 3, "extractable");
-    ARG_NAMED(v8::Local<v8::Array>, 4, "usages");
+    ARG_NAMED(std::vector<exlib::string>, 4, "usages");
 
     if (!cb.IsEmpty())
         hr = acb_importKey(v0, v1, v2, v3, v4, cb, args);

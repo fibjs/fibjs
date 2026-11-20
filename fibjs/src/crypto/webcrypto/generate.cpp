@@ -160,7 +160,7 @@ result_t CryptoKey::generate_ecdh()
     return createPublicKey();
 }
 
-result_t subtle_base::generateKey(Union_generateKey_algorithm algorithm, bool extractable, v8::Local<v8::Array> usages,
+result_t subtle_base::generateKey(Union_generateKey_algorithm algorithm, bool extractable, std::vector<exlib::string>& usages,
     Variant& retVal, AsyncHandle ac)
 {
     if (ac.isSync()) {

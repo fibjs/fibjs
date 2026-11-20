@@ -10,21 +10,14 @@
 
 namespace fibjs {
 
-result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, v8::Local<v8::Array> usages)
+result_t CryptoKey::get_param(v8::Local<v8::Object> params, bool extractable, std::vector<exlib::string>& usages)
 {
     result_t hr;
     exlib::string name;
 
     m_extractable = extractable;
 
-    int32_t len = usages->Length();
-
-    for (int32_t i = 0; i < len; i++) {
-        exlib::string usage;
-        hr = GetConfigValue(usages, i, usage, true);
-        if (hr.failed())
-            return hr;
-
+    for (const exlib::string& usage : usages) {
         if (qstrcmp(usage.c_str(), "sign")
             && qstrcmp(usage.c_str(), "verify")
             && qstrcmp(usage.c_str(), "encrypt")

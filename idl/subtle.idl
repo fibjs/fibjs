@@ -200,7 +200,7 @@ module subtle
      @param usages the operations the key may perform; see the module Concepts
      @return a CryptoKey, or a `{ publicKey, privateKey }` object for a key pair
      */
-    static Variant generateKey(Object|String algorithm, Boolean extractable, Array usages) promise;
+    static Variant generateKey(Object|String algorithm, Boolean extractable, String usages[]) promise;
 
     /*! @brief Imports existing key material as a CryptoKey
 
@@ -239,7 +239,7 @@ module subtle
      @param usages the operations the key may perform
      @return the imported CryptoKey
      */
-    static CryptoKey importKey(String format, Value keyData, Object|String algorithm, Boolean extractable, Array usages) promise;
+    static CryptoKey importKey(String format, Value keyData, Object|String algorithm, Boolean extractable, String usages[]) promise;
 
     /*! @brief Signs data with a private or secret key and resolves to the signature
 

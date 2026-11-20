@@ -346,7 +346,7 @@ declare module 'subtle' {
      *      @return a CryptoKey, or a `{ publicKey, privateKey }` object for a key pair
      *
      */
-    function generateKey(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): Promise<any>;
+    function generateKey(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): Promise<any>;
 
     /**
      * @description Generates a new key or key pair
@@ -402,7 +402,7 @@ declare module 'subtle' {
      *      @return a CryptoKey, or a `{ publicKey, privateKey }` object for a key pair
      *
      */
-    function generateKeySync(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): any;
+    function generateKeySync(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): any;
 
     /**
      * @description Generates a new key or key pair
@@ -458,7 +458,7 @@ declare module 'subtle' {
      *      @return a CryptoKey, or a `{ publicKey, privateKey }` object for a key pair
      *
      */
-    function generateKeyAsync(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): Promise<any>;
+    function generateKeyAsync(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): Promise<any>;
 
     /**
      * @description Imports existing key material as a CryptoKey
@@ -499,7 +499,7 @@ declare module 'subtle' {
      *      @return the imported CryptoKey
      *
      */
-    function importKey(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): Promise<Class_CryptoKey>;
+    function importKey(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): Promise<Class_CryptoKey>;
 
     /**
      * @description Imports existing key material as a CryptoKey
@@ -540,7 +540,7 @@ declare module 'subtle' {
      *      @return the imported CryptoKey
      *
      */
-    function importKeySync(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): Class_CryptoKey;
+    function importKeySync(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): Class_CryptoKey;
 
     /**
      * @description Imports existing key material as a CryptoKey
@@ -581,7 +581,7 @@ declare module 'subtle' {
      *      @return the imported CryptoKey
      *
      */
-    function importKeyAsync(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): Promise<Class_CryptoKey>;
+    function importKeyAsync(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): Promise<Class_CryptoKey>;
 
     /**
      * @description Signs data with a private or secret key and resolves to the signature

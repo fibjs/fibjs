@@ -32,7 +32,7 @@ public:
     virtual result_t get_usages(std::vector<exlib::string>& retVal);
 
 public:
-    result_t get_param(v8::Local<v8::Object> params, bool extractable, v8::Local<v8::Array> usages);
+    result_t get_param(v8::Local<v8::Object> params, bool extractable, std::vector<exlib::string>& usages);
     result_t get_ecdsa_param(v8::Local<v8::Object> params);
     result_t get_ed25519_param(v8::Local<v8::Object> params);
     result_t get_ecdh_param(v8::Local<v8::Object> params);
