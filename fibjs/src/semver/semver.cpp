@@ -1868,18 +1868,6 @@ static v8::Local<v8::Array> make_prerelease_array(Isolate* isolate,
     return arr;
 }
 
-static v8::Local<v8::Array> make_string_array(Isolate* isolate,
-    const std::vector<std::string>& values)
-{
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, (int32_t)values.size());
-
-    for (size_t i = 0; i < values.size(); i++)
-        arr->Set(context, (uint32_t)i,
-            isolate->NewString(values[i].c_str(), (int)values[i].size())).Check();
-    return arr;
-}
-
 template <typename T>
 static void fill_version_type(Isolate* isolate, const SemVer& v, T* retVal)
 {
@@ -1889,7 +1877,11 @@ static void fill_version_type(Isolate* isolate, const SemVer& v, T* retVal)
     retVal->minor = (int64_t)v.minor;
     retVal->patch = (int64_t)v.patch;
     retVal->prerelease = make_prerelease_array(isolate, v.prerelease);
-    retVal->build = make_string_array(isolate, v.build);
+
+    retVal->build.clear();
+    retVal->build.reserve(v.build.size());
+    for (const std::string& id : v.build)
+        retVal->build.emplace_back(id.c_str(), id.size());
 }
 
 static result_t parse_pair(const exlib::string& v1, const exlib::string& v2,

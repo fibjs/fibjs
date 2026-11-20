@@ -99,7 +99,7 @@ declare module 'semver' {
         minor: number;
         patch: number;
         prerelease: any[];
-        build: any[];
+        build: string[];
     };
 
     /**
@@ -470,7 +470,7 @@ declare module 'semver' {
         minor: number;
         patch: number;
         prerelease: any[];
-        build: any[];
+        build: string[];
     };
 
     /**
@@ -680,7 +680,7 @@ declare module 'semver' {
         minor: number;
         patch: number;
         prerelease: any[];
-        build: any[];
+        build: string[];
     };
 
 }

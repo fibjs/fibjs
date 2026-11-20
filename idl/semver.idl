@@ -82,7 +82,7 @@ module semver
      @param options the options object; `loose` relaxes the syntax
      @return the parsed object, or `null` when the version is invalid
      */
-    static (String version, String raw, Long major, Long minor, Long patch, Array prerelease, Array build) parse(String version, SemVerOptions options = {});
+    static (String version, String raw, Long major, Long minor, Long patch, Array prerelease, String[] build) parse(String version, SemVerOptions options = {});
 
     /*! @brief Returns the normalized form of a version string
 
@@ -329,7 +329,7 @@ module semver
      @param options the options object; `loose` and `includePrerelease` affect expansion
      @return the minimum version object, or `null`
      */
-    static (String version, String raw, Long major, Long minor, Long patch, Array prerelease, Array build) minVersion(String range, SemVerOptions options = {});
+    static (String version, String raw, Long major, Long minor, Long patch, Array prerelease, String[] build) minVersion(String range, SemVerOptions options = {});
 
     /*! @brief Tests whether a version is greater than every version of a range
 
@@ -469,5 +469,5 @@ module semver
      @param options the options object; `rtl` scans from the right
      @return the coerced version object, or `null`
      */
-    static (String version, String raw, Long major, Long minor, Long patch, Array prerelease, Array build) coerce(String|Number version, SemVerOptions options = {});
+    static (String version, String raw, Long major, Long minor, Long patch, Array prerelease, String[] build) coerce(String|Number version, SemVerOptions options = {});
 };

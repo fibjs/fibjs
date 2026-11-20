@@ -57,7 +57,7 @@ public:
         int64_t minor;
         int64_t patch;
         v8::Local<v8::Array> prerelease;
-        v8::Local<v8::Array> build;
+        std::vector<exlib::string> build;
     };
     class MinVersionType : public NType {
     public:
@@ -91,7 +91,7 @@ public:
         int64_t minor;
         int64_t patch;
         v8::Local<v8::Array> prerelease;
-        v8::Local<v8::Array> build;
+        std::vector<exlib::string> build;
     };
     class CoerceType : public NType {
     public:
@@ -125,7 +125,7 @@ public:
         int64_t minor;
         int64_t patch;
         v8::Local<v8::Array> prerelease;
-        v8::Local<v8::Array> build;
+        std::vector<exlib::string> build;
     };
 
 public:
