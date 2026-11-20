@@ -106,7 +106,9 @@ interface HeapSnapshot : object
      @param before the heap snapshot to compare with
      @return returns the heap snapshot comparison result
      */
-    Object diff(HeapSnapshot before);
+    ((Integer nodes, Date time, Integer size_bytes, String size) before,
+     (Integer nodes, Date time, Integer size_bytes, String size) after,
+     (Integer size_bytes, String size, Integer freed_nodes, Integer allocated_nodes, Variant details) change) diff(HeapSnapshot before);
 
     /*! @brief Gets a heap view node by ID
 

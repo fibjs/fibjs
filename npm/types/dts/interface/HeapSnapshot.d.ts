@@ -112,7 +112,27 @@ declare class Class_HeapSnapshot extends Class_object {
      *      @return returns the heap snapshot comparison result
      *
      */
-    diff(before: Class_HeapSnapshot | Class_HeapSnapshotPromise): FIBJS.GeneralObject;
+    diff(before: Class_HeapSnapshot | Class_HeapSnapshotPromise): {
+        before: {
+            nodes: number;
+            time: Date;
+            size_bytes: number;
+            size: string;
+        };
+        after: {
+            nodes: number;
+            time: Date;
+            size_bytes: number;
+            size: string;
+        };
+        change: {
+            size_bytes: number;
+            size: string;
+            freed_nodes: number;
+            allocated_nodes: number;
+            details: any;
+        };
+    };
 
     /**
      * @description Gets a heap view node by ID
@@ -324,7 +344,27 @@ declare class Class_HeapSnapshotPromise extends Class_object {
      *      @return returns the heap snapshot comparison result
      *
      */
-    diff(before: Class_HeapSnapshot | Class_HeapSnapshotPromise): FIBJS.GeneralObject;
+    diff(before: Class_HeapSnapshot | Class_HeapSnapshotPromise): {
+        before: {
+            nodes: number;
+            time: Date;
+            size_bytes: number;
+            size: string;
+        };
+        after: {
+            nodes: number;
+            time: Date;
+            size_bytes: number;
+            size: string;
+        };
+        change: {
+            size_bytes: number;
+            size: string;
+            freed_nodes: number;
+            allocated_nodes: number;
+            details: any;
+        };
+    };
 
     /**
      * @description Gets a heap view node by ID

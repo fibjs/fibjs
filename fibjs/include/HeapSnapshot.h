@@ -16,7 +16,7 @@ namespace fibjs {
 class HeapSnapshot : public HeapSnapshot_base {
 public:
     // HeapSnapshot_base
-    virtual result_t diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal);
+    virtual result_t diff(HeapSnapshot_base* before, obj_ptr<DiffType>& retVal);
     virtual result_t getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal);
     virtual result_t save(exlib::string fname, AsyncHandle ac);
     virtual result_t get_time(date_t& retVal);
@@ -26,7 +26,7 @@ public:
 public:
     result_t load(exlib::string fname);
     static result_t diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
-        v8::Local<v8::Object>& retVal);
+        obj_ptr<HeapSnapshot_base::DiffType>& retVal);
 
 private:
     date_t m_time;

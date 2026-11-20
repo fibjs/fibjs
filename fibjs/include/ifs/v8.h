@@ -147,6 +147,106 @@ public:
         double number_of_native_contexts;
         double number_of_detached_contexts;
     };
+    class DiffType_before : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("nodes"), GetReturnValue(isolate, nodes)).Check();
+            retVal->Set(context, isolate->NewString("time"), GetReturnValue(isolate, time)).Check();
+            retVal->Set(context, isolate->NewString("size_bytes"), GetReturnValue(isolate, size_bytes)).Check();
+            retVal->Set(context, isolate->NewString("size"), GetReturnValue(isolate, size)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, nodes));
+            args.push_back(GetReturnValue(isolate, time));
+            args.push_back(GetReturnValue(isolate, size_bytes));
+            args.push_back(GetReturnValue(isolate, size));
+        }
+
+    public:
+        int32_t nodes;
+        date_t time;
+        int32_t size_bytes;
+        exlib::string size;
+    };
+    class DiffType_after : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("nodes"), GetReturnValue(isolate, nodes)).Check();
+            retVal->Set(context, isolate->NewString("time"), GetReturnValue(isolate, time)).Check();
+            retVal->Set(context, isolate->NewString("size_bytes"), GetReturnValue(isolate, size_bytes)).Check();
+            retVal->Set(context, isolate->NewString("size"), GetReturnValue(isolate, size)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, nodes));
+            args.push_back(GetReturnValue(isolate, time));
+            args.push_back(GetReturnValue(isolate, size_bytes));
+            args.push_back(GetReturnValue(isolate, size));
+        }
+
+    public:
+        int32_t nodes;
+        date_t time;
+        int32_t size_bytes;
+        exlib::string size;
+    };
+    class DiffType_change : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("size_bytes"), GetReturnValue(isolate, size_bytes)).Check();
+            retVal->Set(context, isolate->NewString("size"), GetReturnValue(isolate, size)).Check();
+            retVal->Set(context, isolate->NewString("freed_nodes"), GetReturnValue(isolate, freed_nodes)).Check();
+            retVal->Set(context, isolate->NewString("allocated_nodes"), GetReturnValue(isolate, allocated_nodes)).Check();
+            retVal->Set(context, isolate->NewString("details"), GetReturnValue(isolate, details)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, size_bytes));
+            args.push_back(GetReturnValue(isolate, size));
+            args.push_back(GetReturnValue(isolate, freed_nodes));
+            args.push_back(GetReturnValue(isolate, allocated_nodes));
+            args.push_back(GetReturnValue(isolate, details));
+        }
+
+    public:
+        int32_t size_bytes;
+        exlib::string size;
+        int32_t freed_nodes;
+        int32_t allocated_nodes;
+        Variant details;
+    };
+    class DiffType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("before"), GetReturnValue(isolate, before)).Check();
+            retVal->Set(context, isolate->NewString("after"), GetReturnValue(isolate, after)).Check();
+            retVal->Set(context, isolate->NewString("change"), GetReturnValue(isolate, change)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, before));
+            args.push_back(GetReturnValue(isolate, after));
+            args.push_back(GetReturnValue(isolate, change));
+        }
+
+    public:
+        obj_ptr<DiffType_before> before;
+        obj_ptr<DiffType_after> after;
+        obj_ptr<DiffType_change> change;
+    };
 
 public:
     // v8_base
@@ -156,7 +256,7 @@ public:
     static result_t saveSnapshot(exlib::string fname);
     static result_t loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_base>& retVal);
     static result_t takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal);
-    static result_t diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal);
+    static result_t diff(v8::Local<v8::Function> test, obj_ptr<DiffType>& retVal);
     static result_t start(exlib::string fname, int32_t time, int32_t interval, obj_ptr<Timer_base>& retVal);
     static result_t serialize(v8::Local<v8::Value> value, obj_ptr<Buffer_base>& retVal);
     static result_t deserialize(Union_deserialize_data data, v8::Local<v8::Value>& retVal);
@@ -323,7 +423,7 @@ inline void v8_base::s_static_takeSnapshot(const v8::FunctionCallbackInfo<v8::Va
 
 inline void v8_base::s_static_diff(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<DiffType> vr;
 
     METHOD_ENTER();
 

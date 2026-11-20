@@ -30,7 +30,7 @@ public:
 
 public:
     // HeapSnapshot_base
-    virtual result_t diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal);
+    virtual result_t diff(HeapSnapshot_base* before, obj_ptr<DiffType>& retVal);
     virtual result_t getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal);
     virtual result_t save(exlib::string fname, AsyncHandle ac);
     virtual result_t get_time(date_t& retVal);

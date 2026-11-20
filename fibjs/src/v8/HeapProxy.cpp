@@ -16,7 +16,7 @@
 namespace fibjs {
 
 result_t HeapSnapshotProxy::diff(HeapSnapshot_base* before,
-    v8::Local<v8::Object>& retVal)
+    obj_ptr<DiffType>& retVal)
 {
     return HeapSnapshot::diff(before, this, retVal);
 }

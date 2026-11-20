@@ -142,77 +142,53 @@ inline v8::Local<v8::Value> changesetToObject(Isolate* isolate, changeset& chang
 }
 
 result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
-    v8::Local<v8::Object>& retVal)
+    obj_ptr<HeapSnapshot_base::DiffType>& retVal)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
     intptr_t s, diffBytes;
     std::vector<obj_ptr<HeapGraphNode_base>> nodes;
     int32_t _count;
     date_t d;
 
-    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+    retVal = new HeapSnapshot_base::DiffType();
+    retVal->before = new HeapSnapshot_base::DiffType_before();
+    retVal->after = new HeapSnapshot_base::DiffType_after();
+    retVal->change = new HeapSnapshot_base::DiffType_change();
 
-    v8::Local<v8::Object> b = v8::Object::New(isolate->m_isolate);
     before->get_nodes(nodes);
     _count = (int32_t)nodes.size();
-    b->Set(context, isolate->NewString("nodes"),
-         v8::Integer::New(isolate->m_isolate, _count))
-        .IsJust();
-
+    retVal->before->nodes = _count;
     before->get_time(d);
-    b->Set(context, isolate->NewString("time"), d.value(isolate->m_isolate)).IsJust();
-    o->Set(context, isolate->NewString("before"), b).IsJust();
+    retVal->before->time = d;
 
-    v8::Local<v8::Object> a = v8::Object::New(isolate->m_isolate);
     after->get_nodes(nodes);
     _count = (int32_t)nodes.size();
-    a->Set(context, isolate->NewString("nodes"),
-         v8::Integer::New(isolate->m_isolate, _count))
-        .IsJust();
+    retVal->after->nodes = _count;
     after->get_time(d);
-    a->Set(context, isolate->NewString("time"), d.value(isolate->m_isolate)).IsJust();
-    o->Set(context, isolate->NewString("after"), a).IsJust();
+    retVal->after->time = d;
 
     idset beforeIDs, afterIDs;
 
     s = 0;
     buildIDSet(&beforeIDs, before, s);
 
-    b->Set(context, isolate->NewString("size_bytes"),
-         v8::Integer::New(isolate->m_isolate, (int32_t)s))
-        .IsJust();
-    b->Set(context, isolate->NewString("size"),
-         isolate->NewString(niceSize(s)))
-        .IsJust();
+    retVal->before->size_bytes = (int32_t)s;
+    retVal->before->size = niceSize(s);
 
     diffBytes = s;
     s = 0;
     buildIDSet(&afterIDs, after, s);
 
-    a->Set(context, isolate->NewString("size_bytes"),
-         v8::Integer::New(isolate->m_isolate, (int32_t)s))
-        .IsJust();
-    a->Set(context, isolate->NewString("size"),
-         isolate->NewString(niceSize(s)))
-        .IsJust();
+    retVal->after->size_bytes = (int32_t)s;
+    retVal->after->size = niceSize(s);
 
     diffBytes = s - diffBytes;
-
-    v8::Local<v8::Object> c = v8::Object::New(isolate->m_isolate);
-    c->Set(context, isolate->NewString("size_bytes"),
-         v8::Integer::New(isolate->m_isolate, (int32_t)diffBytes))
-        .IsJust();
-    c->Set(context, isolate->NewString("size"),
-         isolate->NewString(niceSize(diffBytes)))
-        .IsJust();
-    o->Set(context, isolate->NewString("change"), c).IsJust();
+    retVal->change->size_bytes = (int32_t)diffBytes;
+    retVal->change->size = niceSize(diffBytes);
 
     std::vector<int32_t> changedIDs;
     setDiff(beforeIDs, afterIDs, changedIDs);
-    c->Set(context, isolate->NewString("freed_nodes"),
-         v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size()))
-        .IsJust();
+    retVal->change->freed_nodes = (int32_t)changedIDs.size();
 
     changeset changes;
 
@@ -226,10 +202,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
     changedIDs.clear();
 
     setDiff(afterIDs, beforeIDs, changedIDs);
-
-    c->Set(context, isolate->NewString("allocated_nodes"),
-         v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size()))
-        .IsJust();
+    retVal->change->allocated_nodes = (int32_t)changedIDs.size();
 
     for (size_t i = 0; i < changedIDs.size(); i++) {
         obj_ptr<HeapGraphNode_base> n;
@@ -238,16 +211,12 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
         manageChange(changes, n, true);
     }
 
-    c->Set(context, isolate->NewString("details"),
-         changesetToObject(isolate, changes))
-        .IsJust();
-
-    retVal = o;
+    retVal->change->details = changesetToObject(isolate, changes);
 
     return result_t();
 }
 
-result_t HeapSnapshot::diff(HeapSnapshot_base* before, v8::Local<v8::Object>& retVal)
+result_t HeapSnapshot::diff(HeapSnapshot_base* before, obj_ptr<DiffType>& retVal)
 {
     return diff(before, this, retVal);
 }

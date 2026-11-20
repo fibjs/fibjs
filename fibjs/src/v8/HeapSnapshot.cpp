@@ -54,7 +54,7 @@ result_t v8_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
     return result_t();
 }
 
-result_t v8_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal)
+result_t v8_base::diff(v8::Local<v8::Function> test, obj_ptr<DiffType>& retVal)
 {
     Isolate* isolate = Isolate::current(test);
     v8::HeapProfiler* profiler = isolate->m_isolate->GetHeapProfiler();
@@ -70,7 +70,33 @@ result_t v8_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retV
     isolate->m_isolate->LowMemoryNotification();
     s2 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
 
-    return s2->diff(s1, retVal);
+    obj_ptr<HeapSnapshot_base::DiffType> result;
+    result_t hr = s2->diff(s1, result);
+    if (hr.failed())
+        return hr;
+
+    retVal = new DiffType();
+    retVal->before = new DiffType_before();
+    retVal->after = new DiffType_after();
+    retVal->change = new DiffType_change();
+
+    retVal->before->nodes = result->before->nodes;
+    retVal->before->time = result->before->time;
+    retVal->before->size_bytes = result->before->size_bytes;
+    retVal->before->size = result->before->size;
+
+    retVal->after->nodes = result->after->nodes;
+    retVal->after->time = result->after->time;
+    retVal->after->size_bytes = result->after->size_bytes;
+    retVal->after->size = result->after->size;
+
+    retVal->change->size_bytes = result->change->size_bytes;
+    retVal->change->size = result->change->size;
+    retVal->change->freed_nodes = result->change->freed_nodes;
+    retVal->change->allocated_nodes = result->change->allocated_nodes;
+    retVal->change->details = result->change->details;
+
+    return result_t();
 }
 
 result_t v8_base::saveSnapshot(exlib::string fname)
