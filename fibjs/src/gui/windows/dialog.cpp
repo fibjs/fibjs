@@ -15,33 +15,18 @@
 
 namespace fibjs {
 
-result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t gui_base::chooseFile(ChooseFileOptions* options, std::vector<exlib::string>& retVal, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        Isolate* isolate = Isolate::current(options);
-
-        obj_ptr<DialogOptions> opts;
-        result_t hr = DialogOptions::load(options, opts);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv().resize(1);
-        ac.ctxv()[0] = opts;
-
+    if (ac.isSync())
         return result_t::guicall();
-    }
-
-    result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr.failed())
-        return ctx_hr;
 
     HRESULT hr = 0;
     // hr carries the COM result only; the value handed back to the caller
     // travels on its own channel across the async lambda.
     result_t err;
     exlib::Event ev;
-    async([&hr, &err, &ev, &retVal, &ac]() {
-        DialogOptions* opts = (DialogOptions*)ac.ctxv()[0].object();
+    async([&hr, &err, &ev, &retVal, &ac, options]() {
+        ChooseFileOptions* opts = options;
 
         bool isSaveDialog = opts->type.value() == "saveFile";
 
@@ -151,7 +136,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
                 if (SUCCEEDED(hr)) {
                     DWORD count;
                     pResults->GetCount(&count);
-                    retVal = new NArray();
+                    retVal.clear();
                     for (DWORD i = 0; i < count; ++i) {
                         IShellItem* pItem;
                         hr = pResults->GetItemAt(i, &pItem);
@@ -159,7 +144,7 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
                             PWSTR pszFilePath;
                             hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
                             if (SUCCEEDED(hr)) {
-                                retVal->append(utf16to8String((const char16_t*)pszFilePath));
+                                retVal.push_back(utf16to8String((const char16_t*)pszFilePath));
                                 CoTaskMemFree(pszFilePath);
                             }
                             pItem->Release();
@@ -175,8 +160,8 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
                     PWSTR pszFilePath;
                     hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
                     if (SUCCEEDED(hr)) {
-                        retVal = new NArray();
-                        retVal->append(utf16to8String((const char16_t*)pszFilePath));
+                        retVal.clear();
+                        retVal.push_back(utf16to8String((const char16_t*)pszFilePath));
                         CoTaskMemFree(pszFilePath);
                     }
                     pItem->Release();

@@ -399,7 +399,7 @@ interface WebView : EventEmitter
      @return returns the size of the window as an array whose first element is the width
       and second element is the height
     */
-    NArray getSize() async;
+    Number[] getSize() async;
 
     /*! @brief Sets the position of the window
 
@@ -422,7 +422,7 @@ interface WebView : EventEmitter
      @return returns the position of the window as an array whose first element is the x
       coordinate and second element is the y coordinate
     */
-    NArray getPosition() async;
+    Number[] getPosition() async;
 
     /*! @brief Queries whether the window is the active window
 

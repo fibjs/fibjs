@@ -19,6 +19,7 @@ class WebView_base;
 class Menu_base;
 class Tray_base;
 class TrayOptions;
+class ChooseFileOptions;
 
 class gui_base : public object_base {
     DECLARE_CLASS(gui_base);
@@ -36,7 +37,7 @@ public:
     static result_t confirm(exlib::string title, exlib::string message, bool& retVal, AsyncHandle ac);
     static result_t input(exlib::string message, bool password, exlib::string& retVal, AsyncHandle ac);
     static result_t input(exlib::string title, exlib::string message, bool password, exlib::string& retVal, AsyncHandle ac);
-    static result_t chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncHandle ac);
+    static result_t chooseFile(ChooseFileOptions* options, std::vector<exlib::string>& retVal, AsyncHandle ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -66,7 +67,7 @@ public:
     ASYNC_STATICVALUE3(gui_base, confirm, exlib::string, exlib::string, bool);
     ASYNC_STATICVALUE3(gui_base, input, exlib::string, bool, exlib::string);
     ASYNC_STATICVALUE4(gui_base, input, exlib::string, exlib::string, bool, exlib::string);
-    ASYNC_STATICVALUE2(gui_base, chooseFile, v8::Local<v8::Object>, obj_ptr<NArray>);
+    ASYNC_STATICVALUE2(gui_base, chooseFile, obj_ptr<ChooseFileOptions>, std::vector<exlib::string>);
 };
 }
 
@@ -74,6 +75,7 @@ public:
 #include "ifs/Menu.h"
 #include "ifs/Tray.h"
 #include "ifs/TrayOptions.h"
+#include "ifs/ChooseFileOptions.h"
 
 namespace fibjs {
 inline ClassInfo& gui_base::class_info()
@@ -258,13 +260,13 @@ inline void gui_base::s_static_input(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void gui_base::s_static_chooseFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<exlib::string> vr;
 
     ASYNC_METHOD_ENTER("gui.chooseFile");
 
     METHOD_OVER_NAMED(1, 1, "options");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "options");
+    ARG_NAMED(obj_ptr<ChooseFileOptions>, 0, "options");
 
     if (!cb.IsEmpty())
         hr = acb_chooseFile(v0, cb, args);

@@ -1,0 +1,40 @@
+/*! @brief Options accepted by gui.chooseFile.
+
+     The record mirrors the native file-dialog settings: a title, the dialog
+     type, the initial directory, whether several files may be selected and the
+     optional file-type filters.
+
+     Example 1 — an open-file dialog with an image filter:
+     ```JavaScript
+     const options = {
+         title: 'Select images',
+         type: 'openFile',
+         multiSelections: true,
+         filters: [{ name: 'Images', extensions: ['png', 'jpg'] }]
+     };
+     ```
+
+     Example 2 — a save dialog starting in a specific directory:
+     ```JavaScript
+     const options = {
+         type: 'saveFile',
+         defaultPath: '/tmp'
+     };
+     ```
+ */
+struct ChooseFileOptions {
+    /*! @brief dialog title, empty when the native default is used */
+    String title;
+
+    /*! @brief dialog kind: openFile, openDirectory or saveFile */
+    String type = "openFile";
+
+    /*! @brief directory shown when the dialog opens */
+    String defaultPath;
+
+    /*! @brief whether several files may be selected; ignored by saveFile */
+    Boolean multiSelections = false;
+
+    /*! @brief file-type filters shown by the native dialog */
+    DialogFilter[] filters;
+};

@@ -43,9 +43,9 @@ public:
     virtual result_t show(AsyncHandle ac) = 0;
     virtual result_t hide(AsyncHandle ac) = 0;
     virtual result_t setSize(int32_t width, int32_t height, AsyncHandle ac) = 0;
-    virtual result_t getSize(obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
+    virtual result_t getSize(std::vector<double>& retVal, AsyncHandle ac) = 0;
     virtual result_t setPosition(int32_t left, int32_t top, AsyncHandle ac) = 0;
-    virtual result_t getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
+    virtual result_t getPosition(std::vector<double>& retVal, AsyncHandle ac) = 0;
     virtual result_t isActived(bool& retVal, AsyncHandle ac) = 0;
     virtual result_t active(AsyncHandle ac) = 0;
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal) = 0;
@@ -130,9 +130,9 @@ public:
     ASYNC_MEMBER0(WebView_base, show);
     ASYNC_MEMBER0(WebView_base, hide);
     ASYNC_MEMBER2(WebView_base, setSize, int32_t, int32_t);
-    ASYNC_MEMBERVALUE1(WebView_base, getSize, obj_ptr<NArray>);
+    ASYNC_MEMBERVALUE1(WebView_base, getSize, std::vector<double>);
     ASYNC_MEMBER2(WebView_base, setPosition, int32_t, int32_t);
-    ASYNC_MEMBERVALUE1(WebView_base, getPosition, obj_ptr<NArray>);
+    ASYNC_MEMBERVALUE1(WebView_base, getPosition, std::vector<double>);
     ASYNC_MEMBERVALUE1(WebView_base, isActived, bool);
     ASYNC_MEMBER0(WebView_base, active);
     ASYNC_MEMBERVALUE2(WebView_base, takeScreenshot, bool, obj_ptr<Buffer_base>);
@@ -484,7 +484,7 @@ inline void WebView_base::s_setSize(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void WebView_base::s_getSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<double> vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER("WebView.getSize");
@@ -519,7 +519,7 @@ inline void WebView_base::s_setPosition(const v8::FunctionCallbackInfo<v8::Value
 
 inline void WebView_base::s_getPosition(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<double> vr;
 
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER("WebView.getPosition");

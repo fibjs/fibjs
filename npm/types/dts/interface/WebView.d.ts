@@ -1002,24 +1002,9 @@ declare class Class_WebView extends Class_EventEmitter {
      *       and second element is the height
      *
      */
-    getSize(): any[];
+    getSize(): number[];
 
-    getSize(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
-
-    /**
-     * @description Queries the size of the window
-     *
-     *      Returns the current window size as [width, height] in logical window
-     *      pixels. The page uses CSS pixels scaled by `window.devicePixelRatio`, so a
-     *      screenshot of the visible area measures this size multiplied by that
-     *      ratio. The window manager can adjust the value shortly after `setSize`
-     *      while it applies its constraints.
-     *
-     *      @return returns the size of the window as an array whose first element is the width
-     *       and second element is the height
-     *
-     */
-    getSizeSync(): any[];
+    getSize(callback: (err: Error | undefined | null, retVal: number[])=>any): void;
 
     /**
      * @description Queries the size of the window
@@ -1034,7 +1019,22 @@ declare class Class_WebView extends Class_EventEmitter {
      *       and second element is the height
      *
      */
-    getSizeAsync(): Promise<any[]>;
+    getSizeSync(): number[];
+
+    /**
+     * @description Queries the size of the window
+     *
+     *      Returns the current window size as [width, height] in logical window
+     *      pixels. The page uses CSS pixels scaled by `window.devicePixelRatio`, so a
+     *      screenshot of the visible area measures this size multiplied by that
+     *      ratio. The window manager can adjust the value shortly after `setSize`
+     *      while it applies its constraints.
+     *
+     *      @return returns the size of the window as an array whose first element is the width
+     *       and second element is the height
+     *
+     */
+    getSizeAsync(): Promise<number[]>;
 
     /**
      * @description Sets the position of the window
@@ -1091,22 +1091,9 @@ declare class Class_WebView extends Class_EventEmitter {
      *       coordinate and second element is the y coordinate
      *
      */
-    getPosition(): any[];
+    getPosition(): number[];
 
-    getPosition(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
-
-    /**
-     * @description Queries the position of the window
-     *
-     *      Returns [left, top] in screen coordinates as currently reported by the
-     *      platform. The value can differ from the last `setPosition` request when
-     *      the window manager repositions, snaps or decorates the window.
-     *
-     *      @return returns the position of the window as an array whose first element is the x
-     *       coordinate and second element is the y coordinate
-     *
-     */
-    getPositionSync(): any[];
+    getPosition(callback: (err: Error | undefined | null, retVal: number[])=>any): void;
 
     /**
      * @description Queries the position of the window
@@ -1119,7 +1106,20 @@ declare class Class_WebView extends Class_EventEmitter {
      *       coordinate and second element is the y coordinate
      *
      */
-    getPositionAsync(): Promise<any[]>;
+    getPositionSync(): number[];
+
+    /**
+     * @description Queries the position of the window
+     *
+     *      Returns [left, top] in screen coordinates as currently reported by the
+     *      platform. The value can differ from the last `setPosition` request when
+     *      the window manager repositions, snaps or decorates the window.
+     *
+     *      @return returns the position of the window as an array whose first element is the x
+     *       coordinate and second element is the y coordinate
+     *
+     */
+    getPositionAsync(): Promise<number[]>;
 
     /**
      * @description Queries whether the window is the active window
@@ -2833,7 +2833,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       and second element is the height
      *
      */
-    getSize(): Promise<any[]>;
+    getSize(): Promise<number[]>;
 
     /**
      * @description Queries the size of the window
@@ -2848,7 +2848,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       and second element is the height
      *
      */
-    getSizeSync(): any[];
+    getSizeSync(): number[];
 
     /**
      * @description Queries the size of the window
@@ -2863,7 +2863,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       and second element is the height
      *
      */
-    getSizeAsync(): Promise<any[]>;
+    getSizeAsync(): Promise<number[]>;
 
     /**
      * @description Sets the position of the window
@@ -2918,7 +2918,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       coordinate and second element is the y coordinate
      *
      */
-    getPosition(): Promise<any[]>;
+    getPosition(): Promise<number[]>;
 
     /**
      * @description Queries the position of the window
@@ -2931,7 +2931,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       coordinate and second element is the y coordinate
      *
      */
-    getPositionSync(): any[];
+    getPositionSync(): number[];
 
     /**
      * @description Queries the position of the window
@@ -2944,7 +2944,7 @@ declare class Class_WebViewPromise extends Class_EventEmitter {
      *       coordinate and second element is the y coordinate
      *
      */
-    getPositionAsync(): Promise<any[]>;
+    getPositionAsync(): Promise<number[]>;
 
     /**
      * @description Queries whether the window is the active window

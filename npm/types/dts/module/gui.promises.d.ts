@@ -461,7 +461,16 @@ declare module 'gui/promises' {
      *      @return returns the array of files chosen by the user
      *
      */
-    function chooseFile(options: FIBJS.GeneralObject): Promise<any[]>;
+    function chooseFile(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): Promise<string[]>;
 
     /**
      * @description Pops up a modal file chooser and returns the selected paths
@@ -504,7 +513,16 @@ declare module 'gui/promises' {
      *      @return returns the array of files chosen by the user
      *
      */
-    function chooseFileSync(options: FIBJS.GeneralObject): any[];
+    function chooseFileSync(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): string[];
 
     /**
      * @description Pops up a modal file chooser and returns the selected paths
@@ -547,7 +565,16 @@ declare module 'gui/promises' {
      *      @return returns the array of files chosen by the user
      *
      */
-    function chooseFileAsync(options: FIBJS.GeneralObject): Promise<any[]>;
+    function chooseFileAsync(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): Promise<string[]>;
 
 }
 

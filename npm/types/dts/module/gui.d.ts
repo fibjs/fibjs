@@ -580,52 +580,27 @@ declare module 'gui' {
      *      @return returns the array of files chosen by the user
      *
      */
-    function chooseFile(options: FIBJS.GeneralObject): any[];
+    function chooseFile(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): string[];
 
-    function chooseFile(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
-
-    /**
-     * @description Pops up a modal file chooser and returns the selected paths
-     *
-     *      Cancelling the dialog returns undefined. The result is always an array, also
-     *      for a single selection; saveFile returns at most one path, openFile and
-     *      openDirectory return one or more paths according to multiSelections. Requires
-     *      a desktop session.
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      // fragment: options
-     *      ({
-     *          "title": "",              // dialog title
-     *          "type": "openFile",       // "openFile" | "openDirectory" | "saveFile"
-     *          "defaultPath": "",        // directory shown when the dialog opens
-     *          "multiSelections": false, // allow several files, ignored by saveFile
-     *          "filters": null           // [{ name: "Images", extensions: ["png", "jpg"] }]
-     *      })
-     *      ```
-     *      Filter extensions are written without the leading dot. An unknown type and,
-     *      on Windows, an invalid defaultPath throw an Error.
-     *
-     *      Example — pick one or more images (requires a desktop session):
-     *      ```JavaScript
-     *      // requires: long-running
-     *      const gui = require('gui');
-     *
-     *      const files = gui.chooseFile({
-     *          title: 'Select images',
-     *          type: 'openFile',
-     *          multiSelections: true,
-     *          filters: [{ name: 'Images', extensions: ['png', 'jpg'] }]
-     *      });
-     *
-     *      console.log(files ? files.length : 'cancelled');
-     *      ```
-     *
-     *      @param options file chooser dialog parameters
-     *      @return returns the array of files chosen by the user
-     *
-     */
-    function chooseFileSync(options: FIBJS.GeneralObject): any[];
+    function chooseFile(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }, callback: (err: Error | undefined | null, retVal: string[])=>any): void;
 
     /**
      * @description Pops up a modal file chooser and returns the selected paths
@@ -668,7 +643,68 @@ declare module 'gui' {
      *      @return returns the array of files chosen by the user
      *
      */
-    function chooseFileAsync(options: FIBJS.GeneralObject): Promise<any[]>;
+    function chooseFileSync(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): string[];
+
+    /**
+     * @description Pops up a modal file chooser and returns the selected paths
+     *
+     *      Cancelling the dialog returns undefined. The result is always an array, also
+     *      for a single selection; saveFile returns at most one path, openFile and
+     *      openDirectory return one or more paths according to multiSelections. Requires
+     *      a desktop session.
+     *
+     *      options supports the following options:
+     *      ```JavaScript
+     *      // fragment: options
+     *      ({
+     *          "title": "",              // dialog title
+     *          "type": "openFile",       // "openFile" | "openDirectory" | "saveFile"
+     *          "defaultPath": "",        // directory shown when the dialog opens
+     *          "multiSelections": false, // allow several files, ignored by saveFile
+     *          "filters": null           // [{ name: "Images", extensions: ["png", "jpg"] }]
+     *      })
+     *      ```
+     *      Filter extensions are written without the leading dot. An unknown type and,
+     *      on Windows, an invalid defaultPath throw an Error.
+     *
+     *      Example — pick one or more images (requires a desktop session):
+     *      ```JavaScript
+     *      // requires: long-running
+     *      const gui = require('gui');
+     *
+     *      const files = gui.chooseFile({
+     *          title: 'Select images',
+     *          type: 'openFile',
+     *          multiSelections: true,
+     *          filters: [{ name: 'Images', extensions: ['png', 'jpg'] }]
+     *      });
+     *
+     *      console.log(files ? files.length : 'cancelled');
+     *      ```
+     *
+     *      @param options file chooser dialog parameters
+     *      @return returns the array of files chosen by the user
+     *
+     */
+    function chooseFileAsync(options: {
+        title?: string;
+        type?: string;
+        defaultPath?: string;
+        multiSelections?: boolean;
+        filters?: {
+            name: string;
+            extensions: string[];
+        }[];
+    }): Promise<string[]>;
 
 }
 

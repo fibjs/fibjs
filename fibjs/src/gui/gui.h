@@ -9,7 +9,6 @@
 #include "ifs/gui.h"
 #include "ifs/fs.h"
 #include "ifs/DialogFilter.h"
-#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
@@ -17,17 +16,5 @@ extern exlib::Event g_gui_ready;
 
 void os_putGuiPool(AsyncEvent* ac);
 void run_os_gui();
-
-class DialogOptions : public obj_base {
-public:
-    LOAD_OPTIONS(DialogOptions, (title)(type)(defaultPath)(filters)(multiSelections))
-
-public:
-    std::optional<exlib::string> title;
-    std::optional<exlib::string> type = "openFile";
-    std::optional<exlib::string> defaultPath;
-    std::optional<std::vector<obj_ptr<DialogFilter>>> filters;
-    std::optional<bool> multiSelections = false;
-};
 
 } // namespace fibjs

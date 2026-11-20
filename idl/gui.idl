@@ -370,5 +370,5 @@ module gui
      @param options file chooser dialog parameters
      @return returns the array of files chosen by the user
     */
-    static NArray chooseFile(Object options) async;
+    static String[] chooseFile(ChooseFileOptions options) async;
 };

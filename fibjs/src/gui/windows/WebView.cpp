@@ -360,7 +360,7 @@ result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t WebView::getSize(std::vector<double>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr.failed())
@@ -369,9 +369,8 @@ result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
     RECT rect;
     GetWindowRect((HWND)m_window, &rect);
 
-    retVal = new NArray();
-    retVal->append((int32_t)(rect.right - rect.left) * 96 / dpix);
-    retVal->append((int32_t)(rect.bottom - rect.top) * 96 / dpiy);
+    retVal.push_back((int32_t)(rect.right - rect.left) * 96 / dpix);
+    retVal.push_back((int32_t)(rect.bottom - rect.top) * 96 / dpiy);
 
     return result_t();
 }
@@ -387,7 +386,7 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t WebView::getPosition(std::vector<double>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr.failed())
@@ -396,9 +395,8 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
     RECT rect;
     GetWindowRect((HWND)m_window, &rect);
 
-    retVal = new NArray();
-    retVal->append((int32_t)rect.left * 96 / dpix);
-    retVal->append((int32_t)rect.top * 96 / dpiy);
+    retVal.push_back((int32_t)rect.left * 96 / dpix);
+    retVal.push_back((int32_t)rect.top * 96 / dpiy);
 
     return result_t();
 }

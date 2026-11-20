@@ -79,7 +79,7 @@ result_t gui_base::confirm(exlib::string title, exlib::string message, bool& ret
     return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message("Confirm not supported in this platform");
 }
 
-result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t gui_base::chooseFile(ChooseFileOptions* options, std::vector<exlib::string>& retVal, AsyncHandle ac)
 {
     return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message("ChooseFile not supported in this platform");
 }

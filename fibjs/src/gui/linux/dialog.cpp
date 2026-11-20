@@ -21,27 +21,12 @@ extern "C" GtkWidget* gtk_file_chooser_dialog_new_(const char* title, GtkWindow*
 
 namespace fibjs {
 
-result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t gui_base::chooseFile(ChooseFileOptions* options, std::vector<exlib::string>& retVal, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        Isolate* isolate = Isolate::current(options);
-
-        obj_ptr<DialogOptions> opts;
-        result_t hr = DialogOptions::load(options, opts);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv().resize(1);
-        ac.ctxv()[0] = opts;
-
+    if (ac.isSync())
         return result_t::guicall();
-    }
 
-    result_t ctx_hr = ac.ctx(0);
-    if (ctx_hr.failed())
-        return ctx_hr;
-
-    DialogOptions* opts = (DialogOptions*)ac.ctxv()[0].object();
+    ChooseFileOptions* opts = options;
 
     bool isSaveDialog = opts->type.value() == "saveFile";
 
@@ -90,18 +75,18 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
 
     if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
         GtkFileChooser* chooser = GTK_FILE_CHOOSER(dialog);
-        retVal = new NArray();
+        retVal.clear();
 
         if (opts->multiSelections.value()) {
             GSList* filenames = gtk_file_chooser_get_filenames(chooser);
             for (GSList* iter = filenames; iter != NULL; iter = iter->next) {
-                retVal->append((char*)iter->data);
+                retVal.push_back((char*)iter->data);
                 g_free(iter->data);
             }
             g_slist_free(filenames);
         } else {
             char* filename = gtk_file_chooser_get_filename(chooser);
-            retVal->append(filename);
+            retVal.push_back(filename);
             g_free(filename);
         }
 

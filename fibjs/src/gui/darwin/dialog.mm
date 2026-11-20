@@ -18,23 +18,12 @@ extern int32_t s_window_count;
 
 namespace fibjs {
 
-result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t gui_base::chooseFile(ChooseFileOptions* options, std::vector<exlib::string>& retVal, AsyncHandle ac)
 {
-    if (ac.isSync()) {
-        Isolate* isolate = Isolate::current(options);
-
-        obj_ptr<DialogOptions> opts;
-        result_t hr = DialogOptions::load(options, opts);
-        if (hr.failed())
-            return hr;
-
-        ac.ctxv().resize(1);
-        ac.ctxv()[0] = opts;
-
+    if (ac.isSync())
         return result_t::guicall();
-    }
 
-    DialogOptions* opts = (DialogOptions*)ac.ctxv()[0].object();
+    ChooseFileOptions* opts = options;
 
     bool isSaveDialog = opts->type.value() == "saveFile";
 
@@ -128,14 +117,12 @@ result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& re
         [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
 
     if (res == NSModalResponseOK) {
-        retVal = new NArray();
-
         if (isSaveDialog) {
-            retVal->append([[[panel URL] path] UTF8String]);
+            retVal.push_back([[[panel URL] path] UTF8String]);
         } else {
             NSArray* urls = [panel URLs];
             for (NSURL* url in urls)
-                retVal->append([[url path] UTF8String]);
+                retVal.push_back([[url path] UTF8String]);
         }
 
         return result_t();

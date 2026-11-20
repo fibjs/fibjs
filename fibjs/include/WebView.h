@@ -95,9 +95,9 @@ public:
     virtual result_t show(AsyncHandle ac);
     virtual result_t hide(AsyncHandle ac);
     virtual result_t setSize(int32_t width, int32_t height, AsyncHandle ac);
-    virtual result_t getSize(obj_ptr<NArray>& retVal, AsyncHandle ac);
+    virtual result_t getSize(std::vector<double>& retVal, AsyncHandle ac);
     virtual result_t setPosition(int32_t left, int32_t top, AsyncHandle ac);
-    virtual result_t getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac);
+    virtual result_t getPosition(std::vector<double>& retVal, AsyncHandle ac);
     virtual result_t isActived(bool& retVal, AsyncHandle ac);
     virtual result_t active(AsyncHandle ac);
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal);

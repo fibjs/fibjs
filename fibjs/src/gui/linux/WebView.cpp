@@ -369,7 +369,7 @@ result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t WebView::getSize(std::vector<double>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr.failed())
@@ -378,9 +378,8 @@ result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
     int width, height;
     gtk_window_get_size(GTK_WINDOW(m_window), &width, &height);
 
-    retVal = new NArray();
-    retVal->append(width);
-    retVal->append(height);
+    retVal.push_back(width);
+    retVal.push_back(height);
 
     return result_t();
 }
@@ -396,7 +395,7 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t WebView::getPosition(std::vector<double>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr.failed())
@@ -405,9 +404,8 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
     int left, top;
     gtk_window_get_position(GTK_WINDOW(m_window), &left, &top);
 
-    retVal = new NArray();
-    retVal->append(left);
-    retVal->append(top);
+    retVal.push_back(left);
+    retVal.push_back(top);
 
     return result_t();
 }

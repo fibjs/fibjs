@@ -377,7 +377,7 @@ result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t WebView::getSize(std::vector<double>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr.failed())
@@ -385,9 +385,8 @@ result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncHandle ac)
 
     NSSize size = [(NSWindow*)m_window frame].size;
 
-    retVal = new NArray();
-    retVal->append(size.width);
-    retVal->append(size.height);
+    retVal.push_back(size.width);
+    retVal.push_back(size.height);
 
     return result_t();
 }
@@ -410,7 +409,7 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t WebView::getPosition(std::vector<double>& retVal, AsyncHandle ac)
 {
     result_t hr = check_status(ac);
     if (hr.failed())
@@ -420,9 +419,8 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncHandle ac)
 
     NSRect screen_rect = [[NSScreen mainScreen] frame];
 
-    retVal = new NArray();
-    retVal->append((int32_t)(frame.origin.x - screen_rect.origin.x));
-    retVal->append((int32_t)(screen_rect.size.height + screen_rect.origin.y - (frame.size.height + frame.origin.y)));
+    retVal.push_back((int32_t)(frame.origin.x - screen_rect.origin.x));
+    retVal.push_back((int32_t)(screen_rect.size.height + screen_rect.origin.y - (frame.size.height + frame.origin.y)));
 
     return result_t();
 }
