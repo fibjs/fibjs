@@ -762,7 +762,7 @@ module crypto
      @param options the key generation and encoding options
      @return returns the generated key pair
     */
-    static (Variant publicKey, Variant privateKey) generateKeyPair(String type, GenerateKeyPairOptions options = {}) async;
+    static (KeyObject|Buffer|String|NObject publicKey, KeyObject|Buffer|String|NObject privateKey) generateKeyPair(String type, GenerateKeyPairOptions options = {}) async;
 
     /*! @brief Derives key material from a secret with HKDF (RFC 5869)
 

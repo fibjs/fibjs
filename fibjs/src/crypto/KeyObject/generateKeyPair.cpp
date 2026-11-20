@@ -233,6 +233,43 @@ static result_t load_key_encoding(KeyEncodingOptions* options, obj_ptr<keyEncodi
     return result_t();
 }
 
+// The export path returns a Variant because KeyObject.export() must hand a JS
+// value back. generateKeyPair() runs in the async phase, where touching V8 is
+// not allowed, so map the native object without converting it to a JS value.
+template <typename T>
+static result_t variant_to_key_output(const Variant& v, T& out)
+{
+    switch (v.type()) {
+    case Variant::VT_String:
+        out = v.string();
+        return result_t();
+    case Variant::VT_Object: {
+        obj_ptr<Buffer_base> buf = Buffer_base::getInstance(v.object());
+        if (buf) {
+            out = buf;
+            return result_t();
+        }
+
+        obj_ptr<NObject> obj = NObject::getInstance(v.object());
+        if (obj) {
+            out = obj;
+            return result_t();
+        }
+
+        obj_ptr<KeyObject_base> key = KeyObject_base::getInstance(v.object());
+        if (key) {
+            out = key;
+            return result_t();
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
+    return result_t::type_mismatch();
+}
+
 result_t crypto_base::generateKeyPair(exlib::string type, GenerateKeyPairOptions* options,
     obj_ptr<GenerateKeyPairType>& retVal, AsyncHandle ac)
 {
@@ -297,7 +334,9 @@ result_t crypto_base::generateKeyPair(exlib::string type, GenerateKeyPairOptions
         if (hr.failed())
             return hr;
 
-        retVal->publicKey = v;
+        hr = variant_to_key_output(v, retVal->publicKey);
+        if (hr.failed())
+            return hr;
     } else
         retVal->publicKey = publicKey;
 
@@ -307,9 +346,11 @@ result_t crypto_base::generateKeyPair(exlib::string type, GenerateKeyPairOptions
         if (hr.failed())
             return hr;
 
-        retVal->privateKey = v;
+        hr = variant_to_key_output(v, retVal->privateKey);
+        if (hr.failed())
+            return hr;
     } else
-        retVal->privateKey = privaterKey;
+        retVal->privateKey = privateKeyBase;
 
     return result_t();
 }

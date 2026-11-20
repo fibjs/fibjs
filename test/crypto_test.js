@@ -1340,6 +1340,19 @@ describe('crypto', () => {
                     });
                 });
             });
+
+            it('mixed export formats', () => {
+                const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+                    publicExponent: 0x10001,
+                    modulusLength: 512,
+                    publicKeyEncoding: { type: 'spki', format: 'der' },
+                    privateKeyEncoding: { type: 'pkcs8', format: 'jwk' }
+                });
+
+                assert.ok(Buffer.isBuffer(publicKey));
+                assert.isObject(privateKey);
+                assert.equal(privateKey.kty, 'RSA');
+            });
         });
 
         describe('encrypt', () => {

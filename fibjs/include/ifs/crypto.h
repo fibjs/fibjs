@@ -145,8 +145,8 @@ public:
         }
 
     public:
-        Variant publicKey;
-        Variant privateKey;
+        std::variant<obj_ptr<KeyObject_base>, obj_ptr<Buffer_base>, exlib::string, obj_ptr<NObject>> publicKey;
+        std::variant<obj_ptr<KeyObject_base>, obj_ptr<Buffer_base>, exlib::string, obj_ptr<NObject>> privateKey;
     };
 
 public:
