@@ -322,7 +322,7 @@ module os
      ```
      @return returns an array containing cpu parameters, each item corresponding to one cpu
     */
-    static Array cpus();
+    static (String model, Number speed, (Number user, Number nice, Number sys, Number idle, Number irq) times)[] cpus();
 
     /*! @brief Queries the number of CPUs in the current runtime environment
 

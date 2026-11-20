@@ -228,42 +228,31 @@ result_t os_base::cpuNumbers(int32_t& retVal)
     return result_t();
 }
 
-result_t os_base::cpus(v8::Local<v8::Array>& retVal)
+result_t os_base::cpus(std::vector<obj_ptr<CpusType>>& retVal)
 {
     uv_cpu_info_t* cpu_infos;
     int32_t ret = uv_cpu_info(&cpu_infos, &s_cpus);
     if (ret < 0)
         return result_t::from_system(ret);
 
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-    retVal = v8::Array::New(isolate->m_isolate, s_cpus);
+    retVal.clear();
+    retVal.reserve(s_cpus);
 
     for (int32_t i = 0; i < s_cpus; i++) {
-        v8::Local<v8::Object> cpuinfo = v8::Object::New(isolate->m_isolate);
-        v8::Local<v8::Object> cputimes = v8::Object::New(isolate->m_isolate);
+        obj_ptr<CpusType> cpuinfo = new CpusType();
+        obj_ptr<CpusType_times> cputimes = new CpusType_times();
 
-        cputimes->Set(context, isolate->NewString("user"),
-                    v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.user))
-            .IsJust();
-        cputimes->Set(context, isolate->NewString("nice"),
-                    v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.nice))
-            .IsJust();
-        cputimes->Set(context, isolate->NewString("sys"),
-                    v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.sys))
-            .IsJust();
-        cputimes->Set(context, isolate->NewString("idle"),
-                    v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.idle))
-            .IsJust();
-        cputimes->Set(context, isolate->NewString("irq"),
-                    v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.irq))
-            .IsJust();
+        cputimes->user = (double)cpu_infos[i].cpu_times.user;
+        cputimes->nice = (double)cpu_infos[i].cpu_times.nice;
+        cputimes->sys = (double)cpu_infos[i].cpu_times.sys;
+        cputimes->idle = (double)cpu_infos[i].cpu_times.idle;
+        cputimes->irq = (double)cpu_infos[i].cpu_times.irq;
 
-        cpuinfo->Set(context, isolate->NewString("model"), isolate->NewString(cpu_infos[i].model)).IsJust();
-        cpuinfo->Set(context, isolate->NewString("speed"), v8::Number::New(isolate->m_isolate, cpu_infos[i].speed)).IsJust();
-        cpuinfo->Set(context, isolate->NewString("times"), cputimes).IsJust();
+        cpuinfo->model = cpu_infos[i].model;
+        cpuinfo->speed = cpu_infos[i].speed;
+        cpuinfo->times = cputimes;
 
-        retVal->Set(context, i, cpuinfo).IsJust();
+        retVal.push_back(cpuinfo);
     }
 
     uv_free_cpu_info(cpu_infos, s_cpus);

@@ -22,6 +22,58 @@ class os_base : public object_base {
     DECLARE_CLASS(os_base);
 
 public:
+    class CpusType_times : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("user"), GetReturnValue(isolate, user)).Check();
+            retVal->Set(context, isolate->NewString("nice"), GetReturnValue(isolate, nice)).Check();
+            retVal->Set(context, isolate->NewString("sys"), GetReturnValue(isolate, sys)).Check();
+            retVal->Set(context, isolate->NewString("idle"), GetReturnValue(isolate, idle)).Check();
+            retVal->Set(context, isolate->NewString("irq"), GetReturnValue(isolate, irq)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, user));
+            args.push_back(GetReturnValue(isolate, nice));
+            args.push_back(GetReturnValue(isolate, sys));
+            args.push_back(GetReturnValue(isolate, idle));
+            args.push_back(GetReturnValue(isolate, irq));
+        }
+
+    public:
+        double user;
+        double nice;
+        double sys;
+        double idle;
+        double irq;
+    };
+    class CpusType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("model"), GetReturnValue(isolate, model)).Check();
+            retVal->Set(context, isolate->NewString("speed"), GetReturnValue(isolate, speed)).Check();
+            retVal->Set(context, isolate->NewString("times"), GetReturnValue(isolate, times)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, model));
+            args.push_back(GetReturnValue(isolate, speed));
+            args.push_back(GetReturnValue(isolate, times));
+        }
+
+    public:
+        exlib::string model;
+        double speed;
+        obj_ptr<CpusType_times> times;
+    };
+
+public:
     // os_base
     static result_t hostname(exlib::string& retVal);
     static result_t endianness(exlib::string& retVal);
@@ -39,7 +91,7 @@ public:
     static result_t loadavg(std::vector<double>& retVal);
     static result_t totalmem(int64_t& retVal);
     static result_t freemem(int64_t& retVal);
-    static result_t cpus(v8::Local<v8::Array>& retVal);
+    static result_t cpus(std::vector<obj_ptr<CpusType>>& retVal);
     static result_t cpuNumbers(int32_t& retVal);
     static result_t tmpdir(exlib::string& retVal);
     static result_t userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
@@ -349,7 +401,7 @@ inline void os_base::s_static_freemem(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void os_base::s_static_cpus(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    std::vector<obj_ptr<CpusType>> vr;
 
     METHOD_ENTER();
 
