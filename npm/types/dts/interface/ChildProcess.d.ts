@@ -248,7 +248,11 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *      @return returns the report containing the time information
      *
      */
-    usage(): FIBJS.GeneralObject;
+    usage(): {
+        user: number;
+        system: number;
+        rss: number;
+    };
 
     /**
      * @description Reads the id of the process this object refers to
@@ -716,7 +720,11 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *      @return returns the report containing the time information
      *
      */
-    usage(): FIBJS.GeneralObject;
+    usage(): {
+        user: number;
+        system: number;
+        rss: number;
+    };
 
     /**
      * @description Reads the id of the process this object refers to

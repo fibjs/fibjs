@@ -13,7 +13,7 @@
 #ifdef Darwin
 #ifdef iPhone
 namespace fibjs {
-result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
+result_t ChildProcess::usage(obj_ptr<UsageType>& retVal)
 {
     return result_t::invalid_call();
 }
@@ -60,22 +60,17 @@ static double ticks_to_us(uint64_t ticks)
     return (double)(int64_t)((double)ticks * ns_per_tick() / 1000.0 + 0.5);
 }
 
-result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
+result_t ChildProcess::usage(obj_ptr<UsageType>& retVal)
 {
     struct rusage_info_v2 ri;
     int rusage_status = proc_pid_rusage(m_process.pid, RUSAGE_INFO_V2, (rusage_info_t*)&ri);
     if (rusage_status != 0)
         return result_t::from_system(LastError());
 
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, ticks_to_us(ri.ri_user_time))).IsJust();
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, ticks_to_us(ri.ri_system_time))).IsJust();
-    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, ri.ri_resident_size)).IsJust();
-
-    retVal = o;
+    retVal = new UsageType();
+    retVal->user = ticks_to_us(ri.ri_user_time);
+    retVal->system = ticks_to_us(ri.ri_system_time);
+    retVal->rss = (double)ri.ri_resident_size;
 
     return result_t();
 }
@@ -83,7 +78,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 #endif
 #elif defined(Linux)
 namespace fibjs {
-result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
+result_t ChildProcess::usage(obj_ptr<UsageType>& retVal)
 {
     char stat_filepath[128];
 
@@ -107,15 +102,10 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 
     long herz = sysconf(_SC_CLK_TCK);
 
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, utime_ticks * MICROS_PER_SEC / herz)).IsJust();
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, stime_ticks * MICROS_PER_SEC / herz)).IsJust();
-    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, rss * getpagesize())).IsJust();
-
-    retVal = o;
+    retVal = new UsageType();
+    retVal->user = utime_ticks * MICROS_PER_SEC / herz;
+    retVal->system = stime_ticks * MICROS_PER_SEC / herz;
+    retVal->rss = (double)(rss * getpagesize());
 
     return result_t();
 }
@@ -124,7 +114,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 #include <psapi.h>
 
 namespace fibjs {
-result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
+result_t ChildProcess::usage(obj_ptr<UsageType>& retVal)
 {
     FILETIME createTime, exitTime, kernelTime, userTime;
     SYSTEMTIME kernelSystemTime, userSystemTime;
@@ -152,15 +142,10 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     double stime_ticks = MICROS_PER_SEC * (kernelSystemTime.wHour * 3600 + kernelSystemTime.wMinute * 60 + kernelSystemTime.wSecond)
         + kernelSystemTime.wMilliseconds * 1000;
 
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, utime_ticks)).IsJust();
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, stime_ticks)).IsJust();
-    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)memCounters.PeakWorkingSetSize)).IsJust();
-
-    retVal = o;
+    retVal = new UsageType();
+    retVal->user = utime_ticks;
+    retVal->system = stime_ticks;
+    retVal->rss = (double)memCounters.PeakWorkingSetSize;
 
     return result_t();
 }

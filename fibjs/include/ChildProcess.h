@@ -72,7 +72,7 @@ public:
     virtual result_t get_connected(bool& retVal);
     virtual result_t disconnect();
     virtual result_t send(v8::Local<v8::Value> msg);
-    virtual result_t usage(v8::Local<v8::Object>& retVal);
+    virtual result_t usage(obj_ptr<UsageType>& retVal);
     virtual result_t get_pid(int32_t& retVal);
     virtual result_t get_killed(bool& retVal);
     virtual result_t get_exitCode(int32_t& retVal);

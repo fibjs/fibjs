@@ -27,6 +27,30 @@ public:
     using Union_kill_signal = std::variant<exlib::string, int32_t>;
 
 public:
+    class UsageType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("user"), GetReturnValue(isolate, user)).Check();
+            retVal->Set(context, isolate->NewString("system"), GetReturnValue(isolate, system)).Check();
+            retVal->Set(context, isolate->NewString("rss"), GetReturnValue(isolate, rss)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, user));
+            args.push_back(GetReturnValue(isolate, system));
+            args.push_back(GetReturnValue(isolate, rss));
+        }
+
+    public:
+        double user;
+        double system;
+        double rss;
+    };
+
+public:
     // ChildProcess_base
     virtual result_t kill(Union_kill_signal signal) = 0;
     virtual result_t join(int32_t& retVal, AsyncHandle ac) = 0;
@@ -36,7 +60,7 @@ public:
     virtual result_t resize(int32_t cols, int32_t rows) = 0;
     virtual result_t get_cols(int32_t& retVal) = 0;
     virtual result_t get_rows(int32_t& retVal) = 0;
-    virtual result_t usage(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t usage(obj_ptr<UsageType>& retVal) = 0;
     virtual result_t get_pid(int32_t& retVal) = 0;
     virtual result_t get_killed(bool& retVal) = 0;
     virtual result_t get_exitCode(int32_t& retVal) = 0;
@@ -251,7 +275,7 @@ inline void ChildProcess_base::s_get_rows(const v8::FunctionCallbackInfo<v8::Val
 
 inline void ChildProcess_base::s_usage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<UsageType> vr;
 
     METHOD_INSTANCE(ChildProcess_base);
     METHOD_ENTER();

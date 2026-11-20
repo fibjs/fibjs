@@ -182,7 +182,7 @@ interface ChildProcess : EventEmitter
      ```
      @return returns the report containing the time information
      */
-    Object usage();
+    (Number user, Number system, Number rss) usage();
 
     /*! @brief Reads the id of the process this object refers to
 
