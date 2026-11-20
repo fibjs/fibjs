@@ -263,7 +263,7 @@ exlib::string object_format(Isolate* isolate, v8::Local<v8::Value> v, bool color
     return buf.str();
 }
 
-exlib::string table_format(Isolate* isolate, v8::Local<v8::Value> obj, v8::Local<v8::Array> fields, bool color, bool encode_string)
+exlib::string table_format(Isolate* isolate, v8::Local<v8::Value> obj, const std::vector<exlib::string>& fields, bool color, bool encode_string)
 {
     if (isSimpleValue(obj))
         return json_format(isolate, obj, color);
@@ -283,14 +283,9 @@ exlib::string table_format(Isolate* isolate, v8::Local<v8::Value> obj, v8::Local
     GetPropertyNames(o, idx_cols);
     props.push_back(std::pair<QuickArray<exlib::string>&, int32_t>(idx_cols, 0));
 
-    if (!fields.IsEmpty()) {
+    if (!fields.empty()) {
         b_has_prop = true;
-        int32_t len = fields->Length();
-        for (int32_t i = 0; i < len; i++) {
-            JSValue k = fields->Get(_context, i);
-
-            exlib::string row_key = isolate->toString(k);
-
+        for (const exlib::string& row_key : fields) {
             auto it = prop_cols.find(row_key);
             if (it == prop_cols.end()) {
                 it = prop_cols.insert(std::make_pair(row_key, QuickArray<exlib::string>())).first;
@@ -435,13 +430,22 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
 
     if (table) {
         bool colors = false;
-        v8::Local<v8::Array> fields;
+        std::vector<exlib::string> fields;
         bool encode_string = true;
 
         if (!options.IsEmpty()) {
             GetConfigValue(options, "colors", colors, true);
-            GetConfigValue(options, "fields", fields, true);
             GetConfigValue(options, "encode_string", encode_string, true);
+
+            v8::Local<v8::Array> field_arr;
+            result_t hr = GetConfigValue(options, "fields", field_arr, true);
+            if (hr.ok()) {
+                v8::Local<v8::Context> context = isolate->context();
+                int32_t len = field_arr->Length();
+                for (int32_t i = 0; i < len; i++)
+                    fields.push_back(isolate->toString(JSValue(field_arr->Get(context, i))));
+            } else if (!hr.is_param_missing())
+                return hr;
         }
 
         retVal = table_format(isolate, obj, fields, colors, encode_string);

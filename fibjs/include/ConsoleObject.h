@@ -49,7 +49,7 @@ public:
     virtual result_t trace(OptArgs args);
     virtual result_t dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options);
     virtual result_t table(v8::Local<v8::Value> obj);
-    virtual result_t table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields);
+    virtual result_t table(v8::Local<v8::Value> obj, std::vector<exlib::string>& fields);
     virtual result_t time(exlib::string label);
     virtual result_t timeElapse(exlib::string label);
     virtual result_t timeEnd(exlib::string label);

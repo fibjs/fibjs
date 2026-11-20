@@ -398,7 +398,7 @@ declare class Class_ConsoleObject extends Class_object {
      *      @param fields the fields to display
      *
      */
-    table(obj: any, fields: any[]): void;
+    table(obj: any, fields: string[]): void;
 
     /**
      * @description Starts or restarts a timer under a label, scoped to this instance

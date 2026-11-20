@@ -404,10 +404,11 @@ result_t ConsoleObject::dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
 
 result_t ConsoleObject::table(v8::Local<v8::Value> obj)
 {
-    return table(obj, v8::Local<v8::Array>());
+    std::vector<exlib::string> fields;
+    return table(obj, fields);
 }
 
-result_t ConsoleObject::table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields)
+result_t ConsoleObject::table(v8::Local<v8::Value> obj, std::vector<exlib::string>& fields)
 {
     Isolate* isolate = holder();
     bool is_color = colors(isolate, console_base::C_INFO);

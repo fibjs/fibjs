@@ -63,7 +63,7 @@ public:
     static result_t trace(OptArgs args);
     static result_t dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options);
     static result_t table(v8::Local<v8::Value> obj);
-    static result_t table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields);
+    static result_t table(v8::Local<v8::Value> obj, std::vector<exlib::string>& fields);
     static result_t print(OptArgs args);
     static result_t moveTo(int32_t row, int32_t column);
     static result_t hideCursor();
@@ -483,7 +483,7 @@ inline void console_base::s_static_table(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_OVER_NAMED(2, 2, "fields");
 
     ARG_NAMED(v8::Local<v8::Value>, 0, "obj");
-    ARG_NAMED(v8::Local<v8::Array>, 1, "fields");
+    ARG_NAMED(std::vector<exlib::string>, 1, "fields");
 
     hr = table(v0, v1);
 

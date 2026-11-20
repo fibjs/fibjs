@@ -536,7 +536,7 @@ declare module 'console' {
      *      @param fields the fields to display
      *
      */
-    function table(obj: any, fields: any[]): void;
+    function table(obj: any, fields: string[]): void;
 
     /**
      * @description Writes raw text without a newline and without logging metadata

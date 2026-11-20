@@ -468,7 +468,7 @@ module console
      @param obj the object to display
      @param fields the fields to display
      */
-    static table(Value obj, Array fields);
+    static table(Value obj, String fields[]);
 
     /*! @brief Writes raw text without a newline and without logging metadata
 

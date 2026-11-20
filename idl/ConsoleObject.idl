@@ -384,7 +384,7 @@ interface ConsoleObject : object
      @param obj the object to display
      @param fields the fields to display
      */
-    table(Value obj, Array fields);
+    table(Value obj, String fields[]);
 
     /*! @brief Starts or restarts a timer under a label, scoped to this instance
 

@@ -38,7 +38,7 @@ public:
     virtual result_t trace(OptArgs args) = 0;
     virtual result_t dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options) = 0;
     virtual result_t table(v8::Local<v8::Value> obj) = 0;
-    virtual result_t table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields) = 0;
+    virtual result_t table(v8::Local<v8::Value> obj, std::vector<exlib::string>& fields) = 0;
     virtual result_t time(exlib::string label) = 0;
     virtual result_t timeElapse(exlib::string label) = 0;
     virtual result_t timeEnd(exlib::string label) = 0;
@@ -394,7 +394,7 @@ inline void ConsoleObject_base::s_table(const v8::FunctionCallbackInfo<v8::Value
     METHOD_OVER_NAMED(2, 2, "fields");
 
     ARG_NAMED(v8::Local<v8::Value>, 0, "obj");
-    ARG_NAMED(v8::Local<v8::Array>, 1, "fields");
+    ARG_NAMED(std::vector<exlib::string>, 1, "fields");
 
     hr = pInst->table(v0, v1);
 

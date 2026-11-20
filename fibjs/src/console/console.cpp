@@ -222,10 +222,11 @@ result_t console_base::dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> optio
 
 result_t console_base::table(v8::Local<v8::Value> obj)
 {
-    return table(obj, v8::Local<v8::Array>());
+    std::vector<exlib::string> fields;
+    return table(obj, fields);
 }
 
-result_t console_base::table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields)
+result_t console_base::table(v8::Local<v8::Value> obj, std::vector<exlib::string>& fields)
 {
     exlib::string strBuffer = table_format(Isolate::current(), obj, fields, colors(C_INFO), true);
     outLog(C_INFO, strBuffer);

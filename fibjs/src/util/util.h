@@ -31,7 +31,7 @@ void string_format(Isolate* isolate, StringBuffer& strBuffer, v8::Local<v8::Valu
 exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color = false, int32_t depth = DEFAULT_DEPTH,
     int32_t maxArrayLength = DEFAULT_MAX_ARRAY_LENGTH, int32_t maxStringLength = DEFAULT_MAX_STRING_LENGTH);
 
-exlib::string table_format(Isolate* isolate, v8::Local<v8::Value> obj, v8::Local<v8::Array> fields, bool color, bool encode_string);
+exlib::string table_format(Isolate* isolate, v8::Local<v8::Value> obj, const std::vector<exlib::string>& fields, bool color, bool encode_string);
 result_t util_format(Isolate* isolate, exlib::string fmt, OptArgs args, bool color, exlib::string& retVal);
 
 }
