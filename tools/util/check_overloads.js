@@ -51,6 +51,7 @@
 var { isUnion, splitUnion } = require('./type-utils');
 
 var NUMERIC = ['num', 'str', 'bool', 'null', 'date'];
+var NUM_OR_BIGINT = ['num', 'bigint'];
 
 // accepts(type) -> array of value classes; '*' means "any value"
 var TYPE_ACCEPTS = {
@@ -73,6 +74,8 @@ var TYPE_ACCEPTS = {
 
     'Integer': NUMERIC,
     'Long': NUMERIC,
+    'Int64': NUM_OR_BIGINT,
+    'UInt64': NUM_OR_BIGINT,
     'Number': NUMERIC,
     'Date': NUMERIC,
 
@@ -134,6 +137,8 @@ var STRICT_ACCEPTS = {
     'Boolean': ['bool'],
     'Integer': ['num'],
     'Long': ['num', 'bigint'],
+    'Int64': ['num', 'bigint'],
+    'UInt64': ['num', 'bigint'],
     'Number': ['num'],
     'Date': ['date'],
     'Buffer': ['buffer'],

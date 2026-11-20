@@ -553,6 +553,11 @@ function generalTypeMap(dataType, {
             info.type = dom.type.number;
             break;
         }
+        case 'Int64':
+        case 'UInt64': {
+            info.type = dom.create.namedTypeReference('bigint');
+            break;
+        }
         case 'NMap':
         case 'NObject':
         case 'Object':

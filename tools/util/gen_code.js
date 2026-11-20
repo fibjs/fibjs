@@ -165,6 +165,8 @@ function gen_code(cls, def, baseFolder, allDefs) {
     var typeMap = {
         "Integer": "int32_t",
         "Long": "int64_t",
+        "Int64": "Int64",
+        "UInt64": "UInt64",
         "Number": "double",
         "Boolean": "bool",
         "String": "exlib::string",
@@ -1054,6 +1056,9 @@ function gen_code(cls, def, baseFolder, allDefs) {
 
         if (item.type === 'Long' && /^-?\d+$/.test(v))
             return ' = ' + v + 'LL';
+
+        if ((item.type === 'Int64' || item.type === 'UInt64') && /^-?\d+$/.test(v))
+            return ' = ' + item.type + '(' + v + (item.type === 'Int64' ? 'LL' : 'ULL') + ')';
 
         return ' = ' + v;
     }

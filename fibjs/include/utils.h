@@ -779,6 +779,41 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, doubl
     return std::isnan(n) ? result_t::type_mismatch() : result_t();
 }
 
+// BigInt-backed 64-bit integers: the IDL Int64/UInt64 types. They are
+// distinct from int64_t so that Long can stay a Number-safe integer while
+// these expose the full 64-bit range as a BigInt. The conversion operators
+// keep native code that already works on int64_t/uint64_t unchanged; only the
+// JS boundary treats them differently.
+struct Int64 {
+    int64_t value = 0;
+
+    Int64() = default;
+    Int64(int64_t v)
+        : value(v)
+    {
+    }
+
+    operator int64_t() const
+    {
+        return value;
+    }
+};
+
+struct UInt64 {
+    uint64_t value = 0;
+
+    UInt64() = default;
+    UInt64(uint64_t v)
+        : value(v)
+    {
+    }
+
+    operator uint64_t() const
+    {
+        return value;
+    }
+};
+
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, int64_t& n, bool bStrict = false)
 {
     if (v.IsEmpty())
@@ -826,6 +861,72 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, int64
         n = (int64_t)num;
         return result_t();
     }
+}
+
+// Int64/UInt64 take a BigInt for the full 64-bit range; a safe integer
+// Number is also accepted so existing call sites keep working.
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, Int64& n, bool bStrict = false)
+{
+    if (v.IsEmpty())
+        return result_t::type_mismatch();
+
+    v8::Local<v8::Context> context = isolate->context();
+
+    if (v->IsBigInt() || v->IsBigIntObject()) {
+        v8::Local<v8::BigInt> mv = v->ToBigInt(context).FromMaybe(v8::Local<v8::BigInt>());
+        if (mv.IsEmpty())
+            return result_t(CALL_E_JAVASCRIPT);
+
+        bool lossless;
+        n.value = mv->Int64Value(&lossless);
+        return lossless ? result_t() : result_t::out_of_range();
+    }
+
+    if (!v->IsNumber() && !v->IsNumberObject())
+        return result_t::type_mismatch();
+
+    double num = v->NumberValue(context).FromMaybe(NAN);
+    if (std::isnan(num))
+        return result_t::type_mismatch();
+    if (std::floor(num) != num)
+        return result_t::type_mismatch();
+    if (num < -9007199254740992.0 || num > 9007199254740992.0)
+        return result_t::out_of_range();
+
+    n.value = (int64_t)num;
+    return result_t();
+}
+
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, UInt64& n, bool bStrict = false)
+{
+    if (v.IsEmpty())
+        return result_t::type_mismatch();
+
+    v8::Local<v8::Context> context = isolate->context();
+
+    if (v->IsBigInt() || v->IsBigIntObject()) {
+        v8::Local<v8::BigInt> mv = v->ToBigInt(context).FromMaybe(v8::Local<v8::BigInt>());
+        if (mv.IsEmpty())
+            return result_t(CALL_E_JAVASCRIPT);
+
+        bool lossless;
+        n.value = mv->Uint64Value(&lossless);
+        return lossless ? result_t() : result_t::out_of_range();
+    }
+
+    if (!v->IsNumber() && !v->IsNumberObject())
+        return result_t::type_mismatch();
+
+    double num = v->NumberValue(context).FromMaybe(NAN);
+    if (std::isnan(num))
+        return result_t::type_mismatch();
+    if (std::floor(num) != num)
+        return result_t::type_mismatch();
+    if (num < 0 || num > 9007199254740992.0)
+        return result_t::out_of_range();
+
+    n.value = (uint64_t)num;
+    return result_t();
 }
 
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, int32_t& n, bool bStrict = false)
@@ -1259,6 +1360,16 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, double v)
 inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, int64_t v)
 {
     return v8::Number::New(isolate->m_isolate, (double)v);
+}
+
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, const Int64& v)
+{
+    return v8::BigInt::New(isolate->m_isolate, v.value);
+}
+
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, const UInt64& v)
+{
+    return v8::BigInt::NewFromUnsigned(isolate->m_isolate, v.value);
 }
 
 inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, exlib::string& str)

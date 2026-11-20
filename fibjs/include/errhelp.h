@@ -38,6 +38,8 @@ namespace fibjs {
 class Variant;
 class Buffer_base;
 class date_t;
+struct Int64;
+struct UInt64;
 
 namespace errhelp {
 
@@ -210,6 +212,8 @@ struct expected_of {
             return "must be of type boolean";
         else if constexpr (std::is_same_v<T, date_t>)
             return "must be an instance of Date";
+        else if constexpr (std::is_same_v<T, Int64> || std::is_same_v<T, UInt64>)
+            return "must be of type bigint";
         else if constexpr (std::is_arithmetic_v<T>)
             // Integral and floating point alike: the class (TypeError vs
             // RangeError) already tells a range problem from a type problem.
