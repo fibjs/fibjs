@@ -1,0 +1,29 @@
+/*! @brief Source information carried by a DgramSocket message event.
+
+     The four fields mirror the object Node.js passes as the second listener
+     argument: the sender address, its address family, the sender port and the
+     number of payload bytes received.
+
+     Example 1 — an IPv4 sender:
+     ```JavaScript
+     const rinfo = { address: '127.0.0.1', family: 'IPv4', port: 41234, size: 5 };
+     ```
+
+     Example 2 — an IPv6 sender:
+     ```JavaScript
+     const rinfo = { address: '::1', family: 'IPv6', port: 41235, size: 12 };
+     ```
+ */
+struct DgramRinfo {
+    /*! @brief Sender address in presentation form (for example 127.0.0.1 or ::1) */
+    required String address;
+
+    /*! @brief Address family reported by the socket, IPv4 or IPv6 */
+    required String family;
+
+    /*! @brief Sender UDP port */
+    required Integer port;
+
+    /*! @brief Payload length in bytes */
+    required Integer size;
+};

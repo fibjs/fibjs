@@ -440,7 +440,7 @@ interface DgramSocket : EventEmitter
      @param msg the received datagram
      @param rinfo the remote information of the sender
      */
-    event message(Buffer msg, NObject rinfo);
+    event message(Buffer msg, DgramRinfo rinfo);
 
     /*! @brief Keeps the fibjs process alive while the socket is bound (the default)
 

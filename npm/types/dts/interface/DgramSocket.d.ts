@@ -833,23 +833,68 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param rinfo the remote information of the sender
      *
      */
-    on(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    on(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    once(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    once(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    off(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    off(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    addListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    addListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    removeListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    removeListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    addEventListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    prependListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
-    prependOnceListener(event: "message", listener: (msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void): this;
+    prependOnceListener(event: "message", listener: (msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void): this;
 
     /**
      * @description Emitted for every received datagram
@@ -862,7 +907,12 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param rinfo the remote information of the sender
      *
      */
-    onmessage: ((msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void) | null;
+    onmessage: ((msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void) | null;
 
     /**
      * @description Keeps the fibjs process alive while the socket is bound (the default)
@@ -1522,7 +1572,12 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @param rinfo the remote information of the sender
      *
      */
-    onmessage: ((msg: Class_Buffer, rinfo: FIBJS.GeneralObject)=>void) | null;
+    onmessage: ((msg: Class_Buffer, rinfo: {
+        address: string;
+        family: string;
+        port: number;
+        size: number;
+    })=>void) | null;
 
     /**
      * @description Keeps the fibjs process alive while the socket is bound (the default)
