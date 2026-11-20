@@ -376,7 +376,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      @return returns a composite AbortSignal object
      *
      */
-    static any(signals: any[]): Class_AbortSignal;
+    static any(signals: Class_AbortSignal[]): Class_AbortSignal;
 
     /**
      * @description Throws the abort error when the signal has been aborted, otherwise does nothing
@@ -4594,7 +4594,11 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *      @return returns the report containing the time information
      *
      */
-    usage(): FIBJS.GeneralObject;
+    usage(): {
+        user: number;
+        system: number;
+        rss: number;
+    };
 
     /**
      * @description Reads the id of the process this object refers to
@@ -5062,7 +5066,11 @@ declare class Class_ChildProcessPromise extends Class_EventEmitter {
      *      @return returns the report containing the time information
      *
      */
-    usage(): FIBJS.GeneralObject;
+    usage(): {
+        user: number;
+        system: number;
+        rss: number;
+    };
 
     /**
      * @description Reads the id of the process this object refers to
@@ -6354,7 +6362,7 @@ declare class Class_ConsoleObject extends Class_object {
      *      @param fields the fields to display
      *
      */
-    table(obj: any, fields: any[]): void;
+    table(obj: any, fields: string[]): void;
 
     /**
      * @description Starts or restarts a timer under a label, scoped to this instance
@@ -12635,7 +12643,7 @@ declare class Class_DnsResolver extends Class_object {
      *      @param servers the DNS server list
      *
      */
-    setServers(servers: any[]): void;
+    setServers(servers: string[]): void;
 
 }
 
@@ -13613,7 +13621,7 @@ declare class Class_DnsResolverPromise extends Class_object {
      *      @param servers the DNS server list
      *
      */
-    setServers(servers: any[]): void;
+    setServers(servers: string[]): void;
 
 }
 
@@ -84561,7 +84569,7 @@ declare module 'console' {
      *      @param fields the fields to display
      *
      */
-    function table(obj: any, fields: any[]): void;
+    function table(obj: any, fields: string[]): void;
 
     /**
      * @description Writes raw text without a newline and without logging metadata
@@ -85368,7 +85376,7 @@ declare module 'console/promises' {
      *      @param fields the fields to display
      *
      */
-    function table(obj: any, fields: any[]): void;
+    function table(obj: any, fields: string[]): void;
 
     /**
      * @description Writes raw text without a newline and without logging metadata
@@ -95685,7 +95693,7 @@ declare module 'dns' {
      *      @param servers the DNS server list
      *
      */
-    function setServers(servers: any[]): void;
+    function setServers(servers: string[]): void;
 
     /**
      * @description Reads the default result order used by lookup
@@ -97165,7 +97173,7 @@ declare module 'dns/promises' {
      *      @param servers the DNS server list
      *
      */
-    function setServers(servers: any[]): void;
+    function setServers(servers: string[]): void;
 
     /**
      * @description Reads the default result order used by lookup
@@ -121226,7 +121234,7 @@ declare module 'process' {
      *      @return returns the measured time in the format [seconds, nanoseconds]
      *
      */
-    function hrtime(diff?: any[]): any[];
+    function hrtime(diff?: number[]): number[];
 
     /**
      * @description Exits the current process, using exitCode as the process result
@@ -121411,7 +121419,14 @@ declare module 'process' {
      *      @return returns the memory report
      *
      */
-    function memoryUsage(): FIBJS.GeneralObject;
+    function memoryUsage(): {
+        rss: number;
+        heapTotal: number;
+        heapUsed: number;
+        external: number;
+        nativeObjects: FIBJS.GeneralObject;
+        ExtStrings: number;
+    };
 
     /**
      * @description Reports the memory limit of the current process
@@ -125409,7 +125424,7 @@ declare module 'subtle' {
      *      @return a CryptoKey, or a \`{ publicKey, privateKey }\` object for a key pair
      *
      */
-    function generateKey(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): Promise<any>;
+    function generateKey(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): Promise<any>;
 
     /**
      * @description Generates a new key or key pair
@@ -125465,7 +125480,7 @@ declare module 'subtle' {
      *      @return a CryptoKey, or a \`{ publicKey, privateKey }\` object for a key pair
      *
      */
-    function generateKeySync(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): any;
+    function generateKeySync(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): any;
 
     /**
      * @description Generates a new key or key pair
@@ -125521,7 +125536,7 @@ declare module 'subtle' {
      *      @return a CryptoKey, or a \`{ publicKey, privateKey }\` object for a key pair
      *
      */
-    function generateKeyAsync(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): Promise<any>;
+    function generateKeyAsync(algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): Promise<any>;
 
     /**
      * @description Imports existing key material as a CryptoKey
@@ -125562,7 +125577,7 @@ declare module 'subtle' {
      *      @return the imported CryptoKey
      *
      */
-    function importKey(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): Promise<Class_CryptoKey>;
+    function importKey(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): Promise<Class_CryptoKey>;
 
     /**
      * @description Imports existing key material as a CryptoKey
@@ -125603,7 +125618,7 @@ declare module 'subtle' {
      *      @return the imported CryptoKey
      *
      */
-    function importKeySync(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): Class_CryptoKey;
+    function importKeySync(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): Class_CryptoKey;
 
     /**
      * @description Imports existing key material as a CryptoKey
@@ -125644,7 +125659,7 @@ declare module 'subtle' {
      *      @return the imported CryptoKey
      *
      */
-    function importKeyAsync(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: any[]): Promise<Class_CryptoKey>;
+    function importKeyAsync(format: string, keyData: any, algorithm: FIBJS.GeneralObject | string, extractable: boolean, usages: string[]): Promise<Class_CryptoKey>;
 
     /**
      * @description Signs data with a private or secret key and resolves to the signature
@@ -131142,7 +131157,7 @@ declare module 'util' {
      *      @return returns the array of enumerable property names
      *
      */
-    function keys(v: any): any[];
+    function keys(v: any): string[];
 
     /**
      * @description Queries the array of all values of the specified object
@@ -132701,7 +132716,11 @@ declare module 'v8' {
      *      @return returns the statistics of the metadata
      *
      */
-    function getHeapCodeStatistics(): FIBJS.GeneralObject;
+    function getHeapCodeStatistics(): {
+        code_and_metadata_size: number;
+        bytecode_and_metadata_size: number;
+        external_script_source_size: number;
+    };
 
     /**
      * @description Gets the detailed usage of v8 heap memory
