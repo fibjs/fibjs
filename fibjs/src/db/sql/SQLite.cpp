@@ -240,21 +240,19 @@ public:
         return result_t();
     }
 
-    virtual result_t columns(obj_ptr<NArray>& retVal)
+    virtual result_t columns(std::vector<obj_ptr<Statement_base::ColumnsType>>& retVal)
     {
         if (!m_stmt)
             return result_t::closed();
 
-        obj_ptr<NArray> arr = new NArray();
         for (int32_t i = 0; i < m_columns; i++) {
-            obj_ptr<NObject> col = new NObject();
-            col->add("name", m_names[i]);
+            obj_ptr<Statement_base::ColumnsType> col = new Statement_base::ColumnsType();
+            col->name = m_names[i];
             const char* type = sqlite3_column_decltype(m_stmt, i);
-            col->add("type", type ? exlib::string(type) : exlib::string(""));
-            arr->append(col);
+            col->type = type ? exlib::string(type) : exlib::string("");
+            retVal.push_back(col);
         }
 
-        retVal = arr;
         return result_t();
     }
 

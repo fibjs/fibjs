@@ -45,7 +45,7 @@ public:
         virtual result_t runResult(int64_t& changes, int64_t& lastInsertId) = 0;
 
         // Column metadata (does not execute the statement).
-        virtual result_t columns(obj_ptr<NArray>& retVal) = 0;
+        virtual result_t columns(std::vector<obj_ptr<Statement_base::ColumnsType>>& retVal) = 0;
 
         // Cursor reset: called after each execute/iteration, releases the
         // connection-level occupancy; the impl is retained and can be open()ed
@@ -102,7 +102,7 @@ public:
     virtual result_t all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac);
     virtual result_t run(OptArgs args, obj_ptr<RunType>& retVal, AsyncHandle ac);
     virtual result_t iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac);
-    virtual result_t columns(obj_ptr<NArray>& retVal, AsyncHandle ac);
+    virtual result_t columns(std::vector<obj_ptr<ColumnsType>>& retVal, AsyncHandle ac);
     virtual result_t get_sourceSQL(exlib::string& retVal);
     virtual result_t close(AsyncHandle ac);
 

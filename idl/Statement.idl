@@ -204,9 +204,9 @@ interface Statement : object
      conn.close();
      ```
 
-     @return returns an array of column metadata; each item contains name/type and other properties
+     @return returns an array of column metadata; each item contains name/type
      */
-    NArray columns() async;
+    (String name, String type)[] columns() async;
 
     /*! @brief The original SQL of the current statement
 

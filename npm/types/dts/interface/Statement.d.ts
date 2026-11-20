@@ -458,41 +458,18 @@ declare class Class_Statement extends Class_object {
      *      conn.close();
      *      ```
      *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
+     *      @return returns an array of column metadata; each item contains name/type
      *
      */
-    columns(): any[];
+    columns(): {
+        name: string;
+        type: string;
+    }[];
 
-    columns(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
-
-    /**
-     * @description Returns the result column metadata
-     *
-     *      Returns one object per result column with the properties `name` and `type`; on
-     *      SQLite the type is the declared type of the column and an empty string for computed
-     *      columns such as aggregates. On MySQL and ODBC the method is not implemented and
-     *      fails with error number 20009 ("requires server-side prepared statements"), because
-     *      those engines do not send result metadata at prepare time. Reading the metadata does
-     *      not execute the statement; after close the call fails with 20027.
-     *
-     *      Example — inspect the column metadata of a query:
-     *      ```JavaScript
-     *      const db = require('db');
-     *      const conn = db.openSQLite(':memory:');
-     *      conn.execute('CREATE TABLE user (id INTEGER PRIMARY KEY, name TEXT)');
-     *
-     *      const stmt = conn.prepare('SELECT id, name, COUNT(*) AS n FROM user');
-     *      stmt.columns().forEach((col) => console.log(col.name, col.type));
-     *      // id INTEGER / name TEXT / n (computed columns have an empty type)
-     *
-     *      stmt.close();
-     *      conn.close();
-     *      ```
-     *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
-     *
-     */
-    columnsSync(): any[];
+    columns(callback: (err: Error | undefined | null, retVal: {
+        name: string;
+        type: string;
+    }[])=>any): void;
 
     /**
      * @description Returns the result column metadata
@@ -518,10 +495,45 @@ declare class Class_Statement extends Class_object {
      *      conn.close();
      *      ```
      *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
+     *      @return returns an array of column metadata; each item contains name/type
      *
      */
-    columnsAsync(): Promise<any[]>;
+    columnsSync(): {
+        name: string;
+        type: string;
+    }[];
+
+    /**
+     * @description Returns the result column metadata
+     *
+     *      Returns one object per result column with the properties `name` and `type`; on
+     *      SQLite the type is the declared type of the column and an empty string for computed
+     *      columns such as aggregates. On MySQL and ODBC the method is not implemented and
+     *      fails with error number 20009 ("requires server-side prepared statements"), because
+     *      those engines do not send result metadata at prepare time. Reading the metadata does
+     *      not execute the statement; after close the call fails with 20027.
+     *
+     *      Example — inspect the column metadata of a query:
+     *      ```JavaScript
+     *      const db = require('db');
+     *      const conn = db.openSQLite(':memory:');
+     *      conn.execute('CREATE TABLE user (id INTEGER PRIMARY KEY, name TEXT)');
+     *
+     *      const stmt = conn.prepare('SELECT id, name, COUNT(*) AS n FROM user');
+     *      stmt.columns().forEach((col) => console.log(col.name, col.type));
+     *      // id INTEGER / name TEXT / n (computed columns have an empty type)
+     *
+     *      stmt.close();
+     *      conn.close();
+     *      ```
+     *
+     *      @return returns an array of column metadata; each item contains name/type
+     *
+     */
+    columnsAsync(): Promise<{
+        name: string;
+        type: string;
+    }[]>;
 
     /**
      * @description The original SQL of the current statement
@@ -962,10 +974,13 @@ declare class Class_StatementPromise extends Class_object {
      *      conn.close();
      *      ```
      *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
+     *      @return returns an array of column metadata; each item contains name/type
      *
      */
-    columns(): Promise<any[]>;
+    columns(): Promise<{
+        name: string;
+        type: string;
+    }[]>;
 
     /**
      * @description Returns the result column metadata
@@ -991,10 +1006,13 @@ declare class Class_StatementPromise extends Class_object {
      *      conn.close();
      *      ```
      *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
+     *      @return returns an array of column metadata; each item contains name/type
      *
      */
-    columnsSync(): any[];
+    columnsSync(): {
+        name: string;
+        type: string;
+    }[];
 
     /**
      * @description Returns the result column metadata
@@ -1020,10 +1038,13 @@ declare class Class_StatementPromise extends Class_object {
      *      conn.close();
      *      ```
      *
-     *      @return returns an array of column metadata; each item contains name/type and other properties
+     *      @return returns an array of column metadata; each item contains name/type
      *
      */
-    columnsAsync(): Promise<any[]>;
+    columnsAsync(): Promise<{
+        name: string;
+        type: string;
+    }[]>;
 
     /**
      * @description The original SQL of the current statement

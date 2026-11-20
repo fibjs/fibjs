@@ -349,7 +349,7 @@ public:
         return result_t();
     }
 
-    virtual result_t columns(obj_ptr<NArray>& retVal)
+    virtual result_t columns(std::vector<obj_ptr<Statement_base::ColumnsType>>& retVal)
     {
         return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message("MySQL: columns() requires server-side prepared statements (v2)");
     }

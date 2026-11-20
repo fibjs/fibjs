@@ -40,6 +40,25 @@ public:
         UInt64 changes;
         Int64 lastInsertRowid;
     };
+    class ColumnsType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("name"), GetReturnValue(isolate, name)).Check();
+            retVal->Set(context, isolate->NewString("type"), GetReturnValue(isolate, type)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, name));
+            args.push_back(GetReturnValue(isolate, type));
+        }
+
+    public:
+        exlib::string name;
+        exlib::string type;
+    };
 
 public:
     // Statement_base
@@ -47,7 +66,7 @@ public:
     virtual result_t all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
     virtual result_t run(OptArgs args, obj_ptr<RunType>& retVal, AsyncHandle ac) = 0;
     virtual result_t iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac) = 0;
-    virtual result_t columns(obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
+    virtual result_t columns(std::vector<obj_ptr<ColumnsType>>& retVal, AsyncHandle ac) = 0;
     virtual result_t get_sourceSQL(exlib::string& retVal) = 0;
     virtual result_t close(AsyncHandle ac) = 0;
 
@@ -76,7 +95,7 @@ public:
     ASYNC_MEMBERVALUE2(Statement_base, all, OptArgs, obj_ptr<NArray>);
     ASYNC_MEMBERVALUE2(Statement_base, run, OptArgs, obj_ptr<RunType>);
     ASYNC_MEMBERVALUE2(Statement_base, iterate, OptArgs, obj_ptr<Iterator_base>);
-    ASYNC_MEMBERVALUE1(Statement_base, columns, obj_ptr<NArray>);
+    ASYNC_MEMBERVALUE1(Statement_base, columns, std::vector<obj_ptr<ColumnsType>>);
     ASYNC_MEMBER0(Statement_base, close);
 };
 }
@@ -188,7 +207,7 @@ inline void Statement_base::s_iterate(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void Statement_base::s_columns(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<ColumnsType>> vr;
 
     ASYNC_METHOD_INSTANCE(Statement_base);
     ASYNC_METHOD_ENTER("Statement.columns");

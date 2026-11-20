@@ -168,7 +168,7 @@ result_t Statement::iteratePrepared(std::vector<Variant>& args,
     return result_t();
 }
 
-result_t Statement::columns(obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t Statement::columns(std::vector<obj_ptr<ColumnsType>>& retVal, AsyncHandle ac)
 {
     if (!m_impl)
         return result_t::closed();
