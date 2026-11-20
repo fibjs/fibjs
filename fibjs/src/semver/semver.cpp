@@ -1869,14 +1869,22 @@ static v8::Local<v8::Array> make_prerelease_array(Isolate* isolate,
 }
 
 template <typename T>
-static void fill_version_type(Isolate* isolate, const SemVer& v, T* retVal)
+static void fill_version_type(const SemVer& v, T* retVal)
 {
     retVal->version = exlib::string(v.version.c_str(), v.version.size());
     retVal->raw = exlib::string(v.raw.c_str(), v.raw.size());
     retVal->major = (int64_t)v.major;
     retVal->minor = (int64_t)v.minor;
     retVal->patch = (int64_t)v.patch;
-    retVal->prerelease = make_prerelease_array(isolate, v.prerelease);
+
+    retVal->prerelease.clear();
+    retVal->prerelease.reserve(v.prerelease.size());
+    for (const Identifier& id : v.prerelease) {
+        if (id.is_number)
+            retVal->prerelease.emplace_back((int64_t)id.number);
+        else
+            retVal->prerelease.emplace_back(exlib::string(id.text.c_str(), id.text.size()));
+    }
 
     retVal->build.clear();
     retVal->build.reserve(v.build.size());
@@ -1921,9 +1929,8 @@ result_t semver_base::parse(exlib::string version, SemVerOptions* options,
     if (!parse_version(std::string(version.c_str(), version.size()), o, v))
         return result_t::return_null();
 
-    Isolate* isolate = Isolate::current();
     obj_ptr<ParseType> result = new ParseType();
-    fill_version_type(isolate, v, result.get());
+    fill_version_type(v, result.get());
     retVal = result;
     return result_t();
 }
@@ -2235,9 +2242,8 @@ result_t semver_base::minVersion(exlib::string range, SemVerOptions* options,
     if (!found)
         return result_t::return_null();
 
-    Isolate* isolate = Isolate::current();
     obj_ptr<MinVersionType> result = new MinVersionType();
-    fill_version_type(isolate, v, result.get());
+    fill_version_type(v, result.get());
     retVal = result;
     return result_t();
 }
@@ -2429,9 +2435,8 @@ result_t semver_base::coerce(Union_coerce_version version, SemVerOptions* option
     if (!coerce_version(input, o, v))
         return result_t::return_null();
 
-    Isolate* isolate = Isolate::current();
     obj_ptr<CoerceType> result = new CoerceType();
-    fill_version_type(isolate, v, result.get());
+    fill_version_type(v, result.get());
     retVal = result;
     return result_t();
 }
