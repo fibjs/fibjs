@@ -43,7 +43,7 @@ public:
     virtual result_t remove(int32_t count, Union_remove_value value, int32_t& retVal) = 0;
     virtual result_t trim(int32_t start, int32_t stop) = 0;
     virtual result_t len(int32_t& retVal) = 0;
-    virtual result_t range(int32_t start, int32_t stop, obj_ptr<NArray>& retVal) = 0;
+    virtual result_t range(int32_t start, int32_t stop, std::vector<obj_ptr<Buffer_base>>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -288,7 +288,7 @@ inline void RedisList_base::s_len(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void RedisList_base::s_range(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<Buffer_base>> vr;
 
     METHOD_INSTANCE(RedisList_base);
     METHOD_ENTER();

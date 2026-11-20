@@ -91,7 +91,7 @@ public:
     virtual result_t getBit(Union_getBit_key key, int32_t offset, int32_t& retVal) = 0;
     virtual result_t exists(Union_exists_key key, bool& retVal) = 0;
     virtual result_t type(Union_type_key key, exlib::string& retVal) = 0;
-    virtual result_t keys(exlib::string pattern, obj_ptr<NArray>& retVal) = 0;
+    virtual result_t keys(exlib::string pattern, std::vector<obj_ptr<Buffer_base>>& retVal) = 0;
     virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal) = 0;
     virtual result_t del(OptArgs keys, int32_t& retVal) = 0;
     virtual result_t expire(Union_expire_key key, int64_t ttl, bool& retVal) = 0;
@@ -592,7 +592,7 @@ inline void Redis_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Redis_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<Buffer_base>> vr;
 
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();

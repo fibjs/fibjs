@@ -228,7 +228,7 @@ declare class Class_RedisHash extends Class_object {
      *      @return a flat array of alternating field and value Buffers
      *
      */
-    getAll(): any[];
+    getAll(): Class_Buffer[];
 
     /**
      * @description Returns every field name of the hash
@@ -240,7 +240,7 @@ declare class Class_RedisHash extends Class_object {
      *      @return an array of the field names as Buffers
      *
      */
-    keys(): any[];
+    keys(): Class_Buffer[];
 
     /**
      * @description Returns the number of fields in the hash

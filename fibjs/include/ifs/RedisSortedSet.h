@@ -36,8 +36,8 @@ public:
     virtual result_t remove(OptArgs members, int32_t& retVal) = 0;
     virtual result_t len(int32_t& retVal) = 0;
     virtual result_t count(int32_t min, int32_t max, int32_t& retVal) = 0;
-    virtual result_t range(int32_t start, int32_t stop, bool withScores, obj_ptr<NArray>& retVal) = 0;
-    virtual result_t rangeRev(int32_t start, int32_t stop, bool withScores, obj_ptr<NArray>& retVal) = 0;
+    virtual result_t range(int32_t start, int32_t stop, bool withScores, std::vector<obj_ptr<Buffer_base>>& retVal) = 0;
+    virtual result_t rangeRev(int32_t start, int32_t stop, bool withScores, std::vector<obj_ptr<Buffer_base>>& retVal) = 0;
     virtual result_t rank(Union_rank_member member, int32_t& retVal) = 0;
     virtual result_t rankRev(Union_rankRev_member member, int32_t& retVal) = 0;
 
@@ -205,7 +205,7 @@ inline void RedisSortedSet_base::s_count(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void RedisSortedSet_base::s_range(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<Buffer_base>> vr;
 
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
@@ -223,7 +223,7 @@ inline void RedisSortedSet_base::s_range(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void RedisSortedSet_base::s_rangeRev(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<Buffer_base>> vr;
 
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();

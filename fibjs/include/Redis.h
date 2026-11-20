@@ -66,7 +66,7 @@ public:
     virtual result_t getBit(Union_getBit_key key, int32_t offset, int32_t& retVal);
     virtual result_t exists(Union_exists_key key, bool& retVal);
     virtual result_t type(Union_type_key key, exlib::string& retVal);
-    virtual result_t keys(exlib::string pattern, obj_ptr<NArray>& retVal);
+    virtual result_t keys(exlib::string pattern, std::vector<obj_ptr<Buffer_base>>& retVal);
     virtual result_t del(v8::Local<v8::Array> keys, int32_t& retVal);
     virtual result_t del(OptArgs keys, int32_t& retVal);
     virtual result_t expire(Union_expire_key key, int64_t ttl, bool& retVal);
@@ -292,6 +292,31 @@ public:
     {
         retVal = (NArray*)v.object();
         return retVal ? result_t() : result_t::invalid_call();
+    }
+
+    // Replies that are always an array of bulk strings, such as KEYS, HKEYS
+    // and ZRANGE, keep their Buffers in a typed vector.
+    static result_t retValue(Variant& v, std::vector<obj_ptr<Buffer_base>>& retVal)
+    {
+        obj_ptr<NArray> list = (NArray*)v.object();
+        if (!list)
+            return result_t::invalid_call();
+
+        int32_t n = list->length();
+        retVal.reserve(n);
+
+        for (int32_t i = 0; i < n; i++) {
+            Variant item;
+            list->_indexed_getter(i, item);
+
+            obj_ptr<Buffer_base> buf = Buffer_base::getInstance(item.object());
+            if (!buf)
+                return result_t::invalid_call();
+
+            retVal.push_back(buf);
+        }
+
+        return result_t();
     }
 
     static result_t retValue(Variant& v, bool& retVal)

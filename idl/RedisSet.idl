@@ -179,7 +179,7 @@ interface RedisSet : object
 
      @return the members as an array of Buffers
      */
-    NArray members();
+    Buffer[] members();
 
     /*! @brief Removes and returns one random member
 

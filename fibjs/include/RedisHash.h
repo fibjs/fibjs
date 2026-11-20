@@ -45,8 +45,8 @@ public:
     virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<NArray>& retVal);
     virtual result_t mget(OptArgs fields, obj_ptr<NArray>& retVal);
     virtual result_t incr(Union_incr_field field, int64_t num, int64_t& retVal);
-    virtual result_t getAll(obj_ptr<NArray>& retVal);
-    virtual result_t keys(obj_ptr<NArray>& retVal);
+    virtual result_t getAll(std::vector<obj_ptr<Buffer_base>>& retVal);
+    virtual result_t keys(std::vector<obj_ptr<Buffer_base>>& retVal);
     virtual result_t len(int32_t& retVal);
     virtual result_t exists(Union_exists_field field, bool& retVal);
     virtual result_t del(v8::Local<v8::Array> fields, int32_t& retVal);

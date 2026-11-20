@@ -493,7 +493,7 @@ interface Redis : object
      @param pattern the glob pattern to match
      @return an array of Buffer key names
      */
-    NArray keys(String pattern);
+    Buffer[] keys(String pattern);
 
     /*! @brief Deletes the given keys
 

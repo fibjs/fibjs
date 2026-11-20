@@ -50,7 +50,7 @@ public:
     virtual result_t remove(int32_t count, Union_remove_value value, int32_t& retVal);
     virtual result_t trim(int32_t start, int32_t stop);
     virtual result_t len(int32_t& retVal);
-    virtual result_t range(int32_t start, int32_t stop, obj_ptr<NArray>& retVal);
+    virtual result_t range(int32_t start, int32_t stop, std::vector<obj_ptr<Buffer_base>>& retVal);
 
 
 private:

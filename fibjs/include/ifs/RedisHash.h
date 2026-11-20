@@ -39,8 +39,8 @@ public:
     virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<NArray>& retVal) = 0;
     virtual result_t mget(OptArgs fields, obj_ptr<NArray>& retVal) = 0;
     virtual result_t incr(Union_incr_field field, int64_t num, int64_t& retVal) = 0;
-    virtual result_t getAll(obj_ptr<NArray>& retVal) = 0;
-    virtual result_t keys(obj_ptr<NArray>& retVal) = 0;
+    virtual result_t getAll(std::vector<obj_ptr<Buffer_base>>& retVal) = 0;
+    virtual result_t keys(std::vector<obj_ptr<Buffer_base>>& retVal) = 0;
     virtual result_t len(int32_t& retVal) = 0;
     virtual result_t exists(Union_exists_field field, bool& retVal) = 0;
     virtual result_t del(v8::Local<v8::Array> fields, int32_t& retVal) = 0;
@@ -209,7 +209,7 @@ inline void RedisHash_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void RedisHash_base::s_getAll(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<Buffer_base>> vr;
 
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
@@ -223,7 +223,7 @@ inline void RedisHash_base::s_getAll(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void RedisHash_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<Buffer_base>> vr;
 
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();

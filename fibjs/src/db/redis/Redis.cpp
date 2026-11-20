@@ -436,7 +436,7 @@ result_t Redis::type(Union_type_key key, exlib::string& retVal)
     return doCommand("TYPE", key, retVal);
 }
 
-result_t Redis::keys(exlib::string pattern, obj_ptr<NArray>& retVal)
+result_t Redis::keys(exlib::string pattern, std::vector<obj_ptr<Buffer_base>>& retVal)
 {
     return doCommand("KEYS", pattern, retVal);
 }

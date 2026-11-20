@@ -40,7 +40,7 @@ result_t RedisSet::exists(Union_exists_member member, bool& retVal)
     return m_rdb->doCommand("SISMEMBER", m_key, member, retVal);
 }
 
-result_t RedisSet::members(obj_ptr<NArray>& retVal)
+result_t RedisSet::members(std::vector<obj_ptr<Buffer_base>>& retVal)
 {
     return m_rdb->doCommand("SMEMBERS", m_key, retVal);
 }

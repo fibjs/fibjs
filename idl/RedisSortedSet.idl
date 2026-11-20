@@ -242,7 +242,7 @@ interface RedisSortedSet : object
      @param withScores whether to interleave each member with its score
      @return the array of Buffers in ascending score order
      */
-    NArray range(Integer start, Integer stop, Boolean withScores = false);
+    Buffer[] range(Integer start, Integer stop, Boolean withScores = false);
 
     /*! @brief Returns the members in the given range, from the highest score down
 
@@ -255,7 +255,7 @@ interface RedisSortedSet : object
      @param withScores whether to interleave each member with its score
      @return the array of Buffers in descending score order
      */
-    NArray rangeRev(Integer start, Integer stop, Boolean withScores = false);
+    Buffer[] rangeRev(Integer start, Integer stop, Boolean withScores = false);
 
     /*! @brief Returns the ascending rank of member
 

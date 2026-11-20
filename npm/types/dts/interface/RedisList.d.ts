@@ -284,7 +284,7 @@ declare class Class_RedisList extends Class_object {
      *      @return an array of Buffer elements
      *
      */
-    range(start: number, stop: number): any[];
+    range(start: number, stop: number): Class_Buffer[];
 
 }
 

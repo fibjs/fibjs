@@ -264,7 +264,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the array of Buffers in ascending score order
      *
      */
-    range(start: number, stop: number, withScores?: boolean): any[];
+    range(start: number, stop: number, withScores?: boolean): Class_Buffer[];
 
     /**
      * @description Returns the members in the given range, from the highest score down
@@ -279,7 +279,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the array of Buffers in descending score order
      *
      */
-    rangeRev(start: number, stop: number, withScores?: boolean): any[];
+    rangeRev(start: number, stop: number, withScores?: boolean): Class_Buffer[];
 
     /**
      * @description Returns the ascending rank of member

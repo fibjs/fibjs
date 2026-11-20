@@ -549,7 +549,7 @@ declare class Class_Redis extends Class_object {
      *      @return an array of Buffer key names
      *
      */
-    keys(pattern: string): any[];
+    keys(pattern: string): Class_Buffer[];
 
     /**
      * @description Deletes the given keys

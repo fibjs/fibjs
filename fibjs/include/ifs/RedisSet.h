@@ -31,7 +31,7 @@ public:
     virtual result_t remove(OptArgs members, int32_t& retVal) = 0;
     virtual result_t len(int32_t& retVal) = 0;
     virtual result_t exists(Union_exists_member member, bool& retVal) = 0;
-    virtual result_t members(obj_ptr<NArray>& retVal) = 0;
+    virtual result_t members(std::vector<obj_ptr<Buffer_base>>& retVal) = 0;
     virtual result_t pop(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t randMember(v8::Local<v8::Value>& retVal) = 0;
     virtual result_t randMember(int32_t count, v8::Local<v8::Value>& retVal) = 0;
@@ -160,7 +160,7 @@ inline void RedisSet_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void RedisSet_base::s_members(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<obj_ptr<Buffer_base>> vr;
 
     METHOD_INSTANCE(RedisSet_base);
     METHOD_ENTER();

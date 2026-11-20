@@ -77,7 +77,7 @@ result_t RedisList::len(int32_t& retVal)
     return m_rdb->doCommand("LLEN", m_key, retVal);
 }
 
-result_t RedisList::range(int32_t start, int32_t stop, obj_ptr<NArray>& retVal)
+result_t RedisList::range(int32_t start, int32_t stop, std::vector<obj_ptr<Buffer_base>>& retVal)
 {
     return m_rdb->doCommand("LRANGE", m_key, start, stop, retVal);
 }

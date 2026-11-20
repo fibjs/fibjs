@@ -206,7 +206,7 @@ interface RedisHash : object
 
      @return a flat array of alternating field and value Buffers
      */
-    NArray getAll();
+    Buffer[] getAll();
 
     /*! @brief Returns every field name of the hash
 
@@ -216,7 +216,7 @@ interface RedisHash : object
 
      @return an array of the field names as Buffers
      */
-    NArray keys();
+    Buffer[] keys();
 
     /*! @brief Returns the number of fields in the hash
 

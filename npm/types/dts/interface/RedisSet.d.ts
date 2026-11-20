@@ -197,7 +197,7 @@ declare class Class_RedisSet extends Class_object {
      *      @return the members as an array of Buffers
      *
      */
-    members(): any[];
+    members(): Class_Buffer[];
 
     /**
      * @description Removes and returns one random member

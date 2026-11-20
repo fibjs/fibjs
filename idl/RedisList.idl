@@ -252,5 +252,5 @@ interface RedisList : object
      @param stop the last index of the range; -1 is the last element
      @return an array of Buffer elements
      */
-    NArray range(Integer start, Integer stop);
+    Buffer[] range(Integer start, Integer stop);
 };
