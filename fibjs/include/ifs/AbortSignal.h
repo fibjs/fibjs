@@ -29,7 +29,7 @@ public:
     // AbortSignal_base
     static result_t abort(Union_abort_reason reason, obj_ptr<AbortSignal_base>& retVal);
     static result_t timeout(double ms, obj_ptr<AbortSignal_base>& retVal);
-    static result_t any(v8::Local<v8::Array> signals, obj_ptr<AbortSignal_base>& retVal);
+    static result_t any(std::vector<obj_ptr<AbortSignal_base>>& signals, obj_ptr<AbortSignal_base>& retVal);
     virtual result_t throwIfAborted() = 0;
     virtual result_t get_aborted(bool& retVal) = 0;
     virtual result_t get_reason(v8::Local<v8::Value>& retVal) = 0;
@@ -122,7 +122,7 @@ inline void AbortSignal_base::s_static_any(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER_NAMED(1, 1, "signals");
 
-    ARG_NAMED(v8::Local<v8::Array>, 0, "signals");
+    ARG_NAMED(std::vector<obj_ptr<AbortSignal_base>>, 0, "signals");
 
     hr = any(v0, vr);
 

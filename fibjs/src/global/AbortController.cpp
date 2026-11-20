@@ -10,23 +10,18 @@
 #include "EventInfo.h"
 
 namespace fibjs {
-result_t AbortSignal_base::any(v8::Local<v8::Array> signals, obj_ptr<AbortSignal_base>& retVal)
+result_t AbortSignal_base::any(std::vector<obj_ptr<AbortSignal_base>>& signals, obj_ptr<AbortSignal_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
     obj_ptr<AbortSignal> signal = new AbortSignal();
     signal->holder(isolate);
 
-    uint32_t len = signals->Length();
-    for (uint32_t i = 0; i < len; i++) {
-        v8::Local<v8::Value> item;
-        if (!signals->Get(isolate->context(), i).ToLocal(&item))
-            return result_t(CALL_E_JAVASCRIPT);
-
-        AbortSignal_base* src = AbortSignal_base::getInstance(item);
+    for (size_t i = 0; i < signals.size(); i++) {
+        obj_ptr<AbortSignal_base> src = signals[i];
         if (!src)
             return result_t::type_mismatch();
 
-        AbortSignal* src_signal = static_cast<AbortSignal*>(src);
+        AbortSignal* src_signal = static_cast<AbortSignal*>(src.get());
         if (src_signal->is_aborted()) {
             v8::Local<v8::Value> reason;
             src_signal->get_reason(reason);
@@ -34,12 +29,11 @@ result_t AbortSignal_base::any(v8::Local<v8::Array> signals, obj_ptr<AbortSignal
         }
 
         obj_ptr<AbortSignal> composite = signal;
-        obj_ptr<AbortSignal_base> src_ref = src;
-        src_signal->addAbortCallback([composite, src_ref]() {
+        src_signal->addAbortCallback([composite, src]() {
             if (composite->is_aborted())
                 return;
             v8::Local<v8::Value> reason;
-            static_cast<AbortSignal*>((AbortSignal_base*)src_ref)->get_reason(reason);
+            static_cast<AbortSignal*>(src.get())->get_reason(reason);
             obj_ptr<AbortSignal_base> dummy;
             composite->do_abort(reason, dummy);
         });

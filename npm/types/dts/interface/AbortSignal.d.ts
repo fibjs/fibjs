@@ -180,7 +180,7 @@ declare class Class_AbortSignal extends Class_EventEmitter {
      *      @return returns a composite AbortSignal object
      *
      */
-    static any(signals: any[]): Class_AbortSignal;
+    static any(signals: Class_AbortSignal[]): Class_AbortSignal;
 
     /**
      * @description Throws the abort error when the signal has been aborted, otherwise does nothing
