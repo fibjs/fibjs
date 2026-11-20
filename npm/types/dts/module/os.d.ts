@@ -421,7 +421,13 @@ declare module 'os' {
      *      @return information about the currently effective user
      *
      */
-    function userInfo(options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function userInfo(options?: FIBJS.GeneralObject): {
+        uid: number;
+        gid: number;
+        username: string | Class_Buffer;
+        homedir: string | Class_Buffer;
+        shell: any;
+    };
 
     /**
      * @description Queries the network information of the current runtime environment

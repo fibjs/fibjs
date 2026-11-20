@@ -361,7 +361,7 @@ module os
      @param options character encoding used to interpret the result strings; 'buffer' returns Buffers
      @return information about the currently effective user
     */
-    static Object userInfo(Object options = {});
+    static (Integer uid, Integer gid, String|Buffer username, String|Buffer homedir, Variant shell) userInfo(Object options = {});
 
     /*! @brief Queries the network information of the current runtime environment
 

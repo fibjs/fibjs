@@ -337,13 +337,8 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
     return result_t();
 }
 
-result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+result_t os_base::userInfo(v8::Local<v8::Object> options, obj_ptr<UserInfoType>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-    retVal = v8::Object::New(isolate->m_isolate);
-
-    uv_passwd_t pwd;
     exlib::string encoding = "utf8";
     exlib::string homedir;
     exlib::string username;
@@ -354,6 +349,7 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     // option only selects how the strings are rendered.
     GetConfigValue(options, "encoding", encoding, true);
 
+    uv_passwd_t pwd;
     int32_t ret = uv_os_get_passwd(&pwd);
     if (ret < 0)
         return result_t::from_system(ret);
@@ -363,38 +359,35 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     if (pwd.shell)
         shell.assign(pwd.shell);
 
-    retVal->Set(context, isolate->NewString("uid"), v8::Integer::New(isolate->m_isolate, pwd.uid)).IsJust();
-    retVal->Set(context, isolate->NewString("gid"), v8::Integer::New(isolate->m_isolate, pwd.gid)).IsJust();
+    retVal = new UserInfoType();
+    retVal->uid = (int32_t)pwd.uid;
+    retVal->gid = (int32_t)pwd.gid;
 
     uv_os_free_passwd(&pwd);
 
     if (encoding == "buffer") {
-        obj_ptr<Buffer_base> usernameBuffer = new Buffer(username.c_str(), username.length());
-        obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir.c_str(), homedir.length());
-        obj_ptr<Buffer_base> shellBuffer = new Buffer(shell.c_str(), shell.length());
+        retVal->username = obj_ptr<Buffer_base>(new Buffer(username.c_str(), username.length()));
+        retVal->homedir = obj_ptr<Buffer_base>(new Buffer(homedir.c_str(), homedir.length()));
 
-        retVal->Set(context, isolate->NewString("username"), usernameBuffer->wrap()).IsJust();
-        retVal->Set(context, isolate->NewString("homedir"), homedirBuffer->wrap()).IsJust();
         if (!shell.empty())
-            retVal->Set(context, isolate->NewString("shell"), shellBuffer->wrap()).IsJust();
+            retVal->shell = obj_ptr<Buffer_base>(new Buffer(shell.c_str(), shell.length()));
         else
-            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate)).IsJust();
-
-        return result_t();
+            retVal->shell.setNull();
     } else {
         commonEncode(encoding, username, username);
         commonEncode(encoding, homedir, homedir);
         commonEncode(encoding, shell, shell);
 
-        retVal->Set(context, isolate->NewString("username"), isolate->NewString(username)).IsJust();
-        retVal->Set(context, isolate->NewString("homedir"), isolate->NewString(homedir)).IsJust();
-        if (!shell.empty())
-            retVal->Set(context, isolate->NewString("shell"), isolate->NewString(shell)).IsJust();
-        else
-            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate)).IsJust();
+        retVal->username = username;
+        retVal->homedir = homedir;
 
-        return result_t();
+        if (!shell.empty())
+            retVal->shell = shell;
+        else
+            retVal->shell.setNull();
     }
+
+    return result_t();
 }
 
 result_t os_base::loadavg(std::vector<double>& retVal)

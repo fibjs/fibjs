@@ -17,6 +17,7 @@ namespace fibjs {
 
 class Service_base;
 class os_constants_base;
+class Buffer_base;
 
 class os_base : public object_base {
     DECLARE_CLASS(os_base);
@@ -72,6 +73,34 @@ public:
         double speed;
         obj_ptr<CpusType_times> times;
     };
+    class UserInfoType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("uid"), GetReturnValue(isolate, uid)).Check();
+            retVal->Set(context, isolate->NewString("gid"), GetReturnValue(isolate, gid)).Check();
+            retVal->Set(context, isolate->NewString("username"), GetReturnValue(isolate, username)).Check();
+            retVal->Set(context, isolate->NewString("homedir"), GetReturnValue(isolate, homedir)).Check();
+            retVal->Set(context, isolate->NewString("shell"), GetReturnValue(isolate, shell)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, uid));
+            args.push_back(GetReturnValue(isolate, gid));
+            args.push_back(GetReturnValue(isolate, username));
+            args.push_back(GetReturnValue(isolate, homedir));
+            args.push_back(GetReturnValue(isolate, shell));
+        }
+
+    public:
+        int32_t uid;
+        int32_t gid;
+        std::variant<exlib::string, obj_ptr<Buffer_base>> username;
+        std::variant<exlib::string, obj_ptr<Buffer_base>> homedir;
+        Variant shell;
+    };
 
 public:
     // os_base
@@ -94,7 +123,7 @@ public:
     static result_t cpus(std::vector<obj_ptr<CpusType>>& retVal);
     static result_t cpuNumbers(int32_t& retVal);
     static result_t tmpdir(exlib::string& retVal);
-    static result_t userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
+    static result_t userInfo(v8::Local<v8::Object> options, obj_ptr<UserInfoType>& retVal);
     static result_t networkInterfaces(v8::Local<v8::Object>& retVal);
     static result_t platform(exlib::string& retVal);
     static result_t time(exlib::string tmString, date_t& retVal);
@@ -141,6 +170,7 @@ public:
 
 #include "ifs/Service.h"
 #include "ifs/os_constants.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& os_base::class_info()
@@ -440,7 +470,7 @@ inline void os_base::s_static_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void os_base::s_static_userInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<UserInfoType> vr;
 
     METHOD_ENTER();
 
