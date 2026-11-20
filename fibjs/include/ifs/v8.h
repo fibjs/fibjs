@@ -51,6 +51,28 @@ public:
     };
 
 public:
+    class GetHeapCodeStatisticsType : public NType {
+    public:
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            retVal->Set(context, isolate->NewString("code_and_metadata_size"), GetReturnValue(isolate, code_and_metadata_size)).Check();
+            retVal->Set(context, isolate->NewString("bytecode_and_metadata_size"), GetReturnValue(isolate, bytecode_and_metadata_size)).Check();
+            retVal->Set(context, isolate->NewString("external_script_source_size"), GetReturnValue(isolate, external_script_source_size)).Check();
+        }
+
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, code_and_metadata_size));
+            args.push_back(GetReturnValue(isolate, bytecode_and_metadata_size));
+            args.push_back(GetReturnValue(isolate, external_script_source_size));
+        }
+
+    public:
+        double code_and_metadata_size;
+        double bytecode_and_metadata_size;
+        double external_script_source_size;
+    };
     class GetHeapSpaceStatisticsType : public NType {
     public:
         virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
@@ -128,7 +150,7 @@ public:
 
 public:
     // v8_base
-    static result_t getHeapCodeStatistics(v8::Local<v8::Object>& retVal);
+    static result_t getHeapCodeStatistics(obj_ptr<GetHeapCodeStatisticsType>& retVal);
     static result_t getHeapSpaceStatistics(std::vector<obj_ptr<GetHeapSpaceStatisticsType>>& retVal);
     static result_t getHeapStatistics(obj_ptr<GetHeapStatisticsType>& retVal);
     static result_t saveSnapshot(exlib::string fname);
@@ -221,7 +243,7 @@ inline ClassInfo& v8_base::class_info()
 
 inline void v8_base::s_static_getHeapCodeStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    obj_ptr<GetHeapCodeStatisticsType> vr;
 
     METHOD_ENTER();
 

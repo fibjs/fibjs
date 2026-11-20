@@ -201,7 +201,7 @@ module v8
      The `cpu_profiler_metadata_size` field is not provided.
      @return returns the statistics of the metadata
      */
-    static Object getHeapCodeStatistics();
+    static (Number code_and_metadata_size, Number bytecode_and_metadata_size, Number external_script_source_size) getHeapCodeStatistics();
 
     /*! @brief Gets the detailed usage of v8 heap memory
 

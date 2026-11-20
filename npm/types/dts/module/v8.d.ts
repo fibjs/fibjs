@@ -250,7 +250,11 @@ declare module 'v8' {
      *      @return returns the statistics of the metadata
      *
      */
-    function getHeapCodeStatistics(): FIBJS.GeneralObject;
+    function getHeapCodeStatistics(): {
+        code_and_metadata_size: number;
+        bytecode_and_metadata_size: number;
+        external_script_source_size: number;
+    };
 
     /**
      * @description Gets the detailed usage of v8 heap memory

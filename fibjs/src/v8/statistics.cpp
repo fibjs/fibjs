@@ -10,7 +10,7 @@
 
 namespace fibjs {
 
-result_t v8_base::getHeapCodeStatistics(v8::Local<v8::Object>& retVal)
+result_t v8_base::getHeapCodeStatistics(obj_ptr<GetHeapCodeStatisticsType>& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::HeapCodeStatistics hcs;
@@ -18,15 +18,10 @@ result_t v8_base::getHeapCodeStatistics(v8::Local<v8::Object>& retVal)
     if (!isolate->m_isolate->GetHeapCodeAndMetadataStatistics(&hcs))
         return result_t(CALL_E_INTERNAL);
 
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-
-    o->Set(context, isolate->NewString("code_and_metadata_size"), v8::Number::New(isolate->m_isolate, (double)hcs.code_and_metadata_size())).IsJust();
-    o->Set(context, isolate->NewString("bytecode_and_metadata_size"), v8::Number::New(isolate->m_isolate, (double)hcs.bytecode_and_metadata_size())).IsJust();
-    o->Set(context, isolate->NewString("external_script_source_size"), v8::Number::New(isolate->m_isolate, (double)hcs.external_script_source_size())).IsJust();
-
-    retVal = o;
+    retVal = new GetHeapCodeStatisticsType();
+    retVal->code_and_metadata_size = (double)hcs.code_and_metadata_size();
+    retVal->bytecode_and_metadata_size = (double)hcs.bytecode_and_metadata_size();
+    retVal->external_script_source_size = (double)hcs.external_script_source_size();
 
     return result_t();
 }
