@@ -1233,7 +1233,7 @@ declare module 'util' {
      *      @return returns the parsed parameter list
      *
      */
-    function parseArgs(command: string): any[];
+    function parseArgs(command: string): string[];
 
     /**
      * @description Compiles a script into binary code

@@ -1062,7 +1062,7 @@ module util
      @param command the command line string to parse
      @return returns the parsed parameter list
      */
-    static NArray parseArgs(String command);
+    static String[] parseArgs(String command);
 
     /*! @brief Compiles a script into binary code
 

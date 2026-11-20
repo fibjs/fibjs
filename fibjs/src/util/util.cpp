@@ -1023,9 +1023,8 @@ result_t util_base::deprecate(v8::Local<v8::Function> fn, exlib::string msg,
     return result_t();
 }
 
-result_t util_base::parseArgs(exlib::string command, obj_ptr<NArray>& retVal)
+result_t util_base::parseArgs(exlib::string command, std::vector<exlib::string>& retVal)
 {
-    obj_ptr<NArray> arr = new NArray;
     _parser p(command);
 
     while (!p.end()) {
@@ -1063,10 +1062,9 @@ result_t util_base::parseArgs(exlib::string command, obj_ptr<NArray>& retVal)
             }
         }
 
-        arr->append(s);
+        retVal.push_back(s);
     }
 
-    retVal = arr;
     return result_t();
 }
 

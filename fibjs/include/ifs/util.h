@@ -102,7 +102,7 @@ public:
     static result_t each(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
     static result_t map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Array>& retVal);
     static result_t reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> memo, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
-    static result_t parseArgs(exlib::string command, obj_ptr<NArray>& retVal);
+    static result_t parseArgs(exlib::string command, std::vector<exlib::string>& retVal);
     static result_t compile(exlib::string srcname, exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal);
     static result_t sync(v8::Local<v8::Function> func, bool async_func, v8::Local<v8::Function>& retVal);
     static result_t promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
@@ -1423,7 +1423,7 @@ inline void util_base::s_static_reduce(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void util_base::s_static_parseArgs(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NArray> vr;
+    std::vector<exlib::string> vr;
 
     METHOD_ENTER();
 
