@@ -73,7 +73,7 @@ static struct {
     { errtype::kError, "Operation not support asynchronous call." }, // CALL_E_NOASYNC
     { errtype::kError, "Operation not support synchronous call." }, // CALL_E_NOSYNC
     { errtype::kError, "Operation is long synchronous call." }, // CALL_E_LONGSYNC
-    { errtype::kError, "Operation is GUI call." }, // CALL_E_GUICALL
+    { errtype::kError, "Operation must run on the GUI host loop." }, // CALL_E_GUILOOP
     { errtype::kError, "Internal error." }, // CALL_E_INTERNAL
     { errtype::kError, "The maximum amount of time for a script to execute was exceeded." }, // CALL_E_TIMEOUT
     { errtype::kError, "Operation was aborted." }, // CALL_E_ABORT

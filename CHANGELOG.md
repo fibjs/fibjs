@@ -42,6 +42,26 @@
     * gui - `createTray` takes `TrayOptions` with a required `icon`, and
       `chooseFile` filters use `DialogFilter` with required `name` and
       `extensions`.
+    * core - on desktop builds the main isolate runs its JavaScript on the
+      process main thread, which is also the native GUI thread. Third-party
+      GUI addons can call Cocoa / Win32 / GTK directly from N-API callbacks in
+      the main isolate; long-running JavaScript in the main isolate now blocks
+      the UI, so move heavy work to Worker threads.
+    * gui - macOS starts AppKit lazily: the host runs a plain `CFRunLoop` and
+      only creates `NSApplication` (and switches to `[NSApp run]`) when fibjs
+      GUI APIs are used. CLI and server processes never initialize AppKit, and
+      a native addon that embeds its own `NSApplication` subclass can create it
+      first (gpuix works).
+    * gui - `gui.capabilities` reports the platform, the desktop session and
+      what the window manager honours (position, focus request, state,
+      transparency, `clientFrame`, screenshot, dev tools, tray text, dialog
+      parent). `gui.quit()` asks the host loop to terminate gracefully.
+    * gui - the WebView window state is a value instead of a set of methods:
+      `focused`, `state` (`normal`/`minimized`/`maximized`/`fullscreen`),
+      `loading`, `getBounds()`/`setBounds()`, `focus()` and `waitForClose()`,
+      with `minimize`/`maximize`/`restore`/`enter-fullscreen`/`leave-fullscreen`
+      events, a cancelable `close-requested` event (`ev.preventDefault()`) and
+      a `load-failed` event carrying `ev.url` and `ev.message`.
 * **breaking** :
     * dns - `resolve(name)` now returns A records (add rrtype as the second
       argument); use `lookup(name, { all: true })` or `net.resolve` for the
@@ -54,6 +74,52 @@
       filter without `name`/`extensions` and `gui.createTray({})` are the
       user-visible cases. `gui.createTray()` without an options object is
       rejected, since the option record is no longer defaulted to `{}`.
+    * core - JavaScript fibers are always pinned to one dedicated OS thread per
+      isolate.
+    * gui - GUI APIs are unavailable under `--use-thread`; every entry point
+      reports `ERR_GUI_UNAVAILABLE` instead of parking. `--use-thread` is a
+      test mode and has no native host thread to own the window objects.
+    * gui - the GUI layer has no `async` members: JavaScript already runs on the
+      GUI host thread, so every member is a plain call that blocks the calling
+      fiber. `gui.open`, `openFile` and `createTray` return with the object
+      created (`open` also waits for the initial document), `loadUrl`,
+      `loadFile`, `setHtml`, `reload`, `goBack` and `goForward` wait for the
+      document and throw when it failed, `getHtml`, `eval` and `takeScreenshot`
+      wait for the engine, and `close()`/`destroy()` wait for the window to be
+      gone. `close()` returns false when a `close-requested` listener cancelled
+      it, and `destroy()` skips the listeners.
+    * gui - `isReady()` is replaced by the `loading` property, and `waitFor(url)`
+      by `waitForLoad(url?)`; `goBack()`/`goForward()` return whether the
+      engine accepted the navigation.
+    * gui - the generated `*Sync`/`*Async` aliases, the callback form and the
+      `gui.promises` mirror no longer exist for the gui module.
+* **bugfix** :
+    * gui - Linux: `close()` now destroys a window that was never realized.
+      `gtk_window_close()` is a no-op for unrealized windows, so the object
+      stayed open and a second `close()` did not report the closed state.
+    * gui - Linux: a visible window is presented when it opens, so it gets
+      keyboard focus in a session without a window manager (Xvfb, a bare X
+      server), matching the other backends.
+    * gui - Linux: an explicit `left`/`top` is re-applied after the window is
+      realized. GTK treats a pre-realize move as a hint and drops it when no
+      window manager maps the window.
+    * gui - Linux: `setSize()`/`setBounds()` return once X11 applied the
+      request. The geometry API only sends a request and the allocation follows
+      with the configure event, so an immediate `getBounds()` reported the old
+      size; the setter now yields to the host loop until the size changed
+      (bounded).
+    * gui - a navigation the engine refuses to start reports
+      `ERR_GUI_LOAD_FAILED` like any other failure. WebKitGTK does not emit
+      `load-failed` for a blocked port: it commits an empty document and the
+      load "succeeds", so a request that only ever reaches `about:blank` is
+      reported as the failure it is.
+    * net - `stop()` no longer reports its parked accept as an error. Closing
+      the listening socket makes the pending `accept` fail with a
+      platform-specific code (Windows reports `WSAENOTSOCK`), and the accept
+      loop treated anything outside its own close codes as an `error` event:
+      a routine `stop()` printed an unhandled error for every server without an
+      `error` listener, and the message could surface long after the call.
+      A server that is no longer running now finishes the loop quietly.
 
 ## 2024-02-07, Version 0.37.0
 * **feature** :

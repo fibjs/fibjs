@@ -264,5 +264,12 @@ describe('cli command runner', { skip: !isFibjs }, () => {
             assert.match(r.stdout, /-p, --print code/);
             assert.match(r.stdout, /-e, --eval code/);
         });
+
+        it('rejects gui in --use-thread mode', () => {
+            var r = run(['--use-thread', '-e', 'require("gui").open({})']);
+            assert.equal(r.code, 1);
+            assert.match(r.stderr, /ERR_GUI_UNAVAILABLE/);
+            assert.match(r.stderr, /gui is not available in --use-thread mode/);
+        });
     });
 });

@@ -29,11 +29,11 @@
  *    built and inspected without a display; windows, tray icons and dialogs need a
  *    running desktop session, and builds without desktop support fail with
  *    "... not supported in this platform" errors.
- *  - **Window lifecycle**: `open`/`openFile` return immediately while the native
- *    window is created asynchronously on the GUI thread; the members that need the
- *    window wait for it in the calling fiber. An open window keeps the process
- *    alive until it is closed; the WebView interface documents the lifecycle, the
- *    events and the `app` bridge in detail.
+ *  - **Window lifecycle**: `open`/`openFile` return after the native window has
+ *    been created, so the returned WebView can be used at once; there is no
+ *    "window not created yet" state. An open window keeps the process alive until
+ *    it is closed; the WebView interface documents the lifecycle, the events and
+ *    the `app` bridge in detail.
  *  - **Content loading**: a window loads a remote `url`, a local `file` or inline
  *    HTML (`setHtml`). Local files and paths inside a zip archive mounted with
  *    fs.setZipFS are served through the internal fs: scheme, with the archive path
@@ -42,10 +42,10 @@
  *    descriptor `onclick` function becomes the click handler of the created item.
  *    Menus are edited before they are attached; once attached to a window or tray
  *    they can no longer be changed.
- *  - **Dialogs**: the dialog functions are asynchronous; called as shown they block
- *    the calling fiber, and the generated `*Async` forms and the `gui.promises`
- *    namespace return a Promise instead. Cancelling confirm returns false,
- *    cancelling input and chooseFile returns undefined.
+ *  - **Dialogs**: the dialog functions block the calling fiber until the dialog is
+ *    dismissed and return its result directly; there is no Promise or callback
+ *    form. Cancelling confirm returns false, cancelling input and chooseFile
+ *    returns undefined.
  *
  *  Import:
  *  ```JavaScript
@@ -93,14 +93,10 @@
  *      console.log(ev.data); // sum=3
  *      win.close();
  *  });
- *
- *  win.waitFor();
  *  ```
  *
  *  Notes:
  *
- *  - The async dialog functions have generated `*Sync` and `*Async` variants and a
- *    Promise-based mirror in `gui.promises`, for example `gui.alertAsync(message)`.
  *  - Descriptors are validated eagerly: unknown item types, separators with a label
  *    and other invalid combinations throw when `createMenu`, `append` or `insert`
  *    is called.
@@ -109,6 +105,61 @@
  *
  */
 declare module 'gui' {
+    /**
+     * @description Platform and desktop-session capabilities
+     *
+     *      A read-only record describing what the current build, operating system and
+     *      desktop session can do, so applications and tests can branch on data
+     *      instead of probing by trial and error. It is pure data: reading it creates
+     *      no window, needs no GUI initialization and works from any isolate,
+     *      including Worker threads.
+     *
+     *      Shape:
+     *      ```JavaScript
+     *      ({
+     *          platform: "linux",          // "darwin" | "win32" | "linux"
+     *          session: "wayland",         // "quartz" | "win32" | "x11" | "wayland" | null
+     *          window: {
+     *              position: false,        // setPosition/setBounds placement is honoured
+     *              focusRequest: false,    // focus() can move keyboard focus
+     *              state: true,            // minimize/maximize/fullscreen are available
+     *              alwaysOnTop: false,
+     *              transparency: true,
+     *              clientFrame: true       // the window draws its own title bar
+     *          },
+     *          webview: { screenshot: true, devTools: true },
+     *          tray: { title: false, tooltip: false, click: false },
+     *          dialog: { parent: true, sheet: false },
+     *          menu: { mutable: false }
+     *      })
+     *      ```
+     *
+     *      The session-dependent values are derived from the environment: on Linux
+     *      `XDG_SESSION_TYPE`, `WAYLAND_DISPLAY` and `DISPLAY` select the X11 or
+     *      Wayland answers, and the other platforms report their fixed backend.
+     *      `position` and `focusRequest` describe the session, not a specific window:
+     *      a window manager is still free to ignore an individual request.
+     *
+     */
+    const capabilities: FIBJS.GeneralObject;
+
+    /**
+     * @description Requests a graceful application quit
+     *
+     *      Asks the GUI host to terminate the application: the loop that owns the
+     *      windows stops after posting a `quit` request to the platform, open windows
+     *      are destroyed and the process then exits through the normal shutdown path
+     *      with `process.exitCode` (0 by default). Use `process.exit(code)` for an
+     *      immediate exit that skips this path.
+     *
+     *      The call itself returns immediately; repeated calls are harmless. It is a
+     *      request rather than a guarantee: a platform can keep the process alive for
+     *      another reason, and a `before-quit` style hook (added with the application
+     *      lifecycle events) can cancel it in a later version.
+     *
+     */
+    function quit(): void;
+
     /**
      * @description The WebView class, used for type checks of window objects
      *
@@ -125,13 +176,11 @@ declare module 'gui' {
     /**
      * @description Opens a window and visits the specified url
      *
-     *      The native window is created asynchronously on the GUI thread and the
-     *      returned WebView is usable immediately; the members that need the window
-     *      wait for it in the calling fiber. An explicit url overrides the `url` and
-     *      `file` properties of the options object, and openFile is the form that
-     *      clears the options `url` and loads a local file. With width and height but
-     *      without left/top the window is centered; without a size the platform
-     *      chooses it.
+     *      The native window exists when the call returns, so the returned WebView is
+     *      usable at once. An explicit url overrides the `url` and `file` properties
+     *      of the options object, and openFile is the form that clears the options
+     *      `url` and loads a local file. With width and height but without left/top
+     *      the window is centered; without a size the platform chooses it.
      *
      *      options supports the following options:
      *      ```JavaScript
@@ -188,7 +237,6 @@ declare module 'gui' {
      *      });
      *
      *      win.loadUrl('data:text/html;charset=utf-8,<title>Ready</title>');
-     *      win.waitFor();
      *      ```
      *
      *      @param url the url to visit
@@ -261,9 +309,9 @@ declare module 'gui' {
     /**
      * @description Creates a Tray icon from the given options
      *
-     *      The icon file is required and read immediately (a PNG file); the native icon
-     *      is created asynchronously on the GUI thread, so a desktop session is needed.
-     *      The menu option accepts a Menu object or a template array and the tray keeps
+     *      The icon file is required and read immediately (a PNG file); the native
+     *      icon exists when the call returns, so a desktop session is needed. The
+     *      menu option accepts a Menu object or a template array and the tray keeps
      *      the resulting object; see the Tray interface for the platform differences of
      *      title and tooltip and for the tray lifecycle.
      *
@@ -292,78 +340,25 @@ declare module 'gui' {
     /**
      * @description Pops up a modal message box
      *
-     *      Blocks the calling fiber until the user dismisses the dialog; the generated
-     *      alertAsync form returns a Promise instead. The one-argument form uses an
-     *      empty window title. Requires a desktop session.
+     *      Blocks the calling fiber until the user dismisses the dialog. The
+     *      one-argument form uses an empty window title. Requires a desktop session.
      *
      *      @param message message content
      *
      */
     function alert(message: string): void;
 
-    function alert(message: string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Pops up a modal message box
-     *
-     *      Blocks the calling fiber until the user dismisses the dialog; the generated
-     *      alertAsync form returns a Promise instead. The one-argument form uses an
-     *      empty window title. Requires a desktop session.
-     *
-     *      @param message message content
-     *
-     */
-    function alertSync(message: string): void;
-
-    /**
-     * @description Pops up a modal message box
-     *
-     *      Blocks the calling fiber until the user dismisses the dialog; the generated
-     *      alertAsync form returns a Promise instead. The one-argument form uses an
-     *      empty window title. Requires a desktop session.
-     *
-     *      @param message message content
-     *
-     */
-    function alertAsync(message: string): Promise<void>;
-
     /**
      * @description Pops up a modal message box with the given title
      *
-     *      The blocking behaviour, the Promise form and the desktop requirement are
-     *      described on alert(message).
+     *      The blocking behaviour and the desktop requirement are described on
+     *      alert(message).
      *
      *      @param title message title
      *      @param message message content
      *
      */
     function alert(title: string, message: string): void;
-
-    function alert(title: string, message: string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Pops up a modal message box with the given title
-     *
-     *      The blocking behaviour, the Promise form and the desktop requirement are
-     *      described on alert(message).
-     *
-     *      @param title message title
-     *      @param message message content
-     *
-     */
-    function alertSync(title: string, message: string): void;
-
-    /**
-     * @description Pops up a modal message box with the given title
-     *
-     *      The blocking behaviour, the Promise form and the desktop requirement are
-     *      described on alert(message).
-     *
-     *      @param title message title
-     *      @param message message content
-     *
-     */
-    function alertAsync(title: string, message: string): Promise<void>;
 
     /**
      * @description Pops up a modal confirmation box
@@ -378,39 +373,10 @@ declare module 'gui' {
      */
     function confirm(message: string): boolean;
 
-    function confirm(message: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Pops up a modal confirmation box
-     *
-     *      Returns true when the user confirms with OK and false for Cancel or a closed
-     *      dialog; blocks the calling fiber until the dialog is dismissed. Requires a
-     *      desktop session.
-     *
-     *      @param message message content
-     *      @return returns the user's choice
-     *
-     */
-    function confirmSync(message: string): boolean;
-
-    /**
-     * @description Pops up a modal confirmation box
-     *
-     *      Returns true when the user confirms with OK and false for Cancel or a closed
-     *      dialog; blocks the calling fiber until the dialog is dismissed. Requires a
-     *      desktop session.
-     *
-     *      @param message message content
-     *      @return returns the user's choice
-     *
-     */
-    function confirmAsync(message: string): Promise<boolean>;
-
     /**
      * @description Pops up a modal confirmation box with the given title
      *
-     *      See confirm(message) for the result, the blocking behaviour and the Promise
-     *      form.
+     *      See confirm(message) for the result and the blocking behaviour.
      *
      *      @param title message title
      *      @param message message content
@@ -418,34 +384,6 @@ declare module 'gui' {
      *
      */
     function confirm(title: string, message: string): boolean;
-
-    function confirm(title: string, message: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Pops up a modal confirmation box with the given title
-     *
-     *      See confirm(message) for the result, the blocking behaviour and the Promise
-     *      form.
-     *
-     *      @param title message title
-     *      @param message message content
-     *      @return returns the user's choice
-     *
-     */
-    function confirmSync(title: string, message: string): boolean;
-
-    /**
-     * @description Pops up a modal confirmation box with the given title
-     *
-     *      See confirm(message) for the result, the blocking behaviour and the Promise
-     *      form.
-     *
-     *      @param title message title
-     *      @param message message content
-     *      @return returns the user's choice
-     *
-     */
-    function confirmAsync(title: string, message: string): Promise<boolean>;
 
     /**
      * @description Pops up a modal input box
@@ -461,43 +399,10 @@ declare module 'gui' {
      */
     function input(message: string, password?: boolean): string;
 
-    function input(message: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
-
-    function input(message: string, password: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
-
-    /**
-     * @description Pops up a modal input box
-     *
-     *      The password argument masks the entered text. Cancelling the dialog returns
-     *      undefined instead of a string; the dialog blocks the calling fiber until it
-     *      is dismissed. Requires a desktop session.
-     *
-     *      @param message message content
-     *      @param password whether this is a password input, default is false
-     *      @return returns the content entered by the user
-     *
-     */
-    function inputSync(message: string, password?: boolean): string;
-
-    /**
-     * @description Pops up a modal input box
-     *
-     *      The password argument masks the entered text. Cancelling the dialog returns
-     *      undefined instead of a string; the dialog blocks the calling fiber until it
-     *      is dismissed. Requires a desktop session.
-     *
-     *      @param message message content
-     *      @param password whether this is a password input, default is false
-     *      @return returns the content entered by the user
-     *
-     */
-    function inputAsync(message: string, password?: boolean): Promise<string>;
-
     /**
      * @description Pops up a modal input box with the given title
      *
-     *      See input(message, password) for the behaviour, the cancel result and the
-     *      Promise form.
+     *      See input(message, password) for the behaviour and the cancel result.
      *
      *      @param title message title
      *      @param message message content
@@ -507,38 +412,6 @@ declare module 'gui' {
      */
     function input(title: string, message: string, password?: boolean): string;
 
-    function input(title: string, message: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
-
-    function input(title: string, message: string, password: boolean, callback: (err: Error | undefined | null, retVal: string)=>any): void;
-
-    /**
-     * @description Pops up a modal input box with the given title
-     *
-     *      See input(message, password) for the behaviour, the cancel result and the
-     *      Promise form.
-     *
-     *      @param title message title
-     *      @param message message content
-     *      @param password whether this is a password input, default is false
-     *      @return returns the content entered by the user
-     *
-     */
-    function inputSync(title: string, message: string, password?: boolean): string;
-
-    /**
-     * @description Pops up a modal input box with the given title
-     *
-     *      See input(message, password) for the behaviour, the cancel result and the
-     *      Promise form.
-     *
-     *      @param title message title
-     *      @param message message content
-     *      @param password whether this is a password input, default is false
-     *      @return returns the content entered by the user
-     *
-     */
-    function inputAsync(title: string, message: string, password?: boolean): Promise<string>;
-
     /**
      * @description Pops up a modal file chooser and returns the selected paths
      *
@@ -590,121 +463,6 @@ declare module 'gui' {
             extensions: string[];
         }[];
     }): string[];
-
-    function chooseFile(options: {
-        title?: string;
-        type?: string;
-        defaultPath?: string;
-        multiSelections?: boolean;
-        filters?: {
-            name: string;
-            extensions: string[];
-        }[];
-    }, callback: (err: Error | undefined | null, retVal: string[])=>any): void;
-
-    /**
-     * @description Pops up a modal file chooser and returns the selected paths
-     *
-     *      Cancelling the dialog returns undefined. The result is always an array, also
-     *      for a single selection; saveFile returns at most one path, openFile and
-     *      openDirectory return one or more paths according to multiSelections. Requires
-     *      a desktop session.
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      // fragment: options
-     *      ({
-     *          "title": "",              // dialog title
-     *          "type": "openFile",       // "openFile" | "openDirectory" | "saveFile"
-     *          "defaultPath": "",        // directory shown when the dialog opens
-     *          "multiSelections": false, // allow several files, ignored by saveFile
-     *          "filters": null           // [{ name: "Images", extensions: ["png", "jpg"] }]
-     *      })
-     *      ```
-     *      Filter extensions are written without the leading dot. An unknown type and,
-     *      on Windows, an invalid defaultPath throw an Error.
-     *
-     *      Example — pick one or more images (requires a desktop session):
-     *      ```JavaScript
-     *      // requires: long-running
-     *      const gui = require('gui');
-     *
-     *      const files = gui.chooseFile({
-     *          title: 'Select images',
-     *          type: 'openFile',
-     *          multiSelections: true,
-     *          filters: [{ name: 'Images', extensions: ['png', 'jpg'] }]
-     *      });
-     *
-     *      console.log(files ? files.length : 'cancelled');
-     *      ```
-     *
-     *      @param options file chooser dialog parameters
-     *      @return returns the array of files chosen by the user
-     *
-     */
-    function chooseFileSync(options: {
-        title?: string;
-        type?: string;
-        defaultPath?: string;
-        multiSelections?: boolean;
-        filters?: {
-            name: string;
-            extensions: string[];
-        }[];
-    }): string[];
-
-    /**
-     * @description Pops up a modal file chooser and returns the selected paths
-     *
-     *      Cancelling the dialog returns undefined. The result is always an array, also
-     *      for a single selection; saveFile returns at most one path, openFile and
-     *      openDirectory return one or more paths according to multiSelections. Requires
-     *      a desktop session.
-     *
-     *      options supports the following options:
-     *      ```JavaScript
-     *      // fragment: options
-     *      ({
-     *          "title": "",              // dialog title
-     *          "type": "openFile",       // "openFile" | "openDirectory" | "saveFile"
-     *          "defaultPath": "",        // directory shown when the dialog opens
-     *          "multiSelections": false, // allow several files, ignored by saveFile
-     *          "filters": null           // [{ name: "Images", extensions: ["png", "jpg"] }]
-     *      })
-     *      ```
-     *      Filter extensions are written without the leading dot. An unknown type and,
-     *      on Windows, an invalid defaultPath throw an Error.
-     *
-     *      Example — pick one or more images (requires a desktop session):
-     *      ```JavaScript
-     *      // requires: long-running
-     *      const gui = require('gui');
-     *
-     *      const files = gui.chooseFile({
-     *          title: 'Select images',
-     *          type: 'openFile',
-     *          multiSelections: true,
-     *          filters: [{ name: 'Images', extensions: ['png', 'jpg'] }]
-     *      });
-     *
-     *      console.log(files ? files.length : 'cancelled');
-     *      ```
-     *
-     *      @param options file chooser dialog parameters
-     *      @return returns the array of files chosen by the user
-     *
-     */
-    function chooseFileAsync(options: {
-        title?: string;
-        type?: string;
-        defaultPath?: string;
-        multiSelections?: boolean;
-        filters?: {
-            name: string;
-            extensions: string[];
-        }[];
-    }): Promise<string[]>;
 
 }
 

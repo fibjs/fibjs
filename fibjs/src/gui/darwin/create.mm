@@ -85,7 +85,7 @@
 
                 [(id)urlSchemeTask release];
             },
-                fibjs::result_t::guicall());
+                fibjs::result_t::guiloop());
         } else {
             fibjs::async([fname, urlSchemeTask]() {
                 NSString* errorHTML = [NSString stringWithFormat:@"<html><body><h1>Error</h1><p>File not found at path:<br>%@</p></body></html>",
@@ -105,7 +105,7 @@
 
                 [(id)urlSchemeTask release];
             },
-                fibjs::result_t::guicall());
+                fibjs::result_t::guiloop());
         }
     });
 }
@@ -143,21 +143,52 @@
 - (void)webView:(WKWebView*)webView didStartProvisionalNavigation:(WKNavigation*)navigation
 {
     if (_webView) {
-        fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "loading");
-        ei->add("url", [[[webView URL] absoluteString] UTF8String]);
-        ei->emit();
+        exlib::string url = [[[webView URL] absoluteString] UTF8String];
+        _webView->postLoading(url.empty() ? "" : url);
     }
 }
 
 - (void)webView:(WKWebView*)webView didFinishNavigation:(WKNavigation*)navigation
 {
     if (_webView) {
-        fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "load");
         exlib::string url = [[[webView URL] absoluteString] UTF8String];
-        ei->add("url", url);
-        ei->emit();
-        _webView->postWaitFor(url);
+        _webView->postLoad(url);
     }
+}
+
+- (void)webView:(WKWebView*)webView didFailProvisionalNavigation:(WKNavigation*)navigation withError:(NSError*)error
+{
+    if (!_webView)
+        return;
+
+    // A navigation replaced by a newer one is not a failure of the window.
+    if (error.code == NSURLErrorCancelled)
+        return;
+
+    // webView.URL still points at the previous document, so let postLoad use
+    // the URL the navigation was started with.
+    _webView->postLoad("",
+        fibjs::result_t::make(CALL_E_INVALID_DATA)
+            .with_type_name(fibjs::errtype::kError)
+            .with_code("ERR_GUI_LOAD_FAILED")
+            .with_message([[error localizedDescription] UTF8String]),
+        [[error localizedDescription] UTF8String]);
+}
+
+- (void)webView:(WKWebView*)webView didFailNavigation:(WKNavigation*)navigation withError:(NSError*)error
+{
+    if (!_webView)
+        return;
+
+    if (error.code == NSURLErrorCancelled)
+        return;
+
+    _webView->postLoad("",
+        fibjs::result_t::make(CALL_E_INVALID_DATA)
+            .with_type_name(fibjs::errtype::kError)
+            .with_code("ERR_GUI_LOAD_FAILED")
+            .with_message([[error localizedDescription] UTF8String]),
+        [[error localizedDescription] UTF8String]);
 }
 
 @end
@@ -289,6 +320,8 @@ result_t WebView::createWebView()
 
     NSURL* nsurl = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
     NSURLRequest* request = [NSURLRequest requestWithURL:nsurl];
+
+    begin_load();
     [m_webview loadRequest:request];
 
     config();

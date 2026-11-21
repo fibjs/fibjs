@@ -1,0 +1,39 @@
+/*! @brief Window geometry accepted by WebView.setBounds
+
+ The record carries the four values of a window rectangle in logical pixels,
+ the same units returned by getBounds/getPosition/getSize. A value that the
+ window manager refuses is ignored by the platform; read getBounds back to see
+ the applied rectangle.
+
+ Example 1 — move and resize in one call:
+ ```JavaScript
+ const gui = require('gui');
+ const win = gui.open({ width: 320, height: 200 });
+ win.setBounds({ x: 120, y: 80, width: 640, height: 400 });
+ win.close();
+ ```
+
+ Example 2 — change only one axis and read the applied rectangle back:
+ ```JavaScript
+ const gui = require('gui');
+ const win = gui.open({ width: 320, height: 200 });
+
+ win.setBounds({ x: 40 });          // only the x position, size unchanged
+ console.log(win.getBounds());      // { x: 40, y: ..., width: 320, height: 200 }
+
+ win.close();
+ ```
+ */
+struct WindowBounds {
+    /*! @brief x coordinate of the top-left corner */
+    Number x;
+
+    /*! @brief y coordinate of the top-left corner */
+    Number y;
+
+    /*! @brief window width */
+    Number width;
+
+    /*! @brief window height */
+    Number height;
+};

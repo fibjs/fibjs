@@ -40,7 +40,7 @@
  *    terminates the process), and a `SIGINT`/`SIGTERM` without a listener terminates with
  *    code 1 as well. On Windows the console control events are mapped to `SIGINT`.
  *  - **Arguments and environment**: `argv` holds the runner path, the script path and the
- *    user arguments, while fibjs runtime options (such as `--no-js-thread-affinity`) are
+ *    user arguments, while fibjs runtime options (such as `--use-thread`) are
  *    removed and reported by `execArgv`. `env` is backed by the operating system environment
  *    instead of being a copy: reads, assignments, `delete`, `in` and `Object.keys` all reach
  *    the process environment, values are strings, assigning `undefined` unsets a variable,
@@ -464,9 +464,8 @@ declare module 'process' {
      *      A Node-API extension exports napi_register_module_v1; the exports object registered by this function is written to module.exports, and requiring a .node file ultimately goes through this path as well.
      *
      *      Compatibility notes:
-     *      - By default fibjs pins all JS of an isolate to one dedicated OS thread, which is the Node-API contract that "one napi_env corresponds to one OS thread";
+     *      - fibjs pins all JS of an isolate to one dedicated OS thread, which is the Node-API contract that "one napi_env corresponds to one OS thread";
      *        therefore extensions that cache class constructors or runtime handles in thread-local storage (TLS) when the module is loaded work correctly;
-     *      - When started with --no-js-thread-affinity, the isolate's JS fibers are scheduled back on the shared thread pool, and extensions that rely on TLS may fail randomly;
      *      - If an extension uses napi_tsfn_blocking on a full threadsafe function inside a callback coming from JS, it blocks the isolate's only
      *        JS thread, while draining that queue also requires this thread, resulting in self-deadlock; a single-threaded event loop has the same limitation.
      *

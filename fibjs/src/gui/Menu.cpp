@@ -10,6 +10,7 @@
 #include "object.h"
 #include "ifs/gui.h"
 #include "ifs/fs.h"
+#include "gui.h"
 #include "Menu.h"
 
 namespace fibjs {
@@ -32,6 +33,10 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Menu
 
 result_t gui_base::createMenu(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu_base>& retVal)
 {
+    result_t gui_hr = check_gui_available();
+    if (gui_hr.failed())
+        return gui_hr;
+
     obj_ptr<Menu> menu = new Menu();
     retVal = menu;
     return menu->_append_items(items);

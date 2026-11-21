@@ -13,6 +13,7 @@
 
 #include "object.h"
 #include "../gui.h"
+#include "options.h"
 #include "EventInfo.h"
 #include "WebView.h"
 #import <WebKit/WebKit.h>
@@ -31,6 +32,10 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 - (void)windowDidResize:(NSNotification*)notification;
 - (void)windowDidBecomeMain:(NSNotification*)notification;
 - (void)windowDidResignMain:(NSNotification*)notification;
+- (void)windowDidMiniaturize:(NSNotification*)notification;
+- (void)windowDidDeminiaturize:(NSNotification*)notification;
+- (void)windowDidEnterFullScreen:(NSNotification*)notification;
+- (void)windowDidExitFullScreen:(NSNotification*)notification;
 @end
 
 @implementation GuiWindowDelegate
@@ -52,7 +57,10 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 
         return NO;
     }
-    return YES;
+
+    // A close-requested listener may cancel; a programmatic close sets the
+    // allow flag first and is never consulted.
+    return webview->should_cancel_close() ? NO : YES;
 }
 
 - (void)windowWillClose:(NSNotification*)willCloseNotification
@@ -153,6 +161,46 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
     fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "blur");
     wv->_emit("blur", ei);
 }
+
+- (void)windowDidMiniaturize:(NSNotification*)notification
+{
+    fibjs::WebView* wv = getWebViewFromNSWindow(notification.object);
+    if (wv == NULL)
+        return;
+
+    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "minimize");
+    wv->_emit("minimize", ei);
+}
+
+- (void)windowDidDeminiaturize:(NSNotification*)notification
+{
+    fibjs::WebView* wv = getWebViewFromNSWindow(notification.object);
+    if (wv == NULL)
+        return;
+
+    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "restore");
+    wv->_emit("restore", ei);
+}
+
+- (void)windowDidEnterFullScreen:(NSNotification*)notification
+{
+    fibjs::WebView* wv = getWebViewFromNSWindow(notification.object);
+    if (wv == NULL)
+        return;
+
+    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "enter-fullscreen");
+    wv->_emit("enter-fullscreen", ei);
+}
+
+- (void)windowDidExitFullScreen:(NSNotification*)notification
+{
+    fibjs::WebView* wv = getWebViewFromNSWindow(notification.object);
+    if (wv == NULL)
+        return;
+
+    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "leave-fullscreen");
+    wv->_emit("leave-fullscreen", ei);
+}
 @end
 
 @interface GuiApplication : NSApplication
@@ -197,10 +245,105 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 
 namespace fibjs {
 
-static dispatch_queue_t mainQueue = dispatch_get_main_queue();
-void os_putGuiPool(AsyncEvent* ac)
+static CFRunLoopSourceRef s_host_source = NULL;
+
+// AppKit owns the host thread only once fibjs itself uses the GUI. Until then
+// the host runs a bare CFRunLoop, which leaves NSApplication free for a native
+// addon that embeds its own UI (it needs to install its own subclass and ivars;
+// it could never take over an instance we already created).
+static bool s_app_loop = false;
+static bool s_app_launched = false;
+
+static void host_source_perform(void* info)
 {
-    dispatch_async(mainQueue, ^{ ac->invoke(); });
+    // Initialize AppKit before draining, so the first window is created against a
+    // launched application. The switch to [NSApp run] itself happens once this
+    // callback returns (CFRunLoopStop below), never in the middle of JS.
+    if (!s_app_loop && gui_has_pending())
+        ensure_os_gui_initialized();
+
+    gui_dispatch_pending();
+
+    // JS can queue GUI work during the drain (gui.open() from a fiber).
+    if (!s_app_loop && gui_has_pending())
+        ensure_os_gui_initialized();
+
+    // A native addon may have created its own NSApplication (GPUIApplication).
+    // Now that the current JS turn is over, run the AppKit loop it expects, so
+    // system events reach its windows. This never creates an application:
+    // ensure_os_gui_initialized() only borrows the existing one.
+    bool more = g_main_js_service && g_main_js_service->runPending(64);
+
+    if (!s_app_loop && NSApp != nil)
+        ensure_os_gui_initialized();
+
+    if (more)
+        CFRunLoopSourceSignal(s_host_source);
+}
+
+void os_prepare_host()
+{
+    // Only the wakeup source is created here. AppKit is started on demand (see
+    // ensure_os_gui_initialized), which lets a native addon claim NSApplication
+    // first and keeps GUI-less scripts from paying for AppKit at all.
+    CFRunLoopSourceContext ctx = {};
+    ctx.perform = host_source_perform;
+
+    s_host_source = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &ctx);
+    CFRunLoopAddSource(CFRunLoopGetMain(), s_host_source, kCFRunLoopCommonModes);
+}
+
+void os_wake_host()
+{
+    if (s_host_source) {
+        CFRunLoopSourceSignal(s_host_source);
+        CFRunLoopWakeUp(CFRunLoopGetMain());
+    }
+}
+
+void os_run_host()
+{
+    @autoreleasepool {
+        // Bare run loop until fibjs needs its own GUI. ensure_os_gui_initialized()
+        // stops it and sets s_app_loop on the first GUI event or inline GUI call.
+        while (!s_app_loop)
+            CFRunLoopRun();
+
+        // The switching callback consumed its own signal; re-arm so the queued
+        // GUI event is drained inside the AppKit loop.
+        os_wake_host();
+
+        [NSApp run];
+    }
+}
+
+void ensure_os_gui_initialized()
+{
+    if (!s_app_loop) {
+        s_app_loop = true;
+
+        // os_run_host() is blocked in CFRunLoopRun(): stop it so it can switch
+        // to [NSApp run]. Harmless when the app loop is already the host.
+        CFRunLoopStop(CFRunLoopGetMain());
+    }
+
+    if (s_app_launched)
+        return;
+
+    s_app_launched = true;
+
+    // NSApp already exists: a native addon (GPUIApplication, for example) or
+    // another library created it. It owns its own launching/initialization, so
+    // only borrow the instance to run the host loop.
+    if (NSApp != nil)
+        return;
+
+    GuiApplication* app = [GuiApplication sharedApplication];
+
+    // Accessory keeps a pure CLI run free of a Dock icon; opening a window
+    // switches to Regular (WebView.mm) and closing the last one restores this.
+    [app setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    [app finishLaunching];
 }
 
 id fetchEventFromNSRunLoop(int blocking)
@@ -214,17 +357,13 @@ id fetchEventFromNSRunLoop(int blocking)
                       dequeue:YES];
 }
 
-void run_os_gui()
+// Graceful quit: asks the application to terminate, which closes the windows
+// and returns from [NSApp run]; the process then leaves through the normal
+// shutdown path.
+void os_quit()
 {
-    @autoreleasepool {
-        GuiApplication* app = [GuiApplication sharedApplication];
-        [app finishLaunching];
-        [app activateIgnoringOtherApps:YES];
-
-        g_gui_ready.set();
-
-        [app run];
-    }
+    if (NSApp != nil)
+        [NSApp terminate:nil];
 }
 
 #define CW_USEDEFAULT -1

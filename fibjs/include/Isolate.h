@@ -400,11 +400,10 @@ public:
 
     int64_t m_fid;
 
-    // Set when g_js_thread_affinity is on: all JS of this isolate runs inside
-    // fiber(s) created on m_jsService, a dedicated single-thread service, so
-    // the OS thread that executes JS never changes. Other (C++) fibers keep
-    // using the shared service pool.
-    bool m_jsAffinity = false;
+    // All JS of this isolate runs inside fiber(s) created on m_jsService, a
+    // dedicated single-thread service, so the OS thread that executes JS never
+    // changes. Other (C++) fibers keep using the shared service pool.
+    // NULL only in --use-thread mode, where every JS fiber is an OS thread.
     exlib::Service* m_jsService = NULL;
     bool m_terminating = false;
 

@@ -12,13 +12,26 @@
 #include "gui.h"
 
 #include "WebView.h"
+#include "DOMEvent.h"
+#include "EventEmitter.h"
+#include "EventInfo.h"
 #include "Fiber.h"
 
 namespace fibjs {
 
-result_t WebView::loadFile(exlib::string file, AsyncHandle ac)
+// The schemes that carry a document the caller expects to arrive. An engine
+// that answers one of them with an empty document failed the navigation;
+// inline content does not: setHtml navigates to a data: URL on Windows and the
+// engine reports the finished document as about:blank, which is correct.
+static bool requests_document(const exlib::string& url)
 {
-    result_t hr = check_status(ac);
+    return url.find("http:") == 0 || url.find("https:") == 0
+        || url.find("fs:") == 0 || url.find("file:") == 0;
+}
+
+result_t WebView::loadFile(exlib::string file)
+{
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
@@ -32,33 +45,139 @@ result_t WebView::loadFile(exlib::string file, AsyncHandle ac)
 
     url = "fs:" + url.substr(5);
 
-    return loadUrl(url, std::move(ac));
+    return loadUrl(url);
 }
 
-result_t WebView::waitFor(exlib::string url, AsyncHandle ac)
+result_t WebView::get_loading(bool& retVal)
 {
-    result_t hr = check_status(ac);
-    if (hr.failed())
-        return hr;
-
-    if (internal_isReady() && (url.empty() || url == internal_getUrl()))
-        return result_t();
-
-    m_waitFor.push_back({ url, std::move(ac) });
-
-    return result_t::pending();
+    retVal = m_loading;
+    return result_t();
 }
 
-void WebView::postWaitFor(exlib::string url)
+// Cleared when a navigation starts, set when it ends: a blocking member issues
+// its command between the two and then waits for the destination.
+void WebView::begin_load()
 {
-    for (auto it = m_waitFor.begin(); it != m_waitFor.end();) {
-        if (it->first.empty() || it->first == url) {
-            it->second.post(result_t());
-            it = m_waitFor.erase(it);
-        } else {
-            ++it;
-        }
+    m_wait_gen = m_load_gen + 1;
+    m_load_done = false;
+    m_load->clear();
+    m_loading = true;
+    m_waiting = true;
+}
+
+result_t WebView::finish_load()
+{
+    m_load->ac_wait();
+
+    // The outcome is consumed: a later completion (an error page the engine
+    // loaded after the failure) is a new navigation again.
+    m_waiting = false;
+
+    return m_load_hr;
+}
+
+void WebView::postLoading(exlib::string url)
+{
+    m_load_gen++;
+    m_loading_url = url;
+
+    // A result the waiting fiber has not read yet is final: the engine may be
+    // starting the error page that belongs to the navigation it just failed.
+    if (!(m_waiting && m_load_done)) {
+        m_load_done = false;
+        m_load->clear();
     }
+
+    m_loading = true;
+
+    obj_ptr<EventInfo> ei = new EventInfo(this, "loading");
+    ei->add("url", url);
+    ei->emit();
+}
+
+void WebView::postLoad(exlib::string url, result_t hr, exlib::string message)
+{
+    // The tail of a navigation that started before the caller asked for this
+    // one (the about:blank of a fresh window, a replaced request) must not
+    // satisfy the wait.
+    if (m_load_gen < m_wait_gen)
+        return;
+
+    // The same navigation already reported; a later signal (WebKitGTK finishing
+    // the error page of a failed load) must not turn a failure into success.
+    if (m_load_done)
+        return;
+
+    m_load_done = true;
+
+    // A failed navigation leaves the engine on the previous document, so the
+    // platform reports no usable URL for it: use the one the navigation was
+    // started with.
+    if (url.empty())
+        url = m_loading_url;
+
+    // WebKitGTK answers a request it refuses to start (a blocked port, for
+    // example) by committing an empty document: the load finishes without an
+    // error even though the requested document never arrived. The caller asked
+    // for a document over a real scheme, so this is the failure it is.
+    if (hr.ok() && url == "about:blank" && requests_document(m_loading_url)) {
+        url = m_loading_url;
+        message = "WebView: the engine did not load the requested document";
+        hr = result_t::make(CALL_E_INVALID_DATA)
+                 .with_type_name(errtype::kError)
+                 .with_code("ERR_GUI_LOAD_FAILED")
+                 .with_message(message);
+    }
+
+    m_wait_gen = 0;
+    m_load_url = url;
+    m_load_hr = hr;
+    m_loading = false;
+
+    if (hr.failed()) {
+        obj_ptr<EventInfo> ei = new EventInfo(this, "load-failed");
+        ei->add("url", url);
+        ei->add("message", message);
+        ei->emit();
+    } else {
+        obj_ptr<EventInfo> ei = new EventInfo(this, "load");
+        ei->add("url", url);
+        ei->emit();
+    }
+
+    m_load->set();
+}
+
+result_t WebView::waitForLoad(exlib::string url)
+{
+    if (m_closed)
+        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_GUI_CLOSED").with_message("WebView: webview is closed");
+
+    // Asking for a document that is already the current one answers at once.
+    if (!url.empty() && !m_loading && m_load_url == url)
+        return m_load_hr;
+
+    exlib::string lastUrl;
+    result_t lastHr;
+
+    m_waiting = true;
+
+    do {
+        // Wait for the next navigation: a completion already in hand belongs to
+        // the document the caller asked for.
+        m_wait_gen = m_load_gen + 1;
+        m_load_done = false;
+        m_load->clear();
+
+        m_load->ac_wait();
+
+        lastUrl = m_load_url;
+        lastHr = m_load_hr;
+    } while (!url.empty() && lastUrl != url);
+
+    m_waiting = false;
+
+    return lastHr;
 }
 
 void WebView::app_rpc(exlib::string json)
@@ -156,7 +275,7 @@ void WebView::app_rpc(exlib::string json)
         async([this, code]() {
             internal_eval(code);
         },
-            result_t::guicall());
+            result_t::guiloop());
     });
 }
 
@@ -221,15 +340,140 @@ result_t WebView::setup(v8::Local<v8::Object> opt)
     return result_t();
 }
 
-result_t WebView::check_status(AsyncHandle& ac)
+result_t WebView::ensure_open()
 {
-    if (ac.isSync()) {
-        m_ready->ac_wait();
-        return result_t::guicall();
-    }
-
     if (!m_window)
-        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("WebView: webview is closed");
+        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_GUI_CLOSED").with_message("WebView: webview is closed");
+
+    return result_t();
+}
+
+void WebView::wait_close()
+{
+    if (m_closed)
+        return;
+
+    m_closed_ev->ac_wait();
+}
+
+void WebView::postClose()
+{
+    if (m_closed)
+        return;
+
+    m_closed = true;
+    m_closed_ev->set();
+}
+
+bool WebView::emit_close_requested()
+{
+    Isolate* isolate = get_holder();
+    if (!isolate || isolate->is_terminating())
+        return false;
+
+    // Already running JS: a second EnterJsScope would rewrite the fiber's JS
+    // bookkeeping while a fiber is active. Only the posted path needs it.
+    bool in_js = Isolate::safe_current() == isolate;
+
+    std::unique_ptr<JSFiber::EnterJsScope> scope;
+    if (!in_js)
+        scope.reset(new JSFiber::EnterJsScope());
+
+    v8::HandleScope handle_scope(isolate->m_isolate);
+
+    // A cancelable DOMEvent: the listener calls preventDefault() instead of
+    // writing a field, which keeps the flag on the native object where the
+    // close path can read it back after the listeners returned.
+    obj_ptr<DOMEvent> ev = new DOMEvent("close-requested", false, true, false);
+    Variant arg = (object_base*)ev;
+    v8::Local<v8::Value> args[] = { arg };
+
+    bool handled = false;
+    JSTrigger(this)._emit("close-requested", args, 1, handled);
+
+    bool prevented = false;
+    ev->get_defaultPrevented(prevented);
+
+    return prevented;
+}
+
+bool WebView::should_cancel_close()
+{
+    if (m_allowClose || m_closed || !m_window)
+        return false;
+
+    Isolate* isolate = get_holder();
+    if (!isolate || isolate->is_terminating())
+        return false;
+
+    // close()/destroy() ask from the JS thread: the listeners can run here and
+    // the answer is available before the native window is torn down.
+    if (Isolate::safe_current() == isolate)
+        return emit_close_requested();
+
+    // The platform asked (title-bar button, Alt+F4) from inside the native
+    // window teardown, where a JS turn cannot start. Cancel now, run the
+    // listeners on the isolate and close again when nobody prevented it.
+    isolate->sync([this]() {
+        if (m_allowClose || m_closed || !m_window)
+            return;
+
+        if (emit_close_requested())
+            return;
+
+        m_allowClose = true;
+        async([this]() {
+            if (m_allowClose && !m_closed && m_window)
+                internal_close();
+        },
+            result_t::guiloop());
+    });
+
+    return true;
+}
+
+result_t WebView::waitForClose()
+{
+    wait_close();
+    return result_t();
+}
+
+result_t WebView::close(bool& retVal)
+{
+    result_t hr = ensure_open();
+    if (hr.failed())
+        return hr;
+
+    retVal = false;
+
+    if (should_cancel_close())
+        return result_t();
+
+    // close()/destroy() destroy the window; the platform hideOnClose policy
+    // only applies to the user closing it.
+    if (m_options)
+        m_options->hideOnClose = false;
+
+    m_allowClose = true;
+    internal_close();
+    wait_close();
+
+    retVal = true;
+    return result_t();
+}
+
+result_t WebView::destroy()
+{
+    result_t hr = ensure_open();
+    if (hr.failed())
+        return hr;
+
+    if (m_options)
+        m_options->hideOnClose = false;
+
+    m_allowClose = true;
+    internal_close();
+    wait_close();
 
     return result_t();
 }
@@ -242,7 +486,20 @@ result_t WebView::async_open()
     async([this]() {
         createWebView();
     },
-        result_t::guicall());
+        result_t::guiloop());
+
+    // The window exists when open returns: the creation task runs on the host
+    // loop while this fiber is parked.
+    m_ready->ac_wait();
+
+    result_t hr = ensure_open();
+    if (hr.failed())
+        return hr;
+
+    // The initial document belongs to the object: when open returns, the page
+    // the window was created with has finished loading. A failure is reported
+    // through the load-failed event, the window itself is still usable.
+    finish_load();
 
     return result_t();
 }
@@ -253,6 +510,7 @@ void WebView::release()
         m_webview = nullptr;
         m_window = nullptr;
 
+        postClose();
         _emit("close");
 
         m_self.Release();
@@ -318,6 +576,10 @@ result_t WebView::unref(obj_ptr<WebView_base>& retVal)
 
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
+    result_t gui_hr = check_gui_available();
+    if (gui_hr.failed())
+        return gui_hr;
+
     obj_ptr<WebView> webview = new WebView();
     retVal = webview;
     return webview->open(url, opt);
@@ -325,6 +587,10 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
 
 result_t gui_base::openFile(exlib::string file, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
+    result_t gui_hr = check_gui_available();
+    if (gui_hr.failed())
+        return gui_hr;
+
     obj_ptr<WebView> webview = new WebView();
     retVal = webview;
     return webview->openFile(file, opt);
@@ -332,6 +598,10 @@ result_t gui_base::openFile(exlib::string file, v8::Local<v8::Object> opt, obj_p
 
 result_t gui_base::open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
+    result_t gui_hr = check_gui_available();
+    if (gui_hr.failed())
+        return gui_hr;
+
     obj_ptr<WebView> webview = new WebView();
     retVal = webview;
     return webview->open(opt);

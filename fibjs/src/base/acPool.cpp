@@ -174,7 +174,7 @@ void AsyncEvent::async(result_t type)
         s_acPool->put(this);
     else if (type.is(CALL_E_LONGSYNC))
         s_lsPool->put(this);
-    else if (type.is(CALL_E_GUICALL))
+    else if (type.is(CALL_E_GUILOOP))
         putGuiPool(this);
 }
 
@@ -409,7 +409,7 @@ result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo
                 promise->Set(m_isolate->context(), async_iter_symbol, async_iter_fn).IsJust();
         }
 
-        if (!hr.is_nosync() && !hr.is(CALL_E_LONGSYNC) && !hr.is(CALL_E_GUICALL)) {
+        if (!hr.is_nosync() && !hr.is(CALL_E_LONGSYNC) && !hr.is(CALL_E_GUILOOP)) {
             m_v = hr;
             processPromiseResult();
 
@@ -419,7 +419,7 @@ result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo
         if (m_ctxo)
             args.GetReturnValue().Set(GetReturnValue(m_isolate, m_ctxo));
 
-        if (!hr.is_nosync() && !hr.is(CALL_E_LONGSYNC) && !hr.is(CALL_E_GUICALL)) {
+        if (!hr.is_nosync() && !hr.is(CALL_E_LONGSYNC) && !hr.is(CALL_E_GUILOOP)) {
             post_result(hr);
             return result_t::return_undefined();
         }

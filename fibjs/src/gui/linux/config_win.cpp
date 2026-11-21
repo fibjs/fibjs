@@ -15,6 +15,7 @@
 
 #include "object.h"
 #include "../gui.h"
+#include "options.h"
 #include "ifs/gui.h"
 #include "ifs/fs.h"
 #include "ifs/mime.h"
@@ -29,15 +30,26 @@ namespace fibjs {
 
 static GMainLoop* main_loop = nullptr;
 
-void os_putGuiPool(AsyncEvent* ac)
-{
-    g_idle_add([](void* _p) -> gboolean {
-        AsyncEvent* p = (AsyncEvent*)_p;
-        p->invoke();
+static gint s_idle_armed = 0;
 
-        return G_SOURCE_REMOVE;
-    },
-        ac);
+static gboolean host_idle(gpointer)
+{
+    // Clear before draining: a producer that wakes us while draining arms a
+    // fresh idle source, so the last post can never miss its wakeup.
+    g_atomic_int_set(&s_idle_armed, 0);
+
+    gui_dispatch_pending();
+
+    if (g_main_js_service && g_main_js_service->runPending(64))
+        os_wake_host();
+
+    return G_SOURCE_REMOVE;
+}
+
+void os_wake_host()
+{
+    if (g_atomic_int_compare_and_exchange(&s_idle_armed, 0, 1))
+        g_idle_add(host_idle, NULL);
 }
 
 static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer user_data)
@@ -61,7 +73,7 @@ static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer
                 webkit_uri_scheme_request_finish(request, stream, _buf ? _buf->length() : 0, mtype.c_str());
                 g_object_unref(stream);
             },
-                result_t::guicall());
+                result_t::guiloop());
         } else {
             async([fname, request]() {
                 exlib::string page = "<html><body><h1>Error</h1><p>File not found at path:<br>" + fname + "</p></body></html>";
@@ -69,7 +81,7 @@ static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer
                 webkit_uri_scheme_request_finish_error(request, error);
                 g_error_free(error);
             },
-                result_t::guicall());
+                result_t::guiloop());
         }
     });
 }
@@ -87,16 +99,29 @@ void setup_webkit()
     webkit_cookie_manager_set_accept_policy(cookie_manager, WEBKIT_COOKIE_POLICY_ACCEPT_ALWAYS);
 }
 
-void run_os_gui()
+void os_prepare_host()
 {
     dl_init();
     gtk_init_check(nullptr, nullptr);
     main_loop = g_main_loop_new(NULL, FALSE);
     setup_webkit();
+}
 
-    g_gui_ready.set();
-
+void os_run_host()
+{
     g_main_loop_run(main_loop);
+}
+
+void ensure_os_gui_initialized()
+{
+}
+
+// Graceful quit: stop the GTK main loop that owns the windows; the process then
+// leaves through the normal shutdown path.
+void os_quit()
+{
+    if (main_loop)
+        g_main_loop_quit(main_loop);
 }
 
 static gboolean on_close(GObject* object, GParamSpec* pspec, gpointer data)
@@ -109,6 +134,11 @@ static gboolean on_close(GObject* object, GParamSpec* pspec, gpointer data)
         }
         return TRUE;
     }
+
+    // A close-requested listener may cancel; a programmatic close sets the
+    // allow flag first and is never consulted.
+    if (webview->should_cancel_close())
+        return TRUE;
 
     webview->release();
     return FALSE;
@@ -173,6 +203,35 @@ static gboolean on_blur_event(GtkWidget* widget, GdkEvent* event, gpointer data)
             (new EventInfo(webview, "blur"))->emit();
         }
     }
+    return FALSE;
+}
+
+static gboolean on_window_state(GtkWidget* widget, GdkEventWindowState* event, gpointer data)
+{
+    WebView* webview = (WebView*)data;
+    GdkWindowState changed = event->changed_mask;
+
+    if (changed & GDK_WINDOW_STATE_ICONIFIED) {
+        if (event->new_window_state & GDK_WINDOW_STATE_ICONIFIED)
+            (new EventInfo(webview, "minimize"))->emit();
+        else
+            (new EventInfo(webview, "restore"))->emit();
+    }
+
+    if (changed & GDK_WINDOW_STATE_FULLSCREEN) {
+        if (event->new_window_state & GDK_WINDOW_STATE_FULLSCREEN)
+            (new EventInfo(webview, "enter-fullscreen"))->emit();
+        else
+            (new EventInfo(webview, "leave-fullscreen"))->emit();
+    }
+
+    if (changed & GDK_WINDOW_STATE_MAXIMIZED) {
+        if (event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED)
+            (new EventInfo(webview, "maximize"))->emit();
+        else
+            (new EventInfo(webview, "restore"))->emit();
+    }
+
     return FALSE;
 }
 
@@ -281,8 +340,23 @@ void WebView::config()
         g_object_unref(loader);
     }
 
-    if (m_options->visible.value())
+    if (m_options->visible.value()) {
         gtk_widget_show_all(GTK_WIDGET(window));
+
+        // Showing the window is what activates it on macOS and Windows. GTK
+        // leaves that to the window manager; when there is none (Xvfb, a bare
+        // X server) nothing ever gives the toplevel keyboard focus, so ask for
+        // it explicitly. gtk_window_present() falls back to XSetInputFocus
+        // when no WM answers _NET_ACTIVE_WINDOW.
+        gtk_window_present(window);
+
+        // A move requested before the window is realized is only a hint: GTK
+        // drops it when nothing maps the window. Re-apply an explicit position
+        // now that the window exists, so getPosition() reports what the caller
+        // asked for.
+        if (m_options->left.has_value() || m_options->top.has_value())
+            gtk_window_move(window, x, y);
+    }
 
     gtk_window_get_position(window, &m_x, &m_y);
     gtk_window_get_size(window, &m_width, &m_height);
@@ -291,6 +365,7 @@ void WebView::config()
     g_signal_connect(window, "configure-event", G_CALLBACK(on_configure_event), this);
     g_signal_connect(window, "focus-in-event", G_CALLBACK(on_focus_event), this);
     g_signal_connect(window, "focus-out-event", G_CALLBACK(on_blur_event), this);
+    g_signal_connect(window, "window-state-event", G_CALLBACK(on_window_state), this);
 
     m_ready->set();
 }

@@ -56,7 +56,7 @@ void JSFiber::FiberProcRunJavascript(void* p)
                 isolate->m_currentFibers++;
                 isolate->m_idleFibers++;
 
-                if (isolate->m_jsAffinity)
+                if (isolate->m_jsService)
                     exlib::Service::CreateFiber(isolate->m_jsService, FiberProcRunJavascript, isolate, stack_size * 1024, "JSFiber");
                 else
                     exlib::Service::CreateFiber(FiberProcRunJavascript, isolate, stack_size * 1024, "JSFiber");
@@ -296,7 +296,7 @@ JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
 
     Isolate* isolate = m_pFiber->holder();
 
-    if (isolate->m_jsAffinity)
+    if (isolate->m_jsService)
         isolate->check_js_thread();
 
     isolate->m_fibers.putTail(m_pFiber);

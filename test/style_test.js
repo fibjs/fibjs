@@ -1,3 +1,7 @@
+// Manual visual test: opens one window per window style and keeps the process
+// alive until every window is closed with its Close button. It is NOT part of
+// the automated suite (test/main.js never runs it); use test/gui_test.js for
+// automated GUI coverage.
 const gui = require("gui");
 const path = require("path");
 

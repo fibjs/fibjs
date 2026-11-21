@@ -33,9 +33,13 @@ result_t Tray::async_open()
         createTray();
         m_ready->set();
     },
-        result_t::guicall());
+        result_t::guiloop());
 
-    return result_t();
+    // The icon exists when the call returns: the creation task runs on the host
+    // loop while this fiber is parked.
+    m_ready->ac_wait();
+
+    return ensure_ready();
 }
 
 void Tray::release()
@@ -52,6 +56,10 @@ void Tray::release()
 
 result_t gui_base::createTray(TrayOptions* opt, obj_ptr<Tray_base>& retVal)
 {
+    result_t gui_hr = check_gui_available();
+    if (gui_hr.failed())
+        return gui_hr;
+
     if (!opt)
         return result_t(CALL_E_PARAMNOTOPTIONAL);
 

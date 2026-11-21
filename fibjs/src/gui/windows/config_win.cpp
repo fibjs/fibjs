@@ -18,6 +18,7 @@
 
 #include "object.h"
 #include "../gui.h"
+#include "options.h"
 #include "EventInfo.h"
 #include "WebView.h"
 
@@ -26,22 +27,27 @@ namespace fibjs {
 const wchar_t* szWndClassMain = L"fibjs_window";
 
 static HWND s_worker;
+static LONG s_wake_pending = 0;
 void on_click_menu(uint32_t id);
 
-#define WM_ASYNC_EVENT (WM_USER + 1000)
+// A wakeup from any thread. The handler drains the GUI queue and then the
+// guest JS service; the old WM_ASYNC_EVENT carried one AsyncEvent and is gone
+// with the shared queue.
+#define WM_JS_WAKE (WM_USER + 1000)
 
 HICON LoadPngIcon(const BYTE* pngData, size_t pngSize);
 
-void os_putGuiPool(AsyncEvent* ac)
-{
-    PostMessage(s_worker, WM_ASYNC_EVENT, 0, (LPARAM)ac);
-}
-
 LRESULT CALLBACK WorkerProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
-    if (uMsg == WM_ASYNC_EVENT) {
-        AsyncEvent* ac = (AsyncEvent*)lParam;
-        ac->invoke();
+    if (uMsg == WM_JS_WAKE) {
+        // Clear before draining: a producer that posts while we drain sees 0
+        // and queues another wakeup, so the last post cannot lose its wakeup.
+        InterlockedExchange(&s_wake_pending, 0);
+
+        gui_dispatch_pending();
+
+        if (g_main_js_service && g_main_js_service->runPending(64))
+            os_wake_host();
     }
 
     return DefSubclassProc(hWnd, uMsg, wParam, lParam);
@@ -67,22 +73,38 @@ static void RegMainClass()
     SetWindowSubclass(s_worker, WorkerProc, 0, 0);
 }
 
-void run_os_gui()
+void os_prepare_host()
 {
-    exlib::OSThread* _thGUI = exlib::OSThread::current();
-
     SetProcessDPIAware();
     RegMainClass();
 
     OleInitialize(NULL);
+}
 
-    g_gui_ready.set();
+void os_wake_host()
+{
+    if (s_worker && InterlockedExchange(&s_wake_pending, 1) == 0)
+        PostMessage(s_worker, WM_JS_WAKE, 0, 0);
+}
 
+void os_run_host()
+{
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+}
+
+void ensure_os_gui_initialized()
+{
+}
+
+// Graceful quit: end the host message loop; the process then leaves through the
+// normal shutdown path.
+void os_quit()
+{
+    PostQuitMessage(0);
 }
 
 void GetDPI(HWND hWndParent, int* dpix, int* dpiy)
@@ -180,6 +202,13 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         ei->emit();
 
+        if (wParam == SIZE_MINIMIZED)
+            (new EventInfo(webview, "minimize"))->emit();
+        else if (wParam == SIZE_RESTORED)
+            (new EventInfo(webview, "restore"))->emit();
+        else if (wParam == SIZE_MAXIMIZED)
+            (new EventInfo(webview, "maximize"))->emit();
+
         ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hWnd, 0);
         if (controller != nullptr) {
             RECT bounds;
@@ -195,6 +224,11 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
                 ShowWindow(hWnd, SW_HIDE);
                 return 0;
             }
+
+            // A close-requested listener may cancel; a programmatic close sets
+            // the allow flag first and is never consulted.
+            if (webview->should_cancel_close())
+                return 0;
 
             controller->Release();
             SetWindowLongPtr(hWnd, 0, 0);

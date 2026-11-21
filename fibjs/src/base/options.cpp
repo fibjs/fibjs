@@ -53,8 +53,6 @@ bool g_use_env_proxy = false;
 
 bool g_is_sea = false;
 
-bool g_js_thread_affinity = true;
-
 exlib::string g_exec_code;
 bool g_exec_print = false;
 
@@ -327,11 +325,6 @@ static void printHelp()
          "\n"
          "  --use-thread                run fibjs in thread mode.\n"
          "  --no-deprecation            silence deprecation warnings.\n"
-         "  --no-js-thread-affinity     schedule the JS fibers of one isolate on a\n"
-         "                              pool of worker threads instead of pinning\n"
-         "                              them to one dedicated thread. Faster for CPU\n"
-         "                              bound fibers, but N-API addons that keep\n"
-         "                              state in thread-local storage may break.\n"
          "  --tcpdump                   print out the contents of the tcp package.\n"
          "  --ssldump                   print out the contents of the ssl package.\n"
          "  --pipedump                  print out the contents of the pipe package.\n"
@@ -451,12 +444,6 @@ void options(int32_t& pos, char* argv[])
             df++;
         } else if (!qstrcmp(arg, "--use-env-proxy")) {
             g_use_env_proxy = true;
-            df++;
-        } else if (!qstrcmp(arg, "--no-js-thread-affinity")) {
-            g_js_thread_affinity = false;
-            df++;
-        } else if (!qstrcmp(arg, "--js-thread-affinity")) {
-            g_js_thread_affinity = true;
             df++;
         } else if (!qstrcmp(arg, "--env-file")) {
             if (i + 1 >= pos || argv[i + 1][0] == 0) {

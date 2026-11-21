@@ -219,16 +219,13 @@ result_t WebView::createWebView()
                 webView->add_NavigationStarting(
                     Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
                         [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
-                            m_isLoading = true;
-
-                            obj_ptr<EventInfo> ei = new EventInfo(this, "loading");
-
                             LPWSTR uri = nullptr;
                             args->get_Uri(&uri);
-                            ei->add("url", utf16to8String((const char16_t*)uri));
+                            exlib::string surl = uri ? utf16to8String((const char16_t*)uri) : "";
                             CoTaskMemFree(uri);
 
-                            ei->emit();
+                            postLoading(surl);
+
                             return S_OK;
                         })
                         .Get(),
@@ -250,17 +247,31 @@ result_t WebView::createWebView()
                 webView->add_NavigationCompleted(
                     Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
                         [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
-                            m_isLoading = false;
-                            obj_ptr<EventInfo> ei = new EventInfo(this, "load");
-
                             LPWSTR uri = nullptr;
                             sender->get_Source(&uri);
-                            exlib::string surl = utf16to8String((const char16_t*)uri);
-                            ei->add("url", surl);
+                            exlib::string surl = uri ? utf16to8String((const char16_t*)uri) : "";
                             CoTaskMemFree(uri);
 
-                            ei->emit();
-                            postWaitFor(surl);
+                            BOOL success = TRUE;
+                            args->get_IsSuccess(&success);
+
+                            if (success) {
+                                postLoad(surl);
+                            } else {
+                                COREWEBVIEW2_WEB_ERROR_STATUS status = COREWEBVIEW2_WEB_ERROR_STATUS_UNKNOWN;
+                                args->get_WebErrorStatus(&status);
+                                exlib::string message = "navigation failed (" + std::to_string((int)status) + ")";
+
+                                // The source still points at the previous
+                                // document; postLoad falls back to the URL the
+                                // navigation was started with.
+                                postLoad("",
+                                    result_t::make(CALL_E_INVALID_DATA)
+                                        .with_type_name(errtype::kError)
+                                        .with_code("ERR_GUI_LOAD_FAILED")
+                                        .with_message(message),
+                                    message);
+                            }
 
                             return S_OK;
                         })
@@ -311,7 +322,7 @@ result_t WebView::createWebView()
                                         args->Release();
                                         deferral->Release();
                                     },
-                                        result_t::guicall());
+                                        result_t::guiloop());
                                 } else {
                                     async([fname, args, deferral]() {
                                         exlib::string page = "<html><body><h1>Error</h1><p>File not found at path:<br>" + fname + "</p></body></html>";
@@ -328,7 +339,7 @@ result_t WebView::createWebView()
                                         args->Release();
                                         deferral->Release();
                                     },
-                                        result_t::guicall());
+                                        result_t::guiloop());
                                 }
                             });
 
@@ -354,6 +365,7 @@ result_t WebView::createWebView()
                     url = "about:blank";
 
                 exlib::wstring wurl = utf8to16String(url);
+                begin_load();
                 webView->Navigate((LPCWSTR)wurl.c_str());
 
                 return S_OK;

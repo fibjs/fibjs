@@ -47,11 +47,6 @@ void WebView::internal_maximize()
         ShowWindow(hWndParent, SW_MAXIMIZE);
 }
 
-bool WebView::internal_isReady()
-{
-    return !m_isLoading;
-}
-
 void WebView::internal_eval(exlib::string code)
 {
     exlib::wstring wcode = utf8to16String(code);
@@ -68,22 +63,23 @@ exlib::string WebView::internal_getUrl()
     return surl;
 }
 
-result_t WebView::loadUrl(exlib::string url, AsyncHandle ac)
+result_t WebView::loadUrl(exlib::string url)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
     exlib::wstring wurl = utf8to16String(url);
-    ((ICoreWebView2*)m_webview)->Navigate((LPCWSTR)wurl.c_str());
-    m_isLoading = true;
 
-    return result_t();
+    begin_load();
+    ((ICoreWebView2*)m_webview)->Navigate((LPCWSTR)wurl.c_str());
+
+    return finish_load();
 }
 
-result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
+result_t WebView::getUrl(exlib::string& retVal)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
@@ -92,33 +88,35 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::setHtml(exlib::string html, AsyncHandle ac)
+result_t WebView::setHtml(exlib::string html)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
     exlib::wstring whtml = utf8to16String(html);
-    ((ICoreWebView2*)m_webview)->NavigateToString((LPCWSTR)whtml.c_str());
-    m_isLoading = true;
 
-    return result_t();
+    begin_load();
+    ((ICoreWebView2*)m_webview)->NavigateToString((LPCWSTR)whtml.c_str());
+
+    return finish_load();
 }
 
-result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
+result_t WebView::getHtml(exlib::string& retVal)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
-    // The WebView2 callback outlives this frame: the continuation travels in a
-    // heap box (the box is the unique holder; the callback delivers from it).
-    auto h = std::make_shared<AsyncHandle>(std::move(ac));
+    // The WebView2 callback runs on this thread while the fiber is parked, so
+    // the stack references stay valid.
+    exlib::Event ev;
+    exlib::string* err = new exlib::string();
 
     ICoreWebView2* webView = (ICoreWebView2*)m_webview;
     webView->ExecuteScript(L"document.documentElement.outerHTML.toString()",
         Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
-            [&retVal, h](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
+            [&retVal, &ev, err](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
                 // A page with no document yet (about:blank, a navigation still
                 // in flight, a window being torn down) makes the script return
                 // JSON null. get<std::string>() on that throws nlohmann's
@@ -135,65 +133,79 @@ result_t WebView::getHtml(exlib::string& retVal, AsyncHandle ac)
                             retVal = jsonResult.get<std::string>();
                     } catch (const std::exception&) {
                     }
+                } else {
+                    _com_error e(errorCode);
+                    *err = utf16to8String((const char16_t*)e.ErrorMessage());
                 }
 
-                h->post();
+                ev.set();
                 return S_OK;
             })
             .Get());
 
-    return result_t::pending();
-}
+    ev.wait();
 
-result_t WebView::isReady(bool& retVal, AsyncHandle ac)
-{
-    bool is_win_ready = false;
-    m_ready->isSet(is_win_ready);
-    if (!is_win_ready) {
-        retVal = false;
-        return result_t();
-    }
+    exlib::string message = *err;
+    delete err;
 
-    result_t hr = check_status(ac);
-    if (hr.failed())
-        return hr;
-
-    retVal = !m_isLoading;
+    if (!message.empty())
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_GUI_ERROR").with_message(message);
 
     return result_t();
 }
 
-result_t WebView::reload(AsyncHandle ac)
+result_t WebView::reload()
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
+    begin_load();
     ((ICoreWebView2*)m_webview)->Reload();
 
-    return result_t();
+    return finish_load();
 }
 
-result_t WebView::goBack(AsyncHandle ac)
+result_t WebView::goBack(bool& retVal)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
-    ((ICoreWebView2*)m_webview)->GoBack();
+    ICoreWebView2* webView = (ICoreWebView2*)m_webview;
 
-    return result_t();
+    BOOL can = FALSE;
+    webView->get_CanGoBack(&can);
+
+    retVal = can == TRUE;
+    if (!retVal)
+        return result_t();
+
+    begin_load();
+    webView->GoBack();
+
+    return finish_load();
 }
 
-result_t WebView::goForward(AsyncHandle ac)
+result_t WebView::goForward(bool& retVal)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
-    ((ICoreWebView2*)m_webview)->GoForward();
+    ICoreWebView2* webView = (ICoreWebView2*)m_webview;
 
-    return result_t();
+    BOOL can = FALSE;
+    webView->get_CanGoForward(&can);
+
+    retVal = can == TRUE;
+    if (!retVal)
+        return result_t();
+
+    begin_load();
+    webView->GoForward();
+
+    return finish_load();
 }
 
 void json2Variant(nlohmann::json& json, Variant& retVal)
@@ -231,9 +243,9 @@ void json2Variant(nlohmann::json& json, Variant& retVal)
     }
 }
 
-result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
+result_t WebView::eval(exlib::string code, Variant& retVal)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
@@ -241,22 +253,23 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
     code = "try{({result:eval(\"" + code + "\")})}catch(e){({error:e.message});}";
     exlib::wstring wcode = utf8to16String(code);
 
-    // The WebView2 callback outlives this frame: the continuation travels in a
-    // heap box (the box is the unique holder; the callback delivers from it).
-    auto h = std::make_shared<AsyncHandle>(std::move(ac));
+    exlib::Event ev;
+    exlib::string* err = new exlib::string();
 
     ICoreWebView2* webView = (ICoreWebView2*)m_webview;
     webView->ExecuteScript((LPCWSTR)wcode.c_str(),
         Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
-            [&retVal, h](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
+            [&retVal, &ev, err](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
                 if (FAILED(errorCode)) {
-                    _com_error err(errorCode);
-                    h->post(result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_GUI_ERROR").with_message(utf16to8String((const char16_t*)err.ErrorMessage())));
+                    _com_error e(errorCode);
+                    *err = utf16to8String((const char16_t*)e.ErrorMessage());
+                    ev.set();
                     return errorCode;
                 }
 
                 if (resultObjectAsJson == nullptr) {
-                    h->post(result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_GUI_ERROR").with_message("The result is null"));
+                    *err = "The result is null";
+                    ev.set();
                     return E_FAIL;
                 }
 
@@ -265,26 +278,33 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncHandle ac)
                     nlohmann::json jsonResult = nlohmann::json::parse(resultStr);
 
                     if (jsonResult.contains("error")) {
-                        h->post(result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_GUI_ERROR").with_message(jsonResult["error"].get<std::string>()));
-                    } else {
-                        if (jsonResult.contains("result"))
-                            json2Variant(jsonResult["result"], retVal);
-                        h->post();
+                        *err = jsonResult["error"].get<std::string>();
+                    } else if (jsonResult.contains("result")) {
+                        json2Variant(jsonResult["result"], retVal);
                     }
                 } catch (const std::exception& e) {
-                    h->post(result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_GUI_ERROR").with_message(e.what()));
+                    *err = e.what();
                 }
 
+                ev.set();
                 return S_OK;
             })
             .Get());
 
-    return result_t::pending();
+    ev.wait();
+
+    exlib::string message = *err;
+    delete err;
+
+    if (!message.empty())
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_GUI_ERROR").with_message(message);
+
+    return result_t();
 }
 
-result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
+result_t WebView::setTitle(exlib::string title)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
@@ -294,9 +314,9 @@ result_t WebView::setTitle(exlib::string title, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
+result_t WebView::getTitle(exlib::string& retVal)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
@@ -307,9 +327,9 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
+result_t WebView::isVisible(bool& retVal)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
@@ -318,9 +338,9 @@ result_t WebView::isVisible(bool& retVal, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::show(AsyncHandle ac)
+result_t WebView::show()
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
@@ -334,24 +354,23 @@ result_t WebView::show(AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::hide(AsyncHandle ac)
+result_t WebView::hide()
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
-    if (IsWindowVisible((HWND)m_window)) {
+    if (IsWindowVisible((HWND)m_window))
         ShowWindow((HWND)m_window, SW_HIDE);
-    }
 
     return result_t();
 }
 
 extern int dpix, dpiy;
 
-result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
+result_t WebView::setSize(int32_t width, int32_t height)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
@@ -360,9 +379,9 @@ result_t WebView::setSize(int32_t width, int32_t height, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::getSize(std::vector<double>& retVal, AsyncHandle ac)
+result_t WebView::getSize(std::vector<double>& retVal)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
@@ -375,9 +394,9 @@ result_t WebView::getSize(std::vector<double>& retVal, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
+result_t WebView::setPosition(int32_t left, int32_t top)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
@@ -386,9 +405,9 @@ result_t WebView::setPosition(int32_t left, int32_t top, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::getPosition(std::vector<double>& retVal, AsyncHandle ac)
+result_t WebView::getPosition(std::vector<double>& retVal)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
@@ -401,39 +420,222 @@ result_t WebView::getPosition(std::vector<double>& retVal, AsyncHandle ac)
     return result_t();
 }
 
-result_t WebView::isActived(bool& retVal, AsyncHandle ac)
+result_t WebView::isActived(bool& retVal)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
-    HWND hwnd = (HWND)m_window;
-    retVal = (GetForegroundWindow() == hwnd);
+    retVal = (GetForegroundWindow() == (HWND)m_window);
 
     return result_t();
 }
 
-result_t WebView::active(AsyncHandle ac)
+result_t WebView::active()
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
+    if (hr.failed())
+        return hr;
+
+    SetForegroundWindow((HWND)m_window);
+
+    return result_t();
+}
+
+result_t WebView::get_focused(bool& retVal)
+{
+    result_t hr = ensure_open();
+    if (hr.failed())
+        return hr;
+
+    retVal = (GetForegroundWindow() == (HWND)m_window);
+    return result_t();
+}
+
+static void apply_fullscreen(HWND hwnd, bool on, void*& placement_holder)
+{
+    WINDOWPLACEMENT* placement = (WINDOWPLACEMENT*)placement_holder;
+
+    if (on) {
+        if ((GetWindowLongPtr(hwnd, GWL_STYLE) & WS_POPUP) == WS_POPUP)
+            return;
+
+        if (!placement) {
+            placement = new WINDOWPLACEMENT();
+            placement_holder = placement;
+        }
+
+        placement->length = sizeof(WINDOWPLACEMENT);
+        GetWindowPlacement(hwnd, placement);
+
+        MONITORINFO mi = { sizeof(mi) };
+        if (GetMonitorInfo(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &mi)) {
+            SetWindowLongPtr(hwnd, GWL_STYLE, GetWindowLongPtr(hwnd, GWL_STYLE) & ~WS_OVERLAPPEDWINDOW);
+            SetWindowPos(hwnd, HWND_TOP,
+                mi.rcMonitor.left, mi.rcMonitor.top,
+                mi.rcMonitor.right - mi.rcMonitor.left,
+                mi.rcMonitor.bottom - mi.rcMonitor.top,
+                SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+        }
+    } else {
+        if ((GetWindowLongPtr(hwnd, GWL_STYLE) & WS_POPUP) != WS_POPUP)
+            return;
+
+        SetWindowLongPtr(hwnd, GWL_STYLE, GetWindowLongPtr(hwnd, GWL_STYLE) | WS_OVERLAPPEDWINDOW);
+
+        if (placement) {
+            SetWindowPlacement(hwnd, placement);
+            delete placement;
+            placement_holder = nullptr;
+        }
+
+        SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+    }
+}
+
+static exlib::string window_state(HWND hwnd, bool fullscreen)
+{
+    if (fullscreen)
+        return "fullscreen";
+
+    if (IsIconic(hwnd))
+        return "minimized";
+
+    if (IsZoomed(hwnd))
+        return "maximized";
+
+    return "normal";
+}
+
+result_t WebView::get_state(exlib::string& retVal)
+{
+    result_t hr = ensure_open();
+    if (hr.failed())
+        return hr;
+
+    retVal = window_state((HWND)m_window, m_fullscreen);
+    return result_t();
+}
+
+result_t WebView::set_state(exlib::string newVal)
+{
+    result_t hr = ensure_open();
+    if (hr.failed())
+        return hr;
+
+    HWND hwnd = (HWND)m_window;
+
+    if (newVal == "normal") {
+        if (m_fullscreen)
+            apply_fullscreen(hwnd, false, m_placement);
+        else if (IsIconic(hwnd) || IsZoomed(hwnd))
+            ShowWindow(hwnd, SW_RESTORE);
+
+        m_fullscreen = false;
+    } else if (newVal == "minimized") {
+        if (m_fullscreen)
+            apply_fullscreen(hwnd, false, m_placement);
+
+        m_fullscreen = false;
+        ShowWindow(hwnd, SW_MINIMIZE);
+    } else if (newVal == "maximized") {
+        if (m_fullscreen)
+            apply_fullscreen(hwnd, false, m_placement);
+
+        m_fullscreen = false;
+        ShowWindow(hwnd, SW_MAXIMIZE);
+    } else if (newVal == "fullscreen") {
+        apply_fullscreen(hwnd, true, m_placement);
+        m_fullscreen = true;
+    } else
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("WebView: state must be 'normal', 'minimized', 'maximized' or 'fullscreen', but got '" + newVal + "'");
+
+    return result_t();
+}
+
+result_t WebView::getBounds(obj_ptr<GetBoundsType>& retVal)
+{
+    result_t hr = ensure_open();
+    if (hr.failed())
+        return hr;
+
+    RECT rect;
+    GetWindowRect((HWND)m_window, &rect);
+
+    obj_ptr<GetBoundsType> bounds = new GetBoundsType();
+    bounds->x = (int32_t)rect.left * 96 / dpix;
+    bounds->y = (int32_t)rect.top * 96 / dpiy;
+    bounds->width = (int32_t)(rect.right - rect.left) * 96 / dpix;
+    bounds->height = (int32_t)(rect.bottom - rect.top) * 96 / dpiy;
+
+    retVal = bounds;
+    return result_t();
+}
+
+result_t WebView::setBounds(WindowBounds* bounds)
+{
+    result_t hr = ensure_open();
+    if (hr.failed())
+        return hr;
+
+    HWND hwnd = (HWND)m_window;
+    RECT rect;
+    GetWindowRect(hwnd, &rect);
+
+    int32_t x = (int32_t)rect.left * 96 / dpix;
+    int32_t y = (int32_t)rect.top * 96 / dpiy;
+    int32_t width = (int32_t)(rect.right - rect.left) * 96 / dpix;
+    int32_t height = (int32_t)(rect.bottom - rect.top) * 96 / dpiy;
+
+    // SWP_NOMOVE / SWP_NOSIZE apply to the whole call, not to one axis: a
+    // rectangle that carries only x still has to move, so decide once from the
+    // fields the caller supplied and keep the rest at its current value.
+    bool move = bounds->x.has_value() || bounds->y.has_value();
+    bool resize = bounds->width.has_value() || bounds->height.has_value();
+
+    UINT flags = SWP_NOZORDER;
+
+    if (!move)
+        flags |= SWP_NOMOVE;
+    if (!resize)
+        flags |= SWP_NOSIZE;
+
+    if (bounds->x.has_value())
+        x = (int32_t)bounds->x.value();
+    if (bounds->y.has_value())
+        y = (int32_t)bounds->y.value();
+    if (bounds->width.has_value())
+        width = (int32_t)bounds->width.value();
+    if (bounds->height.has_value())
+        height = (int32_t)bounds->height.value();
+
+    SetWindowPos(hwnd, nullptr, x * dpix / 96, y * dpiy / 96, width * dpix / 96, height * dpiy / 96, flags);
+
+    return result_t();
+}
+
+result_t WebView::focus(bool& retVal)
+{
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
     HWND hwnd = (HWND)m_window;
     SetForegroundWindow(hwnd);
 
+    retVal = (GetForegroundWindow() == hwnd);
     return result_t();
 }
 
-result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, AsyncHandle ac)
+result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 
-    // The WebView2 callback outlives this frame: the continuation travels in a
-    // heap box (the box is the unique holder; the callback delivers from it).
-    auto h = std::make_shared<AsyncHandle>(std::move(ac));
+    exlib::Event ev;
+    exlib::string* err = new exlib::string();
 
     ICoreWebView2* webView = (ICoreWebView2*)m_webview;
 
@@ -452,9 +654,10 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
     webView->CallDevToolsProtocolMethod(
         L"Page.captureScreenshot", (LPWSTR)wcommand.c_str(),
         Microsoft::WRL::Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
-            [&retVal, h](HRESULT errorCode, LPCWSTR resultJson) -> HRESULT {
-                if (FAILED(errorCode)) {
-                    h->post(result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message("Failed to capture screenshot"));
+            [&retVal, &ev, err](HRESULT errorCode, LPCWSTR resultJson) -> HRESULT {
+                if (FAILED(errorCode) || resultJson == nullptr) {
+                    *err = "Failed to capture screenshot";
+                    ev.set();
                     return errorCode;
                 }
 
@@ -465,30 +668,25 @@ result_t WebView::takeScreenshot(bool fullPage, obj_ptr<Buffer_base>& retVal, As
 
                 base64_base::decode(base64Data, retVal);
 
-                h->post();
-
+                ev.set();
                 return S_OK;
             })
             .Get());
 
-    return result_t::pending();
-}
+    ev.wait();
 
-result_t WebView::close(AsyncHandle ac)
-{
-    result_t hr = check_status(ac);
-    if (hr.failed())
-        return hr;
+    exlib::string message = *err;
+    delete err;
 
-    m_options->hideOnClose = false;
-    internal_close();
+    if (!message.empty())
+        return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_NOT_SUPPORTED").with_message(message);
 
     return result_t();
 }
 
-result_t WebView::postMessage(exlib::string msg, AsyncHandle ac)
+result_t WebView::postMessage(exlib::string msg)
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_open();
     if (hr.failed())
         return hr;
 

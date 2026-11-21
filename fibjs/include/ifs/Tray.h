@@ -23,7 +23,7 @@ class Tray_base : public object_base {
 public:
     // Tray_base
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal) = 0;
-    virtual result_t close(AsyncHandle ac) = 0;
+    virtual result_t close() = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -39,9 +39,6 @@ public:
 public:
     static void s_getMenu(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
-
-public:
-    ASYNC_MEMBER0(Tray_base, close);
 };
 }
 
@@ -52,14 +49,14 @@ inline ClassInfo& Tray_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "getMenu", s_getMenu, false, ClassData::ASYNC_SYNC },
-        { "close", s_close, false, ClassData::ASYNC_ASYNC }
+        { "close", s_close, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {
         "Tray", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info(),
-        true
+        false
     };
 
     static ClassInfo s_ci(s_cd);
@@ -82,16 +79,13 @@ inline void Tray_base::s_getMenu(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void Tray_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ASYNC_METHOD_INSTANCE(Tray_base);
-    ASYNC_METHOD_ENTER("Tray.close");
+    METHOD_INSTANCE(Tray_base);
+    METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty())
-        hr = pInst->acb_close(cb, args);
-    else
-        hr = pInst->ac_close();
+    hr = pInst->close();
 
-    ASYNC_METHOD_VOID();
+    METHOD_VOID();
 }
 }

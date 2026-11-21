@@ -245,25 +245,26 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
     return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-result_t gui_base::input(exlib::string message, bool password, exlib::string& retVal, AsyncHandle ac)
+result_t gui_base::input(exlib::string message, bool password, exlib::string& retVal)
 {
-    return input("", message, password, retVal, std::move(ac));
+    return input("", message, password, retVal);
 }
 
-result_t gui_base::input(exlib::string title, exlib::string message, bool password, exlib::string& retVal, AsyncHandle ac)
+result_t gui_base::input(exlib::string title, exlib::string message, bool password, exlib::string& retVal)
 {
-    if (ac.isSync())
-        return result_t::guicall();
+    result_t gui_hr = check_gui_available();
+    if (gui_hr.failed())
+        return gui_hr;
 
-    exlib::Event ev;
+    gui_prepare_call();
+
+    // The modal runs inline on the host (GUI) thread. The nested message loop
+    // below is the same pattern macOS/Linux use (runModal / gtk_dialog_run);
+    // a fiber-level wait is not allowed in the host context (§4.3).
     result_t hr = result_t::return_undefined();
 
-    async([&message, &title, &password, &retVal, &hr, &ev]() {
-        if (!EnsureMessageLoop()) {
-            hr = result_t::return_undefined();
-            ev.set();
-            return;
-        }
+    if (!EnsureMessageLoop())
+        return hr;
 
         WNDCLASSEX wc = { 0 };
         wc.cbSize = sizeof(WNDCLASSEX);
@@ -274,11 +275,8 @@ result_t gui_base::input(exlib::string title, exlib::string message, bool passwo
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
         wc.style = CS_HREDRAW | CS_VREDRAW;
 
-        if (!RegisterClassEx(&wc)) {
-            hr = result_t::return_undefined();
-            ev.set();
-            return;
-        }
+        if (!RegisterClassEx(&wc))
+            return hr;
 
         DialogParams params = { &retVal, false, message, password };
 
@@ -333,9 +331,7 @@ result_t gui_base::input(exlib::string title, exlib::string message, bool passwo
 
         if (!hwnd) {
             UnregisterClass(L"FibJSInputDialog", GetModuleHandle(NULL));
-            hr = result_t::return_undefined();
-            ev.set();
-            return;
+            return hr;
         }
 
         RECT rc;
@@ -378,12 +374,7 @@ result_t gui_base::input(exlib::string title, exlib::string message, bool passwo
         UnregisterClass(L"FibJSInputDialog", GetModuleHandle(NULL));
 
         hr = params.dialogResult ? result_t() : result_t::return_undefined();
-        ev.set();
-    },
-        result_t::longsync());
-
-    ev.wait();
-    return hr;
+        return hr;
 }
 
 }

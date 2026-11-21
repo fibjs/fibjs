@@ -82,9 +82,9 @@ void Tray::createTray()
     Shell_NotifyIcon(NIM_ADD, nid);
 }
 
-result_t Tray::close(AsyncHandle ac)
+result_t Tray::close()
 {
-    result_t hr = check_status(ac);
+    result_t hr = ensure_ready();
     if (hr.failed())
         return hr;
 

@@ -100,10 +100,10 @@
  - Not provided: `worker.exitCode`, `worker.stdin`, `worker.stdout` and
    `worker.stderr`; a transfer list only detaches ArrayBuffers and a MessagePort
    cannot be transferred or used as workerData; the `markAs*` helpers are no-ops.
- - Thread affinity: by default all JavaScript of one isolate runs on one dedicated OS thread
-   (`--no-js-thread-affinity` disables this), matching the N-API contract that a napi_env belongs
-   to a single thread. An extension using a blocking threadsafe function can self-deadlock in a
-   worker, as it would block the event loop of a single-threaded runtime.
+ - Threading: every isolate runs all of its JavaScript on one dedicated OS thread,
+   matching the N-API contract that a napi_env belongs to a single thread. An extension using a blocking
+   threadsafe function can self-deadlock in a worker, as it would block the event loop of a
+   single-threaded runtime.
  */
 module worker_threads
 {

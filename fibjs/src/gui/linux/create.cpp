@@ -127,27 +127,47 @@ static void handle_title_change(WebKitWebView* webview, GParamSpec* pspec, gpoin
 static void handle_load_changed(WebKitWebView* webview, WebKitLoadEvent load_event, gpointer user_data)
 {
     WebView* _webView = (WebView*)user_data;
+    const char* uri = webkit_web_view_get_uri(webview);
 
     switch (load_event) {
     case WEBKIT_LOAD_STARTED: {
-        obj_ptr<EventInfo> ei = new EventInfo(_webView, "loading");
-        ei->add("url", webkit_web_view_get_uri(webview));
-        ei->emit();
+        _webView->postLoading(uri ? uri : "");
 
         break;
     }
     case WEBKIT_LOAD_FINISHED: {
-        obj_ptr<EventInfo> ei = new EventInfo(_webView, "load");
-        exlib::string url = webkit_web_view_get_uri(webview);
-        ei->add("url", url);
-        ei->emit();
-        _webView->postWaitFor(url);
+        _webView->postLoad(uri ? uri : "");
 
         break;
     }
     default:
         break;
     }
+}
+
+static gboolean handle_load_failed(WebKitWebView* webview, WebKitLoadEvent load_event, gchar* failing_uri, GError* error, gpointer user_data)
+{
+    WebView* _webView = (WebView*)user_data;
+
+    // A navigation replaced by a newer one is not a failure of the window.
+    if (g_error_matches(error, WEBKIT_NETWORK_ERROR, WEBKIT_NETWORK_ERROR_CANCELLED))
+        return FALSE;
+
+    // The caller is blocked on this navigation: the failure is the answer, so
+    // handle the signal and keep WebKit from loading its stock error page over
+    // it. Without a waiter the page is welcome to show one.
+    bool handled = _webView->handles_load_failure();
+
+    exlib::string message = error && error->message ? error->message : "navigation failed";
+
+    _webView->postLoad(failing_uri ? failing_uri : "",
+        result_t::make(CALL_E_INVALID_DATA)
+            .with_type_name(errtype::kError)
+            .with_code("ERR_GUI_LOAD_FAILED")
+            .with_message(message),
+        message);
+
+    return handled ? TRUE : FALSE;
 }
 
 result_t WebView::createWebView()
@@ -178,6 +198,7 @@ result_t WebView::createWebView()
 
     g_signal_connect(webview, "notify::title", G_CALLBACK(handle_title_change), this);
     g_signal_connect(webview, "load-changed", G_CALLBACK(handle_load_changed), this);
+    g_signal_connect(webview, "load-failed", G_CALLBACK(handle_load_failed), this);
 
     GtkWidget* vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(vbox), webview, TRUE, TRUE, 0);
@@ -202,6 +223,7 @@ result_t WebView::createWebView()
     } else
         url = "about:blank";
 
+    begin_load();
     webkit_web_view_load_uri(WEBKIT_WEB_VIEW(webview), url.c_str());
 
     config();

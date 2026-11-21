@@ -122,6 +122,24 @@ GQuark webkit_javascript_error_quark(void)
     return s_webkit_javascript_error_quark();
 }
 
+gboolean webkit_web_view_can_go_back(WebKitWebView* web_view)
+{
+    webkit_func(webkit_web_view_can_go_back);
+    return s_webkit_web_view_can_go_back(web_view);
+}
+
+gboolean webkit_web_view_can_go_forward(WebKitWebView* web_view)
+{
+    webkit_func(webkit_web_view_can_go_forward);
+    return s_webkit_web_view_can_go_forward(web_view);
+}
+
+GQuark webkit_network_error_quark(void)
+{
+    webkit_func(webkit_network_error_quark);
+    return s_webkit_network_error_quark();
+}
+
 void webkit_javascript_result_unref(WebKitJavascriptResult* js_result)
 {
     webkit_func(webkit_javascript_result_unref);

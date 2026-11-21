@@ -38,6 +38,8 @@ static exlib::LockedList<Isolate> s_isolates;
 static exlib::atomic s_iso_id;
 static exlib::atomic s_iso_count;
 
+exlib::Service* g_main_js_service = NULL;
+
 Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur, bool allow_microtasks)
     : m_isolate((cur ? cur : Isolate::current()))
 {
@@ -241,12 +243,15 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
     if (g_use_env_proxy)
         m_httpclient->setEnvProxy();
 
-    if (g_js_thread_affinity && !exlib::Service::use_thread) {
+    if (!exlib::Service::use_thread) {
         // Pin all JS of this isolate to one OS thread, so N-API addons that keep
         // state in thread-local storage observe a stable thread (the contract
-        // every addon written for Node.js assumes).
-        m_jsAffinity = true;
-        m_jsService = exlib::Service::createDedicated();
+        // every addon written for Node.js assumes). The main isolate uses the
+        // service the GUI host attached to the process main thread.
+        if (m_id == 1 && g_main_js_service)
+            m_jsService = g_main_js_service;
+        else
+            m_jsService = exlib::Service::createDedicated();
         exlib::Service::CreateFiber(m_jsService, FiberProcIsolate, this, stack_size * 1024, "JSFiber");
     } else
         exlib::Service::CreateFiber(FiberProcIsolate, this, stack_size * 1024, "JSFiber");
@@ -257,18 +262,22 @@ void Isolate::check_js_thread()
     static int32_t s_check = -1;
 
     if (s_check < 0) {
-        const char* v = ::getenv("FIBJS_JS_THREAD_AFFINITY_CHECK");
+        const char* v = ::getenv("FIBJS_JS_THREAD_CHECK");
         s_check = (v && *v && *v != '0') ? 1 : 0;
     }
 
     if (s_check != 1)
         return;
 
+    // --use-thread mode has no dedicated service; nothing to check.
+    if (!m_jsService)
+        return;
+
     if (exlib::OSThread::current() == m_jsService)
         return;
 
     fprintf(stderr, "\n");
-    fprintf(stderr, "!!! THREAD AFFINITY VIOLATED !!!\n");
+    fprintf(stderr, "!!! JS THREAD VIOLATED !!!\n");
     fprintf(stderr, "  isolate %p entered a JS scope on %p, but its dedicated thread is %p\n",
         (void*)this, (void*)exlib::OSThread::current(), (void*)m_jsService);
     fprintf(stderr, "  This means some native path runs JS outside FiberProcRunJavascript.\n");

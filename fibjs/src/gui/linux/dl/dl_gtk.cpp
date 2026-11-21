@@ -186,6 +186,12 @@ gboolean gtk_widget_get_visible(GtkWidget* widget)
     return s_gtk_widget_get_visible(widget);
 }
 
+gboolean gtk_widget_get_realized(GtkWidget* widget)
+{
+    gtk_func(gtk_widget_get_realized);
+    return s_gtk_widget_get_realized(widget);
+}
+
 void gtk_widget_show_all(GtkWidget* widget)
 {
     gtk_func(gtk_widget_show_all);
@@ -692,6 +698,12 @@ void g_main_loop_run(GMainLoop* loop)
     s_g_main_loop_run(loop);
 }
 
+void g_main_loop_quit(GMainLoop* loop)
+{
+    gtk_func(g_main_loop_quit);
+    s_g_main_loop_quit(loop);
+}
+
 guint g_idle_add(GSourceFunc function, gpointer data)
 {
     gtk_func(g_idle_add);
@@ -720,6 +732,30 @@ void gtk_widget_set_margin_end(GtkWidget* widget, gint margin)
 {
     gtk_func(gtk_widget_set_margin_end);
     s_gtk_widget_set_margin_end(widget, margin);
+}
+
+void gtk_window_unfullscreen(GtkWindow* window)
+{
+    gtk_func(gtk_window_unfullscreen);
+    s_gtk_window_unfullscreen(window);
+}
+
+void gtk_window_deiconify(GtkWindow* window)
+{
+    gtk_func(gtk_window_deiconify);
+    s_gtk_window_deiconify(window);
+}
+
+GdkWindow* gtk_widget_get_window(GtkWidget* widget)
+{
+    gtk_func(gtk_widget_get_window);
+    return s_gtk_widget_get_window(widget);
+}
+
+GdkWindowState gdk_window_get_state(GdkWindow* window)
+{
+    gtk_func(gdk_window_get_state);
+    return s_gdk_window_get_state(window);
 }
 }
 

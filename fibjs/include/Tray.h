@@ -25,22 +25,19 @@ public:
 public:
     // Tray_base
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal);
-    virtual result_t close(AsyncHandle ac);
+    virtual result_t close();
 
 public:
-    result_t  async_open();
+    result_t async_open();
     void createTray();
     void release();
 
-    result_t check_status(AsyncHandle& ac)
+    result_t ensure_ready()
     {
-        if (ac.isSync()) {
-            m_ready->ac_wait();
-            return result_t::guicall();
-        }
-
+        // createTray blocks until the native icon exists, so a programmatic
+        // tray is ready here; a released one is not.
         if (!m_tray)
-            return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("Tray: tray is closed");
+            return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_GUI_CLOSED").with_message("Tray: tray is closed");
 
         return result_t();
     }

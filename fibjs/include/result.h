@@ -132,8 +132,8 @@ class object_base;
 #define CALL_E_NOSYNC (CALL_E_MAX - 17)
 // Operation is long synchronous call.
 #define CALL_E_LONGSYNC (CALL_E_MAX - 18)
-// Operation is GUI call.
-#define CALL_E_GUICALL (CALL_E_MAX - 19)
+// Run the task on the GUI host loop (async mode selector, never a result).
+#define CALL_E_GUILOOP (CALL_E_MAX - 19)
 // Internal error.
 #define CALL_E_INTERNAL (CALL_E_MAX - 20)
 // The maximum amount of time for a script to execute was exceeded.
@@ -251,9 +251,9 @@ public:
         return result_t(CALL_E_LONGSYNC);
     }
 
-    static result_t guicall()
+    static result_t guiloop()
     {
-        return result_t(CALL_E_GUICALL);
+        return result_t(CALL_E_GUILOOP);
     }
 
     // The frequent error codes as named constructions: a guard that fails
@@ -471,7 +471,7 @@ public:
     bool is_bridge_code() const
     {
         return m_code == CALL_E_NOSYNC || m_code == CALL_E_NOASYNC || m_code == CALL_E_LONGSYNC
-            || m_code == CALL_E_GUICALL || m_code == CALL_E_PENDDING;
+            || m_code == CALL_E_GUILOOP || m_code == CALL_E_PENDDING;
     }
 
     // The argument-validation band (CALL_E_MIN_ARG, CALL_E_MAX): what a variant

@@ -44,14 +44,15 @@ extern bool g_use_env_proxy;
 // moves the postject marker into it, and process.features.sea reports it.
 extern bool g_is_sea;
 
-// Every isolate runs all of its JS on one dedicated OS thread by default, which
-// matches the Node.js contract that N-API addons assume (one napi_env == one OS
+// Desktop GUI builds: the dedicated service the main isolate runs on. It is
+// created before start() and attached to the process main thread by run_gui(),
+// so the whole main isolate executes inside the native event loop. NULL in
+// --use-thread mode and on non-desktop builds.
+extern exlib::Service* g_main_js_service;
+
+// Every isolate runs all of its JS on one dedicated OS thread, which matches
+// the Node.js contract that N-API addons assume (one napi_env == one OS
 // thread) and keeps addons that store state in OS thread-local storage working.
-//
-// Pass --no-js-thread-affinity to schedule the fibers of one isolate across the
-// shared thread pool again: more JS parallelism for CPU bound fibers, but
-// thread-local state inside an addon is not reliable.
-extern bool g_js_thread_affinity;
 
 struct OptData {
     const char* name;

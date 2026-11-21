@@ -20,10 +20,9 @@
    path inside a zip archive.
 
  `new WebView()` is not supported ("not a constructor"): the constructor belongs
- to the gui module. The object is returned immediately while the native window is
- created asynchronously on the GUI thread, so `isReady()` is false until the
- window exists and the members that need it wait for the window in the calling
- fiber.
+ to the gui module. `gui.open` returns a window that already exists - the native
+ window is created before the call returns - so every member can use it at once
+ and no member has a "window not created yet" state.
 
  Concepts:
 
@@ -31,11 +30,15 @@
    DOM APIs, CSS, fetch/XHR, WebSocket, IndexedDB and Web Crypto behave as in a
    standalone browser (each platform engine has its own version and feature
    set), and fibjs objects are not visible from the page.
- - **Navigation lifecycle**: navigation is asynchronous. `loadUrl`, `loadFile`,
-   `setHtml`, `reload`, `goBack` and `goForward` start it; the `loading` event
-   marks the start, the `load` event the end; `isReady` polls the state and
-   `waitFor` blocks the calling fiber until the document is ready. Each window
-   keeps a browsing history, so back/forward and `reload` behave like a browser.
+ - **Navigation lifecycle**: the engine loads asynchronously, the API does not.
+   `loadUrl`, `loadFile`, `setHtml`, `reload`, `goBack` and `goForward` block the
+   calling fiber until the document finished loading and throw when it failed.
+   The `loading` event marks the start, `load` the end and `load-failed` a
+   failure, for code that prefers events; `waitForLoad` waits for the next load
+   and is how a page-initiated navigation (a link, a redirect) is awaited, while
+   the `loading` property reports whether a navigation is in progress. Each
+   window keeps a browsing history, so back/forward and `reload` behave like a
+   browser.
  - **JavaScript bridge**: `postMessage` sends a string into the page, where it
    arrives as a DOM `message` event; the page's own `window.postMessage` is
    rewired by fibjs and sends a string back, which arrives as the `message`
@@ -72,8 +75,6 @@ window.addEventListener('message', function (ev) {
 });
 </script></body></html>`);
 
-win.waitFor();
-
 win.on('message', function (ev) {
     console.log(ev.data); // pong: ping
     win.close();
@@ -109,8 +110,6 @@ win.on('message', function (ev) {
     console.log(ev.data); // sum=3
     win.close();
 });
-
-win.waitFor();
 ```
 
 Example 3 — follow the navigation lifecycle and change the window state:
@@ -129,9 +128,7 @@ win.on('load', function (ev) {
 });
 
 win.loadUrl('data:text/html;charset=utf-8,<title>Done</title><p>ok</p>');
-win.waitFor();
 
-console.log(win.isReady()); // true
 console.log(win.eval('document.querySelector("p").textContent')); // ok
 
 win.setTitle('fibjs');
@@ -161,25 +158,38 @@ interface WebView : EventEmitter
 {
     /*! @brief Loads the page at the specified url
 
-     Starts a navigation and returns when the browser engine has been asked to
-     load the url; the page is not ready yet. Wait for the `load` event or call
-     `waitFor` before reading the document. Any scheme understood by the
-     platform engine works (`http:`, `https:`, `data:`, `about:blank`), and the
-     internal `fs:` scheme opens local files and paths inside zip archives. The
-     navigation replaces the current document and adds a history entry, so the
-     previous page stays reachable with `goBack`.
+     Starts a navigation and blocks the calling fiber until the document it
+     loaded finished loading; a navigation that fails throws. Any scheme
+     understood by the platform engine works (`http:`, `https:`, `data:`,
+     `about:blank`), and the internal `fs:` scheme opens local files and paths
+     inside zip archives. The navigation replaces the current document and adds
+     a history entry, so the previous page stays reachable with `goBack`. When
+     the page finished, `getUrl`/`eval`/`getHtml` are safe to call; the `load`
+     event fires as well, for code that prefers event handlers.
+
+     Example — load a page and read a value from it:
+     ```JavaScript
+     // requires: long-running
+     const gui = require('gui');
+
+     const win = gui.open({ width: 320, height: 200 });
+     win.loadUrl('data:text/html;charset=utf-8,<p id="p">done</p>');
+
+     console.log(win.eval('document.getElementById("p").textContent')); // done
+     win.close();
+     ```
 
      @param url the url to load
      */
-    loadUrl(String url) async;
+    loadUrl(String url);
 
     /*! @brief Loads the page of the specified file
 
      Converts the path to an `fs:` URL with url.pathToFileURL and navigates to
      it, so a plain file or a path inside a zip archive (`app.zip$/page.html`)
      can be loaded without building a URL by hand. Relative resources of the
-     page resolve against the file. The call is asynchronous like `loadUrl`:
-     wait for the `load` event or call `waitFor` before reading the document.
+     page resolve against the file. Like `loadUrl` the call blocks until the
+     document finished loading and throws when it failed.
 
      Example — load a local file and read a value from it:
      ```JavaScript
@@ -194,7 +204,6 @@ interface WebView : EventEmitter
 
      const win = gui.open({ width: 320, height: 200 });
      win.loadFile(file);
-     win.waitFor();
 
      console.log(win.eval('document.querySelector("h1").textContent')); // local
      win.close();
@@ -202,7 +211,7 @@ interface WebView : EventEmitter
 
      @param file the file to load
      */
-    loadFile(String file) async;
+    loadFile(String file);
 
     /*! @brief Queries the url of the current page
 
@@ -214,7 +223,7 @@ interface WebView : EventEmitter
 
      @return returns the url of the current page
      */
-    String getUrl() async;
+    String getUrl();
 
     /*! @brief Sets the page html of the webview
 
@@ -223,74 +232,109 @@ interface WebView : EventEmitter
      produces `<html><head></head><body>hello</body></html>`. The base URL is
      empty, so relative URLs do not resolve to a useful location; include a
      `<base>` element or absolute URLs when the page needs subresources. The
-     load is submitted asynchronously: wait for `load` or call `waitFor`.
+     call blocks until the submitted document finished loading, exactly like
+     `loadUrl`.
 
      @param html the html to set
      */
-    setHtml(String html) async;
+    setHtml(String html);
 
     /*! @brief Gets the page html of the webview
 
      Runs `document.documentElement.outerHTML.toString()` in the page and
      returns the serialized live DOM, including the mutations made by page
-     scripts. It is the counterpart of `setHtml`; wait for the `load` event or
-     call `waitFor` first, otherwise the query can run against the previous
-     document or an incomplete page.
+     scripts. It is the counterpart of `setHtml` and blocks the calling fiber
+     until the engine answered, so the value always belongs to the document
+     loaded now; while a navigation is in progress it can still return the
+     previous document, so check the `loading` property first when that
+     matters.
+
+     Example — read the DOM of the current document:
+     ```JavaScript
+     // requires: long-running
+     const gui = require('gui');
+
+     const win = gui.open({ width: 320, height: 200 });
+     win.setHtml('<html><body><h1>hello</h1></body></html>');
+
+     console.log(win.getHtml()); // <html><head></head><body><h1>hello</h1></body></html>
+     win.close();
+     ```
 
      @return returns the page html of the webview
     */
-    String getHtml() async;
+    String getHtml();
 
-    /*! @brief Queries whether the current page has finished loading
+    /*! @brief Whether a navigation is currently in progress
 
-     Returns false while a navigation is in progress and also before the native
-     window has been created; true once the current document has finished
-     loading. It is the non-blocking companion of `waitFor`. After the window
-     was closed the call throws "WebView: webview is closed" like the other
-     members that need the window.
+     True from the moment a navigation is requested (or the page starts one)
+     until the engine finished or failed it; the `loading` event marks the
+     start and `load`/`load-failed` the end. The flag exists for code that
+     decides whether to navigate again or whether a query would see the
+     previous document; the blocking members do not need it.
+     */
+    readonly Boolean loading;
 
-     @return returns whether the current page has finished loading
+    /*! @brief Waits for the next page to finish loading
+
+     Blocks the calling fiber until a document finished loading. An empty url
+     waits for the next load of any document; a url waits for that URL in its
+     engine-normalized form (a host root gains a trailing slash), skipping the
+     loads of other documents. The call is how a page-initiated navigation - a
+     link click, a redirect, a script that sets location - is awaited; the
+     navigation members already wait themselves. A load that fails throws, and
+     there is no timeout: a page that never finishes waits forever, so wrap the
+     call in a coroutine timeout when the target can hang.
+
+     Example — wait for a navigation started by the page:
+     ```JavaScript
+     // requires: long-running
+     const gui = require('gui');
+
+     const win = gui.open({ width: 320, height: 200 });
+     win.setHtml('<html><body><a id="a" href="data:text/html,<p>next</p>">next</a>' +
+         '<script>document.getElementById("a").click();</script></body></html>');
+
+     win.waitForLoad(); // the click above already started the second load
+     console.log(win.eval('document.body.textContent.trim()')); // next
+     win.close();
+     ```
+
+     @param url the url to wait for; empty means the next load of any document
     */
-    Boolean isReady() async;
-
-    /*! @brief Waits for the current page to finish loading
-
-     Blocks the calling fiber until the document named by url finished loading.
-     An empty url waits for the next load of any document; a url waits for that
-     URL in its engine-normalized form (a host root gains a trailing slash). If
-     the page is already ready and its URL matches, the call returns at once.
-     There is no timeout: a URL that never loads waits forever, so wrap the
-     call in a coroutine timeout when the page may fail.
-
-     @param url the url to wait for; empty means waiting for the current page
-    */
-    waitFor(String url = "") async;
+    waitForLoad(String url = "");
 
     /*! @brief Refreshes the current page
 
      Reloads the current URL from its source and keeps its history entry, as
-     the browser reload button does. The `loading` and `load` events fire again
-     and new `waitFor` calls are resolved by the new load.
+     the browser reload button does. The call blocks until the reloaded
+     document finished loading, like `loadUrl`; the `loading` and `load` events
+     fire again for it.
     */
-    reload() async;
+    reload();
 
     /*! @brief Goes back to the previous page
 
-     Moves to the previous entry of this window's browsing history and starts
-     the navigation; it does nothing when there is no previous entry. The
-     `loading`/`load` events fire for the restored document and `getUrl`
-     reports its URL; wait for `load` or call `waitFor` before reading it.
+     Moves to the previous entry of this window's browsing history and blocks
+     until the restored document finished loading. Returns false without
+     navigating when there is no previous entry, so the call is safe at the
+     start of a history; the `loading`/`load` events fire for the restored
+     document and `getUrl` reports its URL.
+
+     @return true when the navigation happened, false when there is no previous entry
     */
-    goBack() async;
+    Boolean goBack();
 
     /*! @brief Goes forward to the next page
 
-     Moves to the next entry of this window's browsing history and starts the
-     navigation; it does nothing when the window is already at the latest
-     entry. Like `goBack`, the restored document emits the navigation events
-     and can be awaited with `load` or `waitFor`.
+     Moves to the next entry of this window's browsing history and blocks until
+     the restored document finished loading. Returns false without navigating
+     when the window is already at the latest entry. Like `goBack`, the restored
+     document emits the navigation events and `getUrl` reports its URL.
+
+     @return true when the navigation happened, false when there is no next entry
     */
-    goForward() async;
+    Boolean goForward();
 
     /*! @brief Runs a piece of JavaScript code in the current window
 
@@ -299,8 +343,10 @@ interface WebView : EventEmitter
      objects survive the round trip; values that cannot be serialized (a DOM
      node, function, RegExp, Promise, ...) become an empty object or undefined
      depending on the engine instead of raising, so return plain data. A
-     syntax error or an exception in the code is thrown to the caller. The
-     code shares no objects with fibjs: exchange data through `postMessage` or
+     syntax error or an exception in the code is thrown to the caller. The call
+     blocks the calling fiber until the engine answered and returns the value
+     directly. The code shares no objects with fibjs: exchange data through
+     `postMessage` or
      `window.app`, and await Promises there rather than inside `eval`.
 
      Example — evaluate expressions and read a DOM value:
@@ -311,7 +357,6 @@ interface WebView : EventEmitter
      const win = gui.open({ width: 320, height: 200 });
 
      win.setHtml('<html><body><p id="p">42</p></body></html>');
-     win.waitFor();
 
      console.log(win.eval('1 + 1')); // 2
      console.log(win.eval('document.getElementById("p").textContent')); // 42
@@ -323,7 +368,7 @@ interface WebView : EventEmitter
      @param code the JavaScript code to execute
      @return returns the execution result
      */
-    Variant eval(String code) async;
+    Variant eval(String code);
 
     /*! @brief Sets the title of the window
 
@@ -334,7 +379,7 @@ interface WebView : EventEmitter
 
      @param title the title of the window
     */
-    setTitle(String title) async;
+    setTitle(String title);
 
     /*! @brief Queries the title of the window
 
@@ -345,7 +390,7 @@ interface WebView : EventEmitter
 
      @return returns the title of the window
     */
-    String getTitle() async;
+    String getTitle();
 
     /*! @brief Queries whether the window is visible
 
@@ -356,7 +401,7 @@ interface WebView : EventEmitter
 
      @return returns whether the window is visible
     */
-    Boolean isVisible() async;
+    Boolean isVisible();
 
     /*! @brief Shows the window
 
@@ -364,7 +409,7 @@ interface WebView : EventEmitter
      the window is already visible. A window created with `visible: false` can
      be shown later, and its page has been loading in the background all along.
     */
-    show() async;
+    show();
 
     /*! @brief Hides the window
 
@@ -373,7 +418,7 @@ interface WebView : EventEmitter
      not a close, so the `close` event does not fire and the object stays
      usable.
     */
-    hide() async;
+    hide();
 
     /*! @brief Sets the size of the window
 
@@ -386,7 +431,7 @@ interface WebView : EventEmitter
      @param width the width of the window
      @param height the height of the window
     */
-    setSize(Integer width, Integer height) async;
+    setSize(Integer width, Integer height);
 
     /*! @brief Queries the size of the window
 
@@ -399,7 +444,7 @@ interface WebView : EventEmitter
      @return returns the size of the window as an array whose first element is the width
       and second element is the height
     */
-    Number[] getSize() async;
+    Number[] getSize();
 
     /*! @brief Sets the position of the window
 
@@ -411,7 +456,7 @@ interface WebView : EventEmitter
      @param left the x coordinate of the top-left corner of the window
      @param top the y coordinate of the top-left corner of the window
     */
-    setPosition(Integer left, Integer top) async;
+    setPosition(Integer left, Integer top);
 
     /*! @brief Queries the position of the window
 
@@ -422,7 +467,7 @@ interface WebView : EventEmitter
      @return returns the position of the window as an array whose first element is the x
       coordinate and second element is the y coordinate
     */
-    Number[] getPosition() async;
+    Number[] getPosition();
 
     /*! @brief Queries whether the window is the active window
 
@@ -434,7 +479,7 @@ interface WebView : EventEmitter
 
      @return returns whether the window is the active window
     */
-    Boolean isActived() async;
+    Boolean isActived();
 
     /*! @brief Activates the window
 
@@ -443,7 +488,74 @@ interface WebView : EventEmitter
      active window receives `blur`. A window manager can refuse the request,
      for example when the application is not allowed to steal focus.
     */
-    active() async;
+    active();
+
+    /*! @brief Whether the window currently has keyboard focus
+
+     The readable counterpart of the `focus`/`blur` events. On Windows the
+     foreground rules can keep a focused window false for a while, and virtual
+     desktops or CI sessions can suppress activation entirely; use the events
+     when the exact transition matters.
+     */
+    readonly Boolean focused;
+
+    /*! @brief Reads or changes the native window state
+
+     Accepted values are `normal`, `minimized`, `maximized` and `fullscreen`.
+     Reading returns what the platform reports; writing maps the value to the
+     native operation (restore, iconify/miniaturize, maximize, fullscreen).
+     A platform or session that cannot expose one of the states reports
+     `normal`; see `gui.capabilities.window.state`.
+
+     The state change is asynchronous on some window managers: the following
+     `minimize` / `maximize` / `restore` / `enter-fullscreen` /
+     `leave-fullscreen` event tells when the platform applied it.
+     */
+    String state;
+
+    /*! @brief Returns the window position and size
+
+     The record carries the same values as getPosition() and getSize() in one
+     call. Coordinates and sizes are logical pixels as reported by the
+     platform; a scaled display can return fractional values.
+
+     @return returns { x, y, width, height }
+     */
+    (Number x, Number y, Number width, Number height) getBounds();
+
+    /*! @brief Moves and resizes the window in one call
+
+     The atomic form of setPosition() plus setSize(): platforms that support it
+     avoid the intermediate resize, and a window manager that repositions new
+     windows receives both values together.
+
+     @param bounds the requested position and size
+     */
+    setBounds(WindowBounds bounds);
+
+    /*! @brief Asks the desktop session to focus and raise the window
+
+     The programmatic counterpart of clicking the window, with the same
+     semantics as active(). Unlike active() it reports whether the window
+     claims keyboard focus right after the request: a session can deny it
+     (Wayland compositors, foreground restrictions, CI desktops) and the call
+     then returns false. `gui.capabilities.window.focusRequest` tells upfront
+     whether the session is able to honour the request at all.
+
+     @return true when the window reports keyboard focus after the request
+     */
+    Boolean focus();
+
+    /*! @brief Waits until the window is closed
+
+     Blocks the calling fiber until the native window is gone and the `close`
+     event fired. Calling it on a window that is already closed returns at
+     once. It is the counterpart of a user-initiated close (the window manager
+     button, Alt+F4, `window.close` from the page), which the caller cannot
+     observe otherwise; `close()` itself already waits for the window to be
+     gone before it returns.
+     */
+    waitForClose();
 
     /*! @brief Queries the menu of the window
 
@@ -476,7 +588,6 @@ interface WebView : EventEmitter
 
      const win = gui.open({ width: 320, height: 200 });
      win.setHtml('<html><body style="margin:0"><h1>shot</h1></body></html>');
-     win.waitFor();
 
      const png = win.takeScreenshot();
      fs.writeFileSync(path.join(os.tmpdir(), 'webview-shot.png'), png);
@@ -488,17 +599,20 @@ interface WebView : EventEmitter
      @param fullPage true captures the whole document, false (default) captures the visible area
      @return returns the captured image
     */
-    Buffer takeScreenshot(Boolean fullPage = false) async;
+    Buffer takeScreenshot(Boolean fullPage = false);
 
     /*! @brief Closes the current window
 
-     Destroys the native window and releases its page; the `close` event fires
-     once the window is gone. A window opened with `hideOnClose: true` only
-     hides when the user closes it with the window manager, while this call
-     overrides that and destroys the window. After the call every member that
-     needs the window throws "WebView: webview is closed", including a second
-     `close`; the page can close its own window with `window.close`, which
-     follows the same path and emits the same event.
+     Destroys the native window, releases its page and blocks the calling fiber
+     until the window is gone and the `close` event fired. A window opened with
+     `hideOnClose: true` only hides when the user closes it with the window
+     manager, while this call overrides that and destroys the window. A
+     `close-requested` listener can cancel the close by calling
+     `ev.preventDefault()`; the call then returns false and the window stays
+     open. After the window is gone every member that needs it throws
+     "WebView: webview is closed", including a second `close`; the page can
+     close its own window with `window.close`, which follows the same path and
+     emits the same event. Use `destroy` to skip the listeners.
 
      Example — observe the close event of a window closed from fibjs:
      ```JavaScript
@@ -511,10 +625,35 @@ interface WebView : EventEmitter
          console.log('window closed');
      });
 
-     win.close();
+     console.log(win.close()); // true
+     ```
+
+     @return true when the window was destroyed, false when a close-requested listener cancelled it
+    */
+    Boolean close();
+
+    /*! @brief Destroys the current window, ignoring the close listeners
+
+     The unconditional form of `close`: the native window is destroyed and the
+     call blocks until it is gone, whether or not a `close-requested` listener
+     would have cancelled a normal close. It is what an application shutdown or
+     a "quit now" menu item uses, where a page with unsaved state must not be
+     able to block the exit.
+
+     Example — tear the window down from a shutdown path:
+     ```JavaScript
+     // requires: long-running
+     const gui = require('gui');
+
+     const win = gui.open({ width: 320, height: 200 });
+     win.on('close-requested', function (ev) { ev.preventDefault(); });
+
+     console.log(win.close()); // false: the listener refused
+     win.destroy();
+     console.log(win.isVisible()); // throws: the window is gone
      ```
     */
-    close() async;
+    destroy();
 
     /*! @brief Sends a message into the webview
 
@@ -550,7 +689,7 @@ interface WebView : EventEmitter
 
      @param msg the message to send
     */
-    postMessage(String msg) async;
+    postMessage(String msg);
 
     /*! @brief Queries and binds the window load start event, equivalent to on("loading", func);
 
@@ -587,12 +726,42 @@ interface WebView : EventEmitter
 
      Fired when the main document finished loading. `ev.url` carries the loaded
      URL and `ev.type`/`ev.target` identify the event and the WebView. The
-     event also resolves the `waitFor` calls waiting for that URL, so it marks
-     the point where the DOM can be read with `eval` or `getHtml`.
+     event releases a `waitForLoad` waiting for that URL, so it marks the point
+     where the DOM can be read with `eval` or `getHtml`; the navigation members
+     block until it fired and do not need a listener.
 
      @param ev the event object, carrying the loaded url in its url property
      */
     event load(Object ev);
+
+    /*! @brief Queries and binds the navigation failed event, equivalent to on("load-failed", func);
+
+     Fired when a navigation ended without loading its document: an
+     unreachable host, a refused connection, a certificate error or a URL the
+     engine cannot handle. `ev.url` carries the URL that was requested and
+     `ev.message` describes the failure as reported by the engine; the
+     navigation members throw the same failure instead of returning, so a
+     listener is only needed when the navigation was started by the page.
+
+     Example — report a broken navigation started by the page:
+     ```JavaScript
+     // requires: long-running
+     const gui = require('gui');
+
+     const win = gui.open({ width: 320, height: 200 });
+
+     win.on('load-failed', function (ev) {
+         console.log(ev.url + ': ' + ev.message);
+         win.close();
+     });
+
+     win.setHtml('<html><body><script>location.href = "http://127.0.0.1:1/";</script></body></html>');
+     win.waitForLoad();
+     ```
+
+     @param ev the event object, carrying the failed url and the engine message
+     */
+    event load-failed(Object ev);
 
     /*! @brief Queries and binds the window move event, equivalent to on("move", func);
 
@@ -675,6 +844,92 @@ interface WebView : EventEmitter
      any state kept for the window here.
     */
     event close();
+
+    /*! @brief Emitted before the window is closed, allowing the application to cancel
+
+     Fired when the window is about to be destroyed: the window-manager close
+     button, the page's `window.close` and the `close()` member all consult it
+     first. Call `ev.preventDefault()` in a listener to keep the window open;
+     the platform then treats the request as handled and nothing is destroyed,
+     and `close()` returns false. `destroy()` skips this event and closes
+     unconditionally. The event object is a DOMEvent: it carries `type`,
+     `cancelable`, `defaultPrevented` and the `preventDefault()` and
+     `stopPropagation()` methods.
+
+     @param ev the cancelable DOMEvent whose preventDefault() cancels the close
+     */
+    event close-requested(Object ev);
+
+    /*! @brief Emitted when the window becomes visible
+
+     Fired when the native window is mapped and starts to show, whether the
+     change came from the show API, from restoring a minimized window or from
+     the platform revealing it again. The event object carries only `type` and
+     `target`; there is no payload.
+
+     @param ev the event object
+     */
+    event show(Object ev);
+
+    /*! @brief Emitted when the window is hidden
+
+     Fired when the native window stops being mapped: the hide API, minimizing
+     on platforms that unmap the window, or the window manager taking it off
+     screen. The event object carries only `type` and `target`.
+
+     @param ev the event object
+     */
+    event hide(Object ev);
+
+    /*! @brief Emitted when the window is minimized
+
+     Fired after the platform applied the minimized state, which may be a
+     moment after the `state` property was written. The window keeps rendering
+     its last frame; resources are not released.
+
+     @param ev the event object
+     */
+    event minimize(Object ev);
+
+    /*! @brief Emitted when the window is maximized
+
+     Fired after the platform applied the maximized state. Maximizing is a
+     window-manager operation, so the resulting size can differ from the screen
+     size on platforms that reserve space for panels or docks.
+
+     @param ev the event object
+     */
+    event maximize(Object ev);
+
+    /*! @brief Emitted when the window leaves the minimized or maximized state
+
+     Fired when the platform puts the window back into the normal state, from
+     minimizing, maximizing or fullscreen depending on the platform. The event
+     object carries only `type` and `target`.
+
+     @param ev the event object
+     */
+    event restore(Object ev);
+
+    /*! @brief Emitted when the window enters fullscreen
+
+     Fired after the platform entered fullscreen, which includes the animation
+     time on macOS where the transition is asynchronous. `state` reads
+     `fullscreen` once the event fired.
+
+     @param ev the event object
+     */
+    event enter-fullscreen(Object ev);
+
+    /*! @brief Emitted when the window leaves fullscreen
+
+     Fired after the platform left fullscreen and the previous window state was
+     restored. `state` reads `normal`, `minimized` or `maximized` once the
+     event fired, depending on what the session restored.
+
+     @param ev the event object
+     */
+    event leave-fullscreen(Object ev);
 
     /*! @brief Queries and binds the webview message event, equivalent to on("message", func);
 

@@ -18,10 +18,13 @@ extern int32_t s_window_count;
 
 namespace fibjs {
 
-result_t gui_base::chooseFile(ChooseFileOptions* options, std::vector<exlib::string>& retVal, AsyncHandle ac)
+result_t gui_base::chooseFile(ChooseFileOptions* options, std::vector<exlib::string>& retVal)
 {
-    if (ac.isSync())
-        return result_t::guicall();
+    result_t gui_hr = check_gui_available();
+    if (gui_hr.failed())
+        return gui_hr;
+
+    gui_prepare_call();
 
     ChooseFileOptions* opts = options;
 

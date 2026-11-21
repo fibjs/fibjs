@@ -20,15 +20,18 @@ extern "C" GtkWidget* gtk_message_dialog_new_(GtkWindow* parent, GtkDialogFlags 
 
 namespace fibjs {
 
-result_t gui_base::alert(exlib::string message, AsyncHandle ac)
+result_t gui_base::alert(exlib::string message)
 {
-    return alert("", message, std::move(ac));
+    return alert("", message);
 }
 
-result_t gui_base::alert(exlib::string title, exlib::string message, AsyncHandle ac)
+result_t gui_base::alert(exlib::string title, exlib::string message)
 {
-    if (ac.isSync())
-        return result_t::guicall();
+    result_t gui_hr = check_gui_available();
+    if (gui_hr.failed())
+        return gui_hr;
+
+    gui_prepare_call();
 
     GtkWidget* dialog = gtk_message_dialog_new_(NULL,
         GTK_DIALOG_MODAL,
@@ -43,15 +46,18 @@ result_t gui_base::alert(exlib::string title, exlib::string message, AsyncHandle
     return result_t();
 }
 
-result_t gui_base::confirm(exlib::string message, bool& retVal, AsyncHandle ac)
+result_t gui_base::confirm(exlib::string message, bool& retVal)
 {
-    return confirm("", message, retVal, std::move(ac));
+    return confirm("", message, retVal);
 }
 
-result_t gui_base::confirm(exlib::string title, exlib::string message, bool& retVal, AsyncHandle ac)
+result_t gui_base::confirm(exlib::string title, exlib::string message, bool& retVal)
 {
-    if (ac.isSync())
-        return result_t::guicall();
+    result_t gui_hr = check_gui_available();
+    if (gui_hr.failed())
+        return gui_hr;
+
+    gui_prepare_call();
 
     GtkWidget* dialog = gtk_message_dialog_new_(NULL,
         GTK_DIALOG_MODAL,

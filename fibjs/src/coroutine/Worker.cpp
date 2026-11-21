@@ -523,7 +523,6 @@ void Worker::onIsolateIdle(int32_t exitCode)
     if (isolate && isolate->m_jsService) {
         exlib::Service* svc = isolate->m_jsService;
         isolate->m_jsService = NULL;
-        isolate->m_jsAffinity = false;
 
         svc->shutdown();
         svc->join();

@@ -30,6 +30,14 @@
 
 namespace fibjs {
 
+// Desktop GUI only: make sure the native GUI backend is initialized before a
+// GUI entry point calls the platform toolkit directly from JS. The queued path
+// does this in gui_dispatch_pending(); a call that runs inline in the JS fiber
+// (the main isolate lives on the GUI host thread) never passes through that
+// queue, so the entry point asks here first.
+// No-op on platforms that initialize eagerly and on builds without a GUI.
+void gui_prepare_call();
+
 class AsyncEvent : public exlib::Task_base {
 public:
     enum kCallType {
@@ -381,7 +389,7 @@ public:
 
             if (_rt.is_terminating())
                 m_v = result_t::timeout();
-        } else if (hr.is(CALL_E_LONGSYNC) || hr.is(CALL_E_GUICALL)) {
+        } else if (hr.is(CALL_E_LONGSYNC)) {
             async(hr);
 
             if (!weak.isSet()) {
@@ -432,7 +440,7 @@ public:
     {
         if (hr.is_nosync())
             invoke();
-        else if (hr.is(CALL_E_LONGSYNC) || hr.is(CALL_E_GUICALL))
+        else if (hr.is(CALL_E_LONGSYNC))
             async(hr);
         else
             return hr;

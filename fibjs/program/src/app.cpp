@@ -14,6 +14,10 @@ int32_t main(int32_t argc, char** argv)
 {
     importBuiltinModule();
 
+    // Create the main isolate's service before start(): the isolate constructor
+    // picks it up, and run_gui() binds it to the process main thread.
+    gui_prepare_main_service();
+
     start(argc, argv, FiberProcJsEntry);
     run_gui(argc, argv);
 

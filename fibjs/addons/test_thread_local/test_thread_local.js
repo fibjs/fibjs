@@ -7,10 +7,9 @@
  *  Run it with:
  *
  *      fibjs addons/test_thread_local/test_thread_local.js
- *      fibjs --no-js-thread-affinity addons/test_thread_local/test_thread_local.js
  *
- *  The first form runs with the default JS thread affinity (nothing is lost),
- *  the second reproduces the addon-visible thread-local storage loss.
+ *  All JS of an isolate is pinned to one dedicated OS thread, so the addon's
+ *  thread-local slot is the same on module registration and on every later call.
  */
 
 const path = require('path');

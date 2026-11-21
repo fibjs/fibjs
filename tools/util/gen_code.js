@@ -1170,6 +1170,13 @@ function gen_code(cls, def, baseFolder, allDefs) {
             "return": true
         };
 
+        // The grammar accepts `-` inside identifiers so a member may keep a
+        // DOM style name such as `close-requested`. C++ identifiers cannot, so
+        // every non identifier character becomes `_` in the generated symbol;
+        // the JavaScript visible name (the class member table string) keeps the
+        // original spelling.
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(n)) n = n.replace(/[^A-Za-z0-9_]/g, '_');
+
         return ckws.hasOwnProperty(n) ? "_" + n : n;
     }
 
