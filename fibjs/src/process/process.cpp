@@ -408,7 +408,7 @@ result_t process_base::exit(int32_t code)
     return process_base::exit();
 }
 
-result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, obj_ptr<CpuUsageType>& retVal)
+result_t process_base::cpuUsage(Options_process_cpuUsage_previousValue* previousValue, obj_ptr<CpuUsageType>& retVal)
 {
     uv_rusage_t rusage;
     double _user = 0, _system = 0;
@@ -417,18 +417,8 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, obj_ptr<Cpu
     if (err)
         return result_t(err);
 
-    result_t hr;
-
-    hr = GetConfigValue(previousValue, "user", _user, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
-    hr = GetConfigValue(previousValue, "system", _system, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
-    _user = MICROS_PER_SEC * rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec - _user;
-    _system = MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec - _system;
+    _user = MICROS_PER_SEC * rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec - previousValue->user.value();
+    _system = MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec - previousValue->system.value();
 
     retVal = new CpuUsageType();
     retVal->user = _user;

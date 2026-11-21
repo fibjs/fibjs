@@ -510,7 +510,7 @@ module process : EventEmitter
      @param previousValue specifies the time of the previous query
      @return returns the time report
      */
-    static (Number user, Number system) cpuUsage(Object previousValue = {});
+    static (Number user, Number system) cpuUsage((Number user = 0, Number system = 0) previousValue = {});
 
     /*! @brief Queries the memory usage report of the current process
 

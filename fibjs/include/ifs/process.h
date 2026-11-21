@@ -12,12 +12,14 @@
  */
 
 #include "../object.h"
+#include <boost/preprocessor.hpp>
 #include "ifs/EventEmitter.h"
 
 namespace fibjs {
 
 class EventEmitter_base;
 class Stream_base;
+class Options_process_cpuUsage_previousValue;
 
 class process_base : public EventEmitter_base {
     DECLARE_CLASS(process_base);
@@ -192,7 +194,7 @@ public:
     static result_t chdir(exlib::string directory);
     static result_t loadEnvFile(exlib::string path);
     static result_t uptime(double& retVal);
-    static result_t cpuUsage(v8::Local<v8::Object> previousValue, obj_ptr<CpuUsageType>& retVal);
+    static result_t cpuUsage(Options_process_cpuUsage_previousValue* previousValue, obj_ptr<CpuUsageType>& retVal);
     static result_t memoryUsage(obj_ptr<MemoryUsageType>& retVal);
     static result_t constrainedMemory(double& retVal);
     static result_t resourceUsage(obj_ptr<ResourceUsageType>& retVal);
@@ -270,6 +272,15 @@ public:
 #include "ifs/Stream.h"
 
 namespace fibjs {
+class Options_process_cpuUsage_previousValue : public obj_base {
+public:
+    LOAD_OPTIONS(Options_process_cpuUsage_previousValue, (user)(system));
+
+public:
+    std::optional<double> user = 0;
+    std::optional<double> system = 0;
+};
+
 inline ClassInfo& process_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
@@ -693,9 +704,9 @@ inline void process_base::s_static_cpuUsage(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "previousValue");
+    OPT_ARG_NAMED(obj_ptr<Options_process_cpuUsage_previousValue>, 0, new Options_process_cpuUsage_previousValue(), "previousValue");
 
-    hr = cpuUsage(v0, vr);
+    hr = cpuUsage((Options_process_cpuUsage_previousValue*)v0, vr);
 
     METHOD_RETURN();
 }

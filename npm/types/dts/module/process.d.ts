@@ -574,7 +574,10 @@ declare module 'process' {
      *      @return returns the time report
      *
      */
-    function cpuUsage(previousValue?: FIBJS.GeneralObject): {
+    function cpuUsage(previousValue?: {
+        user?: number;
+        system?: number;
+    }): {
         user: number;
         system: number;
     };
