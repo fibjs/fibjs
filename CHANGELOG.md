@@ -62,7 +62,18 @@
       with `minimize`/`maximize`/`restore`/`enter-fullscreen`/`leave-fullscreen`
       events, a cancelable `close-requested` event (`ev.preventDefault()`) and
       a `load-failed` event carrying `ev.url` and `ev.message`.
+    * db - `Statement` gains positional-row APIs `rawGet`, `rawAll` and
+      `rawIterate`: rows are arrays in result-column order, so join columns
+      with duplicate names are preserved for ORM result mapping. The object
+      forms (`get`/`all`/`iterate`) are unchanged, and the raw forms work on
+      SQLite, MySQL and ODBC-backed engines.
+    * db - `trans` returns the callback result, commits on any normal return
+      (including `false`), rolls back only when the callback throws, and accepts
+      `options.behavior` (`deferred`/`immediate`/`exclusive`) on SQLite.
 * **breaking** :
+    * db - `trans` no longer treats a `false` callback return as rollback and no
+      longer returns the commit Boolean; throw to roll back, and the callback
+      result is now returned.
     * dns - `resolve(name)` now returns A records (add rrtype as the second
       argument); use `lookup(name, { all: true })` or `net.resolve` for the
       old all-address behavior.
@@ -94,6 +105,13 @@
     * gui - the generated `*Sync`/`*Async` aliases, the callback form and the
       `gui.promises` mirror no longer exist for the gui module.
 * **bugfix** :
+    * db - a `Variant` holding a raw JS value (`VT_JSValue`) no longer crosses a
+      fiber as an invalid v8 handle: `GetArgumentValue` now snapshots the value
+      on the JS thread (binary views as `Buffer`, arrays/objects as native
+      `NArray`/`NObject`). This fixes a segfault when binding
+      `TypedArray`/`ArrayBuffer`/`DataView`/`SharedArrayBuffer` parameters.
+      Shared-array-buffer snapshots copy their bytes so V8 never wraps a shared
+      backing store in an `ArrayBuffer`.
     * gui - Linux: `close()` now destroys a window that was never realized.
       `gtk_window_close()` is a no-op for unrealized windows, so the object
       stayed open and a second `close()` did not report the closed state.

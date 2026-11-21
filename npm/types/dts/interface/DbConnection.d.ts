@@ -31,7 +31,9 @@
  *    `SAVEPOINT point`, commit runs `RELEASE SAVEPOINT point` and rollback runs
  *    `ROLLBACK TO point` (which keeps the savepoint on the stack, so release it with
  *    commit(point) or end the transaction with a plain rollback). `trans` wraps the three
- *    calls around a function; nested `trans` calls need a savepoint name.
+ *    calls around a function, returns the function result and rolls back only when the
+ *    function throws; nested `trans` calls need a savepoint name. On SQLite
+ *    `options.behavior` selects `BEGIN DEFERRED/IMMEDIATE/EXCLUSIVE`.
  *  - **One cursor per connection**: an open Statement cursor rejects `execute`, `prepare`,
  *    `iterate` and transaction control on the same connection with error number 20028 until
  *    the iterator is exhausted, `return()` is called or the for...of loop ends.
@@ -438,37 +440,56 @@ declare class Class_DbConnection extends Class_object {
     rollbackAsync(point?: string): Promise<void>;
 
     /**
-     * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
+     * @description Enters a savepoint, executes a function and returns its result
      *
-     *      The function is called with the connection as both its argument and its `this`, and
-     *      its outcome decides the transaction:
-     *      - a return value other than false, including no return at all, commits;
-     *      - returning false rolls back and makes trans return false;
-     *      - throwing rolls back and rethrows the error to the caller.
+     *      Same outcome rules as the one-argument form, with `point` naming the savepoint that
+     *      wraps the call: begin(point) creates `SAVEPOINT point`, commit(point) releases it and
+     *      a throw rolls back with `ROLLBACK TO point`. Because the rollback does not release
+     *      the savepoint, the surrounding transaction stays open; call it from inside an outer
+     *      transaction (or trans() with no name) and let the outer call finish, otherwise the
+     *      connection remains inside a transaction. `options.behavior` is ignored for a
+     *      savepoint.
+     *
+     *      @param point the transaction name
+     *      @param func the function to execute in a transaction
+     *      @param options transaction options
+     *      @return returns the callback result after a successful commit
+     *
+     */
+    trans(point: string, func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any, options?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description Enters a transaction, executes a function and returns its result
+     *
+     *      The function is called with the connection as both its argument and its `this`.
+     *      A normal return commits the transaction and `trans` returns the callback result
+     *      unchanged, including `undefined` and `false`. Throwing rolls the transaction back
+     *      and rethrows the error; there is no return-value-based rollback.
+     *
+     *      `options.behavior` selects the SQLite transaction mode: `"deferred"`,
+     *      `"immediate"` or `"exclusive"`. The option is validated on every engine but only
+     *      SQLite uses it; other engines start a normal transaction. Without the option the
+     *      engine default is used (SQLite keeps `BEGIN IMMEDIATE` for compatibility).
      *
      *      Inside an existing transaction call the two-argument form with a savepoint name: a
      *      nested trans without a name issues a second BEGIN and fails on engines that reject
      *      nested transactions.
      *
-     *      Example — commit, explicit rollback and rollback on throw:
+     *      Example — return a value and roll back on throw:
      *      ```JavaScript
      *      const db = require('db');
      *      const conn = db.openSQLite(':memory:');
      *      conn.execute('CREATE TABLE log (msg TEXT)');
      *
-     *      console.log(conn.trans((c) => {
+     *      const result = conn.trans((c) => {
      *          c.execute('INSERT INTO log (msg) VALUES (?)', 'kept');
-     *          return true;
-     *      })); // true
-     *
-     *      console.log(conn.trans((c) => {
-     *          c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
-     *          return false;
-     *      })); // false
+     *          return { inserted: 1 };
+     *      });
+     *      console.log(result.inserted); // 1
      *
      *      try {
      *          conn.trans((c) => {
-     *              c.execute('INSERT INTO log (msg) VALUES (?)', 'thrown');
+     *              c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
      *              throw new Error('stop');
      *          });
      *      } catch (err) {
@@ -480,27 +501,11 @@ declare class Class_DbConnection extends Class_object {
      *      ```
      *
      *      @param func the function to execute in a transaction
-     *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
+     *      @param options transaction options; `behavior` selects the SQLite BEGIN mode
+     *      @return returns the callback result after a successful commit
      *
      */
-    trans(func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
-
-    /**
-     * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
-     *
-     *      Same outcome rules as the one-argument form, with `point` naming the savepoint that
-     *      wraps the call: begin(point) creates `SAVEPOINT point`, commit(point) releases it and
-     *      a false return or a throw rolls back with `ROLLBACK TO point`. Because the rollback
-     *      does not release the savepoint, the surrounding transaction stays open; call it from
-     *      inside an outer transaction (or trans() with no name) and let the outer call finish,
-     *      otherwise the connection remains inside a transaction.
-     *
-     *      @param point the transaction name
-     *      @param func the function to execute in a transaction
-     *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
-     *
-     */
-    trans(point: string, func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
+    trans(func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any, options?: FIBJS.GeneralObject): any;
 
     /**
      * @description Executes an sql command and returns the execution result
@@ -1231,37 +1236,56 @@ declare class Class_DbConnectionPromise extends Class_object {
     rollbackAsync(point?: string): Promise<void>;
 
     /**
-     * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
+     * @description Enters a savepoint, executes a function and returns its result
      *
-     *      The function is called with the connection as both its argument and its `this`, and
-     *      its outcome decides the transaction:
-     *      - a return value other than false, including no return at all, commits;
-     *      - returning false rolls back and makes trans return false;
-     *      - throwing rolls back and rethrows the error to the caller.
+     *      Same outcome rules as the one-argument form, with `point` naming the savepoint that
+     *      wraps the call: begin(point) creates `SAVEPOINT point`, commit(point) releases it and
+     *      a throw rolls back with `ROLLBACK TO point`. Because the rollback does not release
+     *      the savepoint, the surrounding transaction stays open; call it from inside an outer
+     *      transaction (or trans() with no name) and let the outer call finish, otherwise the
+     *      connection remains inside a transaction. `options.behavior` is ignored for a
+     *      savepoint.
+     *
+     *      @param point the transaction name
+     *      @param func the function to execute in a transaction
+     *      @param options transaction options
+     *      @return returns the callback result after a successful commit
+     *
+     */
+    trans(point: string, func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any, options?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description Enters a transaction, executes a function and returns its result
+     *
+     *      The function is called with the connection as both its argument and its `this`.
+     *      A normal return commits the transaction and `trans` returns the callback result
+     *      unchanged, including `undefined` and `false`. Throwing rolls the transaction back
+     *      and rethrows the error; there is no return-value-based rollback.
+     *
+     *      `options.behavior` selects the SQLite transaction mode: `"deferred"`,
+     *      `"immediate"` or `"exclusive"`. The option is validated on every engine but only
+     *      SQLite uses it; other engines start a normal transaction. Without the option the
+     *      engine default is used (SQLite keeps `BEGIN IMMEDIATE` for compatibility).
      *
      *      Inside an existing transaction call the two-argument form with a savepoint name: a
      *      nested trans without a name issues a second BEGIN and fails on engines that reject
      *      nested transactions.
      *
-     *      Example — commit, explicit rollback and rollback on throw:
+     *      Example — return a value and roll back on throw:
      *      ```JavaScript
      *      const db = require('db');
      *      const conn = db.openSQLite(':memory:');
      *      conn.execute('CREATE TABLE log (msg TEXT)');
      *
-     *      console.log(conn.trans((c) => {
+     *      const result = conn.trans((c) => {
      *          c.execute('INSERT INTO log (msg) VALUES (?)', 'kept');
-     *          return true;
-     *      })); // true
-     *
-     *      console.log(conn.trans((c) => {
-     *          c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
-     *          return false;
-     *      })); // false
+     *          return { inserted: 1 };
+     *      });
+     *      console.log(result.inserted); // 1
      *
      *      try {
      *          conn.trans((c) => {
-     *              c.execute('INSERT INTO log (msg) VALUES (?)', 'thrown');
+     *              c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
      *              throw new Error('stop');
      *          });
      *      } catch (err) {
@@ -1273,27 +1297,11 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      ```
      *
      *      @param func the function to execute in a transaction
-     *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
+     *      @param options transaction options; `behavior` selects the SQLite BEGIN mode
+     *      @return returns the callback result after a successful commit
      *
      */
-    trans(func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
-
-    /**
-     * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
-     *
-     *      Same outcome rules as the one-argument form, with `point` naming the savepoint that
-     *      wraps the call: begin(point) creates `SAVEPOINT point`, commit(point) releases it and
-     *      a false return or a throw rolls back with `ROLLBACK TO point`. Because the rollback
-     *      does not release the savepoint, the surrounding transaction stays open; call it from
-     *      inside an outer transaction (or trans() with no name) and let the outer call finish,
-     *      otherwise the connection remains inside a transaction.
-     *
-     *      @param point the transaction name
-     *      @param func the function to execute in a transaction
-     *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
-     *
-     */
-    trans(point: string, func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
+    trans(func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any, options?: FIBJS.GeneralObject): any;
 
     /**
      * @description Executes an sql command and returns the execution result

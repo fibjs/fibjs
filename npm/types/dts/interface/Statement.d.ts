@@ -11,6 +11,12 @@
  *  - `run(...args)` discards rows and returns the `{ changes, lastInsertRowid }` counters;
  *  - `iterate(...args)` returns an iterator that keeps only one row in memory.
  *
+ *  Each mode also has a positional-row variant: `rawGet`, `rawAll` and `rawIterate`
+ *  return arrays of values ordered by the result columns instead of objects keyed by
+ *  column name. Duplicate column names (for example `select a.id, b.id` in a join)
+ *  are preserved, which makes the raw forms suitable for ORM result mapping. The
+ *  object forms remain the default and keep returning one value per unique name.
+ *
  *  Preparing lifts the per-execution parsing cost, and binding values instead of quoting
  *  them into the SQL text keeps parameters correct and safe. A Statement belongs to the
  *  connection that created it and stays usable until close() or until the connection is
@@ -177,6 +183,78 @@ declare class Class_Statement extends Class_object {
     getAsync(...args: any[]): Promise<any>;
 
     /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      `select a.id, b.id` yields `[a.id, b.id]` instead of a single `id` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGet(...args: any[]): any;
+
+    /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      `select a.id, b.id` yields `[a.id, b.id]` instead of a single `id` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGetSync(...args: any[]): any;
+
+    /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      `select a.id, b.id` yields `[a.id, b.id]` instead of a single `id` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGetAsync(...args: any[]): Promise<any>;
+
+    /**
      * @description Executes the statement and returns all rows (materialized at once)
      *
      *      Reads the complete result set before returning and releases the cursor, so the
@@ -223,6 +301,72 @@ declare class Class_Statement extends Class_object {
      *
      */
     allAsync(...args: any[]): Promise<any[]>;
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the `affected` and `insertId` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAll(...args: any[]): any[];
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the `affected` and `insertId` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAllSync(...args: any[]): any[];
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the `affected` and `insertId` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAllAsync(...args: any[]): Promise<any[]>;
 
     /**
      * @description Executes a statement that returns no result set
@@ -433,6 +577,75 @@ declare class Class_Statement extends Class_object {
      *
      */
     iterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every `value` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      ```JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterate(...args: any[]): Class_Iterator;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every `value` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      ```JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterateSync(...args: any[]): Class_Iterator;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every `value` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      ```JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Returns the result column metadata
@@ -693,6 +906,78 @@ declare class Class_StatementPromise extends Class_object {
     getAsync(...args: any[]): Promise<any>;
 
     /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      `select a.id, b.id` yields `[a.id, b.id]` instead of a single `id` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGet(...args: any[]): Promise<any>;
+
+    /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      `select a.id, b.id` yields `[a.id, b.id]` instead of a single `id` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGetSync(...args: any[]): any;
+
+    /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      `select a.id, b.id` yields `[a.id, b.id]` instead of a single `id` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGetAsync(...args: any[]): Promise<any>;
+
+    /**
      * @description Executes the statement and returns all rows (materialized at once)
      *
      *      Reads the complete result set before returning and releases the cursor, so the
@@ -739,6 +1024,72 @@ declare class Class_StatementPromise extends Class_object {
      *
      */
     allAsync(...args: any[]): Promise<any[]>;
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the `affected` and `insertId` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAll(...args: any[]): Promise<any[]>;
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the `affected` and `insertId` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAllSync(...args: any[]): any[];
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the `affected` and `insertId` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      ```JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAllAsync(...args: any[]): Promise<any[]>;
 
     /**
      * @description Executes a statement that returns no result set
@@ -949,6 +1300,75 @@ declare class Class_StatementPromise extends Class_object {
      *
      */
     iterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every `value` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      ```JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterate(...args: any[]): Promise<Class_IteratorPromise>;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every `value` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      ```JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterateSync(...args: any[]): Class_Iterator;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every `value` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      ```JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      ```
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Returns the result column metadata

@@ -108,13 +108,16 @@
  *  conn.execute('CREATE TABLE log (msg TEXT)');
  *  const committed = conn.trans((c) => {
  *      c.execute('INSERT INTO log (msg) VALUES (?)', 'kept');
- *      return true;
+ *      return 'committed';
  *  });
- *  const rolledBack = conn.trans((c) => {
- *      c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
- *      return false;  // false rolls the transaction back
- *  });
- *  console.log(committed, rolledBack);                    // true false
+ *  try {
+ *      conn.trans((c) => {
+ *          c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
+ *          throw new Error('rollback');
+ *      });
+ *  } catch (e) {
+ *  }
+ *  console.log(committed);                              // committed
  *  console.log(conn.execute('SELECT * FROM log').length); // 1
  *
  *  conn.close();

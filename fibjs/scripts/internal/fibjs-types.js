@@ -7460,7 +7460,9 @@ declare class Class_DOMTokenList extends Class_object {
  *    \`SAVEPOINT point\`, commit runs \`RELEASE SAVEPOINT point\` and rollback runs
  *    \`ROLLBACK TO point\` (which keeps the savepoint on the stack, so release it with
  *    commit(point) or end the transaction with a plain rollback). \`trans\` wraps the three
- *    calls around a function; nested \`trans\` calls need a savepoint name.
+ *    calls around a function, returns the function result and rolls back only when the
+ *    function throws; nested \`trans\` calls need a savepoint name. On SQLite
+ *    \`options.behavior\` selects \`BEGIN DEFERRED/IMMEDIATE/EXCLUSIVE\`.
  *  - **One cursor per connection**: an open Statement cursor rejects \`execute\`, \`prepare\`,
  *    \`iterate\` and transaction control on the same connection with error number 20028 until
  *    the iterator is exhausted, \`return()\` is called or the for...of loop ends.
@@ -7867,37 +7869,56 @@ declare class Class_DbConnection extends Class_object {
     rollbackAsync(point?: string): Promise<void>;
 
     /**
-     * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
+     * @description Enters a savepoint, executes a function and returns its result
      *
-     *      The function is called with the connection as both its argument and its \`this\`, and
-     *      its outcome decides the transaction:
-     *      - a return value other than false, including no return at all, commits;
-     *      - returning false rolls back and makes trans return false;
-     *      - throwing rolls back and rethrows the error to the caller.
+     *      Same outcome rules as the one-argument form, with \`point\` naming the savepoint that
+     *      wraps the call: begin(point) creates \`SAVEPOINT point\`, commit(point) releases it and
+     *      a throw rolls back with \`ROLLBACK TO point\`. Because the rollback does not release
+     *      the savepoint, the surrounding transaction stays open; call it from inside an outer
+     *      transaction (or trans() with no name) and let the outer call finish, otherwise the
+     *      connection remains inside a transaction. \`options.behavior\` is ignored for a
+     *      savepoint.
+     *
+     *      @param point the transaction name
+     *      @param func the function to execute in a transaction
+     *      @param options transaction options
+     *      @return returns the callback result after a successful commit
+     *
+     */
+    trans(point: string, func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any, options?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description Enters a transaction, executes a function and returns its result
+     *
+     *      The function is called with the connection as both its argument and its \`this\`.
+     *      A normal return commits the transaction and \`trans\` returns the callback result
+     *      unchanged, including \`undefined\` and \`false\`. Throwing rolls the transaction back
+     *      and rethrows the error; there is no return-value-based rollback.
+     *
+     *      \`options.behavior\` selects the SQLite transaction mode: \`"deferred"\`,
+     *      \`"immediate"\` or \`"exclusive"\`. The option is validated on every engine but only
+     *      SQLite uses it; other engines start a normal transaction. Without the option the
+     *      engine default is used (SQLite keeps \`BEGIN IMMEDIATE\` for compatibility).
      *
      *      Inside an existing transaction call the two-argument form with a savepoint name: a
      *      nested trans without a name issues a second BEGIN and fails on engines that reject
      *      nested transactions.
      *
-     *      Example — commit, explicit rollback and rollback on throw:
+     *      Example — return a value and roll back on throw:
      *      \`\`\`JavaScript
      *      const db = require('db');
      *      const conn = db.openSQLite(':memory:');
      *      conn.execute('CREATE TABLE log (msg TEXT)');
      *
-     *      console.log(conn.trans((c) => {
+     *      const result = conn.trans((c) => {
      *          c.execute('INSERT INTO log (msg) VALUES (?)', 'kept');
-     *          return true;
-     *      })); // true
-     *
-     *      console.log(conn.trans((c) => {
-     *          c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
-     *          return false;
-     *      })); // false
+     *          return { inserted: 1 };
+     *      });
+     *      console.log(result.inserted); // 1
      *
      *      try {
      *          conn.trans((c) => {
-     *              c.execute('INSERT INTO log (msg) VALUES (?)', 'thrown');
+     *              c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
      *              throw new Error('stop');
      *          });
      *      } catch (err) {
@@ -7909,27 +7930,11 @@ declare class Class_DbConnection extends Class_object {
      *      \`\`\`
      *
      *      @param func the function to execute in a transaction
-     *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
+     *      @param options transaction options; \`behavior\` selects the SQLite BEGIN mode
+     *      @return returns the callback result after a successful commit
      *
      */
-    trans(func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
-
-    /**
-     * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
-     *
-     *      Same outcome rules as the one-argument form, with \`point\` naming the savepoint that
-     *      wraps the call: begin(point) creates \`SAVEPOINT point\`, commit(point) releases it and
-     *      a false return or a throw rolls back with \`ROLLBACK TO point\`. Because the rollback
-     *      does not release the savepoint, the surrounding transaction stays open; call it from
-     *      inside an outer transaction (or trans() with no name) and let the outer call finish,
-     *      otherwise the connection remains inside a transaction.
-     *
-     *      @param point the transaction name
-     *      @param func the function to execute in a transaction
-     *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
-     *
-     */
-    trans(point: string, func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
+    trans(func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any, options?: FIBJS.GeneralObject): any;
 
     /**
      * @description Executes an sql command and returns the execution result
@@ -8660,37 +8665,56 @@ declare class Class_DbConnectionPromise extends Class_object {
     rollbackAsync(point?: string): Promise<void>;
 
     /**
-     * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
+     * @description Enters a savepoint, executes a function and returns its result
      *
-     *      The function is called with the connection as both its argument and its \`this\`, and
-     *      its outcome decides the transaction:
-     *      - a return value other than false, including no return at all, commits;
-     *      - returning false rolls back and makes trans return false;
-     *      - throwing rolls back and rethrows the error to the caller.
+     *      Same outcome rules as the one-argument form, with \`point\` naming the savepoint that
+     *      wraps the call: begin(point) creates \`SAVEPOINT point\`, commit(point) releases it and
+     *      a throw rolls back with \`ROLLBACK TO point\`. Because the rollback does not release
+     *      the savepoint, the surrounding transaction stays open; call it from inside an outer
+     *      transaction (or trans() with no name) and let the outer call finish, otherwise the
+     *      connection remains inside a transaction. \`options.behavior\` is ignored for a
+     *      savepoint.
+     *
+     *      @param point the transaction name
+     *      @param func the function to execute in a transaction
+     *      @param options transaction options
+     *      @return returns the callback result after a successful commit
+     *
+     */
+    trans(point: string, func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any, options?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description Enters a transaction, executes a function and returns its result
+     *
+     *      The function is called with the connection as both its argument and its \`this\`.
+     *      A normal return commits the transaction and \`trans\` returns the callback result
+     *      unchanged, including \`undefined\` and \`false\`. Throwing rolls the transaction back
+     *      and rethrows the error; there is no return-value-based rollback.
+     *
+     *      \`options.behavior\` selects the SQLite transaction mode: \`"deferred"\`,
+     *      \`"immediate"\` or \`"exclusive"\`. The option is validated on every engine but only
+     *      SQLite uses it; other engines start a normal transaction. Without the option the
+     *      engine default is used (SQLite keeps \`BEGIN IMMEDIATE\` for compatibility).
      *
      *      Inside an existing transaction call the two-argument form with a savepoint name: a
      *      nested trans without a name issues a second BEGIN and fails on engines that reject
      *      nested transactions.
      *
-     *      Example — commit, explicit rollback and rollback on throw:
+     *      Example — return a value and roll back on throw:
      *      \`\`\`JavaScript
      *      const db = require('db');
      *      const conn = db.openSQLite(':memory:');
      *      conn.execute('CREATE TABLE log (msg TEXT)');
      *
-     *      console.log(conn.trans((c) => {
+     *      const result = conn.trans((c) => {
      *          c.execute('INSERT INTO log (msg) VALUES (?)', 'kept');
-     *          return true;
-     *      })); // true
-     *
-     *      console.log(conn.trans((c) => {
-     *          c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
-     *          return false;
-     *      })); // false
+     *          return { inserted: 1 };
+     *      });
+     *      console.log(result.inserted); // 1
      *
      *      try {
      *          conn.trans((c) => {
-     *              c.execute('INSERT INTO log (msg) VALUES (?)', 'thrown');
+     *              c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
      *              throw new Error('stop');
      *          });
      *      } catch (err) {
@@ -8702,27 +8726,11 @@ declare class Class_DbConnectionPromise extends Class_object {
      *      \`\`\`
      *
      *      @param func the function to execute in a transaction
-     *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
+     *      @param options transaction options; \`behavior\` selects the SQLite BEGIN mode
+     *      @return returns the callback result after a successful commit
      *
      */
-    trans(func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
-
-    /**
-     * @description Enters a transaction to execute a function, and commits or rolls back depending on the function result
-     *
-     *      Same outcome rules as the one-argument form, with \`point\` naming the savepoint that
-     *      wraps the call: begin(point) creates \`SAVEPOINT point\`, commit(point) releases it and
-     *      a false return or a throw rolls back with \`ROLLBACK TO point\`. Because the rollback
-     *      does not release the savepoint, the surrounding transaction stays open; call it from
-     *      inside an outer transaction (or trans() with no name) and let the outer call finish,
-     *      otherwise the connection remains inside a transaction.
-     *
-     *      @param point the transaction name
-     *      @param func the function to execute in a transaction
-     *      @return returns whether the transaction was committed: returns true on a normal commit, false on rollback, and throws if the transaction fails
-     *
-     */
-    trans(point: string, func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any): boolean;
+    trans(func: (conn: Class_DbConnection | Class_DbConnectionPromise)=>any, options?: FIBJS.GeneralObject): any;
 
     /**
      * @description Executes an sql command and returns the execution result
@@ -52617,6 +52625,12 @@ declare class Class_Stat extends Class_object {
  *  - \`run(...args)\` discards rows and returns the \`{ changes, lastInsertRowid }\` counters;
  *  - \`iterate(...args)\` returns an iterator that keeps only one row in memory.
  *
+ *  Each mode also has a positional-row variant: \`rawGet\`, \`rawAll\` and \`rawIterate\`
+ *  return arrays of values ordered by the result columns instead of objects keyed by
+ *  column name. Duplicate column names (for example \`select a.id, b.id\` in a join)
+ *  are preserved, which makes the raw forms suitable for ORM result mapping. The
+ *  object forms remain the default and keep returning one value per unique name.
+ *
  *  Preparing lifts the per-execution parsing cost, and binding values instead of quoting
  *  them into the SQL text keeps parameters correct and safe. A Statement belongs to the
  *  connection that created it and stays usable until close() or until the connection is
@@ -52783,6 +52797,78 @@ declare class Class_Statement extends Class_object {
     getAsync(...args: any[]): Promise<any>;
 
     /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      \`select a.id, b.id\` yields \`[a.id, b.id]\` instead of a single \`id\` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGet(...args: any[]): any;
+
+    /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      \`select a.id, b.id\` yields \`[a.id, b.id]\` instead of a single \`id\` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGetSync(...args: any[]): any;
+
+    /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      \`select a.id, b.id\` yields \`[a.id, b.id]\` instead of a single \`id\` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGetAsync(...args: any[]): Promise<any>;
+
+    /**
      * @description Executes the statement and returns all rows (materialized at once)
      *
      *      Reads the complete result set before returning and releases the cursor, so the
@@ -52829,6 +52915,72 @@ declare class Class_Statement extends Class_object {
      *
      */
     allAsync(...args: any[]): Promise<any[]>;
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the \`affected\` and \`insertId\` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAll(...args: any[]): any[];
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the \`affected\` and \`insertId\` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAllSync(...args: any[]): any[];
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the \`affected\` and \`insertId\` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAllAsync(...args: any[]): Promise<any[]>;
 
     /**
      * @description Executes a statement that returns no result set
@@ -53039,6 +53191,75 @@ declare class Class_Statement extends Class_object {
      *
      */
     iterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every \`value\` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterate(...args: any[]): Class_Iterator;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every \`value\` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterateSync(...args: any[]): Class_Iterator;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every \`value\` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Returns the result column metadata
@@ -53299,6 +53520,78 @@ declare class Class_StatementPromise extends Class_object {
     getAsync(...args: any[]): Promise<any>;
 
     /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      \`select a.id, b.id\` yields \`[a.id, b.id]\` instead of a single \`id\` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGet(...args: any[]): Promise<any>;
+
+    /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      \`select a.id, b.id\` yields \`[a.id, b.id]\` instead of a single \`id\` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGetSync(...args: any[]): any;
+
+    /**
+     * @description Executes the statement and returns the first row as a positional array
+     *
+     *      Same execution and cursor semantics as get(), but the row is an array whose
+     *      items follow the result column order rather than an object keyed by column
+     *      name. Columns with the same name are all preserved, so a join such as
+     *      \`select a.id, b.id\` yields \`[a.id, b.id]\` instead of a single \`id\` property.
+     *      A query with no matching row, and a statement without a result set, return
+     *      undefined. Values keep the same engine conversion as get() (Buffers for
+     *      BLOBs, BigInt for 64-bit integers when the engine reports one).
+     *
+     *      Example — read duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select a.id, b.id from a join b on b.aid = a.id');
+     *      const row = stmt.rawGet();
+     *      console.log(row[0], row[1]);
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns the first row as an array, or undefined if there is no result
+     *
+     */
+    rawGetAsync(...args: any[]): Promise<any>;
+
+    /**
      * @description Executes the statement and returns all rows (materialized at once)
      *
      *      Reads the complete result set before returning and releases the cursor, so the
@@ -53345,6 +53638,72 @@ declare class Class_StatementPromise extends Class_object {
      *
      */
     allAsync(...args: any[]): Promise<any[]>;
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the \`affected\` and \`insertId\` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAll(...args: any[]): Promise<any[]>;
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the \`affected\` and \`insertId\` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAllSync(...args: any[]): any[];
+
+    /**
+     * @description Executes the statement and returns all rows as positional arrays
+     *
+     *      Same execution and cursor semantics as all(), but each row is an array of
+     *      values in result column order. Duplicate column names are preserved, which
+     *      is what ORMs and other positional consumers need. A query with no matching
+     *      rows returns an empty array; a statement without a result set returns an
+     *      array with no rows plus the \`affected\` and \`insertId\` properties, mirroring
+     *      all(). Prefer rawIterate for large result sets.
+     *
+     *      Example — read all rows by position:
+     *      \`\`\`JavaScript
+     *      const stmt = conn.prepare('select 1 as x, 2 as y, 3 as x');
+     *      console.log(stmt.rawAll()); // [[1, 2, 3]]
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns an array of positional row arrays
+     *
+     */
+    rawAllAsync(...args: any[]): Promise<any[]>;
 
     /**
      * @description Executes a statement that returns no result set
@@ -53555,6 +53914,75 @@ declare class Class_StatementPromise extends Class_object {
      *
      */
     iterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every \`value\` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterate(...args: any[]): Promise<Class_IteratorPromise>;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every \`value\` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterateSync(...args: any[]): Class_Iterator;
+
+    /**
+     * @description Executes the statement and returns an iterator of positional arrays
+     *
+     *      Same cursor semantics as iterate(), but every \`value\` yielded by the
+     *      iterator is an array ordered by result column instead of an object. Break
+     *      from the for...of loop or call return() to release the cursor; while the
+     *      iterator is open the connection rejects other statements with error number
+     *      20028, exactly like iterate().
+     *
+     *      Example — stream duplicate join columns by position:
+     *      \`\`\`JavaScript
+     *      for (const row of conn.prepare('select a.id, b.id from a join b').rawIterate()) {
+     *          console.log(row[0], row[1]);
+     *          break;
+     *      }
+     *      \`\`\`
+     *
+     *      @param args the bound parameters
+     *      @return returns a row iterator that produces positional arrays
+     *
+     */
+    rawIterateAsync(...args: any[]): Promise<Class_IteratorPromise>;
 
     /**
      * @description Returns the result column metadata
@@ -90907,13 +91335,16 @@ declare module 'crypto_constants' {
  *  conn.execute('CREATE TABLE log (msg TEXT)');
  *  const committed = conn.trans((c) => {
  *      c.execute('INSERT INTO log (msg) VALUES (?)', 'kept');
- *      return true;
+ *      return 'committed';
  *  });
- *  const rolledBack = conn.trans((c) => {
- *      c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
- *      return false;  // false rolls the transaction back
- *  });
- *  console.log(committed, rolledBack);                    // true false
+ *  try {
+ *      conn.trans((c) => {
+ *          c.execute('INSERT INTO log (msg) VALUES (?)', 'discarded');
+ *          throw new Error('rollback');
+ *      });
+ *  } catch (e) {
+ *  }
+ *  console.log(committed);                              // committed
  *  console.log(conn.execute('SELECT * FROM log').length); // 1
  *
  *  conn.close();
