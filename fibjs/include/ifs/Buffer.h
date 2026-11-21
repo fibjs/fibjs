@@ -35,11 +35,11 @@ public:
     static result_t alloc(int32_t size, exlib::string fill, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t allocUnsafe(int32_t size, obj_ptr<Buffer_base>& retVal);
     static result_t allocUnsafeSlow(int32_t size, obj_ptr<Buffer_base>& retVal);
-    static result_t from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal);
+    static result_t from(std::vector<int32_t>& datas, obj_ptr<Buffer_base>& retVal);
     static result_t from(Buffer_base* buffer, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
     static result_t from(Union_from_datas datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal);
     static result_t from(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal);
-    static result_t concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal);
+    static result_t concat(std::vector<v8::Local<v8::Uint8Array>>& buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal);
     static result_t isBuffer(v8::Local<v8::Value> v, bool& retVal);
     static result_t isEncoding(exlib::string codec, bool& retVal);
     static result_t byteLength(Union_byteLength_str str, int32_t& retVal);
@@ -340,7 +340,7 @@ inline void Buffer_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER_NAMED(1, 1, "datas");
 
-    ARG_NAMED(v8::Local<v8::Array>, 0, "datas");
+    ARG_NAMED(std::vector<int32_t>, 0, "datas");
 
     hr = from(v0, vr);
 
@@ -378,7 +378,7 @@ inline void Buffer_base::s_static_concat(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER_NAMED(2, 1, "buflist");
 
-    ARG_NAMED(v8::Local<v8::Array>, 0, "buflist");
+    ARG_NAMED(std::vector<v8::Local<v8::Uint8Array>>, 0, "buflist");
     OPT_ARG_NAMED(int32_t, 1, -1, "cutLength");
 
     hr = concat(v0, v1, vr);

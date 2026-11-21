@@ -91,33 +91,14 @@ result_t Buffer_base::allocUnsafeSlow(int32_t size, obj_ptr<Buffer_base>& retVal
     return result_t();
 }
 
-result_t Buffer_base::from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& retVal)
+result_t Buffer_base::from(std::vector<int32_t>& datas, obj_ptr<Buffer_base>& retVal)
 {
-    obj_ptr<Buffer> buf = new Buffer(NULL, datas->Length());
+    obj_ptr<Buffer> buf = new Buffer(NULL, datas.size());
     retVal = buf;
 
-    int32_t sz = (int32_t)buf->length();
-    v8::Local<v8::Context> context;
-    if (!datas->GetCreationContext().ToLocal(&context))
-        context = Isolate::current()->context();
-    Isolate* isolate = Isolate::current(context);
-
-    if (sz) {
-        int32_t i;
-        result_t hr;
-        uint8_t* _str = buf->data();
-
-        for (i = 0; i < sz; i++) {
-            JSValue v = datas->Get(context, i);
-            int32_t num;
-
-            hr = GetArgumentValue(isolate, v, num);
-            if (hr.failed())
-                return hr;
-
-            _str[i] = (uint8_t)num;
-        }
-    }
+    uint8_t* _str = buf->data();
+    for (size_t i = 0; i < datas.size(); i++)
+        _str[i] = (uint8_t)datas[i];
 
     return result_t();
 }
@@ -188,38 +169,26 @@ result_t Buffer_base::from(exlib::string str, exlib::string codec, obj_ptr<Buffe
     return result_t();
 }
 
-result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal)
+result_t Buffer_base::concat(std::vector<v8::Local<v8::Uint8Array>>& buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal)
 {
-    Isolate* isolate = Isolate::current(buflist);
-    v8::Local<v8::Context> context = isolate->context();
-
-    std::vector<v8::Local<v8::Uint8Array>> bufs;
-    int32_t length = buflist->Length();
     size_t sz = 0;
 
-    bufs.resize(length);
+    for (auto& item : buflist)
+        sz += item->ByteLength();
 
-    for (int32_t i = 0; i < length; i++) {
-        v8::Local<v8::Value> val = buflist->Get(context, i).FromMaybe(v8::Local<v8::Value>());
-        if (val.IsEmpty() || !val->IsUint8Array())
-            return result_t::invalid_arg();
-        bufs[i] = val.As<v8::Uint8Array>();
-        sz += bufs[i]->ByteLength();
-    }
-
-    if (cutLength >= 0 && sz > cutLength)
+    if (cutLength >= 0 && sz > (size_t)cutLength)
         sz = cutLength;
 
     obj_ptr<Buffer> buf = new Buffer(NULL, sz);
     size_t pos = 0;
 
-    for (int32_t i = 0; i < length; i++) {
-        int32_t len = bufs[i]->ByteLength();
+    for (auto& item : buflist) {
+        size_t len = item->ByteLength();
         if (pos + len > sz)
             len = sz - pos;
-        if (len <= 0)
+        if (len == 0)
             break;
-        bufs[i]->CopyContents(buf->data() + pos, len);
+        item->CopyContents(buf->data() + pos, len);
         pos += len;
     }
 
@@ -380,8 +349,13 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
             return result_t();
         }
 
-        if (v->IsArray())
-            return Buffer_base::from(v.As<v8::Array>(), vr);
+        if (v->IsArray()) {
+            std::vector<int32_t> datas;
+            result_t hr = GetArgumentValue(isolate, v, datas);
+            if (hr.failed())
+                return hr;
+            return Buffer_base::from(datas, vr);
+        }
 
         obj_ptr<Blob_base> blob = Blob_base::getInstance(v);
         if (blob) {

@@ -170,7 +170,7 @@ interface Buffer : object
      @param datas the initial data array
      @return returns a Buffer instance
     */
-    static Buffer from(Array datas);
+    static Buffer from(Integer datas[]);
 
     /*! @brief Creates a Buffer by copying the bytes of another Buffer
 
@@ -241,7 +241,7 @@ interface Buffer : object
      @param cutLength the number of bytes to cut, default -1, meaning concatenate all data
      @return the new Buffer object produced by concatenation
     */
-    static Buffer concat(Array buflist, Integer cutLength = -1);
+    static Buffer concat(Uint8Array buflist[], Integer cutLength = -1);
 
     /*! @brief Checks whether a value is a Buffer
 
