@@ -8,6 +8,15 @@ var child_process = require('child_process');
 const isFibjs = typeof process !== 'undefined' && process.versions && process.versions.fibjs;
 const isWin32 = process.platform === 'win32';
 
+// macOS bsdtar emits AppleDouble (._*) members for files carrying extended
+// attributes (FinderInfo, ...). Disable the metadata so the fixtures are the
+// same on every platform (the variable is ignored by GNU tar).
+function spawn_tar(args, opts) {
+    opts = Object.assign({}, opts);
+    opts.env = Object.assign({}, process.env, { COPYFILE_DISABLE: '1' }, opts.env || {});
+    return child_process.spawnSync('tar', args, opts);
+}
+
 const FIXTURES_DIR = path.join(__dirname, 'opt_tools_test_files', 'fixtures');
 const TMP_DIR = path.join(__dirname, 'opt_tools_test_files', 'tmp');
 
@@ -2898,7 +2907,7 @@ describe('opt_tools install lifecycle', function () {
             fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify({ name: 'trunc-pkg', version: '1.0.0' }));
             fs.writeFileSync(path.join(pkgDir, 'index.js'), 'module.exports = 42;\n');
 
-            var res = child_process.spawnSync('tar', ['czf', 'trunc-pkg-1.0.0.tgz', 'package'], {
+            var res = spawn_tar(['czf', 'trunc-pkg-1.0.0.tgz', 'package'], {
                 cwd: fixtureDir, stdio: 'pipe',
             });
             assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
@@ -3046,7 +3055,7 @@ describe('opt_tools install lifecycle', function () {
             }));
             fs.writeFileSync(path.join(pkgDir, 'cli.js'), '#!/usr/bin/env fibjs\nconsole.log("bin-pkg");\n');
 
-            var res = child_process.spawnSync('tar', ['czf', 'bin-pkg-1.0.0.tgz', 'package'], {
+            var res = spawn_tar(['czf', 'bin-pkg-1.0.0.tgz', 'package'], {
                 cwd: fixtureDir, stdio: 'pipe',
             });
             assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
@@ -3278,7 +3287,7 @@ describe('opt_tools install lifecycle', function () {
 
             var file = name + '-' + version + '.tgz';
 
-            var res = child_process.spawnSync('tar', ['czf', file, 'package'], { cwd: dir, stdio: 'pipe' });
+            var res = spawn_tar(['czf', file, 'package'], { cwd: dir, stdio: 'pipe' });
 
             assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
 
@@ -3519,7 +3528,7 @@ describe('opt_tools install lifecycle', function () {
 
             var file = name + '-' + version + '.tgz';
 
-            var res = child_process.spawnSync('tar', ['czf', file, 'package'], { cwd: dir, stdio: 'pipe' });
+            var res = spawn_tar(['czf', file, 'package'], { cwd: dir, stdio: 'pipe' });
 
             assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
 
@@ -3877,7 +3886,7 @@ describe('opt_tools install lifecycle', function () {
             });
 
             var file = name + '-' + version + '.tgz';
-            var res = child_process.spawnSync('tar', ['czf', file, root], { cwd: dir, stdio: 'pipe' });
+            var res = spawn_tar(['czf', file, root], { cwd: dir, stdio: 'pipe' });
 
             assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
 
@@ -4363,7 +4372,7 @@ describe('opt_tools install lifecycle', function () {
             // `tar` reads `D:\...` as a remote host (`host:path`), so the archive
             // name is relative and the directory is the working one: no argument
             // carries a colon on Windows
-            var res = child_process.spawnSync('tar', ['czf', file, 'package'], { cwd: fixtureDir, stdio: 'pipe' });
+            var res = spawn_tar(['czf', file, 'package'], { cwd: fixtureDir, stdio: 'pipe' });
             assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
 
             tarball = fs.readFileSync(path.join(fixtureDir, file));
@@ -4542,7 +4551,7 @@ describe('opt_tools install lifecycle', function () {
 
             // the same as the .npmrc suite: a drive letter in an argument makes
             // `tar` dial it as a remote host, so the directory is the working one
-            var res = child_process.spawnSync('tar', ['czf', file, 'package'], { cwd: dir, stdio: 'pipe' });
+            var res = spawn_tar(['czf', file, 'package'], { cwd: dir, stdio: 'pipe' });
 
             assert.equal(res.status, 0, 'building the fixture needs tar: ' + String(res.stderr || ''));
 

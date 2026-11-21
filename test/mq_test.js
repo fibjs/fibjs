@@ -1348,6 +1348,11 @@ describe("mq", () => {
         it("memory leak 2", () => {
             var c;
             var closed = false;
+            // The server, its Chain and the Event stay reachable until the
+            // final assertion. Relying on the stopped server's internal
+            // references made the count depend on when GC happened to collect
+            // the timer closure.
+            var svr;
 
             test_util.gc();
 
@@ -1357,7 +1362,7 @@ describe("mq", () => {
 
             (() => {
                 var data = new coroutine.Event();
-                var svr = new http.Server(8892, new mq.Chain([
+                svr = new http.Server(8892, new mq.Chain([
                     () => {
                         return hdlr
                     },
@@ -1394,6 +1399,8 @@ describe("mq", () => {
             assert.equal(no3 + 1, test_util.countObject('Event'));
 
             c.close();
+
+            svr = undefined;
 
             test_util.gc();
             assert.equal(no1, test_util.countObject('Chain'));
