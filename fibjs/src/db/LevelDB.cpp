@@ -512,7 +512,7 @@ result_t LevelDB::forEach(Union_forEach_from from, v8::Local<v8::Function> func)
     if (hr.failed())
         return hr;
 
-    return forEachCore(buf, NULL, v8::Local<v8::Object>(), func);
+    return forEachCore(buf, NULL, NULL, func);
 }
 
 result_t LevelDB::forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Function> func)
@@ -529,15 +529,15 @@ result_t LevelDB::forEach(Union_forEach_from from, Union_forEach_to to, v8::Loca
     if (hr.failed())
         return hr;
 
-    return forEachCore(fromBuf, toBuf, v8::Local<v8::Object>(), func);
+    return forEachCore(fromBuf, toBuf, NULL, func);
 }
 
-result_t LevelDB::forEach(v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
+result_t LevelDB::forEach(Options_LevelDB_forEach_opt* opt, v8::Local<v8::Function> func)
 {
     return forEachCore(NULL, NULL, opt, func);
 }
 
-result_t LevelDB::forEach(Union_forEach_from from, v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
+result_t LevelDB::forEach(Union_forEach_from from, Options_LevelDB_forEach_opt* opt, v8::Local<v8::Function> func)
 {
     obj_ptr<Buffer_base> buf;
 
@@ -548,7 +548,7 @@ result_t LevelDB::forEach(Union_forEach_from from, v8::Local<v8::Object> opt, v8
     return forEachCore(buf, NULL, opt, func);
 }
 
-result_t LevelDB::forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
+result_t LevelDB::forEach(Union_forEach_from from, Union_forEach_to to, Options_LevelDB_forEach_opt* opt, v8::Local<v8::Function> func)
 {
     obj_ptr<Buffer_base> fromBuf;
 
@@ -565,27 +565,18 @@ result_t LevelDB::forEach(Union_forEach_from from, Union_forEach_to to, v8::Loca
     return forEachCore(fromBuf, toBuf, opt, func);
 }
 
-result_t LevelDB::forEachCore(Buffer_base* from, Buffer_base* to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
+result_t LevelDB::forEachCore(Buffer_base* from, Buffer_base* to, Options_LevelDB_forEach_opt* opt, v8::Local<v8::Function> func)
 {
     obj_ptr<Iter> it = new Iter(db());
 
     it->getValue(from, to);
-    if (!opt.IsEmpty()) {
-        result_t hr;
+    if (opt) {
+        it->m_skip = opt->skip.value();
+        it->m_limit = opt->limit.value();
+        it->m_reverse = opt->reverse.value();
 
-        hr = GetConfigValue(opt, "skip", it->m_skip, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
-
-        hr = GetConfigValue(opt, "limit", it->m_limit, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
         if (it->m_limit == 0)
             return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_message("limit must be greater than 0");
-
-        hr = GetConfigValue(opt, "reverse", it->m_reverse, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
     }
 
     return it->iter(holder(), func);

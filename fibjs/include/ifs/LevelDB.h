@@ -12,10 +12,12 @@
  */
 
 #include "../object.h"
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
 class Buffer_base;
+class Options_LevelDB_forEach_opt;
 
 class LevelDB_base : public object_base {
     DECLARE_CLASS(LevelDB_base);
@@ -42,10 +44,10 @@ public:
     virtual result_t lastKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t forEach(v8::Local<v8::Function> func) = 0;
     virtual result_t forEach(Union_forEach_from from, v8::Local<v8::Function> func) = 0;
-    virtual result_t forEach(v8::Local<v8::Object> opt, v8::Local<v8::Function> func) = 0;
-    virtual result_t forEach(Union_forEach_from from, v8::Local<v8::Object> opt, v8::Local<v8::Function> func) = 0;
+    virtual result_t forEach(Options_LevelDB_forEach_opt* opt, v8::Local<v8::Function> func) = 0;
+    virtual result_t forEach(Union_forEach_from from, Options_LevelDB_forEach_opt* opt, v8::Local<v8::Function> func) = 0;
     virtual result_t forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Function> func) = 0;
-    virtual result_t forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func) = 0;
+    virtual result_t forEach(Union_forEach_from from, Union_forEach_to to, Options_LevelDB_forEach_opt* opt, v8::Local<v8::Function> func) = 0;
     virtual result_t begin(obj_ptr<LevelDB_base>& retVal) = 0;
     virtual result_t commit() = 0;
     virtual result_t close(AsyncHandle ac) = 0;
@@ -90,6 +92,16 @@ public:
 #include "ifs/Buffer.h"
 
 namespace fibjs {
+class Options_LevelDB_forEach_opt : public obj_base {
+public:
+    LOAD_OPTIONS(Options_LevelDB_forEach_opt, (skip)(limit)(reverse));
+
+public:
+    std::optional<int32_t> skip = 0;
+    std::optional<int32_t> limit = -1;
+    std::optional<bool> reverse = false;
+};
+
 inline ClassInfo& LevelDB_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
@@ -290,18 +302,18 @@ inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER_NAMED(2, 2, "func");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "opt");
+    ARG_NAMED(obj_ptr<Options_LevelDB_forEach_opt>, 0, "opt");
     ARG_NAMED(v8::Local<v8::Function>, 1, "func");
 
-    hr = pInst->forEach(v0, v1);
+    hr = pInst->forEach((Options_LevelDB_forEach_opt*)v0, v1);
 
     METHOD_OVER_NAMED(3, 3, "func");
 
     ARG(Union_forEach_from, 0);
-    ARG_NAMED(v8::Local<v8::Object>, 1, "opt");
+    ARG_NAMED(obj_ptr<Options_LevelDB_forEach_opt>, 1, "opt");
     ARG_NAMED(v8::Local<v8::Function>, 2, "func");
 
-    hr = pInst->forEach(v0, v1, v2);
+    hr = pInst->forEach(v0, (Options_LevelDB_forEach_opt*)v1, v2);
 
     METHOD_OVER_NAMED(3, 3, "func");
 
@@ -315,10 +327,10 @@ inline void LevelDB_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(Union_forEach_from, 0);
     ARG(Union_forEach_to, 1);
-    ARG_NAMED(v8::Local<v8::Object>, 2, "opt");
+    ARG_NAMED(obj_ptr<Options_LevelDB_forEach_opt>, 2, "opt");
     ARG_NAMED(v8::Local<v8::Function>, 3, "func");
 
-    hr = pInst->forEach(v0, v1, v2, v3);
+    hr = pInst->forEach(v0, v1, (Options_LevelDB_forEach_opt*)v2, v3);
 
     METHOD_VOID();
 }

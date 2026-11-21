@@ -315,7 +315,7 @@ interface LevelDB : object
      @param opt the enumeration options, supporting skip, limit and reverse
      @param func the callback invoked with (value, key) as Buffers
      */
-    forEach(Object opt, Function(Buffer value, Buffer key) func);
+    forEach((Integer skip = 0, Integer limit = -1, Boolean reverse = false) opt, Function(Buffer value, Buffer key) func);
 
     /*! @brief Enumerates the key/value pairs from a starting key with options
 
@@ -326,7 +326,7 @@ interface LevelDB : object
      @param opt the enumeration options, supporting skip, limit and reverse
      @param func the callback invoked with (value, key) as Buffers
      */
-    forEach(Buffer|String from, Object opt, Function(Buffer value, Buffer key) func);
+    forEach(Buffer|String from, (Integer skip = 0, Integer limit = -1, Boolean reverse = false) opt, Function(Buffer value, Buffer key) func);
 
     /*! @brief Enumerates the key/value pairs between two keys
 
@@ -349,7 +349,7 @@ interface LevelDB : object
      @param opt the enumeration options, supporting skip, limit and reverse
      @param func the callback invoked with (value, key) as Buffers
      */
-    forEach(Buffer|String from, Buffer|String to, Object opt, Function(Buffer value, Buffer key) func);
+    forEach(Buffer|String from, Buffer|String to, (Integer skip = 0, Integer limit = -1, Boolean reverse = false) opt, Function(Buffer value, Buffer key) func);
 
     /*! @brief Starts a write batch and returns the transaction object
 

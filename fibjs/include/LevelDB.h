@@ -39,9 +39,9 @@ public:
     virtual result_t forEach(v8::Local<v8::Function> func);
     virtual result_t forEach(Union_forEach_from from, v8::Local<v8::Function> func);
     virtual result_t forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Function> func);
-    virtual result_t forEach(v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
-    virtual result_t forEach(Union_forEach_from from, v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
-    virtual result_t forEach(Union_forEach_from from, Union_forEach_to to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
+    virtual result_t forEach(Options_LevelDB_forEach_opt* opt, v8::Local<v8::Function> func);
+    virtual result_t forEach(Union_forEach_from from, Options_LevelDB_forEach_opt* opt, v8::Local<v8::Function> func);
+    virtual result_t forEach(Union_forEach_from from, Union_forEach_to to, Options_LevelDB_forEach_opt* opt, v8::Local<v8::Function> func);
     virtual result_t begin(obj_ptr<LevelDB_base>& retVal);
     virtual result_t commit();
     virtual result_t close(AsyncHandle ac);
@@ -60,8 +60,8 @@ public:
 
 private:
     // Shared body of the merged forEach overloads: `from` / `to` are NULL when
-    // the overload does not pass a bound.
-    result_t forEachCore(Buffer_base* from, Buffer_base* to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
+    // the overload does not pass a bound, and `opt` is NULL for the plain forms.
+    result_t forEachCore(Buffer_base* from, Buffer_base* to, Options_LevelDB_forEach_opt* opt, v8::Local<v8::Function> func);
 
     result_t _commit(leveldb::WriteBatch* batch, AsyncHandle ac);
     ASYNC_MEMBER1_AC(LevelDB, _commit, leveldb::WriteBatch*);

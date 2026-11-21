@@ -511,7 +511,11 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs from a starting key with options
@@ -524,7 +528,11 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | string, opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs between two keys
@@ -551,7 +559,11 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Starts a write batch and returns the transaction object
@@ -1024,7 +1036,11 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs from a starting key with options
@@ -1037,7 +1053,11 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | string, opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs between two keys
@@ -1064,7 +1084,11 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Starts a write batch and returns the transaction object
