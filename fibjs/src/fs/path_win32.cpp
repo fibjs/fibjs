@@ -31,7 +31,7 @@ result_t path_win32_base::basename(exlib::string path, exlib::string ext, exlib:
     return _basename_win32(path, ext, retVal);
 }
 
-result_t path_win32_base::format(v8::Local<v8::Object> pathObject, exlib::string& retVal)
+result_t path_win32_base::format(Options_path_win32_format_pathObject* pathObject, exlib::string& retVal)
 {
     exlib::string sep;
     sep.assign(1, PATH_SLASH_WIN32);

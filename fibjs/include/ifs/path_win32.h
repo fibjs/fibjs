@@ -12,8 +12,11 @@
  */
 
 #include "../object.h"
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
+
+class Options_path_win32_format_pathObject;
 
 class path_win32_base : public object_base {
     DECLARE_CLASS(path_win32_base);
@@ -53,7 +56,7 @@ public:
     static result_t normalize(exlib::string path, exlib::string& retVal);
     static result_t basename(exlib::string path, exlib::string ext, exlib::string& retVal);
     static result_t extname(exlib::string path, exlib::string& retVal);
-    static result_t format(v8::Local<v8::Object> pathObject, exlib::string& retVal);
+    static result_t format(Options_path_win32_format_pathObject* pathObject, exlib::string& retVal);
     static result_t parse(exlib::string path, obj_ptr<ParseType>& retVal);
     static result_t dirname(exlib::string path, exlib::string& retVal);
     static result_t fullpath(exlib::string path, exlib::string& retVal);
@@ -97,6 +100,18 @@ public:
 }
 
 namespace fibjs {
+class Options_path_win32_format_pathObject : public obj_base {
+public:
+    LOAD_OPTIONS(Options_path_win32_format_pathObject, (root)(dir)(base)(ext)(name));
+
+public:
+    std::optional<exlib::string> root = "";
+    std::optional<exlib::string> dir = "";
+    std::optional<exlib::string> base = "";
+    std::optional<exlib::string> ext = "";
+    std::optional<exlib::string> name = "";
+};
+
 inline ClassInfo& path_win32_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
@@ -190,9 +205,9 @@ inline void path_win32_base::s_static_format(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER_NAMED(1, 1, "pathObject");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "pathObject");
+    ARG_NAMED(obj_ptr<Options_path_win32_format_pathObject>, 0, "pathObject");
 
-    hr = format(v0, vr);
+    hr = format((Options_path_win32_format_pathObject*)v0, vr);
 
     METHOD_RETURN();
 }

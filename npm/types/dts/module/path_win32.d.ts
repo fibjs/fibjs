@@ -184,7 +184,13 @@ declare module 'path/win32' {
      *      @return the formatted path
      *
      */
-    function format(pathObject: FIBJS.GeneralObject): string;
+    function format(pathObject: {
+        root?: string;
+        dir?: string;
+        base?: string;
+        ext?: string;
+        name?: string;
+    }): string;
 
     /**
      * @description Parses a win32 path into an object with root, dir, base, ext and name fields

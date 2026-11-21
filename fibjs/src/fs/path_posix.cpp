@@ -31,7 +31,7 @@ result_t path_posix_base::basename(exlib::string path, exlib::string ext, exlib:
     return _basename(path, ext, retVal);
 }
 
-result_t path_posix_base::format(v8::Local<v8::Object> pathObject, exlib::string& retVal)
+result_t path_posix_base::format(Options_path_posix_format_pathObject* pathObject, exlib::string& retVal)
 {
     exlib::string sep;
     sep.assign(1, PATH_SLASH_POSIX);

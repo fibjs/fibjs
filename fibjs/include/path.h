@@ -665,20 +665,19 @@ inline result_t _extname_win32(exlib::string path, exlib::string& retVal)
     return result_t();
 }
 
-inline result_t _universal_format(exlib::string sep, v8::Local<v8::Object> pathObject, exlib::string& retVal)
+// The path object of format() is a generated options record shared by the
+// posix and win32 rule sets; only these five fields are read, and each one
+// defaults to the empty string like the missing property did.
+template <typename T>
+inline result_t _universal_format(exlib::string sep, T* pathObject, exlib::string& retVal)
 {
-    result_t hr;
+    if (!pathObject) {
+        retVal.clear();
+        return result_t();
+    }
 
-    exlib::string dir;
-    hr = GetConfigValue(pathObject, "dir", dir, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
-
-    exlib::string root;
-
-    hr = GetConfigValue(pathObject, "root", root, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    exlib::string dir = pathObject->dir.value();
+    const exlib::string& root = pathObject->root.value();
 
     bool dirFromRoot = false;
     if (!dir.length()) {
@@ -686,24 +685,11 @@ inline result_t _universal_format(exlib::string sep, v8::Local<v8::Object> pathO
         dirFromRoot = true;
     }
 
-    exlib::string base;
-    hr = GetConfigValue(pathObject, "base", base, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    exlib::string base = pathObject->base.value();
 
     if (!base.length()) {
-        exlib::string tmp;
-        hr = GetConfigValue(pathObject, "name", tmp, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
-
-        base += tmp;
-
-        hr = GetConfigValue(pathObject, "ext", tmp, true);
-        if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-            return hr;
-
-        base += tmp;
+        base += pathObject->name.value();
+        base += pathObject->ext.value();
     }
 
     if (!dir.length())

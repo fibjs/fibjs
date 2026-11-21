@@ -174,7 +174,7 @@ module path_win32
      @param pathObject the path object
      @return the formatted path
      */
-    static String format(Object pathObject);
+    static String format((String root = "", String dir = "", String base = "", String ext = "", String name = "") pathObject);
 
     /*! @brief Parses a win32 path into an object with root, dir, base, ext and name fields
 
