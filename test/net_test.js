@@ -2938,6 +2938,32 @@ function test_net(eng, use_uv) {
                 test_util.push(svr.socket);
                 assert.throws(() => { svr.listen(getPort()); }, { code: 'ERR_SERVER_ALREADY_LISTEN' });
             });
+
+            it("stop() with a parked accept is a close, not an error", () => {
+                svr = new net.TcpServer((sock) => { sock.close(); });
+
+                var errors = [];
+                svr.on('error', (e) => errors.push(e));
+
+                var closed = 0;
+                svr.on('close', () => closed++);
+
+                svr.listen(getPort());
+                test_util.push(svr.socket);
+
+                // The accept loop is parked here. Closing the listening socket
+                // makes it fail, and the code differs per platform (Windows
+                // reports WSAENOTSOCK, which has no fibjs error of its own).
+                // That is the normal end of the loop: stop() already announced
+                // the close, and emitting 'error' there turned a routine stop
+                // into an unhandled error for every listener-less server.
+                svr.stop();
+                svr = null;
+
+                test_util.waitUntil(() => closed > 0);
+                assert.strictEqual(closed, 1);
+                assert.deepStrictEqual(errors, []);
+            });
         });
 
         describe("TcpServer Object options constructor", () => {

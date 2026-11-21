@@ -242,7 +242,15 @@ result_t TcpServer::start(obj_ptr<TcpServer_base>& retVal)
                 return next();
             }
 
-            if (v.is(CALL_E_BAD_FILE) || v.is(CALL_E_INVALID_CALL)
+            // A server that was stopped while an accept was pending gets the
+            // closed socket back as an error, and the code differs per platform
+            // (Windows reports WSAENOTSOCK, which has no fibjs error of its
+            // own). Nobody is waiting for connections any more, so that is the
+            // normal end of the accept loop, not something the caller can act
+            // on.
+            bool stopping = !m_pThis->m_running;
+
+            if (stopping || v.is(CALL_E_BAD_FILE) || v.is(CALL_E_INVALID_CALL)
                 || v.is(CALL_E_NETNAME_DELETED) || v.is(CALL_E_CLOSED_SOCKET)) {
                 // only emit 'close' if stop() hasn't already done so
                 if (m_pThis->m_running) {
