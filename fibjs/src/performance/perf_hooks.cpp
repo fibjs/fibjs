@@ -214,24 +214,21 @@ result_t performance_base::clearMeasures(exlib::string name)
     return result_t();
 }
 
-result_t performance_base::mark(exlib::string name, v8::Local<v8::Object> options)
+result_t performance_base::mark(exlib::string name, Options_performance_mark_options* options)
 {
     Isolate* isolate = Isolate::current();
-    result_t hr;
 
     double _now = perf_now();
-    hr = GetConfigValue(options, "startTime", _now, true);
-    if (hr.failed_other_than(CALL_E_PARAMNOTOPTIONAL))
-        return hr;
+    if (options->startTime.has_value())
+        _now = options->startTime.value();
 
-    // `detail` defaults to null and an explicit null is kept: GetConfigValue
-    // reports a missing-or-null key the same way, so the key is read directly.
-    v8::Local<v8::Value> detail;
-    if (!options.IsEmpty()) {
-        v8::Local<v8::Context> context = isolate->context();
-        detail = options->Get(context, isolate->NewString("detail")).FromMaybe(v8::Local<v8::Value>());
-    }
-    if (detail.IsEmpty() || detail->IsUndefined())
+    // `detail` defaults to null. The record reports an absent key and an
+    // explicit null the same way (disengaged), and both become a null detail,
+    // which is what the old direct read produced as well.
+    Variant detail;
+    if (options->detail.has_value())
+        detail = options->detail.value();
+    else
         detail = v8::Null(isolate->m_isolate);
 
     obj_ptr<PerformanceMark> mark = new PerformanceMark(name, _now, detail);

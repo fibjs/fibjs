@@ -12,10 +12,12 @@
  */
 
 #include "../object.h"
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
 class PerformanceEntry_base;
+class Options_performance_mark_options;
 
 class performance_base : public object_base {
     DECLARE_CLASS(performance_base);
@@ -24,7 +26,7 @@ public:
     // performance_base
     static result_t clearMarks(exlib::string name);
     static result_t clearMeasures(exlib::string name);
-    static result_t mark(exlib::string name, v8::Local<v8::Object> options);
+    static result_t mark(exlib::string name, Options_performance_mark_options* options);
     static result_t measure(exlib::string name, v8::Local<v8::Object> options);
     static result_t measure(exlib::string name, exlib::string startMark, exlib::string endMark);
     static result_t getEntries(std::vector<obj_ptr<PerformanceEntry_base>>& retVal);
@@ -62,6 +64,15 @@ public:
 #include "ifs/PerformanceEntry.h"
 
 namespace fibjs {
+class Options_performance_mark_options : public obj_base {
+public:
+    LOAD_OPTIONS(Options_performance_mark_options, (startTime)(detail));
+
+public:
+    std::optional<double> startTime;
+    std::optional<Variant> detail;
+};
+
 inline ClassInfo& performance_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
@@ -124,9 +135,9 @@ inline void performance_base::s_static_mark(const v8::FunctionCallbackInfo<v8::V
     METHOD_OVER_NAMED(2, 1, "name");
 
     ARG_NAMED(exlib::string, 0, "name");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
+    OPT_ARG_NAMED(obj_ptr<Options_performance_mark_options>, 1, new Options_performance_mark_options(), "options");
 
-    hr = mark(v0, v1);
+    hr = mark(v0, (Options_performance_mark_options*)v1);
 
     METHOD_VOID();
 }

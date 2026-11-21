@@ -165,7 +165,10 @@ declare module 'performance' {
      *      @param options the additional options
      *
      */
-    function mark(name: string, options?: FIBJS.GeneralObject): void;
+    function mark(name: string, options?: {
+        startTime?: number;
+        detail?: any;
+    }): void;
 
     /**
      * @description Creates a measure from options, or between two mark names

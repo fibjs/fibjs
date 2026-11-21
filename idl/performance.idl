@@ -156,7 +156,7 @@ module performance
      @param name the mark name
      @param options the additional options
     */
-    static mark(String name, Object options = {});
+    static mark(String name, (Number startTime, Variant detail) options = {});
 
     /*! @brief Creates a measure from options, or between two mark names
 
