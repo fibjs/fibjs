@@ -32,6 +32,63 @@ describe('Performance API', () => {
             assert.equal(entry.detail, 'test detail');
         });
 
+        // A Variant parameter is snapshotted so it can cross a fiber: binary
+        // views follow the Buffer argument conversion (TypedArray, DataView,
+        // ArrayBuffer, SharedArrayBuffer), nested values keep their type.
+        it('mark detail snapshots binary values as Buffer', () => {
+            const bytes = new Uint8Array([1, 2, 3, 255]);
+            const view = new DataView(new Uint8Array([7, 8, 9]).buffer);
+
+            performance.mark('binary-detail', {
+                detail: {
+                    bytes,
+                    view,
+                    list: [1, 2],
+                    nested: { bytes: new Uint16Array([0x1234]) },
+                },
+            });
+
+            const detail = performance.getEntriesByName('binary-detail')[0].detail;
+            assert.ok(Buffer.isBuffer(detail.bytes));
+            assert.equal(detail.bytes.toString('hex'), '010203ff');
+            assert.ok(Buffer.isBuffer(detail.view));
+            assert.equal(detail.view.toString('hex'), '070809');
+            assert.ok(Buffer.isBuffer(detail.nested.bytes));
+            assert.equal(detail.nested.bytes.length, 2);
+            assert.deepEqual(detail.list, [1, 2]);
+        });
+
+        // A SharedArrayBuffer cannot be wrapped in a v8::ArrayBuffer, so a
+        // Variant snapshot must copy it (and views over it) instead.
+        it('mark detail copies SharedArrayBuffer values', () => {
+            if (typeof SharedArrayBuffer === 'undefined')
+                return;
+
+            const sab = new SharedArrayBuffer(4);
+            new Uint8Array(sab).set([1, 2, 3, 4]);
+
+            performance.mark('sab-detail', {
+                detail: {
+                    sab,
+                    view: new Uint8Array(sab, 1, 2),
+                    dataView: new DataView(sab, 2, 2),
+                },
+            });
+
+            const detail = performance.getEntriesByName('sab-detail')[0].detail;
+            assert.ok(Buffer.isBuffer(detail.sab));
+            assert.equal(detail.sab.toString('hex'), '01020304');
+            assert.ok(Buffer.isBuffer(detail.view));
+            assert.equal(detail.view.toString('hex'), '0203');
+            assert.ok(Buffer.isBuffer(detail.dataView));
+            assert.equal(detail.dataView.toString('hex'), '0304');
+
+            // The snapshot owns its bytes, so later shared-memory writes do
+            // not leak into it.
+            new Uint8Array(sab).set([9, 9, 9, 9]);
+            assert.equal(detail.sab.toString('hex'), '01020304');
+        });
+
         // Node defaults detail to null, and an explicit null must survive as the
         // value rather than being treated as an absent argument.
         it('detail defaults to null', () => {

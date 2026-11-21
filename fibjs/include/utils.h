@@ -982,6 +982,16 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, date_
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, Variant& d, bool bStrict = false)
 {
     d = v;
+
+    // VT_JSValue keeps a v8::Local handle, which is only valid on the JS
+    // thread. A Variant may also be handed to a fiber (an async call stashes
+    // its arguments in ac->m_ctx), where a stored handle would either crash
+    // or bind the wrong value. Materialize the value here, on the JS thread:
+    // binary views become Buffer (BLOB), arrays and objects a native
+    // NArray/NObject snapshot, and anything else its string form.
+    if (d.type() == Variant::VT_JSValue)
+        return d.setFromJSValue(v);
+
     return result_t();
 }
 

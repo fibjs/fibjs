@@ -11,6 +11,7 @@
 #include <string>
 #include "date.h"
 #include "obj_ptr.h"
+#include "result.h"
 
 namespace fibjs {
 
@@ -65,9 +66,9 @@ public:
         VT_String,
         VT_Object,
         VT_ArrayBuffer,
-        VT_JSValue,
-        VT_JSON,
-        VT_MSGPACK,
+        VT_JSValue, // raw v8 handle; must not cross the JS thread
+        VT_JSON, // deferred JSON text (Message::json), decoded on the JS thread
+        VT_MSGPACK, // deferred MessagePack (Message::pack), decoded on the JS thread
         VT_Type = 255
     };
 
@@ -514,7 +515,15 @@ public:
 
     void toString(exlib::string& retVal) const;
 
-    void toJSON();
+    // Materialize a JS value that would otherwise be stored as VT_JSValue (a
+    // v8::Local handle, valid on the JS thread only). Binary views become
+    // Buffer, arrays/objects a deep native snapshot (NArray/NObject), and
+    // anything else its string form. Used by GetArgumentValue so a Variant
+    // can safely cross a fiber.
+    result_t setFromJSValue(v8::Local<v8::Value> v);
+    // Deferred JSON text: set by Message::json() in a fiber and decoded on
+    // the JS thread when the Variant is returned to JS. Kept as a distinct
+    // type so the decode happens once, on the right thread.
     void setJSON(const exlib::string& v)
     {
         if (type() != VT_JSON) {
