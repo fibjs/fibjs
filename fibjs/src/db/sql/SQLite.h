@@ -51,6 +51,15 @@ public:
         exlib::string str("SAVEPOINT " + point);
         return execute(str, retVal, std::move(ac));
     }
+
+    virtual result_t beginTransaction(exlib::string behavior)
+    {
+        if (behavior.empty())
+            return this->ac_begin("");
+
+        obj_ptr<NArray> retVal;
+        return this->ac_execute("BEGIN " + behavior, retVal);
+    }
     virtual result_t getTables(obj_ptr<NArray>& retVal, AsyncHandle ac);
     virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac);
 

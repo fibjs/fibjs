@@ -433,13 +433,13 @@ describe("db", () => {
             });
 
             describe("trans()", () => {
-                it("auto commit", () => {
+                it("auto commit returns the callback result", () => {
                     var res = conn.trans(function (conn1) {
                         assert.equal(this, conn);
                         this.execute("update test set t2='test101.2' where t1=101");
+                        return 'committed';
                     });
-                    assert.equal(res, true);
-
+                    assert.equal(res, 'committed');
 
                     var rs = conn.execute("select * from test where t1=101");
                     assert.equal(rs[0].t2, "test101.2");
@@ -453,47 +453,70 @@ describe("db", () => {
                         coroutine.parallel(() => {
                             this.execute("update test set t2='test101.2.1' where t1=101");
                         });
+
+                        return 42;
                     });
-                    assert.equal(res, true);
+                    assert.equal(res, 42);
 
                     var rs = conn.execute("select * from test where t1=101");
                     assert.equal(rs[0].t2, "test101.2.1");
                 });
 
-                it("auto rollback", () => {
-                    var res = conn.trans(function (conn1) {
-                        this.execute("update test set t2='test101.3' where t1=101");
+                it("return false commits and is returned", () => {
+                    var res = conn.trans(function () {
+                        this.execute("update test set t2='test101.false' where t1=101");
                         return false;
                     });
                     assert.equal(res, false);
 
                     var rs = conn.execute("select * from test where t1=101");
-                    assert.equal(rs[0].t2, "test101.2.1");
+                    assert.equal(rs[0].t2, "test101.false");
                 });
 
                 it("rollback when throw", () => {
                     assert.throws(() => {
-                        conn.trans(function (conn1) {
+                        conn.trans(function () {
                             this.execute("update test set t2='test101.3' where t1=101");
                             throw 100;
                         });
                     });
 
                     var rs = conn.execute("select * from test where t1=101");
-                    assert.equal(rs[0].t2, "test101.2.1");
+                    assert.equal(rs[0].t2, "test101.false");
                 });
 
                 it("trans savepoint", () => {
-                    conn.trans(function (conn1) {
-                        conn.trans("point", function (conn2) {
-                            this.execute("update test set t2='test101.300' where t1=101");
-                            return false;
+                    var res = conn.trans(function () {
+                        assert.throws(() => {
+                            conn.trans("point", function () {
+                                this.execute("update test set t2='test101.300' where t1=101");
+                                throw new Error('inner');
+                            });
                         });
 
                         var rs = conn.execute("select * from test where t1=101");
-                        assert.equal(rs[0].t2, "test101.2.1");
+                        assert.equal(rs[0].t2, "test101.false");
 
-                        return false;
+                        return 'outer';
+                    });
+                    assert.equal(res, 'outer');
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.false");
+                });
+
+                it("behavior option selects the SQLite transaction mode", () => {
+                    var res = conn.trans(function () {
+                        this.execute("update test set t2='test101.deferred' where t1=101");
+                        return 'deferred';
+                    }, { behavior: 'deferred' });
+                    assert.equal(res, 'deferred');
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.deferred");
+
+                    assert.throws(() => {
+                        conn.trans(function () { }, { behavior: 'unknown' });
                     });
                 });
             });
@@ -651,6 +674,71 @@ describe("db", () => {
                 var rows = conn.prepare('select * from test order by t0').all();
                 assert.greaterThan(rows.length, 0);
                 assert.equal(rows[0].t1, 1123);
+            });
+
+            it("rawGet/rawAll return positional rows and preserve duplicates", () => {
+                var stmt = conn.prepare('select t1, t2, t1 from test where t1 = ?');
+                var row = stmt.rawGet(1123);
+                assert.ok(Array.isArray(row));
+                assert.equal(row.length, 3);
+                assert.equal(row[0], 1123);
+                assert.equal(row[1], '哈哈哈哈');
+                assert.equal(row[2], 1123);
+
+                var rows = stmt.rawAll(1123);
+                assert.equal(rows.length, 1);
+                assert.ok(Array.isArray(rows[0]));
+                assert.deepEqual(rows[0], row);
+            });
+
+            it("rawGet and rawAll have get/all empty semantics", () => {
+                var stmt = conn.prepare('select t1 from test where t1 = ?');
+                assert.equal(stmt.rawGet(999999), undefined);
+                assert.equal(stmt.rawAll(999999).length, 0);
+            });
+
+            it("rawIterate yields positional rows", () => {
+                var it = conn.prepare('select t1, t2, t1 from test where t1 = ?')
+                    .rawIterate(1123);
+                var nr = it.next();
+                assert.equal(nr.done, false);
+                assert.ok(Array.isArray(nr.value));
+                assert.equal(nr.value.length, 3);
+                assert.equal(nr.value[0], 1123);
+                assert.equal(nr.value[2], 1123);
+                it.return();
+
+                // 游标释放后连接可复用
+                var rs = conn.execute('select 1 as n');
+                assert.equal(Number(rs[0].n), 1);
+            });
+
+            it("rawAll on a non-query reports counters", () => {
+                var rr = conn.prepare("update test set t2 = 'raw_dml' where t1 = ?")
+                    .rawAll(1123);
+                assert.greaterThan(Number(rr.affected), 0);
+                conn.execute("update test set t2 = ? where t1 = 1123", '哈哈哈哈');
+            });
+
+            it("raw positional methods on the promise connection", async () => {
+                var connP = await db.promises.open(conn_str);
+                var stmt = await connP.prepare('select t1, t1 from test where t1 = ?');
+
+                var row = await stmt.rawGet(1123);
+                assert.ok(Array.isArray(row));
+                assert.deepEqual(row, [1123, 1123]);
+
+                var rows = await stmt.rawAll(1123);
+                assert.equal(rows.length, 1);
+                assert.deepEqual(rows[0], [1123, 1123]);
+
+                var it = await stmt.rawIterate(1123);
+                var nr = await it.next();
+                assert.equal(nr.done, false);
+                assert.deepEqual(nr.value, [1123, 1123]);
+                await it.return();
+
+                connP.close();
             });
 
             it("prepare run changes", () => {
@@ -1775,6 +1863,49 @@ describe("db", () => {
             } catch (e) { }
         });
         _test('sqlite', conn_str);
+
+        it("typed array params bind as blob", () => {
+            var conn = db.open(conn_str);
+            conn.execute('DROP TABLE IF EXISTS test_params');
+            conn.execute('CREATE TABLE test_params (id INTEGER PRIMARY KEY, v BLOB)');
+            var stmt = conn.prepare('insert into test_params(v) values(?)');
+
+            // Plain v8 typed arrays used to reach the fiber as Variant::VT_JSValue
+            // (a v8::Local handle) and crash while binding.
+            stmt.run(new Uint8Array([1, 2, 3, 255]));
+
+            var ab = new ArrayBuffer(3);
+            new Uint8Array(ab).set([7, 8, 9]);
+            stmt.run(ab);
+
+            var dvbuf = new ArrayBuffer(3);
+            new Uint8Array(dvbuf).set([4, 5, 6]);
+            stmt.run(new DataView(dvbuf));
+
+            // Other JS objects fall back to their string form instead of crashing.
+            stmt.run({ toString() { return 'obj-param'; } });
+
+            var rows = conn.execute('select v, typeof(v) as ty from test_params order by id');
+            assert.equal(rows[0].ty, 'blob');
+            assert.equal(rows[0].v.toString('hex'), '010203ff');
+            assert.equal(rows[1].v.toString('hex'), '070809');
+            assert.equal(rows[2].v.toString('hex'), '040506');
+            assert.equal(rows[3].v, 'obj-param');
+
+            // get / all / conn.iterate take the same conversion path.
+            var row = conn.prepare('select v from test_params where v = ?')
+                .get(new Uint8Array([1, 2, 3, 255]));
+            assert.equal(row.v.toString('hex'), '010203ff');
+
+            var it = conn.iterate('select v from test_params where v = ?', new Uint8Array([7, 8, 9]));
+            var nr = it.next();
+            assert.equal(nr.done, false);
+            assert.equal(nr.value.v.toString('hex'), '070809');
+            it.return();
+
+            conn.execute('DROP TABLE test_params');
+            conn.close();
+        });
 
         it("check synchronous mode", () => {
             var conn = db.open(conn_str);

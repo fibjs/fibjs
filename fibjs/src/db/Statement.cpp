@@ -10,7 +10,64 @@
 
 namespace fibjs {
 
-result_t Statement::get(OptArgs args, Variant& retVal, AsyncHandle ac)
+class ObjectRowSink : public Statement::RowSink {
+public:
+    ObjectRowSink(NObject* row)
+        : m_row(row)
+    {
+    }
+
+    virtual void add(exlib::string name, Variant value)
+    {
+        m_row->add(name, value);
+    }
+
+private:
+    NObject* m_row;
+};
+
+class ArrayRowSink : public Statement::RowSink {
+public:
+    ArrayRowSink(NArray* row)
+        : m_row(row)
+    {
+    }
+
+    virtual void add(exlib::string name, Variant value)
+    {
+        m_row->append(value);
+    }
+
+private:
+    NArray* m_row;
+};
+
+class NullRowSink : public Statement::RowSink {
+public:
+    virtual void add(exlib::string, Variant) {}
+};
+
+result_t Statement::fetchRow(obj_ptr<NObject>& row, bool& done)
+{
+    if (!m_impl)
+        return result_t::closed();
+
+    row = new NObject();
+    ObjectRowSink sink(row.operator->());
+    return m_impl->fetchRow(&sink, done);
+}
+
+result_t Statement::fetchRow(obj_ptr<NArray>& row, bool& done)
+{
+    if (!m_impl)
+        return result_t::closed();
+
+    row = new NArray();
+    ArrayRowSink sink(row.operator->());
+    return m_impl->fetchRow(&sink, done);
+}
+
+result_t Statement::getImpl(OptArgs args, Variant& retVal, AsyncHandle ac, bool raw)
 {
     if (ac.isSync()) {
         // Main thread: v8 args → Variant stored in ac->m_ctx (must not touch v8
@@ -27,24 +84,43 @@ result_t Statement::get(OptArgs args, Variant& retVal, AsyncHandle ac)
         return hr;
 
     if (hasResult) {
-        obj_ptr<NObject> row;
         bool done = false;
-        hr = fetchRow(row, done);
-        if (hr.failed()) {
-            finish();
-            return hr;
+        if (raw) {
+            obj_ptr<NArray> row;
+            hr = fetchRow(row, done);
+            if (hr.failed()) {
+                finish();
+                return hr;
+            }
+            if (!done)
+                retVal = row;
+        } else {
+            obj_ptr<NObject> row;
+            hr = fetchRow(row, done);
+            if (hr.failed()) {
+                finish();
+                return hr;
+            }
+            if (!done)
+                retVal = row;
         }
-
-        // Leave retVal at its default (undefined) when there is no result
-        if (!done)
-            retVal = row;
     }
 
     finish();
     return result_t();
 }
 
-result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
+result_t Statement::get(OptArgs args, Variant& retVal, AsyncHandle ac)
+{
+    return getImpl(args, retVal, std::move(ac), false);
+}
+
+result_t Statement::rawGet(OptArgs args, Variant& retVal, AsyncHandle ac)
+{
+    return getImpl(args, retVal, std::move(ac), true);
+}
+
+result_t Statement::allImpl(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac, bool raw)
 {
     if (ac.isSync()) {
         result_t hr = stashArgs(args, ac);
@@ -62,15 +138,20 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
 
     if (hasResult) {
         while (true) {
-            obj_ptr<NObject> row;
             bool done = false;
-            hr = fetchRow(row, done);
-            if (hr.failed())
-                break;
-            if (done)
-                break;
-
-            arr->append(row);
+            if (raw) {
+                obj_ptr<NArray> row;
+                hr = fetchRow(row, done);
+                if (hr.failed() || done)
+                    break;
+                arr->append(row);
+            } else {
+                obj_ptr<NObject> row;
+                hr = fetchRow(row, done);
+                if (hr.failed() || done)
+                    break;
+                arr->append(row);
+            }
         }
     } else {
         // No result set: same semantics as execute, attach affected/insertId
@@ -92,6 +173,16 @@ result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
     return result_t();
 }
 
+result_t Statement::all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
+{
+    return allImpl(args, retVal, std::move(ac), false);
+}
+
+result_t Statement::rawAll(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac)
+{
+    return allImpl(args, retVal, std::move(ac), true);
+}
+
 result_t Statement::run(OptArgs args, obj_ptr<RunType>& retVal, AsyncHandle ac)
 {
     if (ac.isSync()) {
@@ -109,10 +200,10 @@ result_t Statement::run(OptArgs args, obj_ptr<RunType>& retVal, AsyncHandle ac)
     // Discard the result set (run semantics: only the impact stats matter);
     // for queries with a result set, drain it row by row
     if (hasResult) {
+        NullRowSink sink;
         while (true) {
-            obj_ptr<NObject> row;
             bool done = false;
-            hr = fetchRow(row, done);
+            hr = m_impl->fetchRow(&sink, done);
             if (hr.failed() || done)
                 break;
         }
@@ -149,8 +240,20 @@ result_t Statement::iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncH
     return iteratePrepared(ac.ctxv(), retVal);
 }
 
+result_t Statement::rawIterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac)
+{
+    if (ac.isSync()) {
+        result_t hr = stashArgs(args, ac);
+        if (hr.failed())
+            return hr;
+        return result_t::longsync();
+    }
+
+    return iteratePrepared(ac.ctxv(), retVal, true);
+}
+
 result_t Statement::iteratePrepared(std::vector<Variant>& args,
-    obj_ptr<Iterator_base>& retVal)
+    obj_ptr<Iterator_base>& retVal, bool raw)
 {
     bool hasResult = false;
     result_t hr = openImpl(args, hasResult);
@@ -160,11 +263,11 @@ result_t Statement::iteratePrepared(std::vector<Variant>& args,
     // No result set: return an empty iterator (done is immediately true)
     if (!hasResult) {
         finish();
-        retVal = new StatementIterator(this);
+        retVal = new StatementIterator(this, raw);
         return result_t();
     }
 
-    retVal = new StatementIterator(this);
+    retVal = new StatementIterator(this, raw);
     return result_t();
 }
 
@@ -204,8 +307,13 @@ result_t StatementIterator::next(obj_ptr<NextType>& retVal, AsyncHandle ac)
     }
 
     obj_ptr<NObject> row;
+    obj_ptr<NArray> rawRow;
     bool done = false;
-    result_t hr = m_stmt->fetchRow(row, done);
+    result_t hr;
+    if (m_raw)
+        hr = m_stmt->fetchRow(rawRow, done);
+    else
+        hr = m_stmt->fetchRow(row, done);
     if (hr.failed()) {
         close();
         return hr;
@@ -215,7 +323,9 @@ result_t StatementIterator::next(obj_ptr<NextType>& retVal, AsyncHandle ac)
     if (done) {
         retVal->done = true;
         close(); // finish: reset the cursor, keep the impl
-    } else
+    } else if (m_raw)
+        retVal->value = rawRow;
+    else
         retVal->value = row;
 
     return result_t();

@@ -9,11 +9,48 @@
 
 #include "ifs/Statement.h"
 #include "SimpleObject.h"
+#include "Buffer.h"
 #include <memory>
 
 namespace fibjs {
 
 class StatementIterator;
+
+// Convert one JS argument into a Variant that can safely cross the fiber
+// boundary. GetArgumentValue materializes binary views as Buffer and JS
+// objects as native snapshots; the database keeps its own rule for containers
+// so a bound parameter stringifies exactly like execute()/format().
+inline result_t db_stash_arg(Isolate* isolate, v8::Local<v8::Value> v, Variant& out)
+{
+    // Date is a SQL timestamp string, containers String(value); binary views
+    // (including ArrayBuffer/DataView) and wrapper objects fall through to
+    // GetArgumentValue.
+    if (!v.IsEmpty() && !v->IsDate() && !v->IsFunction()
+        && !v->IsBooleanObject() && !v->IsNumberObject()
+        && !v->IsStringObject() && !v->IsBigIntObject()
+        && !IsJSBuffer(v, false) && v->IsObject()) {
+        exlib::string s;
+        result_t hr = GetDOMStringValue(v, s);
+        if (hr.failed())
+            return hr;
+        out = s;
+        return result_t();
+    }
+
+    result_t hr = GetArgumentValue(isolate, v, out);
+    if (hr.failed())
+        return hr;
+
+    if (out.type() == Variant::VT_Date) {
+        // Variant's date_t has no public sqlString accessor.
+        date_t d = v;
+        exlib::string s;
+        d.sqlString(s);
+        out = s;
+    }
+
+    return result_t();
+}
 
 /*! @brief Prepared statement object: reusable, supports row-by-row reads.
 
@@ -24,6 +61,14 @@ implemented here.
 */
 class Statement : public Statement_base {
 public:
+    // Receives one column at a time. Object rows keep the column name as a key;
+    // positional rows keep the order and therefore preserve duplicate names.
+    class RowSink {
+    public:
+        virtual ~RowSink() {}
+        virtual void add(exlib::string name, Variant value) = 0;
+    };
+
     // Engine cursor interface
     class impl {
     public:
@@ -36,9 +81,9 @@ public:
         // (safe in a fiber).
         virtual result_t open(std::vector<Variant>& args, bool& hasResult) = 0;
 
-        // Fetch one row into row (column name → value); done=true means
+        // Fetch one row into the sink in column order; done=true means
         // exhausted (cursor released automatically).
-        virtual result_t fetchRow(NObject* row, bool& done) = 0;
+        virtual result_t fetchRow(RowSink* row, bool& done) = 0;
 
         // Affected-row count and auto-increment id for statements without a
         // result set.
@@ -70,15 +115,12 @@ public:
         closeImpl();
     }
 
-    // Iterator access: fetch one row / abort and release the cursor
-    result_t fetchRow(obj_ptr<NObject>& row, bool& done)
-    {
-        if (!m_impl)
-            return result_t::closed();
+    // Object-row fetch helper (legacy shape).
+    result_t fetchRow(obj_ptr<NObject>& row, bool& done);
 
-        row = new NObject();
-        return m_impl->fetchRow(row, done);
-    }
+    // Positional-row fetch helper: values are appended in column order and
+    // duplicate column names are preserved.
+    result_t fetchRow(obj_ptr<NArray>& row, bool& done);
 
     // Execute/iteration finished: release the cursor occupancy, keep the impl
     // for reuse
@@ -99,23 +141,30 @@ public:
 public:
     // Statement_base
     virtual result_t get(OptArgs args, Variant& retVal, AsyncHandle ac);
+    virtual result_t rawGet(OptArgs args, Variant& retVal, AsyncHandle ac);
     virtual result_t all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac);
+    virtual result_t rawAll(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac);
     virtual result_t run(OptArgs args, obj_ptr<RunType>& retVal, AsyncHandle ac);
     virtual result_t iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac);
+    virtual result_t rawIterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac);
     virtual result_t columns(std::vector<obj_ptr<ColumnsType>>& retVal, AsyncHandle ac);
     virtual result_t get_sourceSQL(exlib::string& retVal);
     virtual result_t close(AsyncHandle ac);
 
     // Internal: open the cursor with args already converted on the main thread
-    // and return an iterator (used by conn.iterate)
+    // and return an iterator (used by conn.iterate); raw=true yields arrays.
     result_t iteratePrepared(std::vector<Variant>& args,
-        obj_ptr<Iterator_base>& retVal);
+        obj_ptr<Iterator_base>& retVal, bool raw = false);
 
 public:
     // For engine prepare
     exlib::string& sql() { return m_sql; }
 
 private:
+    // Shared row-fetch implementations for the object and positional forms.
+    result_t getImpl(OptArgs args, Variant& retVal, AsyncHandle ac, bool raw);
+    result_t allImpl(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac, bool raw);
+
     // On the main thread (isSync branch), convert v8 args to Variant stored in
     // ac->m_ctx: intermediate args are attached to the per-call AsyncEvent (the
     // same ac on fiber re-entry), and the fiber only reads m_ctx without
@@ -126,15 +175,9 @@ private:
         ac.ctxv().resize(args.Length());
         Isolate* isolate = holder();
         for (int32_t i = 0; i < args.Length(); i++) {
-            result_t hr = GetArgumentValue(isolate, args[i], ac.ctxv()[i]);
+            result_t hr = db_stash_arg(isolate, args[i], ac.ctxv()[i]);
             if (hr.failed())
                 return hr;
-            if (ac.ctxv()[i].type() == Variant::VT_Date) {
-                date_t d = args[i];
-                exlib::string s;
-                d.sqlString(s);
-                ac.ctxv()[i] = s;
-            }
         }
         return result_t();
     }
@@ -175,9 +218,10 @@ private:
 next() fetches a row inside the coroutine. */
 class StatementIterator : public Iterator_base {
 public:
-    StatementIterator(Statement* stmt)
+    StatementIterator(Statement* stmt, bool raw = false)
         : m_stmt(stmt)
         , m_done(false)
+        , m_raw(raw)
     {
     }
 
@@ -219,6 +263,7 @@ private:
 private:
     obj_ptr<Statement> m_stmt;
     bool m_done;
+    bool m_raw;
 };
 
 } /* namespace fibjs */

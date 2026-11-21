@@ -63,9 +63,12 @@ public:
 public:
     // Statement_base
     virtual result_t get(OptArgs args, Variant& retVal, AsyncHandle ac) = 0;
+    virtual result_t rawGet(OptArgs args, Variant& retVal, AsyncHandle ac) = 0;
     virtual result_t all(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
+    virtual result_t rawAll(OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
     virtual result_t run(OptArgs args, obj_ptr<RunType>& retVal, AsyncHandle ac) = 0;
     virtual result_t iterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac) = 0;
+    virtual result_t rawIterate(OptArgs args, obj_ptr<Iterator_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t columns(std::vector<obj_ptr<ColumnsType>>& retVal, AsyncHandle ac) = 0;
     virtual result_t get_sourceSQL(exlib::string& retVal) = 0;
     virtual result_t close(AsyncHandle ac) = 0;
@@ -83,18 +86,24 @@ public:
 
 public:
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_rawGet(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_all(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_rawAll(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_iterate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_rawIterate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_columns(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_sourceSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE2(Statement_base, get, OptArgs, Variant);
+    ASYNC_MEMBERVALUE2(Statement_base, rawGet, OptArgs, Variant);
     ASYNC_MEMBERVALUE2(Statement_base, all, OptArgs, obj_ptr<NArray>);
+    ASYNC_MEMBERVALUE2(Statement_base, rawAll, OptArgs, obj_ptr<NArray>);
     ASYNC_MEMBERVALUE2(Statement_base, run, OptArgs, obj_ptr<RunType>);
     ASYNC_MEMBERVALUE2(Statement_base, iterate, OptArgs, obj_ptr<Iterator_base>);
+    ASYNC_MEMBERVALUE2(Statement_base, rawIterate, OptArgs, obj_ptr<Iterator_base>);
     ASYNC_MEMBERVALUE1(Statement_base, columns, std::vector<obj_ptr<ColumnsType>>);
     ASYNC_MEMBER0(Statement_base, close);
 };
@@ -107,9 +116,12 @@ inline ClassInfo& Statement_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "get", s_get, false, ClassData::ASYNC_ASYNC },
+        { "rawGet", s_rawGet, false, ClassData::ASYNC_ASYNC },
         { "all", s_all, false, ClassData::ASYNC_ASYNC },
+        { "rawAll", s_rawAll, false, ClassData::ASYNC_ASYNC },
         { "run", s_run, false, ClassData::ASYNC_ASYNC },
         { "iterate", s_iterate, false, ClassData::ASYNC_ASYNC },
+        { "rawIterate", s_rawIterate, false, ClassData::ASYNC_ASYNC },
         { "columns", s_columns, false, ClassData::ASYNC_ASYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC }
     };
@@ -148,6 +160,25 @@ inline void Statement_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& arg
     ASYNC_METHOD_RETURN();
 }
 
+inline void Statement_base::s_rawGet(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Variant vr;
+
+    ASYNC_METHOD_INSTANCE(Statement_base);
+    ASYNC_METHOD_ENTER("Statement.rawGet");
+
+    METHOD_OVER(-1, 0);
+
+    ARG_LIST(0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_rawGet(v0, cb, args);
+    else
+        hr = pInst->ac_rawGet(v0, vr);
+
+    ASYNC_METHOD_RETURN();
+}
+
 inline void Statement_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
@@ -163,6 +194,25 @@ inline void Statement_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = pInst->acb_all(v0, cb, args);
     else
         hr = pInst->ac_all(v0, vr);
+
+    ASYNC_METHOD_RETURN();
+}
+
+inline void Statement_base::s_rawAll(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NArray> vr;
+
+    ASYNC_METHOD_INSTANCE(Statement_base);
+    ASYNC_METHOD_ENTER("Statement.rawAll");
+
+    METHOD_OVER(-1, 0);
+
+    ARG_LIST(0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_rawAll(v0, cb, args);
+    else
+        hr = pInst->ac_rawAll(v0, vr);
 
     ASYNC_METHOD_RETURN();
 }
@@ -201,6 +251,25 @@ inline void Statement_base::s_iterate(const v8::FunctionCallbackInfo<v8::Value>&
         hr = pInst->acb_iterate(v0, cb, args);
     else
         hr = pInst->ac_iterate(v0, vr);
+
+    ASYNC_METHOD_RETURN();
+}
+
+inline void Statement_base::s_rawIterate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Iterator_base> vr;
+
+    ASYNC_METHOD_INSTANCE(Statement_base);
+    ASYNC_METHOD_ENTER("Statement.rawIterate");
+
+    METHOD_OVER(-1, 0);
+
+    ARG_LIST(0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_rawIterate(v0, cb, args);
+    else
+        hr = pInst->ac_rawIterate(v0, vr);
 
     ASYNC_METHOD_RETURN();
 }

@@ -107,16 +107,18 @@ private:
 };
 
 template <typename T>
-inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> func, bool& retVal)
+inline result_t db_trans(T* pThis, exlib::string point, exlib::string behavior, v8::Local<v8::Function> func, Variant& retVal)
 {
     METHOD_NAME("DbConnection.trans");
     v8::Local<v8::Value> v = pThis->wrap();
     result_t hr;
-    retVal = false;
 
     {
         METHOD_NAME("DbConnection.begin");
-        hr = pThis->ac_begin(point);
+        if (point.empty())
+            hr = pThis->beginTransaction(behavior);
+        else
+            hr = pThis->ac_begin(point);
     }
     if (hr.failed())
         return hr;
@@ -136,14 +138,44 @@ inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> 
         return result_t(CALL_E_JAVASCRIPT);
     }
 
-    if (result->IsFalse()) {
-        METHOD_NAME("DbConnection.rollback");
-        return pThis->ac_rollback(point);
-    } else {
-        retVal = true;
+    {
         METHOD_NAME("DbConnection.commit");
-        return pThis->ac_commit(point);
+        hr = pThis->ac_commit(point);
     }
+    if (hr.ok())
+        retVal = result;
+    return hr;
+}
+
+inline result_t trans_behavior(v8::Local<v8::Object> options, exlib::string& behavior)
+{
+    behavior.clear();
+    if (options.IsEmpty())
+        return result_t();
+
+    Isolate* isolate = Isolate::current(options);
+    v8::Local<v8::Value> v;
+    if (!options->Get(isolate->context(), isolate->NewString("behavior")).ToLocal(&v)
+        || v.IsEmpty() || v->IsUndefined() || v->IsNull())
+        return result_t();
+
+    result_t hr = GetArgumentValue(isolate, v, behavior);
+    if (hr.failed())
+        return hr;
+
+    for (size_t i = 0; i < behavior.length(); i++)
+        if (behavior[i] >= 'A' && behavior[i] <= 'Z')
+            behavior[i] = behavior[i] - 'A' + 'a';
+
+    if (!behavior.empty() && behavior != "deferred"
+        && behavior != "immediate" && behavior != "exclusive")
+        return result_t::make(CALL_E_INVALID_DATA)
+            .with_type_name(errtype::kTypeError)
+            .with_code("ERR_INVALID_ARG_VALUE")
+            .with_message("DbConnection.trans: options.behavior must be 'deferred', 'immediate' or 'exclusive'.")
+            .with_result(result_t::invalid_arg());
+
+    return result_t();
 }
 
 template <class base, class impl>
@@ -200,6 +232,13 @@ public:
         return execute(str, retVal, std::move(ac));
     }
 
+    // Start a transaction with an engine-specific mode. SQLite overrides this
+    // to honor deferred/immediate/exclusive; other engines ignore behavior.
+    virtual result_t beginTransaction(exlib::string behavior)
+    {
+        return this->ac_begin("");
+    }
+
     result_t commit(exlib::string point, AsyncHandle ac)
     {
         if (ac.isSync())
@@ -234,14 +273,20 @@ public:
         return execute(str, retVal, std::move(ac));
     }
 
-    result_t trans(v8::Local<v8::Function> func, bool& retVal)
+    result_t trans(v8::Local<v8::Function> func, v8::Local<v8::Object> options, Variant& retVal)
     {
-        return trans("", func, retVal);
+        return trans("", func, options, retVal);
     }
 
-    result_t trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal)
+    result_t trans(exlib::string point, v8::Local<v8::Function> func,
+        v8::Local<v8::Object> options, Variant& retVal)
     {
-        return db_trans(this, point, func, retVal);
+        exlib::string behavior;
+        result_t hr = trans_behavior(options, behavior);
+        if (hr.failed())
+            return hr;
+
+        return db_trans(this, point, behavior, func, retVal);
     }
 
     result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
@@ -405,7 +450,7 @@ public:
             ac.ctxv()[0] = sql;
             Isolate* isolate = Isolate::current();
             for (int32_t i = 0; i < args.Length(); i++) {
-                result_t hr = GetArgumentValue(isolate, args[i], ac.ctxv()[i + 1]);
+                result_t hr = db_stash_arg(isolate, args[i], ac.ctxv()[i + 1]);
                 if (hr.failed())
                     return hr;
             }

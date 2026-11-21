@@ -207,7 +207,7 @@ public:
         return result_t();
     }
 
-    virtual result_t fetchRow(NObject* row, bool& done)
+    virtual result_t fetchRow(Statement::RowSink* row, bool& done)
     {
         if (!m_stmt)
             return result_t::closed();

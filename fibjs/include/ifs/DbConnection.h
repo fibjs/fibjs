@@ -31,8 +31,8 @@ public:
     virtual result_t begin(exlib::string point, AsyncHandle ac) = 0;
     virtual result_t commit(exlib::string point, AsyncHandle ac) = 0;
     virtual result_t rollback(exlib::string point, AsyncHandle ac) = 0;
-    virtual result_t trans(v8::Local<v8::Function> func, bool& retVal) = 0;
-    virtual result_t trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal) = 0;
+    virtual result_t trans(v8::Local<v8::Function> func, v8::Local<v8::Object> options, Variant& retVal) = 0;
+    virtual result_t trans(exlib::string point, v8::Local<v8::Function> func, v8::Local<v8::Object> options, Variant& retVal) = 0;
     virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncHandle ac) = 0;
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal) = 0;
@@ -251,23 +251,25 @@ inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Val
 
 inline void DbConnection_base::s_trans(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    bool vr;
+    Variant vr;
 
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    METHOD_OVER_NAMED(1, 1, "func");
+    METHOD_OVER_NAMED(2, 1, "func");
 
     ARG_NAMED(v8::Local<v8::Function>, 0, "func");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
-    hr = pInst->trans(v0, vr);
+    hr = pInst->trans(v0, v1, vr);
 
-    METHOD_OVER_NAMED(2, 2, "func");
+    METHOD_OVER_NAMED(3, 2, "func");
 
     ARG_NAMED(exlib::string, 0, "point");
     ARG_NAMED(v8::Local<v8::Function>, 1, "func");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "options");
 
-    hr = pInst->trans(v0, v1, vr);
+    hr = pInst->trans(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
