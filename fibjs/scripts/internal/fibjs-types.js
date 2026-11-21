@@ -33445,7 +33445,11 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs from a starting key with options
@@ -33458,7 +33462,11 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | string, opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs between two keys
@@ -33485,7 +33493,11 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Starts a write batch and returns the transaction object
@@ -33958,7 +33970,11 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs from a starting key with options
@@ -33971,7 +33987,11 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | string, opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs between two keys
@@ -33998,7 +34018,11 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: FIBJS.GeneralObject, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: {
+        skip?: number;
+        limit?: number;
+        reverse?: boolean;
+    }, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Starts a write batch and returns the transaction object
@@ -119533,7 +119557,13 @@ declare module 'path' {
      *      @return the formatted path
      *
      */
-    function format(pathObject: FIBJS.GeneralObject): string;
+    function format(pathObject: {
+        root?: string;
+        dir?: string;
+        base?: string;
+        ext?: string;
+        name?: string;
+    }): string;
 
     /**
      * @description Parses a path into an object with root, dir, base, ext and name fields
@@ -119955,7 +119985,13 @@ declare module 'path/posix' {
      *      @return the formatted path
      *
      */
-    function format(pathObject: FIBJS.GeneralObject): string;
+    function format(pathObject: {
+        root?: string;
+        dir?: string;
+        base?: string;
+        ext?: string;
+        name?: string;
+    }): string;
 
     /**
      * @description Parses a posix path into an object with root, dir, base, ext and name fields
@@ -120342,7 +120378,13 @@ declare module 'path/win32' {
      *      @return the formatted path
      *
      */
-    function format(pathObject: FIBJS.GeneralObject): string;
+    function format(pathObject: {
+        root?: string;
+        dir?: string;
+        base?: string;
+        ext?: string;
+        name?: string;
+    }): string;
 
     /**
      * @description Parses a win32 path into an object with root, dir, base, ext and name fields
@@ -120821,7 +120863,10 @@ declare module 'performance' {
      *      @param options the additional options
      *
      */
-    function mark(name: string, options?: FIBJS.GeneralObject): void;
+    function mark(name: string, options?: {
+        startTime?: number;
+        detail?: any;
+    }): void;
 
     /**
      * @description Creates a measure from options, or between two mark names
@@ -121599,7 +121644,10 @@ declare module 'process' {
      *      @return returns the time report
      *
      */
-    function cpuUsage(previousValue?: FIBJS.GeneralObject): {
+    function cpuUsage(previousValue?: {
+        user?: number;
+        system?: number;
+    }): {
         user: number;
         system: number;
     };
