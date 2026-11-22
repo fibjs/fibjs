@@ -51,32 +51,56 @@ if [[ $HOST_OS == 'Linux' ]]; then
     # output at all - that is what the android/arm64 job did, hanging for hours
     # right after the "path" suite header.
     #
-    # The two budgets below come from the job logs of the 2026-10-08 runs.  The
-    # native targets finish the suite in 8-12 minutes (ia32 664s, alpine/x64
-    # 648s, android/x64 492s), so a short leash is enough to catch a hang.  The
-    # qemu-emulated targets need 20-40 minutes for the same suite and swing by
-    # +-50% from one runner to the next (same run: riscv64 2186s, ppc64 2198s,
-    # loong64 2071s, arm64 2400s killed, arm 2400s killed, while a 2026-09-22
-    # runner needed 849-1434s for the same jobs), so their budget has to cover
-    # the slow end of that range: the previous 2400s cap killed runs that had
-    # already printed 96% of the suite output.  Raise TEST_TIMEOUT to override.
+    # The two budgets below come from the job logs of the 2026-10-08 and
+    # 2026-11-22 runs.  The native targets finish the suite in 8-12 minutes
+    # (ia32 664s, alpine/x64 648s, android/x64 492s), so a short leash is
+    # enough to catch a hang.  The qemu-emulated targets need 40-50 minutes for
+    # the same suite and swing by +-50% from one runner to the next (2026-11-22:
+    # arm64 2978s, loong64 2562s, arm 2501s, android/arm64 2466s, ppc64 2376s;
+    # 2026-10-08: riscv64 2186s, ppc64 2198s, loong64 2071s, arm64 2400s
+    # killed, arm 2400s killed, while a 2026-09-22 runner needed 849-1434s for
+    # the same jobs).  Their budget has to cover the slow end of that range:
+    # the previous 2400s cap killed runs that had already printed 96% of the
+    # suite output.  Raise TEST_TIMEOUT to override.
     if [[ $BUILD_ARCH == 'x64' || $BUILD_ARCH == 'ia32' ]]; then
         TEST_TIMEOUT=${TEST_TIMEOUT:-1800}
     else
-        TEST_TIMEOUT=${TEST_TIMEOUT:-5400}
+        TEST_TIMEOUT=${TEST_TIMEOUT:-6300}
     fi
+    # qemu 10, which docker/setup-qemu-action registers since the ubuntu 26.04
+    # migration, defaults the riscv64 CPU to the "max" model.  The TCG code
+    # behind the extensions that model enables is about four times slower than
+    # the plain rv64 model for compute-heavy suites: on the same binary,
+    # zlib needs 72s instead of 17s, xml 332s instead of 83s and the
+    # worker_threads suite 79s instead of 33s.  With the default the full
+    # suite no longer fitted the budget above and the riscv64 job of run
+    # 45002444438 was killed at 5400s in the middle of
+    # worker_threads_fibjs_test; with rv64 the target runs in line with the
+    # other emulated targets.  QEMU_CPU is read by qemu itself, so it also
+    # applies to every exec binfmt performs for a child process.
+    TEST_ENV=""
+    if [[ $BUILD_ARCH == 'riscv64' ]]; then
+        TEST_ENV="-e QEMU_CPU=rv64"
+    fi
+
     TEST_CONTAINER=fibjs-test-${BUILD_OS}-${BUILD_ARCH}
 
     TEST_EXIT=0
-    timeout -s KILL ${TEST_TIMEOUT} docker run -t --rm --name ${TEST_CONTAINER} --privileged \
-        -e CI=${CI} -v ${CUR}:${CUR} ${TEST_IMAGE} bash -c "cd ${CUR}; ${TEST_CMD}" || TEST_EXIT=$?
+    timeout --preserve-status -s KILL ${TEST_TIMEOUT} docker run -t --rm --name ${TEST_CONTAINER} --privileged \
+        -e CI=${CI} ${TEST_ENV} -v ${CUR}:${CUR} ${TEST_IMAGE} bash -c "cd ${CUR}; ${TEST_CMD}" || TEST_EXIT=$?
 
+    # --preserve-status keeps the SIGKILL exit code (137) visible: without it
+    # GNU coreutils <= 9.4 already reported 137 but the uutils implementation
+    # that ubuntu 26.04 (and therefore ubuntu-latest) ships reports 124, which
+    # is also the code the test runner's own watchdog uses when a leaked handle
+    # keeps the process alive after the run.  With --preserve-status the two
+    # are distinguishable again.
     if [[ ${TEST_EXIT} == 137 ]]; then
         # timeout killed the client, not the container; drop the stuck one so it
         # cannot keep burning a core for the rest of the job
         docker rm -f ${TEST_CONTAINER} >/dev/null 2>&1 || true
 
-        echo "::error::the test run did not finish within ${TEST_TIMEOUT}s and was killed: the process is stuck, not merely slow (no known run needs more than two thirds of that)."
+        echo "::error::the test run did not finish within ${TEST_TIMEOUT}s and was killed: the process is stuck, not merely slow."
         exit 1
     fi
 

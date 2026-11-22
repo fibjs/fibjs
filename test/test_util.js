@@ -16,8 +16,14 @@ var ss = [];
 // loader outside /lib64, e.g. /usr/mips64el-linux-gnuabi64/lib64/ld.so.1), so a
 // child spawned without it dies with
 // "/lib64/ld.so.1: No such file or directory" and exit code 255.
+//
+// QEMU_CPU has to survive for the same reason on riscv64: qemu 10 defaults to
+// the "max" CPU model, whose TCG paths are several times slower than rv64 (see
+// .github/workflows/test.sh).  A child started with the filtered env would not
+// fail, but it would silently fall back to the slow model.
 exports.emulationEnvKeys = [
-    'QEMU_LD_PREFIX'
+    'QEMU_LD_PREFIX',
+    'QEMU_CPU'
 ];
 
 // Environment keys that must survive a filtered env when a child process is
