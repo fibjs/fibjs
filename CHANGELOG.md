@@ -131,6 +131,10 @@
       `load-failed` for a blocked port: it commits an empty document and the
       load "succeeds", so a request that only ever reaches `about:blank` is
       reported as the failure it is.
+    * gui - a build without a desktop backend (Android, iOS) rejects a GUI
+      entry point under `--use-thread` with `ERR_GUI_UNAVAILABLE`, like the
+      desktop backends, instead of the platform's `ERR_NOT_SUPPORTED`; without
+      the flag the call still reports "... not supported in this platform".
     * net - `stop()` no longer reports its parked accept as an error. Closing
       the listening socket makes the pending `accept` fail with a
       platform-specific code (Windows reports `WSAENOTSOCK`), and the accept
