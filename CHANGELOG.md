@@ -71,6 +71,8 @@
       (including `false`), rolls back only when the callback throws, and accepts
       `options.behavior` (`deferred`/`immediate`/`exclusive`) on SQLite.
 * **breaking** :
+    * mq - a JavaScript handler function's return value is ignored; it is no
+      longer converted to the next handler.
     * db - `trans` no longer treats a `false` callback return as rollback and no
       longer returns the commit Boolean; throw to roll back, and the callback
       result is now returned.

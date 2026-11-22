@@ -1911,7 +1911,7 @@ describe('worker_threads fibjs target behavior', () => {
             what: 'mq.Routing build loop',
             body: [
                 "const mq = require('mq');",
-                "while (true) new mq.Routing({ '/x': function (r) { return r; } });"
+                "while (true) new mq.Routing({ '/x': function (r) { } });"
             ]
         },
         {

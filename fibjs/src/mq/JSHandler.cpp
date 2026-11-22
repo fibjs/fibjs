@@ -7,12 +7,7 @@
 
 #include "object.h"
 #include "JSHandler.h"
-#include "Fiber.h"
-#include "SandBox.h"
 #include "ifs/Message.h"
-#include "ifs/global.h"
-#include "ifs/mq.h"
-#include "ifs/console.h"
 #include "AsyncWaitHandler.h"
 #include "ifs/HttpRequest.h"
 
@@ -96,56 +91,58 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     }
 
     v8::Local<v8::Value> hdlr = GetPrivate("handler");
-
-    while (hdlr->IsFunction()) {
-        JSFunction func = hdlr.As<v8::Function>();
-        obj_ptr<NArray> params;
-        std::vector<v8::Local<v8::Value>> argv;
-        v8::Local<v8::Value>* pargv;
-        int32_t len = 0, i;
-
-        if (msg != NULL) {
-            msg->get_params(params);
-            len = params->length();
-        }
-
-        // argv layout: [req, ...params, res(if HttpRequest)]
-        int32_t extra = hasRes ? 1 : 0;
-        if (len > 0 || hasRes) {
-            argv.resize(len + 1 + extra);
-            argv[0] = a;
-
-            for (i = 0; i < len; i++) {
-                Variant v;
-                params->_indexed_getter(i, v);
-                argv[i + 1] = v;
-            }
-            if (hasRes)
-                argv[len + 1] = resArg;
-
-            pargv = argv.data();
-        } else
-            pargv = &a;
-
-        {
-            TryCatch try_catch;
-            hdlr = func.Call(v8::Undefined(isolate->m_isolate), len + 1 + extra, pargv);
-            if (try_catch.HasCaught()) {
-                v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
-                    isolate->m_isolate, 1, v8::StackTrace::kScriptId);
-                if (stackTrace->GetFrameCount() > 0) {
-                    try_catch.ReThrow();
-                    return result_t(CALL_E_JAVASCRIPT);
-                } else
-                    return result_t::make(CALL_E_INVALID_DATA).with_message(GetException(try_catch, result_t(), false, true)).with_func(__func__);
-            }
-        }
-
-        if (IsEmpty(hdlr))
-            return result_t::return_null();
+    if (IsEmpty(hdlr) || !hdlr->IsFunction()) {
+        retVal = NULL;
+        return result_t::return_null();
     }
 
-    return GetArgumentValue(isolate, hdlr, retVal);
+    JSFunction func = hdlr.As<v8::Function>();
+    obj_ptr<NArray> params;
+    std::vector<v8::Local<v8::Value>> argv;
+    v8::Local<v8::Value>* pargv;
+    int32_t len = 0, i;
+
+    if (msg != NULL) {
+        msg->get_params(params);
+        len = params->length();
+    }
+
+    // argv layout: [req, ...params, res(if HttpRequest)]
+    int32_t extra = hasRes ? 1 : 0;
+    if (len > 0 || hasRes) {
+        argv.resize(len + 1 + extra);
+        argv[0] = a;
+
+        for (i = 0; i < len; i++) {
+            Variant v;
+            params->_indexed_getter(i, v);
+            argv[i + 1] = v;
+        }
+        if (hasRes)
+            argv[len + 1] = resArg;
+
+        pargv = argv.data();
+    } else
+        pargv = &a;
+
+    {
+        TryCatch try_catch;
+        func.Call(v8::Undefined(isolate->m_isolate), len + 1 + extra, pargv);
+        if (try_catch.HasCaught()) {
+            v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
+                isolate->m_isolate, 1, v8::StackTrace::kScriptId);
+            if (stackTrace->GetFrameCount() > 0) {
+                try_catch.ReThrow();
+                return result_t(CALL_E_JAVASCRIPT);
+            } else
+                return result_t::make(CALL_E_INVALID_DATA).with_message(GetException(try_catch, result_t(), false, true)).with_func(__func__);
+        }
+    }
+
+    // A JavaScript handler consumes the message; its return value is ignored.
+    // Clear the output slot in case the caller reuses it.
+    retVal = NULL;
+    return result_t::return_null();
 }
 
 } /* namespace fibjs */

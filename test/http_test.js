@@ -2034,6 +2034,18 @@ describe("http", () => {
             assert.strictEqual(byContext.stop(), byContext);
         });
 
+        it("should accept an expression-bodied handler", () => {
+            var svr = new http.Server(0, (req) => req.response.write("ok"));
+            svr.start();
+            try {
+                var res = http.getSync(`http://127.0.0.1:${svr.socket.localPort}/`);
+                assert.equal(res.statusCode, 200);
+                assert.equal(res.text(), "ok");
+            } finally {
+                svr.stop();
+            }
+        });
+
         it("should reject an invalid certificate", () => {
             assert.throws(() => http.createServer({ cert: "not-a-pem" },
                 (req) => req.response.write("ok")),

@@ -683,16 +683,67 @@ describe("mq", () => {
 
         var jv = new mq.Handler(fun1);
 
-        it("direct invoke", () => {
+        it("ignores a returned function", () => {
             n = 0;
-            jv.invoke(v);
+            assert.equal(jv.invoke(v), null);
+            assert.equal(1, n);
+        });
+
+        it("ignores a returned Handler", () => {
+            n = 0;
+            mq.invoke(new mq.Handler(fun2), v);
+            assert.equal(2, n);
+        });
+
+        it("ignores Chain/Routing/string returns", () => {
+            n = 0;
+            var values = [
+                [() => { n = n | 8; }],
+                { '/x': () => { n = n | 16; } },
+                '/__fibjs_no_such_handler__'
+            ];
+
+            values.forEach((ret) => {
+                mq.invoke((v) => {
+                    n++;
+                    return ret;
+                }, v);
+            });
+
             assert.equal(3, n);
         });
 
-        it("recursion invoke", () => {
+        it("mq.invoke only calls the outer function", () => {
             n = 0;
             mq.invoke(jv, v);
-            assert.equal(7, n);
+            assert.equal(1, n);
+        });
+
+        it("ignores a raw async return", () => {
+            n = 0;
+            mq.invoke(async (v) => {
+                n = n | 1;
+                return () => { n = n | 2; };
+            }, v);
+            assert.equal(1, n);
+        });
+
+        it("ignores a callback-style return", () => {
+            n = 0;
+            mq.invoke(util.sync((v, done) => {
+                n = n | 1;
+                done(null, () => { n = n | 2; });
+            }), v);
+            assert.equal(1, n);
+        });
+
+        it("returning nullHandler does not stop a Chain", () => {
+            n = 0;
+            mq.invoke(new mq.Chain([
+                (v) => { n = n | 1; return mq.nullHandler(); },
+                (v) => { n = n | 2; }
+            ]), v);
+            assert.equal(3, n);
         });
     });
 
@@ -950,17 +1001,6 @@ describe("mq", () => {
             assert.throws(() => {
                 mq.invoke(r, m);
             }, (err) => { console.log('PROBE@mq#950 ' + JSON.stringify({ name: err && err.name, code: err && err.code, number: err && err.number, errno: err && err.errno, syscall: err && err.syscall, message: String(err && err.message).slice(0, 90) })); return true; });
-        });
-
-        xit("object param", () => {
-            var req = new mq.Message();
-            req.params.resize(1);
-            req.params[0] = [];
-
-            new mq.Handler(function t(request, d) {
-                assert.isArray(d);
-                return "ok";
-            }).invoke(req);
         });
 
         it("path to value", () => {
@@ -1327,11 +1367,11 @@ describe("mq", () => {
             (() => {
                 var hdlr = new mq.Chain([
                     () => {
-                        return hdlr
+                        void hdlr;
                     },
                     new mq.Routing({
                         'a': () => {
-                            return hdlr
+                            void hdlr;
                         }
                     })
                 ]);
@@ -1364,12 +1404,12 @@ describe("mq", () => {
                 var data = new coroutine.Event();
                 svr = new http.Server(8892, new mq.Chain([
                     () => {
-                        return hdlr
+                        void hdlr;
                     },
                     new mq.Routing({
                         'a': (r) => {
                             r.response.write(data);
-                            return hdlr
+                            void hdlr;
                         }
                     })
                 ]));

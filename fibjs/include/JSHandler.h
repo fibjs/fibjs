@@ -9,8 +9,6 @@
 
 #include "ifs/Handler.h"
 #include "ifs/vm.h"
-#include "Chain.h"
-#include "Routing.h"
 
 namespace fibjs {
 
