@@ -2169,7 +2169,9 @@ describe("db", () => {
     });
 
     // if (global.full_test)
-    for (var type in sql_server)
+    // `let`, not `var`: describe blocks run after this loop, so a var binding
+    // would leave every suite running the last configured server.
+    for (let type in sql_server)
         describe(sql_server[type].desc, () => {
             _test(type, sql_server[type].conn_str);
         });
