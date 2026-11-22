@@ -706,16 +706,25 @@ describe(gui_env, { skip: skip_reason }, () => {
             wins.push(win);
 
             var events = [];
-            win.on("loading", ev => events.push({
-                type: "loading",
-                url: ev.url,
-                loading: win.loading
-            }));
-            win.on("load", ev => events.push({
-                type: "load",
-                url: ev.url,
-                loading: win.loading
-            }));
+            // A window starts on the engine's empty document, and WebView2
+            // navigates a fresh one to about:blank more than once while the
+            // window is being created; a completion of that can arrive after
+            // the listeners are attached. Only the document this test asks for
+            // belongs in the recording.
+            function record(type) {
+                return ev => {
+                    if (!ev.url || /^about:blank($|#)/.test(ev.url))
+                        return;
+
+                    events.push({
+                        type,
+                        url: ev.url,
+                        loading: win.loading
+                    });
+                };
+            }
+            win.on("loading", record("loading"));
+            win.on("load", record("load"));
 
             win.loadFile(path.join(__dirname, "gui_files", "test.html"));
 
