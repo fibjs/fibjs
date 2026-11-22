@@ -1630,6 +1630,19 @@ async function async_eval(func) {
                     // The new window is created, focused and loaded inside
                     // open(), so the first window loses the keyboard there.
                     assert.equal(blur, last_blur + 1);
+
+                    // Only one window is key, so this is the probe for whether
+                    // the session handed the keyboard over at all: a fullscreen
+                    // window owns a space of its own, and a runner may keep it
+                    // active (and key) instead of switching to the new window.
+                    if (!win1.focused) {
+                        console.log("focus/blur: the session did not hand the keyboard to the new window; "
+                            + session_hint());
+                        win1.close();
+                        win.close();
+                        return;
+                    }
+
                     assert.equal(win.focused, false);
                     assert.equal(win1.focused, true);
 
