@@ -69,8 +69,13 @@ jobs:
         run: bash ./.github/workflows/db-test.sh
 
   # Windows x64: 预装 PG + MySQL (启动服务), Docker 启动 MSSQL, DM 跳过
+  # 必须和 build.yml 使用同一个 runner 镜像 (windows-latest):
+  # ci 构建链接的是 fibjs_vender 预编译 dist (libv8/libdatachannel),
+  # 它在 windows-latest 的 MSVC STL 下编译, 会引用 __std_rotate、
+  # __std_unique_4/8 等新版 STL 内部符号; windows-2022 镜像的
+  # msvcprt.lib 较旧, 链接时这些符号未定义 (lld-link LNK2019).
   db-test-windows:
-    runs-on: windows-2022
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
         with:
