@@ -105184,7 +105184,10 @@ declare module 'global' {
  *    on Linux, Cocoa/WKWebView on macOS, Win32/WebView2 on Windows. Menus can be
  *    built and inspected without a display; windows, tray icons and dialogs need a
  *    running desktop session, and builds without desktop support fail with
- *    "... not supported in this platform" errors.
+ *    "... not supported in this platform" errors. A desktop build whose session has
+ *    no display server (on Linux: \`DISPLAY\` and \`WAYLAND_DISPLAY\` are both unset)
+ *    reports \`ERR_GUI_UNAVAILABLE\` from those entry points instead of trying to open
+ *    a connection, so a CLI or server process never loads the toolkit.
  *  - **Window lifecycle**: \`open\`/\`openFile\` return after the native window has
  *    been created, so the returned WebView can be used at once; there is no
  *    "window not created yet" state. An open window keeps the process alive until

@@ -13,6 +13,10 @@
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 
+#include <atomic>
+
+#include <exlib/include/thread.h>
+
 #include "object.h"
 #include "../gui.h"
 #include "options.h"
@@ -24,13 +28,18 @@
 #include "WebView.h"
 #include "Buffer.h"
 
-extern void dl_init();
-
 namespace fibjs {
 
 static GMainLoop* main_loop = nullptr;
 
 static gint s_idle_armed = 0;
+
+// The toolkit is resolved on the first GUI call and the thread is handed to
+// GLib right after; until then the loop below waits on a semaphore, because a
+// system without a desktop need not ship GLib (or GTK) at all.
+static std::atomic<bool> s_toolkit_active(false);
+static exlib::OSSemaphore s_wake;
+static bool s_quit = false;
 
 static gboolean host_idle(gpointer)
 {
@@ -48,8 +57,15 @@ static gboolean host_idle(gpointer)
 
 void os_wake_host()
 {
-    if (g_atomic_int_compare_and_exchange(&s_idle_armed, 0, 1))
-        g_idle_add(host_idle, NULL);
+    if (s_toolkit_active.load()) {
+        if (g_atomic_int_compare_and_exchange(&s_idle_armed, 0, 1))
+            g_idle_add(host_idle, NULL);
+    } else {
+        // The semaphore is counted, so a wakeup that arrives while the loop is
+        // draining work leaves a permit behind and the next wait returns at
+        // once instead of sleeping.
+        s_wake.Post();
+    }
 }
 
 static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer user_data)
@@ -101,27 +117,71 @@ void setup_webkit()
 
 void os_prepare_host()
 {
-    dl_init();
-    gtk_init_check(nullptr, nullptr);
-    main_loop = g_main_loop_new(NULL, FALSE);
-    setup_webkit();
+    // The wakeup source is the semaphore above: unlike the GLib main loop it
+    // needs nothing from the toolkit, so a process that never opens a window
+    // runs without GLib, GTK and WebKit being present on the system.
 }
 
 void os_run_host()
 {
-    g_main_loop_run(main_loop);
+    for (;;) {
+        if (s_toolkit_active.load()) {
+            // ensure_os_gui_initialized() ran from a GUI call in the work the
+            // loop just drained, so GLib owns the thread from here: its loop
+            // dispatches the GTK events and, through the idle source, the
+            // pendings of the service.
+            if (s_quit)
+                return;
+
+            os_wake_host();
+            g_main_loop_run(main_loop);
+            return;
+        }
+
+        s_wake.Wait();
+
+        if (s_quit)
+            return;
+
+        gui_dispatch_pending();
+
+        if (g_main_js_service && g_main_js_service->runPending(64))
+            os_wake_host();
+    }
 }
 
 void ensure_os_gui_initialized()
 {
+    static bool initialized = false;
+
+    if (initialized)
+        return;
+    initialized = true;
+
+    // check_gui_available() already rejected a session without a display, so a
+    // failure here means a broken DISPLAY: webkit_web_context_get_default()
+    // cannot run without GDK, and the entry point reports the failure it gets
+    // from the toolkit calls that follow.
+    if (!gtk_init_check(nullptr, nullptr))
+        return;
+
+    setup_webkit();
+
+    main_loop = g_main_loop_new(NULL, FALSE);
+    s_toolkit_active.store(true);
 }
 
-// Graceful quit: stop the GTK main loop that owns the windows; the process then
-// leaves through the normal shutdown path.
+// Graceful quit: stop the loop that owns the windows - the GLib one once the
+// toolkit runs, the plain wait otherwise - so the process leaves through the
+// normal shutdown path.
 void os_quit()
 {
-    if (main_loop)
+    s_quit = true;
+
+    if (s_toolkit_active.load())
         g_main_loop_quit(main_loop);
+    else
+        os_wake_host();
 }
 
 static gboolean on_close(GObject* object, GParamSpec* pspec, gpointer data)

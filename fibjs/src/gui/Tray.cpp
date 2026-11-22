@@ -63,6 +63,8 @@ result_t gui_base::createTray(TrayOptions* opt, obj_ptr<Tray_base>& retVal)
     if (!opt)
         return result_t(CALL_E_PARAMNOTOPTIONAL);
 
+    gui_prepare_call();
+
     obj_ptr<Tray> tray = new Tray();
     retVal = tray;
 

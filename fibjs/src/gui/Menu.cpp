@@ -33,7 +33,9 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Menu
 
 result_t gui_base::createMenu(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu_base>& retVal)
 {
-    result_t gui_hr = check_gui_available();
+    // A menu is plain data until it is attached to a window or tray, so it can
+    // be built without a display and without loading the toolkit.
+    result_t gui_hr = check_gui_thread();
     if (gui_hr.failed())
         return gui_hr;
 

@@ -580,6 +580,8 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
     if (gui_hr.failed())
         return gui_hr;
 
+    gui_prepare_call();
+
     obj_ptr<WebView> webview = new WebView();
     retVal = webview;
     return webview->open(url, opt);
@@ -591,6 +593,8 @@ result_t gui_base::openFile(exlib::string file, v8::Local<v8::Object> opt, obj_p
     if (gui_hr.failed())
         return gui_hr;
 
+    gui_prepare_call();
+
     obj_ptr<WebView> webview = new WebView();
     retVal = webview;
     return webview->openFile(file, opt);
@@ -601,6 +605,8 @@ result_t gui_base::open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal
     result_t gui_hr = check_gui_available();
     if (gui_hr.failed())
         return gui_hr;
+
+    gui_prepare_call();
 
     obj_ptr<WebView> webview = new WebView();
     retVal = webview;

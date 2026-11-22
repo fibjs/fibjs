@@ -24,10 +24,6 @@ const char* webkit_str()
 static void* webkit_handle = NULL;
 #define webkit_func(func) dl_def_func(webkit_handle, func, webkit_str(), "libwebkit2gtk-4.0.so", "libwebkit2gtk-4.1.so")
 
-void dl_webkit_init()
-{
-}
-
 extern "C" {
 
 GtkWidget* webkit_web_view_new()

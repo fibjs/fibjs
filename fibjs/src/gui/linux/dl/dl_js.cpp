@@ -25,10 +25,6 @@ const char* js_str()
 static void* js_handle = NULL;
 #define js_func(func) dl_def_func(js_handle, func, js_str(), "libjavascriptcoregtk-4.0.so", "libjavascriptcoregtk-4.1.so")
 
-void dl_js_init()
-{
-}
-
 extern "C" {
 
 char* jsc_value_to_string(JSCValue* value)

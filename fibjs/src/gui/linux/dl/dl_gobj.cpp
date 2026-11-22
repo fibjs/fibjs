@@ -24,11 +24,43 @@ const char* gobj_str()
 static void* gobj_handle = NULL;
 #define gobj_func(func) dl_def_func(gobj_handle, func, gobj_str(), "libgobject-2.0.so")
 
-void dl_gobj_init()
+// The GLib half (main loop, idle sources) is resolved separately: the host loop
+// runs in every process, while GTK (see dl_gtk.cpp) is only loaded when a GUI
+// call actually needs the toolkit.
+const char* glib_str()
 {
+    static std::string str = ldconfig("glib-2.");
+    return str.c_str();
 }
 
+static void* glib_handle = NULL;
+#define glib_func(func) dl_def_func(glib_handle, func, glib_str(), "libglib-2.0.so.0", "libglib-2.0.so")
+
 extern "C" {
+
+GMainLoop* g_main_loop_new(GMainContext* context, gboolean is_running)
+{
+    glib_func(g_main_loop_new);
+    return s_g_main_loop_new(context, is_running);
+}
+
+void g_main_loop_run(GMainLoop* loop)
+{
+    glib_func(g_main_loop_run);
+    s_g_main_loop_run(loop);
+}
+
+void g_main_loop_quit(GMainLoop* loop)
+{
+    glib_func(g_main_loop_quit);
+    s_g_main_loop_quit(loop);
+}
+
+guint g_idle_add(GSourceFunc function, gpointer data)
+{
+    glib_func(g_idle_add);
+    return s_g_idle_add(function, data);
+}
 
 GTypeInstance* g_type_check_instance_cast(GTypeInstance* instance, GType iface_type)
 {

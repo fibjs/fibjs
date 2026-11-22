@@ -79,7 +79,20 @@ if (process.platform === "linux") {
     }
 }
 
-describe(gui_env, { skip: use_thread && 'gui is unavailable in --use-thread mode' }, () => {
+// A headless session has no window server to draw in, and the GUI entry points
+// reject it with ERR_GUI_UNAVAILABLE before the toolkit is loaded: there is
+// nothing to exercise. capabilities only reports the environment, so it stays
+// readable without a display.
+var no_session = false;
+try {
+    no_session = gui.capabilities.session == null;
+} catch (e) {
+}
+
+var skip_reason = (use_thread && 'gui is unavailable in --use-thread mode')
+    || (no_session && 'no display session (DISPLAY and WAYLAND_DISPLAY are both unset)');
+
+describe(gui_env, { skip: skip_reason }, () => {
     var wins = [];
 
     after(() => {

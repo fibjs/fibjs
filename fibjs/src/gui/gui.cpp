@@ -50,12 +50,16 @@ result_t gui_base::get_capabilities(v8::Local<v8::Object>& retVal)
     session = "win32";
 #else
     // The session decides what the window manager honours: placement and focus
-    // requests are a compositor matter on Wayland.
+    // requests are a compositor matter on Wayland. A machine without a display
+    // server has no session at all, which is the condition the entry points
+    // reject with ERR_GUI_UNAVAILABLE.
     const char* xdg = getenv("XDG_SESSION_TYPE");
     const char* wayland = getenv("WAYLAND_DISPLAY");
-    const char* display = getenv("DISPLAY");
 
-    if (xdg && !strcmp(xdg, "wayland")) {
+    if (!has_gui_session()) {
+        position = false;
+        focus_request = false;
+    } else if (xdg && !strcmp(xdg, "wayland")) {
         session = "wayland";
         position = false;
         focus_request = false;
@@ -65,11 +69,8 @@ result_t gui_base::get_capabilities(v8::Local<v8::Object>& retVal)
         session = "wayland";
         position = false;
         focus_request = false;
-    } else if (display && *display) {
-        session = "x11";
     } else {
-        position = false;
-        focus_request = false;
+        session = "x11";
     }
 #endif
 
@@ -128,7 +129,9 @@ result_t gui_base::get_capabilities(v8::Local<v8::Object>& retVal)
 
 result_t gui_base::quit()
 {
-    result_t hr = check_gui_available();
+    // Nothing to quit when the host loop is not the GUI one; no display is not
+    // an error, the loop still exists.
+    result_t hr = check_gui_thread();
     if (hr.failed())
         return hr;
 

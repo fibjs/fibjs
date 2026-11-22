@@ -24,10 +24,6 @@ const char* pango_str()
 static void* pango_handle = NULL;
 #define pango_func(func) dl_def_func(pango_handle, func, pango_str(), "libpango-1.0.so")
 
-void dl_pango_init()
-{
-}
-
 extern "C" {
 
 PangoFontDescription* pango_font_description_copy(const PangoFontDescription* desc)

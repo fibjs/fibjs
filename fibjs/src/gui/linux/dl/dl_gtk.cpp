@@ -24,10 +24,6 @@ const char* gtk_str()
 static void* gtk_handle = NULL;
 #define gtk_func(func) dl_def_func(gtk_handle, func, gtk_str(), "libgtk-3.so")
 
-void dl_gtk_init()
-{
-}
-
 extern "C" {
 
 gboolean gtk_init_check(int* argc, char*** argv)
@@ -684,30 +680,6 @@ void gtk_window_set_modal(GtkWindow* window, gboolean modal)
 {
     gtk_func(gtk_window_set_modal);
     s_gtk_window_set_modal(window, modal);
-}
-
-GMainLoop* g_main_loop_new(GMainContext* context, gboolean is_running)
-{
-    gtk_func(g_main_loop_new);
-    return s_g_main_loop_new(context, is_running);
-}
-
-void g_main_loop_run(GMainLoop* loop)
-{
-    gtk_func(g_main_loop_run);
-    s_g_main_loop_run(loop);
-}
-
-void g_main_loop_quit(GMainLoop* loop)
-{
-    gtk_func(g_main_loop_quit);
-    s_g_main_loop_quit(loop);
-}
-
-guint g_idle_add(GSourceFunc function, gpointer data)
-{
-    gtk_func(g_idle_add);
-    return s_g_idle_add(function, data);
 }
 
 GInputStream* g_memory_input_stream_new_from_data(const void* data, gssize len, GDestroyNotify destroy)

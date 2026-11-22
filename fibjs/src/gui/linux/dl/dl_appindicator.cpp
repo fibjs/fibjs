@@ -17,10 +17,6 @@
 static void* appindicator_handle = NULL;
 #define appindicator_func(func) dl_def_func(appindicator_handle, func, "libappindicator3.so.1")
 
-void dl_appindicator_init()
-{
-}
-
 extern "C" {
 
 AppIndicator* app_indicator_new(const gchar* id, const gchar* icon_name, AppIndicatorCategory category)
