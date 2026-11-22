@@ -70,6 +70,16 @@ var use_thread = (process.execArgv || []).indexOf('--use-thread') >= 0;
 
 var vfb;
 if (process.platform === "linux") {
+    // A virtual GPU (a VM) has no DRI driver of its own, so Mesa falls back to
+    // software rendering and warns on stderr for every GL context it opens:
+    // "libEGL warning: pci id for fd 17: 1ab8:0010, driver (null)". WebKitGTK
+    // opens one per page, so the warning floods the suite output without
+    // telling anything about the window being tested. The compositor is not
+    // what this suite exercises: render without it, and keep the driver's own
+    // warnings out of the log when something still opens a GL context.
+    process.env.WEBKIT_DISABLE_COMPOSITING_MODE = process.env.WEBKIT_DISABLE_COMPOSITING_MODE || "1";
+    process.env.EGL_LOG_LEVEL = process.env.EGL_LOG_LEVEL || "error";
+
     if (process.env.DISPLAY === undefined) {
         try {
             vfb = child_process.spawn("Xvfb", [":99", "-screen", "0", "1024x768x24"]);
