@@ -107,7 +107,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds the given address and port
@@ -121,7 +121,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      @param listener the connection handler
      *
      */
-    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds from an options object
@@ -145,7 +145,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     constructor(options: {
         address?: string;
         port?: number;
-    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds a unix socket or Windows pipe
@@ -158,7 +158,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, does not bind a port, listen() must be called to start
@@ -169,7 +169,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description Starts the current server
@@ -564,7 +564,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds the given address and port
@@ -578,7 +578,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      @param listener the connection handler
      *
      */
-    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds from an options object
@@ -602,7 +602,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     constructor(options: {
         address?: string;
         port?: number;
-    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds a unix socket or Windows pipe
@@ -615,7 +615,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, does not bind a port, listen() must be called to start
@@ -626,7 +626,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description Starts the current server

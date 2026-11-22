@@ -8,20 +8,16 @@
  *  element in turn, each element may change it, and the chain ends when the queue
  *  is exhausted or the value is ended. It is the object behind the array form of
  *  every handler parameter — `new mq.Handler([a, b])`, the handler array of an
- *  http server and the array returned by a handling function all become a Chain —
- *  so the class is usually reached through that conversion rather than
- *  constructed by name.
+ *  http server — so the class is usually reached through that conversion rather
+ *  than constructed by name.
  *
  *  Concepts:
  *  - **Order**: the elements run in the order they were given; append adds to the
- *    end. A handler returning nothing finishes its own stage and the chain moves
- *    to the next element, so a chain of plain functions behaves like a pipeline.
+ *    end. A JavaScript handler's return value is ignored, so it finishes its own
+ *    stage and the chain moves to the next element; end the message to stop.
  *  - **Ending the chain**: calling end() on a Message or response.end() on an
  *    http.Request marks the value as finished; the chain stops before the next
  *    element, which is the way a middle handler short-circuits a request.
- *  - **Returning a handler**: a handling function may return another handler,
- *    function, array (a nested Chain) or routing map (a nested Routing); the
- *    returned handler runs before the next element of the queue.
  *  - **Fibers**: plain functions run in the fiber that invoked the chain, while a
  *    handler object (another Chain, a Routing, a repeater) runs in its own
  *    fiber, which matters when the elements share mutable state.
@@ -169,7 +165,7 @@ declare class Class_Chain extends Class_Handler {
      *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_object, ...params: any[])=>void)): void;
 
 }
 
@@ -255,7 +251,7 @@ declare class Class_ChainPromise extends Class_HandlerPromise {
      *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_object, ...params: any[])=>void)): void;
 
 }
 

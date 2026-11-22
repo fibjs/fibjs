@@ -33,7 +33,7 @@
  *    method and `"host"` matches the Host header instead of the address; a host
  *    pattern matches the labels of the host name with `*` and ignores the port.
  *  - **Handler forms**: the value of a rule may be a Handler object, an array of
- *    handlers (a Chain), a function `(req, ...captures) => any` (an http request
+ *    handlers (a Chain), a function `(req, ...captures) => void` (an http request
  *    also receives its response as the last argument), a routing map object or a
  *    path/address string.
  *  - **No match**: mq.invoke raises `Routing: unknown routing: <value>` when no
@@ -243,7 +243,7 @@ declare class Class_Routing extends Class_Handler {
      *      passed to the handler. hdlr may be given in any of these forms:
      *      - a Handler object, invoked as it is;
      *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function `(req, ...captures) => any`, called with the routed
+     *      - a handler function `(req, ...captures) => void`, called with the routed
      *        message and the captured groups (also readable as req.params); an http
      *        request receives its response as the last argument;
      *      - a routing map object, whose values are handlers in these same forms;
@@ -256,7 +256,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a routing rule with a method scope
@@ -291,7 +291,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules for http host names
@@ -342,7 +342,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept all http methods
@@ -370,7 +370,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of GET method routing rules
@@ -398,7 +398,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http POST method
@@ -425,7 +425,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http DELETE method
@@ -450,7 +450,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PUT method routing rules
@@ -476,7 +476,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PATCH method routing rules
@@ -501,7 +501,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of FIND method routing rules
@@ -528,7 +528,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
 }
 
@@ -655,7 +655,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      passed to the handler. hdlr may be given in any of these forms:
      *      - a Handler object, invoked as it is;
      *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function `(req, ...captures) => any`, called with the routed
+     *      - a handler function `(req, ...captures) => void`, called with the routed
      *        message and the captured groups (also readable as req.params); an http
      *        request receives its response as the last argument;
      *      - a routing map object, whose values are handlers in these same forms;
@@ -668,7 +668,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a routing rule with a method scope
@@ -703,7 +703,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules for http host names
@@ -754,7 +754,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept all http methods
@@ -782,7 +782,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of GET method routing rules
@@ -810,7 +810,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http POST method
@@ -837,7 +837,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http DELETE method
@@ -862,7 +862,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PUT method routing rules
@@ -888,7 +888,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PATCH method routing rules
@@ -913,7 +913,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of FIND method routing rules
@@ -940,7 +940,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
 }
 

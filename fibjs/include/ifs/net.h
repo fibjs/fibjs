@@ -29,7 +29,7 @@ class net_base : public object_base {
 
 public:
     using Union_connect_options = std::variant<v8::Local<v8::Object>, exlib::string, int32_t>;
-    using Union_createServer_listener = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
+    using Union_createServer_listener = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Object>, exlib::string, v8::Local<v8::Function>>;
 
 public:
     enum {

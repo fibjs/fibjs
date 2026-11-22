@@ -510,7 +510,7 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
             'const r = new mq.Routing({});',
             "r.get('/x/*', (req, p1, res) => { req.value; console.log(p1, res); });",
             "r.append('/x', './www');",
-            'mq.invoke((req: any) => req, new mq.Routing({}));',
+            'mq.invoke((req: any) => { req; }, new mq.Routing({}));',
             'console.log(http, http2, net, tls, mq, r);'
         ].join('\n'));
 

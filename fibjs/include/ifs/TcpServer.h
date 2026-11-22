@@ -26,7 +26,7 @@ class TcpServer_base : public EventEmitter_base {
     EVENT_SUPPORT();
 
 public:
-    using Union_TcpServer_listener = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
+    using Union_TcpServer_listener = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Object>, exlib::string, v8::Local<v8::Function>>;
 
 public:
     class AddressType : public NType {

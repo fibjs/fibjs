@@ -254,7 +254,7 @@ module http2
      @param hdlr the request handler, accepted for compatibility
      @return returns an Http2Server object; call listen() to bind and serve
     */
-    static Http2Server createServer(Object|SecureContext options, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
+    static Http2Server createServer(Object|SecureContext options, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief creates an HTTP/2 client session to the specified target
 

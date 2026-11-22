@@ -22,7 +22,7 @@ class Chain_base : public Handler_base {
     DECLARE_CLASS(Chain_base);
 
 public:
-    using Union_append_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
+    using Union_append_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Object>, exlib::string, v8::Local<v8::Function>>;
 
 public:
     // Chain_base

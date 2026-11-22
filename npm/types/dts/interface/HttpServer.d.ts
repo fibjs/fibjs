@@ -19,11 +19,9 @@
  *    path/address string that serves static files or forwards to another server. A function
  *    is called with the HttpRequest, the capture groups of a routing map and the
  *    HttpResponse: `(req, ...captures, res)`, so `(req)` and `(req, res)` both work. Write
- *    the reply through res (or req.response, the same object). A returned value is treated
- *    as the **next handler**, not as the response body: returning a function chains it,
- *    returning a string tries to serve it as a file path or an http(s) address, and any
- *    other value fails the reply with an internal error (500), so use a block body for
- *    `(req) => { ... }` handlers.
+ *    the reply through res (or req.response, the same object); the function's return value
+ *    is ignored, and `(req) => res.write('ok')` is valid. End the reply with res.end()
+ *    (or req.response.end()).
  *  - **Lifecycle**: each accepted connection runs a parse-invoke-send loop, and the parsed
  *    request and its response are reused across keep-alive requests. An exception thrown by
  *    the handler is caught, logged as `HttpHandler: <error>` and answered with an empty 500;
@@ -127,7 +125,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *
      *      Port 0 asks the operating system for a free port (read it back from
      *      socket.localPort). hdlr may be a Handler object, an array of handlers (a Chain), a
-     *      handler function `(req, res) => ...`, a routing map or a path/address string; see
+     *      handler function `(req, res) => void`, a routing map or a path/address string; see
      *      the class documentation for the contract. start() begins serving after the
      *      constructor bound the port; listen() is not needed and start() after listen() throws
      *      error 20009.
@@ -135,7 +133,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server bound to an address and a port
@@ -149,7 +147,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server, taking the port from the address when it carries one
@@ -162,7 +160,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server without binding a port; listen() must be called to start
@@ -173,7 +171,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Enables automatic CORS handling, including preflight requests
@@ -287,7 +285,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *
      *      Port 0 asks the operating system for a free port (read it back from
      *      socket.localPort). hdlr may be a Handler object, an array of handlers (a Chain), a
-     *      handler function `(req, res) => ...`, a routing map or a path/address string; see
+     *      handler function `(req, res) => void`, a routing map or a path/address string; see
      *      the class documentation for the contract. start() begins serving after the
      *      constructor bound the port; listen() is not needed and start() after listen() throws
      *      error 20009.
@@ -295,7 +293,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server bound to an address and a port
@@ -309,7 +307,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server, taking the port from the address when it carries one
@@ -322,7 +320,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server without binding a port; listen() must be called to start
@@ -333,7 +331,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Enables automatic CORS handling, including preflight requests

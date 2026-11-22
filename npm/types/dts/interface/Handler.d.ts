@@ -12,17 +12,14 @@
  *  and every instance belongs to one of those classes.
  *
  *  Concepts:
- *  - **One stage or the whole pipeline**: invoke processes the message once and
- *    returns the next handler to run, or null when the processing ends.
- *    mq.invoke(...) is the loop on top of it: it calls invoke repeatedly, feeding
- *    each returned handler back, until null comes back. Use mq.invoke to run a
- *    pipeline and invoke to place a single step.
- *  - **Returning a handler from a function**: a JavaScript handler function may
- *    return another handler, a handling function, an array (a new Chain) or a
- *    routing map (a new Routing) to continue the processing, and may return
- *    nothing to finish its stage. Any other returned value is an error, so write
- *    braces when the last expression is not a handler — res.write returns a drain
- *    flag, not a handler.
+ *  - **One stage or the whole pipeline**: invoke processes the message once.
+ *    Native handlers such as Routing and Chain may return the next handler to
+ *    run; mq.invoke(...) is the loop on top of it that feeds each returned
+ *    handler back until null comes back. Use mq.invoke to run a pipeline and
+ *    invoke to place a single step.
+ *  - **Function handlers**: a JavaScript handler function consumes the message;
+ *    its return value is ignored. Compose with Chain/Routing when another stage
+ *    is needed, and end the message (msg.end()/res.end()) to stop a chain.
  *  - **isRouting**: tells whether the handler matches messages by itself.
  *    Routing, HttpRepeater and file handlers do; a plain function and a Chain of
  *    plain functions do not. Routing.append uses it to decide whether the
@@ -66,20 +63,18 @@
  *  console.log(req.response.body.readAll().toString()); // handled /
  *  ```
  *
- *  Example 3 — invoke runs one stage and returns the next handler:
+ *  Example 3 — invoke runs one stage for a function handler:
  *  ```JavaScript
  *  const mq = require('mq');
  *
  *  const step = new mq.Handler((v) => {
- *      console.log('first stage: ' + v.value);
- *      return new mq.Handler((v) => console.log('second stage: ' + v.value));
+ *      console.log('stage: ' + v.value);
  *  });
  *
  *  const msg = new mq.Message();
  *  msg.value = 'x';
  *
- *  const next = step.invoke(msg);
- *  next.invoke(msg);
+ *  console.log(step.invoke(msg)); // null
  *  ```
  *
  */
@@ -101,12 +96,12 @@ declare class Class_Handler extends Class_object {
     /**
      * @description Creates a JavaScript message handler
      *
-     *      The function is called as `(req, ...params) => any` with the message (and
-     *      the captures of the arriving route, if any) and may return the handler for
-     *      the next stage. When the message is an HttpRequest the response is passed
-     *      as the last argument, so the usual HTTP form is `(req, res) => any`; the
-     *      declared `(Value req, ...params)` shape covers both because the response
-     *      is appended after the captures.
+     *      The function is called as `(req, ...params) => void` with the message (and
+     *      the captures of the arriving route, if any); its return value is ignored.
+     *      When the message is an HttpRequest the response is passed as the last
+     *      argument, so the usual HTTP form is `(req, res) => void`; the declared
+     *      `(Value req, ...params)` shape covers both because the response is
+     *      appended after the captures.
      *
      *      A function marked with util.sync (or an async function) is detected and
      *      awaited, so asynchronous handlers can finish their stage before the
@@ -116,7 +111,7 @@ declare class Class_Handler extends Class_object {
      *      @param hdlr JavaScript handler function
      *
      */
-    constructor(hdlr: (req: any, ...params: any[])=>any);
+    constructor(hdlr: (req: any, ...params: any[])=>void);
 
     /**
      * @description Creates a message handler routing object
@@ -176,33 +171,29 @@ declare class Class_Handler extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      ```JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      ```
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invoke(v: Class_object): Class_Handler;
@@ -212,33 +203,29 @@ declare class Class_Handler extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      ```JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      ```
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invokeSync(v: Class_object): Class_Handler;
@@ -246,33 +233,29 @@ declare class Class_Handler extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      ```JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      ```
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invokeAsync(v: Class_object): Promise<Class_HandlerPromise>;
@@ -303,12 +286,12 @@ declare class Class_HandlerPromise extends Class_object {
     /**
      * @description Creates a JavaScript message handler
      *
-     *      The function is called as `(req, ...params) => any` with the message (and
-     *      the captures of the arriving route, if any) and may return the handler for
-     *      the next stage. When the message is an HttpRequest the response is passed
-     *      as the last argument, so the usual HTTP form is `(req, res) => any`; the
-     *      declared `(Value req, ...params)` shape covers both because the response
-     *      is appended after the captures.
+     *      The function is called as `(req, ...params) => void` with the message (and
+     *      the captures of the arriving route, if any); its return value is ignored.
+     *      When the message is an HttpRequest the response is passed as the last
+     *      argument, so the usual HTTP form is `(req, res) => void`; the declared
+     *      `(Value req, ...params)` shape covers both because the response is
+     *      appended after the captures.
      *
      *      A function marked with util.sync (or an async function) is detected and
      *      awaited, so asynchronous handlers can finish their stage before the
@@ -318,7 +301,7 @@ declare class Class_HandlerPromise extends Class_object {
      *      @param hdlr JavaScript handler function
      *
      */
-    constructor(hdlr: (req: any, ...params: any[])=>any);
+    constructor(hdlr: (req: any, ...params: any[])=>void);
 
     /**
      * @description Creates a message handler routing object
@@ -378,33 +361,29 @@ declare class Class_HandlerPromise extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      ```JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      ```
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invoke(v: Class_object): Promise<Class_HandlerPromise>;
@@ -412,33 +391,29 @@ declare class Class_HandlerPromise extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      ```JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      ```
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invokeSync(v: Class_object): Class_Handler;
@@ -446,33 +421,29 @@ declare class Class_HandlerPromise extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      ```JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      ```
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invokeAsync(v: Class_object): Promise<Class_HandlerPromise>;

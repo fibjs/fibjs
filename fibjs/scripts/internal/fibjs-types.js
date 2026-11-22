@@ -4088,20 +4088,16 @@ declare class Class_CSSStyleDeclaration extends Class_object {
  *  element in turn, each element may change it, and the chain ends when the queue
  *  is exhausted or the value is ended. It is the object behind the array form of
  *  every handler parameter — \`new mq.Handler([a, b])\`, the handler array of an
- *  http server and the array returned by a handling function all become a Chain —
- *  so the class is usually reached through that conversion rather than
- *  constructed by name.
+ *  http server — so the class is usually reached through that conversion rather
+ *  than constructed by name.
  *
  *  Concepts:
  *  - **Order**: the elements run in the order they were given; append adds to the
- *    end. A handler returning nothing finishes its own stage and the chain moves
- *    to the next element, so a chain of plain functions behaves like a pipeline.
+ *    end. A JavaScript handler's return value is ignored, so it finishes its own
+ *    stage and the chain moves to the next element; end the message to stop.
  *  - **Ending the chain**: calling end() on a Message or response.end() on an
  *    http.Request marks the value as finished; the chain stops before the next
  *    element, which is the way a middle handler short-circuits a request.
- *  - **Returning a handler**: a handling function may return another handler,
- *    function, array (a nested Chain) or routing map (a nested Routing); the
- *    returned handler runs before the next element of the queue.
  *  - **Fibers**: plain functions run in the fiber that invoked the chain, while a
  *    handler object (another Chain, a Routing, a repeater) runs in its own
  *    fiber, which matters when the elements share mutable state.
@@ -4249,7 +4245,7 @@ declare class Class_Chain extends Class_Handler {
      *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_object, ...params: any[])=>void)): void;
 
 }
 
@@ -4335,7 +4331,7 @@ declare class Class_ChainPromise extends Class_HandlerPromise {
      *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_object, ...params: any[])=>void)): void;
 
 }
 
@@ -20247,17 +20243,14 @@ declare class Class_Gzip extends Class_ZlibCodec {
  *  and every instance belongs to one of those classes.
  *
  *  Concepts:
- *  - **One stage or the whole pipeline**: invoke processes the message once and
- *    returns the next handler to run, or null when the processing ends.
- *    mq.invoke(...) is the loop on top of it: it calls invoke repeatedly, feeding
- *    each returned handler back, until null comes back. Use mq.invoke to run a
- *    pipeline and invoke to place a single step.
- *  - **Returning a handler from a function**: a JavaScript handler function may
- *    return another handler, a handling function, an array (a new Chain) or a
- *    routing map (a new Routing) to continue the processing, and may return
- *    nothing to finish its stage. Any other returned value is an error, so write
- *    braces when the last expression is not a handler — res.write returns a drain
- *    flag, not a handler.
+ *  - **One stage or the whole pipeline**: invoke processes the message once.
+ *    Native handlers such as Routing and Chain may return the next handler to
+ *    run; mq.invoke(...) is the loop on top of it that feeds each returned
+ *    handler back until null comes back. Use mq.invoke to run a pipeline and
+ *    invoke to place a single step.
+ *  - **Function handlers**: a JavaScript handler function consumes the message;
+ *    its return value is ignored. Compose with Chain/Routing when another stage
+ *    is needed, and end the message (msg.end()/res.end()) to stop a chain.
  *  - **isRouting**: tells whether the handler matches messages by itself.
  *    Routing, HttpRepeater and file handlers do; a plain function and a Chain of
  *    plain functions do not. Routing.append uses it to decide whether the
@@ -20301,20 +20294,18 @@ declare class Class_Gzip extends Class_ZlibCodec {
  *  console.log(req.response.body.readAll().toString()); // handled /
  *  \`\`\`
  *
- *  Example 3 — invoke runs one stage and returns the next handler:
+ *  Example 3 — invoke runs one stage for a function handler:
  *  \`\`\`JavaScript
  *  const mq = require('mq');
  *
  *  const step = new mq.Handler((v) => {
- *      console.log('first stage: ' + v.value);
- *      return new mq.Handler((v) => console.log('second stage: ' + v.value));
+ *      console.log('stage: ' + v.value);
  *  });
  *
  *  const msg = new mq.Message();
  *  msg.value = 'x';
  *
- *  const next = step.invoke(msg);
- *  next.invoke(msg);
+ *  console.log(step.invoke(msg)); // null
  *  \`\`\`
  *
  */
@@ -20336,12 +20327,12 @@ declare class Class_Handler extends Class_object {
     /**
      * @description Creates a JavaScript message handler
      *
-     *      The function is called as \`(req, ...params) => any\` with the message (and
-     *      the captures of the arriving route, if any) and may return the handler for
-     *      the next stage. When the message is an HttpRequest the response is passed
-     *      as the last argument, so the usual HTTP form is \`(req, res) => any\`; the
-     *      declared \`(Value req, ...params)\` shape covers both because the response
-     *      is appended after the captures.
+     *      The function is called as \`(req, ...params) => void\` with the message (and
+     *      the captures of the arriving route, if any); its return value is ignored.
+     *      When the message is an HttpRequest the response is passed as the last
+     *      argument, so the usual HTTP form is \`(req, res) => void\`; the declared
+     *      \`(Value req, ...params)\` shape covers both because the response is
+     *      appended after the captures.
      *
      *      A function marked with util.sync (or an async function) is detected and
      *      awaited, so asynchronous handlers can finish their stage before the
@@ -20351,7 +20342,7 @@ declare class Class_Handler extends Class_object {
      *      @param hdlr JavaScript handler function
      *
      */
-    constructor(hdlr: (req: any, ...params: any[])=>any);
+    constructor(hdlr: (req: any, ...params: any[])=>void);
 
     /**
      * @description Creates a message handler routing object
@@ -20411,33 +20402,29 @@ declare class Class_Handler extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      \`\`\`JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      \`\`\`
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invoke(v: Class_object): Class_Handler;
@@ -20447,33 +20434,29 @@ declare class Class_Handler extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      \`\`\`JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      \`\`\`
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invokeSync(v: Class_object): Class_Handler;
@@ -20481,33 +20464,29 @@ declare class Class_Handler extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      \`\`\`JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      \`\`\`
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invokeAsync(v: Class_object): Promise<Class_HandlerPromise>;
@@ -20538,12 +20517,12 @@ declare class Class_HandlerPromise extends Class_object {
     /**
      * @description Creates a JavaScript message handler
      *
-     *      The function is called as \`(req, ...params) => any\` with the message (and
-     *      the captures of the arriving route, if any) and may return the handler for
-     *      the next stage. When the message is an HttpRequest the response is passed
-     *      as the last argument, so the usual HTTP form is \`(req, res) => any\`; the
-     *      declared \`(Value req, ...params)\` shape covers both because the response
-     *      is appended after the captures.
+     *      The function is called as \`(req, ...params) => void\` with the message (and
+     *      the captures of the arriving route, if any); its return value is ignored.
+     *      When the message is an HttpRequest the response is passed as the last
+     *      argument, so the usual HTTP form is \`(req, res) => void\`; the declared
+     *      \`(Value req, ...params)\` shape covers both because the response is
+     *      appended after the captures.
      *
      *      A function marked with util.sync (or an async function) is detected and
      *      awaited, so asynchronous handlers can finish their stage before the
@@ -20553,7 +20532,7 @@ declare class Class_HandlerPromise extends Class_object {
      *      @param hdlr JavaScript handler function
      *
      */
-    constructor(hdlr: (req: any, ...params: any[])=>any);
+    constructor(hdlr: (req: any, ...params: any[])=>void);
 
     /**
      * @description Creates a message handler routing object
@@ -20613,33 +20592,29 @@ declare class Class_HandlerPromise extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      \`\`\`JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      \`\`\`
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invoke(v: Class_object): Promise<Class_HandlerPromise>;
@@ -20647,33 +20622,29 @@ declare class Class_HandlerPromise extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      \`\`\`JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      \`\`\`
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invokeSync(v: Class_object): Class_Handler;
@@ -20681,33 +20652,29 @@ declare class Class_HandlerPromise extends Class_object {
     /**
      * @description Processes a message or object
      *
-     *      The call is a single stage of the pipeline: the handler processes v and
-     *      the returned value is the next handler to run, or null when the message
-     *      processing is finished. For a JavaScript handler this is the value the
-     *      function returned (converted to a handler); for a routing it is the
-     *      handler of the matched rule; for a chain it is the handler that should run
-     *      next. The method is asynchronous and blocks the current fiber until the
-     *      stage completes; mq.invoke is the loop that keeps invoking the returned
-     *      handler until null.
+     *      The call is a single stage of the pipeline. A native handler may return
+     *      the next handler to run; a JavaScript handler processes v, its return value
+     *      is ignored, and this method returns null (callback-style wrappers return an
+     *      internal wait handler). For a routing the result is the handler of the
+     *      matched rule; for a chain it is the handler that should run next. The method
+     *      is asynchronous and blocks the current fiber until the stage completes;
+     *      mq.invoke is the loop that keeps invoking a native handler chain until null.
      *
-     *      Example — run one stage and continue with the returned handler:
+     *      Example — run a function handler:
      *      \`\`\`JavaScript
      *      const mq = require('mq');
      *
      *      const step = new mq.Handler((v) => {
      *          console.log('stage: ' + v.value);
-     *          return new mq.Handler((v) => console.log('returned handler ran'));
      *      });
      *
      *      const msg = new mq.Message();
      *      msg.value = 'x';
-     *      const next = step.invoke(msg);
-     *      console.log(next instanceof mq.Handler); // true
-     *      next.invoke(msg);
+     *      console.log(step.invoke(msg)); // null
      *      \`\`\`
      *
      *      @param v the message or object to process
-     *      @return returns the next handler
+     *      @return returns the next handler, or null when this stage completes
      *
      */
     invokeAsync(v: Class_object): Promise<Class_HandlerPromise>;
@@ -21902,7 +21869,7 @@ declare class Class_Http2Server extends Class_TcpServer {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from a SecureContext and binds a port
@@ -21916,7 +21883,7 @@ declare class Class_Http2Server extends Class_TcpServer {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from a SecureContext and binds an address and port
@@ -21931,7 +21898,7 @@ declare class Class_Http2Server extends Class_TcpServer {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from tls.createSecureContext options, without binding a port
@@ -21945,7 +21912,7 @@ declare class Class_Http2Server extends Class_TcpServer {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description queries the SecureContext used by this server
@@ -22068,7 +22035,7 @@ declare class Class_Http2ServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from a SecureContext and binds a port
@@ -22082,7 +22049,7 @@ declare class Class_Http2ServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from a SecureContext and binds an address and port
@@ -22097,7 +22064,7 @@ declare class Class_Http2ServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from tls.createSecureContext options, without binding a port
@@ -22111,7 +22078,7 @@ declare class Class_Http2ServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description queries the SecureContext used by this server
@@ -27629,7 +27596,7 @@ declare class Class_HttpHandler extends Class_Handler {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description enables cross-origin requests
@@ -27892,7 +27859,7 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description enables cross-origin requests
@@ -31087,11 +31054,9 @@ declare namespace Class_HttpResponse {
  *    path/address string that serves static files or forwards to another server. A function
  *    is called with the HttpRequest, the capture groups of a routing map and the
  *    HttpResponse: \`(req, ...captures, res)\`, so \`(req)\` and \`(req, res)\` both work. Write
- *    the reply through res (or req.response, the same object). A returned value is treated
- *    as the **next handler**, not as the response body: returning a function chains it,
- *    returning a string tries to serve it as a file path or an http(s) address, and any
- *    other value fails the reply with an internal error (500), so use a block body for
- *    \`(req) => { ... }\` handlers.
+ *    the reply through res (or req.response, the same object); the function's return value
+ *    is ignored, and \`(req) => res.write('ok')\` is valid. End the reply with res.end()
+ *    (or req.response.end()).
  *  - **Lifecycle**: each accepted connection runs a parse-invoke-send loop, and the parsed
  *    request and its response are reused across keep-alive requests. An exception thrown by
  *    the handler is caught, logged as \`HttpHandler: <error>\` and answered with an empty 500;
@@ -31195,7 +31160,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *
      *      Port 0 asks the operating system for a free port (read it back from
      *      socket.localPort). hdlr may be a Handler object, an array of handlers (a Chain), a
-     *      handler function \`(req, res) => ...\`, a routing map or a path/address string; see
+     *      handler function \`(req, res) => void\`, a routing map or a path/address string; see
      *      the class documentation for the contract. start() begins serving after the
      *      constructor bound the port; listen() is not needed and start() after listen() throws
      *      error 20009.
@@ -31203,7 +31168,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server bound to an address and a port
@@ -31217,7 +31182,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server, taking the port from the address when it carries one
@@ -31230,7 +31195,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server without binding a port; listen() must be called to start
@@ -31241,7 +31206,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Enables automatic CORS handling, including preflight requests
@@ -31355,7 +31320,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *
      *      Port 0 asks the operating system for a free port (read it back from
      *      socket.localPort). hdlr may be a Handler object, an array of handlers (a Chain), a
-     *      handler function \`(req, res) => ...\`, a routing map or a path/address string; see
+     *      handler function \`(req, res) => void\`, a routing map or a path/address string; see
      *      the class documentation for the contract. start() begins serving after the
      *      constructor bound the port; listen() is not needed and start() after listen() throws
      *      error 20009.
@@ -31363,7 +31328,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server bound to an address and a port
@@ -31377,7 +31342,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server, taking the port from the address when it carries one
@@ -31390,7 +31355,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server without binding a port; listen() must be called to start
@@ -31401,7 +31366,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Enables automatic CORS handling, including preflight requests
@@ -31756,7 +31721,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server bound to an address and a port from a ready SecureContext
@@ -31770,7 +31735,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server from TLS options, binding immediately when a port is given
@@ -31783,7 +31748,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server without binding a port; listen() must be called to start
@@ -31795,7 +31760,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description The SecureContext used for the TLS handshake, read-only
@@ -31899,7 +31864,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server bound to an address and a port from a ready SecureContext
@@ -31913,7 +31878,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server from TLS options, binding immediately when a port is given
@@ -31926,7 +31891,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server without binding a port; listen() must be called to start
@@ -31938,7 +31903,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description The SecureContext used for the TLS handshake, read-only
@@ -44938,7 +44903,7 @@ declare class Class_RedisSortedSet extends Class_object {
  *    method and \`"host"\` matches the Host header instead of the address; a host
  *    pattern matches the labels of the host name with \`*\` and ignores the port.
  *  - **Handler forms**: the value of a rule may be a Handler object, an array of
- *    handlers (a Chain), a function \`(req, ...captures) => any\` (an http request
+ *    handlers (a Chain), a function \`(req, ...captures) => void\` (an http request
  *    also receives its response as the last argument), a routing map object or a
  *    path/address string.
  *  - **No match**: mq.invoke raises \`Routing: unknown routing: <value>\` when no
@@ -45148,7 +45113,7 @@ declare class Class_Routing extends Class_Handler {
      *      passed to the handler. hdlr may be given in any of these forms:
      *      - a Handler object, invoked as it is;
      *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function \`(req, ...captures) => any\`, called with the routed
+     *      - a handler function \`(req, ...captures) => void\`, called with the routed
      *        message and the captured groups (also readable as req.params); an http
      *        request receives its response as the last argument;
      *      - a routing map object, whose values are handlers in these same forms;
@@ -45161,7 +45126,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a routing rule with a method scope
@@ -45196,7 +45161,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules for http host names
@@ -45247,7 +45212,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept all http methods
@@ -45275,7 +45240,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of GET method routing rules
@@ -45303,7 +45268,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http POST method
@@ -45330,7 +45295,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http DELETE method
@@ -45355,7 +45320,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PUT method routing rules
@@ -45381,7 +45346,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PATCH method routing rules
@@ -45406,7 +45371,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of FIND method routing rules
@@ -45433,7 +45398,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
 }
 
@@ -45560,7 +45525,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      passed to the handler. hdlr may be given in any of these forms:
      *      - a Handler object, invoked as it is;
      *      - an array of handlers, wrapped in a Chain and invoked in order;
-     *      - a handler function \`(req, ...captures) => any\`, called with the routed
+     *      - a handler function \`(req, ...captures) => void\`, called with the routed
      *        message and the captured groups (also readable as req.params); an http
      *        request receives its response as the last argument;
      *      - a routing map object, whose values are handlers in these same forms;
@@ -45573,7 +45538,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a routing rule with a method scope
@@ -45608,7 +45573,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules for http host names
@@ -45659,7 +45624,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept all http methods
@@ -45687,7 +45652,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of GET method routing rules
@@ -45715,7 +45680,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http POST method
@@ -45742,7 +45707,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http DELETE method
@@ -45767,7 +45732,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PUT method routing rules
@@ -45793,7 +45758,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PATCH method routing rules
@@ -45818,7 +45783,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of FIND method routing rules
@@ -45845,7 +45810,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>any) | FIBJS.GeneralObject | string): Class_Routing;
+    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
 }
 
@@ -58096,7 +58061,7 @@ declare class Class_TLSHandler extends Class_Handler {
      *      @param handler the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLSHandler from the options of tls.createSecureContext
@@ -58109,7 +58074,7 @@ declare class Class_TLSHandler extends Class_Handler {
      *      @param handler the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used for the connections handled by this TLSHandler
@@ -58215,7 +58180,7 @@ declare class Class_TLSHandlerPromise extends Class_HandlerPromise {
      *      @param handler the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLSHandler from the options of tls.createSecureContext
@@ -58228,7 +58193,7 @@ declare class Class_TLSHandlerPromise extends Class_HandlerPromise {
      *      @param handler the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used for the connections handled by this TLSHandler
@@ -58450,7 +58415,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server bound to the given address and port
@@ -58463,7 +58428,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server from an options object, binding when it carries a port
@@ -58477,7 +58442,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server without binding a port; listen() must be called to start
@@ -58489,7 +58454,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used by the server
@@ -58588,7 +58553,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server bound to the given address and port
@@ -58601,7 +58566,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server from an options object, binding when it carries a port
@@ -58615,7 +58580,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server without binding a port; listen() must be called to start
@@ -58627,7 +58592,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used by the server
@@ -61117,7 +61082,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds the given address and port
@@ -61131,7 +61096,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      @param listener the connection handler
      *
      */
-    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds from an options object
@@ -61155,7 +61120,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     constructor(options: {
         address?: string;
         port?: number;
-    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds a unix socket or Windows pipe
@@ -61168,7 +61133,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, does not bind a port, listen() must be called to start
@@ -61179,7 +61144,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description Starts the current server
@@ -61574,7 +61539,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds the given address and port
@@ -61588,7 +61553,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      @param listener the connection handler
      *
      */
-    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds from an options object
@@ -61612,7 +61577,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     constructor(options: {
         address?: string;
         port?: number;
-    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds a unix socket or Windows pipe
@@ -61625,7 +61590,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, does not bind a port, listen() must be called to start
@@ -61636,7 +61601,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string);
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description Starts the current server
@@ -106079,7 +106044,7 @@ declare module 'http' {
      *      @return returns an HttpServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_HttpServer;
+    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
 
     /**
      * @description Creates an https server
@@ -106099,7 +106064,7 @@ declare module 'http' {
      *      @return returns an HttpsServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_HttpServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
 
     /**
      * @description Creates an http protocol handler object, see HttpHandler
@@ -107905,7 +107870,7 @@ declare module 'http/promises' {
      *      @return returns an HttpServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_HttpServer;
+    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
 
     /**
      * @description Creates an https server
@@ -107925,7 +107890,7 @@ declare module 'http/promises' {
      *      @return returns an HttpsServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_HttpServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
 
     /**
      * @description Creates an http protocol handler object, see HttpHandler
@@ -109836,7 +109801,7 @@ declare module 'http2' {
      *      @return returns an Http2Server object; call listen() to bind and serve
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_Http2Server;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_Http2Server;
 
     /**
      * @description creates an HTTP/2 client session to the specified target
@@ -110176,7 +110141,7 @@ declare module 'http2/promises' {
      *      @return returns an Http2Server object; call listen() to bind and serve
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>any) | FIBJS.GeneralObject | string): Class_Http2Server;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_Http2Server;
 
     /**
      * @description creates an HTTP/2 client session to the specified target
@@ -112830,23 +112795,24 @@ declare module 'module' {
  *    \`Chain\` (run handlers in order), \`Routing\` (match a value and dispatch),
  *    \`HttpHandler\` (turn a stream into HTTP request/response handling) and
  *    \`Message\` (the generic message object);
- *  - **Driving the pipeline**: \`invoke\` runs a handler to completion,
- *    \`nullHandler\` returns an empty handler that ends the pipeline immediately.
+ *  - **Driving the pipeline**: \`invoke\` runs a handler chain to completion;
+ *    \`nullHandler\` returns a no-op handler.
  *
  *  Concepts:
- *  - **One stage or the whole pipeline**: a handler's invoke processes one stage
- *    and returns the next handler; mq.invoke is the loop that keeps invoking the
- *    returned handler until null comes back. Most code only needs mq.invoke.
+ *  - **One stage or the whole pipeline**: a native handler's invoke may return the
+ *    next handler; mq.invoke is the loop that keeps invoking a native handler
+ *    chain until null comes back. A JavaScript handler's return value is ignored,
+ *    so it always completes its own stage and mq.invoke stops after it. Most code
+ *    only needs mq.invoke.
  *  - **Handler forms**: wherever a handler is expected the same set of forms is
  *    accepted — a Handler object, an array of handlers (a Chain), a function, a
  *    routing map object (a Routing) and a path/address string (a file handler or
  *    an \`http(s)://\` repeater). The Handler constructor performs the conversion,
  *    so building the concrete class directly and passing the plain form are
  *    equivalent.
- *  - **Returning a handler**: a JavaScript handler function may return the next
- *    handler, a handling function, an array or a routing map; the runtime
- *    continues with it. Returning nothing ends the function's stage, and any
- *    other returned value is an error.
+ *  - **Function handlers**: a JavaScript handler function consumes the message;
+ *    its return value is ignored. Compose with Chain/Routing for another stage,
+ *    and end the message (msg.end()/res.end()) to stop a chain.
  *  - **Call forms**: like every fibjs asynchronous function, invoke works
  *    synchronously without a callback, asynchronously with a trailing callback
  *    and as a promise (\`mq.invokeSync\`, \`mq.invokeAsync\`, \`mq.promises.invoke\`).
@@ -112856,7 +112822,7 @@ declare module 'module' {
  *  const mq = require('mq');
  *  \`\`\`
  *
- *  Example 1 — a function handler returning the handler of the next stage:
+ *  Example 1 — a function handler:
  *  \`\`\`JavaScript
  *  const mq = require('mq');
  *
@@ -112864,8 +112830,7 @@ declare module 'module' {
  *  msg.value = 'start';
  *
  *  mq.invoke((v) => {
- *      console.log('stage 1: ' + v.value);
- *      return (v) => console.log('stage 2: ' + v.value);
+ *      console.log('stage: ' + v.value);
  *  }, msg);
  *  \`\`\`
  *
@@ -112882,7 +112847,7 @@ declare module 'module' {
  *  mq.invoke(new mq.Handler({ '/a': (req) => console.log('routed ' + req.value) }), msg);
  *  \`\`\`
  *
- *  Example 3 — an empty handler ends the pipeline:
+ *  Example 3 — an empty handler is a no-op:
  *  \`\`\`JavaScript
  *  const mq = require('mq');
  *
@@ -112954,7 +112919,8 @@ declare module 'mq' {
      *
      *      The constructor converts its argument and returns the concrete handler of
      *      the matching form:
-     *      - Function: a JavaScript handler, called with the message;
+     *      - Function: a JavaScript handler, called with the message; its return
+     *        value is ignored;
      *      - array: a Chain, run in order;
      *      - routing map object: a Routing (see Routing);
      *      - path/address string: a file handler (a directory) or an
@@ -113026,10 +112992,11 @@ declare module 'mq' {
      * @description Creates an empty handler object; this handler does nothing and returns directly
      *
      *      The returned handler has no routing behavior and no side effects: it is
-     *      useful as a placeholder in a chain, as the fallback of a routing or as the
-     *      value to return when a handler must explicitly stop the pipeline.
+     *      useful as a placeholder in a chain, as the fallback of a routing. It does
+     *      not terminate a Chain by itself; call msg.end()/res.end() to stop the
+     *      pipeline.
      *
-     *      Example — an empty handler ends mq.invoke immediately:
+     *      Example — an empty handler is a no-op:
      *      \`\`\`JavaScript
      *      const mq = require('mq');
      *
@@ -113044,12 +113011,13 @@ declare module 'mq' {
     /**
      * @description Processes a message or object with the given handler
      *
-     *      Unlike invoke of a handler, this method repeatedly calls the returned
-     *      handler of each stage until a handler returns null, so a single call runs
-     *      the whole pipeline. The handler may be given in any of the usual forms:
+     *      Unlike invoke of a handler, this method repeatedly follows the next handler
+     *      returned by native handlers until null, so a single call runs the whole
+     *      native pipeline. The handler may be given in any of the usual forms:
      *      - a built-in Handler object, used as it is;
      *      - an array of handlers, equivalent to \`new mq.Chain(hdlr)\`, see Chain;
-     *      - a handling function \`(v, ...params) => any\`, called with the message;
+     *      - a handling function \`(v, ...params) => void\`, called with the message;
+     *        its return value is ignored;
      *      - a routing map object, whose values are handlers in these same forms,
      *        equivalent to \`new mq.Routing(hdlr)\`, see Routing;
      *      - a path/address string, converted through the Handler constructor.
@@ -113073,53 +113041,20 @@ declare module 'mq' {
      *      @param v specifies the message or object to process
      *
      */
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
 
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Processes a message or object with the given handler
-     *
-     *      Unlike invoke of a handler, this method repeatedly calls the returned
-     *      handler of each stage until a handler returns null, so a single call runs
-     *      the whole pipeline. The handler may be given in any of the usual forms:
-     *      - a built-in Handler object, used as it is;
-     *      - an array of handlers, equivalent to \`new mq.Chain(hdlr)\`, see Chain;
-     *      - a handling function \`(v, ...params) => any\`, called with the message;
-     *      - a routing map object, whose values are handlers in these same forms,
-     *        equivalent to \`new mq.Routing(hdlr)\`, see Routing;
-     *      - a path/address string, converted through the Handler constructor.
-     *
-     *      The method is asynchronous: it blocks the current fiber when called
-     *      without a callback, or completes through the trailing callback or the
-     *      promise form.
-     *
-     *      Example — the trailing callback form:
-     *      \`\`\`JavaScript
-     *      const mq = require('mq');
-     *
-     *      const msg = new mq.Message();
-     *      msg.value = 'callback';
-     *
-     *      mq.invoke((v) => console.log('invoked ' + v.value), msg, (err) => {
-     *          console.log('callback: ' + (err ? err.message : 'ok'));
-     *      });
-     *      \`\`\`
-     *      @param hdlr the handler to run
-     *      @param v specifies the message or object to process
-     *
-     */
-    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Processes a message or object with the given handler
      *
-     *      Unlike invoke of a handler, this method repeatedly calls the returned
-     *      handler of each stage until a handler returns null, so a single call runs
-     *      the whole pipeline. The handler may be given in any of the usual forms:
+     *      Unlike invoke of a handler, this method repeatedly follows the next handler
+     *      returned by native handlers until null, so a single call runs the whole
+     *      native pipeline. The handler may be given in any of the usual forms:
      *      - a built-in Handler object, used as it is;
      *      - an array of handlers, equivalent to \`new mq.Chain(hdlr)\`, see Chain;
-     *      - a handling function \`(v, ...params) => any\`, called with the message;
+     *      - a handling function \`(v, ...params) => void\`, called with the message;
+     *        its return value is ignored;
      *      - a routing map object, whose values are handlers in these same forms,
      *        equivalent to \`new mq.Routing(hdlr)\`, see Routing;
      *      - a path/address string, converted through the Handler constructor.
@@ -113143,7 +113078,42 @@ declare module 'mq' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): Promise<void>;
+    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
+
+    /**
+     * @description Processes a message or object with the given handler
+     *
+     *      Unlike invoke of a handler, this method repeatedly follows the next handler
+     *      returned by native handlers until null, so a single call runs the whole
+     *      native pipeline. The handler may be given in any of the usual forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to \`new mq.Chain(hdlr)\`, see Chain;
+     *      - a handling function \`(v, ...params) => void\`, called with the message;
+     *        its return value is ignored;
+     *      - a routing map object, whose values are handlers in these same forms,
+     *        equivalent to \`new mq.Routing(hdlr)\`, see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *
+     *      The method is asynchronous: it blocks the current fiber when called
+     *      without a callback, or completes through the trailing callback or the
+     *      promise form.
+     *
+     *      Example — the trailing callback form:
+     *      \`\`\`JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.value = 'callback';
+     *
+     *      mq.invoke((v) => console.log('invoked ' + v.value), msg, (err) => {
+     *          console.log('callback: ' + (err ? err.message : 'ok'));
+     *      });
+     *      \`\`\`
+     *      @param hdlr the handler to run
+     *      @param v specifies the message or object to process
+     *
+     */
+    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
 
 }
 
@@ -113210,7 +113180,8 @@ declare module 'mq/promises' {
      *
      *      The constructor converts its argument and returns the concrete handler of
      *      the matching form:
-     *      - Function: a JavaScript handler, called with the message;
+     *      - Function: a JavaScript handler, called with the message; its return
+     *        value is ignored;
      *      - array: a Chain, run in order;
      *      - routing map object: a Routing (see Routing);
      *      - path/address string: a file handler (a directory) or an
@@ -113282,10 +113253,11 @@ declare module 'mq/promises' {
      * @description Creates an empty handler object; this handler does nothing and returns directly
      *
      *      The returned handler has no routing behavior and no side effects: it is
-     *      useful as a placeholder in a chain, as the fallback of a routing or as the
-     *      value to return when a handler must explicitly stop the pipeline.
+     *      useful as a placeholder in a chain, as the fallback of a routing. It does
+     *      not terminate a Chain by itself; call msg.end()/res.end() to stop the
+     *      pipeline.
      *
-     *      Example — an empty handler ends mq.invoke immediately:
+     *      Example — an empty handler is a no-op:
      *      \`\`\`JavaScript
      *      const mq = require('mq');
      *
@@ -113300,12 +113272,13 @@ declare module 'mq/promises' {
     /**
      * @description Processes a message or object with the given handler
      *
-     *      Unlike invoke of a handler, this method repeatedly calls the returned
-     *      handler of each stage until a handler returns null, so a single call runs
-     *      the whole pipeline. The handler may be given in any of the usual forms:
+     *      Unlike invoke of a handler, this method repeatedly follows the next handler
+     *      returned by native handlers until null, so a single call runs the whole
+     *      native pipeline. The handler may be given in any of the usual forms:
      *      - a built-in Handler object, used as it is;
      *      - an array of handlers, equivalent to \`new mq.Chain(hdlr)\`, see Chain;
-     *      - a handling function \`(v, ...params) => any\`, called with the message;
+     *      - a handling function \`(v, ...params) => void\`, called with the message;
+     *        its return value is ignored;
      *      - a routing map object, whose values are handlers in these same forms,
      *        equivalent to \`new mq.Routing(hdlr)\`, see Routing;
      *      - a path/address string, converted through the Handler constructor.
@@ -113329,17 +113302,18 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): Promise<void>;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
 
     /**
      * @description Processes a message or object with the given handler
      *
-     *      Unlike invoke of a handler, this method repeatedly calls the returned
-     *      handler of each stage until a handler returns null, so a single call runs
-     *      the whole pipeline. The handler may be given in any of the usual forms:
+     *      Unlike invoke of a handler, this method repeatedly follows the next handler
+     *      returned by native handlers until null, so a single call runs the whole
+     *      native pipeline. The handler may be given in any of the usual forms:
      *      - a built-in Handler object, used as it is;
      *      - an array of handlers, equivalent to \`new mq.Chain(hdlr)\`, see Chain;
-     *      - a handling function \`(v, ...params) => any\`, called with the message;
+     *      - a handling function \`(v, ...params) => void\`, called with the message;
+     *        its return value is ignored;
      *      - a routing map object, whose values are handlers in these same forms,
      *        equivalent to \`new mq.Routing(hdlr)\`, see Routing;
      *      - a path/address string, converted through the Handler constructor.
@@ -113363,17 +113337,18 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): void;
+    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
 
     /**
      * @description Processes a message or object with the given handler
      *
-     *      Unlike invoke of a handler, this method repeatedly calls the returned
-     *      handler of each stage until a handler returns null, so a single call runs
-     *      the whole pipeline. The handler may be given in any of the usual forms:
+     *      Unlike invoke of a handler, this method repeatedly follows the next handler
+     *      returned by native handlers until null, so a single call runs the whole
+     *      native pipeline. The handler may be given in any of the usual forms:
      *      - a built-in Handler object, used as it is;
      *      - an array of handlers, equivalent to \`new mq.Chain(hdlr)\`, see Chain;
-     *      - a handling function \`(v, ...params) => any\`, called with the message;
+     *      - a handling function \`(v, ...params) => void\`, called with the message;
+     *        its return value is ignored;
      *      - a routing map object, whose values are handlers in these same forms,
      *        equivalent to \`new mq.Routing(hdlr)\`, see Routing;
      *      - a path/address string, converted through the Handler constructor.
@@ -113397,7 +113372,7 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): Promise<void>;
+    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
 
 }
 
@@ -114512,7 +114487,7 @@ declare module 'net' {
     function createServer(options: {
         address?: string;
         port?: number;
-    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
 
     /**
      * @description Creates a TCP server
@@ -114524,7 +114499,7 @@ declare module 'net' {
      *      @return returns a TcpServer object not bound to a port; listen() must be called to start it
      *
      */
-    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
+    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
 
     /**
      * @description The alias of the UrlObject class, see UrlObject
@@ -115330,7 +115305,7 @@ declare module 'net/promises' {
     function createServer(options: {
         address?: string;
         port?: number;
-    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
 
     /**
      * @description Creates a TCP server
@@ -115342,7 +115317,7 @@ declare module 'net/promises' {
      *      @return returns a TcpServer object not bound to a port; listen() must be called to start it
      *
      */
-    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_Socket | Class_SocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TcpServer;
+    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
 
     /**
      * @description The alias of the UrlObject class, see UrlObject
@@ -125278,7 +125253,7 @@ declare module 'tls' {
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TLSServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void)): Class_TLSServer;
 
     /**
      * @description Creates a SecureContext that holds the certificates, protocol versions and verification flags shared by TLS connections
@@ -125999,7 +125974,7 @@ declare module 'tls/promises' {
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>any) | FIBJS.GeneralObject | string): Class_TLSServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void)): Class_TLSServer;
 
     /**
      * @description Creates a SecureContext that holds the certificates, protocol versions and verification flags shared by TLS connections

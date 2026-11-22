@@ -24,7 +24,7 @@ class HttpsServer_base : public HttpServer_base {
     DECLARE_CLASS(HttpsServer_base);
 
 public:
-    using Union_HttpsServer_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Function>, v8::Local<v8::Object>, exlib::string>;
+    using Union_HttpsServer_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Object>, exlib::string, v8::Local<v8::Function>>;
 
 public:
     // HttpsServer_base

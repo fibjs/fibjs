@@ -431,6 +431,16 @@ try {
     // without them only the synthetic suites above can run
 }
 
+function parseIdl(text) {
+    var dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-idl-'));
+    try {
+        fs.writeFileSync(path.join(dir, 'test.idl'), text);
+        return parser(dir);
+    } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+}
+
 describe('check_variant_params', () => {
     function def(name, members) {
         return { [name]: makeDef(members).Foo };
@@ -583,16 +593,6 @@ describe('check_struct_fields', () => {
 // loaded only when the tool dependencies are present, like the corpus suite
 // below; the synthetic suites above do not need pegjs.
 describe('IDL struct required', { skip: !parser }, () => {
-    function parseIdl(text) {
-        var dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-idl-'));
-        try {
-            fs.writeFileSync(path.join(dir, 'test.idl'), text);
-            return parser(dir);
-        } finally {
-            fs.rmSync(dir, { recursive: true, force: true });
-        }
-    }
-
     it('marks required fields on a named struct', () => {
         var defs = parseIdl('struct X { required String type; String sdp = ""; };');
         var fields = defs.X.fields;
@@ -634,6 +634,18 @@ describe('IDL struct required', { skip: !parser }, () => {
     it('rejects a required field with a default value', () => {
         assert.throws(() => parseIdl('struct X { required String type = ""; };'),
             /required field "type" cannot declare a default value/);
+    });
+});
+
+describe('IDL handler union', { skip: !parser }, () => {
+    it('parses a void callback at the end of the handler union', () => {
+        var defs = parseIdl('interface Foo : object { void bar(Handler|Handler[]|Object|String|Function(Message req, ...params) => void hdlr); };');
+        var param = defs.Foo.members[0].params[0];
+
+        assert.equal(param.type, 'Handler|Handler[]|Object|String|Function');
+        assert.equal(param.callback.ret, 'void');
+        assert.equal(param.callback.params[0].type, 'Message');
+        assert.equal(param.callback.params[1].type, '...');
     });
 });
 

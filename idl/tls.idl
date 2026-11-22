@@ -230,7 +230,7 @@ module tls
      @param listener the connection handler
      @return returns a TLSServer object with no port bound, which needs listen() to start
      */
-    static TLSServer createServer(Object|SecureContext options, Handler|Handler[]|Function(TLSSocket socket) => Value|Object|String listener);
+    static TLSServer createServer(Object|SecureContext options, Handler|Handler[]|Object|String|Function(TLSSocket socket) => void listener);
 
     /*! @brief Creates a SecureContext that holds the certificates, protocol versions and verification flags shared by TLS connections
 

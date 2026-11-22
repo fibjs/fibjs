@@ -300,7 +300,7 @@ module http
      @param hdlr the request handler
      @return returns an HttpServer object that is not bound to a port; call listen() to start it
      */
-    static HttpServer createServer(Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
+    static HttpServer createServer(Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Creates an https server
 
@@ -318,7 +318,7 @@ module http
      @param hdlr the request handler
      @return returns an HttpsServer object that is not bound to a port; call listen() to start it
      */
-    static HttpServer createServer(Object|SecureContext options, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
+    static HttpServer createServer(Object|SecureContext options, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Creates an http protocol handler object, see HttpHandler
 

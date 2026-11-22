@@ -364,7 +364,7 @@ module net
      @param listener the connection handler
      @return returns the TcpServer object
      */
-    static TcpServer createServer(TcpServerOptions options, Handler|Handler[]|Function(Socket socket) => Value|Object|String listener);
+    static TcpServer createServer(TcpServerOptions options, Handler|Handler[]|Object|String|Function(Socket socket) => void listener);
 
     /*! @brief Creates a TCP server
 
@@ -374,7 +374,7 @@ module net
      @param listener the connection handler
      @return returns a TcpServer object not bound to a port; listen() must be called to start it
      */
-    static TcpServer createServer(Handler|Handler[]|Function(Socket socket) => Value|Object|String listener);
+    static TcpServer createServer(Handler|Handler[]|Object|String|Function(Socket socket) => void listener);
 
     /*! @brief The alias of the UrlObject class, see UrlObject
 

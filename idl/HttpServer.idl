@@ -13,11 +13,9 @@
    path/address string that serves static files or forwards to another server. A function
    is called with the HttpRequest, the capture groups of a routing map and the
    HttpResponse: `(req, ...captures, res)`, so `(req)` and `(req, res)` both work. Write
-   the reply through res (or req.response, the same object). A returned value is treated
-   as the **next handler**, not as the response body: returning a function chains it,
-   returning a string tries to serve it as a file path or an http(s) address, and any
-   other value fails the reply with an internal error (500), so use a block body for
-   `(req) => { ... }` handlers.
+   the reply through res (or req.response, the same object); the function's return value
+   is ignored, and `(req) => res.write('ok')` is valid. End the reply with res.end()
+   (or req.response.end()).
  - **Lifecycle**: each accepted connection runs a parse-invoke-send loop, and the parsed
    request and its response are reused across keep-alive requests. An exception thrown by
    the handler is caught, logged as `HttpHandler: <error>` and answered with an empty 500;
@@ -120,14 +118,14 @@ interface HttpServer : TcpServer
 
      Port 0 asks the operating system for a free port (read it back from
      socket.localPort). hdlr may be a Handler object, an array of handlers (a Chain), a
-     handler function `(req, res) => ...`, a routing map or a path/address string; see
+     handler function `(req, res) => void`, a routing map or a path/address string; see
      the class documentation for the contract. start() begins serving after the
      constructor bound the port; listen() is not needed and start() after listen() throws
      error 20009.
      @param port specifies the port on which the http server listens
      @param hdlr the request handler
      */
-    HttpServer(Integer port, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
+    HttpServer(Integer port, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Creates an HTTP server bound to an address and a port
 
@@ -139,7 +137,7 @@ interface HttpServer : TcpServer
      @param port specifies the port on which the http server listens
      @param hdlr the request handler
      */
-    HttpServer(String addr, Integer port, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
+    HttpServer(String addr, Integer port, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Creates an HTTP server, taking the port from the address when it carries one
 
@@ -150,7 +148,7 @@ interface HttpServer : TcpServer
      @param addr the listening address, optionally with a :port suffix
      @param hdlr the request handler
      */
-    HttpServer(String addr, Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
+    HttpServer(String addr, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Creates an HTTP server without binding a port; listen() must be called to start
 
@@ -159,7 +157,7 @@ interface HttpServer : TcpServer
      after listen(): the port is already bound and start() throws error 20009.
      @param hdlr the request handler
      */
-    HttpServer(Handler|Handler[]|Function(HttpRequest req, HttpResponse res) => Value|Object|String hdlr);
+    HttpServer(Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Enables automatic CORS handling, including preflight requests
 

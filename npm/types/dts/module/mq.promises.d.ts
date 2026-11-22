@@ -60,7 +60,8 @@ declare module 'mq/promises' {
      *
      *      The constructor converts its argument and returns the concrete handler of
      *      the matching form:
-     *      - Function: a JavaScript handler, called with the message;
+     *      - Function: a JavaScript handler, called with the message; its return
+     *        value is ignored;
      *      - array: a Chain, run in order;
      *      - routing map object: a Routing (see Routing);
      *      - path/address string: a file handler (a directory) or an
@@ -132,10 +133,11 @@ declare module 'mq/promises' {
      * @description Creates an empty handler object; this handler does nothing and returns directly
      *
      *      The returned handler has no routing behavior and no side effects: it is
-     *      useful as a placeholder in a chain, as the fallback of a routing or as the
-     *      value to return when a handler must explicitly stop the pipeline.
+     *      useful as a placeholder in a chain, as the fallback of a routing. It does
+     *      not terminate a Chain by itself; call msg.end()/res.end() to stop the
+     *      pipeline.
      *
-     *      Example — an empty handler ends mq.invoke immediately:
+     *      Example — an empty handler is a no-op:
      *      ```JavaScript
      *      const mq = require('mq');
      *
@@ -150,12 +152,13 @@ declare module 'mq/promises' {
     /**
      * @description Processes a message or object with the given handler
      *
-     *      Unlike invoke of a handler, this method repeatedly calls the returned
-     *      handler of each stage until a handler returns null, so a single call runs
-     *      the whole pipeline. The handler may be given in any of the usual forms:
+     *      Unlike invoke of a handler, this method repeatedly follows the next handler
+     *      returned by native handlers until null, so a single call runs the whole
+     *      native pipeline. The handler may be given in any of the usual forms:
      *      - a built-in Handler object, used as it is;
      *      - an array of handlers, equivalent to `new mq.Chain(hdlr)`, see Chain;
-     *      - a handling function `(v, ...params) => any`, called with the message;
+     *      - a handling function `(v, ...params) => void`, called with the message;
+     *        its return value is ignored;
      *      - a routing map object, whose values are handlers in these same forms,
      *        equivalent to `new mq.Routing(hdlr)`, see Routing;
      *      - a path/address string, converted through the Handler constructor.
@@ -179,17 +182,18 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): Promise<void>;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
 
     /**
      * @description Processes a message or object with the given handler
      *
-     *      Unlike invoke of a handler, this method repeatedly calls the returned
-     *      handler of each stage until a handler returns null, so a single call runs
-     *      the whole pipeline. The handler may be given in any of the usual forms:
+     *      Unlike invoke of a handler, this method repeatedly follows the next handler
+     *      returned by native handlers until null, so a single call runs the whole
+     *      native pipeline. The handler may be given in any of the usual forms:
      *      - a built-in Handler object, used as it is;
      *      - an array of handlers, equivalent to `new mq.Chain(hdlr)`, see Chain;
-     *      - a handling function `(v, ...params) => any`, called with the message;
+     *      - a handling function `(v, ...params) => void`, called with the message;
+     *        its return value is ignored;
      *      - a routing map object, whose values are handlers in these same forms,
      *        equivalent to `new mq.Routing(hdlr)`, see Routing;
      *      - a path/address string, converted through the Handler constructor.
@@ -213,17 +217,18 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): void;
+    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
 
     /**
      * @description Processes a message or object with the given handler
      *
-     *      Unlike invoke of a handler, this method repeatedly calls the returned
-     *      handler of each stage until a handler returns null, so a single call runs
-     *      the whole pipeline. The handler may be given in any of the usual forms:
+     *      Unlike invoke of a handler, this method repeatedly follows the next handler
+     *      returned by native handlers until null, so a single call runs the whole
+     *      native pipeline. The handler may be given in any of the usual forms:
      *      - a built-in Handler object, used as it is;
      *      - an array of handlers, equivalent to `new mq.Chain(hdlr)`, see Chain;
-     *      - a handling function `(v, ...params) => any`, called with the message;
+     *      - a handling function `(v, ...params) => void`, called with the message;
+     *        its return value is ignored;
      *      - a routing map object, whose values are handlers in these same forms,
      *        equivalent to `new mq.Routing(hdlr)`, see Routing;
      *      - a path/address string, converted through the Handler constructor.
@@ -247,7 +252,7 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | ((v: Class_object, ...params: any[])=>any) | FIBJS.GeneralObject | string, v: Class_object): Promise<void>;
+    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
 
 }
 
