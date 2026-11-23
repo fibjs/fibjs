@@ -94,6 +94,20 @@ declare class Class_Handler extends Class_object {
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
 
     /**
+     * @description Creates a message handler routing object
+     *
+     *      The keys of map are match patterns and the values are handlers; the result
+     *      is a Routing built with the same constructor, so `new Handler(map)` and
+     *      `new mq.Routing(map)` are interchangeable. Patterns may use the express
+     *      style `:name` captures or be raw regular expressions, and the handler
+     *      forms accepted as values are the usual ones (see Routing).
+     *
+     *      @param map initialization routing parameters
+     *
+     */
+    constructor(map: FIBJS.HandlerMap);
+
+    /**
      * @description Creates a JavaScript message handler
      *
      *      The function is called as `(req, ...params) => void` with the message (and
@@ -112,20 +126,6 @@ declare class Class_Handler extends Class_object {
      *
      */
     constructor(hdlr: (req: any, ...params: any[])=>void);
-
-    /**
-     * @description Creates a message handler routing object
-     *
-     *      The keys of map are match patterns and the values are handlers; the result
-     *      is a Routing built with the same constructor, so `new Handler(map)` and
-     *      `new mq.Routing(map)` are interchangeable. Patterns may use the express
-     *      style `:name` captures or be raw regular expressions, and the handler
-     *      forms accepted as values are the usual ones (see Routing).
-     *
-     *      @param map initialization routing parameters
-     *
-     */
-    constructor(map: FIBJS.GeneralObject);
 
     /**
      * @description Constructs a file handler or a request repeater
@@ -284,6 +284,20 @@ declare class Class_HandlerPromise extends Class_object {
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
 
     /**
+     * @description Creates a message handler routing object
+     *
+     *      The keys of map are match patterns and the values are handlers; the result
+     *      is a Routing built with the same constructor, so `new Handler(map)` and
+     *      `new mq.Routing(map)` are interchangeable. Patterns may use the express
+     *      style `:name` captures or be raw regular expressions, and the handler
+     *      forms accepted as values are the usual ones (see Routing).
+     *
+     *      @param map initialization routing parameters
+     *
+     */
+    constructor(map: FIBJS.HandlerMap);
+
+    /**
      * @description Creates a JavaScript message handler
      *
      *      The function is called as `(req, ...params) => void` with the message (and
@@ -302,20 +316,6 @@ declare class Class_HandlerPromise extends Class_object {
      *
      */
     constructor(hdlr: (req: any, ...params: any[])=>void);
-
-    /**
-     * @description Creates a message handler routing object
-     *
-     *      The keys of map are match patterns and the values are handlers; the result
-     *      is a Routing built with the same constructor, so `new Handler(map)` and
-     *      `new mq.Routing(map)` are interchangeable. Patterns may use the express
-     *      style `:name` captures or be raw regular expressions, and the handler
-     *      forms accepted as values are the usual ones (see Routing).
-     *
-     *      @param map initialization routing parameters
-     *
-     */
-    constructor(map: FIBJS.GeneralObject);
 
     /**
      * @description Constructs a file handler or a request repeater

@@ -133,7 +133,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server bound to an address and a port
@@ -147,7 +147,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server, taking the port from the address when it carries one
@@ -160,7 +160,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server without binding a port; listen() must be called to start
@@ -171,7 +171,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Enables automatic CORS handling, including preflight requests
@@ -293,7 +293,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server bound to an address and a port
@@ -307,7 +307,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server, taking the port from the address when it carries one
@@ -320,7 +320,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server without binding a port; listen() must be called to start
@@ -331,7 +331,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Enables automatic CORS handling, including preflight requests

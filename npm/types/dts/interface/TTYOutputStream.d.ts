@@ -512,7 +512,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -522,7 +522,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -534,7 +534,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -544,7 +544,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -556,7 +556,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(event: "data", listener: (data: Class_Buffer)=>void, options?: FIBJS.GeneralObject): this;
 
@@ -582,7 +582,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -592,7 +592,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 

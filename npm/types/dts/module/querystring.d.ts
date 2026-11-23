@@ -150,7 +150,7 @@ declare module 'querystring' {
      *      @return the serialized query string
      *
      */
-    function stringify(obj: FIBJS.GeneralObject, sep?: string, eq?: string, opt?: FIBJS.GeneralObject): string;
+    function stringify(obj: FIBJS.ValueMap, sep?: string, eq?: string, opt?: FIBJS.GeneralObject): string;
 
 }
 

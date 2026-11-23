@@ -165,7 +165,7 @@ declare module 'http/promises' {
      *      @return returns an HttpServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
+    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
 
     /**
      * @description Creates an https server
@@ -185,7 +185,7 @@ declare module 'http/promises' {
      *      @return returns an HttpsServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
 
     /**
      * @description Creates an http protocol handler object, see HttpHandler
@@ -212,10 +212,11 @@ declare module 'http/promises' {
      * @description Returns the collection of standard HTTP response status codes and their short descriptions
      *
      *      An object whose keys are the three-digit status codes and whose values are the reason
-     *      phrases, for example STATUS_CODES[404] === 'Not Found'.
+     *      phrases, for example STATUS_CODES[404] === 'Not Found'. The returned dictionary is a
+     *      fresh StringMap snapshot.
      *
      */
-    const STATUS_CODES: FIBJS.GeneralObject;
+    const STATUS_CODES: FIBJS.StringMap;
 
     /**
      * @description Returns an array of all method names (in uppercase) supported by the HTTP protocol
@@ -1600,7 +1601,7 @@ declare module 'http/promises' {
      *      @return a callable function used to restore the original proxy configuration
      *
      */
-    function setGlobalProxyFromEnv(proxyEnv?: FIBJS.GeneralObject): ()=>any;
+    function setGlobalProxyFromEnv(proxyEnv?: FIBJS.StringMap): ()=>any;
 
     /**
      * @description Sends a request using the Web Fetch standard and returns an HttpResponse object

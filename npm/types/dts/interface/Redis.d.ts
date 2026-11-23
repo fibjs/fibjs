@@ -260,7 +260,7 @@ declare class Class_Redis extends Class_object {
      *      @param kvs the key/value pairs to set, as property names and values
      *
      */
-    mset(kvs: FIBJS.GeneralObject): void;
+    mset(kvs: FIBJS.KVMap): void;
 
     /**
      * @description Sets several key/value pairs at once from a flat argument list
@@ -287,7 +287,7 @@ declare class Class_Redis extends Class_object {
      *      @param kvs the key/value pairs to set, as property names and values
      *
      */
-    msetNX(kvs: FIBJS.GeneralObject): void;
+    msetNX(kvs: FIBJS.KVMap): void;
 
     /**
      * @description Sets several key/value pairs from a flat list only when all the keys are missing
@@ -686,7 +686,7 @@ declare class Class_Redis extends Class_object {
      *      @param map the channel/callback map
      *
      */
-    sub(map: FIBJS.GeneralObject): void;
+    sub(map: FIBJS.EventMap): void;
 
     /**
      * @description Removes every callback of a channel
@@ -733,7 +733,7 @@ declare class Class_Redis extends Class_object {
      *      @param map the channel/callback map
      *
      */
-    unsub(map: FIBJS.GeneralObject): void;
+    unsub(map: FIBJS.EventMap): void;
 
     /**
      * @description Subscribes func to every channel matching a pattern
@@ -759,7 +759,7 @@ declare class Class_Redis extends Class_object {
      *      @param map the pattern/callback map
      *
      */
-    psub(map: FIBJS.GeneralObject): void;
+    psub(map: FIBJS.EventMap): void;
 
     /**
      * @description Removes every callback of a pattern
@@ -804,7 +804,7 @@ declare class Class_Redis extends Class_object {
      *      @param map the pattern/callback map
      *
      */
-    unpsub(map: FIBJS.GeneralObject): void;
+    unpsub(map: FIBJS.EventMap): void;
 
     /**
      * @description Event fired when the subscriber connection fails

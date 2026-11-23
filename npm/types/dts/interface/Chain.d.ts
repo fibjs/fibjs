@@ -165,7 +165,7 @@ declare class Class_Chain extends Class_Handler {
      *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_object, ...params: any[])=>void)): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_object, ...params: any[])=>void)): void;
 
 }
 
@@ -251,7 +251,7 @@ declare class Class_ChainPromise extends Class_HandlerPromise {
      *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_object, ...params: any[])=>void)): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_object, ...params: any[])=>void)): void;
 
 }
 

@@ -910,37 +910,37 @@ declare module 'process' {
 
     function on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    function on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    function addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     function prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    function prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    function once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    function prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     function off(ev: any): FIBJS.GeneralObject;
 
-    function off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     function removeListener(ev: any): FIBJS.GeneralObject;
 
-    function removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function removeEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 

@@ -1284,27 +1284,27 @@ declare class Class_Message extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -1312,11 +1312,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 

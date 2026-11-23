@@ -213,7 +213,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Appends an event handler to the emitter
@@ -237,7 +237,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Appends an event handler to the emitter with an options object
@@ -311,7 +311,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Appends a one-shot event handler to the emitter
@@ -339,7 +339,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Inserts a one-shot event handler at the front of the queue
@@ -365,7 +365,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Removes an event handler from the emitter
@@ -418,7 +418,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Removes an event handler from the emitter
@@ -453,7 +453,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Removes an event handler with an options object

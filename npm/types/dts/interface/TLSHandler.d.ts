@@ -119,7 +119,7 @@ declare class Class_TLSHandler extends Class_Handler {
      *      @param handler the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLSHandler from the options of tls.createSecureContext
@@ -132,7 +132,7 @@ declare class Class_TLSHandler extends Class_Handler {
      *      @param handler the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used for the connections handled by this TLSHandler
@@ -238,7 +238,7 @@ declare class Class_TLSHandlerPromise extends Class_HandlerPromise {
      *      @param handler the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLSHandler from the options of tls.createSecureContext
@@ -251,7 +251,7 @@ declare class Class_TLSHandlerPromise extends Class_HandlerPromise {
      *      @param handler the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used for the connections handled by this TLSHandler

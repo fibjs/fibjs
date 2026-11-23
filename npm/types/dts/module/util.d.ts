@@ -270,7 +270,7 @@ declare module 'util' {
      *      @return returns the parsed key-value object
      *
      */
-    function parseEnv(content: string): FIBJS.GeneralObject;
+    function parseEnv(content: string): FIBJS.StringMap;
 
     /**
      * @description Returns a debug representation of a value controlled by options
@@ -1009,6 +1009,8 @@ declare module 'util' {
      *      array of keys (arrays are expanded one level). Inherited enumerable
      *      properties are included and missing keys are skipped. A null/undefined
      *      target yields an empty object; other non-objects throw TypeError 20004.
+     *      The result is a plain object so that symbol keys are preserved; it is not
+     *      a string-keyed map.
      *
      *      @param v the object to filter
      *      @param objs one or more keys to select
@@ -1023,7 +1025,8 @@ declare module 'util' {
      *      Copies every enumerable property except the listed ones; each argument is a
      *      key or an array of keys, and keys are converted to strings, so
      *      omit(['a', 'b'], 0) removes index 0. A null/undefined target yields an empty
-     *      object.
+     *      object. The result is a plain object so that symbol keys are preserved; it
+     *      is not a string-keyed map.
      *
      *      @param v the object to filter
      *      @param keys one or more keys to exclude

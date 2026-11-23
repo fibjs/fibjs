@@ -509,7 +509,7 @@ declare module 'crypto/promises' {
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
-        subject?: FIBJS.GeneralObject;
+        subject?: FIBJS.StringMap;
         hashAlgorithm?: string;
     }): Class_X509CertificateRequest;
 

@@ -492,12 +492,15 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
             "import tls from 'tls';",
             "import mq from 'mq';",
             // the IDL declares the parameter as
-            // `Handler|Handler[]|Function(...) => Value|Object|String`: the
+            // `Handler|Handler[]|HandlerMap|String|Function(...) => void`: the
             // callable alternative carries the shapes the runtime converts
             // into a Handler, so --strict gives the arrow parameters their
             // contextual type (no TS7006) and the declared parameter types
             "http.createServer((req, res) => { const h: Class_Headers = req.headers; res.write('x'); res.end(); });",
             "http.createServer({ '/': (req: any, res: any) => { } });",
+            "http.createServer({ '/nested': { '/leaf': (req: any, res: any) => { } } });",
+            "http.createServer({ '/list': [(req: any, res: any) => { }] });",
+            "const app: FIBJS.HandlerMap = { '/a': (req: any, res: any) => { } };",
             "http.createServer('./www');",
             "http.createServer('http://backend');",
             "http.createServer([new mq.Handler((req: any, res: any) => { })]);",
@@ -533,6 +536,23 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
 
         assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
 
+        fs.writeFileSync(path.join(dir, 'maps.ts'), [
+            "import http from 'http';",
+            "import mq from 'mq';",
+            "// @ts-expect-error a non-handler value is not a HandlerMap value",
+            "new mq.Routing({ '/a': 123 });",
+            "// @ts-expect-error an ES Map is not a plain-object HandlerMap",
+            "new mq.Routing({ '/a': new Map() });",
+            "// @ts-expect-error nested maps keep the same handler value type",
+            "new mq.Routing({ '/a': { '/b': 123 } });",
+            "// @ts-expect-error a server map also rejects non-handler values",
+            "http.createServer({ '/a': 123 });"
+        ].join('\n'));
+
+        r = runCheck(dir, ['maps.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+
         // the union must not have widened the parameters to `any`: the values
         // no alternative accepts stay type errors
         fs.writeFileSync(path.join(dir, 'neg.ts'), [
@@ -545,6 +565,76 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
         ].join('\n'));
 
         r = runCheck(dir, ['neg.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+    });
+
+    it('accepts the Header, Event, String and Value maps the IDL declares', () => {
+        var dir = path.join(scratch, 'named-maps');
+
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, 'named.ts'), [
+            "import http from 'http';",
+            "import { EventEmitter } from 'events';",
+            "import util from 'util';",
+            "import os from 'os';",
+            "import net from 'net';",
+            "import vm from 'vm';",
+            'const req = new http.Request("http://x/");',
+            "req.appendHeader({ 'X-Count': 2, 'Set-Cookie': ['a=1', 'b=2'], 'X-When': new Date() });",
+            "req.setHeader({ 'X-Ok': true });",
+            "const headerMap: FIBJS.HeaderMap = req.getHeaders();",
+            "const statusCodes: FIBJS.StringMap = http.STATUS_CODES;",
+            "const proxy: FIBJS.StringMap = new http.Client().proxyEnv;",
+            'const freeSockets: FIBJS.ValueMap = new http.Client().freeSockets;',
+            'const sockets: FIBJS.ValueMap = new http.Client().sockets;',
+            "const headers = new http.Headers({ 'X-Count': 2, 'Set-Cookie': ['a=1', 'b=2'] });",
+            "new http.Headers([['X-Pair', '1']]);",
+            'const res = new http.Response();',
+            "res.writeHead(200, { 'Content-Type': 'text/plain' });",
+            'const emitter = new EventEmitter();',
+            'emitter.on({ ready: () => { }, close: () => { } });',
+            'const env: FIBJS.StringMap = process.env;',
+            "const parsed: FIBJS.StringMap = util.parseEnv('A=1');",
+            "const picked: FIBJS.ValueMap = util.pick({ a: 1 }, 'a');",
+            "const kv: FIBJS.KVMap = { key: 'value', binary: Buffer.from('bytes') };",
+            'const box = new vm.SandBox({ base: 40 });',
+            'const modules: FIBJS.ValueMap = box.modules;',
+            'const interfaces: FIBJS.ValueMap = os.networkInterfaces();',
+            'const info: FIBJS.ValueMap = net.info();',
+            'console.log(req, res, headers, headerMap, statusCodes, proxy, freeSockets, sockets, emitter, env, parsed, picked, kv, box, modules, interfaces, info);'
+        ].join('\n'));
+
+        var r = runCheck(dir, ['--strict', 'named.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+
+        fs.writeFileSync(path.join(dir, 'named-neg.ts'), [
+            "import http from 'http';",
+            "import { EventEmitter } from 'events';",
+            "import util from 'util';",
+            'const req = new http.Request("http://x/");',
+            "// @ts-expect-error an object is not a header value",
+            "req.appendHeader({ 'X-Bad': {} });",
+            "// @ts-expect-error the Headers init map has the same value constraint",
+            "new http.Headers({ 'X-Bad': {} });",
+            'const emitter = new EventEmitter();',
+            '// @ts-expect-error an event listener map requires function values',
+            'emitter.on({ bad: 1 });',
+            '// @ts-expect-error process environment values are strings',
+            'process.env.X = 1;',
+            "// @ts-expect-error parsed environment values are strings",
+            "util.parseEnv('A=1').A = 1;",
+            '// @ts-expect-error proxyEnv keeps the StringMap value type',
+            'new http.Client().proxyEnv = { http_proxy: 1 };',
+            '// @ts-expect-error STATUS_CODES keeps the StringMap value type',
+            'http.STATUS_CODES[404] = 1;',
+            '// @ts-expect-error KVMap values are strings or Buffers, not numbers',
+            'const badKv: FIBJS.KVMap = { count: 1 };',
+            'console.log(badKv);'
+        ].join('\n'));
+
+        r = runCheck(dir, ['named-neg.ts']);
 
         assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
     });

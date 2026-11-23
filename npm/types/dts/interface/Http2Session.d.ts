@@ -273,7 +273,7 @@ declare class Class_Http2Session extends Class_EventEmitter {
      *      @return returns the Http2Stream of the new request
      *
      */
-    request(headers: FIBJS.GeneralObject, options?: FIBJS.GeneralObject): Class_Http2Stream;
+    request(headers: FIBJS.HeaderMap, options?: FIBJS.GeneralObject): Class_Http2Stream;
 
     /**
      * @description sends a GOAWAY frame to the peer
@@ -482,23 +482,23 @@ declare class Class_Http2Session extends Class_EventEmitter {
      *      @param headers request headers object
      *
      */
-    on(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    on(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    once(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    once(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    off(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    off(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    addListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    addListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    removeListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    removeListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    addEventListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    prependListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    prependOnceListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    prependOnceListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
     /**
      * @description emitted for every request on a server session
@@ -513,7 +513,7 @@ declare class Class_Http2Session extends Class_EventEmitter {
      *      @param headers request headers object
      *
      */
-    onstream: ((stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void) | null;
+    onstream: ((stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void) | null;
 
     /**
      * @description emitted when the session receives a GOAWAY frame
@@ -591,27 +591,27 @@ declare class Class_Http2Session extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -619,11 +619,11 @@ declare class Class_Http2Session extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -786,7 +786,7 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
      *      @return returns the Http2Stream of the new request
      *
      */
-    request(headers: FIBJS.GeneralObject, options?: FIBJS.GeneralObject): Class_Http2Stream;
+    request(headers: FIBJS.HeaderMap, options?: FIBJS.GeneralObject): Class_Http2Stream;
 
     /**
      * @description sends a GOAWAY frame to the peer
@@ -991,7 +991,7 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
      *      @param headers request headers object
      *
      */
-    onstream: ((stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void) | null;
+    onstream: ((stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void) | null;
 
     /**
      * @description emitted when the session receives a GOAWAY frame

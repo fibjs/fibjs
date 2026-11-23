@@ -122,7 +122,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the number of new members added, updated members excluded
      *
      */
-    add(sms: FIBJS.GeneralObject): number;
+    add(sms: FIBJS.StringMap): number;
 
     /**
      * @description Adds members with their scores, or updates the scores of members present

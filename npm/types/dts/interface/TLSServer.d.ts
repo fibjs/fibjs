@@ -129,7 +129,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server bound to the given address and port
@@ -142,7 +142,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server from an options object, binding when it carries a port
@@ -156,7 +156,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server without binding a port; listen() must be called to start
@@ -168,7 +168,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used by the server
@@ -267,7 +267,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server bound to the given address and port
@@ -280,7 +280,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server from an options object, binding when it carries a port
@@ -294,7 +294,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server without binding a port; listen() must be called to start
@@ -306,7 +306,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used by the server

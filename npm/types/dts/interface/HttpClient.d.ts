@@ -333,7 +333,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      option; see the module `setGlobalProxyFromEnv` for the matching env parser.
      *
      */
-    proxyEnv: FIBJS.GeneralObject;
+    proxyEnv: FIBJS.StringMap;
 
     /**
      * @description Queries and sets the maximum number of connections per host, default unlimited
@@ -387,7 +387,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      pool is not exposed. Use `destroy()` to release the real pooled connections.
      *
      */
-    readonly freeSockets: FIBJS.GeneralObject;
+    readonly freeSockets: FIBJS.ValueMap;
 
     /**
      * @description Returns the map of connections in use keyed by host:port
@@ -396,7 +396,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      pool is not exposed.
      *
      */
-    readonly sockets: FIBJS.GeneralObject;
+    readonly sockets: FIBJS.ValueMap;
 
     /**
      * @description Returns the total number of connections in use across all hosts
@@ -1654,7 +1654,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      option; see the module `setGlobalProxyFromEnv` for the matching env parser.
      *
      */
-    proxyEnv: FIBJS.GeneralObject;
+    proxyEnv: FIBJS.StringMap;
 
     /**
      * @description Queries and sets the maximum number of connections per host, default unlimited
@@ -1708,7 +1708,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      pool is not exposed. Use `destroy()` to release the real pooled connections.
      *
      */
-    readonly freeSockets: FIBJS.GeneralObject;
+    readonly freeSockets: FIBJS.ValueMap;
 
     /**
      * @description Returns the map of connections in use keyed by host:port
@@ -1717,7 +1717,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      pool is not exposed.
      *
      */
-    readonly sockets: FIBJS.GeneralObject;
+    readonly sockets: FIBJS.ValueMap;
 
     /**
      * @description Returns the total number of connections in use across all hosts

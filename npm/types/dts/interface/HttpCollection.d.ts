@@ -205,7 +205,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @param map object whose properties are appended
      *
      */
-    append(map: FIBJS.GeneralObject): void;
+    append(map: FIBJS.ValueMap): void;
 
     /**
      * @description Appends one value, or every element of an array, for a name
@@ -268,7 +268,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @param map object whose properties are set
      *
      */
-    set(map: FIBJS.GeneralObject): void;
+    set(map: FIBJS.ValueMap): void;
 
     /**
      * @description Sets one value, or every element of an array, for a name

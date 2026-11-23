@@ -215,7 +215,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers an object containing header name-value pairs
      *
      */
-    respond(headers?: FIBJS.GeneralObject): void;
+    respond(headers?: FIBJS.HeaderMap): void;
 
     /**
      * @description sends informational (1xx) headers to the peer (server stream)
@@ -230,7 +230,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers an object containing header name-value pairs
      *
      */
-    additionalHeaders(headers: FIBJS.GeneralObject): void;
+    additionalHeaders(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description sends trailing headers at the end of the stream (server stream)
@@ -284,7 +284,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers an object containing trailing header name-value pairs
      *
      */
-    sendTrailers(headers: FIBJS.GeneralObject): void;
+    sendTrailers(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description sends an RST_STREAM frame to cancel the stream
@@ -352,23 +352,23 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers response headers object
      *
      */
-    on(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    on(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    once(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    once(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    off(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    off(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    addListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    addListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    removeListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    removeListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    addEventListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    prependListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    prependOnceListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    prependOnceListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
     /**
      * @description emitted when a header block is received
@@ -381,7 +381,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers response headers object
      *
      */
-    onheaders: ((headers: FIBJS.GeneralObject)=>void) | null;
+    onheaders: ((headers: FIBJS.HeaderMap)=>void) | null;
 
     /**
      * @description emitted when a trailing header block is received
@@ -393,23 +393,23 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers trailing headers object
      *
      */
-    on(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    on(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    once(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    once(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    off(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    off(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    addListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    addListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    removeListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    removeListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    addEventListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    prependListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    prependOnceListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    prependOnceListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
     /**
      * @description emitted when a trailing header block is received
@@ -421,7 +421,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers trailing headers object
      *
      */
-    ontrailers: ((headers: FIBJS.GeneralObject)=>void) | null;
+    ontrailers: ((headers: FIBJS.HeaderMap)=>void) | null;
 
     on(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -431,7 +431,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -441,7 +441,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -453,7 +453,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -463,7 +463,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -475,7 +475,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(event: "data", listener: (data: Class_Buffer)=>void, options?: FIBJS.GeneralObject): this;
 
@@ -501,7 +501,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -511,7 +511,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -616,7 +616,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      @param headers an object containing header name-value pairs
      *
      */
-    respond(headers?: FIBJS.GeneralObject): void;
+    respond(headers?: FIBJS.HeaderMap): void;
 
     /**
      * @description sends informational (1xx) headers to the peer (server stream)
@@ -631,7 +631,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      @param headers an object containing header name-value pairs
      *
      */
-    additionalHeaders(headers: FIBJS.GeneralObject): void;
+    additionalHeaders(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description sends trailing headers at the end of the stream (server stream)
@@ -685,7 +685,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      @param headers an object containing trailing header name-value pairs
      *
      */
-    sendTrailers(headers: FIBJS.GeneralObject): void;
+    sendTrailers(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description sends an RST_STREAM frame to cancel the stream
@@ -753,7 +753,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      @param headers response headers object
      *
      */
-    onheaders: ((headers: FIBJS.GeneralObject)=>void) | null;
+    onheaders: ((headers: FIBJS.HeaderMap)=>void) | null;
 
     /**
      * @description emitted when a trailing header block is received
@@ -765,7 +765,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      @param headers trailing headers object
      *
      */
-    ontrailers: ((headers: FIBJS.GeneralObject)=>void) | null;
+    ontrailers: ((headers: FIBJS.HeaderMap)=>void) | null;
 
 }
 

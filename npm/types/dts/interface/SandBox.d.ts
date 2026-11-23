@@ -114,7 +114,7 @@ declare class Class_SandBox extends Class_object {
      *      @param mods the module object dictionary to add
      *
      */
-    constructor(mods?: FIBJS.GeneralObject);
+    constructor(mods?: FIBJS.ValueMap);
 
     /**
      * @description Constructs a sandbox with a custom require function
@@ -128,7 +128,7 @@ declare class Class_SandBox extends Class_object {
      *      @param require a custom require function; when a module does not exist, the custom function is called first, and if it returns nothing the module is loaded from files
      *
      */
-    constructor(mods: FIBJS.GeneralObject, require: (id: string)=>any);
+    constructor(mods: FIBJS.ValueMap, require: (id: string)=>any);
 
     /**
      * @description Constructs a sandbox with a custom require function and an independent global object
@@ -142,7 +142,7 @@ declare class Class_SandBox extends Class_object {
      *      @param global the initial Global properties to set
      *
      */
-    constructor(mods: FIBJS.GeneralObject, require: (id: string)=>any, global: FIBJS.GeneralObject);
+    constructor(mods: FIBJS.ValueMap, require: (id: string)=>any, global: FIBJS.GeneralObject);
 
     /**
      * @description Constructs a sandbox with an independent global object
@@ -156,7 +156,7 @@ declare class Class_SandBox extends Class_object {
      *      @param global the initial Global properties to set
      *
      */
-    constructor(mods: FIBJS.GeneralObject, global: FIBJS.GeneralObject);
+    constructor(mods: FIBJS.ValueMap, global: FIBJS.GeneralObject);
 
     /**
      * @description Adds all built-in modules to the sandbox
@@ -201,7 +201,7 @@ declare class Class_SandBox extends Class_object {
      *      @param mods the module object dictionary to add; added javascript modules are copied so that modifications made by the sandbox do not interfere with each other
      *
      */
-    add(mods: FIBJS.GeneralObject): void;
+    add(mods: FIBJS.ValueMap): void;
 
     /**
      * @description Adds a script module to the sandbox and returns its exports
@@ -379,7 +379,7 @@ declare class Class_SandBox extends Class_object {
      *      registry.
      *
      */
-    readonly modules: FIBJS.GeneralObject;
+    readonly modules: FIBJS.ValueMap;
 
 }
 

@@ -51,7 +51,7 @@ declare module 'net/promises' {
      *      @return returns the network interface information
      *
      */
-    function info(): FIBJS.GeneralObject;
+    function info(): FIBJS.ValueMap;
 
     /**
      * @description Queries the address of the given host name
@@ -676,7 +676,7 @@ declare module 'net/promises' {
     function createServer(options: {
         address?: string;
         port?: number;
-    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
 
     /**
      * @description Creates a TCP server
@@ -688,7 +688,7 @@ declare module 'net/promises' {
      *      @return returns a TcpServer object not bound to a port; listen() must be called to start it
      *
      */
-    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
+    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
 
     /**
      * @description The alias of the UrlObject class, see UrlObject

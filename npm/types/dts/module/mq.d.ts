@@ -266,44 +266,9 @@ declare module 'mq' {
      *      @param v specifies the message or object to process
      *
      */
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
 
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Processes a message or object with the given handler
-     *
-     *      Unlike invoke of a handler, this method repeatedly follows the next handler
-     *      returned by native handlers until null, so a single call runs the whole
-     *      native pipeline. The handler may be given in any of the usual forms:
-     *      - a built-in Handler object, used as it is;
-     *      - an array of handlers, equivalent to `new mq.Chain(hdlr)`, see Chain;
-     *      - a handling function `(v, ...params) => void`, called with the message;
-     *        its return value is ignored;
-     *      - a routing map object, whose values are handlers in these same forms,
-     *        equivalent to `new mq.Routing(hdlr)`, see Routing;
-     *      - a path/address string, converted through the Handler constructor.
-     *
-     *      The method is asynchronous: it blocks the current fiber when called
-     *      without a callback, or completes through the trailing callback or the
-     *      promise form.
-     *
-     *      Example — the trailing callback form:
-     *      ```JavaScript
-     *      const mq = require('mq');
-     *
-     *      const msg = new mq.Message();
-     *      msg.value = 'callback';
-     *
-     *      mq.invoke((v) => console.log('invoked ' + v.value), msg, (err) => {
-     *          console.log('callback: ' + (err ? err.message : 'ok'));
-     *      });
-     *      ```
-     *      @param hdlr the handler to run
-     *      @param v specifies the message or object to process
-     *
-     */
-    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Processes a message or object with the given handler
@@ -338,7 +303,42 @@ declare module 'mq' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
+    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
+
+    /**
+     * @description Processes a message or object with the given handler
+     *
+     *      Unlike invoke of a handler, this method repeatedly follows the next handler
+     *      returned by native handlers until null, so a single call runs the whole
+     *      native pipeline. The handler may be given in any of the usual forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to `new mq.Chain(hdlr)`, see Chain;
+     *      - a handling function `(v, ...params) => void`, called with the message;
+     *        its return value is ignored;
+     *      - a routing map object, whose values are handlers in these same forms,
+     *        equivalent to `new mq.Routing(hdlr)`, see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *
+     *      The method is asynchronous: it blocks the current fiber when called
+     *      without a callback, or completes through the trailing callback or the
+     *      promise form.
+     *
+     *      Example — the trailing callback form:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.value = 'callback';
+     *
+     *      mq.invoke((v) => console.log('invoked ' + v.value), msg, (err) => {
+     *          console.log('callback: ' + (err ? err.message : 'ok'));
+     *      });
+     *      ```
+     *      @param hdlr the handler to run
+     *      @param v specifies the message or object to process
+     *
+     */
+    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
 
 }
 

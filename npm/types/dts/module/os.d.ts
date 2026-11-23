@@ -449,7 +449,7 @@ declare module 'os' {
      *      @return returns the network interface information
      *
      */
-    function networkInterfaces(): FIBJS.GeneralObject;
+    function networkInterfaces(): FIBJS.ValueMap;
 
     /**
      * @description Queries the current platform name

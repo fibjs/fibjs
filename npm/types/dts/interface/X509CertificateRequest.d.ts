@@ -235,7 +235,7 @@ declare class Class_X509CertificateRequest extends Class_object {
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
-        issuer?: FIBJS.GeneralObject;
+        issuer?: FIBJS.StringMap;
         hashAlgorithm?: string;
         validFrom?: Date;
         validTo?: Date;

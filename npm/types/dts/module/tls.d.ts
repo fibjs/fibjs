@@ -252,7 +252,7 @@ declare module 'tls' {
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void)): Class_TLSServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void)): Class_TLSServer;
 
     /**
      * @description Creates a SecureContext that holds the certificates, protocol versions and verification flags shared by TLS connections

@@ -135,7 +135,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     constructor(body: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     });
 
     /**
@@ -200,7 +200,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): Class_HttpResponse;
+    writeHead(statusCode: number, headers?: FIBJS.HeaderMap): Class_HttpResponse;
 
     /**
      * @description Sets the status code and reason phrase and appends response headers
@@ -213,7 +213,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): Class_HttpResponse;
+    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.HeaderMap): Class_HttpResponse;
 
     /**
      * @description The Set-Cookie headers as an array of HttpCookie objects, read-only
@@ -341,7 +341,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     json(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): any;
 
     json(data: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
@@ -349,7 +349,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     json(data: any, options: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
@@ -378,7 +378,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     jsonSync(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): any;
 
     /**
@@ -407,7 +407,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     jsonAsync(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): Promise<any>;
 
     /**
@@ -462,7 +462,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     static json(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): Class_HttpResponse;
 
     /**
@@ -536,7 +536,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     constructor(body: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     });
 
     /**
@@ -601,7 +601,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): Class_HttpResponse;
+    writeHead(statusCode: number, headers?: FIBJS.HeaderMap): Class_HttpResponse;
 
     /**
      * @description Sets the status code and reason phrase and appends response headers
@@ -614,7 +614,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): Class_HttpResponse;
+    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.HeaderMap): Class_HttpResponse;
 
     /**
      * @description The Set-Cookie headers as an array of HttpCookie objects, read-only
@@ -742,7 +742,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     json(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): Promise<any>;
 
     /**
@@ -771,7 +771,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     jsonSync(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): any;
 
     /**
@@ -800,7 +800,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     jsonAsync(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): Promise<any>;
 
     /**
@@ -853,7 +853,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     static json(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): Class_HttpResponse;
 
     /**
@@ -893,7 +893,7 @@ declare namespace Class_HttpResponse {
         readonly json: (data: any, options?: {
             status?: number;
             statusText?: string;
-            headers?: Class_Headers | FIBJS.GeneralObject;
+            headers?: Class_Headers | FIBJS.HeaderMap;
         })=>Class_HttpResponse;
         readonly redirect: (url: string, status?: number)=>Class_HttpResponse;
         readonly error: ()=>Class_HttpResponse;

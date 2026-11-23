@@ -21,11 +21,37 @@
 module.exports = {
     version: "0.33.0-dev",
     files: {
-        "dts/_import/_fibjs.d.ts": `declare namespace FIBJS {
+        "dts/_import/_fibjs.d.ts": `/// <reference path="../interface/Handler.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
+declare namespace FIBJS {
     type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | BigInt64Array | BigUint64Array;
 
     interface GeneralObject {
         [k: string]: any;
+    }
+
+    interface EventMap {
+        [pattern: string]: (...args: any[])=>any;
+    }
+
+    interface HandlerMap {
+        [pattern: string]: Class_Handler | Class_HandlerPromise | any[] | FIBJS.HandlerMap | string | ((req: any, ...params: any[])=>void);
+    }
+
+    interface HeaderMap {
+        [pattern: string]: string | string[] | number | boolean | Date;
+    }
+
+    interface KVMap {
+        [pattern: string]: string | Class_Buffer;
+    }
+
+    interface StringMap {
+        [pattern: string]: string;
+    }
+
+    interface ValueMap {
+        [pattern: string]: any;
     }
 
 }
@@ -483,27 +509,27 @@ declare class Class_AbortSignal extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -511,11 +537,11 @@ declare class Class_AbortSignal extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -4245,7 +4271,7 @@ declare class Class_Chain extends Class_Handler {
      *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_object, ...params: any[])=>void)): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_object, ...params: any[])=>void)): void;
 
 }
 
@@ -4331,7 +4357,7 @@ declare class Class_ChainPromise extends Class_HandlerPromise {
      *      @param hdlr the handler appended to the chain
      *
      */
-    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_object, ...params: any[])=>void)): void;
+    append(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_object, ...params: any[])=>void)): void;
 
 }
 
@@ -4857,27 +4883,27 @@ declare class Class_ChildProcess extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -4885,11 +4911,11 @@ declare class Class_ChildProcess extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -10202,27 +10228,27 @@ declare class Class_DgramSocket extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -10230,11 +10256,11 @@ declare class Class_DgramSocket extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -14601,7 +14627,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Appends an event handler to the emitter
@@ -14625,7 +14651,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Appends an event handler to the emitter with an options object
@@ -14699,7 +14725,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Appends a one-shot event handler to the emitter
@@ -14727,7 +14753,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Inserts a one-shot event handler at the front of the queue
@@ -14753,7 +14779,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Removes an event handler from the emitter
@@ -14806,7 +14832,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Removes an event handler from the emitter
@@ -14841,7 +14867,7 @@ declare class Class_EventEmitter extends Class_object {
      *      @return returns the event object itself for chaining
      *
      */
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     /**
      * @description Removes an event handler with an options object
@@ -15752,27 +15778,27 @@ declare class Class_EventSource extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -15780,11 +15806,11 @@ declare class Class_EventSource extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -16492,27 +16518,27 @@ declare class Class_FSWatcher extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -16520,11 +16546,11 @@ declare class Class_FSWatcher extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -19972,7 +19998,7 @@ declare class Class_FormData extends Class_HttpCollection {
      *      @param init the fields: an object, another FormData or a urlencoded string
      *
      */
-    constructor(init: FIBJS.GeneralObject | Class_FormData | string);
+    constructor(init: FIBJS.ValueMap | Class_FormData | string);
 
     /**
      * @description Appends a Blob or File value under a name, keeping existing values
@@ -20075,13 +20101,13 @@ declare class Class_FormData extends Class_HttpCollection {
      */
     encode(type?: string): Class_Blob;
 
-    append(map: FIBJS.GeneralObject): void;
+    append(map: FIBJS.ValueMap): void;
 
     append(name: string, value: any[] | any): void;
 
     append(entries: any[]): void;
 
-    set(map: FIBJS.GeneralObject): void;
+    set(map: FIBJS.ValueMap): void;
 
     set(name: string, value: any[] | any): void;
 
@@ -20325,6 +20351,20 @@ declare class Class_Handler extends Class_object {
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
 
     /**
+     * @description Creates a message handler routing object
+     *
+     *      The keys of map are match patterns and the values are handlers; the result
+     *      is a Routing built with the same constructor, so \`new Handler(map)\` and
+     *      \`new mq.Routing(map)\` are interchangeable. Patterns may use the express
+     *      style \`:name\` captures or be raw regular expressions, and the handler
+     *      forms accepted as values are the usual ones (see Routing).
+     *
+     *      @param map initialization routing parameters
+     *
+     */
+    constructor(map: FIBJS.HandlerMap);
+
+    /**
      * @description Creates a JavaScript message handler
      *
      *      The function is called as \`(req, ...params) => void\` with the message (and
@@ -20343,20 +20383,6 @@ declare class Class_Handler extends Class_object {
      *
      */
     constructor(hdlr: (req: any, ...params: any[])=>void);
-
-    /**
-     * @description Creates a message handler routing object
-     *
-     *      The keys of map are match patterns and the values are handlers; the result
-     *      is a Routing built with the same constructor, so \`new Handler(map)\` and
-     *      \`new mq.Routing(map)\` are interchangeable. Patterns may use the express
-     *      style \`:name\` captures or be raw regular expressions, and the handler
-     *      forms accepted as values are the usual ones (see Routing).
-     *
-     *      @param map initialization routing parameters
-     *
-     */
-    constructor(map: FIBJS.GeneralObject);
 
     /**
      * @description Constructs a file handler or a request repeater
@@ -20515,6 +20541,20 @@ declare class Class_HandlerPromise extends Class_object {
     constructor(hdlrs: (Class_Handler | Class_HandlerPromise)[]);
 
     /**
+     * @description Creates a message handler routing object
+     *
+     *      The keys of map are match patterns and the values are handlers; the result
+     *      is a Routing built with the same constructor, so \`new Handler(map)\` and
+     *      \`new mq.Routing(map)\` are interchangeable. Patterns may use the express
+     *      style \`:name\` captures or be raw regular expressions, and the handler
+     *      forms accepted as values are the usual ones (see Routing).
+     *
+     *      @param map initialization routing parameters
+     *
+     */
+    constructor(map: FIBJS.HandlerMap);
+
+    /**
      * @description Creates a JavaScript message handler
      *
      *      The function is called as \`(req, ...params) => void\` with the message (and
@@ -20533,20 +20573,6 @@ declare class Class_HandlerPromise extends Class_object {
      *
      */
     constructor(hdlr: (req: any, ...params: any[])=>void);
-
-    /**
-     * @description Creates a message handler routing object
-     *
-     *      The keys of map are match patterns and the values are handlers; the result
-     *      is a Routing built with the same constructor, so \`new Handler(map)\` and
-     *      \`new mq.Routing(map)\` are interchangeable. Patterns may use the express
-     *      style \`:name\` captures or be raw regular expressions, and the handler
-     *      forms accepted as values are the usual ones (see Routing).
-     *
-     *      @param map initialization routing parameters
-     *
-     */
-    constructor(map: FIBJS.GeneralObject);
 
     /**
      * @description Constructs a file handler or a request repeater
@@ -20803,7 +20829,7 @@ declare class Class_Headers extends Class_HttpCollection {
      *      @param init the initial fields: an object, an array of [name, value] pairs or another Headers
      *
      */
-    constructor(init: FIBJS.GeneralObject | any[] | Class_Headers);
+    constructor(init: FIBJS.HeaderMap | any[] | Class_Headers);
 
     /**
      * @description Returns every Set-Cookie value as a separate array element
@@ -21869,7 +21895,7 @@ declare class Class_Http2Server extends Class_TcpServer {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from a SecureContext and binds a port
@@ -21883,7 +21909,7 @@ declare class Class_Http2Server extends Class_TcpServer {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from a SecureContext and binds an address and port
@@ -21898,7 +21924,7 @@ declare class Class_Http2Server extends Class_TcpServer {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from tls.createSecureContext options, without binding a port
@@ -21912,7 +21938,7 @@ declare class Class_Http2Server extends Class_TcpServer {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description queries the SecureContext used by this server
@@ -22035,7 +22061,7 @@ declare class Class_Http2ServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from a SecureContext and binds a port
@@ -22049,7 +22075,7 @@ declare class Class_Http2ServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from a SecureContext and binds an address and port
@@ -22064,7 +22090,7 @@ declare class Class_Http2ServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description creates an HTTP/2 server from tls.createSecureContext options, without binding a port
@@ -22078,7 +22104,7 @@ declare class Class_Http2ServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler, accepted for compatibility
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description queries the SecureContext used by this server
@@ -22443,7 +22469,7 @@ declare class Class_Http2Session extends Class_EventEmitter {
      *      @return returns the Http2Stream of the new request
      *
      */
-    request(headers: FIBJS.GeneralObject, options?: FIBJS.GeneralObject): Class_Http2Stream;
+    request(headers: FIBJS.HeaderMap, options?: FIBJS.GeneralObject): Class_Http2Stream;
 
     /**
      * @description sends a GOAWAY frame to the peer
@@ -22652,23 +22678,23 @@ declare class Class_Http2Session extends Class_EventEmitter {
      *      @param headers request headers object
      *
      */
-    on(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    on(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    once(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    once(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    off(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    off(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    addListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    addListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    removeListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    removeListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    addEventListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    prependListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
-    prependOnceListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void): this;
+    prependOnceListener(event: "stream", listener: (stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void): this;
 
     /**
      * @description emitted for every request on a server session
@@ -22683,7 +22709,7 @@ declare class Class_Http2Session extends Class_EventEmitter {
      *      @param headers request headers object
      *
      */
-    onstream: ((stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void) | null;
+    onstream: ((stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void) | null;
 
     /**
      * @description emitted when the session receives a GOAWAY frame
@@ -22761,27 +22787,27 @@ declare class Class_Http2Session extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -22789,11 +22815,11 @@ declare class Class_Http2Session extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -22956,7 +22982,7 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
      *      @return returns the Http2Stream of the new request
      *
      */
-    request(headers: FIBJS.GeneralObject, options?: FIBJS.GeneralObject): Class_Http2Stream;
+    request(headers: FIBJS.HeaderMap, options?: FIBJS.GeneralObject): Class_Http2Stream;
 
     /**
      * @description sends a GOAWAY frame to the peer
@@ -23161,7 +23187,7 @@ declare class Class_Http2SessionPromise extends Class_EventEmitter {
      *      @param headers request headers object
      *
      */
-    onstream: ((stream: Class_Http2Stream, headers: FIBJS.GeneralObject)=>void) | null;
+    onstream: ((stream: Class_Http2Stream, headers: FIBJS.HeaderMap)=>void) | null;
 
     /**
      * @description emitted when the session receives a GOAWAY frame
@@ -23408,7 +23434,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers an object containing header name-value pairs
      *
      */
-    respond(headers?: FIBJS.GeneralObject): void;
+    respond(headers?: FIBJS.HeaderMap): void;
 
     /**
      * @description sends informational (1xx) headers to the peer (server stream)
@@ -23423,7 +23449,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers an object containing header name-value pairs
      *
      */
-    additionalHeaders(headers: FIBJS.GeneralObject): void;
+    additionalHeaders(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description sends trailing headers at the end of the stream (server stream)
@@ -23477,7 +23503,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers an object containing trailing header name-value pairs
      *
      */
-    sendTrailers(headers: FIBJS.GeneralObject): void;
+    sendTrailers(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description sends an RST_STREAM frame to cancel the stream
@@ -23545,23 +23571,23 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers response headers object
      *
      */
-    on(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    on(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    once(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    once(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    off(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    off(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    addListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    addListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    removeListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    removeListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    addEventListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    prependListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    prependOnceListener(event: "headers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    prependOnceListener(event: "headers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
     /**
      * @description emitted when a header block is received
@@ -23574,7 +23600,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers response headers object
      *
      */
-    onheaders: ((headers: FIBJS.GeneralObject)=>void) | null;
+    onheaders: ((headers: FIBJS.HeaderMap)=>void) | null;
 
     /**
      * @description emitted when a trailing header block is received
@@ -23586,23 +23612,23 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers trailing headers object
      *
      */
-    on(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    on(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    once(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    once(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    off(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    off(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    addListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    addListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    removeListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    removeListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    addEventListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    addEventListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    removeEventListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void, options?: FIBJS.GeneralObject): this;
+    removeEventListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void, options?: FIBJS.GeneralObject): this;
 
-    prependListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    prependListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
-    prependOnceListener(event: "trailers", listener: (headers: FIBJS.GeneralObject)=>void): this;
+    prependOnceListener(event: "trailers", listener: (headers: FIBJS.HeaderMap)=>void): this;
 
     /**
      * @description emitted when a trailing header block is received
@@ -23614,7 +23640,7 @@ declare class Class_Http2Stream extends Class_Stream {
      *      @param headers trailing headers object
      *
      */
-    ontrailers: ((headers: FIBJS.GeneralObject)=>void) | null;
+    ontrailers: ((headers: FIBJS.HeaderMap)=>void) | null;
 
     on(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -23624,7 +23650,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -23634,7 +23660,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -23646,7 +23672,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -23656,7 +23682,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -23668,7 +23694,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(event: "data", listener: (data: Class_Buffer)=>void, options?: FIBJS.GeneralObject): this;
 
@@ -23694,7 +23720,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -23704,7 +23730,7 @@ declare class Class_Http2Stream extends Class_Stream {
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -23809,7 +23835,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      @param headers an object containing header name-value pairs
      *
      */
-    respond(headers?: FIBJS.GeneralObject): void;
+    respond(headers?: FIBJS.HeaderMap): void;
 
     /**
      * @description sends informational (1xx) headers to the peer (server stream)
@@ -23824,7 +23850,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      @param headers an object containing header name-value pairs
      *
      */
-    additionalHeaders(headers: FIBJS.GeneralObject): void;
+    additionalHeaders(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description sends trailing headers at the end of the stream (server stream)
@@ -23878,7 +23904,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      @param headers an object containing trailing header name-value pairs
      *
      */
-    sendTrailers(headers: FIBJS.GeneralObject): void;
+    sendTrailers(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description sends an RST_STREAM frame to cancel the stream
@@ -23946,7 +23972,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      @param headers response headers object
      *
      */
-    onheaders: ((headers: FIBJS.GeneralObject)=>void) | null;
+    onheaders: ((headers: FIBJS.HeaderMap)=>void) | null;
 
     /**
      * @description emitted when a trailing header block is received
@@ -23958,7 +23984,7 @@ declare class Class_Http2StreamPromise extends Class_StreamPromise {
      *      @param headers trailing headers object
      *
      */
-    ontrailers: ((headers: FIBJS.GeneralObject)=>void) | null;
+    ontrailers: ((headers: FIBJS.HeaderMap)=>void) | null;
 
 }
 
@@ -24302,7 +24328,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      option; see the module \`setGlobalProxyFromEnv\` for the matching env parser.
      *
      */
-    proxyEnv: FIBJS.GeneralObject;
+    proxyEnv: FIBJS.StringMap;
 
     /**
      * @description Queries and sets the maximum number of connections per host, default unlimited
@@ -24356,7 +24382,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      pool is not exposed. Use \`destroy()\` to release the real pooled connections.
      *
      */
-    readonly freeSockets: FIBJS.GeneralObject;
+    readonly freeSockets: FIBJS.ValueMap;
 
     /**
      * @description Returns the map of connections in use keyed by host:port
@@ -24365,7 +24391,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      pool is not exposed.
      *
      */
-    readonly sockets: FIBJS.GeneralObject;
+    readonly sockets: FIBJS.ValueMap;
 
     /**
      * @description Returns the total number of connections in use across all hosts
@@ -25623,7 +25649,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      option; see the module \`setGlobalProxyFromEnv\` for the matching env parser.
      *
      */
-    proxyEnv: FIBJS.GeneralObject;
+    proxyEnv: FIBJS.StringMap;
 
     /**
      * @description Queries and sets the maximum number of connections per host, default unlimited
@@ -25677,7 +25703,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      pool is not exposed. Use \`destroy()\` to release the real pooled connections.
      *
      */
-    readonly freeSockets: FIBJS.GeneralObject;
+    readonly freeSockets: FIBJS.ValueMap;
 
     /**
      * @description Returns the map of connections in use keyed by host:port
@@ -25686,7 +25712,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      pool is not exposed.
      *
      */
-    readonly sockets: FIBJS.GeneralObject;
+    readonly sockets: FIBJS.ValueMap;
 
     /**
      * @description Returns the total number of connections in use across all hosts
@@ -26954,7 +26980,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @param map object whose properties are appended
      *
      */
-    append(map: FIBJS.GeneralObject): void;
+    append(map: FIBJS.ValueMap): void;
 
     /**
      * @description Appends one value, or every element of an array, for a name
@@ -27017,7 +27043,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @param map object whose properties are set
      *
      */
-    set(map: FIBJS.GeneralObject): void;
+    set(map: FIBJS.ValueMap): void;
 
     /**
      * @description Sets one value, or every element of an array, for a name
@@ -27596,7 +27622,7 @@ declare class Class_HttpHandler extends Class_Handler {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description enables cross-origin requests
@@ -27859,7 +27885,7 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description enables cross-origin requests
@@ -28388,7 +28414,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @return returns the current message object
      *
      */
-    appendHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
+    appendHeader(map: FIBJS.HeaderMap): Class_HttpMessage;
 
     /**
      * @description appends headers; appending data does not modify the headers of an existing key
@@ -28453,7 +28479,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @return returns the current message object
      *
      */
-    setHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
+    setHeader(map: FIBJS.HeaderMap): Class_HttpMessage;
 
     /**
      * @description sets headers; setting data modifies the value of the key and clears the remaining headers with the same key
@@ -28516,7 +28542,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @return returns the key-value pairs of all headers
      *
      */
-    getHeaders(): FIBJS.GeneralObject;
+    getHeaders(): FIBJS.HeaderMap;
 
     /**
      * @description queries whether the headers have been sent
@@ -28557,7 +28583,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @param headers specifies the trailer headers to add
      *
      */
-    addTrailers(headers: FIBJS.GeneralObject): void;
+    addTrailers(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description parses the message body into FormData according to Content-Type
@@ -28820,7 +28846,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      @return returns the current message object
      *
      */
-    appendHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
+    appendHeader(map: FIBJS.HeaderMap): Class_HttpMessage;
 
     /**
      * @description appends headers; appending data does not modify the headers of an existing key
@@ -28885,7 +28911,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      @return returns the current message object
      *
      */
-    setHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
+    setHeader(map: FIBJS.HeaderMap): Class_HttpMessage;
 
     /**
      * @description sets headers; setting data modifies the value of the key and clears the remaining headers with the same key
@@ -28948,7 +28974,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      @return returns the key-value pairs of all headers
      *
      */
-    getHeaders(): FIBJS.GeneralObject;
+    getHeaders(): FIBJS.HeaderMap;
 
     /**
      * @description queries whether the headers have been sent
@@ -28989,7 +29015,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      @param headers specifies the trailer headers to add
      *
      */
-    addTrailers(headers: FIBJS.GeneralObject): void;
+    addTrailers(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description parses the message body into FormData according to Content-Type
@@ -30266,7 +30292,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     constructor(body: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     });
 
     /**
@@ -30331,7 +30357,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): Class_HttpResponse;
+    writeHead(statusCode: number, headers?: FIBJS.HeaderMap): Class_HttpResponse;
 
     /**
      * @description Sets the status code and reason phrase and appends response headers
@@ -30344,7 +30370,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): Class_HttpResponse;
+    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.HeaderMap): Class_HttpResponse;
 
     /**
      * @description The Set-Cookie headers as an array of HttpCookie objects, read-only
@@ -30472,7 +30498,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     json(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): any;
 
     json(data: any, callback: (err: Error | undefined | null, retVal: any)=>any): void;
@@ -30480,7 +30506,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     json(data: any, options: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
@@ -30509,7 +30535,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     jsonSync(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): any;
 
     /**
@@ -30538,7 +30564,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     jsonAsync(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): Promise<any>;
 
     /**
@@ -30593,7 +30619,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     static json(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): Class_HttpResponse;
 
     /**
@@ -30667,7 +30693,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     constructor(body: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     });
 
     /**
@@ -30732,7 +30758,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, headers?: FIBJS.GeneralObject): Class_HttpResponse;
+    writeHead(statusCode: number, headers?: FIBJS.HeaderMap): Class_HttpResponse;
 
     /**
      * @description Sets the status code and reason phrase and appends response headers
@@ -30745,7 +30771,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
      *      @return returns the current response object
      *
      */
-    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.GeneralObject): Class_HttpResponse;
+    writeHead(statusCode: number, statusMessage: string, headers?: FIBJS.HeaderMap): Class_HttpResponse;
 
     /**
      * @description The Set-Cookie headers as an array of HttpCookie objects, read-only
@@ -30873,7 +30899,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     json(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): Promise<any>;
 
     /**
@@ -30902,7 +30928,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     jsonSync(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): any;
 
     /**
@@ -30931,7 +30957,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     jsonAsync(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): Promise<any>;
 
     /**
@@ -30984,7 +31010,7 @@ declare class Class_HttpResponsePromise extends Class_HttpMessagePromise {
     static json(data: any, options?: {
         status?: number;
         statusText?: string;
-        headers?: Class_Headers | FIBJS.GeneralObject;
+        headers?: Class_Headers | FIBJS.HeaderMap;
     }): Class_HttpResponse;
 
     /**
@@ -31024,7 +31050,7 @@ declare namespace Class_HttpResponse {
         readonly json: (data: any, options?: {
             status?: number;
             statusText?: string;
-            headers?: Class_Headers | FIBJS.GeneralObject;
+            headers?: Class_Headers | FIBJS.HeaderMap;
         })=>Class_HttpResponse;
         readonly redirect: (url: string, status?: number)=>Class_HttpResponse;
         readonly error: ()=>Class_HttpResponse;
@@ -31168,7 +31194,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server bound to an address and a port
@@ -31182,7 +31208,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server, taking the port from the address when it carries one
@@ -31195,7 +31221,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server without binding a port; listen() must be called to start
@@ -31206,7 +31232,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Enables automatic CORS handling, including preflight requests
@@ -31328,7 +31354,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server bound to an address and a port
@@ -31342,7 +31368,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server, taking the port from the address when it carries one
@@ -31355,7 +31381,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(addr: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTP server without binding a port; listen() must be called to start
@@ -31366,7 +31392,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Enables automatic CORS handling, including preflight requests
@@ -31721,7 +31747,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server bound to an address and a port from a ready SecureContext
@@ -31735,7 +31761,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server from TLS options, binding immediately when a port is given
@@ -31748,7 +31774,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server without binding a port; listen() must be called to start
@@ -31760,7 +31786,7 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description The SecureContext used for the TLS handshake, read-only
@@ -31864,7 +31890,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server bound to an address and a port from a ready SecureContext
@@ -31878,7 +31904,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server from TLS options, binding immediately when a port is given
@@ -31891,7 +31917,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description Creates an HTTPS server without binding a port; listen() must be called to start
@@ -31903,7 +31929,7 @@ declare class Class_HttpsServerPromise extends Class_HttpServerPromise {
      *      @param hdlr the request handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void));
 
     /**
      * @description The SecureContext used for the TLS handshake, read-only
@@ -33211,7 +33237,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param map the key/value pairs to store, as property names and values
      *
      */
-    mset(map: FIBJS.GeneralObject): void;
+    mset(map: FIBJS.KVMap): void;
 
     /**
      * @description Removes several keys as one atomic batch
@@ -33742,7 +33768,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param map the key/value pairs to store, as property names and values
      *
      */
-    mset(map: FIBJS.GeneralObject): void;
+    mset(map: FIBJS.KVMap): void;
 
     /**
      * @description Removes several keys as one atomic batch
@@ -35201,27 +35227,27 @@ declare class Class_MenuItem extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -35229,11 +35255,11 @@ declare class Class_MenuItem extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -36524,27 +36550,27 @@ declare class Class_Message extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -36552,11 +36578,11 @@ declare class Class_Message extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -38153,27 +38179,27 @@ declare class Class_MessagePort extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -38181,11 +38207,11 @@ declare class Class_MessagePort extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -39401,27 +39427,27 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -39429,11 +39455,11 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -39960,27 +39986,27 @@ declare class Class_RTCListener extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -39988,11 +40014,11 @@ declare class Class_RTCListener extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -41307,27 +41333,27 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -41335,11 +41361,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -43031,7 +43057,7 @@ declare class Class_Redis extends Class_object {
      *      @param kvs the key/value pairs to set, as property names and values
      *
      */
-    mset(kvs: FIBJS.GeneralObject): void;
+    mset(kvs: FIBJS.KVMap): void;
 
     /**
      * @description Sets several key/value pairs at once from a flat argument list
@@ -43058,7 +43084,7 @@ declare class Class_Redis extends Class_object {
      *      @param kvs the key/value pairs to set, as property names and values
      *
      */
-    msetNX(kvs: FIBJS.GeneralObject): void;
+    msetNX(kvs: FIBJS.KVMap): void;
 
     /**
      * @description Sets several key/value pairs from a flat list only when all the keys are missing
@@ -43457,7 +43483,7 @@ declare class Class_Redis extends Class_object {
      *      @param map the channel/callback map
      *
      */
-    sub(map: FIBJS.GeneralObject): void;
+    sub(map: FIBJS.EventMap): void;
 
     /**
      * @description Removes every callback of a channel
@@ -43504,7 +43530,7 @@ declare class Class_Redis extends Class_object {
      *      @param map the channel/callback map
      *
      */
-    unsub(map: FIBJS.GeneralObject): void;
+    unsub(map: FIBJS.EventMap): void;
 
     /**
      * @description Subscribes func to every channel matching a pattern
@@ -43530,7 +43556,7 @@ declare class Class_Redis extends Class_object {
      *      @param map the pattern/callback map
      *
      */
-    psub(map: FIBJS.GeneralObject): void;
+    psub(map: FIBJS.EventMap): void;
 
     /**
      * @description Removes every callback of a pattern
@@ -43575,7 +43601,7 @@ declare class Class_Redis extends Class_object {
      *      @param map the pattern/callback map
      *
      */
-    unpsub(map: FIBJS.GeneralObject): void;
+    unpsub(map: FIBJS.EventMap): void;
 
     /**
      * @description Event fired when the subscriber connection fails
@@ -43819,7 +43845,7 @@ declare class Class_RedisHash extends Class_object {
      *      @param kvs the field/value pairs to write, as property names and values
      *
      */
-    mset(kvs: FIBJS.GeneralObject): void;
+    mset(kvs: FIBJS.KVMap): void;
 
     /**
      * @description Stores several field/value pairs at once from a flat argument list
@@ -44678,7 +44704,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the number of new members added, updated members excluded
      *
      */
-    add(sms: FIBJS.GeneralObject): number;
+    add(sms: FIBJS.StringMap): number;
 
     /**
      * @description Adds members with their scores, or updates the scores of members present
@@ -45025,7 +45051,7 @@ declare class Class_Routing extends Class_Handler {
      *      @param map initialization routing parameters
      *
      */
-    constructor(map?: FIBJS.GeneralObject);
+    constructor(map?: FIBJS.HandlerMap);
 
     /**
      * @description Creates a message handler routing object with a method scope
@@ -45060,7 +45086,7 @@ declare class Class_Routing extends Class_Handler {
      *      @param map initialization routing parameters
      *
      */
-    constructor(method: string, map: FIBJS.GeneralObject);
+    constructor(method: string, map: FIBJS.HandlerMap);
 
     /**
      * @description Adds rules from an existing routing object; the source routing is cleared after adding
@@ -45102,7 +45128,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    append(map: FIBJS.GeneralObject): Class_Routing;
+    append(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule
@@ -45126,7 +45152,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a routing rule with a method scope
@@ -45161,7 +45187,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules for http host names
@@ -45175,7 +45201,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    host(map: FIBJS.GeneralObject): Class_Routing;
+    host(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts http host names
@@ -45212,7 +45238,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept all http methods
@@ -45225,7 +45251,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    all(map: FIBJS.GeneralObject): Class_Routing;
+    all(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts all http methods
@@ -45240,7 +45266,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of GET method routing rules
@@ -45253,7 +45279,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    get(map: FIBJS.GeneralObject): Class_Routing;
+    get(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http GET method
@@ -45268,7 +45294,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http POST method
@@ -45281,7 +45307,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    post(map: FIBJS.GeneralObject): Class_Routing;
+    post(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http POST method
@@ -45295,7 +45321,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http DELETE method
@@ -45307,7 +45333,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    del(map: FIBJS.GeneralObject): Class_Routing;
+    del(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http DELETE method
@@ -45320,7 +45346,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PUT method routing rules
@@ -45332,7 +45358,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    put(map: FIBJS.GeneralObject): Class_Routing;
+    put(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http PUT method
@@ -45346,7 +45372,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PATCH method routing rules
@@ -45358,7 +45384,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    patch(map: FIBJS.GeneralObject): Class_Routing;
+    patch(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http PATCH method
@@ -45371,7 +45397,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of FIND method routing rules
@@ -45384,7 +45410,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    find(map: FIBJS.GeneralObject): Class_Routing;
+    find(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http FIND method
@@ -45398,7 +45424,7 @@ declare class Class_Routing extends Class_Handler {
      *      @return returns the routing object itself
      *
      */
-    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
 }
 
@@ -45437,7 +45463,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @param map initialization routing parameters
      *
      */
-    constructor(map?: FIBJS.GeneralObject);
+    constructor(map?: FIBJS.HandlerMap);
 
     /**
      * @description Creates a message handler routing object with a method scope
@@ -45472,7 +45498,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @param map initialization routing parameters
      *
      */
-    constructor(method: string, map: FIBJS.GeneralObject);
+    constructor(method: string, map: FIBJS.HandlerMap);
 
     /**
      * @description Adds rules from an existing routing object; the source routing is cleared after adding
@@ -45514,7 +45540,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    append(map: FIBJS.GeneralObject): Class_Routing;
+    append(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule
@@ -45538,7 +45564,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    append(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a routing rule with a method scope
@@ -45573,7 +45599,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    append(method: string, pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules for http host names
@@ -45587,7 +45613,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    host(map: FIBJS.GeneralObject): Class_Routing;
+    host(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts http host names
@@ -45624,7 +45650,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    host(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept all http methods
@@ -45637,7 +45663,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    all(map: FIBJS.GeneralObject): Class_Routing;
+    all(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts all http methods
@@ -45652,7 +45678,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    all(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of GET method routing rules
@@ -45665,7 +45691,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    get(map: FIBJS.GeneralObject): Class_Routing;
+    get(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http GET method
@@ -45680,7 +45706,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    get(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http POST method
@@ -45693,7 +45719,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    post(map: FIBJS.GeneralObject): Class_Routing;
+    post(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http POST method
@@ -45707,7 +45733,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    post(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of routing rules that accept the http DELETE method
@@ -45719,7 +45745,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    del(map: FIBJS.GeneralObject): Class_Routing;
+    del(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http DELETE method
@@ -45732,7 +45758,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    del(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PUT method routing rules
@@ -45744,7 +45770,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    put(map: FIBJS.GeneralObject): Class_Routing;
+    put(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http PUT method
@@ -45758,7 +45784,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    put(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of PATCH method routing rules
@@ -45770,7 +45796,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    patch(map: FIBJS.GeneralObject): Class_Routing;
+    patch(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http PATCH method
@@ -45783,7 +45809,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    patch(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
     /**
      * @description Adds a group of FIND method routing rules
@@ -45796,7 +45822,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    find(map: FIBJS.GeneralObject): Class_Routing;
+    find(map: FIBJS.HandlerMap): Class_Routing;
 
     /**
      * @description Adds a routing rule that accepts the http FIND method
@@ -45810,7 +45836,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      @return returns the routing object itself
      *
      */
-    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
+    find(pattern: string, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_Message | Class_MessagePromise, ...params: any[])=>void)): Class_Routing;
 
 }
 
@@ -46291,7 +46317,7 @@ declare class Class_SandBox extends Class_object {
      *      @param mods the module object dictionary to add
      *
      */
-    constructor(mods?: FIBJS.GeneralObject);
+    constructor(mods?: FIBJS.ValueMap);
 
     /**
      * @description Constructs a sandbox with a custom require function
@@ -46305,7 +46331,7 @@ declare class Class_SandBox extends Class_object {
      *      @param require a custom require function; when a module does not exist, the custom function is called first, and if it returns nothing the module is loaded from files
      *
      */
-    constructor(mods: FIBJS.GeneralObject, require: (id: string)=>any);
+    constructor(mods: FIBJS.ValueMap, require: (id: string)=>any);
 
     /**
      * @description Constructs a sandbox with a custom require function and an independent global object
@@ -46319,7 +46345,7 @@ declare class Class_SandBox extends Class_object {
      *      @param global the initial Global properties to set
      *
      */
-    constructor(mods: FIBJS.GeneralObject, require: (id: string)=>any, global: FIBJS.GeneralObject);
+    constructor(mods: FIBJS.ValueMap, require: (id: string)=>any, global: FIBJS.GeneralObject);
 
     /**
      * @description Constructs a sandbox with an independent global object
@@ -46333,7 +46359,7 @@ declare class Class_SandBox extends Class_object {
      *      @param global the initial Global properties to set
      *
      */
-    constructor(mods: FIBJS.GeneralObject, global: FIBJS.GeneralObject);
+    constructor(mods: FIBJS.ValueMap, global: FIBJS.GeneralObject);
 
     /**
      * @description Adds all built-in modules to the sandbox
@@ -46378,7 +46404,7 @@ declare class Class_SandBox extends Class_object {
      *      @param mods the module object dictionary to add; added javascript modules are copied so that modifications made by the sandbox do not interfere with each other
      *
      */
-    add(mods: FIBJS.GeneralObject): void;
+    add(mods: FIBJS.ValueMap): void;
 
     /**
      * @description Adds a script module to the sandbox and returns its exports
@@ -46556,7 +46582,7 @@ declare class Class_SandBox extends Class_object {
      *      registry.
      *
      */
-    readonly modules: FIBJS.GeneralObject;
+    readonly modules: FIBJS.ValueMap;
 
 }
 
@@ -49017,27 +49043,27 @@ declare class Class_Service extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -49045,11 +49071,11 @@ declare class Class_Service extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -54403,27 +54429,27 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -54431,11 +54457,11 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -55940,27 +55966,27 @@ declare class Class_Stream extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -55968,11 +55994,11 @@ declare class Class_Stream extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -58061,7 +58087,7 @@ declare class Class_TLSHandler extends Class_Handler {
      *      @param handler the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLSHandler from the options of tls.createSecureContext
@@ -58074,7 +58100,7 @@ declare class Class_TLSHandler extends Class_Handler {
      *      @param handler the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used for the connections handled by this TLSHandler
@@ -58180,7 +58206,7 @@ declare class Class_TLSHandlerPromise extends Class_HandlerPromise {
      *      @param handler the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLSHandler from the options of tls.createSecureContext
@@ -58193,7 +58219,7 @@ declare class Class_TLSHandlerPromise extends Class_HandlerPromise {
      *      @param handler the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(options: FIBJS.GeneralObject, handler: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used for the connections handled by this TLSHandler
@@ -58415,7 +58441,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server bound to the given address and port
@@ -58428,7 +58454,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server from an options object, binding when it carries a port
@@ -58442,7 +58468,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server without binding a port; listen() must be called to start
@@ -58454,7 +58480,7 @@ declare class Class_TLSServer extends Class_TcpServer {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used by the server
@@ -58553,7 +58579,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server bound to the given address and port
@@ -58566,7 +58592,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server from an options object, binding when it carries a port
@@ -58580,7 +58606,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(options: FIBJS.GeneralObject, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description Creates a TLS server without binding a port; listen() must be called to start
@@ -58592,7 +58618,7 @@ declare class Class_TLSServerPromise extends Class_TcpServerPromise {
      *      @param listener the connection handler
      *
      */
-    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
+    constructor(context: Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void));
 
     /**
      * @description The SecureContext used by the server
@@ -60520,7 +60546,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -60530,7 +60556,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -60542,7 +60568,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -60552,7 +60578,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -60564,7 +60590,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(event: "data", listener: (data: Class_Buffer)=>void, options?: FIBJS.GeneralObject): this;
 
@@ -60590,7 +60616,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(event: "data", listener: (data: Class_Buffer)=>void): this;
 
@@ -60600,7 +60626,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -61082,7 +61108,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
+    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds the given address and port
@@ -61096,7 +61122,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *      @param listener the connection handler
      *
      */
-    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
+    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds from an options object
@@ -61120,7 +61146,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
     constructor(options: {
         address?: string;
         port?: number;
-    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds a unix socket or Windows pipe
@@ -61133,7 +61159,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
+    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, does not bind a port, listen() must be called to start
@@ -61144,7 +61170,7 @@ declare class Class_TcpServer extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description Starts the current server
@@ -61475,27 +61501,27 @@ declare class Class_TcpServer extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -61503,11 +61529,11 @@ declare class Class_TcpServer extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -61539,7 +61565,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
+    constructor(port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds the given address and port
@@ -61553,7 +61579,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *      @param listener the connection handler
      *
      */
-    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
+    constructor(addr: string, port: number, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds from an options object
@@ -61577,7 +61603,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
     constructor(options: {
         address?: string;
         port?: number;
-    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, binds a unix socket or Windows pipe
@@ -61590,7 +61616,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
+    constructor(addr: string, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description TcpServer constructor, does not bind a port, listen() must be called to start
@@ -61601,7 +61627,7 @@ declare class Class_TcpServerPromise extends Class_EventEmitter {
      *     @param listener the connection handler
      *
      */
-    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
+    constructor(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void));
 
     /**
      * @description Starts the current server
@@ -62537,7 +62563,7 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
      *      container or an iterable of pairs
      *
      */
-    constructor(init: FIBJS.GeneralObject | any[] | Class_URLSearchParams | string | any);
+    constructor(init: FIBJS.ValueMap | any[] | Class_URLSearchParams | string | any);
 
     /**
      * @description The number of stored name/value pairs, read-only
@@ -63480,8 +63506,8 @@ declare class Class_WASIHost extends Class_object {
     constructor(options: {
         version: string;
         args?: any[];
-        env?: FIBJS.GeneralObject;
-        preopens?: FIBJS.GeneralObject;
+        env?: FIBJS.ValueMap;
+        preopens?: FIBJS.StringMap;
         sockets?: {
             address?: string;
             port: number;
@@ -65251,8 +65277,8 @@ declare class Class_WASIHostPromise extends Class_object {
     constructor(options: {
         version: string;
         args?: any[];
-        env?: FIBJS.GeneralObject;
-        preopens?: FIBJS.GeneralObject;
+        env?: FIBJS.ValueMap;
+        preopens?: FIBJS.StringMap;
         sockets?: {
             address?: string;
             port: number;
@@ -67556,27 +67582,27 @@ declare class Class_WebSocket extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -67584,11 +67610,11 @@ declare class Class_WebSocket extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -69519,27 +69545,27 @@ declare class Class_WebView extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -69547,11 +69573,11 @@ declare class Class_WebView extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -69993,27 +70019,27 @@ declare class Class_Worker extends Class_EventEmitter {
 
     on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     off(ev: any): FIBJS.GeneralObject;
 
-    off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     removeListener(ev: any): FIBJS.GeneralObject;
 
-    removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -70021,11 +70047,11 @@ declare class Class_Worker extends Class_EventEmitter {
 
     prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
 }
 
@@ -71053,7 +71079,7 @@ declare class Class_X509CertificateRequest extends Class_object {
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
-        issuer?: FIBJS.GeneralObject;
+        issuer?: FIBJS.StringMap;
         hashAlgorithm?: string;
         validFrom?: Date;
         validTo?: Date;
@@ -86884,7 +86910,7 @@ declare module 'crypto' {
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
-        subject?: FIBJS.GeneralObject;
+        subject?: FIBJS.StringMap;
         hashAlgorithm?: string;
     }): Class_X509CertificateRequest;
 
@@ -89289,7 +89315,7 @@ declare module 'crypto/promises' {
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
-        subject?: FIBJS.GeneralObject;
+        subject?: FIBJS.StringMap;
         hashAlgorithm?: string;
     }): Class_X509CertificateRequest;
 
@@ -106044,7 +106070,7 @@ declare module 'http' {
      *      @return returns an HttpServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
+    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
 
     /**
      * @description Creates an https server
@@ -106064,7 +106090,7 @@ declare module 'http' {
      *      @return returns an HttpsServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
 
     /**
      * @description Creates an http protocol handler object, see HttpHandler
@@ -106091,10 +106117,11 @@ declare module 'http' {
      * @description Returns the collection of standard HTTP response status codes and their short descriptions
      *
      *      An object whose keys are the three-digit status codes and whose values are the reason
-     *      phrases, for example STATUS_CODES[404] === 'Not Found'.
+     *      phrases, for example STATUS_CODES[404] === 'Not Found'. The returned dictionary is a
+     *      fresh StringMap snapshot.
      *
      */
-    const STATUS_CODES: FIBJS.GeneralObject;
+    const STATUS_CODES: FIBJS.StringMap;
 
     /**
      * @description Returns an array of all method names (in uppercase) supported by the HTTP protocol
@@ -107479,7 +107506,7 @@ declare module 'http' {
      *      @return a callable function used to restore the original proxy configuration
      *
      */
-    function setGlobalProxyFromEnv(proxyEnv?: FIBJS.GeneralObject): ()=>any;
+    function setGlobalProxyFromEnv(proxyEnv?: FIBJS.StringMap): ()=>any;
 
     /**
      * @description Sends a request using the Web Fetch standard and returns an HttpResponse object
@@ -107870,7 +107897,7 @@ declare module 'http/promises' {
      *      @return returns an HttpServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
+    function createServer(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
 
     /**
      * @description Creates an https server
@@ -107890,7 +107917,7 @@ declare module 'http/promises' {
      *      @return returns an HttpsServer object that is not bound to a port; call listen() to start it
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_HttpServer;
 
     /**
      * @description Creates an http protocol handler object, see HttpHandler
@@ -107917,10 +107944,11 @@ declare module 'http/promises' {
      * @description Returns the collection of standard HTTP response status codes and their short descriptions
      *
      *      An object whose keys are the three-digit status codes and whose values are the reason
-     *      phrases, for example STATUS_CODES[404] === 'Not Found'.
+     *      phrases, for example STATUS_CODES[404] === 'Not Found'. The returned dictionary is a
+     *      fresh StringMap snapshot.
      *
      */
-    const STATUS_CODES: FIBJS.GeneralObject;
+    const STATUS_CODES: FIBJS.StringMap;
 
     /**
      * @description Returns an array of all method names (in uppercase) supported by the HTTP protocol
@@ -109305,7 +109333,7 @@ declare module 'http/promises' {
      *      @return a callable function used to restore the original proxy configuration
      *
      */
-    function setGlobalProxyFromEnv(proxyEnv?: FIBJS.GeneralObject): ()=>any;
+    function setGlobalProxyFromEnv(proxyEnv?: FIBJS.StringMap): ()=>any;
 
     /**
      * @description Sends a request using the Web Fetch standard and returns an HttpResponse object
@@ -109801,7 +109829,7 @@ declare module 'http2' {
      *      @return returns an Http2Server object; call listen() to bind and serve
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_Http2Server;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_Http2Server;
 
     /**
      * @description creates an HTTP/2 client session to the specified target
@@ -110141,7 +110169,7 @@ declare module 'http2/promises' {
      *      @return returns an Http2Server object; call listen() to bind and serve
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_Http2Server;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((req: Class_HttpRequest | Class_HttpRequestPromise, res: Class_HttpResponse | Class_HttpResponsePromise)=>void)): Class_Http2Server;
 
     /**
      * @description creates an HTTP/2 client session to the specified target
@@ -113041,44 +113069,9 @@ declare module 'mq' {
      *      @param v specifies the message or object to process
      *
      */
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
 
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Processes a message or object with the given handler
-     *
-     *      Unlike invoke of a handler, this method repeatedly follows the next handler
-     *      returned by native handlers until null, so a single call runs the whole
-     *      native pipeline. The handler may be given in any of the usual forms:
-     *      - a built-in Handler object, used as it is;
-     *      - an array of handlers, equivalent to \`new mq.Chain(hdlr)\`, see Chain;
-     *      - a handling function \`(v, ...params) => void\`, called with the message;
-     *        its return value is ignored;
-     *      - a routing map object, whose values are handlers in these same forms,
-     *        equivalent to \`new mq.Routing(hdlr)\`, see Routing;
-     *      - a path/address string, converted through the Handler constructor.
-     *
-     *      The method is asynchronous: it blocks the current fiber when called
-     *      without a callback, or completes through the trailing callback or the
-     *      promise form.
-     *
-     *      Example — the trailing callback form:
-     *      \`\`\`JavaScript
-     *      const mq = require('mq');
-     *
-     *      const msg = new mq.Message();
-     *      msg.value = 'callback';
-     *
-     *      mq.invoke((v) => console.log('invoked ' + v.value), msg, (err) => {
-     *          console.log('callback: ' + (err ? err.message : 'ok'));
-     *      });
-     *      \`\`\`
-     *      @param hdlr the handler to run
-     *      @param v specifies the message or object to process
-     *
-     */
-    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Processes a message or object with the given handler
@@ -113113,7 +113106,42 @@ declare module 'mq' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
+    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
+
+    /**
+     * @description Processes a message or object with the given handler
+     *
+     *      Unlike invoke of a handler, this method repeatedly follows the next handler
+     *      returned by native handlers until null, so a single call runs the whole
+     *      native pipeline. The handler may be given in any of the usual forms:
+     *      - a built-in Handler object, used as it is;
+     *      - an array of handlers, equivalent to \`new mq.Chain(hdlr)\`, see Chain;
+     *      - a handling function \`(v, ...params) => void\`, called with the message;
+     *        its return value is ignored;
+     *      - a routing map object, whose values are handlers in these same forms,
+     *        equivalent to \`new mq.Routing(hdlr)\`, see Routing;
+     *      - a path/address string, converted through the Handler constructor.
+     *
+     *      The method is asynchronous: it blocks the current fiber when called
+     *      without a callback, or completes through the trailing callback or the
+     *      promise form.
+     *
+     *      Example — the trailing callback form:
+     *      \`\`\`JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.value = 'callback';
+     *
+     *      mq.invoke((v) => console.log('invoked ' + v.value), msg, (err) => {
+     *          console.log('callback: ' + (err ? err.message : 'ok'));
+     *      });
+     *      \`\`\`
+     *      @param hdlr the handler to run
+     *      @param v specifies the message or object to process
+     *
+     */
+    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
 
 }
 
@@ -113302,7 +113330,7 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
 
     /**
      * @description Processes a message or object with the given handler
@@ -113337,7 +113365,7 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
+    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
 
     /**
      * @description Processes a message or object with the given handler
@@ -113372,7 +113400,7 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
+    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
 
 }
 
@@ -113832,7 +113860,7 @@ declare module 'net' {
      *      @return returns the network interface information
      *
      */
-    function info(): FIBJS.GeneralObject;
+    function info(): FIBJS.ValueMap;
 
     /**
      * @description Queries the address of the given host name
@@ -114487,7 +114515,7 @@ declare module 'net' {
     function createServer(options: {
         address?: string;
         port?: number;
-    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
 
     /**
      * @description Creates a TCP server
@@ -114499,7 +114527,7 @@ declare module 'net' {
      *      @return returns a TcpServer object not bound to a port; listen() must be called to start it
      *
      */
-    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
+    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
 
     /**
      * @description The alias of the UrlObject class, see UrlObject
@@ -114680,7 +114708,7 @@ declare module 'net/promises' {
      *      @return returns the network interface information
      *
      */
-    function info(): FIBJS.GeneralObject;
+    function info(): FIBJS.ValueMap;
 
     /**
      * @description Queries the address of the given host name
@@ -115305,7 +115333,7 @@ declare module 'net/promises' {
     function createServer(options: {
         address?: string;
         port?: number;
-    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
+    }, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
 
     /**
      * @description Creates a TCP server
@@ -115317,7 +115345,7 @@ declare module 'net/promises' {
      *      @return returns a TcpServer object not bound to a port; listen() must be called to start it
      *
      */
-    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
+    function createServer(listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_Socket | Class_SocketPromise)=>void)): Class_TcpServer;
 
     /**
      * @description The alias of the UrlObject class, see UrlObject
@@ -115876,7 +115904,7 @@ declare module 'os' {
      *      @return returns the network interface information
      *
      */
-    function networkInterfaces(): FIBJS.GeneralObject;
+    function networkInterfaces(): FIBJS.ValueMap;
 
     /**
      * @description Queries the current platform name
@@ -119562,37 +119590,37 @@ declare module 'process' {
 
     function on(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    function on(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function on(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function addListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    function addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function addListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function addEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     function prependListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    function prependListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function prependListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function once(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    function once(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function once(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function prependOnceListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
-    function prependOnceListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function prependOnceListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function off(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     function off(ev: any): FIBJS.GeneralObject;
 
-    function off(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function off(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function removeListener(ev: any, func: (...args: any[])=>void): FIBJS.GeneralObject;
 
     function removeListener(ev: any): FIBJS.GeneralObject;
 
-    function removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+    function removeListener(map: FIBJS.EventMap): FIBJS.GeneralObject;
 
     function removeEventListener(ev: any, func: (...args: any[])=>void, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
@@ -119903,7 +119931,7 @@ declare module 'querystring' {
      *      @return the serialized query string
      *
      */
-    function stringify(obj: FIBJS.GeneralObject, sep?: string, eq?: string, opt?: FIBJS.GeneralObject): string;
+    function stringify(obj: FIBJS.ValueMap, sep?: string, eq?: string, opt?: FIBJS.GeneralObject): string;
 
 }
 
@@ -120874,7 +120902,7 @@ declare module 'rtc' {
      *
      */
     function startServer(config: {
-        credentials?: FIBJS.GeneralObject;
+        credentials?: FIBJS.StringMap;
         maxAllocations?: number;
         maxPeers?: number;
         bindAddress?: string;
@@ -125253,7 +125281,7 @@ declare module 'tls' {
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void)): Class_TLSServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void)): Class_TLSServer;
 
     /**
      * @description Creates a SecureContext that holds the certificates, protocol versions and verification flags shared by TLS connections
@@ -125974,7 +126002,7 @@ declare module 'tls/promises' {
      *      @return returns a TLSServer object with no port bound, which needs listen() to start
      *
      */
-    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void)): Class_TLSServer;
+    function createServer(options: FIBJS.GeneralObject | Class_SecureContext | Class_SecureContextPromise, listener: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((socket: Class_TLSSocket | Class_TLSSocketPromise)=>void)): Class_TLSServer;
 
     /**
      * @description Creates a SecureContext that holds the certificates, protocol versions and verification flags shared by TLS connections
@@ -128345,7 +128373,7 @@ declare module 'util' {
      *      @return returns the parsed key-value object
      *
      */
-    function parseEnv(content: string): FIBJS.GeneralObject;
+    function parseEnv(content: string): FIBJS.StringMap;
 
     /**
      * @description Returns a debug representation of a value controlled by options
@@ -129084,6 +129112,8 @@ declare module 'util' {
      *      array of keys (arrays are expanded one level). Inherited enumerable
      *      properties are included and missing keys are skipped. A null/undefined
      *      target yields an empty object; other non-objects throw TypeError 20004.
+     *      The result is a plain object so that symbol keys are preserved; it is not
+     *      a string-keyed map.
      *
      *      @param v the object to filter
      *      @param objs one or more keys to select
@@ -129098,7 +129128,8 @@ declare module 'util' {
      *      Copies every enumerable property except the listed ones; each argument is a
      *      key or an array of keys, and keys are converted to strings, so
      *      omit(['a', 'b'], 0) removes index 0. A null/undefined target yields an empty
-     *      object.
+     *      object. The result is a plain object so that symbol keys are preserved; it
+     *      is not a string-keyed map.
      *
      *      @param v the object to filter
      *      @param keys one or more keys to exclude

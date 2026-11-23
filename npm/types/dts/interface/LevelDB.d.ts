@@ -304,7 +304,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param map the key/value pairs to store, as property names and values
      *
      */
-    mset(map: FIBJS.GeneralObject): void;
+    mset(map: FIBJS.KVMap): void;
 
     /**
      * @description Removes several keys as one atomic batch
@@ -835,7 +835,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param map the key/value pairs to store, as property names and values
      *
      */
-    mset(map: FIBJS.GeneralObject): void;
+    mset(map: FIBJS.KVMap): void;
 
     /**
      * @description Removes several keys as one atomic batch

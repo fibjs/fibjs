@@ -255,7 +255,7 @@ declare module 'rtc' {
      *
      */
     function startServer(config: {
-        credentials?: FIBJS.GeneralObject;
+        credentials?: FIBJS.StringMap;
         maxAllocations?: number;
         maxPeers?: number;
         bindAddress?: string;

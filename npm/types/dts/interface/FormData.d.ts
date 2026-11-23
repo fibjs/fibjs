@@ -150,7 +150,7 @@ declare class Class_FormData extends Class_HttpCollection {
      *      @param init the fields: an object, another FormData or a urlencoded string
      *
      */
-    constructor(init: FIBJS.GeneralObject | Class_FormData | string);
+    constructor(init: FIBJS.ValueMap | Class_FormData | string);
 
     /**
      * @description Appends a Blob or File value under a name, keeping existing values
@@ -253,13 +253,13 @@ declare class Class_FormData extends Class_HttpCollection {
      */
     encode(type?: string): Class_Blob;
 
-    append(map: FIBJS.GeneralObject): void;
+    append(map: FIBJS.ValueMap): void;
 
     append(name: string, value: any[] | any): void;
 
     append(entries: any[]): void;
 
-    set(map: FIBJS.GeneralObject): void;
+    set(map: FIBJS.ValueMap): void;
 
     set(name: string, value: any[] | any): void;
 

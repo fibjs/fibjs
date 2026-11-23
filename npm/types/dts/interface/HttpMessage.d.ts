@@ -290,7 +290,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @return returns the current message object
      *
      */
-    appendHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
+    appendHeader(map: FIBJS.HeaderMap): Class_HttpMessage;
 
     /**
      * @description appends headers; appending data does not modify the headers of an existing key
@@ -355,7 +355,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @return returns the current message object
      *
      */
-    setHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
+    setHeader(map: FIBJS.HeaderMap): Class_HttpMessage;
 
     /**
      * @description sets headers; setting data modifies the value of the key and clears the remaining headers with the same key
@@ -418,7 +418,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @return returns the key-value pairs of all headers
      *
      */
-    getHeaders(): FIBJS.GeneralObject;
+    getHeaders(): FIBJS.HeaderMap;
 
     /**
      * @description queries whether the headers have been sent
@@ -459,7 +459,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @param headers specifies the trailer headers to add
      *
      */
-    addTrailers(headers: FIBJS.GeneralObject): void;
+    addTrailers(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description parses the message body into FormData according to Content-Type
@@ -722,7 +722,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      @return returns the current message object
      *
      */
-    appendHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
+    appendHeader(map: FIBJS.HeaderMap): Class_HttpMessage;
 
     /**
      * @description appends headers; appending data does not modify the headers of an existing key
@@ -787,7 +787,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      @return returns the current message object
      *
      */
-    setHeader(map: FIBJS.GeneralObject): Class_HttpMessage;
+    setHeader(map: FIBJS.HeaderMap): Class_HttpMessage;
 
     /**
      * @description sets headers; setting data modifies the value of the key and clears the remaining headers with the same key
@@ -850,7 +850,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      @return returns the key-value pairs of all headers
      *
      */
-    getHeaders(): FIBJS.GeneralObject;
+    getHeaders(): FIBJS.HeaderMap;
 
     /**
      * @description queries whether the headers have been sent
@@ -891,7 +891,7 @@ declare class Class_HttpMessagePromise extends Class_MessagePromise {
      *      @param headers specifies the trailer headers to add
      *
      */
-    addTrailers(headers: FIBJS.GeneralObject): void;
+    addTrailers(headers: FIBJS.HeaderMap): void;
 
     /**
      * @description parses the message body into FormData according to Content-Type

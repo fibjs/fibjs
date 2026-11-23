@@ -144,8 +144,8 @@ declare class Class_WASIHost extends Class_object {
     constructor(options: {
         version: string;
         args?: any[];
-        env?: FIBJS.GeneralObject;
-        preopens?: FIBJS.GeneralObject;
+        env?: FIBJS.ValueMap;
+        preopens?: FIBJS.StringMap;
         sockets?: {
             address?: string;
             port: number;
@@ -1915,8 +1915,8 @@ declare class Class_WASIHostPromise extends Class_object {
     constructor(options: {
         version: string;
         args?: any[];
-        env?: FIBJS.GeneralObject;
-        preopens?: FIBJS.GeneralObject;
+        env?: FIBJS.ValueMap;
+        preopens?: FIBJS.StringMap;
         sockets?: {
             address?: string;
             port: number;

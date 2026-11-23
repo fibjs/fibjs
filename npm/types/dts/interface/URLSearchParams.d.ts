@@ -111,7 +111,7 @@ declare class Class_URLSearchParams extends Class_HttpCollection {
      *      container or an iterable of pairs
      *
      */
-    constructor(init: FIBJS.GeneralObject | any[] | Class_URLSearchParams | string | any);
+    constructor(init: FIBJS.ValueMap | any[] | Class_URLSearchParams | string | any);
 
     /**
      * @description The number of stored name/value pairs, read-only

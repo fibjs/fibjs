@@ -107,7 +107,7 @@ declare class Class_RedisHash extends Class_object {
      *      @param kvs the field/value pairs to write, as property names and values
      *
      */
-    mset(kvs: FIBJS.GeneralObject): void;
+    mset(kvs: FIBJS.KVMap): void;
 
     /**
      * @description Stores several field/value pairs at once from a flat argument list

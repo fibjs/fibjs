@@ -182,7 +182,7 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
+    function invoke(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
 
     /**
      * @description Processes a message or object with the given handler
@@ -217,7 +217,7 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
+    function invokeSync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): void;
 
     /**
      * @description Processes a message or object with the given handler
@@ -252,7 +252,7 @@ declare module 'mq/promises' {
      *      @param v specifies the message or object to process
      *
      */
-    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.GeneralObject | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
+    function invokeAsync(hdlr: Class_Handler | Class_HandlerPromise | (Class_Handler | Class_HandlerPromise)[] | FIBJS.HandlerMap | string | ((v: Class_object, ...params: any[])=>void), v: Class_object): Promise<void>;
 
 }
 

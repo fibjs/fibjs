@@ -115,7 +115,7 @@ declare class Class_Headers extends Class_HttpCollection {
      *      @param init the initial fields: an object, an array of [name, value] pairs or another Headers
      *
      */
-    constructor(init: FIBJS.GeneralObject | any[] | Class_Headers);
+    constructor(init: FIBJS.HeaderMap | any[] | Class_Headers);
 
     /**
      * @description Returns every Set-Cookie value as a separate array element
