@@ -1121,16 +1121,15 @@ describe("events module Node.js surface", () => {
             function onwarn(w) { seen.push(w.name); }
             process.on('warning', onwarn);
 
-            try {
-                e.setMaxListeners(2);
-                for (var i = 0; i < 5; i++)
-                    e.on('leak', function () { });
-            } finally {
-                process.off('warning', onwarn);
-            }
+            e.setMaxListeners(2);
+            for (var i = 0; i < 5; i++)
+                e.on('leak', function () { });
 
             return new Promise((resolve) => {
                 setImmediate(() => {
+                    // the warning is emitted on a later tick, so the listener
+                    // must stay attached until after this callback runs
+                    process.off('warning', onwarn);
                     assert.ok(seen.indexOf('MaxListenersExceededWarning') >= 0,
                         'expected the warning, saw ' + JSON.stringify(seen));
                     resolve();
@@ -1145,16 +1144,13 @@ describe("events module Node.js surface", () => {
             function onwarn(w) { seen.push(w.name); }
             process.on('warning', onwarn);
 
-            try {
-                e.setMaxListeners(0);
-                for (var i = 0; i < 9; i++)
-                    e.on('quiet', function () { });
-            } finally {
-                process.off('warning', onwarn);
-            }
+            e.setMaxListeners(0);
+            for (var i = 0; i < 9; i++)
+                e.on('quiet', function () { });
 
             return new Promise((resolve) => {
                 setImmediate(() => {
+                    process.off('warning', onwarn);
                     assert.equal(seen.indexOf('MaxListenersExceededWarning'), -1);
                     resolve();
                 });
@@ -1168,16 +1164,13 @@ describe("events module Node.js surface", () => {
             function onwarn(w) { seen.push(w.name); }
             process.on('warning', onwarn);
 
-            try {
-                e.setMaxListeners(9);
-                for (var i = 0; i < 5; i++)
-                    e.on('ok', function () { });
-            } finally {
-                process.off('warning', onwarn);
-            }
+            e.setMaxListeners(9);
+            for (var i = 0; i < 5; i++)
+                e.on('ok', function () { });
 
             return new Promise((resolve) => {
                 setImmediate(() => {
+                    process.off('warning', onwarn);
                     assert.equal(seen.indexOf('MaxListenersExceededWarning'), -1);
                     resolve();
                 });
