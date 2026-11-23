@@ -855,23 +855,9 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
-    send(data: Class_Buffer | string): number;
+    send(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
-    send(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
-     *
-     *      data may be a Buffer or a string; a string is encoded as utf8. Unlike write, which queues the
-     *      buffer and reports whether the stream accepted the data with a boolean, send keeps the fiber
-     *      waiting while the peer does not read and fails with the timeout error (20021) or a
-     *      closed-socket error when it cannot finish. The write loop only returns once the whole buffer
-     *      has been handed to the kernel, so the count never comes back short.
-     *      @param data the data to send
-     *      @return returns the number of bytes written, the utf8 byte length of data
-     *
-     */
-    sendSync(data: Class_Buffer | string): number;
+    send(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
@@ -885,7 +871,21 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
-    sendAsync(data: Class_Buffer | string): Promise<number>;
+    sendSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
+
+    /**
+     * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8. Unlike write, which queues the
+     *      buffer and reports whether the stream accepted the data with a boolean, send keeps the fiber
+     *      waiting while the peer does not read and fails with the timeout error (20021) or a
+     *      closed-socket error when it cannot finish. The write loop only returns once the whole buffer
+     *      has been handed to the kernel, so the count never comes back short.
+     *      @param data the data to send
+     *      @return returns the number of bytes written, the utf8 byte length of data
+     *
+     */
+    sendAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Aborts all ongoing operations on the current socket
@@ -1649,7 +1649,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
-    send(data: Class_Buffer | string): Promise<number>;
+    send(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
@@ -1663,7 +1663,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
-    sendSync(data: Class_Buffer | string): number;
+    sendSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
@@ -1677,7 +1677,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
-    sendAsync(data: Class_Buffer | string): Promise<number>;
+    sendAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Aborts all ongoing operations on the current socket

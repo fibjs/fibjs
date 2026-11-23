@@ -309,7 +309,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflate(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -343,7 +343,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflateSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflateSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -377,7 +377,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflateAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflateAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -406,7 +406,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -435,7 +435,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -464,7 +464,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -497,7 +497,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflate(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -530,7 +530,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflateSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflateSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -563,7 +563,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflateAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflateAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -592,7 +592,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -621,7 +621,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -650,7 +650,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -682,7 +682,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function gzip(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -714,7 +714,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function gzipSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function gzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -746,7 +746,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function gzipAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the gzip algorithm
@@ -761,7 +761,7 @@ declare module 'zlib/promises' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
+    function gzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
      * @description Compresses data into a stream object with the gzip algorithm
@@ -776,7 +776,7 @@ declare module 'zlib/promises' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
+    function gzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
 
     /**
      * @description Compresses data into a stream object with the gzip algorithm
@@ -791,7 +791,7 @@ declare module 'zlib/promises' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
+    function gzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
      * @description Decompresses gzip data
@@ -823,7 +823,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function gunzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gunzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses gzip data
@@ -855,7 +855,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function gunzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function gunzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses gzip data
@@ -887,7 +887,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function gunzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gunzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -919,7 +919,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function gunzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -951,7 +951,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function gunzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -983,7 +983,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function gunzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Compresses data with the deflateRaw algorithm
@@ -1010,7 +1010,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflateRaw(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the deflateRaw algorithm
@@ -1037,7 +1037,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflateRawSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflateRawSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the deflateRaw algorithm
@@ -1064,7 +1064,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflateRawAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflateRawAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -1096,7 +1096,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -1128,7 +1128,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateRawToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -1160,7 +1160,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateRawToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses deflateRaw data
@@ -1191,7 +1191,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflateRaw(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses deflateRaw data
@@ -1222,7 +1222,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflateRawSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflateRawSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses deflateRaw data
@@ -1253,7 +1253,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflateRawAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflateRawAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -1286,7 +1286,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -1319,7 +1319,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateRawToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -1352,7 +1352,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateRawToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Creates a zlib-format compressor that writes into `to`
@@ -1415,7 +1415,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zip(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the zip algorithm
@@ -1441,7 +1441,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zipSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function zipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the zip algorithm
@@ -1467,7 +1467,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zipAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -1484,7 +1484,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function zipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -1501,7 +1501,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function zipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -1518,7 +1518,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function zipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses zip data
@@ -1551,7 +1551,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function unzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function unzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses zip data
@@ -1584,7 +1584,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function unzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function unzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses zip data
@@ -1617,7 +1617,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function unzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function unzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -1633,7 +1633,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function unzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -1649,7 +1649,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function unzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -1665,7 +1665,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function unzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Computes the CRC-32 (IEEE 802.3) checksum of the data
@@ -1709,7 +1709,7 @@ declare module 'zlib/promises' {
      *      @return the unsigned 32-bit CRC-32 checksum
      *
      */
-    function crc32(data: Class_Buffer | string, value?: number): number;
+    function crc32(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value?: number): number;
 
     /**
      * @description Creates a zstd compressor that writes into `to`
@@ -1793,7 +1793,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zstdCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the zstd algorithm in one call
@@ -1821,7 +1821,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zstdCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdCompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the zstd algorithm in one call
@@ -1849,7 +1849,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zstdCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdCompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses zstd data in one call
@@ -1865,7 +1865,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function zstdDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses zstd data in one call
@@ -1881,7 +1881,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function zstdDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdDecompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses zstd data in one call
@@ -1897,7 +1897,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function zstdDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdDecompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the zstd algorithm into a stream object
@@ -1911,7 +1911,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Compresses data with the zstd algorithm into a stream object
@@ -1925,7 +1925,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function zstdCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function zstdCompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Compresses data with the zstd algorithm into a stream object
@@ -1939,7 +1939,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function zstdCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdCompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses zstd data into a stream object
@@ -1955,7 +1955,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses zstd data into a stream object
@@ -1971,7 +1971,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function zstdDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function zstdDecompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Decompresses zstd data into a stream object
@@ -1987,7 +1987,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function zstdDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdDecompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Creates a Brotli compressor that writes into `to`
@@ -2071,7 +2071,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function brotliCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the Brotli algorithm in one call
@@ -2098,7 +2098,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function brotliCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliCompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the Brotli algorithm in one call
@@ -2125,7 +2125,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function brotliCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliCompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses Brotli data in one call
@@ -2141,7 +2141,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function brotliDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses Brotli data in one call
@@ -2157,7 +2157,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function brotliDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliDecompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses Brotli data in one call
@@ -2173,7 +2173,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function brotliDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliDecompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the Brotli algorithm into a stream object
@@ -2187,7 +2187,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Compresses data with the Brotli algorithm into a stream object
@@ -2201,7 +2201,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function brotliCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function brotliCompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Compresses data with the Brotli algorithm into a stream object
@@ -2215,7 +2215,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function brotliCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliCompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses Brotli data into a stream object
@@ -2232,7 +2232,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses Brotli data into a stream object
@@ -2249,7 +2249,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function brotliDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function brotliDecompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Decompresses Brotli data into a stream object
@@ -2266,7 +2266,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function brotliDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliDecompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
 }
 

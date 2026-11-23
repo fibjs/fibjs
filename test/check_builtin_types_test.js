@@ -444,6 +444,69 @@ describe('fibjs --check built-in types', { skip: !isFibjs }, () => {
             'new Buffer must remain a type error: ' + r.stdout + r.stderr);
     });
 
+    it('accepts the binary sources the runtime converts and types WebSocketMessage.data', () => {
+        var dir = path.join(scratch, 'binary-input');
+
+        fs.mkdirSync(dir, { recursive: true });
+
+        // GetArgumentValue(..., obj_ptr<Buffer_base>&) wraps any ArrayBuffer
+        // view or buffer, so the input positions of a Buffer parameter must
+        // accept them; the outputs keep the exact Class_Buffer.
+        fs.writeFileSync(path.join(dir, 'ok.ts'), [
+            "import http from 'http';",
+            "import mq from 'mq';",
+            'const u8 = new Uint8Array([1, 2, 3]);',
+            'const res = new http.Response();',
+            'res.write(u8);',
+            'res.write(u8.buffer);',
+            'res.write(new DataView(u8.buffer));',
+            "res.write('text');",
+            'const msg = new mq.Message();',
+            'msg.write(u8);',
+            'msg.write(u8.buffer);',
+            "msg.write('text');",
+            "const sock = new WebSocket('ws://127.0.0.1/');",
+            'sock.onmessage = (message) => {',
+            '    if (typeof message.data === \'string\')',
+            '        console.log(message.data.toUpperCase());',
+            '    else if (message.data) {',
+            '        const bytes: Class_Buffer = message.data;',
+            '        console.log(bytes.length);',
+            '    }',
+            '};'
+        ].join('\n'));
+
+        var r = runCheck(dir, ['ok.ts']);
+
+        assert.equal(errors(r.stdout + r.stderr), 0, r.stdout + r.stderr);
+
+        // data is String | Buffer | null: a member of neither type is an error
+        // (an `any` used to accept the dead `message.data.string()` branch)
+        fs.writeFileSync(path.join(dir, 'data.ts'), [
+            "const sock = new WebSocket('ws://127.0.0.1/');",
+            'sock.onmessage = (message) => {',
+            '    message.data.string();',
+            '};'
+        ].join('\n'));
+
+        r = runCheck(dir, ['data.ts']);
+
+        assert.ok((r.stdout + r.stderr).includes("Property 'string' does not exist"),
+            'the data union must reject absent members: ' + r.stdout + r.stderr);
+
+        // the widened input still rejects a value no alternative converts
+        fs.writeFileSync(path.join(dir, 'bad.ts'), [
+            "import http from 'http';",
+            'const res = new http.Response();',
+            'res.write(42);'
+        ].join('\n'));
+
+        r = runCheck(dir, ['bad.ts']);
+
+        assert.ok(errors(r.stdout + r.stderr) > 0,
+            'a number must stay a type error: ' + r.stdout + r.stderr);
+    });
+
     it('closes the audited type gaps (process.exit/globalThis.fetch/URL/placeholder merge)', () => {
         var dir = path.join(scratch, 'audit-gaps');
 

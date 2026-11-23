@@ -137,23 +137,9 @@ declare class Class_LevelDB extends Class_object {
      *      @return true when the key exists
      *
      */
-    has(key: Class_Buffer | string): boolean;
+    has(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    has(key: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Tests whether a key exists in the store
-     *
-     *      The key is read like get and only its presence is reported. key is a Buffer|String
-     *      union: a String is encoded as UTF-8 and a Buffer is used byte-for-byte, so a binary
-     *      key can be tested. A missing key is not an error; after close the call fails with
-     *      error 20009.
-     *
-     *      @param key the key to test
-     *      @return true when the key exists
-     *
-     */
-    hasSync(key: Class_Buffer | string): boolean;
+    has(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Tests whether a key exists in the store
@@ -167,7 +153,21 @@ declare class Class_LevelDB extends Class_object {
      *      @return true when the key exists
      *
      */
-    hasAsync(key: Class_Buffer | string): Promise<boolean>;
+    hasSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
+
+    /**
+     * @description Tests whether a key exists in the store
+     *
+     *      The key is read like get and only its presence is reported. key is a Buffer|String
+     *      union: a String is encoded as UTF-8 and a Buffer is used byte-for-byte, so a binary
+     *      key can be tested. A missing key is not an error; after close the call fails with
+     *      error 20009.
+     *
+     *      @param key the key to test
+     *      @return true when the key exists
+     *
+     */
+    hasAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Returns the value stored under key
@@ -181,23 +181,9 @@ declare class Class_LevelDB extends Class_object {
      *      @return the value as a Buffer, or null when the key is missing
      *
      */
-    get(key: Class_Buffer | string): Class_Buffer;
+    get(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
-    get(key: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Returns the value stored under key
-     *
-     *      The result is a Buffer with the exact stored bytes, or null when the key is missing.
-     *      key is a Buffer|String union: a String is encoded as UTF-8 and a Buffer is used
-     *      byte-for-byte. Reads do not see the buffered writes of an open transaction (see
-     *      begin), and after close the call fails with error 20009.
-     *
-     *      @param key the key to read
-     *      @return the value as a Buffer, or null when the key is missing
-     *
-     */
-    getSync(key: Class_Buffer | string): Class_Buffer;
+    get(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Returns the value stored under key
@@ -211,7 +197,21 @@ declare class Class_LevelDB extends Class_object {
      *      @return the value as a Buffer, or null when the key is missing
      *
      */
-    getAsync(key: Class_Buffer | string): Promise<Class_Buffer>;
+    getSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
+
+    /**
+     * @description Returns the value stored under key
+     *
+     *      The result is a Buffer with the exact stored bytes, or null when the key is missing.
+     *      key is a Buffer|String union: a String is encoded as UTF-8 and a Buffer is used
+     *      byte-for-byte. Reads do not see the buffered writes of an open transaction (see
+     *      begin), and after close the call fails with error 20009.
+     *
+     *      @param key the key to read
+     *      @return the value as a Buffer, or null when the key is missing
+     *
+     */
+    getAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<Class_Buffer>;
 
     /**
      * @description Returns the values of several keys, one element per key
@@ -260,23 +260,9 @@ declare class Class_LevelDB extends Class_object {
      *      @param value the value to store
      *
      */
-    set(key: Class_Buffer | string, value: Class_Buffer | string): void;
+    set(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
-    set(key: Class_Buffer | string, value: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Stores value under key, replacing any previous value
-     *
-     *      The write is atomic and immediately visible to later reads. key and value are each a
-     *      Buffer|String union: a String is stored as its UTF-8 bytes and a Buffer
-     *      byte-for-byte, so binary records round-trip through set and get. On a transaction
-     *      object the write is buffered until commit instead.
-     *
-     *      @param key the key to write
-     *      @param value the value to store
-     *
-     */
-    setSync(key: Class_Buffer | string, value: Class_Buffer | string): void;
+    set(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Stores value under key, replacing any previous value
@@ -290,7 +276,21 @@ declare class Class_LevelDB extends Class_object {
      *      @param value the value to store
      *
      */
-    setAsync(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
+    setSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
+
+    /**
+     * @description Stores value under key, replacing any previous value
+     *
+     *      The write is atomic and immediately visible to later reads. key and value are each a
+     *      Buffer|String union: a String is stored as its UTF-8 bytes and a Buffer
+     *      byte-for-byte, so binary records round-trip through set and get. On a transaction
+     *      object the write is buffered until commit instead.
+     *
+     *      @param key the key to write
+     *      @param value the value to store
+     *
+     */
+    setAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Stores several key/value pairs as one atomic batch
@@ -329,21 +329,9 @@ declare class Class_LevelDB extends Class_object {
      *      @param key the key to remove
      *
      */
-    remove(key: Class_Buffer | string): void;
+    remove(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
-    remove(key: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Removes key and its value
-     *
-     *      The write is atomic and removing a missing key is not an error. key is a
-     *      Buffer|String union and a Buffer is used byte-for-byte. On a transaction object the
-     *      removal is buffered until commit; after close the call fails with error 20009.
-     *
-     *      @param key the key to remove
-     *
-     */
-    removeSync(key: Class_Buffer | string): void;
+    remove(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Removes key and its value
@@ -355,7 +343,19 @@ declare class Class_LevelDB extends Class_object {
      *      @param key the key to remove
      *
      */
-    removeAsync(key: Class_Buffer | string): Promise<void>;
+    removeSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
+
+    /**
+     * @description Removes key and its value
+     *
+     *      The write is atomic and removing a missing key is not an error. key is a
+     *      Buffer|String union and a Buffer is used byte-for-byte. On a transaction object the
+     *      removal is buffered until commit; after close the call fails with error 20009.
+     *
+     *      @param key the key to remove
+     *
+     */
+    removeAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Returns the smallest key in the store
@@ -499,7 +499,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs with enumeration options
@@ -528,7 +528,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, opt: {
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         skip?: number;
         limit?: number;
         reverse?: boolean;
@@ -545,7 +545,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, to: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs between two keys with options
@@ -559,7 +559,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: {
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, to: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         skip?: number;
         limit?: number;
         reverse?: boolean;
@@ -674,7 +674,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return true when the key exists
      *
      */
-    has(key: Class_Buffer | string): Promise<boolean>;
+    has(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Tests whether a key exists in the store
@@ -688,7 +688,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return true when the key exists
      *
      */
-    hasSync(key: Class_Buffer | string): boolean;
+    hasSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Tests whether a key exists in the store
@@ -702,7 +702,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return true when the key exists
      *
      */
-    hasAsync(key: Class_Buffer | string): Promise<boolean>;
+    hasAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Returns the value stored under key
@@ -716,7 +716,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return the value as a Buffer, or null when the key is missing
      *
      */
-    get(key: Class_Buffer | string): Promise<Class_Buffer>;
+    get(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<Class_Buffer>;
 
     /**
      * @description Returns the value stored under key
@@ -730,7 +730,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return the value as a Buffer, or null when the key is missing
      *
      */
-    getSync(key: Class_Buffer | string): Class_Buffer;
+    getSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Returns the value stored under key
@@ -744,7 +744,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return the value as a Buffer, or null when the key is missing
      *
      */
-    getAsync(key: Class_Buffer | string): Promise<Class_Buffer>;
+    getAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<Class_Buffer>;
 
     /**
      * @description Returns the values of several keys, one element per key
@@ -793,7 +793,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param value the value to store
      *
      */
-    set(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
+    set(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Stores value under key, replacing any previous value
@@ -807,7 +807,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param value the value to store
      *
      */
-    setSync(key: Class_Buffer | string, value: Class_Buffer | string): void;
+    setSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Stores value under key, replacing any previous value
@@ -821,7 +821,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param value the value to store
      *
      */
-    setAsync(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
+    setAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Stores several key/value pairs as one atomic batch
@@ -860,7 +860,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param key the key to remove
      *
      */
-    remove(key: Class_Buffer | string): Promise<void>;
+    remove(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Removes key and its value
@@ -872,7 +872,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param key the key to remove
      *
      */
-    removeSync(key: Class_Buffer | string): void;
+    removeSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Removes key and its value
@@ -884,7 +884,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param key the key to remove
      *
      */
-    removeAsync(key: Class_Buffer | string): Promise<void>;
+    removeAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Returns the smallest key in the store
@@ -1024,7 +1024,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs with enumeration options
@@ -1053,7 +1053,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, opt: {
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         skip?: number;
         limit?: number;
         reverse?: boolean;
@@ -1070,7 +1070,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, to: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs between two keys with options
@@ -1084,7 +1084,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: {
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, to: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         skip?: number;
         limit?: number;
         reverse?: boolean;

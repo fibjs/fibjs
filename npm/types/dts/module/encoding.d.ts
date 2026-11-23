@@ -215,7 +215,7 @@ declare module 'encoding' {
      *      @return the text representation of the bytes
      *
      */
-    function encode(data: Class_Buffer | string, codec?: string): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, codec?: string): string;
 
     /**
      * @description Converts text into bytes according to the codec

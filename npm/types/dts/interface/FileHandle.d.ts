@@ -233,27 +233,27 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    read(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesRead: number;
         buffer: Class_Buffer;
     };
 
-    read(buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: {
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: {
         bytesRead: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    read(buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: {
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, callback: (err: Error | undefined | null, retVal: {
         bytesRead: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    read(buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
         bytesRead: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    read(buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
         bytesRead: number;
         buffer: Class_Buffer;
     })=>any): void;
@@ -312,7 +312,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    readSync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesRead: number;
         buffer: Class_Buffer;
     };
@@ -371,7 +371,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    readAsync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesRead: number;
         buffer: Class_Buffer;
     }>;
@@ -387,7 +387,7 @@ declare class Class_FileHandle extends Class_object {
      *
      */
     read(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -397,7 +397,7 @@ declare class Class_FileHandle extends Class_object {
     };
 
     read(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -417,7 +417,7 @@ declare class Class_FileHandle extends Class_object {
      *
      */
     readSync(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -437,7 +437,7 @@ declare class Class_FileHandle extends Class_object {
      *
      */
     readAsync(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -485,27 +485,27 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesWritten: number;
         buffer: Class_Buffer;
     };
 
-    write(buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: {
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    write(buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: {
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    write(buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    write(buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
@@ -549,7 +549,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    writeSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    writeSync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesWritten: number;
         buffer: Class_Buffer;
     };
@@ -593,7 +593,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    writeAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    writeAsync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesWritten: number;
         buffer: Class_Buffer;
     }>;
@@ -874,13 +874,13 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer | string, opt?: {
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): number;
 
-    writeFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    writeFile(data: Class_Buffer | string, opt: {
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         encoding?: string;
     }, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
@@ -928,7 +928,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileSync(data: Class_Buffer | string, opt?: {
+    writeFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): number;
 
@@ -976,7 +976,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer | string, opt?: {
+    writeFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): Promise<number>;
 
@@ -990,23 +990,11 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer | string, opt?: string): number;
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
 
-    writeFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    writeFile(data: Class_Buffer | string, opt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Replaces the file content with string data encoded by a label
-     *
-     *      The string form is the encoding used for string data; a Buffer is written
-     *      as it is.
-     *      @param data the data to write
-     *      @param opt the encoding label
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileSync(data: Class_Buffer | string, opt?: string): number;
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Replaces the file content with string data encoded by a label
@@ -1018,7 +1006,19 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer | string, opt?: string): Promise<number>;
+    writeFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
+
+    /**
+     * @description Replaces the file content with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; a Buffer is written
+     *      as it is.
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes actually written
+     *
+     */
+    writeFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Sets the access and modification times of the open file (futimes)
@@ -1212,41 +1212,9 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFile(data: Class_Buffer | string): number;
+    appendFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
-    appendFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes data at the current position without seeking to the end
-     *
-     *      The bytes are written where the descriptor currently points; open the handle with the
-     *      'a' or 'a+' flag to make the operating system append at the end of the file regardless
-     *      of the position. A string is encoded as utf8 and the number of bytes written is
-     *      returned; the handle stays open.
-     *
-     *      Example — append through a handle opened with the append flag:
-     *      ```JavaScript
-     *      const fs = require('fs');
-     *      const os = require('os');
-     *      const path = require('path');
-     *
-     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-append-'));
-     *      const file = path.join(dir, 'log.txt');
-     *      fs.writeFile(file, 'line 1');
-     *
-     *      const handle = fs.open(file, 'a+');
-     *      handle.appendFile('\nline 2');
-     *      console.log(handle.readFile('utf8')); // line 1\nline 2
-     *
-     *      handle.close();
-     *      fs.rmSync(dir, { recursive: true, force: true });
-     *      ```
-     *
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFileSync(data: Class_Buffer | string): number;
+    appendFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes data at the current position without seeking to the end
@@ -1278,7 +1246,39 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFileAsync(data: Class_Buffer | string): Promise<number>;
+    appendFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
+
+    /**
+     * @description Writes data at the current position without seeking to the end
+     *
+     *      The bytes are written where the descriptor currently points; open the handle with the
+     *      'a' or 'a+' flag to make the operating system append at the end of the file regardless
+     *      of the position. A string is encoded as utf8 and the number of bytes written is
+     *      returned; the handle stays open.
+     *
+     *      Example — append through a handle opened with the append flag:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-append-'));
+     *      const file = path.join(dir, 'log.txt');
+     *      fs.writeFile(file, 'line 1');
+     *
+     *      const handle = fs.open(file, 'a+');
+     *      handle.appendFile('\nline 2');
+     *      console.log(handle.readFile('utf8')); // line 1\nline 2
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *
+     *      @param data the data to write
+     *      @return the number of bytes actually written
+     *
+     */
+    appendFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Releases the descriptor and closes the file
@@ -1459,7 +1459,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    read(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesRead: number;
         buffer: Class_Buffer;
     }>;
@@ -1518,7 +1518,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    readSync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesRead: number;
         buffer: Class_Buffer;
     };
@@ -1577,7 +1577,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    readAsync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesRead: number;
         buffer: Class_Buffer;
     }>;
@@ -1593,7 +1593,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      */
     read(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -1613,7 +1613,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      */
     readSync(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -1633,7 +1633,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      */
     readAsync(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -1681,7 +1681,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesWritten: number;
         buffer: Class_Buffer;
     }>;
@@ -1725,7 +1725,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    writeSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    writeSync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesWritten: number;
         buffer: Class_Buffer;
     };
@@ -1769,7 +1769,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    writeAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    writeAsync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesWritten: number;
         buffer: Class_Buffer;
     }>;
@@ -2025,7 +2025,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer | string, opt?: {
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): Promise<number>;
 
@@ -2073,7 +2073,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileSync(data: Class_Buffer | string, opt?: {
+    writeFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): number;
 
@@ -2121,7 +2121,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer | string, opt?: {
+    writeFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): Promise<number>;
 
@@ -2135,7 +2135,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer | string, opt?: string): Promise<number>;
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Replaces the file content with string data encoded by a label
@@ -2147,7 +2147,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileSync(data: Class_Buffer | string, opt?: string): number;
+    writeFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
 
     /**
      * @description Replaces the file content with string data encoded by a label
@@ -2159,7 +2159,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer | string, opt?: string): Promise<number>;
+    writeFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Sets the access and modification times of the open file (futimes)
@@ -2341,7 +2341,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFile(data: Class_Buffer | string): Promise<number>;
+    appendFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Writes data at the current position without seeking to the end
@@ -2373,7 +2373,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFileSync(data: Class_Buffer | string): number;
+    appendFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Writes data at the current position without seeking to the end
@@ -2405,7 +2405,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFileAsync(data: Class_Buffer | string): Promise<number>;
+    appendFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Releases the descriptor and closes the file

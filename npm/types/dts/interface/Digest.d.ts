@@ -95,7 +95,7 @@ declare class Class_Digest extends Class_object {
      *      @return returns the message digest object itself
      *
      */
-    update(data: Class_Buffer | string, codec?: string): Class_Digest;
+    update(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, codec?: string): Class_Digest;
 
     /**
      * @description Computes and returns the digest

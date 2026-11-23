@@ -1208,7 +1208,7 @@ declare class Class_Blob extends Class_object {
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer | string, options?: {
+    constructor(blobData: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         type?: string;
         endings?: string;
     });
@@ -1535,7 +1535,7 @@ declare class Class_BlobPromise extends Class_object {
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer | string, options?: {
+    constructor(blobData: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         type?: string;
         endings?: string;
     });
@@ -5392,7 +5392,7 @@ declare class Class_Cipher extends Class_object {
      *      @return returns the current Cipher object
      *
      */
-    setAuthTag(buffer: Class_Buffer | string, encoding?: string): Class_Cipher;
+    setAuthTag(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): Class_Cipher;
 
     /**
      * @description Returns the authentication tag produced by an AEAD encryption
@@ -5434,7 +5434,7 @@ declare class Class_Cipher extends Class_object {
      *      @return returns the current Cipher object
      *
      */
-    setAAD(buffer: Class_Buffer | string, options?: {
+    setAAD(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         plaintextLength?: number;
     }): Class_Cipher;
@@ -5491,7 +5491,7 @@ declare class Class_Cipher extends Class_object {
      *      @return returns the updated data
      *
      */
-    update(data: Class_Buffer | string, inputEncoding?: string, outputEncoding?: string): any;
+    update(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, inputEncoding?: string, outputEncoding?: string): any;
 
     /**
      * @description Finalizes the stream and returns the last transformed block
@@ -9676,61 +9676,11 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @return the byte length of the datagram payload
      *
      */
-    send(msg: Class_Buffer | string, port: number, address?: string): number;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): number;
 
-    send(msg: Class_Buffer | string, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    send(msg: Class_Buffer | string, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Sends one datagram to the given destination and returns the number of bytes sent
-     *
-     *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
-     *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6); a host name is accepted and resolved
-     *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
-     *
-     *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
-     *      every local address. A payload larger than 65507 bytes for udp4 (65527 for udp6) throws
-     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. A
-     *      datagram is all-or-nothing, so the returned count is the byte length of the payload: a short
-     *      count is never reported, failures throw instead. The trailing callback form receives
-     *      (err, bytes); sendSync/sendAsync and the promises namespace are generated as well.
-     *
-     *      The byte-range form send(msg, offset, length, port, address) sends the slice
-     *      [offset, offset + length) of the utf8-encoded payload and throws error 20004 for a negative
-     *      offset or a non-positive length; it returns the byte length of that slice.
-     *
-     *      Example — send the last word of a larger payload:
-     *      \`\`\`JavaScript
-     *      const dgram = require('dgram');
-     *      const coroutine = require('coroutine');
-     *
-     *      const server = dgram.createSocket('udp4');
-     *      let got = null;
-     *      server.on('message', (msg) => { got = msg.toString(); });
-     *      server.bind(0, '127.0.0.1');
-     *
-     *      const client = dgram.createSocket('udp4');
-     *      const sent = client.send('hello world', 6, 5, server.address().port, '127.0.0.1');
-     *
-     *      let waited = 0;
-     *      while (got === null && waited < 1000) {
-     *          coroutine.sleep(10);
-     *          waited += 10;
-     *      }
-     *      console.log(sent, got); // 5 world
-     *
-     *      client.close();
-     *      server.close();
-     *      \`\`\`
-     *      @param msg the datagram payload
-     *      @param port the destination port
-     *      @param address the destination address or host name, empty for the loopback address
-     *      @return the byte length of the datagram payload
-     *
-     */
-    sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -9780,7 +9730,57 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @return the byte length of the datagram payload
      *
      */
-    sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
+    sendSync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): number;
+
+    /**
+     * @description Sends one datagram to the given destination and returns the number of bytes sent
+     *
+     *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
+     *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
+     *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
+     *
+     *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
+     *      every local address. A payload larger than 65507 bytes for udp4 (65527 for udp6) throws
+     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. A
+     *      datagram is all-or-nothing, so the returned count is the byte length of the payload: a short
+     *      count is never reported, failures throw instead. The trailing callback form receives
+     *      (err, bytes); sendSync/sendAsync and the promises namespace are generated as well.
+     *
+     *      The byte-range form send(msg, offset, length, port, address) sends the slice
+     *      [offset, offset + length) of the utf8-encoded payload and throws error 20004 for a negative
+     *      offset or a non-positive length; it returns the byte length of that slice.
+     *
+     *      Example — send the last word of a larger payload:
+     *      \`\`\`JavaScript
+     *      const dgram = require('dgram');
+     *      const coroutine = require('coroutine');
+     *
+     *      const server = dgram.createSocket('udp4');
+     *      let got = null;
+     *      server.on('message', (msg) => { got = msg.toString(); });
+     *      server.bind(0, '127.0.0.1');
+     *
+     *      const client = dgram.createSocket('udp4');
+     *      const sent = client.send('hello world', 6, 5, server.address().port, '127.0.0.1');
+     *
+     *      let waited = 0;
+     *      while (got === null && waited < 1000) {
+     *          coroutine.sleep(10);
+     *          waited += 10;
+     *      }
+     *      console.log(sent, got); // 5 world
+     *
+     *      client.close();
+     *      server.close();
+     *      \`\`\`
+     *      @param msg the datagram payload
+     *      @param port the destination port
+     *      @param address the destination address or host name, empty for the loopback address
+     *      @return the byte length of the datagram payload
+     *
+     */
+    sendAsync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): Promise<number>;
 
     /**
      * @description Sends a byte range of the payload as one datagram
@@ -9796,27 +9796,11 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @return the byte length of the slice that was sent
      *
      */
-    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): number;
 
-    send(msg: Class_Buffer | string, offset: number, length: number, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Sends a byte range of the payload as one datagram
-     *
-     *      offset and length are byte counts; a string msg is encoded as utf8 before slicing. offset
-     *      must be non-negative and length positive, otherwise error 20004 is thrown. The destination
-     *      and the error behavior are the same as in the three-argument form above.
-     *      @param msg the datagram payload
-     *      @param offset the first byte to send
-     *      @param length the number of bytes to send
-     *      @param port the destination port
-     *      @param address the destination address or host name, empty for the loopback address
-     *      @return the byte length of the slice that was sent
-     *
-     */
-    sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends a byte range of the payload as one datagram
@@ -9832,7 +9816,23 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @return the byte length of the slice that was sent
      *
      */
-    sendAsync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
+    sendSync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): number;
+
+    /**
+     * @description Sends a byte range of the payload as one datagram
+     *
+     *      offset and length are byte counts; a string msg is encoded as utf8 before slicing. offset
+     *      must be non-negative and length positive, otherwise error 20004 is thrown. The destination
+     *      and the error behavior are the same as in the three-argument form above.
+     *      @param msg the datagram payload
+     *      @param offset the first byte to send
+     *      @param length the number of bytes to send
+     *      @param port the destination port
+     *      @param address the destination address or host name, empty for the loopback address
+     *      @return the byte length of the slice that was sent
+     *
+     */
+    sendAsync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
      * @description Returns the local address the socket is bound to, as an object with the family, address and port
@@ -10498,7 +10498,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the datagram payload
      *
      */
-    send(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): Promise<number>;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -10548,7 +10548,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the datagram payload
      *
      */
-    sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
+    sendSync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): number;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -10598,7 +10598,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the datagram payload
      *
      */
-    sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
+    sendAsync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): Promise<number>;
 
     /**
      * @description Sends a byte range of the payload as one datagram
@@ -10614,7 +10614,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the slice that was sent
      *
      */
-    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
      * @description Sends a byte range of the payload as one datagram
@@ -10630,7 +10630,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the slice that was sent
      *
      */
-    sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
+    sendSync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): number;
 
     /**
      * @description Sends a byte range of the payload as one datagram
@@ -10646,7 +10646,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the slice that was sent
      *
      */
-    sendAsync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
+    sendAsync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
      * @description Returns the local address the socket is bound to, as an object with the family, address and port
@@ -10996,7 +10996,7 @@ declare class Class_Digest extends Class_object {
      *      @return returns the message digest object itself
      *
      */
-    update(data: Class_Buffer | string, codec?: string): Class_Digest;
+    update(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, codec?: string): Class_Digest;
 
     /**
      * @description Computes and returns the digest
@@ -13837,7 +13837,7 @@ declare class Class_ECDH extends Class_object {
      *      @return returns the converted public key
      *
      */
-    static convertKey(key: Class_Buffer | string, curve: string, inputEncoding?: string, outputEncoding?: string, format?: string): any;
+    static convertKey(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, curve: string, inputEncoding?: string, outputEncoding?: string, format?: string): any;
 
     /**
      * @description Derives the shared secret from the peer's public key
@@ -13873,7 +13873,7 @@ declare class Class_ECDH extends Class_object {
      *      @return returns the computed shared secret
      *
      */
-    computeSecret(otherPublicKey: Class_Buffer | string, inputEncoding?: string, outputEncoding?: string): any;
+    computeSecret(otherPublicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, inputEncoding?: string, outputEncoding?: string): any;
 
     /**
      * @description Generates a new key pair and returns the public key
@@ -13949,7 +13949,7 @@ declare class Class_ECDH extends Class_object {
      *      @param encoding the encoding of privateKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *
      */
-    setPrivateKey(privateKey: Class_Buffer | string, encoding?: string): void;
+    setPrivateKey(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): void;
 
     /**
      * @description Imports a public key without its private key
@@ -13966,7 +13966,7 @@ declare class Class_ECDH extends Class_object {
      *      @param encoding the encoding of publicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *
      */
-    setPublicKey(publicKey: Class_Buffer | string, encoding?: string): void;
+    setPublicKey(publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): void;
 
 }
 
@@ -16803,7 +16803,7 @@ declare class Class_File extends Class_Blob {
         type?: string;
         endings?: string;
         lastModified?: number;
-        data?: Class_Buffer | string;
+        data?: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         name?: string;
     });
 
@@ -16818,11 +16818,11 @@ declare class Class_File extends Class_Blob {
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer | string, name: string, options?: {
+    constructor(blobData: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, name: string, options?: {
         type?: string;
         endings?: string;
         lastModified?: number;
-        data?: Class_Buffer | string;
+        data?: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         name?: string;
     });
 
@@ -16836,7 +16836,7 @@ declare class Class_File extends Class_Blob {
      *
      */
     constructor(options: {
-        data: Class_Buffer | string;
+        data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         type?: string;
         endings?: string;
         lastModified?: number;
@@ -16903,7 +16903,7 @@ declare class Class_FilePromise extends Class_BlobPromise {
         type?: string;
         endings?: string;
         lastModified?: number;
-        data?: Class_Buffer | string;
+        data?: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         name?: string;
     });
 
@@ -16918,11 +16918,11 @@ declare class Class_FilePromise extends Class_BlobPromise {
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer | string, name: string, options?: {
+    constructor(blobData: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, name: string, options?: {
         type?: string;
         endings?: string;
         lastModified?: number;
-        data?: Class_Buffer | string;
+        data?: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         name?: string;
     });
 
@@ -16936,7 +16936,7 @@ declare class Class_FilePromise extends Class_BlobPromise {
      *
      */
     constructor(options: {
-        data: Class_Buffer | string;
+        data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         type?: string;
         endings?: string;
         lastModified?: number;
@@ -17205,27 +17205,27 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    read(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesRead: number;
         buffer: Class_Buffer;
     };
 
-    read(buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: {
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: {
         bytesRead: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    read(buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: {
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, callback: (err: Error | undefined | null, retVal: {
         bytesRead: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    read(buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
         bytesRead: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    read(buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
         bytesRead: number;
         buffer: Class_Buffer;
     })=>any): void;
@@ -17284,7 +17284,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    readSync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesRead: number;
         buffer: Class_Buffer;
     };
@@ -17343,7 +17343,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    readAsync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesRead: number;
         buffer: Class_Buffer;
     }>;
@@ -17359,7 +17359,7 @@ declare class Class_FileHandle extends Class_object {
      *
      */
     read(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -17369,7 +17369,7 @@ declare class Class_FileHandle extends Class_object {
     };
 
     read(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -17389,7 +17389,7 @@ declare class Class_FileHandle extends Class_object {
      *
      */
     readSync(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -17409,7 +17409,7 @@ declare class Class_FileHandle extends Class_object {
      *
      */
     readAsync(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -17457,27 +17457,27 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesWritten: number;
         buffer: Class_Buffer;
     };
 
-    write(buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: {
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    write(buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: {
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    write(buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
 
-    write(buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: {
         bytesWritten: number;
         buffer: Class_Buffer;
     })=>any): void;
@@ -17521,7 +17521,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    writeSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    writeSync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesWritten: number;
         buffer: Class_Buffer;
     };
@@ -17565,7 +17565,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    writeAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    writeAsync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesWritten: number;
         buffer: Class_Buffer;
     }>;
@@ -17846,13 +17846,13 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer | string, opt?: {
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): number;
 
-    writeFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    writeFile(data: Class_Buffer | string, opt: {
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         encoding?: string;
     }, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
@@ -17900,7 +17900,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileSync(data: Class_Buffer | string, opt?: {
+    writeFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): number;
 
@@ -17948,7 +17948,7 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer | string, opt?: {
+    writeFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): Promise<number>;
 
@@ -17962,23 +17962,11 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer | string, opt?: string): number;
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
 
-    writeFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    writeFile(data: Class_Buffer | string, opt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Replaces the file content with string data encoded by a label
-     *
-     *      The string form is the encoding used for string data; a Buffer is written
-     *      as it is.
-     *      @param data the data to write
-     *      @param opt the encoding label
-     *      @return the number of bytes actually written
-     *
-     */
-    writeFileSync(data: Class_Buffer | string, opt?: string): number;
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Replaces the file content with string data encoded by a label
@@ -17990,7 +17978,19 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer | string, opt?: string): Promise<number>;
+    writeFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
+
+    /**
+     * @description Replaces the file content with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; a Buffer is written
+     *      as it is.
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes actually written
+     *
+     */
+    writeFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Sets the access and modification times of the open file (futimes)
@@ -18184,41 +18184,9 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFile(data: Class_Buffer | string): number;
+    appendFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
-    appendFile(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes data at the current position without seeking to the end
-     *
-     *      The bytes are written where the descriptor currently points; open the handle with the
-     *      'a' or 'a+' flag to make the operating system append at the end of the file regardless
-     *      of the position. A string is encoded as utf8 and the number of bytes written is
-     *      returned; the handle stays open.
-     *
-     *      Example — append through a handle opened with the append flag:
-     *      \`\`\`JavaScript
-     *      const fs = require('fs');
-     *      const os = require('os');
-     *      const path = require('path');
-     *
-     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-append-'));
-     *      const file = path.join(dir, 'log.txt');
-     *      fs.writeFile(file, 'line 1');
-     *
-     *      const handle = fs.open(file, 'a+');
-     *      handle.appendFile('\\nline 2');
-     *      console.log(handle.readFile('utf8')); // line 1\\nline 2
-     *
-     *      handle.close();
-     *      fs.rmSync(dir, { recursive: true, force: true });
-     *      \`\`\`
-     *
-     *      @param data the data to write
-     *      @return the number of bytes actually written
-     *
-     */
-    appendFileSync(data: Class_Buffer | string): number;
+    appendFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes data at the current position without seeking to the end
@@ -18250,7 +18218,39 @@ declare class Class_FileHandle extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFileAsync(data: Class_Buffer | string): Promise<number>;
+    appendFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
+
+    /**
+     * @description Writes data at the current position without seeking to the end
+     *
+     *      The bytes are written where the descriptor currently points; open the handle with the
+     *      'a' or 'a+' flag to make the operating system append at the end of the file regardless
+     *      of the position. A string is encoded as utf8 and the number of bytes written is
+     *      returned; the handle stays open.
+     *
+     *      Example — append through a handle opened with the append flag:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-append-'));
+     *      const file = path.join(dir, 'log.txt');
+     *      fs.writeFile(file, 'line 1');
+     *
+     *      const handle = fs.open(file, 'a+');
+     *      handle.appendFile('\\nline 2');
+     *      console.log(handle.readFile('utf8')); // line 1\\nline 2
+     *
+     *      handle.close();
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      \`\`\`
+     *
+     *      @param data the data to write
+     *      @return the number of bytes actually written
+     *
+     */
+    appendFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Releases the descriptor and closes the file
@@ -18431,7 +18431,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    read(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    read(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesRead: number;
         buffer: Class_Buffer;
     }>;
@@ -18490,7 +18490,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    readSync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesRead: number;
         buffer: Class_Buffer;
     };
@@ -18549,7 +18549,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesRead and buffer properties
      *
      */
-    readAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    readAsync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesRead: number;
         buffer: Class_Buffer;
     }>;
@@ -18565,7 +18565,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      */
     read(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -18585,7 +18585,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      */
     readSync(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -18605,7 +18605,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *
      */
     readAsync(options: {
-        buffer?: Class_Buffer;
+        buffer?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         offset?: number;
         length?: number;
         position?: number;
@@ -18653,7 +18653,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    write(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    write(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesWritten: number;
         buffer: Class_Buffer;
     }>;
@@ -18697,7 +18697,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    writeSync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): {
+    writeSync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): {
         bytesWritten: number;
         buffer: Class_Buffer;
     };
@@ -18741,7 +18741,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return returns an object containing the bytesWritten and buffer properties
      *
      */
-    writeAsync(buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<{
+    writeAsync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<{
         bytesWritten: number;
         buffer: Class_Buffer;
     }>;
@@ -18997,7 +18997,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer | string, opt?: {
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): Promise<number>;
 
@@ -19045,7 +19045,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileSync(data: Class_Buffer | string, opt?: {
+    writeFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): number;
 
@@ -19093,7 +19093,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer | string, opt?: {
+    writeFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
     }): Promise<number>;
 
@@ -19107,7 +19107,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFile(data: Class_Buffer | string, opt?: string): Promise<number>;
+    writeFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Replaces the file content with string data encoded by a label
@@ -19119,7 +19119,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileSync(data: Class_Buffer | string, opt?: string): number;
+    writeFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
 
     /**
      * @description Replaces the file content with string data encoded by a label
@@ -19131,7 +19131,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    writeFileAsync(data: Class_Buffer | string, opt?: string): Promise<number>;
+    writeFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Sets the access and modification times of the open file (futimes)
@@ -19313,7 +19313,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFile(data: Class_Buffer | string): Promise<number>;
+    appendFile(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Writes data at the current position without seeking to the end
@@ -19345,7 +19345,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFileSync(data: Class_Buffer | string): number;
+    appendFileSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Writes data at the current position without seeking to the end
@@ -19377,7 +19377,7 @@ declare class Class_FileHandlePromise extends Class_object {
      *      @return the number of bytes actually written
      *
      */
-    appendFileAsync(data: Class_Buffer | string): Promise<number>;
+    appendFileAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Releases the descriptor and closes the file
@@ -19956,7 +19956,7 @@ declare class Class_FormData extends Class_HttpCollection {
      *      @param boundary the boundary string used to parse the data
      *
      */
-    constructor(init: Class_Buffer, boundary: string);
+    constructor(init: Class_Buffer | ArrayBufferView | ArrayBufferLike, boundary: string);
 
     /**
      * @description Creates a FormData by parsing the bytes of a Blob
@@ -32900,7 +32900,7 @@ declare class Class_KeyObject extends Class_object {
         format?: string;
         type?: string;
         cipher?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): any;
 
     /**
@@ -33071,23 +33071,9 @@ declare class Class_LevelDB extends Class_object {
      *      @return true when the key exists
      *
      */
-    has(key: Class_Buffer | string): boolean;
+    has(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    has(key: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Tests whether a key exists in the store
-     *
-     *      The key is read like get and only its presence is reported. key is a Buffer|String
-     *      union: a String is encoded as UTF-8 and a Buffer is used byte-for-byte, so a binary
-     *      key can be tested. A missing key is not an error; after close the call fails with
-     *      error 20009.
-     *
-     *      @param key the key to test
-     *      @return true when the key exists
-     *
-     */
-    hasSync(key: Class_Buffer | string): boolean;
+    has(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Tests whether a key exists in the store
@@ -33101,7 +33087,21 @@ declare class Class_LevelDB extends Class_object {
      *      @return true when the key exists
      *
      */
-    hasAsync(key: Class_Buffer | string): Promise<boolean>;
+    hasSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
+
+    /**
+     * @description Tests whether a key exists in the store
+     *
+     *      The key is read like get and only its presence is reported. key is a Buffer|String
+     *      union: a String is encoded as UTF-8 and a Buffer is used byte-for-byte, so a binary
+     *      key can be tested. A missing key is not an error; after close the call fails with
+     *      error 20009.
+     *
+     *      @param key the key to test
+     *      @return true when the key exists
+     *
+     */
+    hasAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Returns the value stored under key
@@ -33115,23 +33115,9 @@ declare class Class_LevelDB extends Class_object {
      *      @return the value as a Buffer, or null when the key is missing
      *
      */
-    get(key: Class_Buffer | string): Class_Buffer;
+    get(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
-    get(key: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Returns the value stored under key
-     *
-     *      The result is a Buffer with the exact stored bytes, or null when the key is missing.
-     *      key is a Buffer|String union: a String is encoded as UTF-8 and a Buffer is used
-     *      byte-for-byte. Reads do not see the buffered writes of an open transaction (see
-     *      begin), and after close the call fails with error 20009.
-     *
-     *      @param key the key to read
-     *      @return the value as a Buffer, or null when the key is missing
-     *
-     */
-    getSync(key: Class_Buffer | string): Class_Buffer;
+    get(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Returns the value stored under key
@@ -33145,7 +33131,21 @@ declare class Class_LevelDB extends Class_object {
      *      @return the value as a Buffer, or null when the key is missing
      *
      */
-    getAsync(key: Class_Buffer | string): Promise<Class_Buffer>;
+    getSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
+
+    /**
+     * @description Returns the value stored under key
+     *
+     *      The result is a Buffer with the exact stored bytes, or null when the key is missing.
+     *      key is a Buffer|String union: a String is encoded as UTF-8 and a Buffer is used
+     *      byte-for-byte. Reads do not see the buffered writes of an open transaction (see
+     *      begin), and after close the call fails with error 20009.
+     *
+     *      @param key the key to read
+     *      @return the value as a Buffer, or null when the key is missing
+     *
+     */
+    getAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<Class_Buffer>;
 
     /**
      * @description Returns the values of several keys, one element per key
@@ -33194,23 +33194,9 @@ declare class Class_LevelDB extends Class_object {
      *      @param value the value to store
      *
      */
-    set(key: Class_Buffer | string, value: Class_Buffer | string): void;
+    set(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
-    set(key: Class_Buffer | string, value: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Stores value under key, replacing any previous value
-     *
-     *      The write is atomic and immediately visible to later reads. key and value are each a
-     *      Buffer|String union: a String is stored as its UTF-8 bytes and a Buffer
-     *      byte-for-byte, so binary records round-trip through set and get. On a transaction
-     *      object the write is buffered until commit instead.
-     *
-     *      @param key the key to write
-     *      @param value the value to store
-     *
-     */
-    setSync(key: Class_Buffer | string, value: Class_Buffer | string): void;
+    set(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Stores value under key, replacing any previous value
@@ -33224,7 +33210,21 @@ declare class Class_LevelDB extends Class_object {
      *      @param value the value to store
      *
      */
-    setAsync(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
+    setSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
+
+    /**
+     * @description Stores value under key, replacing any previous value
+     *
+     *      The write is atomic and immediately visible to later reads. key and value are each a
+     *      Buffer|String union: a String is stored as its UTF-8 bytes and a Buffer
+     *      byte-for-byte, so binary records round-trip through set and get. On a transaction
+     *      object the write is buffered until commit instead.
+     *
+     *      @param key the key to write
+     *      @param value the value to store
+     *
+     */
+    setAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Stores several key/value pairs as one atomic batch
@@ -33263,21 +33263,9 @@ declare class Class_LevelDB extends Class_object {
      *      @param key the key to remove
      *
      */
-    remove(key: Class_Buffer | string): void;
+    remove(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
-    remove(key: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Removes key and its value
-     *
-     *      The write is atomic and removing a missing key is not an error. key is a
-     *      Buffer|String union and a Buffer is used byte-for-byte. On a transaction object the
-     *      removal is buffered until commit; after close the call fails with error 20009.
-     *
-     *      @param key the key to remove
-     *
-     */
-    removeSync(key: Class_Buffer | string): void;
+    remove(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Removes key and its value
@@ -33289,7 +33277,19 @@ declare class Class_LevelDB extends Class_object {
      *      @param key the key to remove
      *
      */
-    removeAsync(key: Class_Buffer | string): Promise<void>;
+    removeSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
+
+    /**
+     * @description Removes key and its value
+     *
+     *      The write is atomic and removing a missing key is not an error. key is a
+     *      Buffer|String union and a Buffer is used byte-for-byte. On a transaction object the
+     *      removal is buffered until commit; after close the call fails with error 20009.
+     *
+     *      @param key the key to remove
+     *
+     */
+    removeAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Returns the smallest key in the store
@@ -33433,7 +33433,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs with enumeration options
@@ -33462,7 +33462,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, opt: {
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         skip?: number;
         limit?: number;
         reverse?: boolean;
@@ -33479,7 +33479,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, to: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs between two keys with options
@@ -33493,7 +33493,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: {
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, to: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         skip?: number;
         limit?: number;
         reverse?: boolean;
@@ -33608,7 +33608,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return true when the key exists
      *
      */
-    has(key: Class_Buffer | string): Promise<boolean>;
+    has(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Tests whether a key exists in the store
@@ -33622,7 +33622,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return true when the key exists
      *
      */
-    hasSync(key: Class_Buffer | string): boolean;
+    hasSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Tests whether a key exists in the store
@@ -33636,7 +33636,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return true when the key exists
      *
      */
-    hasAsync(key: Class_Buffer | string): Promise<boolean>;
+    hasAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Returns the value stored under key
@@ -33650,7 +33650,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return the value as a Buffer, or null when the key is missing
      *
      */
-    get(key: Class_Buffer | string): Promise<Class_Buffer>;
+    get(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<Class_Buffer>;
 
     /**
      * @description Returns the value stored under key
@@ -33664,7 +33664,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return the value as a Buffer, or null when the key is missing
      *
      */
-    getSync(key: Class_Buffer | string): Class_Buffer;
+    getSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Returns the value stored under key
@@ -33678,7 +33678,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @return the value as a Buffer, or null when the key is missing
      *
      */
-    getAsync(key: Class_Buffer | string): Promise<Class_Buffer>;
+    getAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<Class_Buffer>;
 
     /**
      * @description Returns the values of several keys, one element per key
@@ -33727,7 +33727,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param value the value to store
      *
      */
-    set(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
+    set(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Stores value under key, replacing any previous value
@@ -33741,7 +33741,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param value the value to store
      *
      */
-    setSync(key: Class_Buffer | string, value: Class_Buffer | string): void;
+    setSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Stores value under key, replacing any previous value
@@ -33755,7 +33755,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param value the value to store
      *
      */
-    setAsync(key: Class_Buffer | string, value: Class_Buffer | string): Promise<void>;
+    setAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Stores several key/value pairs as one atomic batch
@@ -33794,7 +33794,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param key the key to remove
      *
      */
-    remove(key: Class_Buffer | string): Promise<void>;
+    remove(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Removes key and its value
@@ -33806,7 +33806,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param key the key to remove
      *
      */
-    removeSync(key: Class_Buffer | string): void;
+    removeSync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Removes key and its value
@@ -33818,7 +33818,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param key the key to remove
      *
      */
-    removeAsync(key: Class_Buffer | string): Promise<void>;
+    removeAsync(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Returns the smallest key in the store
@@ -33958,7 +33958,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs with enumeration options
@@ -33987,7 +33987,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, opt: {
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         skip?: number;
         limit?: number;
         reverse?: boolean;
@@ -34004,7 +34004,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, to: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (value: Class_Buffer, key: Class_Buffer)=>void): void;
 
     /**
      * @description Enumerates the key/value pairs between two keys with options
@@ -34018,7 +34018,7 @@ declare class Class_LevelDBPromise extends Class_object {
      *      @param func the callback invoked with (value, key) as Buffers
      *
      */
-    forEach(from: Class_Buffer | string, to: Class_Buffer | string, opt: {
+    forEach(from: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, to: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         skip?: number;
         limit?: number;
         reverse?: boolean;
@@ -35592,37 +35592,9 @@ declare class Class_Message extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    write(data: Class_Buffer | string): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    write(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *
-     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
-     *      existing content and does not mark the message ended. The count returned for a buffered
-     *      body is not filled reliably by the current implementation, so use length for the body
-     *      size.
-     *
-     *      Example — write appends and readAll rewinds:
-     *      \`\`\`JavaScript
-     *      const mq = require('mq');
-     *
-     *      const msg = new mq.Message();
-     *      msg.write('hello');
-     *      msg.write(' world');
-     *      console.log(msg.length); // 11
-     *
-     *      msg.body.rewind();
-     *      console.log(msg.read(5).toString()); // hello
-     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
-     *      \`\`\`
-     *      @param data the data to write
-     *      @return false when the caller should wait for the 'drain' event before
-     *      writing more, true otherwise
-     *
-     */
-    writeSync(data: Class_Buffer | string): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
@@ -35650,7 +35622,35 @@ declare class Class_Message extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer | string): Promise<boolean>;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
+
+    /**
+     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
+     *
+     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
+     *      existing content and does not mark the message ended. The count returned for a buffered
+     *      body is not filled reliably by the current implementation, so use length for the body
+     *      size.
+     *
+     *      Example — write appends and readAll rewinds:
+     *      \`\`\`JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.write('hello');
+     *      msg.write(' world');
+     *      console.log(msg.length); // 11
+     *
+     *      msg.body.rewind();
+     *      console.log(msg.read(5).toString()); // hello
+     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
+     *      \`\`\`
+     *      @param data the data to write
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
+     *
+     */
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Writes the given text data
@@ -36032,20 +36032,9 @@ declare class Class_Message extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer): Class_Message;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Message;
 
-    end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
-
-    /**
-     * @description Writes the given data and sets the end of current message processing
-     *
-     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
-     *      data is sent.
-     *      @param data the data to write
-     *      @return returns the current message object
-     *
-     */
-    endSync(data: Class_Buffer): Class_Message;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -36056,7 +36045,18 @@ declare class Class_Message extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer): Promise<Class_MessagePromise>;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Message;
+
+    /**
+     * @description Writes the given data and sets the end of current message processing
+     *
+     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
+     *      data is sent.
+     *      @param data the data to write
+     *      @return returns the current message object
+     *
+     */
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -36068,21 +36068,9 @@ declare class Class_Message extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer, encoding: string): Class_Message;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Message;
 
-    end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
-
-    /**
-     * @description Writes the given data and sets the end of current message processing
-     *
-     *      Same as end(data) for a Buffer; the encoding parameter is ignored because the data is
-     *      already binary and is kept for overload compatibility.
-     *      @param data the data to write
-     *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
-     *      @return returns the current message object
-     *
-     */
-    endSync(data: Class_Buffer, encoding: string): Class_Message;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -36094,7 +36082,19 @@ declare class Class_Message extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<Class_MessagePromise>;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Message;
+
+    /**
+     * @description Writes the given data and sets the end of current message processing
+     *
+     *      Same as end(data) for a Buffer; the encoding parameter is ignored because the data is
+     *      already binary and is kept for overload compatibility.
+     *      @param data the data to write
+     *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
+     *      @return returns the current message object
+     *
+     */
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given string data and sets the end of current message processing
@@ -36817,7 +36817,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    write(data: Class_Buffer | string): Promise<boolean>;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
@@ -36845,7 +36845,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeSync(data: Class_Buffer | string): boolean;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
@@ -36873,7 +36873,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer | string): Promise<boolean>;
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Writes the given text data
@@ -37233,7 +37233,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer): Promise<Class_MessagePromise>;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -37244,7 +37244,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endSync(data: Class_Buffer): Class_Message;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Message;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -37255,7 +37255,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer): Promise<Class_MessagePromise>;
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -37267,7 +37267,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer, encoding: string): Promise<Class_MessagePromise>;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -37279,7 +37279,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endSync(data: Class_Buffer, encoding: string): Class_Message;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Message;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -37291,7 +37291,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<Class_MessagePromise>;
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given string data and sets the end of current message processing
@@ -39131,7 +39131,7 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      *      @param data the data to send
      *
      */
-    send(data: Class_Buffer | string): void;
+    send(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description closes the channel
@@ -42998,7 +42998,7 @@ declare class Class_Redis extends Class_object {
      *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
-    set(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
+    set(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, ttl?: number): void;
 
     /**
      * @description Stores value only when key does not exist
@@ -43014,7 +43014,7 @@ declare class Class_Redis extends Class_object {
      *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
-    setNX(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
+    setNX(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, ttl?: number): void;
 
     /**
      * @description Stores value only when key already exists
@@ -43030,7 +43030,7 @@ declare class Class_Redis extends Class_object {
      *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
-    setXX(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
+    setXX(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, ttl?: number): void;
 
     /**
      * @description Sets several key/value pairs at once, replacing the keys
@@ -43110,7 +43110,7 @@ declare class Class_Redis extends Class_object {
      *      @return the length of the string after the append
      *
      */
-    append(key: Class_Buffer | string, value: Class_Buffer | string): number;
+    append(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Overwrites the string stored at key starting at the given byte offset
@@ -43126,7 +43126,7 @@ declare class Class_Redis extends Class_object {
      *      @return the length of the string after the write
      *
      */
-    setRange(key: Class_Buffer | string, offset: number, value: Class_Buffer | string): number;
+    setRange(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Returns a substring of the string stored at key
@@ -43143,7 +43143,7 @@ declare class Class_Redis extends Class_object {
      *      @return the extracted bytes as a Buffer
      *
      */
-    getRange(key: Class_Buffer | string, start: number, end: number): Class_Buffer;
+    getRange(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, start: number, end: number): Class_Buffer;
 
     /**
      * @description Returns the length of the string stored at key
@@ -43155,7 +43155,7 @@ declare class Class_Redis extends Class_object {
      *      @return the length of the stored string in bytes, 0 when key does not exist
      *
      */
-    strlen(key: Class_Buffer | string): number;
+    strlen(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Counts the bits set to 1 in the string stored at key
@@ -43170,7 +43170,7 @@ declare class Class_Redis extends Class_object {
      *      @return the number of bits set to 1 in the range
      *
      */
-    bitcount(key: Class_Buffer | string, start?: number, end?: number): number;
+    bitcount(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, start?: number, end?: number): number;
 
     /**
      * @description Returns the string stored at key
@@ -43182,7 +43182,7 @@ declare class Class_Redis extends Class_object {
      *      @return the value as a Buffer, or null when key does not exist
      *
      */
-    get(key: Class_Buffer | string): Class_Buffer;
+    get(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Returns the values of the given keys, one element per key
@@ -43236,7 +43236,7 @@ declare class Class_Redis extends Class_object {
      *      @return the previous value as a Buffer, or null when key did not exist
      *
      */
-    getset(key: Class_Buffer | string, value: Class_Buffer | string): Class_Buffer;
+    getset(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Subtracts num from the integer stored at key
@@ -43251,7 +43251,7 @@ declare class Class_Redis extends Class_object {
      *      @return the value of key after the subtraction
      *
      */
-    decr(key: Class_Buffer | string, num?: number): number;
+    decr(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, num?: number): number;
 
     /**
      * @description Adds num to the integer stored at key
@@ -43265,7 +43265,7 @@ declare class Class_Redis extends Class_object {
      *      @return the value of key after the addition
      *
      */
-    incr(key: Class_Buffer | string, num?: number): number;
+    incr(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, num?: number): number;
 
     /**
      * @description Sets or clears one bit of the string stored at key
@@ -43280,7 +43280,7 @@ declare class Class_Redis extends Class_object {
      *      @return the previous bit at the offset
      *
      */
-    setBit(key: Class_Buffer | string, offset: number, value: number): number;
+    setBit(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, value: number): number;
 
     /**
      * @description Returns one bit of the string stored at key
@@ -43292,7 +43292,7 @@ declare class Class_Redis extends Class_object {
      *      @return the bit at the offset, 0 or 1
      *
      */
-    getBit(key: Class_Buffer | string, offset: number): number;
+    getBit(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number): number;
 
     /**
      * @description Checks whether the given key exists
@@ -43304,7 +43304,7 @@ declare class Class_Redis extends Class_object {
      *      @return true when the key exists, false otherwise
      *
      */
-    exists(key: Class_Buffer | string): boolean;
+    exists(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Returns the type of the value stored at key
@@ -43317,7 +43317,7 @@ declare class Class_Redis extends Class_object {
      *      @return the type name, \`none\` when key does not exist
      *
      */
-    type(key: Class_Buffer | string): string;
+    type(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Returns the keys matching a glob pattern
@@ -43403,7 +43403,7 @@ declare class Class_Redis extends Class_object {
      *      @return true when the key existed, false when it did not
      *
      */
-    expire(key: Class_Buffer | string, ttl: number): boolean;
+    expire(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, ttl: number): boolean;
 
     /**
      * @description Returns the remaining time to live of key in milliseconds
@@ -43415,7 +43415,7 @@ declare class Class_Redis extends Class_object {
      *      @return the remaining time to live in milliseconds, -1 or -2 as described
      *
      */
-    ttl(key: Class_Buffer | string): number;
+    ttl(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Removes the time to live of key, making it persistent
@@ -43427,7 +43427,7 @@ declare class Class_Redis extends Class_object {
      *      @return true when the key was volatile and is now persistent
      *
      */
-    persist(key: Class_Buffer | string): boolean;
+    persist(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Renames key to newkey, the source is deleted
@@ -43440,7 +43440,7 @@ declare class Class_Redis extends Class_object {
      *      @param newkey the destination key name
      *
      */
-    rename(key: Class_Buffer | string, newkey: Class_Buffer | string): void;
+    rename(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, newkey: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Renames key to newkey only when newkey does not exist
@@ -43453,7 +43453,7 @@ declare class Class_Redis extends Class_object {
      *      @return true when the rename happened, false when newkey already existed
      *
      */
-    renameNX(key: Class_Buffer | string, newkey: Class_Buffer | string): boolean;
+    renameNX(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, newkey: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Subscribes func to a channel
@@ -43472,7 +43472,7 @@ declare class Class_Redis extends Class_object {
      *      @param func the callback invoked as func(channel, message)
      *
      */
-    sub(channel: Class_Buffer | string, func: (channel: Class_Buffer, message: Class_Buffer)=>void): void;
+    sub(channel: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (channel: Class_Buffer, message: Class_Buffer)=>void): void;
 
     /**
      * @description Subscribes one callback to each channel of a map
@@ -43495,7 +43495,7 @@ declare class Class_Redis extends Class_object {
      *      @param channel the channel to unsubscribe from
      *
      */
-    unsub(channel: Class_Buffer | string): void;
+    unsub(channel: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Removes one callback registration of a channel
@@ -43508,7 +43508,7 @@ declare class Class_Redis extends Class_object {
      *      @param func the callback registered by sub()
      *
      */
-    unsub(channel: Class_Buffer | string, func: (channel: Class_Buffer, message: Class_Buffer)=>void): void;
+    unsub(channel: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (channel: Class_Buffer, message: Class_Buffer)=>void): void;
 
     /**
      * @description Removes every callback of several channels
@@ -43628,7 +43628,7 @@ declare class Class_Redis extends Class_object {
      *      @return the number of clients that received the message
      *
      */
-    pub(channel: Class_Buffer | string, message: Class_Buffer | string): number;
+    pub(channel: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, message: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Returns the RedisHash view bound to key
@@ -43657,7 +43657,7 @@ declare class Class_Redis extends Class_object {
      *      @return the RedisHash view
      *
      */
-    getHash(key: Class_Buffer | string): Class_RedisHash;
+    getHash(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_RedisHash;
 
     /**
      * @description Returns the RedisList view bound to key
@@ -43670,7 +43670,7 @@ declare class Class_Redis extends Class_object {
      *      @return the RedisList view
      *
      */
-    getList(key: Class_Buffer | string): Class_RedisList;
+    getList(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_RedisList;
 
     /**
      * @description Returns the RedisSet view bound to key
@@ -43682,7 +43682,7 @@ declare class Class_Redis extends Class_object {
      *      @return the RedisSet view
      *
      */
-    getSet(key: Class_Buffer | string): Class_RedisSet;
+    getSet(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_RedisSet;
 
     /**
      * @description Returns the RedisSortedSet view bound to key
@@ -43694,7 +43694,7 @@ declare class Class_Redis extends Class_object {
      *      @return the RedisSortedSet view
      *
      */
-    getSortedSet(key: Class_Buffer | string): Class_RedisSortedSet;
+    getSortedSet(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_RedisSortedSet;
 
     /**
      * @description Serializes the value stored at key
@@ -43706,7 +43706,7 @@ declare class Class_Redis extends Class_object {
      *      @return the payload as a Buffer, or null when key does not exist
      *
      */
-    dump(key: Class_Buffer | string): Class_Buffer;
+    dump(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Rebuilds a key from a payload produced by dump
@@ -43721,7 +43721,7 @@ declare class Class_Redis extends Class_object {
      *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
-    restore(key: Class_Buffer | string, data: Class_Buffer | string, ttl?: number): void;
+    restore(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, ttl?: number): void;
 
     /**
      * @description Closes the connection
@@ -43821,7 +43821,7 @@ declare class Class_RedisHash extends Class_object {
      *      @param value the value to store
      *
      */
-    set(field: Class_Buffer | string, value: Class_Buffer | string): void;
+    set(field: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Stores value in field only when the field is missing
@@ -43833,7 +43833,7 @@ declare class Class_RedisHash extends Class_object {
      *      @param value the value to store
      *
      */
-    setNX(field: Class_Buffer | string, value: Class_Buffer | string): void;
+    setNX(field: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Stores several field/value pairs at once, replacing the fields
@@ -43885,7 +43885,7 @@ declare class Class_RedisHash extends Class_object {
      *      @return the value as a Buffer, or null when the field or the key does not exist
      *
      */
-    get(field: Class_Buffer | string): Class_Buffer;
+    get(field: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Returns the values of the given fields, one element per field
@@ -43939,7 +43939,7 @@ declare class Class_RedisHash extends Class_object {
      *      @return the value of the field after the addition
      *
      */
-    incr(field: Class_Buffer | string, num?: number): number;
+    incr(field: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, num?: number): number;
 
     /**
      * @description Returns every field and value of the hash
@@ -44000,7 +44000,7 @@ declare class Class_RedisHash extends Class_object {
      *      @return true when the field exists
      *
      */
-    exists(field: Class_Buffer | string): boolean;
+    exists(field: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Removes the given fields from the hash
@@ -44206,7 +44206,7 @@ declare class Class_RedisList extends Class_object {
      *      @param value the value to store
      *
      */
-    set(index: number, value: Class_Buffer | string): void;
+    set(index: number, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Returns the element at the given index
@@ -44232,7 +44232,7 @@ declare class Class_RedisList extends Class_object {
      *      @return the length of the list after the insert, -1 when pivot was not found
      *
      */
-    insertBefore(pivot: Class_Buffer | string, value: Class_Buffer | string): number;
+    insertBefore(pivot: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Inserts value just after the first element equal to pivot
@@ -44246,7 +44246,7 @@ declare class Class_RedisList extends Class_object {
      *      @return the length of the list after the insert, -1 when pivot was not found
      *
      */
-    insertAfter(pivot: Class_Buffer | string, value: Class_Buffer | string): number;
+    insertAfter(pivot: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Removes elements equal to value
@@ -44262,7 +44262,7 @@ declare class Class_RedisList extends Class_object {
      *      @return the number of elements that were removed
      *
      */
-    remove(count: number, value: Class_Buffer | string): number;
+    remove(count: number, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Keeps only the elements inside the given range
@@ -44508,7 +44508,7 @@ declare class Class_RedisSet extends Class_object {
      *      @return true when the member is present
      *
      */
-    exists(member: Class_Buffer | string): boolean;
+    exists(member: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Returns every member of the set
@@ -44732,7 +44732,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the score as a Buffer, or null when the member is missing
      *
      */
-    score(member: Class_Buffer | string): Class_Buffer;
+    score(member: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Adds num to the score of member and returns the new score
@@ -44764,7 +44764,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the new score as a Buffer
      *
      */
-    incr(member: Class_Buffer | string, num?: number): Class_Buffer;
+    incr(member: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, num?: number): Class_Buffer;
 
     /**
      * @description Removes one or more members from the sorted set
@@ -44876,7 +44876,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the rank, or null when the member is missing
      *
      */
-    rank(member: Class_Buffer | string): number;
+    rank(member: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Returns the descending rank of member
@@ -44890,7 +44890,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the rank, or null when the member is missing
      *
      */
-    rankRev(member: Class_Buffer | string): number;
+    rankRev(member: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
 }
 
@@ -46421,7 +46421,7 @@ declare class Class_SandBox extends Class_object {
      *      @return returns the loaded module object
      *
      */
-    addScript(srcname: string, script: Class_Buffer | string): any;
+    addScript(srcname: string, script: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): any;
 
     /**
      * @description Removes a module from the sandbox registry
@@ -46714,7 +46714,7 @@ declare class Class_Script extends Class_object {
         filename?: string;
         lineOffset?: number;
         columnOffset?: number;
-        cachedData?: Class_Buffer;
+        cachedData?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         type?: string;
     });
 
@@ -49387,7 +49387,7 @@ declare class Class_Sign extends Class_object {
      *      @return returns the Sign object itself
      *
      */
-    update(data: Class_Buffer | string, codec?: string): Class_Sign;
+    update(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, codec?: string): Class_Sign;
 
     /**
      * @description Computes the signature of all the data passed in
@@ -49437,10 +49437,10 @@ declare class Class_Sign extends Class_object {
      *
      */
     sign(privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -49458,7 +49458,7 @@ declare class Class_Sign extends Class_object {
      *      @return returns the signature value
      *
      */
-    sign(privateKey: Class_Buffer | Class_KeyObject | string, encoding?: string): any;
+    sign(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, encoding?: string): any;
 
 }
 
@@ -51279,23 +51279,9 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
-    send(data: Class_Buffer | string): number;
+    send(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
-    send(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
-     *
-     *      data may be a Buffer or a string; a string is encoded as utf8. Unlike write, which queues the
-     *      buffer and reports whether the stream accepted the data with a boolean, send keeps the fiber
-     *      waiting while the peer does not read and fails with the timeout error (20021) or a
-     *      closed-socket error when it cannot finish. The write loop only returns once the whole buffer
-     *      has been handed to the kernel, so the count never comes back short.
-     *      @param data the data to send
-     *      @return returns the number of bytes written, the utf8 byte length of data
-     *
-     */
-    sendSync(data: Class_Buffer | string): number;
+    send(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
@@ -51309,7 +51295,21 @@ declare class Class_Socket extends Class_Stream {
      *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
-    sendAsync(data: Class_Buffer | string): Promise<number>;
+    sendSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
+
+    /**
+     * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
+     *
+     *      data may be a Buffer or a string; a string is encoded as utf8. Unlike write, which queues the
+     *      buffer and reports whether the stream accepted the data with a boolean, send keeps the fiber
+     *      waiting while the peer does not read and fails with the timeout error (20021) or a
+     *      closed-socket error when it cannot finish. The write loop only returns once the whole buffer
+     *      has been handed to the kernel, so the count never comes back short.
+     *      @param data the data to send
+     *      @return returns the number of bytes written, the utf8 byte length of data
+     *
+     */
+    sendAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Aborts all ongoing operations on the current socket
@@ -52073,7 +52073,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
-    send(data: Class_Buffer | string): Promise<number>;
+    send(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
@@ -52087,7 +52087,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
-    sendSync(data: Class_Buffer | string): number;
+    sendSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Writes the given data to the connection and waits until every byte has been sent; a string data is encoded as utf8
@@ -52101,7 +52101,7 @@ declare class Class_SocketPromise extends Class_StreamPromise {
      *      @return returns the number of bytes written, the utf8 byte length of data
      *
      */
-    sendAsync(data: Class_Buffer | string): Promise<number>;
+    sendAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<number>;
 
     /**
      * @description Aborts all ongoing operations on the current socket
@@ -54930,21 +54930,9 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @param data the Buffer data to write
      *
      */
-    writeBuffer(data: Class_Buffer): void;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): void;
 
-    writeBuffer(data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Writes the given binary data to the stream
-     *
-     *      Queues the buffer and returns undefined (unlike \`write\`, no back-pressure
-     *      flag is reported); the direct call waits for the chunk to be written. The
-     *      string overload encodes the text as utf8, with no encoding argument.
-     *
-     *      @param data the Buffer data to write
-     *
-     */
-    writeBufferSync(data: Class_Buffer): void;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes the given binary data to the stream
@@ -54956,7 +54944,19 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @param data the Buffer data to write
      *
      */
-    writeBufferAsync(data: Class_Buffer): Promise<void>;
+    writeBufferSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): void;
+
+    /**
+     * @description Writes the given binary data to the stream
+     *
+     *      Queues the buffer and returns undefined (unlike \`write\`, no back-pressure
+     *      flag is reported); the direct call waits for the chunk to be written. The
+     *      string overload encodes the text as utf8, with no encoding argument.
+     *
+     *      @param data the Buffer data to write
+     *
+     */
+    writeBufferAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<void>;
 
     /**
      * @description Writes the given binary data to the stream; a string data is encoded as utf8
@@ -54993,48 +54993,13 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     writeBufferAsync(data: string): Promise<void>;
 
-    writeBuffer(data: Class_Buffer | string): void;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
-    writeBuffer(data: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null)=>any): void;
 
-    writeBufferSync(data: Class_Buffer | string): void;
+    writeBufferSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
-    writeBufferAsync(data: Class_Buffer | string): Promise<void>;
-
-    /**
-     * @description Writes the given data to the stream
-     *
-     *      Queues the data and reports back pressure: returns
-     *      false when the queued bytes reach the write high-water mark (16384 bytes)
-     *      and the caller should wait for the 'drain' event before writing more;
-     *      returns true while the queue has room. Writes are queued in FIFO order and
-     *      flushed one at a time. The direct call returns as soon as the chunk is
-     *      queued, a trailing callback receives the flag as its second argument, and
-     *      \`await stm.write(data)\` resolves to it. The encoding argument of the
-     *      Buffer overload is ignored.
-     *
-     *      Example — stop writing when the queue is full and wait for drain:
-     *      \`\`\`JavaScript
-     *      const io = require('io');
-     *      const coroutine = require('coroutine');
-     *
-     *      const stm = new io.MemoryStream();
-     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
-     *      let drained = false;
-     *      stm.on('drain', () => { drained = true; });
-     *      coroutine.sleep(20);
-     *
-     *      console.log(full, drained, stm.write('more')); // false true true
-     *      \`\`\`
-     *
-     *      @param data the data to write
-     *      @return false when the caller should wait for the 'drain' event before
-     *      writing more, true otherwise
-     *
-     */
-    write(data: Class_Buffer): boolean;
-
-    write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    writeBufferAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Writes the given data to the stream
@@ -55067,7 +55032,9 @@ declare class Class_Stream extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeSync(data: Class_Buffer): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): boolean;
+
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Writes the given data to the stream
@@ -55100,7 +55067,40 @@ declare class Class_Stream extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer): Promise<boolean>;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): boolean;
+
+    /**
+     * @description Writes the given data to the stream
+     *
+     *      Queues the data and reports back pressure: returns
+     *      false when the queued bytes reach the write high-water mark (16384 bytes)
+     *      and the caller should wait for the 'drain' event before writing more;
+     *      returns true while the queue has room. Writes are queued in FIFO order and
+     *      flushed one at a time. The direct call returns as soon as the chunk is
+     *      queued, a trailing callback receives the flag as its second argument, and
+     *      \`await stm.write(data)\` resolves to it. The encoding argument of the
+     *      Buffer overload is ignored.
+     *
+     *      Example — stop writing when the queue is full and wait for drain:
+     *      \`\`\`JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
+     *      let drained = false;
+     *      stm.on('drain', () => { drained = true; });
+     *      coroutine.sleep(20);
+     *
+     *      console.log(full, drained, stm.write('more')); // false true true
+     *      \`\`\`
+     *
+     *      @param data the data to write
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
+     *
+     */
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
@@ -55114,23 +55114,9 @@ declare class Class_Stream extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    write(data: Class_Buffer, encoding: string): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): boolean;
 
-    write(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Writes the given data to the stream
-     *
-     *      Buffer overload: the encoding argument is
-     *      accepted and ignored, because Buffer data is already binary.
-     *
-     *      @param data the data to write
-     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return false when the caller should wait for the 'drain' event before
-     *      writing more, true otherwise
-     *
-     */
-    writeSync(data: Class_Buffer, encoding: string): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Writes the given data to the stream
@@ -55144,7 +55130,21 @@ declare class Class_Stream extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer, encoding: string): Promise<boolean>;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): boolean;
+
+    /**
+     * @description Writes the given data to the stream
+     *
+     *      Buffer overload: the encoding argument is
+     *      accepted and ignored, because Buffer data is already binary.
+     *
+     *      @param data the data to write
+     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
+     *
+     */
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<boolean>;
 
     /**
      * @description Writes the given string to the stream
@@ -55402,21 +55402,9 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer): Class_Stream;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Stream;
 
-    end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description Writes the given file buffer to the stream and ends the stream operation
-     *
-     *      Writes the buffer as the final chunk and then ends the stream, with the
-     *      same events and return value as \`end()\`.
-     *
-     *      @param data the file buffer data to write
-     *      @return returns the current stream object
-     *
-     */
-    endSync(data: Class_Buffer): Class_Stream;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -55428,7 +55416,19 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer): Promise<Class_StreamPromise>;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Stream;
+
+    /**
+     * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Writes the buffer as the final chunk and then ends the stream, with the
+     *      same events and return value as \`end()\`.
+     *
+     *      @param data the file buffer data to write
+     *      @return returns the current stream object
+     *
+     */
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -55441,22 +55441,9 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer, encoding: string): Class_Stream;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Stream;
 
-    end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description Writes the given file buffer to the stream and ends the stream operation
-     *
-     *      Buffer overload: the encoding argument is
-     *      accepted and ignored.
-     *
-     *      @param data the file buffer data to write
-     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns the current stream object
-     *
-     */
-    endSync(data: Class_Buffer, encoding: string): Class_Stream;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -55469,7 +55456,20 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<Class_StreamPromise>;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Stream;
+
+    /**
+     * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Buffer overload: the encoding argument is
+     *      accepted and ignored.
+     *
+     *      @param data the file buffer data to write
+     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     *      @return returns the current stream object
+     *
+     */
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
@@ -56342,7 +56342,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @param data the Buffer data to write
      *
      */
-    writeBuffer(data: Class_Buffer): Promise<void>;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<void>;
 
     /**
      * @description Writes the given binary data to the stream
@@ -56354,7 +56354,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @param data the Buffer data to write
      *
      */
-    writeBufferSync(data: Class_Buffer): void;
+    writeBufferSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): void;
 
     /**
      * @description Writes the given binary data to the stream
@@ -56366,7 +56366,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @param data the Buffer data to write
      *
      */
-    writeBufferAsync(data: Class_Buffer): Promise<void>;
+    writeBufferAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<void>;
 
     /**
      * @description Writes the given binary data to the stream; a string data is encoded as utf8
@@ -56401,44 +56401,11 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      */
     writeBufferAsync(data: string): Promise<void>;
 
-    writeBuffer(data: Class_Buffer | string): Promise<void>;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
-    writeBufferSync(data: Class_Buffer | string): void;
+    writeBufferSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
-    writeBufferAsync(data: Class_Buffer | string): Promise<void>;
-
-    /**
-     * @description Writes the given data to the stream
-     *
-     *      Queues the data and reports back pressure: returns
-     *      false when the queued bytes reach the write high-water mark (16384 bytes)
-     *      and the caller should wait for the 'drain' event before writing more;
-     *      returns true while the queue has room. Writes are queued in FIFO order and
-     *      flushed one at a time. The direct call returns as soon as the chunk is
-     *      queued, a trailing callback receives the flag as its second argument, and
-     *      \`await stm.write(data)\` resolves to it. The encoding argument of the
-     *      Buffer overload is ignored.
-     *
-     *      Example — stop writing when the queue is full and wait for drain:
-     *      \`\`\`JavaScript
-     *      const io = require('io');
-     *      const coroutine = require('coroutine');
-     *
-     *      const stm = new io.MemoryStream();
-     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
-     *      let drained = false;
-     *      stm.on('drain', () => { drained = true; });
-     *      coroutine.sleep(20);
-     *
-     *      console.log(full, drained, stm.write('more')); // false true true
-     *      \`\`\`
-     *
-     *      @param data the data to write
-     *      @return false when the caller should wait for the 'drain' event before
-     *      writing more, true otherwise
-     *
-     */
-    write(data: Class_Buffer): Promise<boolean>;
+    writeBufferAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Writes the given data to the stream
@@ -56471,7 +56438,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeSync(data: Class_Buffer): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
@@ -56504,7 +56471,40 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer): Promise<boolean>;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): boolean;
+
+    /**
+     * @description Writes the given data to the stream
+     *
+     *      Queues the data and reports back pressure: returns
+     *      false when the queued bytes reach the write high-water mark (16384 bytes)
+     *      and the caller should wait for the 'drain' event before writing more;
+     *      returns true while the queue has room. Writes are queued in FIFO order and
+     *      flushed one at a time. The direct call returns as soon as the chunk is
+     *      queued, a trailing callback receives the flag as its second argument, and
+     *      \`await stm.write(data)\` resolves to it. The encoding argument of the
+     *      Buffer overload is ignored.
+     *
+     *      Example — stop writing when the queue is full and wait for drain:
+     *      \`\`\`JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
+     *      let drained = false;
+     *      stm.on('drain', () => { drained = true; });
+     *      coroutine.sleep(20);
+     *
+     *      console.log(full, drained, stm.write('more')); // false true true
+     *      \`\`\`
+     *
+     *      @param data the data to write
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
+     *
+     */
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
@@ -56518,7 +56518,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    write(data: Class_Buffer, encoding: string): Promise<boolean>;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
@@ -56532,7 +56532,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeSync(data: Class_Buffer, encoding: string): boolean;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): boolean;
 
     /**
      * @description Writes the given data to the stream
@@ -56546,7 +56546,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer, encoding: string): Promise<boolean>;
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<boolean>;
 
     /**
      * @description Writes the given string to the stream
@@ -56798,7 +56798,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer): Promise<Class_StreamPromise>;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -56810,7 +56810,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endSync(data: Class_Buffer): Class_Stream;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Stream;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -56822,7 +56822,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer): Promise<Class_StreamPromise>;
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -56835,7 +56835,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer, encoding: string): Promise<Class_StreamPromise>;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -56848,7 +56848,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endSync(data: Class_Buffer, encoding: string): Class_Stream;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Stream;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -56861,7 +56861,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<Class_StreamPromise>;
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
@@ -57887,7 +57887,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @return the remaining text, with U+FFFD for a truncated utf8 character
      *
      */
-    end(buf?: Class_Buffer | string): string;
+    end(buf?: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Decodes a chunk, holding back an incomplete trailing character
@@ -57909,7 +57909,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @return the decoded text available so far, '' while a character is incomplete
      *
      */
-    write(buf: Class_Buffer | string): string;
+    write(buf: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Decodes a chunk starting at the given offset; this is the internal per-chunk routine
@@ -57920,7 +57920,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @return the decoded part of the chunk, '' while a character is incomplete
      *
      */
-    text(buf: Class_Buffer | string, offset: number): string;
+    text(buf: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number): string;
 
     /**
      * @description Completes the held character with the leading bytes of a chunk; this is the internal routine
@@ -57930,7 +57930,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @return the completed character, or null when more bytes are needed
      *
      */
-    fillLast(buf: Class_Buffer | string): string;
+    fillLast(buf: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Number of bytes still needed to complete the character held from the previous chunk
@@ -61989,7 +61989,7 @@ declare class Class_TextDecoder extends Class_object {
      *      @return the decoded text
      *
      */
-    decode(data: Class_Buffer | string, opts?: FIBJS.GeneralObject): string;
+    decode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opts?: FIBJS.GeneralObject): string;
 
     /**
      * @description Finishes a streaming decode and returns the remaining text
@@ -62187,7 +62187,7 @@ declare class Class_TextEncoder extends Class_object {
      *      @return an object with the \`read\` (source UTF-16 units) and \`written\` (bytes) counts
      *
      */
-    encodeInto(source: string, destination: Class_Buffer): {
+    encodeInto(source: string, destination: Class_Buffer | ArrayBufferView | ArrayBufferLike): {
         read: number;
         written: number;
     };
@@ -63291,7 +63291,7 @@ declare class Class_Verify extends Class_object {
      *      @return returns the Verify object itself
      *
      */
-    update(data: Class_Buffer | string, codec?: string): Class_Verify;
+    update(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, codec?: string): Class_Verify;
 
     /**
      * @description Verifies the signature of all the data passed in
@@ -63334,17 +63334,17 @@ declare class Class_Verify extends Class_object {
      *
      */
     verify(privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string, encoding?: string): boolean;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): boolean;
 
     /**
      * @description Verifies a signature with a key given as raw key material
@@ -63356,7 +63356,7 @@ declare class Class_Verify extends Class_object {
      *      @return returns true when the signature is valid
      *
      */
-    verify(privateKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string, encoding?: string): boolean;
+    verify(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): boolean;
 
 }
 
@@ -67622,6 +67622,7 @@ declare class Class_WebSocket extends Class_EventEmitter {
 `,
         "dts/interface/WebSocketMessage.d.ts": `/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Message.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description The message object exchanged by WebSocket peers, a Message with frame metadata
  *
@@ -67795,13 +67796,14 @@ declare class Class_WebSocketMessage extends Class_Message {
      *      \`\`\`
      *
      */
-    readonly data: any;
+    readonly data: string | Class_Buffer | null;
 
 }
 
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Message.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * The promise variant of the WebSocketMessage class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
@@ -67892,7 +67894,7 @@ declare class Class_WebSocketMessagePromise extends Class_MessagePromise {
      *      \`\`\`
      *
      */
-    readonly data: any;
+    readonly data: string | Class_Buffer | null;
 
 }
 
@@ -70462,7 +70464,7 @@ declare class Class_X509Certificate extends Class_object {
      *      @param cert the certificate data as PEM text or PEM bytes
      *
      */
-    constructor(cert: Class_Buffer | string);
+    constructor(cert: Class_Buffer | ArrayBufferView | ArrayBufferLike | string);
 
     /**
      * @description Creates an X509Certificate chain from a list of PEM certificates
@@ -70475,7 +70477,7 @@ declare class Class_X509Certificate extends Class_object {
      *      @param certs the array of certificates as PEM text or PEM bytes
      *
      */
-    constructor(certs: (Class_Buffer | string)[]);
+    constructor(certs: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[]);
 
     /**
      * @description The subject distinguished name of the certificate
@@ -70811,7 +70813,7 @@ declare class Class_X509Certificate extends Class_object {
      *      @return returns true when the issuer matches, false otherwise
      *
      */
-    checkIssued(issuer: Class_X509Certificate | Class_Buffer | string): boolean;
+    checkIssued(issuer: Class_X509Certificate | Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Checks whether a private key belongs to the certificate
@@ -71074,9 +71076,9 @@ declare class Class_X509CertificateRequest extends Class_object {
      *
      */
     issue(options: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -71918,7 +71920,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @param options the parse limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *
      */
-    load(source: Class_Buffer | string, options?: FIBJS.GeneralObject): void;
+    load(source: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Returns the encoding detected while parsing, or null when it is unknown
@@ -75823,48 +75825,11 @@ declare class Class_ZipFile extends Class_object {
      *      @param password password used to encrypt the entry, empty for no encryption
      *
      */
-    write(data: Class_Buffer, inZipName: string, password?: string): void;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): void;
 
-    write(data: Class_Buffer, inZipName: string, callback: (err: Error | undefined | null)=>any): void;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, callback: (err: Error | undefined | null)=>any): void;
 
-    write(data: Class_Buffer, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Writes a Buffer as a new entry
-     *
-     *      The data is compressed with Deflate and stored under inZipName; a non-empty password
-     *      encrypts the entry with ZipCrypto. Every entry is stamped with the current local time as
-     *      its date. The archive must be open for writing ("w" or "a"), otherwise the call throws
-     *      \`ZipFile: file is closed.\`, and the new entry becomes visible to readers at close().
-     *
-     *      Example — write plain and encrypted entries from memory:
-     *      \`\`\`JavaScript
-     *      const fs = require('fs');
-     *      const os = require('os');
-     *      const path = require('path');
-     *      const zip = require('zip');
-     *
-     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-zipfile-'));
-     *      const archive = path.join(dir, 'a.zip');
-     *
-     *      let zipfile = zip.open(archive, 'w');
-     *      zipfile.write(Buffer.from('written from memory'), 'memory.txt');
-     *      zipfile.write(Buffer.from('encrypted'), 'secret.txt', 'pw');
-     *      zipfile.close();
-     *
-     *      zipfile = zip.open(archive);
-     *      console.log(zipfile.namelist().join(', ')); // memory.txt, secret.txt
-     *      console.log(zipfile.getinfo('secret.txt').password); // true
-     *      zipfile.close();
-     *
-     *      fs.rmSync(dir, { recursive: true, force: true });
-     *      \`\`\`
-     *      @param data the data to write
-     *      @param inZipName the name of the entry inside the archive
-     *      @param password password used to encrypt the entry, empty for no encryption
-     *
-     */
-    writeSync(data: Class_Buffer, inZipName: string, password?: string): void;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes a Buffer as a new entry
@@ -75901,7 +75866,44 @@ declare class Class_ZipFile extends Class_object {
      *      @param password password used to encrypt the entry, empty for no encryption
      *
      */
-    writeAsync(data: Class_Buffer, inZipName: string, password?: string): Promise<void>;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): void;
+
+    /**
+     * @description Writes a Buffer as a new entry
+     *
+     *      The data is compressed with Deflate and stored under inZipName; a non-empty password
+     *      encrypts the entry with ZipCrypto. Every entry is stamped with the current local time as
+     *      its date. The archive must be open for writing ("w" or "a"), otherwise the call throws
+     *      \`ZipFile: file is closed.\`, and the new entry becomes visible to readers at close().
+     *
+     *      Example — write plain and encrypted entries from memory:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *      const zip = require('zip');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-zipfile-'));
+     *      const archive = path.join(dir, 'a.zip');
+     *
+     *      let zipfile = zip.open(archive, 'w');
+     *      zipfile.write(Buffer.from('written from memory'), 'memory.txt');
+     *      zipfile.write(Buffer.from('encrypted'), 'secret.txt', 'pw');
+     *      zipfile.close();
+     *
+     *      zipfile = zip.open(archive);
+     *      console.log(zipfile.namelist().join(', ')); // memory.txt, secret.txt
+     *      console.log(zipfile.getinfo('secret.txt').password); // true
+     *      zipfile.close();
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      \`\`\`
+     *      @param data the data to write
+     *      @param inZipName the name of the entry inside the archive
+     *      @param password password used to encrypt the entry, empty for no encryption
+     *
+     */
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): Promise<void>;
 
     /**
      * @description Writes a stream as a new entry
@@ -77189,7 +77191,7 @@ declare class Class_ZipFilePromise extends Class_object {
      *      @param password password used to encrypt the entry, empty for no encryption
      *
      */
-    write(data: Class_Buffer, inZipName: string, password?: string): Promise<void>;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): Promise<void>;
 
     /**
      * @description Writes a Buffer as a new entry
@@ -77226,7 +77228,7 @@ declare class Class_ZipFilePromise extends Class_object {
      *      @param password password used to encrypt the entry, empty for no encryption
      *
      */
-    writeSync(data: Class_Buffer, inZipName: string, password?: string): void;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): void;
 
     /**
      * @description Writes a Buffer as a new entry
@@ -77263,7 +77265,7 @@ declare class Class_ZipFilePromise extends Class_object {
      *      @param password password used to encrypt the entry, empty for no encryption
      *
      */
-    writeAsync(data: Class_Buffer, inZipName: string, password?: string): Promise<void>;
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): Promise<void>;
 
     /**
      * @description Writes a stream as a new entry
@@ -77720,7 +77722,7 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
      *      @return returns the processed data
      *
      */
-    _processChunk(chunk: Class_Buffer | string, flushFlag: number): Class_Buffer;
+    _processChunk(chunk: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, flushFlag: number): Class_Buffer;
 
     /**
      * @description Closes the codec and releases its zlib state
@@ -80399,7 +80401,7 @@ declare module 'base32' {
      *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer | string): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Decodes a string into binary data in base32 format
@@ -80518,7 +80520,7 @@ declare module 'base58' {
      *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer | string): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Encodes data in base58check format
@@ -80541,7 +80543,7 @@ declare module 'base58' {
      *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer | string, chk_ver: number): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, chk_ver: number): string;
 
     /**
      * @description Decodes a string into binary data in base58 format
@@ -80669,7 +80671,7 @@ declare module 'base64' {
      *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer | string, url?: boolean): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, url?: boolean): string;
 
     /**
      * @description Decodes a string into binary data in base64 format
@@ -86565,7 +86567,7 @@ declare module 'crypto' {
      *      @return returns the message digest object
      *
      */
-    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string, options?: {
+    function createHmac(algo: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, options?: {
         encoding?: string;
     }): Class_Digest;
 
@@ -86628,7 +86630,7 @@ declare module 'crypto' {
      *      @return returns the encryption object
      *
      */
-    function createCipher(algorithm: string, key: Class_Buffer | string, options?: {
+    function createCipher(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -86667,7 +86669,7 @@ declare module 'crypto' {
      *      @return returns the encryption object
      *
      */
-    function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+    function createCipheriv(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, iv: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -86682,7 +86684,7 @@ declare module 'crypto' {
      *      @return returns the decryption object
      *
      */
-    function createDecipher(algorithm: string, key: Class_Buffer | string, options?: {
+    function createDecipher(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -86700,7 +86702,7 @@ declare module 'crypto' {
      *      @return returns the decryption object
      *
      */
-    function createDecipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+    function createDecipheriv(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, iv: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -86735,10 +86737,10 @@ declare module 'crypto' {
      *
      */
     function createPrivateKey(key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -86753,7 +86755,7 @@ declare module 'crypto' {
      *      @return returns the private key object
      *
      */
-    function createPrivateKey(key: Class_Buffer | string): Class_KeyObject;
+    function createPrivateKey(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_KeyObject;
 
     /**
      * @description Creates a KeyObject holding an asymmetric public key
@@ -86767,10 +86769,10 @@ declare module 'crypto' {
      *
      */
     function createPublicKey(key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -86784,7 +86786,7 @@ declare module 'crypto' {
      *      @return returns the public key object
      *
      */
-    function createPublicKey(key: Class_Buffer | Class_KeyObject | string): Class_KeyObject;
+    function createPublicKey(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_KeyObject;
 
     /**
      * @description Creates a streaming signing object for the given digest algorithm
@@ -86866,7 +86868,7 @@ declare module 'crypto' {
      *      @return returns the secret key object
      *
      */
-    function createSecretKey(key: Class_Buffer | string, encoding?: string): Class_KeyObject;
+    function createSecretKey(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): Class_KeyObject;
 
     /**
      * @description Creates an X.509 certificate request (CSR) from key material or parses an
@@ -86904,10 +86906,10 @@ declare module 'crypto' {
      *
      */
     function createCertificateRequest(csr: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -86923,7 +86925,7 @@ declare module 'crypto' {
      *      @return returns the certificate request object
      *
      */
-    function createCertificateRequest(csr: Class_Buffer | string): Class_X509CertificateRequest;
+    function createCertificateRequest(csr: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_X509CertificateRequest;
 
     /**
      * @description Computes the shared secret between a private key and a peer's public key
@@ -86974,7 +86976,7 @@ declare module 'crypto' {
      *      @return returns the digest
      *
      */
-    function hash(algorithm: string, data: Class_Buffer | string, outputEncoding?: string): any;
+    function hash(algorithm: string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, outputEncoding?: string): any;
 
     /**
      * @description Generates \`size\` cryptographically secure random bytes
@@ -87019,32 +87021,13 @@ declare module 'crypto' {
      *      @return returns the filled buffer
      *
      */
-    function randomFill(buffer: Class_Buffer | string, offset?: number, size?: number): Class_Buffer;
+    function randomFill(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset?: number, size?: number): Class_Buffer;
 
-    function randomFill(buffer: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function randomFill(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function randomFill(buffer: Class_Buffer | string, offset: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function randomFill(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function randomFill(buffer: Class_Buffer | string, offset: number, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Fills a Buffer with cryptographically secure random bytes
-     *
-     *      Writes \`size\` bytes starting at \`offset\`; by default the whole range from
-     *      \`offset\` to the end of the buffer is filled. A negative \`size\` also means "to the
-     *      end". The buffer is modified in place; note that a Buffer object is returned
-     *      distinct from the argument. A string argument
-     *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
-     *      buffer or \`offset + size\` beyond its length throws RangeError. This member
-     *      follows the async call forms (bare, callback, \`randomFillSync\`,
-     *      \`randomFillAsync\`).
-     *      @param buffer the buffer to fill
-     *      @param offset the starting offset
-     *      @param size the number of bytes to write, -1 for the rest of the buffer
-     *      @return returns the filled buffer
-     *
-     */
-    function randomFillSync(buffer: Class_Buffer | string, offset?: number, size?: number): Class_Buffer;
+    function randomFill(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Fills a Buffer with cryptographically secure random bytes
@@ -87063,7 +87046,26 @@ declare module 'crypto' {
      *      @return returns the filled buffer
      *
      */
-    function randomFillAsync(buffer: Class_Buffer | string, offset?: number, size?: number): Promise<Class_Buffer>;
+    function randomFillSync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset?: number, size?: number): Class_Buffer;
+
+    /**
+     * @description Fills a Buffer with cryptographically secure random bytes
+     *
+     *      Writes \`size\` bytes starting at \`offset\`; by default the whole range from
+     *      \`offset\` to the end of the buffer is filled. A negative \`size\` also means "to the
+     *      end". The buffer is modified in place; note that a Buffer object is returned
+     *      distinct from the argument. A string argument
+     *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
+     *      buffer or \`offset + size\` beyond its length throws RangeError. This member
+     *      follows the async call forms (bare, callback, \`randomFillSync\`,
+     *      \`randomFillAsync\`).
+     *      @param buffer the buffer to fill
+     *      @param offset the starting offset
+     *      @param size the number of bytes to write, -1 for the rest of the buffer
+     *      @return returns the filled buffer
+     *
+     */
+    function randomFillAsync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset?: number, size?: number): Promise<Class_Buffer>;
 
     /**
      * @description Fills a TypedArray with cryptographically secure random bytes
@@ -87216,13 +87218,13 @@ declare module 'crypto' {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
         privateKeyEncoding?: {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
     }): {
         publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
@@ -87247,13 +87249,13 @@ declare module 'crypto' {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
         privateKeyEncoding?: {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
     }, callback: (err: Error | undefined | null, retVal: {
         publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
@@ -87312,13 +87314,13 @@ declare module 'crypto' {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
         privateKeyEncoding?: {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
     }): {
         publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
@@ -87377,13 +87379,13 @@ declare module 'crypto' {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
         privateKeyEncoding?: {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
     }): Promise<{
         publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
@@ -87407,28 +87409,9 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function hkdf(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Class_Buffer;
+    function hkdf(algoName: string, password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, info: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, size: number): Class_Buffer;
 
-    function hkdf(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Derives key material from a secret with HKDF (RFC 5869)
-     *
-     *      HKDF is not a password hash: \`password\` must already be a high-entropy secret,
-     *      for example the output of an ECDH exchange. It extracts a pseudorandom key with
-     *      the salt and then expands it to \`size\` bytes bound to \`info\`; use a different
-     *      \`info\` for every purpose and never reuse one output for two purposes. \`salt\` and
-     *      \`info\` may be empty, but a non-empty random salt is recommended. The size must
-     *      be at least 1. Follows the async call forms; \`hkdfSync\` blocks.
-     *      @param algoName the digest algorithm name
-     *      @param password the input keying material
-     *      @param salt the extract salt
-     *      @param info the context and application specific information
-     *      @param size the number of bytes to derive
-     *      @return returns the derived key
-     *
-     */
-    function hkdfSync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Class_Buffer;
+    function hkdf(algoName: string, password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, info: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Derives key material from a secret with HKDF (RFC 5869)
@@ -87447,7 +87430,26 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function hkdfAsync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Promise<Class_Buffer>;
+    function hkdfSync(algoName: string, password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, info: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, size: number): Class_Buffer;
+
+    /**
+     * @description Derives key material from a secret with HKDF (RFC 5869)
+     *
+     *      HKDF is not a password hash: \`password\` must already be a high-entropy secret,
+     *      for example the output of an ECDH exchange. It extracts a pseudorandom key with
+     *      the salt and then expands it to \`size\` bytes bound to \`info\`; use a different
+     *      \`info\` for every purpose and never reuse one output for two purposes. \`salt\` and
+     *      \`info\` may be empty, but a non-empty random salt is recommended. The size must
+     *      be at least 1. Follows the async call forms; \`hkdfSync\` blocks.
+     *      @param algoName the digest algorithm name
+     *      @param password the input keying material
+     *      @param salt the extract salt
+     *      @param info the context and application specific information
+     *      @param size the number of bytes to derive
+     *      @return returns the derived key
+     *
+     */
+    function hkdfAsync(algoName: string, password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, info: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, size: number): Promise<Class_Buffer>;
 
     /**
      * @description Derives a key from a password with PBKDF2
@@ -87480,42 +87482,9 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function pbkdf2(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Class_Buffer;
+    function pbkdf2(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, iterations: number, size: number, algoName: string): Class_Buffer;
 
-    function pbkdf2(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Derives a key from a password with PBKDF2
-     *
-     *      PBKDF2 applies the digest many times over the password and the salt; the
-     *      iteration count is the cost. The salt must be random, unique per password and at
-     *      least 16 bytes, and it must be stored with the derived key, as must the iteration
-     *      count and the digest name - without them the key cannot be reproduced. There is
-     *      no built-in cost bound: choose an iteration count that keeps one derivation
-     *      around 100 ms on the target hardware. Both the iteration count and the size must
-     *      be at least 1. Follows the async call forms; \`pbkdf2Sync\` blocks.
-     *
-     *      Example: the RFC 6070 vector and a salted derivation:
-     *      \`\`\`JavaScript
-     *      const crypto = require('crypto');
-     *
-     *      console.log(crypto.pbkdf2Sync('password', 'salt', 1, 20, 'sha1').toString('hex'));
-     *      // 0c60c80f961f0e71f3a9b524af6012062fe037a6
-     *
-     *      const salt = crypto.randomBytes(16);
-     *      const key = crypto.pbkdf2Sync('secret password', salt, 210000, 32, 'sha256');
-     *      console.log(key.length); // 32
-     *      \`\`\`
-     *
-     *      @param password the password to derive from
-     *      @param salt the random salt
-     *      @param iterations the iteration count
-     *      @param size the number of bytes to derive
-     *      @param algoName the digest algorithm name
-     *      @return returns the derived key
-     *
-     */
-    function pbkdf2Sync(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Class_Buffer;
+    function pbkdf2(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Derives a key from a password with PBKDF2
@@ -87548,7 +87517,40 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function pbkdf2Async(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
+    function pbkdf2Sync(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, iterations: number, size: number, algoName: string): Class_Buffer;
+
+    /**
+     * @description Derives a key from a password with PBKDF2
+     *
+     *      PBKDF2 applies the digest many times over the password and the salt; the
+     *      iteration count is the cost. The salt must be random, unique per password and at
+     *      least 16 bytes, and it must be stored with the derived key, as must the iteration
+     *      count and the digest name - without them the key cannot be reproduced. There is
+     *      no built-in cost bound: choose an iteration count that keeps one derivation
+     *      around 100 ms on the target hardware. Both the iteration count and the size must
+     *      be at least 1. Follows the async call forms; \`pbkdf2Sync\` blocks.
+     *
+     *      Example: the RFC 6070 vector and a salted derivation:
+     *      \`\`\`JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      console.log(crypto.pbkdf2Sync('password', 'salt', 1, 20, 'sha1').toString('hex'));
+     *      // 0c60c80f961f0e71f3a9b524af6012062fe037a6
+     *
+     *      const salt = crypto.randomBytes(16);
+     *      const key = crypto.pbkdf2Sync('secret password', salt, 210000, 32, 'sha256');
+     *      console.log(key.length); // 32
+     *      \`\`\`
+     *
+     *      @param password the password to derive from
+     *      @param salt the random salt
+     *      @param iterations the iteration count
+     *      @param size the number of bytes to derive
+     *      @param algoName the digest algorithm name
+     *      @return returns the derived key
+     *
+     */
+    function pbkdf2Async(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
      * @description Derives a key from a password with scrypt
@@ -87589,16 +87591,16 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+    function scrypt(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, options?: {
         N?: number;
         r?: number;
         p?: number;
         maxmem?: number;
     }): Class_Buffer;
 
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function scrypt(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options: {
+    function scrypt(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, options: {
         N?: number;
         r?: number;
         p?: number;
@@ -87644,7 +87646,7 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+    function scryptSync(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, options?: {
         N?: number;
         r?: number;
         p?: number;
@@ -87690,7 +87692,7 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function scryptAsync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+    function scryptAsync(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, options?: {
         N?: number;
         r?: number;
         p?: number;
@@ -87713,17 +87715,17 @@ declare module 'crypto' {
      *
      */
     function privateDecrypt(privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Decrypts data with a private key given as raw key material
@@ -87735,7 +87737,7 @@ declare module 'crypto' {
      *      @return returns the decrypted data
      *
      */
-    function privateDecrypt(privateKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function privateDecrypt(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with the private key (RSA signature-style operation)
@@ -87752,17 +87754,17 @@ declare module 'crypto' {
      *
      */
     function privateEncrypt(privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with a private key given as raw key material
@@ -87774,7 +87776,7 @@ declare module 'crypto' {
      *      @return returns the encrypted data
      *
      */
-    function privateEncrypt(privateKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function privateEncrypt(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Decrypts data that was encrypted with the matching private key
@@ -87790,17 +87792,17 @@ declare module 'crypto' {
      *
      */
     function publicDecrypt(publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Decrypts data with a public key given as raw key material
@@ -87812,7 +87814,7 @@ declare module 'crypto' {
      *      @return returns the decrypted data
      *
      */
-    function publicDecrypt(publicKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function publicDecrypt(publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with the public key so that only the private key can decrypt it
@@ -87853,17 +87855,17 @@ declare module 'crypto' {
      *
      */
     function publicEncrypt(publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with a public key given as raw key material
@@ -87875,7 +87877,7 @@ declare module 'crypto' {
      *      @return returns the encrypted data
      *
      */
-    function publicEncrypt(publicKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function publicEncrypt(publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Computes the signature of data in one shot
@@ -87914,11 +87916,11 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function sign(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function sign(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -87927,11 +87929,11 @@ declare module 'crypto' {
         saltLength?: number;
     }): Class_Buffer;
 
-    function sign(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function sign(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -87977,11 +87979,11 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function signSync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function signSync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -88027,11 +88029,11 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function signAsync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function signAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -88051,22 +88053,9 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function sign(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
 
-    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Computes a signature with a key given as raw key material
-     *
-     *      The key is used directly; dsaEncoding, padding and saltLength take their
-     *      defaults.
-     *      @param algorithm the digest algorithm name
-     *      @param data the data to sign
-     *      @param key the private key
-     *      @return returns the signature
-     *
-     */
-    function signSync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function sign(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Computes a signature with a key given as raw key material
@@ -88079,7 +88068,20 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function signAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function signSync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
+
+    /**
+     * @description Computes a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data to sign
+     *      @param key the private key
+     *      @return returns the signature
+     *
+     */
+    function signAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -88097,31 +88099,31 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verify(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function verify(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string): boolean;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function verify(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function verify(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -88139,18 +88141,18 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifySync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function verifySync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string): boolean;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -88168,18 +88170,18 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function verifyAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string): Promise<boolean>;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a signature with a key given as raw key material
@@ -88193,23 +88195,9 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+    function verify(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Verifies a signature with a key given as raw key material
-     *
-     *      The key is used directly; dsaEncoding, padding and saltLength take their
-     *      defaults.
-     *      @param algorithm the digest algorithm name
-     *      @param data the data that was signed
-     *      @param key the public key
-     *      @param signature the signature to verify
-     *      @return returns true when the signature is valid
-     *
-     */
-    function verifySync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+    function verify(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies a signature with a key given as raw key material
@@ -88223,7 +88211,21 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function verifySync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
+
+    /**
+     * @description Verifies a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data that was signed
+     *      @param key the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function verifyAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Compares two byte sequences in constant time
@@ -88252,7 +88254,7 @@ declare module 'crypto' {
      *      @return returns true when the bytes are equal
      *
      */
-    function timingSafeEqual(a: Class_Buffer | string, b: Class_Buffer | string): boolean;
+    function timingSafeEqual(a: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, b: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Signs a group of messages with a Bls12381G2 key using BBS
@@ -88269,30 +88271,30 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsSign(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Class_Buffer;
 
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsSign(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
@@ -88310,17 +88312,17 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSignSync(messages: (Class_Buffer | string)[], privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsSignSync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Class_Buffer;
 
     /**
@@ -88338,17 +88340,17 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSignAsync(messages: (Class_Buffer | string)[], privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsSignAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Promise<Class_Buffer>;
 
     /**
@@ -88360,20 +88362,9 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function bbsSign(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
 
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Signs BBS messages with a key given as raw key material
-     *
-     *      The key is used directly and the suite/header take their defaults.
-     *      @param messages the messages to sign
-     *      @param privateKey the private key
-     *      @return returns the signature
-     *
-     */
-    function bbsSignSync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function bbsSign(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Signs BBS messages with a key given as raw key material
@@ -88384,7 +88375,18 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSignAsync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function bbsSignSync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
+
+    /**
+     * @description Signs BBS messages with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the messages to sign
+     *      @param privateKey the private key
+     *      @return returns the signature
+     *
+     */
+    function bbsSignAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -88398,31 +88400,31 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, signature: Class_Buffer | string): boolean;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -88436,18 +88438,18 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifySync(messages: (Class_Buffer | string)[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, signature: Class_Buffer | string): boolean;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -88461,18 +88463,18 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifyAsync(messages: (Class_Buffer | string)[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, signature: Class_Buffer | string): Promise<boolean>;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies BBS messages with a key given as raw key material
@@ -88484,21 +88486,9 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+    function bbsVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Verifies BBS messages with a key given as raw key material
-     *
-     *      The key is used directly and the suite/header take their defaults.
-     *      @param messages the messages to verify
-     *      @param publicKey the public key
-     *      @param signature the signature to verify
-     *      @return returns true when the signature is valid
-     *
-     */
-    function bbsVerifySync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+    function bbsVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies BBS messages with a key given as raw key material
@@ -88510,7 +88500,19 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifyAsync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function bbsVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
+
+    /**
+     * @description Verifies BBS messages with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the messages to verify
+     *      @param publicKey the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function bbsVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Derives a selective-disclosure proof from a BBS signature
@@ -88527,30 +88529,30 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofGen(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Class_Buffer;
 
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofGen(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
@@ -88568,17 +88570,17 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGenSync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofGenSync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Class_Buffer;
 
     /**
@@ -88596,17 +88598,17 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGenAsync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofGenAsync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Promise<Class_Buffer>;
 
     /**
@@ -88620,22 +88622,9 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function proofGen(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
 
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Derives a BBS proof with a key given as raw key material
-     *
-     *      The key is used directly and the suite/header take their defaults.
-     *      @param signature the BBS signature to derive from
-     *      @param messages the full signed message set
-     *      @param index the positions of the messages to reveal
-     *      @param publicKey the public key
-     *      @return returns the proof
-     *
-     */
-    function proofGenSync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function proofGen(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Derives a BBS proof with a key given as raw key material
@@ -88648,7 +88637,20 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGenAsync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function proofGenSync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
+
+    /**
+     * @description Derives a BBS proof with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param signature the BBS signature to derive from
+     *      @param messages the full signed message set
+     *      @param index the positions of the messages to reveal
+     *      @param publicKey the public key
+     *      @return returns the proof
+     *
+     */
+    function proofGenAsync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -88664,31 +88666,31 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, proof: Class_Buffer | string): boolean;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, proof: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -88704,18 +88706,18 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifySync(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, proof: Class_Buffer | string): boolean;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -88731,18 +88733,18 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifyAsync(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, proof: Class_Buffer | string): Promise<boolean>;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a BBS proof with a key given as raw key material
@@ -88755,22 +88757,9 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): boolean;
+    function proofVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Verifies a BBS proof with a key given as raw key material
-     *
-     *      The key is used directly and the suite/header take their defaults.
-     *      @param messages the revealed messages, in the order of index
-     *      @param index the positions the revealed messages came from
-     *      @param publicKey the public key
-     *      @param proof the proof to verify
-     *      @return returns true when the proof is valid
-     *
-     */
-    function proofVerifySync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): boolean;
+    function proofVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies a BBS proof with a key given as raw key material
@@ -88783,7 +88772,20 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifyAsync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): Promise<boolean>;
+    function proofVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
+
+    /**
+     * @description Verifies a BBS proof with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the revealed messages, in the order of index
+     *      @param index the positions the revealed messages came from
+     *      @param publicKey the public key
+     *      @param proof the proof to verify
+     *      @return returns true when the proof is valid
+     *
+     */
+    function proofVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description The Web Crypto API entry point, see webcrypto
@@ -88970,7 +88972,7 @@ declare module 'crypto/promises' {
      *      @return returns the message digest object
      *
      */
-    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string, options?: {
+    function createHmac(algo: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, options?: {
         encoding?: string;
     }): Class_Digest;
 
@@ -89033,7 +89035,7 @@ declare module 'crypto/promises' {
      *      @return returns the encryption object
      *
      */
-    function createCipher(algorithm: string, key: Class_Buffer | string, options?: {
+    function createCipher(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -89072,7 +89074,7 @@ declare module 'crypto/promises' {
      *      @return returns the encryption object
      *
      */
-    function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+    function createCipheriv(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, iv: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -89087,7 +89089,7 @@ declare module 'crypto/promises' {
      *      @return returns the decryption object
      *
      */
-    function createDecipher(algorithm: string, key: Class_Buffer | string, options?: {
+    function createDecipher(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -89105,7 +89107,7 @@ declare module 'crypto/promises' {
      *      @return returns the decryption object
      *
      */
-    function createDecipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+    function createDecipheriv(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, iv: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -89140,10 +89142,10 @@ declare module 'crypto/promises' {
      *
      */
     function createPrivateKey(key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -89158,7 +89160,7 @@ declare module 'crypto/promises' {
      *      @return returns the private key object
      *
      */
-    function createPrivateKey(key: Class_Buffer | string): Class_KeyObject;
+    function createPrivateKey(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_KeyObject;
 
     /**
      * @description Creates a KeyObject holding an asymmetric public key
@@ -89172,10 +89174,10 @@ declare module 'crypto/promises' {
      *
      */
     function createPublicKey(key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -89189,7 +89191,7 @@ declare module 'crypto/promises' {
      *      @return returns the public key object
      *
      */
-    function createPublicKey(key: Class_Buffer | Class_KeyObject | string): Class_KeyObject;
+    function createPublicKey(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_KeyObject;
 
     /**
      * @description Creates a streaming signing object for the given digest algorithm
@@ -89271,7 +89273,7 @@ declare module 'crypto/promises' {
      *      @return returns the secret key object
      *
      */
-    function createSecretKey(key: Class_Buffer | string, encoding?: string): Class_KeyObject;
+    function createSecretKey(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): Class_KeyObject;
 
     /**
      * @description Creates an X.509 certificate request (CSR) from key material or parses an
@@ -89309,10 +89311,10 @@ declare module 'crypto/promises' {
      *
      */
     function createCertificateRequest(csr: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -89328,7 +89330,7 @@ declare module 'crypto/promises' {
      *      @return returns the certificate request object
      *
      */
-    function createCertificateRequest(csr: Class_Buffer | string): Class_X509CertificateRequest;
+    function createCertificateRequest(csr: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_X509CertificateRequest;
 
     /**
      * @description Computes the shared secret between a private key and a peer's public key
@@ -89379,7 +89381,7 @@ declare module 'crypto/promises' {
      *      @return returns the digest
      *
      */
-    function hash(algorithm: string, data: Class_Buffer | string, outputEncoding?: string): any;
+    function hash(algorithm: string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, outputEncoding?: string): any;
 
     /**
      * @description Generates \`size\` cryptographically secure random bytes
@@ -89424,7 +89426,7 @@ declare module 'crypto/promises' {
      *      @return returns the filled buffer
      *
      */
-    function randomFill(buffer: Class_Buffer | string, offset?: number, size?: number): Promise<Class_Buffer>;
+    function randomFill(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset?: number, size?: number): Promise<Class_Buffer>;
 
     /**
      * @description Fills a Buffer with cryptographically secure random bytes
@@ -89443,7 +89445,7 @@ declare module 'crypto/promises' {
      *      @return returns the filled buffer
      *
      */
-    function randomFillSync(buffer: Class_Buffer | string, offset?: number, size?: number): Class_Buffer;
+    function randomFillSync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset?: number, size?: number): Class_Buffer;
 
     /**
      * @description Fills a Buffer with cryptographically secure random bytes
@@ -89462,7 +89464,7 @@ declare module 'crypto/promises' {
      *      @return returns the filled buffer
      *
      */
-    function randomFillAsync(buffer: Class_Buffer | string, offset?: number, size?: number): Promise<Class_Buffer>;
+    function randomFillAsync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset?: number, size?: number): Promise<Class_Buffer>;
 
     /**
      * @description Fills a TypedArray with cryptographically secure random bytes
@@ -89615,13 +89617,13 @@ declare module 'crypto/promises' {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
         privateKeyEncoding?: {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
     }): Promise<{
         publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
@@ -89680,13 +89682,13 @@ declare module 'crypto/promises' {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
         privateKeyEncoding?: {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
     }): {
         publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
@@ -89745,13 +89747,13 @@ declare module 'crypto/promises' {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
         privateKeyEncoding?: {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
     }): Promise<{
         publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
@@ -89775,7 +89777,7 @@ declare module 'crypto/promises' {
      *      @return returns the derived key
      *
      */
-    function hkdf(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Promise<Class_Buffer>;
+    function hkdf(algoName: string, password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, info: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, size: number): Promise<Class_Buffer>;
 
     /**
      * @description Derives key material from a secret with HKDF (RFC 5869)
@@ -89794,7 +89796,7 @@ declare module 'crypto/promises' {
      *      @return returns the derived key
      *
      */
-    function hkdfSync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Class_Buffer;
+    function hkdfSync(algoName: string, password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, info: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, size: number): Class_Buffer;
 
     /**
      * @description Derives key material from a secret with HKDF (RFC 5869)
@@ -89813,7 +89815,7 @@ declare module 'crypto/promises' {
      *      @return returns the derived key
      *
      */
-    function hkdfAsync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Promise<Class_Buffer>;
+    function hkdfAsync(algoName: string, password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, info: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, size: number): Promise<Class_Buffer>;
 
     /**
      * @description Derives a key from a password with PBKDF2
@@ -89846,7 +89848,7 @@ declare module 'crypto/promises' {
      *      @return returns the derived key
      *
      */
-    function pbkdf2(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
+    function pbkdf2(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
      * @description Derives a key from a password with PBKDF2
@@ -89879,7 +89881,7 @@ declare module 'crypto/promises' {
      *      @return returns the derived key
      *
      */
-    function pbkdf2Sync(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Class_Buffer;
+    function pbkdf2Sync(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, iterations: number, size: number, algoName: string): Class_Buffer;
 
     /**
      * @description Derives a key from a password with PBKDF2
@@ -89912,7 +89914,7 @@ declare module 'crypto/promises' {
      *      @return returns the derived key
      *
      */
-    function pbkdf2Async(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
+    function pbkdf2Async(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
      * @description Derives a key from a password with scrypt
@@ -89953,7 +89955,7 @@ declare module 'crypto/promises' {
      *      @return returns the derived key
      *
      */
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+    function scrypt(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, options?: {
         N?: number;
         r?: number;
         p?: number;
@@ -89999,7 +90001,7 @@ declare module 'crypto/promises' {
      *      @return returns the derived key
      *
      */
-    function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+    function scryptSync(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, options?: {
         N?: number;
         r?: number;
         p?: number;
@@ -90045,7 +90047,7 @@ declare module 'crypto/promises' {
      *      @return returns the derived key
      *
      */
-    function scryptAsync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+    function scryptAsync(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, options?: {
         N?: number;
         r?: number;
         p?: number;
@@ -90068,17 +90070,17 @@ declare module 'crypto/promises' {
      *
      */
     function privateDecrypt(privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Decrypts data with a private key given as raw key material
@@ -90090,7 +90092,7 @@ declare module 'crypto/promises' {
      *      @return returns the decrypted data
      *
      */
-    function privateDecrypt(privateKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function privateDecrypt(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with the private key (RSA signature-style operation)
@@ -90107,17 +90109,17 @@ declare module 'crypto/promises' {
      *
      */
     function privateEncrypt(privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with a private key given as raw key material
@@ -90129,7 +90131,7 @@ declare module 'crypto/promises' {
      *      @return returns the encrypted data
      *
      */
-    function privateEncrypt(privateKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function privateEncrypt(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Decrypts data that was encrypted with the matching private key
@@ -90145,17 +90147,17 @@ declare module 'crypto/promises' {
      *
      */
     function publicDecrypt(publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Decrypts data with a public key given as raw key material
@@ -90167,7 +90169,7 @@ declare module 'crypto/promises' {
      *      @return returns the decrypted data
      *
      */
-    function publicDecrypt(publicKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function publicDecrypt(publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with the public key so that only the private key can decrypt it
@@ -90208,17 +90210,17 @@ declare module 'crypto/promises' {
      *
      */
     function publicEncrypt(publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with a public key given as raw key material
@@ -90230,7 +90232,7 @@ declare module 'crypto/promises' {
      *      @return returns the encrypted data
      *
      */
-    function publicEncrypt(publicKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function publicEncrypt(publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Computes the signature of data in one shot
@@ -90269,11 +90271,11 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function sign(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function sign(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -90319,11 +90321,11 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function signSync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function signSync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -90369,11 +90371,11 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function signAsync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function signAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -90393,7 +90395,7 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function sign(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Computes a signature with a key given as raw key material
@@ -90406,7 +90408,7 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function signSync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function signSync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
 
     /**
      * @description Computes a signature with a key given as raw key material
@@ -90419,7 +90421,7 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function signAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function signAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -90437,18 +90439,18 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function verify(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function verify(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string): Promise<boolean>;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -90466,18 +90468,18 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifySync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function verifySync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string): boolean;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -90495,18 +90497,18 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function verifyAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string): Promise<boolean>;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a signature with a key given as raw key material
@@ -90520,7 +90522,7 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function verify(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a signature with a key given as raw key material
@@ -90534,7 +90536,7 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifySync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+    function verifySync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies a signature with a key given as raw key material
@@ -90548,7 +90550,7 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function verifyAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Compares two byte sequences in constant time
@@ -90577,7 +90579,7 @@ declare module 'crypto/promises' {
      *      @return returns true when the bytes are equal
      *
      */
-    function timingSafeEqual(a: Class_Buffer | string, b: Class_Buffer | string): boolean;
+    function timingSafeEqual(a: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, b: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Signs a group of messages with a Bls12381G2 key using BBS
@@ -90594,17 +90596,17 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsSign(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Promise<Class_Buffer>;
 
     /**
@@ -90622,17 +90624,17 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function bbsSignSync(messages: (Class_Buffer | string)[], privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsSignSync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Class_Buffer;
 
     /**
@@ -90650,17 +90652,17 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function bbsSignAsync(messages: (Class_Buffer | string)[], privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsSignAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Promise<Class_Buffer>;
 
     /**
@@ -90672,7 +90674,7 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function bbsSign(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Signs BBS messages with a key given as raw key material
@@ -90683,7 +90685,7 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function bbsSignSync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function bbsSignSync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
 
     /**
      * @description Signs BBS messages with a key given as raw key material
@@ -90694,7 +90696,7 @@ declare module 'crypto/promises' {
      *      @return returns the signature
      *
      */
-    function bbsSignAsync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function bbsSignAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -90708,18 +90710,18 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, signature: Class_Buffer | string): Promise<boolean>;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -90733,18 +90735,18 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifySync(messages: (Class_Buffer | string)[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, signature: Class_Buffer | string): boolean;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -90758,18 +90760,18 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifyAsync(messages: (Class_Buffer | string)[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, signature: Class_Buffer | string): Promise<boolean>;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies BBS messages with a key given as raw key material
@@ -90781,7 +90783,7 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function bbsVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies BBS messages with a key given as raw key material
@@ -90793,7 +90795,7 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifySync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+    function bbsVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies BBS messages with a key given as raw key material
@@ -90805,7 +90807,7 @@ declare module 'crypto/promises' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifyAsync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function bbsVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Derives a selective-disclosure proof from a BBS signature
@@ -90822,17 +90824,17 @@ declare module 'crypto/promises' {
      *      @return returns the proof
      *
      */
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofGen(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Promise<Class_Buffer>;
 
     /**
@@ -90850,17 +90852,17 @@ declare module 'crypto/promises' {
      *      @return returns the proof
      *
      */
-    function proofGenSync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofGenSync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Class_Buffer;
 
     /**
@@ -90878,17 +90880,17 @@ declare module 'crypto/promises' {
      *      @return returns the proof
      *
      */
-    function proofGenAsync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofGenAsync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Promise<Class_Buffer>;
 
     /**
@@ -90902,7 +90904,7 @@ declare module 'crypto/promises' {
      *      @return returns the proof
      *
      */
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function proofGen(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Derives a BBS proof with a key given as raw key material
@@ -90915,7 +90917,7 @@ declare module 'crypto/promises' {
      *      @return returns the proof
      *
      */
-    function proofGenSync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function proofGenSync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
 
     /**
      * @description Derives a BBS proof with a key given as raw key material
@@ -90928,7 +90930,7 @@ declare module 'crypto/promises' {
      *      @return returns the proof
      *
      */
-    function proofGenAsync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function proofGenAsync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -90944,18 +90946,18 @@ declare module 'crypto/promises' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, proof: Class_Buffer | string): Promise<boolean>;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -90971,18 +90973,18 @@ declare module 'crypto/promises' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifySync(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, proof: Class_Buffer | string): boolean;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -90998,18 +91000,18 @@ declare module 'crypto/promises' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifyAsync(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, proof: Class_Buffer | string): Promise<boolean>;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a BBS proof with a key given as raw key material
@@ -91022,7 +91024,7 @@ declare module 'crypto/promises' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): Promise<boolean>;
+    function proofVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a BBS proof with a key given as raw key material
@@ -91035,7 +91037,7 @@ declare module 'crypto/promises' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifySync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): boolean;
+    function proofVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies a BBS proof with a key given as raw key material
@@ -91048,7 +91050,7 @@ declare module 'crypto/promises' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifyAsync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): Promise<boolean>;
+    function proofVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description The Web Crypto API entry point, see webcrypto
@@ -96174,7 +96176,7 @@ declare module 'encoding' {
      *      @return the text representation of the bytes
      *
      */
-    function encode(data: Class_Buffer | string, codec?: string): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, codec?: string): string;
 
     /**
      * @description Converts text into bytes according to the codec
@@ -98087,31 +98089,15 @@ declare module 'fs' {
      *      @return the number of bytes actually read
      *
      */
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
 
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Reads the content of a file by its file descriptor
-     *
-     *      length defaults to 0, which reads no data; a length must be given explicitly to read. position defaults to -1, which reads from the current file position; when position is given, the file pointer is moved there before reading.
-     *
-     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
-     *      @param fd the file descriptor
-     *      @param buffer the Buffer the result is written into
-     *      @param offset the write offset in the Buffer, 0 by default
-     *      @param length the number of bytes to read, 0 by default
-     *      @param position the read position, the current file position by default
-     *      @return the number of bytes actually read
-     *
-     */
-    function readSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Reads the content of a file by its file descriptor
@@ -98127,7 +98113,23 @@ declare module 'fs' {
      *      @return the number of bytes actually read
      *
      */
-    function readAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function readSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
+
+    /**
+     * @description Reads the content of a file by its file descriptor
+     *
+     *      length defaults to 0, which reads no data; a length must be given explicitly to read. position defaults to -1, which reads from the current file position; when position is given, the file pointer is moved there before reading.
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
+     *      @param buffer the Buffer the result is written into
+     *      @param offset the write offset in the Buffer, 0 by default
+     *      @param length the number of bytes to read, 0 by default
+     *      @param position the read position, the current file position by default
+     *      @return the number of bytes actually read
+     *
+     */
+    function readAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Changes the file mode by its file descriptor. Effective on POSIX systems only.
@@ -99497,31 +99499,15 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes content into a file by its file descriptor
-     *
-     *      length defaults to -1, which writes all the remaining data of buffer from offset. position defaults to -1, which writes from the current file position.
-     *
-     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
-     *      @param fd the file descriptor
-     *      @param buffer the Buffer object to write
-     *      @param offset the read offset in the Buffer, 0 by default
-     *      @param length the number of bytes to write, -1 by default
-     *      @param position the write position, the current file position by default
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -99537,7 +99523,23 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
+
+    /**
+     * @description Writes content into a file by its file descriptor
+     *
+     *      length defaults to -1, which writes all the remaining data of buffer from offset. position defaults to -1, which writes from the current file position.
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
+     *      @param buffer the Buffer object to write
+     *      @param offset the read offset in the Buffer, 0 by default
+     *      @param length the number of bytes to write, -1 by default
+     *      @param position the write position, the current file position by default
+     *      @return the number of bytes actually written
+     *
+     */
+    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -99664,15 +99666,15 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
     }): number;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt: {
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -99717,7 +99719,7 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -99762,7 +99764,7 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -99779,24 +99781,11 @@ declare module 'fs' {
      *      @return the number of bytes written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): number;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes a file with string data encoded by a label
-     *
-     *      The string form is the encoding used for string data; the open flag is 'w'
-     *      and the mode is 0o666.
-     *      @param fname the file name or descriptor
-     *      @param data the data to write
-     *      @param opt the encoding label
-     *      @return the number of bytes written
-     *
-     */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): number;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes a file with string data encoded by a label
@@ -99809,7 +99798,20 @@ declare module 'fs' {
      *      @return the number of bytes written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): Promise<number>;
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
+
+    /**
+     * @description Writes a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'w'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes written
+     *
+     */
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -99832,15 +99834,15 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
     }): number;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options: {
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -99867,7 +99869,7 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -99894,7 +99896,7 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -99911,24 +99913,11 @@ declare module 'fs' {
      *      @return the number of bytes appended
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): number;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): number;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Appends to a file with string data encoded by a label
-     *
-     *      The string form is the encoding used for string data; the open flag is 'a'
-     *      and the mode is 0o666.
-     *      @param fname the file name or descriptor
-     *      @param data the data to append
-     *      @param options the encoding label
-     *      @return the number of bytes appended
-     *
-     */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): number;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Appends to a file with string data encoded by a label
@@ -99941,7 +99930,20 @@ declare module 'fs' {
      *      @return the number of bytes appended
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): Promise<number>;
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): number;
+
+    /**
+     * @description Appends to a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'a'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to append
+     *      @param options the encoding label
+     *      @return the number of bytes appended
+     *
+     */
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): Promise<number>;
 
     /**
      * @description Sets a zip virtual file mapping
@@ -99953,7 +99955,7 @@ declare module 'fs' {
      *      @param data the zip data to map
      *
      */
-    function setZipFS(fname: string, data: Class_Buffer | string): void;
+    function setZipFS(fname: string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Clears zip virtual file mappings
@@ -101649,7 +101651,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually read
      *
      */
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Reads the content of a file by its file descriptor
@@ -101665,7 +101667,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually read
      *
      */
-    function readSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function readSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
 
     /**
      * @description Reads the content of a file by its file descriptor
@@ -101681,7 +101683,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually read
      *
      */
-    function readAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function readAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Changes the file mode by its file descriptor. Effective on POSIX systems only.
@@ -102953,7 +102955,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -102969,7 +102971,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -102985,7 +102987,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -103104,7 +103106,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -103149,7 +103151,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -103194,7 +103196,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -103211,7 +103213,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): Promise<number>;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Writes a file with string data encoded by a label
@@ -103224,7 +103226,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes written
      *
      */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): number;
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
 
     /**
      * @description Writes a file with string data encoded by a label
@@ -103237,7 +103239,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): Promise<number>;
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -103260,7 +103262,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -103287,7 +103289,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -103314,7 +103316,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -103331,7 +103333,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes appended
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): Promise<number>;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): Promise<number>;
 
     /**
      * @description Appends to a file with string data encoded by a label
@@ -103344,7 +103346,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes appended
      *
      */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): number;
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): number;
 
     /**
      * @description Appends to a file with string data encoded by a label
@@ -103357,7 +103359,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes appended
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): Promise<number>;
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): Promise<number>;
 
     /**
      * @description Sets a zip virtual file mapping
@@ -103369,7 +103371,7 @@ declare module 'fs/promises' {
      *      @param data the zip data to map
      *
      */
-    function setZipFS(fname: string, data: Class_Buffer | string): void;
+    function setZipFS(fname: string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Clears zip virtual file mappings
@@ -105686,7 +105688,7 @@ declare module 'hex' {
      *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer | string): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Decodes a string into binary data in hex format
@@ -113535,7 +113537,7 @@ declare module 'msgpack' {
      *      @return returns the decoded variable
      *
      */
-    function decode(data: Class_Buffer | string): any;
+    function decode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): any;
 
 }
 
@@ -113655,7 +113657,7 @@ declare module 'multibase' {
      *      @return returns the prefixed encoded string
      *
      */
-    function encode(data: Class_Buffer | string, codec: string): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, codec: string): string;
 
     /**
      * @description Decodes a string into binary data in multibase format
@@ -120506,7 +120508,7 @@ declare module 'registry' {
      *      @param value the bytes to write
      *
      */
-    function set(root: number, key: string, value: Class_Buffer): void;
+    function set(root: number, key: string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike): void;
 
     /**
      * @description Writes a string to a registry value
@@ -120567,7 +120569,7 @@ declare module 'registry' {
      *      @param value the bytes to write
      *
      */
-    function set(root: number, key: string, name: string, value: Class_Buffer): void;
+    function set(root: number, key: string, name: string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike): void;
 
     /**
      * @description Writes a string to a named registry value
@@ -123063,7 +123065,7 @@ declare module 'subtle' {
      *      @return the digest as an ArrayBuffer
      *
      */
-    function digest(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | string): Promise<ArrayBuffer>;
+    function digest(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<ArrayBuffer>;
 
     /**
      * @description Computes the digest of data and resolves to an ArrayBuffer
@@ -123091,7 +123093,7 @@ declare module 'subtle' {
      *      @return the digest as an ArrayBuffer
      *
      */
-    function digestSync(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | string): ArrayBuffer;
+    function digestSync(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): ArrayBuffer;
 
     /**
      * @description Computes the digest of data and resolves to an ArrayBuffer
@@ -123119,7 +123121,7 @@ declare module 'subtle' {
      *      @return the digest as an ArrayBuffer
      *
      */
-    function digestAsync(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | string): Promise<ArrayBuffer>;
+    function digestAsync(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<ArrayBuffer>;
 
     /**
      * @description Exports a key as raw, pkcs8, spki or jwk
@@ -123571,7 +123573,7 @@ declare module 'subtle' {
      *      @return the signature as an ArrayBuffer
      *
      */
-    function sign(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | string): Promise<ArrayBuffer>;
+    function sign(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<ArrayBuffer>;
 
     /**
      * @description Signs data with a private or secret key and resolves to the signature
@@ -123612,7 +123614,7 @@ declare module 'subtle' {
      *      @return the signature as an ArrayBuffer
      *
      */
-    function signSync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | string): ArrayBuffer;
+    function signSync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): ArrayBuffer;
 
     /**
      * @description Signs data with a private or secret key and resolves to the signature
@@ -123653,7 +123655,7 @@ declare module 'subtle' {
      *      @return the signature as an ArrayBuffer
      *
      */
-    function signAsync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | string): Promise<ArrayBuffer>;
+    function signAsync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<ArrayBuffer>;
 
     /**
      * @description Verifies a signature and resolves to true or false
@@ -123691,7 +123693,7 @@ declare module 'subtle' {
      *      @return whether the signature is valid for the data and the key
      *
      */
-    function verify(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | string, data: Class_Buffer | string): Promise<boolean>;
+    function verify(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a signature and resolves to true or false
@@ -123729,7 +123731,7 @@ declare module 'subtle' {
      *      @return whether the signature is valid for the data and the key
      *
      */
-    function verifySync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | string, data: Class_Buffer | string): boolean;
+    function verifySync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies a signature and resolves to true or false
@@ -123767,7 +123769,7 @@ declare module 'subtle' {
      *      @return whether the signature is valid for the data and the key
      *
      */
-    function verifyAsync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | string, data: Class_Buffer | string): Promise<boolean>;
+    function verifyAsync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Derives a shared secret with ECDH key agreement
@@ -129992,7 +129994,7 @@ declare module 'uuid' {
      *      @return returns the converted uuid string
      *
      */
-    function stringify(arr: Class_Buffer | string, offset?: number): string;
+    function stringify(arr: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset?: number): string;
 
     /**
      * @description Creates a version 1 UUID from the current time, a node id and a clock sequence
@@ -130031,7 +130033,7 @@ declare module 'uuid' {
         msecs?: number;
         nsecs?: number;
         clockseq?: number;
-        node?: Class_Buffer | any[];
+        node?: Class_Buffer | ArrayBufferView | ArrayBufferLike | any[];
     }): string;
 
     /**
@@ -130048,7 +130050,7 @@ declare module 'uuid' {
      *      @return returns a generated uuid string
      *
      */
-    function v3(name: string, ns: Class_Buffer | string): string;
+    function v3(name: string, ns: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Creates a version 4 UUID from random bytes
@@ -130071,7 +130073,7 @@ declare module 'uuid' {
      *
      */
     function v4(options?: {
-        random?: Class_Buffer | any[];
+        random?: Class_Buffer | ArrayBufferView | ArrayBufferLike | any[];
     }): string;
 
     /**
@@ -130098,7 +130100,7 @@ declare module 'uuid' {
      *      @return returns a generated uuid string
      *
      */
-    function v5(name: string, ns: Class_Buffer | string): string;
+    function v5(name: string, ns: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Gets the version field of a UUID string
@@ -130141,7 +130143,7 @@ declare module 'uuid' {
         msecs?: number;
         nsecs?: number;
         clockseq?: number;
-        node?: Class_Buffer | any[];
+        node?: Class_Buffer | ArrayBufferView | ArrayBufferLike | any[];
     }): string;
 
     /**
@@ -130846,7 +130848,7 @@ declare module 'v8' {
      *      @return returns the deserialized value
      *
      */
-    function deserialize(data: Class_Buffer | string): any;
+    function deserialize(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): any;
 
 }
 
@@ -131927,7 +131929,7 @@ declare module 'xml' {
      *      @return returns the new XmlDocument
      *
      */
-    function parse(source: Class_Buffer | string, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
+    function parse(source: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
 
     /**
      * @description Serializes a node to markup
@@ -132240,66 +132242,13 @@ declare module 'zip' {
      *      @return returns the zip file object
      *
      */
-    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Class_ZipFile;
+    function open(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Class_ZipFile;
 
-    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+    function open(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
-    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+    function open(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, mod: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
-    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod: string, codec: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
-
-    /**
-     * @description Opens a zip file
-     *
-     *      data may be the path of the archive, the archive bytes as a Buffer, or a SeekableStream
-     *      (for example the result of \`fs.openFile\` on a file). Reading works on all three sources;
-     *      writing ("w"/"a") needs a path or a writable stream, because the bytes written to a Buffer
-     *      source cannot be read back.
-     *
-     *      mod selects the mode: "r" reads an existing archive (the default), "w" creates or truncates
-     *      the target, and "a"/"a+" appends new entries to an existing archive, throwing
-     *      \`ZipFile: zip file not exists!\` if the target is missing. Any other mode returns an object
-     *      whose operations fail with \`ZipFile: file is closed.\`; a missing file in "r" mode reports
-     *      ENOENT.
-     *
-     *      codec is the character set used to decode entry names while reading and to encode them while
-     *      writing (default "utf8"); an unknown codec throws \`encoding: Unknown charset\`.
-     *
-     *      The returned ZipFile lives until \`ZipFile.close()\`, which also writes the central directory
-     *      that makes the new entries visible to other readers.
-     *
-     *      Example — create, append and read an archive:
-     *      \`\`\`JavaScript
-     *      const fs = require('fs');
-     *      const os = require('os');
-     *      const path = require('path');
-     *      const zip = require('zip');
-     *
-     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-zip-'));
-     *      const file = path.join(dir, 'log.zip');
-     *
-     *      let zipfile = zip.open(file, 'w');
-     *      zipfile.write(Buffer.from('first'), 'first.txt');
-     *      zipfile.close();
-     *
-     *      zipfile = zip.open(file, 'a'); // append to the existing archive
-     *      zipfile.write(Buffer.from('second'), 'second.txt');
-     *      zipfile.close();
-     *
-     *      zipfile = zip.open(file); // "r" is the default
-     *      console.log(zipfile.namelist().join(', ')); // first.txt, second.txt
-     *      console.log(zipfile.read('second.txt').toString()); // second
-     *      zipfile.close();
-     *
-     *      fs.rmSync(dir, { recursive: true, force: true });
-     *      \`\`\`
-     *      @param data the zip file: a path, a Buffer or a SeekableStream
-     *      @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
-     *      @param codec sets the encoding of the zip file, default "utf8"
-     *      @return returns the zip file object
-     *
-     */
-    function openSync(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Class_ZipFile;
+    function open(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, mod: string, codec: string, callback: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
     /**
      * @description Opens a zip file
@@ -132352,7 +132301,60 @@ declare module 'zip' {
      *      @return returns the zip file object
      *
      */
-    function openAsync(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
+    function openSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Class_ZipFile;
+
+    /**
+     * @description Opens a zip file
+     *
+     *      data may be the path of the archive, the archive bytes as a Buffer, or a SeekableStream
+     *      (for example the result of \`fs.openFile\` on a file). Reading works on all three sources;
+     *      writing ("w"/"a") needs a path or a writable stream, because the bytes written to a Buffer
+     *      source cannot be read back.
+     *
+     *      mod selects the mode: "r" reads an existing archive (the default), "w" creates or truncates
+     *      the target, and "a"/"a+" appends new entries to an existing archive, throwing
+     *      \`ZipFile: zip file not exists!\` if the target is missing. Any other mode returns an object
+     *      whose operations fail with \`ZipFile: file is closed.\`; a missing file in "r" mode reports
+     *      ENOENT.
+     *
+     *      codec is the character set used to decode entry names while reading and to encode them while
+     *      writing (default "utf8"); an unknown codec throws \`encoding: Unknown charset\`.
+     *
+     *      The returned ZipFile lives until \`ZipFile.close()\`, which also writes the central directory
+     *      that makes the new entries visible to other readers.
+     *
+     *      Example — create, append and read an archive:
+     *      \`\`\`JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *      const zip = require('zip');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-zip-'));
+     *      const file = path.join(dir, 'log.zip');
+     *
+     *      let zipfile = zip.open(file, 'w');
+     *      zipfile.write(Buffer.from('first'), 'first.txt');
+     *      zipfile.close();
+     *
+     *      zipfile = zip.open(file, 'a'); // append to the existing archive
+     *      zipfile.write(Buffer.from('second'), 'second.txt');
+     *      zipfile.close();
+     *
+     *      zipfile = zip.open(file); // "r" is the default
+     *      console.log(zipfile.namelist().join(', ')); // first.txt, second.txt
+     *      console.log(zipfile.read('second.txt').toString()); // second
+     *      zipfile.close();
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      \`\`\`
+     *      @param data the zip file: a path, a Buffer or a SeekableStream
+     *      @param mod open mode, "r" for reading, "w" for creating, "a" for appending after the zip file
+     *      @param codec sets the encoding of the zip file, default "utf8"
+     *      @return returns the zip file object
+     *
+     */
+    function openAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
 
 }
 
@@ -132524,7 +132526,7 @@ declare module 'zip/promises' {
      *      @return returns the zip file object
      *
      */
-    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
+    function open(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
 
     /**
      * @description Opens a zip file
@@ -132577,7 +132579,7 @@ declare module 'zip/promises' {
      *      @return returns the zip file object
      *
      */
-    function openSync(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Class_ZipFile;
+    function openSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Class_ZipFile;
 
     /**
      * @description Opens a zip file
@@ -132630,7 +132632,7 @@ declare module 'zip/promises' {
      *      @return returns the zip file object
      *
      */
-    function openAsync(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
+    function openAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
 
 }
 
@@ -133110,45 +133112,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function deflate(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function deflate(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function deflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function deflate(data: Class_Buffer | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the deflate algorithm (zlib format)
-     *
-     *      \`data\` may be a Buffer or a string; a string is encoded as utf8. The level is either
-     *      an integer or an options object read as \`{ level }\`; the default is
-     *      DEFAULT_COMPRESSION (-1), and a value outside the -1..9 range throws a RangeError
-     *      with code \`ERR_OUT_OF_RANGE\`. The result
-     *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
-     *      \`inflate\` or \`unzip\` decode it. Other options are ignored, and secrets are not
-     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
-     *      (utf8) are accepted. Like every
-     *      async member it has blocking, callback, Sync/Async and \`zlib.promises\` forms.
-     *
-     *      Example — a fixed input produces a deterministic zlib stream:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      console.log(zlib.deflate('hello, world').toString('hex'));
-     *      // 789ccb48cdc9c9d75128cf2fca4901001d540489
-     *
-     *      // The level trades speed for size; level 0 stores, level 9 compresses.
-     *      const stored = zlib.deflate('abc'.repeat(1000), { level: 0 });
-     *      const best = zlib.deflate('abc'.repeat(1000), { level: 9 });
-     *      console.log(stored.length > best.length); // true
-     *      console.log(zlib.inflate(best).toString() === 'abc'.repeat(1000)); // true
-     *      \`\`\`
-     *
-     *      @param data the data to compress
-     *      @param level the compression level or the options
-     *      @return the compressed binary data
-     *
-     */
-    function deflateSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -133182,7 +133150,41 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function deflateAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflateSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *
+     *      \`data\` may be a Buffer or a string; a string is encoded as utf8. The level is either
+     *      an integer or an options object read as \`{ level }\`; the default is
+     *      DEFAULT_COMPRESSION (-1), and a value outside the -1..9 range throws a RangeError
+     *      with code \`ERR_OUT_OF_RANGE\`. The result
+     *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
+     *      \`inflate\` or \`unzip\` decode it. Other options are ignored, and secrets are not
+     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
+     *      (utf8) are accepted. Like every
+     *      async member it has blocking, callback, Sync/Async and \`zlib.promises\` forms.
+     *
+     *      Example — a fixed input produces a deterministic zlib stream:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      console.log(zlib.deflate('hello, world').toString('hex'));
+     *      // 789ccb48cdc9c9d75128cf2fca4901001d540489
+     *
+     *      // The level trades speed for size; level 0 stores, level 9 compresses.
+     *      const stored = zlib.deflate('abc'.repeat(1000), { level: 0 });
+     *      const best = zlib.deflate('abc'.repeat(1000), { level: 9 });
+     *      console.log(stored.length > best.length); // true
+     *      console.log(zlib.inflate(best).toString() === 'abc'.repeat(1000)); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param level the compression level or the options
+     *      @return the compressed binary data
+     *
+     */
+    function deflateAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -133211,40 +133213,11 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function deflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
-     *
-     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (encoded as
-     *      utf8). \`stm\` receives the compressed bytes at its current position and is left at the
-     *      end, so rewind it before reading. The level must be an integer (an options object is
-     *      a TypeError) and must be in the -1..9 range; a value outside it throws a
-     *      RangeError with code \`ERR_OUT_OF_RANGE\`. The call finishes the stream with Z_FINISH, so
-     *      no separate \`close\` is needed, and it returns no value.
-     *
-     *      Example — compress into a memory stream and decode it:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *      const io = require('io');
-     *
-     *      const stm = new io.MemoryStream();
-     *      zlib.deflateTo('hello, world', stm, zlib.BEST_COMPRESSION);
-     *      stm.rewind();
-     *
-     *      console.log(zlib.inflate(stm.readAll()).toString()); // hello, world
-     *      \`\`\`
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function deflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -133273,7 +133246,36 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (encoded as
+     *      utf8). \`stm\` receives the compressed bytes at its current position and is left at the
+     *      end, so rewind it before reading. The level must be an integer (an options object is
+     *      a TypeError) and must be in the -1..9 range; a value outside it throws a
+     *      RangeError with code \`ERR_OUT_OF_RANGE\`. The call finishes the stream with Z_FINISH, so
+     *      no separate \`close\` is needed, and it returns no value.
+     *
+     *      Example — compress into a memory stream and decode it:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      zlib.deflateTo('hello, world', stm, zlib.BEST_COMPRESSION);
+     *      stm.rewind();
+     *
+     *      console.log(zlib.inflate(stm.readAll()).toString()); // hello, world
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function deflateToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -133306,44 +133308,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function inflate(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function inflate(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function inflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function inflate(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the deflate algorithm (zlib format)
-     *
-     *      \`data\` may be a Buffer or a string (decoded as utf8). The size limit is either an
-     *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013] with code
-     *      \`ERR_BUFFER_TOO_LARGE\`. Only zlib-format input is accepted: gzip or raw deflate data
-     *      fails with \`Z_DATA_ERROR\` (use \`gunzip\` or \`inflateRaw\`). Corrupt data fails with
-     *      \`Z_DATA_ERROR\`, truncated input fails with \`Z_BUF_ERROR\`, and a result of zero bytes
-     *      is an empty Buffer.
-     *
-     *      Example — enforce an output limit:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const packed = zlib.deflate('hello, world');
-     *      console.log(zlib.inflate(packed, { maxOutputLength: 1024 }).toString());
-     *      // hello, world
-     *
-     *      try {
-     *          zlib.inflate(packed, { maxOutputLength: 3 });
-     *      } catch (e) {
-     *          console.log(e.name, e.number); // RangeError 20013
-     *      }
-     *      \`\`\`
-     *
-     *      @param data the compressed data
-     *      @param maxSize the decompression size limit or the options
-     *      @return the decompressed binary data
-     *
-     */
-    function inflateSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -133376,7 +133345,40 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function inflateAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflateSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). The size limit is either an
+     *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
+     *      limit) and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`. Only zlib-format input is accepted: gzip or raw deflate data
+     *      fails with \`Z_DATA_ERROR\` (use \`gunzip\` or \`inflateRaw\`). Corrupt data fails with
+     *      \`Z_DATA_ERROR\`, truncated input fails with \`Z_BUF_ERROR\`, and a result of zero bytes
+     *      is an empty Buffer.
+     *
+     *      Example — enforce an output limit:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const packed = zlib.deflate('hello, world');
+     *      console.log(zlib.inflate(packed, { maxOutputLength: 1024 }).toString());
+     *      // hello, world
+     *
+     *      try {
+     *          zlib.inflate(packed, { maxOutputLength: 3 });
+     *      } catch (e) {
+     *          console.log(e.name, e.number); // RangeError 20013
+     *      }
+     *      \`\`\`
+     *
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
+     *      @return the decompressed binary data
+     *
+     */
+    function inflateAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -133405,40 +133407,11 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function inflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object
-     *      (zlib format)
-     *
-     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8). \`stm\`
-     *      receives the decompressed bytes at its current position and is left at the end, so
-     *      rewind it before reading. \`maxSize\` is an integer (an options object is a TypeError),
-     *      default -1, and exceeding it throws a RangeError [20013]. Wrong formats fail with
-     *      \`Z_DATA_ERROR\`, and a result of zero bytes leaves the destination empty.
-     *
-     *      Example — copy the decompressed bytes into a memory stream:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *      const io = require('io');
-     *
-     *      const stm = new io.MemoryStream();
-     *      zlib.inflateTo(zlib.deflate('hello, world'), stm);
-     *      stm.rewind();
-     *
-     *      console.log(stm.readAll().toString()); // hello, world
-     *      \`\`\`
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function inflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -133467,7 +133440,36 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the deflate algorithm into a stream object
+     *      (zlib format)
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8). \`stm\`
+     *      receives the decompressed bytes at its current position and is left at the end, so
+     *      rewind it before reading. \`maxSize\` is an integer (an options object is a TypeError),
+     *      default -1, and exceeding it throws a RangeError [20013]. Wrong formats fail with
+     *      \`Z_DATA_ERROR\`, and a result of zero bytes leaves the destination empty.
+     *
+     *      Example — copy the decompressed bytes into a memory stream:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      zlib.inflateTo(zlib.deflate('hello, world'), stm);
+     *      stm.rewind();
+     *
+     *      console.log(stm.readAll().toString()); // hello, world
+     *      \`\`\`
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function inflateToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -133499,43 +133501,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function gzip(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function gzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function gzip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function gzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function gzip(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the gzip algorithm
-     *
-     *      \`data\` may be a Buffer or a string (encoded as utf8). \`options\` must be an object and
-     *      only \`{ level }\` is read, so \`zlib.gzip(data, 9)\` is a TypeError; the default is
-     *      DEFAULT_COMPRESSION, and a value outside the -1..9 range throws a RangeError
-     *      with code \`ERR_OUT_OF_RANGE\`. The result is a gzip container
-     *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
-     *      same input and level produce the same bytes in this build. Decode it with \`gunzip\` or
-     *      \`unzip\`; \`inflate\` rejects it. The second argument is the options object; a \`dictionary\`
-     *      key is ignored.
-     *
-     *      Example — level differences and round trip:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const data = 'abc'.repeat(1000);
-     *      const fast = zlib.gzip(data, { level: 1 });
-     *      const best = zlib.gzip(data, { level: 9 });
-     *
-     *      // The gzip XFL byte records the level hint (4 = fastest, 2 = best, 0 = default).
-     *      console.log(fast[8], best[8]); // 4 2
-     *      console.log(zlib.gunzip(best).toString() === data); // true
-     *      \`\`\`
-     *
-     *      @param data the data to compress
-     *      @param options the compression options, read as { level }
-     *      @return the compressed binary data
-     *
-     */
-    function gzipSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function gzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -133567,7 +133537,39 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function gzipAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the gzip algorithm
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). \`options\` must be an object and
+     *      only \`{ level }\` is read, so \`zlib.gzip(data, 9)\` is a TypeError; the default is
+     *      DEFAULT_COMPRESSION, and a value outside the -1..9 range throws a RangeError
+     *      with code \`ERR_OUT_OF_RANGE\`. The result is a gzip container
+     *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
+     *      same input and level produce the same bytes in this build. Decode it with \`gunzip\` or
+     *      \`unzip\`; \`inflate\` rejects it. The second argument is the options object; a \`dictionary\`
+     *      key is ignored.
+     *
+     *      Example — level differences and round trip:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const data = 'abc'.repeat(1000);
+     *      const fast = zlib.gzip(data, { level: 1 });
+     *      const best = zlib.gzip(data, { level: 9 });
+     *
+     *      // The gzip XFL byte records the level hint (4 = fastest, 2 = best, 0 = default).
+     *      console.log(fast[8], best[8]); // 4 2
+     *      console.log(zlib.gunzip(best).toString() === data); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options the compression options, read as { level }
+     *      @return the compressed binary data
+     *
+     */
+    function gzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the gzip algorithm
@@ -133582,24 +133584,9 @@ declare module 'zlib' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
+    function gzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
 
-    function gzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the gzip algorithm
-     *
-     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8). \`stm\`
-     *      receives the gzip bytes at its current position and is left at the end, so rewind it
-     *      before reading. There is no options parameter and the default compression level is
-     *      used; use the \`Gzip\` codec class or \`gzip\` when a level or the other zlib parameters
-     *      are needed. \`close\` is implicit: the gzip trailer is written before the call returns.
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *
-     */
-    function gzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
+    function gzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the gzip algorithm
@@ -133614,7 +133601,22 @@ declare module 'zlib' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
+    function gzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
+
+    /**
+     * @description Compresses data into a stream object with the gzip algorithm
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8). \`stm\`
+     *      receives the gzip bytes at its current position and is left at the end, so rewind it
+     *      before reading. There is no options parameter and the default compression level is
+     *      used; use the \`Gzip\` codec class or \`gzip\` when a level or the other zlib parameters
+     *      are needed. \`close\` is implicit: the gzip trailer is written before the call returns.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *
+     */
+    function gzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
      * @description Decompresses gzip data
@@ -133646,43 +133648,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function gunzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function gunzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function gunzip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function gunzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function gunzip(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses gzip data
-     *
-     *      \`data\` may be a Buffer or a string (decoded as utf8; gzip data is binary, so a string
-     *      only makes sense for already-binary text). The size limit is an integer or an options
-     *      object read as \`{ maxOutputLength }\`; the default is -1 (no limit) and exceeding it
-     *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
-     *      members are decoded as a single output; bytes after the last member that are not
-     *      another valid member fail with \`Z_DATA_ERROR\`. Truncated input fails with
-     *      \`Z_BUF_ERROR\`, and a zero-byte result is an empty Buffer rather than null.
-     *
-     *      Example — concatenated members form one output:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const members = Buffer.concat([zlib.gzip('hello, '), zlib.gzip('world')]);
-     *      console.log(zlib.gunzip(members).toString()); // hello, world
-     *
-     *      try {
-     *          zlib.gunzip(Buffer.concat([zlib.gzip('hello'), Buffer.from('junk')]));
-     *      } catch (e) {
-     *          console.log(e.code); // Z_DATA_ERROR
-     *      }
-     *      \`\`\`
-     *
-     *      @param data the compressed data
-     *      @param maxSize the decompression size limit or the options
-     *      @return the decompressed binary data
-     *
-     */
-    function gunzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function gunzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses gzip data
@@ -133714,7 +133684,39 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function gunzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gunzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses gzip data
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8; gzip data is binary, so a string
+     *      only makes sense for already-binary text). The size limit is an integer or an options
+     *      object read as \`{ maxOutputLength }\`; the default is -1 (no limit) and exceeding it
+     *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
+     *      members are decoded as a single output; bytes after the last member that are not
+     *      another valid member fail with \`Z_DATA_ERROR\`. Truncated input fails with
+     *      \`Z_BUF_ERROR\`, and a zero-byte result is an empty Buffer rather than null.
+     *
+     *      Example — concatenated members form one output:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const members = Buffer.concat([zlib.gzip('hello, '), zlib.gzip('world')]);
+     *      console.log(zlib.gunzip(members).toString()); // hello, world
+     *
+     *      try {
+     *          zlib.gunzip(Buffer.concat([zlib.gzip('hello'), Buffer.from('junk')]));
+     *      } catch (e) {
+     *          console.log(e.code); // Z_DATA_ERROR
+     *      }
+     *      \`\`\`
+     *
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
+     *      @return the decompressed binary data
+     *
+     */
+    function gunzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -133746,43 +133748,11 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function gunzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function gunzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object
-     *
-     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8). \`stm\`
-     *      receives the decompressed bytes at its current position and is left at the end, so
-     *      rewind it before reading. \`maxSize\` is an integer (an options object is a TypeError),
-     *      default -1, and exceeding it throws a RangeError [20013]. Concatenated gzip members
-     *      are decoded as one output; non-gzip data fails with \`Z_DATA_ERROR\`.
-     *
-     *      Example — stream the gzip bytes from a source stream:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *      const io = require('io');
-     *
-     *      const src = new io.MemoryStream();
-     *      src.write(zlib.gzip('hello, world'));
-     *      src.rewind();
-     *
-     *      const stm = new io.MemoryStream();
-     *      zlib.gunzipTo(src, stm);
-     *      stm.rewind();
-     *
-     *      console.log(stm.readAll().toString()); // hello, world
-     *      \`\`\`
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function gunzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function gunzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -133814,7 +133784,39 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function gunzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8). \`stm\`
+     *      receives the decompressed bytes at its current position and is left at the end, so
+     *      rewind it before reading. \`maxSize\` is an integer (an options object is a TypeError),
+     *      default -1, and exceeding it throws a RangeError [20013]. Concatenated gzip members
+     *      are decoded as one output; non-gzip data fails with \`Z_DATA_ERROR\`.
+     *
+     *      Example — stream the gzip bytes from a source stream:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(zlib.gzip('hello, world'));
+     *      src.rewind();
+     *
+     *      const stm = new io.MemoryStream();
+     *      zlib.gunzipTo(src, stm);
+     *      stm.rewind();
+     *
+     *      console.log(stm.readAll().toString()); // hello, world
+     *      \`\`\`
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function gunzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Compresses data with the deflateRaw algorithm
@@ -133841,38 +133843,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function deflateRaw(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function deflateRaw(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function deflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function deflateRaw(data: Class_Buffer | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the deflateRaw algorithm
-     *
-     *      \`data\` may be a Buffer or a string (encoded as utf8). The level handling is the same
-     *      as \`deflate\`: an integer or an options object read as \`{ level }\`, default
-     *      DEFAULT_COMPRESSION, and a value outside the -1..9 range throws a RangeError
-     *      with code \`ERR_OUT_OF_RANGE\`. Raw deflate carries no header and no
-     *      checksum, which makes the output smaller than the zlib form and is what protocols
-     *      such as WebSocket permessage-deflate embed; only \`inflateRaw\` decodes it. The result
-     *      has no identifiable magic bytes, so it cannot be recognized by \`unzip\`.
-     *
-     *      Example — raw streams carry no identifying header:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const raw = zlib.deflateRaw('hello, world');
-     *      console.log(raw[0].toString(16));              // cb, not 78 or 1f
-     *      console.log(zlib.inflateRaw(raw).toString());  // hello, world
-     *      \`\`\`
-     *
-     *      @param data the data to compress
-     *      @param level the compression level or the options
-     *      @return the compressed binary data
-     *
-     */
-    function deflateRawSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the deflateRaw algorithm
@@ -133899,7 +133874,34 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function deflateRawAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflateRawSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the deflateRaw algorithm
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The level handling is the same
+     *      as \`deflate\`: an integer or an options object read as \`{ level }\`, default
+     *      DEFAULT_COMPRESSION, and a value outside the -1..9 range throws a RangeError
+     *      with code \`ERR_OUT_OF_RANGE\`. Raw deflate carries no header and no
+     *      checksum, which makes the output smaller than the zlib form and is what protocols
+     *      such as WebSocket permessage-deflate embed; only \`inflateRaw\` decodes it. The result
+     *      has no identifiable magic bytes, so it cannot be recognized by \`unzip\`.
+     *
+     *      Example — raw streams carry no identifying header:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const raw = zlib.deflateRaw('hello, world');
+     *      console.log(raw[0].toString(16));              // cb, not 78 or 1f
+     *      console.log(zlib.inflateRaw(raw).toString());  // hello, world
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param level the compression level or the options
+     *      @return the compressed binary data
+     *
+     */
+    function deflateRawAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -133931,43 +133933,11 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function deflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
-     *
-     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8). \`stm\`
-     *      receives the raw deflate bytes at its current position and is left at the end, so
-     *      rewind it before reading. The level must be an integer (an options object is a
-     *      TypeError) and must be in the -1..9 range; a value outside it throws a
-     *      RangeError with code \`ERR_OUT_OF_RANGE\`; the stream is finished before the call returns.
-     *
-     *      Example — compress a source stream into a memory stream:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *      const io = require('io');
-     *
-     *      const src = new io.MemoryStream();
-     *      src.write('hello, world');
-     *      src.rewind();
-     *
-     *      const stm = new io.MemoryStream();
-     *      zlib.deflateRawTo(src, stm);
-     *      stm.rewind();
-     *
-     *      console.log(zlib.inflateRaw(stm.readAll()).toString()); // hello, world
-     *      \`\`\`
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function deflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -133999,7 +133969,39 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateRawToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8). \`stm\`
+     *      receives the raw deflate bytes at its current position and is left at the end, so
+     *      rewind it before reading. The level must be an integer (an options object is a
+     *      TypeError) and must be in the -1..9 range; a value outside it throws a
+     *      RangeError with code \`ERR_OUT_OF_RANGE\`; the stream is finished before the call returns.
+     *
+     *      Example — compress a source stream into a memory stream:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write('hello, world');
+     *      src.rewind();
+     *
+     *      const stm = new io.MemoryStream();
+     *      zlib.deflateRawTo(src, stm);
+     *      stm.rewind();
+     *
+     *      console.log(zlib.inflateRaw(stm.readAll()).toString()); // hello, world
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function deflateRawToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses deflateRaw data
@@ -134030,42 +134032,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function inflateRaw(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function inflateRaw(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function inflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function inflateRaw(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses deflateRaw data
-     *
-     *      \`data\` may be a Buffer or a string (decoded as utf8). The size limit is an integer or
-     *      an options object read as \`{ maxOutputLength }\`; the default is -1 (no limit) and
-     *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
-     *      zlib-format data fails with \`Z_DATA_ERROR\` here (use \`inflate\`), gzip data with
-     *      \`gunzip\`. Truncated input fails with \`Z_BUF_ERROR\`
-     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is an empty Buffer.
-     *
-     *      Example — decode raw data and reject the wrapped formats:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const raw = zlib.deflateRaw('hello, world');
-     *      console.log(zlib.inflateRaw(raw).toString()); // hello, world
-     *
-     *      try {
-     *          zlib.inflate(raw);
-     *      } catch (e) {
-     *          console.log(e.code); // Z_DATA_ERROR
-     *      }
-     *      \`\`\`
-     *
-     *      @param data the compressed data
-     *      @param maxSize the decompression size limit or the options
-     *      @return the decompressed binary data
-     *
-     */
-    function inflateRawSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses deflateRaw data
@@ -134096,7 +134067,38 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function inflateRawAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflateRawSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses deflateRaw data
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). The size limit is an integer or
+     *      an options object read as \`{ maxOutputLength }\`; the default is -1 (no limit) and
+     *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
+     *      zlib-format data fails with \`Z_DATA_ERROR\` here (use \`inflate\`), gzip data with
+     *      \`gunzip\`. Truncated input fails with \`Z_BUF_ERROR\`
+     *      and corrupt data fails with \`Z_DATA_ERROR\`; a zero-byte result is an empty Buffer.
+     *
+     *      Example — decode raw data and reject the wrapped formats:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const raw = zlib.deflateRaw('hello, world');
+     *      console.log(zlib.inflateRaw(raw).toString()); // hello, world
+     *
+     *      try {
+     *          zlib.inflate(raw);
+     *      } catch (e) {
+     *          console.log(e.code); // Z_DATA_ERROR
+     *      }
+     *      \`\`\`
+     *
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
+     *      @return the decompressed binary data
+     *
+     */
+    function inflateRawAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -134129,44 +134131,11 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function inflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object
-     *      (inflateRaw)
-     *
-     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8). \`stm\`
-     *      receives the decompressed bytes at its current position and is left at the end, so
-     *      rewind it before reading. \`maxSize\` is an integer (an options object is a TypeError),
-     *      default -1, and exceeding it throws a RangeError [20013]. Non-raw input fails with
-     *      \`Z_DATA_ERROR\`, and a zero-byte result leaves the destination empty.
-     *
-     *      Example — decompress raw bytes from a memory stream:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *      const io = require('io');
-     *
-     *      const src = new io.MemoryStream();
-     *      src.write(zlib.deflateRaw('hello, world'));
-     *      src.rewind();
-     *
-     *      const stm = new io.MemoryStream();
-     *      zlib.inflateRawTo(src, stm, 1024);
-     *      stm.rewind();
-     *
-     *      console.log(stm.readAll().toString()); // hello, world
-     *      \`\`\`
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function inflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -134199,7 +134168,40 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateRawToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the deflate algorithm into a stream object
+     *      (inflateRaw)
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8). \`stm\`
+     *      receives the decompressed bytes at its current position and is left at the end, so
+     *      rewind it before reading. \`maxSize\` is an integer (an options object is a TypeError),
+     *      default -1, and exceeding it throws a RangeError [20013]. Non-raw input fails with
+     *      \`Z_DATA_ERROR\`, and a zero-byte result leaves the destination empty.
+     *
+     *      Example — decompress raw bytes from a memory stream:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(zlib.deflateRaw('hello, world'));
+     *      src.rewind();
+     *
+     *      const stm = new io.MemoryStream();
+     *      zlib.inflateRawTo(src, stm, 1024);
+     *      stm.rewind();
+     *
+     *      console.log(stm.readAll().toString()); // hello, world
+     *      \`\`\`
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function inflateRawToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Creates a zlib-format compressor that writes into \`to\`
@@ -134262,37 +134264,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function zip(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function zip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function zip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function zip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function zip(data: Class_Buffer | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the zip algorithm
-     *
-     *      Compatibility alias of \`deflate\`: in this build both produce the same zlib-format
-     *      stream, so the result decodes with \`inflate\` or \`unzip\` (raw deflate is not what this
-     *      member writes). The level handling is the same as \`deflate\` (an integer or an options
-     *      object read as \`{ level }\`, default DEFAULT_COMPRESSION; a value outside -1..9 throws
-     *      a RangeError with code \`ERR_OUT_OF_RANGE\`). Older fibjs code
-     *      uses this name; the archive format handled by the \`zip\` module is unrelated.
-     *
-     *      Example — zip output is a deflate stream:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const data = 'hello, world';
-     *      console.log(zlib.zip(data).equals(zlib.deflate(data))); // true
-     *      console.log(zlib.unzip(zlib.zip(data)).toString());     // hello, world
-     *      \`\`\`
-     *
-     *      @param data the data to compress
-     *      @param level the compression level or the options
-     *      @return the compressed binary data
-     *
-     */
-    function zipSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function zip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the zip algorithm
@@ -134318,7 +134294,33 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function zipAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the zip algorithm
+     *
+     *      Compatibility alias of \`deflate\`: in this build both produce the same zlib-format
+     *      stream, so the result decodes with \`inflate\` or \`unzip\` (raw deflate is not what this
+     *      member writes). The level handling is the same as \`deflate\` (an integer or an options
+     *      object read as \`{ level }\`, default DEFAULT_COMPRESSION; a value outside -1..9 throws
+     *      a RangeError with code \`ERR_OUT_OF_RANGE\`). Older fibjs code
+     *      uses this name; the archive format handled by the \`zip\` module is unrelated.
+     *
+     *      Example — zip output is a deflate stream:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const data = 'hello, world';
+     *      console.log(zlib.zip(data).equals(zlib.deflate(data))); // true
+     *      console.log(zlib.unzip(zlib.zip(data)).toString());     // hello, world
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param level the compression level or the options
+     *      @return the compressed binary data
+     *
+     */
+    function zipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -134335,28 +134337,11 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function zipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function zipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the zip algorithm
-     *
-     *      Alias of \`deflateTo\`: \`data\` may be a Buffer, a source Stream (copied to its end) or
-     *      a string (utf8), and \`stm\` receives the zlib-format bytes at its current position and
-     *      is left at the end, so rewind it before reading. The level must be an integer and is
-     *      in the -1..9 range; a value outside it throws a RangeError with code
-     *      \`ERR_OUT_OF_RANGE\`, and the stream is finished before the call returns. The result is
-     *      identical to the one \`deflateTo\` produces.
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function zipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function zipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -134373,7 +134358,24 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function zipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data into a stream object with the zip algorithm
+     *
+     *      Alias of \`deflateTo\`: \`data\` may be a Buffer, a source Stream (copied to its end) or
+     *      a string (utf8), and \`stm\` receives the zlib-format bytes at its current position and
+     *      is left at the end, so rewind it before reading. The level must be an integer and is
+     *      in the -1..9 range; a value outside it throws a RangeError with code
+     *      \`ERR_OUT_OF_RANGE\`, and the stream is finished before the call returns. The result is
+     *      identical to the one \`deflateTo\` produces.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function zipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses zip data
@@ -134406,44 +134408,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function unzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function unzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function unzip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function unzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function unzip(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses zip data
-     *
-     *      \`unzip\` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
-     *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
-     *      formats fail with \`Z_DATA_ERROR\`. The result is identical
-     *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
-     *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013] with code \`ERR_BUFFER_TOO_LARGE\`.
-     *      A zero-byte result is an empty Buffer, and truncated input fails with \`Z_BUF_ERROR\`.
-     *
-     *      Example — one decompressor for both containers:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      console.log(zlib.unzip(zlib.gzip('gzip data')).toString());    // gzip data
-     *      console.log(zlib.unzip(zlib.deflate('zlib data')).toString()); // zlib data
-     *
-     *      // Raw deflate has no recognizable header and is rejected.
-     *      try {
-     *          zlib.unzip(zlib.deflateRaw('raw data'));
-     *      } catch (e) {
-     *          console.log(e.code); // Z_DATA_ERROR
-     *      }
-     *      \`\`\`
-     *
-     *      @param data the compressed data
-     *      @param maxSize the decompression size limit or the options
-     *      @return the decompressed binary data
-     *
-     */
-    function unzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function unzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses zip data
@@ -134476,7 +134445,40 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function unzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function unzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses zip data
+     *
+     *      \`unzip\` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
+     *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
+     *      formats fail with \`Z_DATA_ERROR\`. The result is identical
+     *      to \`gunzip\` for gzip data and to \`inflate\` for zlib data. The size limit is an
+     *      integer or an options object read as \`{ maxOutputLength }\`; the default is -1 (no
+     *      limit) and exceeding it throws a RangeError [20013] with code \`ERR_BUFFER_TOO_LARGE\`.
+     *      A zero-byte result is an empty Buffer, and truncated input fails with \`Z_BUF_ERROR\`.
+     *
+     *      Example — one decompressor for both containers:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      console.log(zlib.unzip(zlib.gzip('gzip data')).toString());    // gzip data
+     *      console.log(zlib.unzip(zlib.deflate('zlib data')).toString()); // zlib data
+     *
+     *      // Raw deflate has no recognizable header and is rejected.
+     *      try {
+     *          zlib.unzip(zlib.deflateRaw('raw data'));
+     *      } catch (e) {
+     *          console.log(e.code); // Z_DATA_ERROR
+     *      }
+     *      \`\`\`
+     *
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
+     *      @return the decompressed binary data
+     *
+     */
+    function unzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -134492,27 +134494,11 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function unzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function unzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object
-     *
-     *      The stream form of \`unzip\`: \`data\` may be a Buffer, a source Stream (copied to its
-     *      end) or a string (utf8), and \`stm\` receives the decompressed bytes at its current
-     *      position and is left at the end, so rewind it before reading. \`maxSize\` is an
-     *      integer, default -1, and exceeding it throws a RangeError [20013]; gzip and
-     *      zlib-format input are both accepted, raw deflate fails with \`Z_DATA_ERROR\`.
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function unzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function unzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -134528,7 +134514,23 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function unzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *
+     *      The stream form of \`unzip\`: \`data\` may be a Buffer, a source Stream (copied to its
+     *      end) or a string (utf8), and \`stm\` receives the decompressed bytes at its current
+     *      position and is left at the end, so rewind it before reading. \`maxSize\` is an
+     *      integer, default -1, and exceeding it throws a RangeError [20013]; gzip and
+     *      zlib-format input are both accepted, raw deflate fails with \`Z_DATA_ERROR\`.
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function unzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Computes the CRC-32 (IEEE 802.3) checksum of the data
@@ -134572,7 +134574,7 @@ declare module 'zlib' {
      *      @return the unsigned 32-bit CRC-32 checksum
      *
      */
-    function crc32(data: Class_Buffer | string, value?: number): number;
+    function crc32(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value?: number): number;
 
     /**
      * @description Creates a zstd compressor that writes into \`to\`
@@ -134656,39 +134658,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function zstdCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function zstdCompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function zstdCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function zstdCompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the zstd algorithm in one call
-     *
-     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete zstd
-     *      frame, the format \`zstdDecompress\` and the zstd command line tool read. \`opts\` is the
-     *      same options object \`createZstdCompress\` takes; \`level\` defaults to 3 and
-     *      \`pledgedSrcSize\` defaults to the length of the input, so the frame header always
-     *      carries the content size in this form.
-     *
-     *      Example — round trip and a level comparison:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const text = 'abc'.repeat(1000);
-     *      const fast = zlib.zstdCompress(text, { level: 1 });
-     *      const small = zlib.zstdCompress(text, { level: 19 });
-     *
-     *      console.log(small.length < fast.length);              // true
-     *      console.log(zlib.zstdDecompress(small).toString() === text); // true
-     *      \`\`\`
-     *
-     *      @param data the data to compress
-     *      @param options compression options
-     *      @return the compressed binary data
-     *
-     */
-    function zstdCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the zstd algorithm in one call
@@ -134716,7 +134690,35 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function zstdCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdCompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the zstd algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete zstd
+     *      frame, the format \`zstdDecompress\` and the zstd command line tool read. \`opts\` is the
+     *      same options object \`createZstdCompress\` takes; \`level\` defaults to 3 and
+     *      \`pledgedSrcSize\` defaults to the length of the input, so the frame header always
+     *      carries the content size in this form.
+     *
+     *      Example — round trip and a level comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.zstdCompress(text, { level: 1 });
+     *      const small = zlib.zstdCompress(text, { level: 19 });
+     *
+     *      console.log(small.length < fast.length);              // true
+     *      console.log(zlib.zstdDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function zstdCompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses zstd data in one call
@@ -134732,27 +134734,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function zstdDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function zstdDecompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function zstdDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function zstdDecompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses zstd data in one call
-     *
-     *      \`data\` may be a Buffer or a string (decoded as utf8). Concatenated frames are all
-     *      decoded; corrupt input or a frame whose window exceeds \`windowBits\` throws an Error
-     *      whose \`code\` is the zstd error name. \`opts\` carries \`windowBits\` and \`params\` as
-     *      \`createZstdDecompress\` does. A zero-byte result is an empty Buffer, matching the
-     *      other decompressors of this module.
-     *
-     *      @param data the compressed data
-     *      @param options decompression options
-     *      @return the decompressed binary data
-     *
-     */
-    function zstdDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses zstd data in one call
@@ -134768,7 +134754,23 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function zstdDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdDecompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses zstd data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Concatenated frames are all
+     *      decoded; corrupt input or a frame whose window exceeds \`windowBits\` throws an Error
+     *      whose \`code\` is the zstd error name. \`opts\` carries \`windowBits\` and \`params\` as
+     *      \`createZstdDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function zstdDecompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the zstd algorithm into a stream object
@@ -134782,25 +134784,11 @@ declare module 'zlib' {
      *      @param options compression options
      *
      */
-    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function zstdCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
-    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function zstdCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data with the zstd algorithm into a stream object
-     *
-     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
-     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
-     *      so rewind it before reading. The options are the ones \`zstdCompress\` takes.
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param options compression options
-     *
-     */
-    function zstdCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function zstdCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data with the zstd algorithm into a stream object
@@ -134814,7 +134802,21 @@ declare module 'zlib' {
      *      @param options compression options
      *
      */
-    function zstdCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdCompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Compresses data with the zstd algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`zstdCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function zstdCompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses zstd data into a stream object
@@ -134830,29 +134832,13 @@ declare module 'zlib' {
      *      @param options decompression options
      *
      */
-    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function zstdDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
 
-    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function zstdDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
+    function zstdDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
-    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses zstd data into a stream object
-     *
-     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
-     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
-     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
-     *      limit), and exceeding it throws a RangeError [20013].
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *      @param options decompression options
-     *
-     */
-    function zstdDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function zstdDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses zstd data into a stream object
@@ -134868,7 +134854,23 @@ declare module 'zlib' {
      *      @param options decompression options
      *
      */
-    function zstdDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdDecompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Decompresses zstd data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013].
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function zstdDecompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Creates a Brotli compressor that writes into \`to\`
@@ -134952,38 +134954,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function brotliCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function brotliCompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function brotliCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function brotliCompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the Brotli algorithm in one call
-     *
-     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete Brotli
-     *      stream, the format \`brotliDecompress\` and the brotli command line tool read. \`opts\`
-     *      is the same options object \`createBrotliCompress\` takes; the quality defaults to
-     *      \`BROTLI_DEFAULT_QUALITY\` (11) and \`level\` is accepted as its alias.
-     *
-     *      Example — round trip and a quality comparison:
-     *      \`\`\`JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const text = 'abc'.repeat(1000);
-     *      const fast = zlib.brotliCompress(text, { level: 1 });
-     *      const small = zlib.brotliCompress(text, { level: 11 });
-     *
-     *      console.log(small.length <= fast.length);                     // true
-     *      console.log(zlib.brotliDecompress(small).toString() === text); // true
-     *      \`\`\`
-     *
-     *      @param data the data to compress
-     *      @param options compression options
-     *      @return the compressed binary data
-     *
-     */
-    function brotliCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the Brotli algorithm in one call
@@ -135010,7 +134985,34 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function brotliCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliCompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the Brotli algorithm in one call
+     *
+     *      \`data\` may be a Buffer or a string (encoded as utf8). The result is a complete Brotli
+     *      stream, the format \`brotliDecompress\` and the brotli command line tool read. \`opts\`
+     *      is the same options object \`createBrotliCompress\` takes; the quality defaults to
+     *      \`BROTLI_DEFAULT_QUALITY\` (11) and \`level\` is accepted as its alias.
+     *
+     *      Example — round trip and a quality comparison:
+     *      \`\`\`JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.brotliCompress(text, { level: 1 });
+     *      const small = zlib.brotliCompress(text, { level: 11 });
+     *
+     *      console.log(small.length <= fast.length);                     // true
+     *      console.log(zlib.brotliDecompress(small).toString() === text); // true
+     *      \`\`\`
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function brotliCompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses Brotli data in one call
@@ -135026,27 +135028,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function brotliDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function brotliDecompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function brotliDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function brotliDecompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses Brotli data in one call
-     *
-     *      \`data\` may be a Buffer or a string (decoded as utf8). Corrupt input throws an Error
-     *      whose \`code\` is the Brotli decoder error name (for example
-     *      \`BROTLI_DECODER_ERROR_FORMAT_RESERVED\`). \`opts\` carries \`params\` as
-     *      \`createBrotliDecompress\` does. A zero-byte result is an empty Buffer, matching the
-     *      other decompressors of this module.
-     *
-     *      @param data the compressed data
-     *      @param options decompression options
-     *      @return the decompressed binary data
-     *
-     */
-    function brotliDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses Brotli data in one call
@@ -135062,7 +135048,23 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function brotliDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliDecompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses Brotli data in one call
+     *
+     *      \`data\` may be a Buffer or a string (decoded as utf8). Corrupt input throws an Error
+     *      whose \`code\` is the Brotli decoder error name (for example
+     *      \`BROTLI_DECODER_ERROR_FORMAT_RESERVED\`). \`opts\` carries \`params\` as
+     *      \`createBrotliDecompress\` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function brotliDecompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the Brotli algorithm into a stream object
@@ -135076,25 +135078,11 @@ declare module 'zlib' {
      *      @param options compression options
      *
      */
-    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function brotliCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
-    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function brotliCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data with the Brotli algorithm into a stream object
-     *
-     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
-     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
-     *      so rewind it before reading. The options are the ones \`brotliCompress\` takes.
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param options compression options
-     *
-     */
-    function brotliCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function brotliCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data with the Brotli algorithm into a stream object
@@ -135108,7 +135096,21 @@ declare module 'zlib' {
      *      @param options compression options
      *
      */
-    function brotliCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliCompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Compresses data with the Brotli algorithm into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones \`brotliCompress\` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function brotliCompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses Brotli data into a stream object
@@ -135125,30 +135127,13 @@ declare module 'zlib' {
      *      @param options decompression options
      *
      */
-    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function brotliDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
 
-    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function brotliDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
+    function brotliDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
-    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses Brotli data into a stream object
-     *
-     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
-     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
-     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
-     *      limit), and exceeding it throws a RangeError [20013] with code
-     *      \`ERR_BUFFER_TOO_LARGE\`.
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *      @param options decompression options
-     *
-     */
-    function brotliDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function brotliDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses Brotli data into a stream object
@@ -135165,7 +135150,24 @@ declare module 'zlib' {
      *      @param options decompression options
      *
      */
-    function brotliDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliDecompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Decompresses Brotli data into a stream object
+     *
+     *      \`data\` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      \`stm\` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. \`maxSize\` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013] with code
+     *      \`ERR_BUFFER_TOO_LARGE\`.
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function brotliDecompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
 }
 
@@ -135481,7 +135483,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflate(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -135515,7 +135517,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflateSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflateSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -135549,7 +135551,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflateAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflateAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -135578,7 +135580,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -135607,7 +135609,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -135636,7 +135638,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -135669,7 +135671,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflate(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -135702,7 +135704,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflateSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflateSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -135735,7 +135737,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflateAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflateAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -135764,7 +135766,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -135793,7 +135795,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -135822,7 +135824,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -135854,7 +135856,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function gzip(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -135886,7 +135888,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function gzipSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function gzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -135918,7 +135920,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function gzipAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the gzip algorithm
@@ -135933,7 +135935,7 @@ declare module 'zlib/promises' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
+    function gzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
      * @description Compresses data into a stream object with the gzip algorithm
@@ -135948,7 +135950,7 @@ declare module 'zlib/promises' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
+    function gzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
 
     /**
      * @description Compresses data into a stream object with the gzip algorithm
@@ -135963,7 +135965,7 @@ declare module 'zlib/promises' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
+    function gzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
      * @description Decompresses gzip data
@@ -135995,7 +135997,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function gunzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gunzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses gzip data
@@ -136027,7 +136029,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function gunzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function gunzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses gzip data
@@ -136059,7 +136061,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function gunzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gunzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -136091,7 +136093,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function gunzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -136123,7 +136125,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function gunzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -136155,7 +136157,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function gunzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Compresses data with the deflateRaw algorithm
@@ -136182,7 +136184,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflateRaw(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the deflateRaw algorithm
@@ -136209,7 +136211,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflateRawSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflateRawSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the deflateRaw algorithm
@@ -136236,7 +136238,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function deflateRawAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflateRawAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -136268,7 +136270,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -136300,7 +136302,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateRawToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -136332,7 +136334,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateRawToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses deflateRaw data
@@ -136363,7 +136365,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflateRaw(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses deflateRaw data
@@ -136394,7 +136396,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflateRawSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflateRawSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses deflateRaw data
@@ -136425,7 +136427,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function inflateRawAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflateRawAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -136458,7 +136460,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -136491,7 +136493,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateRawToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -136524,7 +136526,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateRawToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Creates a zlib-format compressor that writes into \`to\`
@@ -136587,7 +136589,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zip(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the zip algorithm
@@ -136613,7 +136615,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zipSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function zipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the zip algorithm
@@ -136639,7 +136641,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zipAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -136656,7 +136658,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function zipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -136673,7 +136675,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function zipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -136690,7 +136692,7 @@ declare module 'zlib/promises' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function zipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses zip data
@@ -136723,7 +136725,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function unzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function unzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses zip data
@@ -136756,7 +136758,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function unzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function unzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses zip data
@@ -136789,7 +136791,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function unzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function unzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -136805,7 +136807,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function unzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -136821,7 +136823,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function unzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -136837,7 +136839,7 @@ declare module 'zlib/promises' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function unzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Computes the CRC-32 (IEEE 802.3) checksum of the data
@@ -136881,7 +136883,7 @@ declare module 'zlib/promises' {
      *      @return the unsigned 32-bit CRC-32 checksum
      *
      */
-    function crc32(data: Class_Buffer | string, value?: number): number;
+    function crc32(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value?: number): number;
 
     /**
      * @description Creates a zstd compressor that writes into \`to\`
@@ -136965,7 +136967,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zstdCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the zstd algorithm in one call
@@ -136993,7 +136995,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zstdCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdCompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the zstd algorithm in one call
@@ -137021,7 +137023,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function zstdCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdCompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses zstd data in one call
@@ -137037,7 +137039,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function zstdDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses zstd data in one call
@@ -137053,7 +137055,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function zstdDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdDecompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses zstd data in one call
@@ -137069,7 +137071,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function zstdDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdDecompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the zstd algorithm into a stream object
@@ -137083,7 +137085,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Compresses data with the zstd algorithm into a stream object
@@ -137097,7 +137099,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function zstdCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function zstdCompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Compresses data with the zstd algorithm into a stream object
@@ -137111,7 +137113,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function zstdCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdCompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses zstd data into a stream object
@@ -137127,7 +137129,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses zstd data into a stream object
@@ -137143,7 +137145,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function zstdDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function zstdDecompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Decompresses zstd data into a stream object
@@ -137159,7 +137161,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function zstdDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdDecompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Creates a Brotli compressor that writes into \`to\`
@@ -137243,7 +137245,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function brotliCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the Brotli algorithm in one call
@@ -137270,7 +137272,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function brotliCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliCompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Compresses data with the Brotli algorithm in one call
@@ -137297,7 +137299,7 @@ declare module 'zlib/promises' {
      *      @return the compressed binary data
      *
      */
-    function brotliCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliCompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses Brotli data in one call
@@ -137313,7 +137315,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function brotliDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses Brotli data in one call
@@ -137329,7 +137331,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function brotliDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliDecompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description Decompresses Brotli data in one call
@@ -137345,7 +137347,7 @@ declare module 'zlib/promises' {
      *      @return the decompressed binary data
      *
      */
-    function brotliDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliDecompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the Brotli algorithm into a stream object
@@ -137359,7 +137361,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Compresses data with the Brotli algorithm into a stream object
@@ -137373,7 +137375,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function brotliCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function brotliCompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Compresses data with the Brotli algorithm into a stream object
@@ -137387,7 +137389,7 @@ declare module 'zlib/promises' {
      *      @param options compression options
      *
      */
-    function brotliCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliCompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses Brotli data into a stream object
@@ -137404,7 +137406,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses Brotli data into a stream object
@@ -137421,7 +137423,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function brotliDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function brotliDecompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Decompresses Brotli data into a stream object
@@ -137438,7 +137440,7 @@ declare module 'zlib/promises' {
      *      @param options decompression options
      *
      */
-    function brotliDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliDecompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
 }
 

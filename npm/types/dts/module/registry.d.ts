@@ -310,7 +310,7 @@ declare module 'registry' {
      *      @param value the bytes to write
      *
      */
-    function set(root: number, key: string, value: Class_Buffer): void;
+    function set(root: number, key: string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike): void;
 
     /**
      * @description Writes a string to a registry value
@@ -371,7 +371,7 @@ declare module 'registry' {
      *      @param value the bytes to write
      *
      */
-    function set(root: number, key: string, name: string, value: Class_Buffer): void;
+    function set(root: number, key: string, name: string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike): void;
 
     /**
      * @description Writes a string to a named registry value

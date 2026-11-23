@@ -113,7 +113,7 @@ declare module 'multibase' {
      *      @return returns the prefixed encoded string
      *
      */
-    function encode(data: Class_Buffer | string, codec: string): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, codec: string): string;
 
     /**
      * @description Decodes a string into binary data in multibase format

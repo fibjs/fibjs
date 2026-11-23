@@ -217,7 +217,7 @@ declare class Class_SandBox extends Class_object {
      *      @return returns the loaded module object
      *
      */
-    addScript(srcname: string, script: Class_Buffer | string): any;
+    addScript(srcname: string, script: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): any;
 
     /**
      * @description Removes a module from the sandbox registry

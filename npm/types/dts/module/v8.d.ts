@@ -506,7 +506,7 @@ declare module 'v8' {
      *      @return returns the deserialized value
      *
      */
-    function deserialize(data: Class_Buffer | string): any;
+    function deserialize(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): any;
 
 }
 

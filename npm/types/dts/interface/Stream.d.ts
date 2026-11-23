@@ -461,21 +461,9 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @param data the Buffer data to write
      *
      */
-    writeBuffer(data: Class_Buffer): void;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): void;
 
-    writeBuffer(data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Writes the given binary data to the stream
-     *
-     *      Queues the buffer and returns undefined (unlike `write`, no back-pressure
-     *      flag is reported); the direct call waits for the chunk to be written. The
-     *      string overload encodes the text as utf8, with no encoding argument.
-     *
-     *      @param data the Buffer data to write
-     *
-     */
-    writeBufferSync(data: Class_Buffer): void;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes the given binary data to the stream
@@ -487,7 +475,19 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @param data the Buffer data to write
      *
      */
-    writeBufferAsync(data: Class_Buffer): Promise<void>;
+    writeBufferSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): void;
+
+    /**
+     * @description Writes the given binary data to the stream
+     *
+     *      Queues the buffer and returns undefined (unlike `write`, no back-pressure
+     *      flag is reported); the direct call waits for the chunk to be written. The
+     *      string overload encodes the text as utf8, with no encoding argument.
+     *
+     *      @param data the Buffer data to write
+     *
+     */
+    writeBufferAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<void>;
 
     /**
      * @description Writes the given binary data to the stream; a string data is encoded as utf8
@@ -524,48 +524,13 @@ declare class Class_Stream extends Class_EventEmitter {
      */
     writeBufferAsync(data: string): Promise<void>;
 
-    writeBuffer(data: Class_Buffer | string): void;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
-    writeBuffer(data: Class_Buffer | string, callback: (err: Error | undefined | null)=>any): void;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null)=>any): void;
 
-    writeBufferSync(data: Class_Buffer | string): void;
+    writeBufferSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
-    writeBufferAsync(data: Class_Buffer | string): Promise<void>;
-
-    /**
-     * @description Writes the given data to the stream
-     *
-     *      Queues the data and reports back pressure: returns
-     *      false when the queued bytes reach the write high-water mark (16384 bytes)
-     *      and the caller should wait for the 'drain' event before writing more;
-     *      returns true while the queue has room. Writes are queued in FIFO order and
-     *      flushed one at a time. The direct call returns as soon as the chunk is
-     *      queued, a trailing callback receives the flag as its second argument, and
-     *      `await stm.write(data)` resolves to it. The encoding argument of the
-     *      Buffer overload is ignored.
-     *
-     *      Example — stop writing when the queue is full and wait for drain:
-     *      ```JavaScript
-     *      const io = require('io');
-     *      const coroutine = require('coroutine');
-     *
-     *      const stm = new io.MemoryStream();
-     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
-     *      let drained = false;
-     *      stm.on('drain', () => { drained = true; });
-     *      coroutine.sleep(20);
-     *
-     *      console.log(full, drained, stm.write('more')); // false true true
-     *      ```
-     *
-     *      @param data the data to write
-     *      @return false when the caller should wait for the 'drain' event before
-     *      writing more, true otherwise
-     *
-     */
-    write(data: Class_Buffer): boolean;
-
-    write(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    writeBufferAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Writes the given data to the stream
@@ -598,7 +563,9 @@ declare class Class_Stream extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeSync(data: Class_Buffer): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): boolean;
+
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Writes the given data to the stream
@@ -631,7 +598,40 @@ declare class Class_Stream extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer): Promise<boolean>;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): boolean;
+
+    /**
+     * @description Writes the given data to the stream
+     *
+     *      Queues the data and reports back pressure: returns
+     *      false when the queued bytes reach the write high-water mark (16384 bytes)
+     *      and the caller should wait for the 'drain' event before writing more;
+     *      returns true while the queue has room. Writes are queued in FIFO order and
+     *      flushed one at a time. The direct call returns as soon as the chunk is
+     *      queued, a trailing callback receives the flag as its second argument, and
+     *      `await stm.write(data)` resolves to it. The encoding argument of the
+     *      Buffer overload is ignored.
+     *
+     *      Example — stop writing when the queue is full and wait for drain:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
+     *      let drained = false;
+     *      stm.on('drain', () => { drained = true; });
+     *      coroutine.sleep(20);
+     *
+     *      console.log(full, drained, stm.write('more')); // false true true
+     *      ```
+     *
+     *      @param data the data to write
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
+     *
+     */
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
@@ -645,23 +645,9 @@ declare class Class_Stream extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    write(data: Class_Buffer, encoding: string): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): boolean;
 
-    write(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Writes the given data to the stream
-     *
-     *      Buffer overload: the encoding argument is
-     *      accepted and ignored, because Buffer data is already binary.
-     *
-     *      @param data the data to write
-     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return false when the caller should wait for the 'drain' event before
-     *      writing more, true otherwise
-     *
-     */
-    writeSync(data: Class_Buffer, encoding: string): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Writes the given data to the stream
@@ -675,7 +661,21 @@ declare class Class_Stream extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer, encoding: string): Promise<boolean>;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): boolean;
+
+    /**
+     * @description Writes the given data to the stream
+     *
+     *      Buffer overload: the encoding argument is
+     *      accepted and ignored, because Buffer data is already binary.
+     *
+     *      @param data the data to write
+     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
+     *
+     */
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<boolean>;
 
     /**
      * @description Writes the given string to the stream
@@ -933,21 +933,9 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer): Class_Stream;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Stream;
 
-    end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description Writes the given file buffer to the stream and ends the stream operation
-     *
-     *      Writes the buffer as the final chunk and then ends the stream, with the
-     *      same events and return value as `end()`.
-     *
-     *      @param data the file buffer data to write
-     *      @return returns the current stream object
-     *
-     */
-    endSync(data: Class_Buffer): Class_Stream;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -959,7 +947,19 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer): Promise<Class_StreamPromise>;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Stream;
+
+    /**
+     * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Writes the buffer as the final chunk and then ends the stream, with the
+     *      same events and return value as `end()`.
+     *
+     *      @param data the file buffer data to write
+     *      @return returns the current stream object
+     *
+     */
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -972,22 +972,9 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer, encoding: string): Class_Stream;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Stream;
 
-    end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
-
-    /**
-     * @description Writes the given file buffer to the stream and ends the stream operation
-     *
-     *      Buffer overload: the encoding argument is
-     *      accepted and ignored.
-     *
-     *      @param data the file buffer data to write
-     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
-     *      @return returns the current stream object
-     *
-     */
-    endSync(data: Class_Buffer, encoding: string): Class_Stream;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -1000,7 +987,20 @@ declare class Class_Stream extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<Class_StreamPromise>;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Stream;
+
+    /**
+     * @description Writes the given file buffer to the stream and ends the stream operation
+     *
+     *      Buffer overload: the encoding argument is
+     *      accepted and ignored.
+     *
+     *      @param data the file buffer data to write
+     *      @param encoding the encoding; this parameter is ignored because data is of type Buffer
+     *      @return returns the current stream object
+     *
+     */
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation
@@ -1873,7 +1873,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @param data the Buffer data to write
      *
      */
-    writeBuffer(data: Class_Buffer): Promise<void>;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<void>;
 
     /**
      * @description Writes the given binary data to the stream
@@ -1885,7 +1885,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @param data the Buffer data to write
      *
      */
-    writeBufferSync(data: Class_Buffer): void;
+    writeBufferSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): void;
 
     /**
      * @description Writes the given binary data to the stream
@@ -1897,7 +1897,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @param data the Buffer data to write
      *
      */
-    writeBufferAsync(data: Class_Buffer): Promise<void>;
+    writeBufferAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<void>;
 
     /**
      * @description Writes the given binary data to the stream; a string data is encoded as utf8
@@ -1932,44 +1932,11 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      */
     writeBufferAsync(data: string): Promise<void>;
 
-    writeBuffer(data: Class_Buffer | string): Promise<void>;
+    writeBuffer(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
-    writeBufferSync(data: Class_Buffer | string): void;
+    writeBufferSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
-    writeBufferAsync(data: Class_Buffer | string): Promise<void>;
-
-    /**
-     * @description Writes the given data to the stream
-     *
-     *      Queues the data and reports back pressure: returns
-     *      false when the queued bytes reach the write high-water mark (16384 bytes)
-     *      and the caller should wait for the 'drain' event before writing more;
-     *      returns true while the queue has room. Writes are queued in FIFO order and
-     *      flushed one at a time. The direct call returns as soon as the chunk is
-     *      queued, a trailing callback receives the flag as its second argument, and
-     *      `await stm.write(data)` resolves to it. The encoding argument of the
-     *      Buffer overload is ignored.
-     *
-     *      Example — stop writing when the queue is full and wait for drain:
-     *      ```JavaScript
-     *      const io = require('io');
-     *      const coroutine = require('coroutine');
-     *
-     *      const stm = new io.MemoryStream();
-     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
-     *      let drained = false;
-     *      stm.on('drain', () => { drained = true; });
-     *      coroutine.sleep(20);
-     *
-     *      console.log(full, drained, stm.write('more')); // false true true
-     *      ```
-     *
-     *      @param data the data to write
-     *      @return false when the caller should wait for the 'drain' event before
-     *      writing more, true otherwise
-     *
-     */
-    write(data: Class_Buffer): Promise<boolean>;
+    writeBufferAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<void>;
 
     /**
      * @description Writes the given data to the stream
@@ -2002,7 +1969,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeSync(data: Class_Buffer): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
@@ -2035,7 +2002,40 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer): Promise<boolean>;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): boolean;
+
+    /**
+     * @description Writes the given data to the stream
+     *
+     *      Queues the data and reports back pressure: returns
+     *      false when the queued bytes reach the write high-water mark (16384 bytes)
+     *      and the caller should wait for the 'drain' event before writing more;
+     *      returns true while the queue has room. Writes are queued in FIFO order and
+     *      flushed one at a time. The direct call returns as soon as the chunk is
+     *      queued, a trailing callback receives the flag as its second argument, and
+     *      `await stm.write(data)` resolves to it. The encoding argument of the
+     *      Buffer overload is ignored.
+     *
+     *      Example — stop writing when the queue is full and wait for drain:
+     *      ```JavaScript
+     *      const io = require('io');
+     *      const coroutine = require('coroutine');
+     *
+     *      const stm = new io.MemoryStream();
+     *      const full = stm.write(Buffer.alloc(16384)); // false: wait for 'drain'
+     *      let drained = false;
+     *      stm.on('drain', () => { drained = true; });
+     *      coroutine.sleep(20);
+     *
+     *      console.log(full, drained, stm.write('more')); // false true true
+     *      ```
+     *
+     *      @param data the data to write
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
+     *
+     */
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
@@ -2049,7 +2049,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    write(data: Class_Buffer, encoding: string): Promise<boolean>;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<boolean>;
 
     /**
      * @description Writes the given data to the stream
@@ -2063,7 +2063,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeSync(data: Class_Buffer, encoding: string): boolean;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): boolean;
 
     /**
      * @description Writes the given data to the stream
@@ -2077,7 +2077,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer, encoding: string): Promise<boolean>;
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<boolean>;
 
     /**
      * @description Writes the given string to the stream
@@ -2329,7 +2329,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer): Promise<Class_StreamPromise>;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -2341,7 +2341,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endSync(data: Class_Buffer): Class_Stream;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Stream;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -2353,7 +2353,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer): Promise<Class_StreamPromise>;
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -2366,7 +2366,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    end(data: Class_Buffer, encoding: string): Promise<Class_StreamPromise>;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -2379,7 +2379,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endSync(data: Class_Buffer, encoding: string): Class_Stream;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Stream;
 
     /**
      * @description Writes the given file buffer to the stream and ends the stream operation
@@ -2392,7 +2392,7 @@ declare class Class_StreamPromise extends Class_EventEmitter {
      *      @return returns the current stream object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<Class_StreamPromise>;
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_StreamPromise>;
 
     /**
      * @description Writes the given string to the stream and ends the stream operation

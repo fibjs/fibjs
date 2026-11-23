@@ -1527,7 +1527,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually read
      *
      */
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Reads the content of a file by its file descriptor
@@ -1543,7 +1543,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually read
      *
      */
-    function readSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function readSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
 
     /**
      * @description Reads the content of a file by its file descriptor
@@ -1559,7 +1559,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually read
      *
      */
-    function readAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function readAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Changes the file mode by its file descriptor. Effective on POSIX systems only.
@@ -2831,7 +2831,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -2847,7 +2847,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -2863,7 +2863,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -2982,7 +2982,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3027,7 +3027,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3072,7 +3072,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3089,7 +3089,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): Promise<number>;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Writes a file with string data encoded by a label
@@ -3102,7 +3102,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes written
      *
      */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): number;
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
 
     /**
      * @description Writes a file with string data encoded by a label
@@ -3115,7 +3115,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): Promise<number>;
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -3138,7 +3138,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3165,7 +3165,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3192,7 +3192,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3209,7 +3209,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes appended
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): Promise<number>;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): Promise<number>;
 
     /**
      * @description Appends to a file with string data encoded by a label
@@ -3222,7 +3222,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes appended
      *
      */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): number;
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): number;
 
     /**
      * @description Appends to a file with string data encoded by a label
@@ -3235,7 +3235,7 @@ declare module 'fs/promises' {
      *      @return the number of bytes appended
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): Promise<number>;
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): Promise<number>;
 
     /**
      * @description Sets a zip virtual file mapping
@@ -3247,7 +3247,7 @@ declare module 'fs/promises' {
      *      @param data the zip data to map
      *
      */
-    function setZipFS(fname: string, data: Class_Buffer | string): void;
+    function setZipFS(fname: string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Clears zip virtual file mappings

@@ -166,7 +166,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @param options the parse limits, default { maxElementDepth: 1000, maxNodeCount: 1000000 }
      *
      */
-    load(source: Class_Buffer | string, options?: FIBJS.GeneralObject): void;
+    load(source: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Returns the encoding detected while parsing, or null when it is unknown

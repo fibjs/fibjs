@@ -114,7 +114,7 @@ declare module 'subtle' {
      *      @return the digest as an ArrayBuffer
      *
      */
-    function digest(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | string): Promise<ArrayBuffer>;
+    function digest(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<ArrayBuffer>;
 
     /**
      * @description Computes the digest of data and resolves to an ArrayBuffer
@@ -142,7 +142,7 @@ declare module 'subtle' {
      *      @return the digest as an ArrayBuffer
      *
      */
-    function digestSync(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | string): ArrayBuffer;
+    function digestSync(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): ArrayBuffer;
 
     /**
      * @description Computes the digest of data and resolves to an ArrayBuffer
@@ -170,7 +170,7 @@ declare module 'subtle' {
      *      @return the digest as an ArrayBuffer
      *
      */
-    function digestAsync(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | string): Promise<ArrayBuffer>;
+    function digestAsync(algorithm: FIBJS.GeneralObject | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<ArrayBuffer>;
 
     /**
      * @description Exports a key as raw, pkcs8, spki or jwk
@@ -622,7 +622,7 @@ declare module 'subtle' {
      *      @return the signature as an ArrayBuffer
      *
      */
-    function sign(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | string): Promise<ArrayBuffer>;
+    function sign(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<ArrayBuffer>;
 
     /**
      * @description Signs data with a private or secret key and resolves to the signature
@@ -663,7 +663,7 @@ declare module 'subtle' {
      *      @return the signature as an ArrayBuffer
      *
      */
-    function signSync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | string): ArrayBuffer;
+    function signSync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): ArrayBuffer;
 
     /**
      * @description Signs data with a private or secret key and resolves to the signature
@@ -704,7 +704,7 @@ declare module 'subtle' {
      *      @return the signature as an ArrayBuffer
      *
      */
-    function signAsync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | string): Promise<ArrayBuffer>;
+    function signAsync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<ArrayBuffer>;
 
     /**
      * @description Verifies a signature and resolves to true or false
@@ -742,7 +742,7 @@ declare module 'subtle' {
      *      @return whether the signature is valid for the data and the key
      *
      */
-    function verify(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | string, data: Class_Buffer | string): Promise<boolean>;
+    function verify(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a signature and resolves to true or false
@@ -780,7 +780,7 @@ declare module 'subtle' {
      *      @return whether the signature is valid for the data and the key
      *
      */
-    function verifySync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | string, data: Class_Buffer | string): boolean;
+    function verifySync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies a signature and resolves to true or false
@@ -818,7 +818,7 @@ declare module 'subtle' {
      *      @return whether the signature is valid for the data and the key
      *
      */
-    function verifyAsync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | string, data: Class_Buffer | string): Promise<boolean>;
+    function verifyAsync(algorithm: FIBJS.GeneralObject | string, key: Class_CryptoKey, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Derives a shared secret with ECDH key agreement

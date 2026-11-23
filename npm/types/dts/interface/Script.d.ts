@@ -124,7 +124,7 @@ declare class Class_Script extends Class_object {
         filename?: string;
         lineOffset?: number;
         columnOffset?: number;
-        cachedData?: Class_Buffer;
+        cachedData?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
         type?: string;
     });
 

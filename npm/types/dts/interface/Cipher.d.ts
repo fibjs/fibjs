@@ -139,7 +139,7 @@ declare class Class_Cipher extends Class_object {
      *      @return returns the current Cipher object
      *
      */
-    setAuthTag(buffer: Class_Buffer | string, encoding?: string): Class_Cipher;
+    setAuthTag(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): Class_Cipher;
 
     /**
      * @description Returns the authentication tag produced by an AEAD encryption
@@ -181,7 +181,7 @@ declare class Class_Cipher extends Class_object {
      *      @return returns the current Cipher object
      *
      */
-    setAAD(buffer: Class_Buffer | string, options?: {
+    setAAD(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         plaintextLength?: number;
     }): Class_Cipher;
@@ -238,7 +238,7 @@ declare class Class_Cipher extends Class_object {
      *      @return returns the updated data
      *
      */
-    update(data: Class_Buffer | string, inputEncoding?: string, outputEncoding?: string): any;
+    update(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, inputEncoding?: string, outputEncoding?: string): any;
 
     /**
      * @description Finalizes the stream and returns the last transformed block

@@ -227,7 +227,7 @@ declare class Class_KeyObject extends Class_object {
         format?: string;
         type?: string;
         cipher?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): any;
 
     /**

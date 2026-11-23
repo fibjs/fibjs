@@ -149,7 +149,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the score as a Buffer, or null when the member is missing
      *
      */
-    score(member: Class_Buffer | string): Class_Buffer;
+    score(member: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Adds num to the score of member and returns the new score
@@ -181,7 +181,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the new score as a Buffer
      *
      */
-    incr(member: Class_Buffer | string, num?: number): Class_Buffer;
+    incr(member: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, num?: number): Class_Buffer;
 
     /**
      * @description Removes one or more members from the sorted set
@@ -293,7 +293,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the rank, or null when the member is missing
      *
      */
-    rank(member: Class_Buffer | string): number;
+    rank(member: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Returns the descending rank of member
@@ -307,7 +307,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @return the rank, or null when the member is missing
      *
      */
-    rankRev(member: Class_Buffer | string): number;
+    rankRev(member: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
 }
 

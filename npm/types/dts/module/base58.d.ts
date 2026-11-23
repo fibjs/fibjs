@@ -90,7 +90,7 @@ declare module 'base58' {
      *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer | string): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Encodes data in base58check format
@@ -113,7 +113,7 @@ declare module 'base58' {
      *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer | string, chk_ver: number): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, chk_ver: number): string;
 
     /**
      * @description Decodes a string into binary data in base58 format

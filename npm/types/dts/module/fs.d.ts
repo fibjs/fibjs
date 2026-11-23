@@ -1719,31 +1719,15 @@ declare module 'fs' {
      *      @return the number of bytes actually read
      *
      */
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
 
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Reads the content of a file by its file descriptor
-     *
-     *      length defaults to 0, which reads no data; a length must be given explicitly to read. position defaults to -1, which reads from the current file position; when position is given, the file pointer is moved there before reading.
-     *
-     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
-     *      @param fd the file descriptor
-     *      @param buffer the Buffer the result is written into
-     *      @param offset the write offset in the Buffer, 0 by default
-     *      @param length the number of bytes to read, 0 by default
-     *      @param position the read position, the current file position by default
-     *      @return the number of bytes actually read
-     *
-     */
-    function readSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function read(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Reads the content of a file by its file descriptor
@@ -1759,7 +1743,23 @@ declare module 'fs' {
      *      @return the number of bytes actually read
      *
      */
-    function readAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function readSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
+
+    /**
+     * @description Reads the content of a file by its file descriptor
+     *
+     *      length defaults to 0, which reads no data; a length must be given explicitly to read. position defaults to -1, which reads from the current file position; when position is given, the file pointer is moved there before reading.
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
+     *      @param buffer the Buffer the result is written into
+     *      @param offset the write offset in the Buffer, 0 by default
+     *      @param length the number of bytes to read, 0 by default
+     *      @param position the read position, the current file position by default
+     *      @return the number of bytes actually read
+     *
+     */
+    function readAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Changes the file mode by its file descriptor. Effective on POSIX systems only.
@@ -3129,31 +3129,15 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes content into a file by its file descriptor
-     *
-     *      length defaults to -1, which writes all the remaining data of buffer from offset. position defaults to -1, which writes from the current file position.
-     *
-     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
-     *      @param fd the file descriptor
-     *      @param buffer the Buffer object to write
-     *      @param offset the read offset in the Buffer, 0 by default
-     *      @param length the number of bytes to write, -1 by default
-     *      @param position the write position, the current file position by default
-     *      @return the number of bytes actually written
-     *
-     */
-    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function write(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -3169,7 +3153,23 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer, offset?: number, length?: number, position?: number): Promise<number>;
+    function writeSync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): number;
+
+    /**
+     * @description Writes content into a file by its file descriptor
+     *
+     *      length defaults to -1, which writes all the remaining data of buffer from offset. position defaults to -1, which writes from the current file position.
+     *
+     *      fd may be an integer descriptor or a FileHandle object; position addresses that descriptor's file position.
+     *      @param fd the file descriptor
+     *      @param buffer the Buffer object to write
+     *      @param offset the read offset in the Buffer, 0 by default
+     *      @param length the number of bytes to write, -1 by default
+     *      @param position the write position, the current file position by default
+     *      @return the number of bytes actually written
+     *
+     */
+    function writeAsync(fd: number | Class_FileHandle | Class_FileHandlePromise, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike, offset?: number, length?: number, position?: number): Promise<number>;
 
     /**
      * @description Writes content into a file by its file descriptor
@@ -3296,15 +3296,15 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
     }): number;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt: {
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3349,7 +3349,7 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3394,7 +3394,7 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: {
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3411,24 +3411,11 @@ declare module 'fs' {
      *      @return the number of bytes written
      *
      */
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): number;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Writes a file with string data encoded by a label
-     *
-     *      The string form is the encoding used for string data; the open flag is 'w'
-     *      and the mode is 0o666.
-     *      @param fname the file name or descriptor
-     *      @param data the data to write
-     *      @param opt the encoding label
-     *      @return the number of bytes written
-     *
-     */
-    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): number;
+    function writeFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Writes a file with string data encoded by a label
@@ -3441,7 +3428,20 @@ declare module 'fs' {
      *      @return the number of bytes written
      *
      */
-    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, opt?: string): Promise<number>;
+    function writeFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): number;
+
+    /**
+     * @description Writes a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'w'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to write
+     *      @param opt the encoding label
+     *      @return the number of bytes written
+     *
+     */
+    function writeFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opt?: string): Promise<number>;
 
     /**
      * @description Appends content to a file, by its file descriptor or by its name
@@ -3464,15 +3464,15 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
     }): number;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options: {
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3499,7 +3499,7 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3526,7 +3526,7 @@ declare module 'fs' {
      *      @return the number of bytes actually written
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: {
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         encoding?: string;
         flag?: string;
         mode?: number;
@@ -3543,24 +3543,11 @@ declare module 'fs' {
      *      @return the number of bytes appended
      *
      */
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): number;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): number;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Appends to a file with string data encoded by a label
-     *
-     *      The string form is the encoding used for string data; the open flag is 'a'
-     *      and the mode is 0o666.
-     *      @param fname the file name or descriptor
-     *      @param data the data to append
-     *      @param options the encoding label
-     *      @return the number of bytes appended
-     *
-     */
-    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): number;
+    function appendFile(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Appends to a file with string data encoded by a label
@@ -3573,7 +3560,20 @@ declare module 'fs' {
      *      @return the number of bytes appended
      *
      */
-    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | string, options?: string): Promise<number>;
+    function appendFileSync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): number;
+
+    /**
+     * @description Appends to a file with string data encoded by a label
+     *
+     *      The string form is the encoding used for string data; the open flag is 'a'
+     *      and the mode is 0o666.
+     *      @param fname the file name or descriptor
+     *      @param data the data to append
+     *      @param options the encoding label
+     *      @return the number of bytes appended
+     *
+     */
+    function appendFileAsync(fname: Class_FileHandle | Class_FileHandlePromise | string | number, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: string): Promise<number>;
 
     /**
      * @description Sets a zip virtual file mapping
@@ -3585,7 +3585,7 @@ declare module 'fs' {
      *      @param data the zip data to map
      *
      */
-    function setZipFS(fname: string, data: Class_Buffer | string): void;
+    function setZipFS(fname: string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Clears zip virtual file mappings

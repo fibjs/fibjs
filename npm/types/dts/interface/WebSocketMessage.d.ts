@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Message.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description The message object exchanged by WebSocket peers, a Message with frame metadata
  *
@@ -173,13 +174,14 @@ declare class Class_WebSocketMessage extends Class_Message {
      *      ```
      *
      */
-    readonly data: any;
+    readonly data: string | Class_Buffer | null;
 
 }
 
 
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Message.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * The promise variant of the WebSocketMessage class: async methods return a Promise as their primary form, and no callback overload is bound (the promise prototype rejects a callback with 20001).
  */
@@ -270,7 +272,7 @@ declare class Class_WebSocketMessagePromise extends Class_MessagePromise {
      *      ```
      *
      */
-    readonly data: any;
+    readonly data: string | Class_Buffer | null;
 
 }
 

@@ -229,9 +229,9 @@ declare class Class_X509CertificateRequest extends Class_object {
      *
      */
     issue(options: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;

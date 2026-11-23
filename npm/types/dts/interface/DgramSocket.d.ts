@@ -383,61 +383,11 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @return the byte length of the datagram payload
      *
      */
-    send(msg: Class_Buffer | string, port: number, address?: string): number;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): number;
 
-    send(msg: Class_Buffer | string, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    send(msg: Class_Buffer | string, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Sends one datagram to the given destination and returns the number of bytes sent
-     *
-     *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
-     *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
-     *      udp4, ::1 for udp6); a host name is accepted and resolved
-     *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
-     *
-     *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
-     *      every local address. A payload larger than 65507 bytes for udp4 (65527 for udp6) throws
-     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. A
-     *      datagram is all-or-nothing, so the returned count is the byte length of the payload: a short
-     *      count is never reported, failures throw instead. The trailing callback form receives
-     *      (err, bytes); sendSync/sendAsync and the promises namespace are generated as well.
-     *
-     *      The byte-range form send(msg, offset, length, port, address) sends the slice
-     *      [offset, offset + length) of the utf8-encoded payload and throws error 20004 for a negative
-     *      offset or a non-positive length; it returns the byte length of that slice.
-     *
-     *      Example — send the last word of a larger payload:
-     *      ```JavaScript
-     *      const dgram = require('dgram');
-     *      const coroutine = require('coroutine');
-     *
-     *      const server = dgram.createSocket('udp4');
-     *      let got = null;
-     *      server.on('message', (msg) => { got = msg.toString(); });
-     *      server.bind(0, '127.0.0.1');
-     *
-     *      const client = dgram.createSocket('udp4');
-     *      const sent = client.send('hello world', 6, 5, server.address().port, '127.0.0.1');
-     *
-     *      let waited = 0;
-     *      while (got === null && waited < 1000) {
-     *          coroutine.sleep(10);
-     *          waited += 10;
-     *      }
-     *      console.log(sent, got); // 5 world
-     *
-     *      client.close();
-     *      server.close();
-     *      ```
-     *      @param msg the datagram payload
-     *      @param port the destination port
-     *      @param address the destination address or host name, empty for the loopback address
-     *      @return the byte length of the datagram payload
-     *
-     */
-    sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -487,7 +437,57 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @return the byte length of the datagram payload
      *
      */
-    sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
+    sendSync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): number;
+
+    /**
+     * @description Sends one datagram to the given destination and returns the number of bytes sent
+     *
+     *      msg may be a Buffer or a string, which is encoded as utf8; the whole payload becomes one
+     *      datagram. address defaults to the loopback address of the socket family (127.0.0.1 for
+     *      udp4, ::1 for udp6); a host name is accepted and resolved
+     *      through the system resolver, which throws ENOTFOUND or EAI_AGAIN for unknown names.
+     *
+     *      An unbound socket is bound automatically first (emitting 'listening') to a random port on
+     *      every local address. A payload larger than 65507 bytes for udp4 (65527 for udp6) throws
+     *      EMSGSIZE, and sending to a broadcast address without setBroadcast(true) throws EACCES. A
+     *      datagram is all-or-nothing, so the returned count is the byte length of the payload: a short
+     *      count is never reported, failures throw instead. The trailing callback form receives
+     *      (err, bytes); sendSync/sendAsync and the promises namespace are generated as well.
+     *
+     *      The byte-range form send(msg, offset, length, port, address) sends the slice
+     *      [offset, offset + length) of the utf8-encoded payload and throws error 20004 for a negative
+     *      offset or a non-positive length; it returns the byte length of that slice.
+     *
+     *      Example — send the last word of a larger payload:
+     *      ```JavaScript
+     *      const dgram = require('dgram');
+     *      const coroutine = require('coroutine');
+     *
+     *      const server = dgram.createSocket('udp4');
+     *      let got = null;
+     *      server.on('message', (msg) => { got = msg.toString(); });
+     *      server.bind(0, '127.0.0.1');
+     *
+     *      const client = dgram.createSocket('udp4');
+     *      const sent = client.send('hello world', 6, 5, server.address().port, '127.0.0.1');
+     *
+     *      let waited = 0;
+     *      while (got === null && waited < 1000) {
+     *          coroutine.sleep(10);
+     *          waited += 10;
+     *      }
+     *      console.log(sent, got); // 5 world
+     *
+     *      client.close();
+     *      server.close();
+     *      ```
+     *      @param msg the datagram payload
+     *      @param port the destination port
+     *      @param address the destination address or host name, empty for the loopback address
+     *      @return the byte length of the datagram payload
+     *
+     */
+    sendAsync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): Promise<number>;
 
     /**
      * @description Sends a byte range of the payload as one datagram
@@ -503,27 +503,11 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @return the byte length of the slice that was sent
      *
      */
-    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): number;
 
-    send(msg: Class_Buffer | string, offset: number, length: number, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
-    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
-
-    /**
-     * @description Sends a byte range of the payload as one datagram
-     *
-     *      offset and length are byte counts; a string msg is encoded as utf8 before slicing. offset
-     *      must be non-negative and length positive, otherwise error 20004 is thrown. The destination
-     *      and the error behavior are the same as in the three-argument form above.
-     *      @param msg the datagram payload
-     *      @param offset the first byte to send
-     *      @param length the number of bytes to send
-     *      @param port the destination port
-     *      @param address the destination address or host name, empty for the loopback address
-     *      @return the byte length of the slice that was sent
-     *
-     */
-    sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description Sends a byte range of the payload as one datagram
@@ -539,7 +523,23 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @return the byte length of the slice that was sent
      *
      */
-    sendAsync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
+    sendSync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): number;
+
+    /**
+     * @description Sends a byte range of the payload as one datagram
+     *
+     *      offset and length are byte counts; a string msg is encoded as utf8 before slicing. offset
+     *      must be non-negative and length positive, otherwise error 20004 is thrown. The destination
+     *      and the error behavior are the same as in the three-argument form above.
+     *      @param msg the datagram payload
+     *      @param offset the first byte to send
+     *      @param length the number of bytes to send
+     *      @param port the destination port
+     *      @param address the destination address or host name, empty for the loopback address
+     *      @return the byte length of the slice that was sent
+     *
+     */
+    sendAsync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
      * @description Returns the local address the socket is bound to, as an object with the family, address and port
@@ -1205,7 +1205,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the datagram payload
      *
      */
-    send(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): Promise<number>;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -1255,7 +1255,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the datagram payload
      *
      */
-    sendSync(msg: Class_Buffer | string, port: number, address?: string): number;
+    sendSync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): number;
 
     /**
      * @description Sends one datagram to the given destination and returns the number of bytes sent
@@ -1305,7 +1305,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the datagram payload
      *
      */
-    sendAsync(msg: Class_Buffer | string, port: number, address?: string): Promise<number>;
+    sendAsync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, port: number, address?: string): Promise<number>;
 
     /**
      * @description Sends a byte range of the payload as one datagram
@@ -1321,7 +1321,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the slice that was sent
      *
      */
-    send(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
+    send(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
      * @description Sends a byte range of the payload as one datagram
@@ -1337,7 +1337,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the slice that was sent
      *
      */
-    sendSync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): number;
+    sendSync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): number;
 
     /**
      * @description Sends a byte range of the payload as one datagram
@@ -1353,7 +1353,7 @@ declare class Class_DgramSocketPromise extends Class_EventEmitter {
      *      @return the byte length of the slice that was sent
      *
      */
-    sendAsync(msg: Class_Buffer | string, offset: number, length: number, port: number, address?: string): Promise<number>;
+    sendAsync(msg: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, length: number, port: number, address?: string): Promise<number>;
 
     /**
      * @description Returns the local address the socket is bound to, as an object with the family, address and port

@@ -224,7 +224,7 @@ declare module 'uuid' {
      *      @return returns the converted uuid string
      *
      */
-    function stringify(arr: Class_Buffer | string, offset?: number): string;
+    function stringify(arr: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset?: number): string;
 
     /**
      * @description Creates a version 1 UUID from the current time, a node id and a clock sequence
@@ -263,7 +263,7 @@ declare module 'uuid' {
         msecs?: number;
         nsecs?: number;
         clockseq?: number;
-        node?: Class_Buffer | any[];
+        node?: Class_Buffer | ArrayBufferView | ArrayBufferLike | any[];
     }): string;
 
     /**
@@ -280,7 +280,7 @@ declare module 'uuid' {
      *      @return returns a generated uuid string
      *
      */
-    function v3(name: string, ns: Class_Buffer | string): string;
+    function v3(name: string, ns: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Creates a version 4 UUID from random bytes
@@ -303,7 +303,7 @@ declare module 'uuid' {
      *
      */
     function v4(options?: {
-        random?: Class_Buffer | any[];
+        random?: Class_Buffer | ArrayBufferView | ArrayBufferLike | any[];
     }): string;
 
     /**
@@ -330,7 +330,7 @@ declare module 'uuid' {
      *      @return returns a generated uuid string
      *
      */
-    function v5(name: string, ns: Class_Buffer | string): string;
+    function v5(name: string, ns: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Gets the version field of a UUID string
@@ -373,7 +373,7 @@ declare module 'uuid' {
         msecs?: number;
         nsecs?: number;
         clockseq?: number;
-        node?: Class_Buffer | any[];
+        node?: Class_Buffer | ArrayBufferView | ArrayBufferLike | any[];
     }): string;
 
     /**

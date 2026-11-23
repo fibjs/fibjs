@@ -135,7 +135,7 @@ declare class Class_TextDecoder extends Class_object {
      *      @return the decoded text
      *
      */
-    decode(data: Class_Buffer | string, opts?: FIBJS.GeneralObject): string;
+    decode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, opts?: FIBJS.GeneralObject): string;
 
     /**
      * @description Finishes a streaming decode and returns the remaining text

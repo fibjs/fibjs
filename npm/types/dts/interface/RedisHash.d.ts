@@ -82,7 +82,7 @@ declare class Class_RedisHash extends Class_object {
      *      @param value the value to store
      *
      */
-    set(field: Class_Buffer | string, value: Class_Buffer | string): void;
+    set(field: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Stores value in field only when the field is missing
@@ -94,7 +94,7 @@ declare class Class_RedisHash extends Class_object {
      *      @param value the value to store
      *
      */
-    setNX(field: Class_Buffer | string, value: Class_Buffer | string): void;
+    setNX(field: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Stores several field/value pairs at once, replacing the fields
@@ -146,7 +146,7 @@ declare class Class_RedisHash extends Class_object {
      *      @return the value as a Buffer, or null when the field or the key does not exist
      *
      */
-    get(field: Class_Buffer | string): Class_Buffer;
+    get(field: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Returns the values of the given fields, one element per field
@@ -200,7 +200,7 @@ declare class Class_RedisHash extends Class_object {
      *      @return the value of the field after the addition
      *
      */
-    incr(field: Class_Buffer | string, num?: number): number;
+    incr(field: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, num?: number): number;
 
     /**
      * @description Returns every field and value of the hash
@@ -261,7 +261,7 @@ declare class Class_RedisHash extends Class_object {
      *      @return true when the field exists
      *
      */
-    exists(field: Class_Buffer | string): boolean;
+    exists(field: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Removes the given fields from the hash

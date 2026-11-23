@@ -325,37 +325,9 @@ declare class Class_Message extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    write(data: Class_Buffer | string): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    write(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
-     *
-     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
-     *      existing content and does not mark the message ended. The count returned for a buffered
-     *      body is not filled reliably by the current implementation, so use length for the body
-     *      size.
-     *
-     *      Example — write appends and readAll rewinds:
-     *      ```JavaScript
-     *      const mq = require('mq');
-     *
-     *      const msg = new mq.Message();
-     *      msg.write('hello');
-     *      msg.write(' world');
-     *      console.log(msg.length); // 11
-     *
-     *      msg.body.rewind();
-     *      console.log(msg.read(5).toString()); // hello
-     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
-     *      ```
-     *      @param data the data to write
-     *      @return false when the caller should wait for the 'drain' event before
-     *      writing more, true otherwise
-     *
-     */
-    writeSync(data: Class_Buffer | string): boolean;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
@@ -383,7 +355,35 @@ declare class Class_Message extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer | string): Promise<boolean>;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
+
+    /**
+     * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
+     *
+     *      Appends to the buffered body, creating an empty one when needed; it does not replace the
+     *      existing content and does not mark the message ended. The count returned for a buffered
+     *      body is not filled reliably by the current implementation, so use length for the body
+     *      size.
+     *
+     *      Example — write appends and readAll rewinds:
+     *      ```JavaScript
+     *      const mq = require('mq');
+     *
+     *      const msg = new mq.Message();
+     *      msg.write('hello');
+     *      msg.write(' world');
+     *      console.log(msg.length); // 11
+     *
+     *      msg.body.rewind();
+     *      console.log(msg.read(5).toString()); // hello
+     *      console.log(msg.readAll().toString()); // hello world (readAll rewinds again)
+     *      ```
+     *      @param data the data to write
+     *      @return false when the caller should wait for the 'drain' event before
+     *      writing more, true otherwise
+     *
+     */
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Writes the given text data
@@ -765,20 +765,9 @@ declare class Class_Message extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer): Class_Message;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Message;
 
-    end(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
-
-    /**
-     * @description Writes the given data and sets the end of current message processing
-     *
-     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
-     *      data is sent.
-     *      @param data the data to write
-     *      @return returns the current message object
-     *
-     */
-    endSync(data: Class_Buffer): Class_Message;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -789,7 +778,18 @@ declare class Class_Message extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer): Promise<Class_MessagePromise>;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Message;
+
+    /**
+     * @description Writes the given data and sets the end of current message processing
+     *
+     *      Appends the buffer to the buffered body (like write) and marks the message as ended; no
+     *      data is sent.
+     *      @param data the data to write
+     *      @return returns the current message object
+     *
+     */
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -801,21 +801,9 @@ declare class Class_Message extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer, encoding: string): Class_Message;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Message;
 
-    end(data: Class_Buffer, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
-
-    /**
-     * @description Writes the given data and sets the end of current message processing
-     *
-     *      Same as end(data) for a Buffer; the encoding parameter is ignored because the data is
-     *      already binary and is kept for overload compatibility.
-     *      @param data the data to write
-     *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
-     *      @return returns the current message object
-     *
-     */
-    endSync(data: Class_Buffer, encoding: string): Class_Message;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string, callback: (err: Error | undefined | null, retVal: Class_Message)=>any): void;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -827,7 +815,19 @@ declare class Class_Message extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<Class_MessagePromise>;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Message;
+
+    /**
+     * @description Writes the given data and sets the end of current message processing
+     *
+     *      Same as end(data) for a Buffer; the encoding parameter is ignored because the data is
+     *      already binary and is kept for overload compatibility.
+     *      @param data the data to write
+     *      @param encoding the encoding to use; since data is a Buffer, this parameter is ignored
+     *      @return returns the current message object
+     *
+     */
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given string data and sets the end of current message processing
@@ -1550,7 +1550,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    write(data: Class_Buffer | string): Promise<boolean>;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
@@ -1578,7 +1578,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeSync(data: Class_Buffer | string): boolean;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Writes the given data; this method is an alias of the corresponding body method; a string data is encoded as utf8
@@ -1606,7 +1606,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      writing more, true otherwise
      *
      */
-    writeAsync(data: Class_Buffer | string): Promise<boolean>;
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Writes the given text data
@@ -1966,7 +1966,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer): Promise<Class_MessagePromise>;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -1977,7 +1977,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endSync(data: Class_Buffer): Class_Message;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Class_Message;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -1988,7 +1988,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer): Promise<Class_MessagePromise>;
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -2000,7 +2000,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    end(data: Class_Buffer, encoding: string): Promise<Class_MessagePromise>;
+    end(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -2012,7 +2012,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endSync(data: Class_Buffer, encoding: string): Class_Message;
+    endSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Class_Message;
 
     /**
      * @description Writes the given data and sets the end of current message processing
@@ -2024,7 +2024,7 @@ declare class Class_MessagePromise extends Class_EventEmitter {
      *      @return returns the current message object
      *
      */
-    endAsync(data: Class_Buffer, encoding: string): Promise<Class_MessagePromise>;
+    endAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, encoding: string): Promise<Class_MessagePromise>;
 
     /**
      * @description Writes the given string data and sets the end of current message processing

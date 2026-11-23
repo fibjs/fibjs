@@ -1111,48 +1111,11 @@ declare class Class_ZipFile extends Class_object {
      *      @param password password used to encrypt the entry, empty for no encryption
      *
      */
-    write(data: Class_Buffer, inZipName: string, password?: string): void;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): void;
 
-    write(data: Class_Buffer, inZipName: string, callback: (err: Error | undefined | null)=>any): void;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, callback: (err: Error | undefined | null)=>any): void;
 
-    write(data: Class_Buffer, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Writes a Buffer as a new entry
-     *
-     *      The data is compressed with Deflate and stored under inZipName; a non-empty password
-     *      encrypts the entry with ZipCrypto. Every entry is stamped with the current local time as
-     *      its date. The archive must be open for writing ("w" or "a"), otherwise the call throws
-     *      `ZipFile: file is closed.`, and the new entry becomes visible to readers at close().
-     *
-     *      Example — write plain and encrypted entries from memory:
-     *      ```JavaScript
-     *      const fs = require('fs');
-     *      const os = require('os');
-     *      const path = require('path');
-     *      const zip = require('zip');
-     *
-     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-zipfile-'));
-     *      const archive = path.join(dir, 'a.zip');
-     *
-     *      let zipfile = zip.open(archive, 'w');
-     *      zipfile.write(Buffer.from('written from memory'), 'memory.txt');
-     *      zipfile.write(Buffer.from('encrypted'), 'secret.txt', 'pw');
-     *      zipfile.close();
-     *
-     *      zipfile = zip.open(archive);
-     *      console.log(zipfile.namelist().join(', ')); // memory.txt, secret.txt
-     *      console.log(zipfile.getinfo('secret.txt').password); // true
-     *      zipfile.close();
-     *
-     *      fs.rmSync(dir, { recursive: true, force: true });
-     *      ```
-     *      @param data the data to write
-     *      @param inZipName the name of the entry inside the archive
-     *      @param password password used to encrypt the entry, empty for no encryption
-     *
-     */
-    writeSync(data: Class_Buffer, inZipName: string, password?: string): void;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Writes a Buffer as a new entry
@@ -1189,7 +1152,44 @@ declare class Class_ZipFile extends Class_object {
      *      @param password password used to encrypt the entry, empty for no encryption
      *
      */
-    writeAsync(data: Class_Buffer, inZipName: string, password?: string): Promise<void>;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): void;
+
+    /**
+     * @description Writes a Buffer as a new entry
+     *
+     *      The data is compressed with Deflate and stored under inZipName; a non-empty password
+     *      encrypts the entry with ZipCrypto. Every entry is stamped with the current local time as
+     *      its date. The archive must be open for writing ("w" or "a"), otherwise the call throws
+     *      `ZipFile: file is closed.`, and the new entry becomes visible to readers at close().
+     *
+     *      Example — write plain and encrypted entries from memory:
+     *      ```JavaScript
+     *      const fs = require('fs');
+     *      const os = require('os');
+     *      const path = require('path');
+     *      const zip = require('zip');
+     *
+     *      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-zipfile-'));
+     *      const archive = path.join(dir, 'a.zip');
+     *
+     *      let zipfile = zip.open(archive, 'w');
+     *      zipfile.write(Buffer.from('written from memory'), 'memory.txt');
+     *      zipfile.write(Buffer.from('encrypted'), 'secret.txt', 'pw');
+     *      zipfile.close();
+     *
+     *      zipfile = zip.open(archive);
+     *      console.log(zipfile.namelist().join(', ')); // memory.txt, secret.txt
+     *      console.log(zipfile.getinfo('secret.txt').password); // true
+     *      zipfile.close();
+     *
+     *      fs.rmSync(dir, { recursive: true, force: true });
+     *      ```
+     *      @param data the data to write
+     *      @param inZipName the name of the entry inside the archive
+     *      @param password password used to encrypt the entry, empty for no encryption
+     *
+     */
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): Promise<void>;
 
     /**
      * @description Writes a stream as a new entry
@@ -2477,7 +2477,7 @@ declare class Class_ZipFilePromise extends Class_object {
      *      @param password password used to encrypt the entry, empty for no encryption
      *
      */
-    write(data: Class_Buffer, inZipName: string, password?: string): Promise<void>;
+    write(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): Promise<void>;
 
     /**
      * @description Writes a Buffer as a new entry
@@ -2514,7 +2514,7 @@ declare class Class_ZipFilePromise extends Class_object {
      *      @param password password used to encrypt the entry, empty for no encryption
      *
      */
-    writeSync(data: Class_Buffer, inZipName: string, password?: string): void;
+    writeSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): void;
 
     /**
      * @description Writes a Buffer as a new entry
@@ -2551,7 +2551,7 @@ declare class Class_ZipFilePromise extends Class_object {
      *      @param password password used to encrypt the entry, empty for no encryption
      *
      */
-    writeAsync(data: Class_Buffer, inZipName: string, password?: string): Promise<void>;
+    writeAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike, inZipName: string, password?: string): Promise<void>;
 
     /**
      * @description Writes a stream as a new entry

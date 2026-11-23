@@ -91,7 +91,7 @@ declare class Class_File extends Class_Blob {
         type?: string;
         endings?: string;
         lastModified?: number;
-        data?: Class_Buffer | string;
+        data?: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         name?: string;
     });
 
@@ -106,11 +106,11 @@ declare class Class_File extends Class_Blob {
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer | string, name: string, options?: {
+    constructor(blobData: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, name: string, options?: {
         type?: string;
         endings?: string;
         lastModified?: number;
-        data?: Class_Buffer | string;
+        data?: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         name?: string;
     });
 
@@ -124,7 +124,7 @@ declare class Class_File extends Class_Blob {
      *
      */
     constructor(options: {
-        data: Class_Buffer | string;
+        data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         type?: string;
         endings?: string;
         lastModified?: number;
@@ -191,7 +191,7 @@ declare class Class_FilePromise extends Class_BlobPromise {
         type?: string;
         endings?: string;
         lastModified?: number;
-        data?: Class_Buffer | string;
+        data?: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         name?: string;
     });
 
@@ -206,11 +206,11 @@ declare class Class_FilePromise extends Class_BlobPromise {
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer | string, name: string, options?: {
+    constructor(blobData: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, name: string, options?: {
         type?: string;
         endings?: string;
         lastModified?: number;
-        data?: Class_Buffer | string;
+        data?: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         name?: string;
     });
 
@@ -224,7 +224,7 @@ declare class Class_FilePromise extends Class_BlobPromise {
      *
      */
     constructor(options: {
-        data: Class_Buffer | string;
+        data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string;
         type?: string;
         endings?: string;
         lastModified?: number;

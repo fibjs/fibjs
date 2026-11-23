@@ -469,45 +469,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function deflate(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function deflate(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function deflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function deflate(data: Class_Buffer | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the deflate algorithm (zlib format)
-     *
-     *      `data` may be a Buffer or a string; a string is encoded as utf8. The level is either
-     *      an integer or an options object read as `{ level }`; the default is
-     *      DEFAULT_COMPRESSION (-1), and a value outside the -1..9 range throws a RangeError
-     *      with code `ERR_OUT_OF_RANGE`. The result
-     *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
-     *      `inflate` or `unzip` decode it. Other options are ignored, and secrets are not
-     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
-     *      (utf8) are accepted. Like every
-     *      async member it has blocking, callback, Sync/Async and `zlib.promises` forms.
-     *
-     *      Example — a fixed input produces a deterministic zlib stream:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      console.log(zlib.deflate('hello, world').toString('hex'));
-     *      // 789ccb48cdc9c9d75128cf2fca4901001d540489
-     *
-     *      // The level trades speed for size; level 0 stores, level 9 compresses.
-     *      const stored = zlib.deflate('abc'.repeat(1000), { level: 0 });
-     *      const best = zlib.deflate('abc'.repeat(1000), { level: 9 });
-     *      console.log(stored.length > best.length); // true
-     *      console.log(zlib.inflate(best).toString() === 'abc'.repeat(1000)); // true
-     *      ```
-     *
-     *      @param data the data to compress
-     *      @param level the compression level or the options
-     *      @return the compressed binary data
-     *
-     */
-    function deflateSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the deflate algorithm (zlib format)
@@ -541,7 +507,41 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function deflateAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflateSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the deflate algorithm (zlib format)
+     *
+     *      `data` may be a Buffer or a string; a string is encoded as utf8. The level is either
+     *      an integer or an options object read as `{ level }`; the default is
+     *      DEFAULT_COMPRESSION (-1), and a value outside the -1..9 range throws a RangeError
+     *      with code `ERR_OUT_OF_RANGE`. The result
+     *      starts with the 0x78 byte of the zlib header and ends with an Adler-32 checksum, and
+     *      `inflate` or `unzip` decode it. Other options are ignored, and secrets are not
+     *      hidden: deflate is a compression algorithm, not an encryption one. Buffer and string
+     *      (utf8) are accepted. Like every
+     *      async member it has blocking, callback, Sync/Async and `zlib.promises` forms.
+     *
+     *      Example — a fixed input produces a deterministic zlib stream:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      console.log(zlib.deflate('hello, world').toString('hex'));
+     *      // 789ccb48cdc9c9d75128cf2fca4901001d540489
+     *
+     *      // The level trades speed for size; level 0 stores, level 9 compresses.
+     *      const stored = zlib.deflate('abc'.repeat(1000), { level: 0 });
+     *      const best = zlib.deflate('abc'.repeat(1000), { level: 9 });
+     *      console.log(stored.length > best.length); // true
+     *      console.log(zlib.inflate(best).toString() === 'abc'.repeat(1000)); // true
+     *      ```
+     *
+     *      @param data the data to compress
+     *      @param level the compression level or the options
+     *      @return the compressed binary data
+     *
+     */
+    function deflateAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -570,40 +570,11 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function deflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function deflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
-     *
-     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (encoded as
-     *      utf8). `stm` receives the compressed bytes at its current position and is left at the
-     *      end, so rewind it before reading. The level must be an integer (an options object is
-     *      a TypeError) and must be in the -1..9 range; a value outside it throws a
-     *      RangeError with code `ERR_OUT_OF_RANGE`. The call finishes the stream with Z_FINISH, so
-     *      no separate `close` is needed, and it returns no value.
-     *
-     *      Example — compress into a memory stream and decode it:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *      const io = require('io');
-     *
-     *      const stm = new io.MemoryStream();
-     *      zlib.deflateTo('hello, world', stm, zlib.BEST_COMPRESSION);
-     *      stm.rewind();
-     *
-     *      console.log(zlib.inflate(stm.readAll()).toString()); // hello, world
-     *      ```
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function deflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (zlib format)
@@ -632,7 +603,36 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data into a stream object with the deflate algorithm (zlib format)
+     *
+     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (encoded as
+     *      utf8). `stm` receives the compressed bytes at its current position and is left at the
+     *      end, so rewind it before reading. The level must be an integer (an options object is
+     *      a TypeError) and must be in the -1..9 range; a value outside it throws a
+     *      RangeError with code `ERR_OUT_OF_RANGE`. The call finishes the stream with Z_FINISH, so
+     *      no separate `close` is needed, and it returns no value.
+     *
+     *      Example — compress into a memory stream and decode it:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      zlib.deflateTo('hello, world', stm, zlib.BEST_COMPRESSION);
+     *      stm.rewind();
+     *
+     *      console.log(zlib.inflate(stm.readAll()).toString()); // hello, world
+     *      ```
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function deflateToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -665,44 +665,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function inflate(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function inflate(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function inflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function inflate(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the deflate algorithm (zlib format)
-     *
-     *      `data` may be a Buffer or a string (decoded as utf8). The size limit is either an
-     *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013] with code
-     *      `ERR_BUFFER_TOO_LARGE`. Only zlib-format input is accepted: gzip or raw deflate data
-     *      fails with `Z_DATA_ERROR` (use `gunzip` or `inflateRaw`). Corrupt data fails with
-     *      `Z_DATA_ERROR`, truncated input fails with `Z_BUF_ERROR`, and a result of zero bytes
-     *      is an empty Buffer.
-     *
-     *      Example — enforce an output limit:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const packed = zlib.deflate('hello, world');
-     *      console.log(zlib.inflate(packed, { maxOutputLength: 1024 }).toString());
-     *      // hello, world
-     *
-     *      try {
-     *          zlib.inflate(packed, { maxOutputLength: 3 });
-     *      } catch (e) {
-     *          console.log(e.name, e.number); // RangeError 20013
-     *      }
-     *      ```
-     *
-     *      @param data the compressed data
-     *      @param maxSize the decompression size limit or the options
-     *      @return the decompressed binary data
-     *
-     */
-    function inflateSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflate(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm (zlib format)
@@ -735,7 +702,40 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function inflateAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflateSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses data compressed with the deflate algorithm (zlib format)
+     *
+     *      `data` may be a Buffer or a string (decoded as utf8). The size limit is either an
+     *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
+     *      limit) and exceeding it throws a RangeError [20013] with code
+     *      `ERR_BUFFER_TOO_LARGE`. Only zlib-format input is accepted: gzip or raw deflate data
+     *      fails with `Z_DATA_ERROR` (use `gunzip` or `inflateRaw`). Corrupt data fails with
+     *      `Z_DATA_ERROR`, truncated input fails with `Z_BUF_ERROR`, and a result of zero bytes
+     *      is an empty Buffer.
+     *
+     *      Example — enforce an output limit:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const packed = zlib.deflate('hello, world');
+     *      console.log(zlib.inflate(packed, { maxOutputLength: 1024 }).toString());
+     *      // hello, world
+     *
+     *      try {
+     *          zlib.inflate(packed, { maxOutputLength: 3 });
+     *      } catch (e) {
+     *          console.log(e.name, e.number); // RangeError 20013
+     *      }
+     *      ```
+     *
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
+     *      @return the decompressed binary data
+     *
+     */
+    function inflateAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -764,40 +764,11 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function inflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function inflateTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object
-     *      (zlib format)
-     *
-     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8). `stm`
-     *      receives the decompressed bytes at its current position and is left at the end, so
-     *      rewind it before reading. `maxSize` is an integer (an options object is a TypeError),
-     *      default -1, and exceeding it throws a RangeError [20013]. Wrong formats fail with
-     *      `Z_DATA_ERROR`, and a result of zero bytes leaves the destination empty.
-     *
-     *      Example — copy the decompressed bytes into a memory stream:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *      const io = require('io');
-     *
-     *      const stm = new io.MemoryStream();
-     *      zlib.inflateTo(zlib.deflate('hello, world'), stm);
-     *      stm.rewind();
-     *
-     *      console.log(stm.readAll().toString()); // hello, world
-     *      ```
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function inflateToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -826,7 +797,36 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the deflate algorithm into a stream object
+     *      (zlib format)
+     *
+     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8). `stm`
+     *      receives the decompressed bytes at its current position and is left at the end, so
+     *      rewind it before reading. `maxSize` is an integer (an options object is a TypeError),
+     *      default -1, and exceeding it throws a RangeError [20013]. Wrong formats fail with
+     *      `Z_DATA_ERROR`, and a result of zero bytes leaves the destination empty.
+     *
+     *      Example — copy the decompressed bytes into a memory stream:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const stm = new io.MemoryStream();
+     *      zlib.inflateTo(zlib.deflate('hello, world'), stm);
+     *      stm.rewind();
+     *
+     *      console.log(stm.readAll().toString()); // hello, world
+     *      ```
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function inflateToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -858,43 +858,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function gzip(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function gzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function gzip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function gzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function gzip(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the gzip algorithm
-     *
-     *      `data` may be a Buffer or a string (encoded as utf8). `options` must be an object and
-     *      only `{ level }` is read, so `zlib.gzip(data, 9)` is a TypeError; the default is
-     *      DEFAULT_COMPRESSION, and a value outside the -1..9 range throws a RangeError
-     *      with code `ERR_OUT_OF_RANGE`. The result is a gzip container
-     *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
-     *      same input and level produce the same bytes in this build. Decode it with `gunzip` or
-     *      `unzip`; `inflate` rejects it. The second argument is the options object; a `dictionary`
-     *      key is ignored.
-     *
-     *      Example — level differences and round trip:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const data = 'abc'.repeat(1000);
-     *      const fast = zlib.gzip(data, { level: 1 });
-     *      const best = zlib.gzip(data, { level: 9 });
-     *
-     *      // The gzip XFL byte records the level hint (4 = fastest, 2 = best, 0 = default).
-     *      console.log(fast[8], best[8]); // 4 2
-     *      console.log(zlib.gunzip(best).toString() === data); // true
-     *      ```
-     *
-     *      @param data the data to compress
-     *      @param options the compression options, read as { level }
-     *      @return the compressed binary data
-     *
-     */
-    function gzipSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function gzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the gzip algorithm
@@ -926,7 +894,39 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function gzipAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the gzip algorithm
+     *
+     *      `data` may be a Buffer or a string (encoded as utf8). `options` must be an object and
+     *      only `{ level }` is read, so `zlib.gzip(data, 9)` is a TypeError; the default is
+     *      DEFAULT_COMPRESSION, and a value outside the -1..9 range throws a RangeError
+     *      with code `ERR_OUT_OF_RANGE`. The result is a gzip container
+     *      that starts with 1f 8b, ends with a CRC-32 trailer and carries a zero mtime, so the
+     *      same input and level produce the same bytes in this build. Decode it with `gunzip` or
+     *      `unzip`; `inflate` rejects it. The second argument is the options object; a `dictionary`
+     *      key is ignored.
+     *
+     *      Example — level differences and round trip:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const data = 'abc'.repeat(1000);
+     *      const fast = zlib.gzip(data, { level: 1 });
+     *      const best = zlib.gzip(data, { level: 9 });
+     *
+     *      // The gzip XFL byte records the level hint (4 = fastest, 2 = best, 0 = default).
+     *      console.log(fast[8], best[8]); // 4 2
+     *      console.log(zlib.gunzip(best).toString() === data); // true
+     *      ```
+     *
+     *      @param data the data to compress
+     *      @param options the compression options, read as { level }
+     *      @return the compressed binary data
+     *
+     */
+    function gzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the gzip algorithm
@@ -941,24 +941,9 @@ declare module 'zlib' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
+    function gzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
 
-    function gzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the gzip algorithm
-     *
-     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8). `stm`
-     *      receives the gzip bytes at its current position and is left at the end, so rewind it
-     *      before reading. There is no options parameter and the default compression level is
-     *      used; use the `Gzip` codec class or `gzip` when a level or the other zlib parameters
-     *      are needed. `close` is implicit: the gzip trailer is written before the call returns.
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *
-     */
-    function gzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
+    function gzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the gzip algorithm
@@ -973,7 +958,22 @@ declare module 'zlib' {
      *      @param stm the stream that stores the compressed data
      *
      */
-    function gzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
+    function gzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): void;
+
+    /**
+     * @description Compresses data into a stream object with the gzip algorithm
+     *
+     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8). `stm`
+     *      receives the gzip bytes at its current position and is left at the end, so rewind it
+     *      before reading. There is no options parameter and the default compression level is
+     *      used; use the `Gzip` codec class or `gzip` when a level or the other zlib parameters
+     *      are needed. `close` is implicit: the gzip trailer is written before the call returns.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *
+     */
+    function gzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise): Promise<void>;
 
     /**
      * @description Decompresses gzip data
@@ -1005,43 +1005,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function gunzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function gunzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function gunzip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function gunzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function gunzip(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses gzip data
-     *
-     *      `data` may be a Buffer or a string (decoded as utf8; gzip data is binary, so a string
-     *      only makes sense for already-binary text). The size limit is an integer or an options
-     *      object read as `{ maxOutputLength }`; the default is -1 (no limit) and exceeding it
-     *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
-     *      members are decoded as a single output; bytes after the last member that are not
-     *      another valid member fail with `Z_DATA_ERROR`. Truncated input fails with
-     *      `Z_BUF_ERROR`, and a zero-byte result is an empty Buffer rather than null.
-     *
-     *      Example — concatenated members form one output:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const members = Buffer.concat([zlib.gzip('hello, '), zlib.gzip('world')]);
-     *      console.log(zlib.gunzip(members).toString()); // hello, world
-     *
-     *      try {
-     *          zlib.gunzip(Buffer.concat([zlib.gzip('hello'), Buffer.from('junk')]));
-     *      } catch (e) {
-     *          console.log(e.code); // Z_DATA_ERROR
-     *      }
-     *      ```
-     *
-     *      @param data the compressed data
-     *      @param maxSize the decompression size limit or the options
-     *      @return the decompressed binary data
-     *
-     */
-    function gunzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function gunzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses gzip data
@@ -1073,7 +1041,39 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function gunzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function gunzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses gzip data
+     *
+     *      `data` may be a Buffer or a string (decoded as utf8; gzip data is binary, so a string
+     *      only makes sense for already-binary text). The size limit is an integer or an options
+     *      object read as `{ maxOutputLength }`; the default is -1 (no limit) and exceeding it
+     *      throws a RangeError [20013]. Only gzip input is accepted, but concatenated gzip
+     *      members are decoded as a single output; bytes after the last member that are not
+     *      another valid member fail with `Z_DATA_ERROR`. Truncated input fails with
+     *      `Z_BUF_ERROR`, and a zero-byte result is an empty Buffer rather than null.
+     *
+     *      Example — concatenated members form one output:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const members = Buffer.concat([zlib.gzip('hello, '), zlib.gzip('world')]);
+     *      console.log(zlib.gunzip(members).toString()); // hello, world
+     *
+     *      try {
+     *          zlib.gunzip(Buffer.concat([zlib.gzip('hello'), Buffer.from('junk')]));
+     *      } catch (e) {
+     *          console.log(e.code); // Z_DATA_ERROR
+     *      }
+     *      ```
+     *
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
+     *      @return the decompressed binary data
+     *
+     */
+    function gunzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -1105,43 +1105,11 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function gunzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function gunzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function gunzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the gzip algorithm into a stream object
-     *
-     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8). `stm`
-     *      receives the decompressed bytes at its current position and is left at the end, so
-     *      rewind it before reading. `maxSize` is an integer (an options object is a TypeError),
-     *      default -1, and exceeding it throws a RangeError [20013]. Concatenated gzip members
-     *      are decoded as one output; non-gzip data fails with `Z_DATA_ERROR`.
-     *
-     *      Example — stream the gzip bytes from a source stream:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *      const io = require('io');
-     *
-     *      const src = new io.MemoryStream();
-     *      src.write(zlib.gzip('hello, world'));
-     *      src.rewind();
-     *
-     *      const stm = new io.MemoryStream();
-     *      zlib.gunzipTo(src, stm);
-     *      stm.rewind();
-     *
-     *      console.log(stm.readAll().toString()); // hello, world
-     *      ```
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function gunzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function gunzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the gzip algorithm into a stream object
@@ -1173,7 +1141,39 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function gunzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function gunzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the gzip algorithm into a stream object
+     *
+     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8). `stm`
+     *      receives the decompressed bytes at its current position and is left at the end, so
+     *      rewind it before reading. `maxSize` is an integer (an options object is a TypeError),
+     *      default -1, and exceeding it throws a RangeError [20013]. Concatenated gzip members
+     *      are decoded as one output; non-gzip data fails with `Z_DATA_ERROR`.
+     *
+     *      Example — stream the gzip bytes from a source stream:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(zlib.gzip('hello, world'));
+     *      src.rewind();
+     *
+     *      const stm = new io.MemoryStream();
+     *      zlib.gunzipTo(src, stm);
+     *      stm.rewind();
+     *
+     *      console.log(stm.readAll().toString()); // hello, world
+     *      ```
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function gunzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Compresses data with the deflateRaw algorithm
@@ -1200,38 +1200,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function deflateRaw(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function deflateRaw(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function deflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function deflateRaw(data: Class_Buffer | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the deflateRaw algorithm
-     *
-     *      `data` may be a Buffer or a string (encoded as utf8). The level handling is the same
-     *      as `deflate`: an integer or an options object read as `{ level }`, default
-     *      DEFAULT_COMPRESSION, and a value outside the -1..9 range throws a RangeError
-     *      with code `ERR_OUT_OF_RANGE`. Raw deflate carries no header and no
-     *      checksum, which makes the output smaller than the zlib form and is what protocols
-     *      such as WebSocket permessage-deflate embed; only `inflateRaw` decodes it. The result
-     *      has no identifiable magic bytes, so it cannot be recognized by `unzip`.
-     *
-     *      Example — raw streams carry no identifying header:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const raw = zlib.deflateRaw('hello, world');
-     *      console.log(raw[0].toString(16));              // cb, not 78 or 1f
-     *      console.log(zlib.inflateRaw(raw).toString());  // hello, world
-     *      ```
-     *
-     *      @param data the data to compress
-     *      @param level the compression level or the options
-     *      @return the compressed binary data
-     *
-     */
-    function deflateRawSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function deflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the deflateRaw algorithm
@@ -1258,7 +1231,34 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function deflateRawAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function deflateRawSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the deflateRaw algorithm
+     *
+     *      `data` may be a Buffer or a string (encoded as utf8). The level handling is the same
+     *      as `deflate`: an integer or an options object read as `{ level }`, default
+     *      DEFAULT_COMPRESSION, and a value outside the -1..9 range throws a RangeError
+     *      with code `ERR_OUT_OF_RANGE`. Raw deflate carries no header and no
+     *      checksum, which makes the output smaller than the zlib form and is what protocols
+     *      such as WebSocket permessage-deflate embed; only `inflateRaw` decodes it. The result
+     *      has no identifiable magic bytes, so it cannot be recognized by `unzip`.
+     *
+     *      Example — raw streams carry no identifying header:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const raw = zlib.deflateRaw('hello, world');
+     *      console.log(raw[0].toString(16));              // cb, not 78 or 1f
+     *      console.log(zlib.inflateRaw(raw).toString());  // hello, world
+     *      ```
+     *
+     *      @param data the data to compress
+     *      @param level the compression level or the options
+     *      @return the compressed binary data
+     *
+     */
+    function deflateRawAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -1290,43 +1290,11 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function deflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function deflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
-     *
-     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8). `stm`
-     *      receives the raw deflate bytes at its current position and is left at the end, so
-     *      rewind it before reading. The level must be an integer (an options object is a
-     *      TypeError) and must be in the -1..9 range; a value outside it throws a
-     *      RangeError with code `ERR_OUT_OF_RANGE`; the stream is finished before the call returns.
-     *
-     *      Example — compress a source stream into a memory stream:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *      const io = require('io');
-     *
-     *      const src = new io.MemoryStream();
-     *      src.write('hello, world');
-     *      src.rewind();
-     *
-     *      const stm = new io.MemoryStream();
-     *      zlib.deflateRawTo(src, stm);
-     *      stm.rewind();
-     *
-     *      console.log(zlib.inflateRaw(stm.readAll()).toString()); // hello, world
-     *      ```
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function deflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function deflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
@@ -1358,7 +1326,39 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function deflateRawToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function deflateRawToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data into a stream object with the deflate algorithm (deflateRaw)
+     *
+     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8). `stm`
+     *      receives the raw deflate bytes at its current position and is left at the end, so
+     *      rewind it before reading. The level must be an integer (an options object is a
+     *      TypeError) and must be in the -1..9 range; a value outside it throws a
+     *      RangeError with code `ERR_OUT_OF_RANGE`; the stream is finished before the call returns.
+     *
+     *      Example — compress a source stream into a memory stream:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write('hello, world');
+     *      src.rewind();
+     *
+     *      const stm = new io.MemoryStream();
+     *      zlib.deflateRawTo(src, stm);
+     *      stm.rewind();
+     *
+     *      console.log(zlib.inflateRaw(stm.readAll()).toString()); // hello, world
+     *      ```
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function deflateRawToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses deflateRaw data
@@ -1389,42 +1389,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function inflateRaw(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function inflateRaw(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function inflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function inflateRaw(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses deflateRaw data
-     *
-     *      `data` may be a Buffer or a string (decoded as utf8). The size limit is an integer or
-     *      an options object read as `{ maxOutputLength }`; the default is -1 (no limit) and
-     *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
-     *      zlib-format data fails with `Z_DATA_ERROR` here (use `inflate`), gzip data with
-     *      `gunzip`. Truncated input fails with `Z_BUF_ERROR`
-     *      and corrupt data fails with `Z_DATA_ERROR`; a zero-byte result is an empty Buffer.
-     *
-     *      Example — decode raw data and reject the wrapped formats:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const raw = zlib.deflateRaw('hello, world');
-     *      console.log(zlib.inflateRaw(raw).toString()); // hello, world
-     *
-     *      try {
-     *          zlib.inflate(raw);
-     *      } catch (e) {
-     *          console.log(e.code); // Z_DATA_ERROR
-     *      }
-     *      ```
-     *
-     *      @param data the compressed data
-     *      @param maxSize the decompression size limit or the options
-     *      @return the decompressed binary data
-     *
-     */
-    function inflateRawSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function inflateRaw(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses deflateRaw data
@@ -1455,7 +1424,38 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function inflateRawAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function inflateRawSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses deflateRaw data
+     *
+     *      `data` may be a Buffer or a string (decoded as utf8). The size limit is an integer or
+     *      an options object read as `{ maxOutputLength }`; the default is -1 (no limit) and
+     *      exceeding it throws a RangeError [20013]. Only raw deflate input is accepted:
+     *      zlib-format data fails with `Z_DATA_ERROR` here (use `inflate`), gzip data with
+     *      `gunzip`. Truncated input fails with `Z_BUF_ERROR`
+     *      and corrupt data fails with `Z_DATA_ERROR`; a zero-byte result is an empty Buffer.
+     *
+     *      Example — decode raw data and reject the wrapped formats:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const raw = zlib.deflateRaw('hello, world');
+     *      console.log(zlib.inflateRaw(raw).toString()); // hello, world
+     *
+     *      try {
+     *          zlib.inflate(raw);
+     *      } catch (e) {
+     *          console.log(e.code); // Z_DATA_ERROR
+     *      }
+     *      ```
+     *
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
+     *      @return the decompressed binary data
+     *
+     */
+    function inflateRawAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -1488,44 +1488,11 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function inflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function inflateRawTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the deflate algorithm into a stream object
-     *      (inflateRaw)
-     *
-     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8). `stm`
-     *      receives the decompressed bytes at its current position and is left at the end, so
-     *      rewind it before reading. `maxSize` is an integer (an options object is a TypeError),
-     *      default -1, and exceeding it throws a RangeError [20013]. Non-raw input fails with
-     *      `Z_DATA_ERROR`, and a zero-byte result leaves the destination empty.
-     *
-     *      Example — decompress raw bytes from a memory stream:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *      const io = require('io');
-     *
-     *      const src = new io.MemoryStream();
-     *      src.write(zlib.deflateRaw('hello, world'));
-     *      src.rewind();
-     *
-     *      const stm = new io.MemoryStream();
-     *      zlib.inflateRawTo(src, stm, 1024);
-     *      stm.rewind();
-     *
-     *      console.log(stm.readAll().toString()); // hello, world
-     *      ```
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function inflateRawToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function inflateRawTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the deflate algorithm into a stream object
@@ -1558,7 +1525,40 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function inflateRawToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function inflateRawToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the deflate algorithm into a stream object
+     *      (inflateRaw)
+     *
+     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8). `stm`
+     *      receives the decompressed bytes at its current position and is left at the end, so
+     *      rewind it before reading. `maxSize` is an integer (an options object is a TypeError),
+     *      default -1, and exceeding it throws a RangeError [20013]. Non-raw input fails with
+     *      `Z_DATA_ERROR`, and a zero-byte result leaves the destination empty.
+     *
+     *      Example — decompress raw bytes from a memory stream:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *      const io = require('io');
+     *
+     *      const src = new io.MemoryStream();
+     *      src.write(zlib.deflateRaw('hello, world'));
+     *      src.rewind();
+     *
+     *      const stm = new io.MemoryStream();
+     *      zlib.inflateRawTo(src, stm, 1024);
+     *      stm.rewind();
+     *
+     *      console.log(stm.readAll().toString()); // hello, world
+     *      ```
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function inflateRawToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Creates a zlib-format compressor that writes into `to`
@@ -1621,37 +1621,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function zip(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function zip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function zip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function zip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function zip(data: Class_Buffer | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the zip algorithm
-     *
-     *      Compatibility alias of `deflate`: in this build both produce the same zlib-format
-     *      stream, so the result decodes with `inflate` or `unzip` (raw deflate is not what this
-     *      member writes). The level handling is the same as `deflate` (an integer or an options
-     *      object read as `{ level }`, default DEFAULT_COMPRESSION; a value outside -1..9 throws
-     *      a RangeError with code `ERR_OUT_OF_RANGE`). Older fibjs code
-     *      uses this name; the archive format handled by the `zip` module is unrelated.
-     *
-     *      Example — zip output is a deflate stream:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const data = 'hello, world';
-     *      console.log(zlib.zip(data).equals(zlib.deflate(data))); // true
-     *      console.log(zlib.unzip(zlib.zip(data)).toString());     // hello, world
-     *      ```
-     *
-     *      @param data the data to compress
-     *      @param level the compression level or the options
-     *      @return the compressed binary data
-     *
-     */
-    function zipSync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+    function zip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the zip algorithm
@@ -1677,7 +1651,33 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function zipAsync(data: Class_Buffer | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the zip algorithm
+     *
+     *      Compatibility alias of `deflate`: in this build both produce the same zlib-format
+     *      stream, so the result decodes with `inflate` or `unzip` (raw deflate is not what this
+     *      member writes). The level handling is the same as `deflate` (an integer or an options
+     *      object read as `{ level }`, default DEFAULT_COMPRESSION; a value outside -1..9 throws
+     *      a RangeError with code `ERR_OUT_OF_RANGE`). Older fibjs code
+     *      uses this name; the archive format handled by the `zip` module is unrelated.
+     *
+     *      Example — zip output is a deflate stream:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const data = 'hello, world';
+     *      console.log(zlib.zip(data).equals(zlib.deflate(data))); // true
+     *      console.log(zlib.unzip(zlib.zip(data)).toString());     // hello, world
+     *      ```
+     *
+     *      @param data the data to compress
+     *      @param level the compression level or the options
+     *      @return the compressed binary data
+     *
+     */
+    function zipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, level?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -1694,28 +1694,11 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function zipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
 
-    function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function zipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function zipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data into a stream object with the zip algorithm
-     *
-     *      Alias of `deflateTo`: `data` may be a Buffer, a source Stream (copied to its end) or
-     *      a string (utf8), and `stm` receives the zlib-format bytes at its current position and
-     *      is left at the end, so rewind it before reading. The level must be an integer and is
-     *      in the -1..9 range; a value outside it throws a RangeError with code
-     *      `ERR_OUT_OF_RANGE`, and the stream is finished before the call returns. The result is
-     *      identical to the one `deflateTo` produces.
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param level the compression level, default DEFAULT_COMPRESSION
-     *
-     */
-    function zipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+    function zipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data into a stream object with the zip algorithm
@@ -1732,7 +1715,24 @@ declare module 'zlib' {
      *      @param level the compression level, default DEFAULT_COMPRESSION
      *
      */
-    function zipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
+    function zipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): void;
+
+    /**
+     * @description Compresses data into a stream object with the zip algorithm
+     *
+     *      Alias of `deflateTo`: `data` may be a Buffer, a source Stream (copied to its end) or
+     *      a string (utf8), and `stm` receives the zlib-format bytes at its current position and
+     *      is left at the end, so rewind it before reading. The level must be an integer and is
+     *      in the -1..9 range; a value outside it throws a RangeError with code
+     *      `ERR_OUT_OF_RANGE`, and the stream is finished before the call returns. The result is
+     *      identical to the one `deflateTo` produces.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param level the compression level, default DEFAULT_COMPRESSION
+     *
+     */
+    function zipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, level?: number): Promise<void>;
 
     /**
      * @description Decompresses zip data
@@ -1765,44 +1765,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function unzip(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function unzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
 
-    function unzip(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function unzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function unzip(data: Class_Buffer | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses zip data
-     *
-     *      `unzip` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
-     *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
-     *      formats fail with `Z_DATA_ERROR`. The result is identical
-     *      to `gunzip` for gzip data and to `inflate` for zlib data. The size limit is an
-     *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
-     *      limit) and exceeding it throws a RangeError [20013] with code `ERR_BUFFER_TOO_LARGE`.
-     *      A zero-byte result is an empty Buffer, and truncated input fails with `Z_BUF_ERROR`.
-     *
-     *      Example — one decompressor for both containers:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      console.log(zlib.unzip(zlib.gzip('gzip data')).toString());    // gzip data
-     *      console.log(zlib.unzip(zlib.deflate('zlib data')).toString()); // zlib data
-     *
-     *      // Raw deflate has no recognizable header and is rejected.
-     *      try {
-     *          zlib.unzip(zlib.deflateRaw('raw data'));
-     *      } catch (e) {
-     *          console.log(e.code); // Z_DATA_ERROR
-     *      }
-     *      ```
-     *
-     *      @param data the compressed data
-     *      @param maxSize the decompression size limit or the options
-     *      @return the decompressed binary data
-     *
-     */
-    function unzipSync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+    function unzip(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize: number | FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses zip data
@@ -1835,7 +1802,40 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function unzipAsync(data: Class_Buffer | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function unzipSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses zip data
+     *
+     *      `unzip` detects the container from the data itself: gzip (first bytes 1f 8b, needs a
+     *      complete 10-byte header) or zlib format (first byte 0x78); raw deflate and unknown
+     *      formats fail with `Z_DATA_ERROR`. The result is identical
+     *      to `gunzip` for gzip data and to `inflate` for zlib data. The size limit is an
+     *      integer or an options object read as `{ maxOutputLength }`; the default is -1 (no
+     *      limit) and exceeding it throws a RangeError [20013] with code `ERR_BUFFER_TOO_LARGE`.
+     *      A zero-byte result is an empty Buffer, and truncated input fails with `Z_BUF_ERROR`.
+     *
+     *      Example — one decompressor for both containers:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      console.log(zlib.unzip(zlib.gzip('gzip data')).toString());    // gzip data
+     *      console.log(zlib.unzip(zlib.deflate('zlib data')).toString()); // zlib data
+     *
+     *      // Raw deflate has no recognizable header and is rejected.
+     *      try {
+     *          zlib.unzip(zlib.deflateRaw('raw data'));
+     *      } catch (e) {
+     *          console.log(e.code); // Z_DATA_ERROR
+     *      }
+     *      ```
+     *
+     *      @param data the compressed data
+     *      @param maxSize the decompression size limit or the options
+     *      @return the decompressed binary data
+     *
+     */
+    function unzipAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, maxSize?: number | FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -1851,27 +1851,11 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function unzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
 
-    function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function unzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function unzipTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses data compressed with the zip algorithm into a stream object
-     *
-     *      The stream form of `unzip`: `data` may be a Buffer, a source Stream (copied to its
-     *      end) or a string (utf8), and `stm` receives the decompressed bytes at its current
-     *      position and is left at the end, so rewind it before reading. `maxSize` is an
-     *      integer, default -1, and exceeding it throws a RangeError [20013]; gzip and
-     *      zlib-format input are both accepted, raw deflate fails with `Z_DATA_ERROR`.
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *
-     */
-    function unzipToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+    function unzipTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses data compressed with the zip algorithm into a stream object
@@ -1887,7 +1871,23 @@ declare module 'zlib' {
      *      @param maxSize the decompression size limit, default -1, no limit
      *
      */
-    function unzipToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
+    function unzipToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): void;
+
+    /**
+     * @description Decompresses data compressed with the zip algorithm into a stream object
+     *
+     *      The stream form of `unzip`: `data` may be a Buffer, a source Stream (copied to its
+     *      end) or a string (utf8), and `stm` receives the decompressed bytes at its current
+     *      position and is left at the end, so rewind it before reading. `maxSize` is an
+     *      integer, default -1, and exceeding it throws a RangeError [20013]; gzip and
+     *      zlib-format input are both accepted, raw deflate fails with `Z_DATA_ERROR`.
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *
+     */
+    function unzipToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number): Promise<void>;
 
     /**
      * @description Computes the CRC-32 (IEEE 802.3) checksum of the data
@@ -1931,7 +1931,7 @@ declare module 'zlib' {
      *      @return the unsigned 32-bit CRC-32 checksum
      *
      */
-    function crc32(data: Class_Buffer | string, value?: number): number;
+    function crc32(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value?: number): number;
 
     /**
      * @description Creates a zstd compressor that writes into `to`
@@ -2015,39 +2015,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function zstdCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function zstdCompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function zstdCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function zstdCompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the zstd algorithm in one call
-     *
-     *      `data` may be a Buffer or a string (encoded as utf8). The result is a complete zstd
-     *      frame, the format `zstdDecompress` and the zstd command line tool read. `opts` is the
-     *      same options object `createZstdCompress` takes; `level` defaults to 3 and
-     *      `pledgedSrcSize` defaults to the length of the input, so the frame header always
-     *      carries the content size in this form.
-     *
-     *      Example — round trip and a level comparison:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const text = 'abc'.repeat(1000);
-     *      const fast = zlib.zstdCompress(text, { level: 1 });
-     *      const small = zlib.zstdCompress(text, { level: 19 });
-     *
-     *      console.log(small.length < fast.length);              // true
-     *      console.log(zlib.zstdDecompress(small).toString() === text); // true
-     *      ```
-     *
-     *      @param data the data to compress
-     *      @param options compression options
-     *      @return the compressed binary data
-     *
-     */
-    function zstdCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the zstd algorithm in one call
@@ -2075,7 +2047,35 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function zstdCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdCompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the zstd algorithm in one call
+     *
+     *      `data` may be a Buffer or a string (encoded as utf8). The result is a complete zstd
+     *      frame, the format `zstdDecompress` and the zstd command line tool read. `opts` is the
+     *      same options object `createZstdCompress` takes; `level` defaults to 3 and
+     *      `pledgedSrcSize` defaults to the length of the input, so the frame header always
+     *      carries the content size in this form.
+     *
+     *      Example — round trip and a level comparison:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.zstdCompress(text, { level: 1 });
+     *      const small = zlib.zstdCompress(text, { level: 19 });
+     *
+     *      console.log(small.length < fast.length);              // true
+     *      console.log(zlib.zstdDecompress(small).toString() === text); // true
+     *      ```
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function zstdCompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses zstd data in one call
@@ -2091,27 +2091,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function zstdDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function zstdDecompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function zstdDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function zstdDecompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses zstd data in one call
-     *
-     *      `data` may be a Buffer or a string (decoded as utf8). Concatenated frames are all
-     *      decoded; corrupt input or a frame whose window exceeds `windowBits` throws an Error
-     *      whose `code` is the zstd error name. `opts` carries `windowBits` and `params` as
-     *      `createZstdDecompress` does. A zero-byte result is an empty Buffer, matching the
-     *      other decompressors of this module.
-     *
-     *      @param data the compressed data
-     *      @param options decompression options
-     *      @return the decompressed binary data
-     *
-     */
-    function zstdDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function zstdDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses zstd data in one call
@@ -2127,7 +2111,23 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function zstdDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function zstdDecompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses zstd data in one call
+     *
+     *      `data` may be a Buffer or a string (decoded as utf8). Concatenated frames are all
+     *      decoded; corrupt input or a frame whose window exceeds `windowBits` throws an Error
+     *      whose `code` is the zstd error name. `opts` carries `windowBits` and `params` as
+     *      `createZstdDecompress` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function zstdDecompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the zstd algorithm into a stream object
@@ -2141,25 +2141,11 @@ declare module 'zlib' {
      *      @param options compression options
      *
      */
-    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function zstdCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
-    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function zstdCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function zstdCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data with the zstd algorithm into a stream object
-     *
-     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
-     *      `stm` receives the compressed bytes at its current position and is left at the end,
-     *      so rewind it before reading. The options are the ones `zstdCompress` takes.
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param options compression options
-     *
-     */
-    function zstdCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function zstdCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data with the zstd algorithm into a stream object
@@ -2173,7 +2159,21 @@ declare module 'zlib' {
      *      @param options compression options
      *
      */
-    function zstdCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdCompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Compresses data with the zstd algorithm into a stream object
+     *
+     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      `stm` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones `zstdCompress` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function zstdCompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses zstd data into a stream object
@@ -2189,29 +2189,13 @@ declare module 'zlib' {
      *      @param options decompression options
      *
      */
-    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function zstdDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
 
-    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function zstdDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
+    function zstdDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
-    function zstdDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses zstd data into a stream object
-     *
-     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
-     *      `stm` receives the decompressed bytes at its current position and is left at the end,
-     *      so rewind it before reading. `maxSize` bounds the total output, default -1 (no
-     *      limit), and exceeding it throws a RangeError [20013].
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *      @param options decompression options
-     *
-     */
-    function zstdDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function zstdDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses zstd data into a stream object
@@ -2227,7 +2211,23 @@ declare module 'zlib' {
      *      @param options decompression options
      *
      */
-    function zstdDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function zstdDecompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Decompresses zstd data into a stream object
+     *
+     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      `stm` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. `maxSize` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013].
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function zstdDecompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Creates a Brotli compressor that writes into `to`
@@ -2311,38 +2311,11 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function brotliCompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function brotliCompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function brotliCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function brotliCompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Compresses data with the Brotli algorithm in one call
-     *
-     *      `data` may be a Buffer or a string (encoded as utf8). The result is a complete Brotli
-     *      stream, the format `brotliDecompress` and the brotli command line tool read. `opts`
-     *      is the same options object `createBrotliCompress` takes; the quality defaults to
-     *      `BROTLI_DEFAULT_QUALITY` (11) and `level` is accepted as its alias.
-     *
-     *      Example — round trip and a quality comparison:
-     *      ```JavaScript
-     *      const zlib = require('zlib');
-     *
-     *      const text = 'abc'.repeat(1000);
-     *      const fast = zlib.brotliCompress(text, { level: 1 });
-     *      const small = zlib.brotliCompress(text, { level: 11 });
-     *
-     *      console.log(small.length <= fast.length);                     // true
-     *      console.log(zlib.brotliDecompress(small).toString() === text); // true
-     *      ```
-     *
-     *      @param data the data to compress
-     *      @param options compression options
-     *      @return the compressed binary data
-     *
-     */
-    function brotliCompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliCompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Compresses data with the Brotli algorithm in one call
@@ -2369,7 +2342,34 @@ declare module 'zlib' {
      *      @return the compressed binary data
      *
      */
-    function brotliCompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliCompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Compresses data with the Brotli algorithm in one call
+     *
+     *      `data` may be a Buffer or a string (encoded as utf8). The result is a complete Brotli
+     *      stream, the format `brotliDecompress` and the brotli command line tool read. `opts`
+     *      is the same options object `createBrotliCompress` takes; the quality defaults to
+     *      `BROTLI_DEFAULT_QUALITY` (11) and `level` is accepted as its alias.
+     *
+     *      Example — round trip and a quality comparison:
+     *      ```JavaScript
+     *      const zlib = require('zlib');
+     *
+     *      const text = 'abc'.repeat(1000);
+     *      const fast = zlib.brotliCompress(text, { level: 1 });
+     *      const small = zlib.brotliCompress(text, { level: 11 });
+     *
+     *      console.log(small.length <= fast.length);                     // true
+     *      console.log(zlib.brotliDecompress(small).toString() === text); // true
+     *      ```
+     *
+     *      @param data the data to compress
+     *      @param options compression options
+     *      @return the compressed binary data
+     *
+     */
+    function brotliCompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Decompresses Brotli data in one call
@@ -2385,27 +2385,11 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function brotliDecompress(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
 
-    function brotliDecompress(data: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function brotliDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function brotliDecompress(data: Class_Buffer | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Decompresses Brotli data in one call
-     *
-     *      `data` may be a Buffer or a string (decoded as utf8). Corrupt input throws an Error
-     *      whose `code` is the Brotli decoder error name (for example
-     *      `BROTLI_DECODER_ERROR_FORMAT_RESERVED`). `opts` carries `params` as
-     *      `createBrotliDecompress` does. A zero-byte result is an empty Buffer, matching the
-     *      other decompressors of this module.
-     *
-     *      @param data the compressed data
-     *      @param options decompression options
-     *      @return the decompressed binary data
-     *
-     */
-    function brotliDecompressSync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Class_Buffer;
+    function brotliDecompress(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Decompresses Brotli data in one call
@@ -2421,7 +2405,23 @@ declare module 'zlib' {
      *      @return the decompressed binary data
      *
      */
-    function brotliDecompressAsync(data: Class_Buffer | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
+    function brotliDecompressSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Class_Buffer;
+
+    /**
+     * @description Decompresses Brotli data in one call
+     *
+     *      `data` may be a Buffer or a string (decoded as utf8). Corrupt input throws an Error
+     *      whose `code` is the Brotli decoder error name (for example
+     *      `BROTLI_DECODER_ERROR_FORMAT_RESERVED`). `opts` carries `params` as
+     *      `createBrotliDecompress` does. A zero-byte result is an empty Buffer, matching the
+     *      other decompressors of this module.
+     *
+     *      @param data the compressed data
+     *      @param options decompression options
+     *      @return the decompressed binary data
+     *
+     */
+    function brotliDecompressAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: FIBJS.GeneralObject): Promise<Class_Buffer>;
 
     /**
      * @description Compresses data with the Brotli algorithm into a stream object
@@ -2435,25 +2435,11 @@ declare module 'zlib' {
      *      @param options compression options
      *
      */
-    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function brotliCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
 
-    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function brotliCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function brotliCompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Compresses data with the Brotli algorithm into a stream object
-     *
-     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
-     *      `stm` receives the compressed bytes at its current position and is left at the end,
-     *      so rewind it before reading. The options are the ones `brotliCompress` takes.
-     *
-     *      @param data the data to compress
-     *      @param stm the stream that stores the compressed data
-     *      @param options compression options
-     *
-     */
-    function brotliCompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+    function brotliCompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Compresses data with the Brotli algorithm into a stream object
@@ -2467,7 +2453,21 @@ declare module 'zlib' {
      *      @param options compression options
      *
      */
-    function brotliCompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliCompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Compresses data with the Brotli algorithm into a stream object
+     *
+     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      `stm` receives the compressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. The options are the ones `brotliCompress` takes.
+     *
+     *      @param data the data to compress
+     *      @param stm the stream that stores the compressed data
+     *      @param options compression options
+     *
+     */
+    function brotliCompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, options?: FIBJS.GeneralObject): Promise<void>;
 
     /**
      * @description Decompresses Brotli data into a stream object
@@ -2484,30 +2484,13 @@ declare module 'zlib' {
      *      @param options decompression options
      *
      */
-    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function brotliDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
 
-    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
+    function brotliDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, callback: (err: Error | undefined | null)=>any): void;
 
-    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
+    function brotliDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, callback: (err: Error | undefined | null)=>any): void;
 
-    function brotliDecompressTo(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description Decompresses Brotli data into a stream object
-     *
-     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
-     *      `stm` receives the decompressed bytes at its current position and is left at the end,
-     *      so rewind it before reading. `maxSize` bounds the total output, default -1 (no
-     *      limit), and exceeding it throws a RangeError [20013] with code
-     *      `ERR_BUFFER_TOO_LARGE`.
-     *
-     *      @param data the data to decompress
-     *      @param stm the stream that stores the decompressed data
-     *      @param maxSize the decompression size limit, default -1, no limit
-     *      @param options decompression options
-     *
-     */
-    function brotliDecompressToSync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+    function brotliDecompressTo(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize: number, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description Decompresses Brotli data into a stream object
@@ -2524,7 +2507,24 @@ declare module 'zlib' {
      *      @param options decompression options
      *
      */
-    function brotliDecompressToAsync(data: Class_Buffer | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
+    function brotliDecompressToSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): void;
+
+    /**
+     * @description Decompresses Brotli data into a stream object
+     *
+     *      `data` may be a Buffer, a source Stream (copied to its end) or a string (utf8), and
+     *      `stm` receives the decompressed bytes at its current position and is left at the end,
+     *      so rewind it before reading. `maxSize` bounds the total output, default -1 (no
+     *      limit), and exceeding it throws a RangeError [20013] with code
+     *      `ERR_BUFFER_TOO_LARGE`.
+     *
+     *      @param data the data to decompress
+     *      @param stm the stream that stores the decompressed data
+     *      @param maxSize the decompression size limit, default -1, no limit
+     *      @param options decompression options
+     *
+     */
+    function brotliDecompressToAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_Stream | Class_StreamPromise | string, stm: Class_Stream | Class_StreamPromise, maxSize?: number, options?: FIBJS.GeneralObject): Promise<void>;
 
 }
 

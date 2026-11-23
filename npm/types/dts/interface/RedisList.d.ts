@@ -174,7 +174,7 @@ declare class Class_RedisList extends Class_object {
      *      @param value the value to store
      *
      */
-    set(index: number, value: Class_Buffer | string): void;
+    set(index: number, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Returns the element at the given index
@@ -200,7 +200,7 @@ declare class Class_RedisList extends Class_object {
      *      @return the length of the list after the insert, -1 when pivot was not found
      *
      */
-    insertBefore(pivot: Class_Buffer | string, value: Class_Buffer | string): number;
+    insertBefore(pivot: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Inserts value just after the first element equal to pivot
@@ -214,7 +214,7 @@ declare class Class_RedisList extends Class_object {
      *      @return the length of the list after the insert, -1 when pivot was not found
      *
      */
-    insertAfter(pivot: Class_Buffer | string, value: Class_Buffer | string): number;
+    insertAfter(pivot: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Removes elements equal to value
@@ -230,7 +230,7 @@ declare class Class_RedisList extends Class_object {
      *      @return the number of elements that were removed
      *
      */
-    remove(count: number, value: Class_Buffer | string): number;
+    remove(count: number, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Keeps only the elements inside the given range

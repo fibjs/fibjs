@@ -177,7 +177,7 @@ declare class Class_RTCDataChannel extends Class_EventEmitter {
      *      @param data the data to send
      *
      */
-    send(data: Class_Buffer | string): void;
+    send(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description closes the channel

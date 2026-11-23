@@ -107,7 +107,7 @@ declare class Class_FormData extends Class_HttpCollection {
      *      @param boundary the boundary string used to parse the data
      *
      */
-    constructor(init: Class_Buffer, boundary: string);
+    constructor(init: Class_Buffer | ArrayBufferView | ArrayBufferLike, boundary: string);
 
     /**
      * @description Creates a FormData by parsing the bytes of a Blob

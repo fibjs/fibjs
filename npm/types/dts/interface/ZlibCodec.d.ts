@@ -113,7 +113,7 @@ declare class Class_ZlibCodec extends Class_EventEmitter {
      *      @return returns the processed data
      *
      */
-    _processChunk(chunk: Class_Buffer | string, flushFlag: number): Class_Buffer;
+    _processChunk(chunk: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, flushFlag: number): Class_Buffer;
 
     /**
      * @description Closes the codec and releases its zlib state

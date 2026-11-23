@@ -134,7 +134,7 @@ declare class Class_Blob extends Class_object {
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer | string, options?: {
+    constructor(blobData: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         type?: string;
         endings?: string;
     });
@@ -461,7 +461,7 @@ declare class Class_BlobPromise extends Class_object {
      *      @param options optional parameter object
      *
      */
-    constructor(blobData: Class_Buffer | string, options?: {
+    constructor(blobData: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         type?: string;
         endings?: string;
     });

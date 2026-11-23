@@ -119,7 +119,7 @@ declare class Class_ECDH extends Class_object {
      *      @return returns the converted public key
      *
      */
-    static convertKey(key: Class_Buffer | string, curve: string, inputEncoding?: string, outputEncoding?: string, format?: string): any;
+    static convertKey(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, curve: string, inputEncoding?: string, outputEncoding?: string, format?: string): any;
 
     /**
      * @description Derives the shared secret from the peer's public key
@@ -155,7 +155,7 @@ declare class Class_ECDH extends Class_object {
      *      @return returns the computed shared secret
      *
      */
-    computeSecret(otherPublicKey: Class_Buffer | string, inputEncoding?: string, outputEncoding?: string): any;
+    computeSecret(otherPublicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, inputEncoding?: string, outputEncoding?: string): any;
 
     /**
      * @description Generates a new key pair and returns the public key
@@ -231,7 +231,7 @@ declare class Class_ECDH extends Class_object {
      *      @param encoding the encoding of privateKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *
      */
-    setPrivateKey(privateKey: Class_Buffer | string, encoding?: string): void;
+    setPrivateKey(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): void;
 
     /**
      * @description Imports a public key without its private key
@@ -248,7 +248,7 @@ declare class Class_ECDH extends Class_object {
      *      @param encoding the encoding of publicKey: 'buffer', 'hex', 'base64', 'base58'; default 'hex'
      *
      */
-    setPublicKey(publicKey: Class_Buffer | string, encoding?: string): void;
+    setPublicKey(publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): void;
 
 }
 

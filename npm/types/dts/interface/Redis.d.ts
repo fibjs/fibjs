@@ -200,7 +200,7 @@ declare class Class_Redis extends Class_object {
      *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
-    set(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
+    set(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, ttl?: number): void;
 
     /**
      * @description Stores value only when key does not exist
@@ -216,7 +216,7 @@ declare class Class_Redis extends Class_object {
      *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
-    setNX(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
+    setNX(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, ttl?: number): void;
 
     /**
      * @description Stores value only when key already exists
@@ -232,7 +232,7 @@ declare class Class_Redis extends Class_object {
      *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
-    setXX(key: Class_Buffer | string, value: Class_Buffer | string, ttl?: number): void;
+    setXX(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, ttl?: number): void;
 
     /**
      * @description Sets several key/value pairs at once, replacing the keys
@@ -312,7 +312,7 @@ declare class Class_Redis extends Class_object {
      *      @return the length of the string after the append
      *
      */
-    append(key: Class_Buffer | string, value: Class_Buffer | string): number;
+    append(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Overwrites the string stored at key starting at the given byte offset
@@ -328,7 +328,7 @@ declare class Class_Redis extends Class_object {
      *      @return the length of the string after the write
      *
      */
-    setRange(key: Class_Buffer | string, offset: number, value: Class_Buffer | string): number;
+    setRange(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Returns a substring of the string stored at key
@@ -345,7 +345,7 @@ declare class Class_Redis extends Class_object {
      *      @return the extracted bytes as a Buffer
      *
      */
-    getRange(key: Class_Buffer | string, start: number, end: number): Class_Buffer;
+    getRange(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, start: number, end: number): Class_Buffer;
 
     /**
      * @description Returns the length of the string stored at key
@@ -357,7 +357,7 @@ declare class Class_Redis extends Class_object {
      *      @return the length of the stored string in bytes, 0 when key does not exist
      *
      */
-    strlen(key: Class_Buffer | string): number;
+    strlen(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Counts the bits set to 1 in the string stored at key
@@ -372,7 +372,7 @@ declare class Class_Redis extends Class_object {
      *      @return the number of bits set to 1 in the range
      *
      */
-    bitcount(key: Class_Buffer | string, start?: number, end?: number): number;
+    bitcount(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, start?: number, end?: number): number;
 
     /**
      * @description Returns the string stored at key
@@ -384,7 +384,7 @@ declare class Class_Redis extends Class_object {
      *      @return the value as a Buffer, or null when key does not exist
      *
      */
-    get(key: Class_Buffer | string): Class_Buffer;
+    get(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Returns the values of the given keys, one element per key
@@ -438,7 +438,7 @@ declare class Class_Redis extends Class_object {
      *      @return the previous value as a Buffer, or null when key did not exist
      *
      */
-    getset(key: Class_Buffer | string, value: Class_Buffer | string): Class_Buffer;
+    getset(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, value: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Subtracts num from the integer stored at key
@@ -453,7 +453,7 @@ declare class Class_Redis extends Class_object {
      *      @return the value of key after the subtraction
      *
      */
-    decr(key: Class_Buffer | string, num?: number): number;
+    decr(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, num?: number): number;
 
     /**
      * @description Adds num to the integer stored at key
@@ -467,7 +467,7 @@ declare class Class_Redis extends Class_object {
      *      @return the value of key after the addition
      *
      */
-    incr(key: Class_Buffer | string, num?: number): number;
+    incr(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, num?: number): number;
 
     /**
      * @description Sets or clears one bit of the string stored at key
@@ -482,7 +482,7 @@ declare class Class_Redis extends Class_object {
      *      @return the previous bit at the offset
      *
      */
-    setBit(key: Class_Buffer | string, offset: number, value: number): number;
+    setBit(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, value: number): number;
 
     /**
      * @description Returns one bit of the string stored at key
@@ -494,7 +494,7 @@ declare class Class_Redis extends Class_object {
      *      @return the bit at the offset, 0 or 1
      *
      */
-    getBit(key: Class_Buffer | string, offset: number): number;
+    getBit(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number): number;
 
     /**
      * @description Checks whether the given key exists
@@ -506,7 +506,7 @@ declare class Class_Redis extends Class_object {
      *      @return true when the key exists, false otherwise
      *
      */
-    exists(key: Class_Buffer | string): boolean;
+    exists(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Returns the type of the value stored at key
@@ -519,7 +519,7 @@ declare class Class_Redis extends Class_object {
      *      @return the type name, `none` when key does not exist
      *
      */
-    type(key: Class_Buffer | string): string;
+    type(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Returns the keys matching a glob pattern
@@ -605,7 +605,7 @@ declare class Class_Redis extends Class_object {
      *      @return true when the key existed, false when it did not
      *
      */
-    expire(key: Class_Buffer | string, ttl: number): boolean;
+    expire(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, ttl: number): boolean;
 
     /**
      * @description Returns the remaining time to live of key in milliseconds
@@ -617,7 +617,7 @@ declare class Class_Redis extends Class_object {
      *      @return the remaining time to live in milliseconds, -1 or -2 as described
      *
      */
-    ttl(key: Class_Buffer | string): number;
+    ttl(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Removes the time to live of key, making it persistent
@@ -629,7 +629,7 @@ declare class Class_Redis extends Class_object {
      *      @return true when the key was volatile and is now persistent
      *
      */
-    persist(key: Class_Buffer | string): boolean;
+    persist(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Renames key to newkey, the source is deleted
@@ -642,7 +642,7 @@ declare class Class_Redis extends Class_object {
      *      @param newkey the destination key name
      *
      */
-    rename(key: Class_Buffer | string, newkey: Class_Buffer | string): void;
+    rename(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, newkey: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Renames key to newkey only when newkey does not exist
@@ -655,7 +655,7 @@ declare class Class_Redis extends Class_object {
      *      @return true when the rename happened, false when newkey already existed
      *
      */
-    renameNX(key: Class_Buffer | string, newkey: Class_Buffer | string): boolean;
+    renameNX(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, newkey: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Subscribes func to a channel
@@ -674,7 +674,7 @@ declare class Class_Redis extends Class_object {
      *      @param func the callback invoked as func(channel, message)
      *
      */
-    sub(channel: Class_Buffer | string, func: (channel: Class_Buffer, message: Class_Buffer)=>void): void;
+    sub(channel: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (channel: Class_Buffer, message: Class_Buffer)=>void): void;
 
     /**
      * @description Subscribes one callback to each channel of a map
@@ -697,7 +697,7 @@ declare class Class_Redis extends Class_object {
      *      @param channel the channel to unsubscribe from
      *
      */
-    unsub(channel: Class_Buffer | string): void;
+    unsub(channel: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): void;
 
     /**
      * @description Removes one callback registration of a channel
@@ -710,7 +710,7 @@ declare class Class_Redis extends Class_object {
      *      @param func the callback registered by sub()
      *
      */
-    unsub(channel: Class_Buffer | string, func: (channel: Class_Buffer, message: Class_Buffer)=>void): void;
+    unsub(channel: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, func: (channel: Class_Buffer, message: Class_Buffer)=>void): void;
 
     /**
      * @description Removes every callback of several channels
@@ -830,7 +830,7 @@ declare class Class_Redis extends Class_object {
      *      @return the number of clients that received the message
      *
      */
-    pub(channel: Class_Buffer | string, message: Class_Buffer | string): number;
+    pub(channel: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, message: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): number;
 
     /**
      * @description Returns the RedisHash view bound to key
@@ -859,7 +859,7 @@ declare class Class_Redis extends Class_object {
      *      @return the RedisHash view
      *
      */
-    getHash(key: Class_Buffer | string): Class_RedisHash;
+    getHash(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_RedisHash;
 
     /**
      * @description Returns the RedisList view bound to key
@@ -872,7 +872,7 @@ declare class Class_Redis extends Class_object {
      *      @return the RedisList view
      *
      */
-    getList(key: Class_Buffer | string): Class_RedisList;
+    getList(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_RedisList;
 
     /**
      * @description Returns the RedisSet view bound to key
@@ -884,7 +884,7 @@ declare class Class_Redis extends Class_object {
      *      @return the RedisSet view
      *
      */
-    getSet(key: Class_Buffer | string): Class_RedisSet;
+    getSet(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_RedisSet;
 
     /**
      * @description Returns the RedisSortedSet view bound to key
@@ -896,7 +896,7 @@ declare class Class_Redis extends Class_object {
      *      @return the RedisSortedSet view
      *
      */
-    getSortedSet(key: Class_Buffer | string): Class_RedisSortedSet;
+    getSortedSet(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_RedisSortedSet;
 
     /**
      * @description Serializes the value stored at key
@@ -908,7 +908,7 @@ declare class Class_Redis extends Class_object {
      *      @return the payload as a Buffer, or null when key does not exist
      *
      */
-    dump(key: Class_Buffer | string): Class_Buffer;
+    dump(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Rebuilds a key from a payload produced by dump
@@ -923,7 +923,7 @@ declare class Class_Redis extends Class_object {
      *      @param ttl the time to live in milliseconds; 0 keeps the key forever
      *
      */
-    restore(key: Class_Buffer | string, data: Class_Buffer | string, ttl?: number): void;
+    restore(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, ttl?: number): void;
 
     /**
      * @description Closes the connection

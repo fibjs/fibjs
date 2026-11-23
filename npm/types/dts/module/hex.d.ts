@@ -66,7 +66,7 @@ declare module 'hex' {
      *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer | string): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Decodes a string into binary data in hex format

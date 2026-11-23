@@ -150,7 +150,7 @@ declare class Class_X509Certificate extends Class_object {
      *      @param cert the certificate data as PEM text or PEM bytes
      *
      */
-    constructor(cert: Class_Buffer | string);
+    constructor(cert: Class_Buffer | ArrayBufferView | ArrayBufferLike | string);
 
     /**
      * @description Creates an X509Certificate chain from a list of PEM certificates
@@ -163,7 +163,7 @@ declare class Class_X509Certificate extends Class_object {
      *      @param certs the array of certificates as PEM text or PEM bytes
      *
      */
-    constructor(certs: (Class_Buffer | string)[]);
+    constructor(certs: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[]);
 
     /**
      * @description The subject distinguished name of the certificate
@@ -499,7 +499,7 @@ declare class Class_X509Certificate extends Class_object {
      *      @return returns true when the issuer matches, false otherwise
      *
      */
-    checkIssued(issuer: Class_X509Certificate | Class_Buffer | string): boolean;
+    checkIssued(issuer: Class_X509Certificate | Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Checks whether a private key belongs to the certificate

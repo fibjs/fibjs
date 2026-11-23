@@ -80,7 +80,7 @@ declare module 'base64' {
      *      @return returns the encoded string
      *
      */
-    function encode(data: Class_Buffer | string, url?: boolean): string;
+    function encode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, url?: boolean): string;
 
     /**
      * @description Decodes a string into binary data in base64 format

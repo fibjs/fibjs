@@ -97,7 +97,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @return the remaining text, with U+FFFD for a truncated utf8 character
      *
      */
-    end(buf?: Class_Buffer | string): string;
+    end(buf?: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Decodes a chunk, holding back an incomplete trailing character
@@ -119,7 +119,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @return the decoded text available so far, '' while a character is incomplete
      *
      */
-    write(buf: Class_Buffer | string): string;
+    write(buf: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Decodes a chunk starting at the given offset; this is the internal per-chunk routine
@@ -130,7 +130,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @return the decoded part of the chunk, '' while a character is incomplete
      *
      */
-    text(buf: Class_Buffer | string, offset: number): string;
+    text(buf: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number): string;
 
     /**
      * @description Completes the held character with the leading bytes of a chunk; this is the internal routine
@@ -140,7 +140,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @return the completed character, or null when more bytes are needed
      *
      */
-    fillLast(buf: Class_Buffer | string): string;
+    fillLast(buf: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): string;
 
     /**
      * @description Number of bytes still needed to complete the character held from the previous chunk

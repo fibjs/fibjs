@@ -185,7 +185,7 @@ declare class Class_RedisSet extends Class_object {
      *      @return true when the member is present
      *
      */
-    exists(member: Class_Buffer | string): boolean;
+    exists(member: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Returns every member of the set

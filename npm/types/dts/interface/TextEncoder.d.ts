@@ -137,7 +137,7 @@ declare class Class_TextEncoder extends Class_object {
      *      @return an object with the `read` (source UTF-16 units) and `written` (bytes) counts
      *
      */
-    encodeInto(source: string, destination: Class_Buffer): {
+    encodeInto(source: string, destination: Class_Buffer | ArrayBufferView | ArrayBufferLike): {
         read: number;
         written: number;
     };

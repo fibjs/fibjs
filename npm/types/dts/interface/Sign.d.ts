@@ -104,7 +104,7 @@ declare class Class_Sign extends Class_object {
      *      @return returns the Sign object itself
      *
      */
-    update(data: Class_Buffer | string, codec?: string): Class_Sign;
+    update(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, codec?: string): Class_Sign;
 
     /**
      * @description Computes the signature of all the data passed in
@@ -154,10 +154,10 @@ declare class Class_Sign extends Class_object {
      *
      */
     sign(privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -175,7 +175,7 @@ declare class Class_Sign extends Class_object {
      *      @return returns the signature value
      *
      */
-    sign(privateKey: Class_Buffer | Class_KeyObject | string, encoding?: string): any;
+    sign(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, encoding?: string): any;
 
 }
 

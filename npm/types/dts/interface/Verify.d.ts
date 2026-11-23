@@ -100,7 +100,7 @@ declare class Class_Verify extends Class_object {
      *      @return returns the Verify object itself
      *
      */
-    update(data: Class_Buffer | string, codec?: string): Class_Verify;
+    update(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, codec?: string): Class_Verify;
 
     /**
      * @description Verifies the signature of all the data passed in
@@ -143,17 +143,17 @@ declare class Class_Verify extends Class_object {
      *
      */
     verify(privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string, encoding?: string): boolean;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): boolean;
 
     /**
      * @description Verifies a signature with a key given as raw key material
@@ -165,7 +165,7 @@ declare class Class_Verify extends Class_object {
      *      @return returns true when the signature is valid
      *
      */
-    verify(privateKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string, encoding?: string): boolean;
+    verify(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): boolean;
 
 }
 

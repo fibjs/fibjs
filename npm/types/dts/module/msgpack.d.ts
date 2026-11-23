@@ -123,7 +123,7 @@ declare module 'msgpack' {
      *      @return returns the decoded variable
      *
      */
-    function decode(data: Class_Buffer | string): any;
+    function decode(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): any;
 
 }
 

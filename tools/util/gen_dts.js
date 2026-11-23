@@ -72,6 +72,40 @@ function runtimeModuleName(unitName) {
     return MODULE_RUNTIME_NAMES[unitName] || unitName;
 }
 
+// A Buffer in an *input* position accepts every binary source the runtime's
+// lenient converter takes: GetArgumentValue(..., obj_ptr<Buffer_base>&) in
+// fibjs/src/global/Buffer.cpp wraps any ArrayBuffer view or buffer (plain
+// arrays and Blobs too, which are not spelled here - they are not
+// interchange types). Output positions keep the exact Class_Buffer.
+//
+// This is a typing decision, not a runtime one: the IDL type `Buffer` names
+// the binary contract and the C++ signature does not change, so async unions
+// (`Message.write`) keep the owned obj_ptr<Buffer_base> alternative instead of
+// a v8 handle that would be empty in the callback phase.
+function bufferInputType() {
+    return dom.create.union([
+        dom.create.namedTypeReference('Class_Buffer'),
+        dom.create.namedTypeReference('ArrayBufferView'),
+        dom.create.namedTypeReference('ArrayBufferLike'),
+    ]);
+}
+
+// The IDL has no return-position unions (a `Buffer|String` return would need a
+// std::variant C++ return type and GetReturnValue support), but a few members
+// return a value with a small closed set of runtime shapes. Spell the union in
+// the d.ts: an `any` accepts members the runtime does not have (for example
+// `msg.data.string()`), while the union rejects them and narrows on `typeof`
+// and Buffer.isBuffer.
+const PROPERTY_TYPE_OVERRIDES = {
+    // WebSocketMessage::get_data: String for TEXT frames, Buffer for BINARY
+    // frames, null when the message has no body.
+    'WebSocketMessage.data': () => dom.create.union([
+        dom.type.string,
+        dom.create.namedTypeReference('Class_Buffer'),
+        dom.type.null,
+    ]),
+};
+
 // dts-dom's `reservedWords` list mixes in Java keywords, so a function named
 // `throws` (assert.throws / assert_strict.throws) is emitted commented out and
 // silently disappears from the corpus. Unwrap that comment when the name is a
@@ -435,6 +469,9 @@ function generalTypeMap(dataType, {
     allModuleNames,
     useRefInstance = false,
     instanceFlavor = 'fiber',
+    // an input position: Buffer also accepts the runtime's binary sources
+    // (see bufferInputType)
+    bufferParam = false,
     // the rendered `Function` alternative of a parameter union declared with a
     // shape (`Handler|Function(Value req) => Value|String`); bare `Function`
     // alternatives keep the anonymous `(...args: any[]) => any` form
@@ -456,7 +493,7 @@ function generalTypeMap(dataType, {
         splitUnion(dataType).forEach((member) => {
             const memberInfo = (member === 'Function' && functionAlternative)
                 ? { type: functionAlternative }
-                : generalTypeMap(member, { allInterfacesNames, allModuleNames, useRefInstance, instanceFlavor });
+                : generalTypeMap(member, { allInterfacesNames, allModuleNames, useRefInstance, instanceFlavor, bufferParam });
             types.push(memberInfo.type || dom.type.any);
 
             if (memberInfo.refType)
@@ -478,6 +515,7 @@ function generalTypeMap(dataType, {
             allModuleNames,
             useRefInstance: true,
             instanceFlavor,
+            bufferParam,
         });
         info.type = dom.create.objectType([
             dom.create.indexSignature('pattern', 'string', valueInfo.type || dom.type.any),
@@ -498,7 +536,7 @@ function generalTypeMap(dataType, {
     // (GetArgumentValue(std::vector<T>&) runs the per-element converter).
     if (typeof dataType === 'string' && dataType.length > 2 && dataType.slice(-2) === '[]') {
         const elementName = dataType.slice(0, -2);
-        const elementInfo = generalTypeMap(elementName, { allInterfacesNames, allModuleNames, useRefInstance, instanceFlavor });
+        const elementInfo = generalTypeMap(elementName, { allInterfacesNames, allModuleNames, useRefInstance, instanceFlavor, bufferParam });
         info.type = dom.create.array(elementInfo.type || dom.type.any);
         if (elementInfo.refType)
             info.auxRefs = [{ refType: elementInfo.refType, name: elementName }];
@@ -559,7 +597,8 @@ function generalTypeMap(dataType, {
             break;
         }
         case 'Buffer': {
-            // Buffer in fibjs should map to Class_Buffer
+            // Buffer in fibjs should map to Class_Buffer (the interface
+            // post-pass below resolves it, since Buffer is an IDL interface)
             info.type = useRefInstance ? dom.create.namedTypeReference('Class_Buffer') : dom.create.typeof('Class_Buffer');
             info.isFibjsInterface = true;
             info.refType = 'interface';
@@ -630,8 +669,12 @@ function generalTypeMap(dataType, {
         // instance references follow the requested flavor (see
         // classInstanceTypeRef); `typeof Class_X` stays the fiber
         // constructor - the promise variant is a prototype, not a value,
-        // and module class constants are shared between both flavors
-        info.type = useRefInstance ? classInstanceTypeRef(dataType, instanceFlavor) : dom.create.typeof(normalizeClazzName(dataType));
+        // and module class constants are shared between both flavors.
+        // An input position widens Buffer to the binary sources its lenient
+        // converter accepts (see bufferInputType).
+        info.type = (dataType === 'Buffer' && bufferParam)
+            ? bufferInputType()
+            : (useRefInstance ? classInstanceTypeRef(dataType, instanceFlavor) : dom.create.typeof(normalizeClazzName(dataType)));
         info.isFibjsInterface = true;
         info.refType = 'interface';
     } else if (allModuleNames.has(dataType)) {
@@ -667,6 +710,8 @@ function buildStructDtsType(items, {
     // `required` marker may be omitted and the C++ side fills the IDL default;
     // return-position structs keep their properties required
     optionalProperties = false,
+    // a parameter record: its Buffer fields take the input sources
+    bufferParam = false,
 }) {
     const propertyMembers = items.map(item => {
         const flags = (optionalProperties && !item.required) ? dom.DeclarationFlags.Optional : dom.DeclarationFlags.None;
@@ -681,9 +726,10 @@ function buildStructDtsType(items, {
                 allModuleNames,
                 addRefToTripleSlashDirectivesHost,
                 optionalProperties,
+                bufferParam,
             });
         } else {
-            const gMap = generalTypeMap(item.type, { allInterfacesNames, allModuleNames, useRefInstance: true });
+            const gMap = generalTypeMap(item.type, { allInterfacesNames, allModuleNames, useRefInstance: true, bufferParam });
 
             if (gMap && gMap.type) {
                 if (gMap.refType && dtsUnitName !== item.type) {
@@ -740,6 +786,9 @@ function mapCallbackShapeToDtsType(shape, {
             // values the runtime hands back to the shape follow the flavor of
             // the call that produced them
             instanceFlavor,
+            // these are outputs: a Buffer parameter of a callback receives an
+            // exact Buffer, not the input union of a method parameter
+            bufferParam: false,
         });
 
         let paramFlag = dom.ParameterFlags.None;
@@ -782,7 +831,20 @@ function mapMemPropertyTypeToDtsType(propertyType, {
 }) {
     let propertyDtsType;
 
-    if (Array.isArray(propertyType)) {
+    const override = memberInfo && PROPERTY_TYPE_OVERRIDES[`${memberHostName}.${memberInfo.name}`];
+    if (override) {
+        propertyDtsType = override();
+        // the override names Class_Buffer, declared in another corpus file, so
+        // it needs the same triple-slash reference a generated Buffer property
+        // carries
+        if (dtsUnitName !== 'Buffer') {
+            addRefToTripleSlashDirectivesHost('interface', {
+                refHostName: memberHostName,
+                refName: memberInfo.name,
+                refType: 'Buffer',
+            });
+        }
+    } else if (Array.isArray(propertyType)) {
         propertyDtsType = buildStructDtsType(propertyType, {
             memberInfo, memberHostName, dtsUnitName, allInterfacesNames, allModuleNames, addRefToTripleSlashDirectivesHost,
         });
@@ -902,6 +964,10 @@ function mapParamTypeToDtsType(paramType, {
     // parameter positions accept either flavor (same ClassInfo at runtime);
     // shapes handed *to* the caller keep the enclosing context's flavor
     instanceFlavor = 'both',
+    // method parameters are inputs: a Buffer there accepts any binary source
+    // the runtime converts (see bufferInputType). Only mapCallbackShapeToDtsType
+    // passes false, because the parameters of a callback shape are outputs.
+    bufferParam = true,
 }) {
     // `Function(...)` parameter: the shape carries the typings, the runtime
     // still handles the argument as one `Function`. A union that declares its
@@ -934,13 +1000,14 @@ function mapParamTypeToDtsType(paramType, {
             allModuleNames,
             addRefToTripleSlashDirectivesHost,
             optionalProperties: true,
+            bufferParam,
         });
         if (paramInfo && paramInfo.isarray)
             structType = dom.create.array(structType);
         return { type: structType };
     }
 
-    const mapOptions = { allInterfacesNames, allModuleNames, useRefInstance: true, instanceFlavor };
+    const mapOptions = { allInterfacesNames, allModuleNames, useRefInstance: true, instanceFlavor, bufferParam };
 
     if (paramInfo && paramInfo.callback)
         mapOptions.functionAlternative = mapCallbackShapeToDtsType(paramInfo.callback, {

@@ -271,7 +271,7 @@ declare module 'xml' {
      *      @return returns the new XmlDocument
      *
      */
-    function parse(source: Class_Buffer | string, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
+    function parse(source: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, type?: string, options?: FIBJS.GeneralObject): Class_XmlDocument;
 
     /**
      * @description Serializes a node to markup

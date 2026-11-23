@@ -165,7 +165,7 @@ declare module 'zip/promises' {
      *      @return returns the zip file object
      *
      */
-    function open(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
+    function open(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
 
     /**
      * @description Opens a zip file
@@ -218,7 +218,7 @@ declare module 'zip/promises' {
      *      @return returns the zip file object
      *
      */
-    function openSync(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Class_ZipFile;
+    function openSync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Class_ZipFile;
 
     /**
      * @description Opens a zip file
@@ -271,7 +271,7 @@ declare module 'zip/promises' {
      *      @return returns the zip file object
      *
      */
-    function openAsync(data: Class_Buffer | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
+    function openAsync(data: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_SeekableStream | Class_SeekableStreamPromise | string, mod?: string, codec?: string): Promise<Class_ZipFilePromise>;
 
 }
 

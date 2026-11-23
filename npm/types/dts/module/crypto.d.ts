@@ -311,7 +311,7 @@ declare module 'crypto' {
      *      @return returns the message digest object
      *
      */
-    function createHmac(algo: string, key: Class_Buffer | Class_KeyObject | string, options?: {
+    function createHmac(algo: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, options?: {
         encoding?: string;
     }): Class_Digest;
 
@@ -374,7 +374,7 @@ declare module 'crypto' {
      *      @return returns the encryption object
      *
      */
-    function createCipher(algorithm: string, key: Class_Buffer | string, options?: {
+    function createCipher(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -413,7 +413,7 @@ declare module 'crypto' {
      *      @return returns the encryption object
      *
      */
-    function createCipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+    function createCipheriv(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, iv: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -428,7 +428,7 @@ declare module 'crypto' {
      *      @return returns the decryption object
      *
      */
-    function createDecipher(algorithm: string, key: Class_Buffer | string, options?: {
+    function createDecipher(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -446,7 +446,7 @@ declare module 'crypto' {
      *      @return returns the decryption object
      *
      */
-    function createDecipheriv(algorithm: string, key: Class_Buffer | Class_KeyObject | string, iv: Class_Buffer | string, options?: {
+    function createDecipheriv(algorithm: string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, iv: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, options?: {
         authTagLength?: number;
     }): Class_Cipher;
 
@@ -481,10 +481,10 @@ declare module 'crypto' {
      *
      */
     function createPrivateKey(key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -499,7 +499,7 @@ declare module 'crypto' {
      *      @return returns the private key object
      *
      */
-    function createPrivateKey(key: Class_Buffer | string): Class_KeyObject;
+    function createPrivateKey(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_KeyObject;
 
     /**
      * @description Creates a KeyObject holding an asymmetric public key
@@ -513,10 +513,10 @@ declare module 'crypto' {
      *
      */
     function createPublicKey(key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -530,7 +530,7 @@ declare module 'crypto' {
      *      @return returns the public key object
      *
      */
-    function createPublicKey(key: Class_Buffer | Class_KeyObject | string): Class_KeyObject;
+    function createPublicKey(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_KeyObject;
 
     /**
      * @description Creates a streaming signing object for the given digest algorithm
@@ -612,7 +612,7 @@ declare module 'crypto' {
      *      @return returns the secret key object
      *
      */
-    function createSecretKey(key: Class_Buffer | string, encoding?: string): Class_KeyObject;
+    function createSecretKey(key: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, encoding?: string): Class_KeyObject;
 
     /**
      * @description Creates an X.509 certificate request (CSR) from key material or parses an
@@ -650,10 +650,10 @@ declare module 'crypto' {
      *
      */
     function createCertificateRequest(csr: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -669,7 +669,7 @@ declare module 'crypto' {
      *      @return returns the certificate request object
      *
      */
-    function createCertificateRequest(csr: Class_Buffer | string): Class_X509CertificateRequest;
+    function createCertificateRequest(csr: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_X509CertificateRequest;
 
     /**
      * @description Computes the shared secret between a private key and a peer's public key
@@ -720,7 +720,7 @@ declare module 'crypto' {
      *      @return returns the digest
      *
      */
-    function hash(algorithm: string, data: Class_Buffer | string, outputEncoding?: string): any;
+    function hash(algorithm: string, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, outputEncoding?: string): any;
 
     /**
      * @description Generates `size` cryptographically secure random bytes
@@ -765,32 +765,13 @@ declare module 'crypto' {
      *      @return returns the filled buffer
      *
      */
-    function randomFill(buffer: Class_Buffer | string, offset?: number, size?: number): Class_Buffer;
+    function randomFill(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset?: number, size?: number): Class_Buffer;
 
-    function randomFill(buffer: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function randomFill(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function randomFill(buffer: Class_Buffer | string, offset: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function randomFill(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function randomFill(buffer: Class_Buffer | string, offset: number, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Fills a Buffer with cryptographically secure random bytes
-     *
-     *      Writes `size` bytes starting at `offset`; by default the whole range from
-     *      `offset` to the end of the buffer is filled. A negative `size` also means "to the
-     *      end". The buffer is modified in place; note that a Buffer object is returned
-     *      distinct from the argument. A string argument
-     *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
-     *      buffer or `offset + size` beyond its length throws RangeError. This member
-     *      follows the async call forms (bare, callback, `randomFillSync`,
-     *      `randomFillAsync`).
-     *      @param buffer the buffer to fill
-     *      @param offset the starting offset
-     *      @param size the number of bytes to write, -1 for the rest of the buffer
-     *      @return returns the filled buffer
-     *
-     */
-    function randomFillSync(buffer: Class_Buffer | string, offset?: number, size?: number): Class_Buffer;
+    function randomFill(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset: number, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Fills a Buffer with cryptographically secure random bytes
@@ -809,7 +790,26 @@ declare module 'crypto' {
      *      @return returns the filled buffer
      *
      */
-    function randomFillAsync(buffer: Class_Buffer | string, offset?: number, size?: number): Promise<Class_Buffer>;
+    function randomFillSync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset?: number, size?: number): Class_Buffer;
+
+    /**
+     * @description Fills a Buffer with cryptographically secure random bytes
+     *
+     *      Writes `size` bytes starting at `offset`; by default the whole range from
+     *      `offset` to the end of the buffer is filled. A negative `size` also means "to the
+     *      end". The buffer is modified in place; note that a Buffer object is returned
+     *      distinct from the argument. A string argument
+     *      is decoded as utf8 and a new filled Buffer is returned. An offset outside the
+     *      buffer or `offset + size` beyond its length throws RangeError. This member
+     *      follows the async call forms (bare, callback, `randomFillSync`,
+     *      `randomFillAsync`).
+     *      @param buffer the buffer to fill
+     *      @param offset the starting offset
+     *      @param size the number of bytes to write, -1 for the rest of the buffer
+     *      @return returns the filled buffer
+     *
+     */
+    function randomFillAsync(buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, offset?: number, size?: number): Promise<Class_Buffer>;
 
     /**
      * @description Fills a TypedArray with cryptographically secure random bytes
@@ -962,13 +962,13 @@ declare module 'crypto' {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
         privateKeyEncoding?: {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
     }): {
         publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
@@ -993,13 +993,13 @@ declare module 'crypto' {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
         privateKeyEncoding?: {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
     }, callback: (err: Error | undefined | null, retVal: {
         publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
@@ -1058,13 +1058,13 @@ declare module 'crypto' {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
         privateKeyEncoding?: {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
     }): {
         publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
@@ -1123,13 +1123,13 @@ declare module 'crypto' {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
         privateKeyEncoding?: {
             format?: string;
             type?: string;
             cipher?: string;
-            passphrase?: string | Class_Buffer;
+            passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         };
     }): Promise<{
         publicKey: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
@@ -1153,28 +1153,9 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function hkdf(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Class_Buffer;
+    function hkdf(algoName: string, password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, info: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, size: number): Class_Buffer;
 
-    function hkdf(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Derives key material from a secret with HKDF (RFC 5869)
-     *
-     *      HKDF is not a password hash: `password` must already be a high-entropy secret,
-     *      for example the output of an ECDH exchange. It extracts a pseudorandom key with
-     *      the salt and then expands it to `size` bytes bound to `info`; use a different
-     *      `info` for every purpose and never reuse one output for two purposes. `salt` and
-     *      `info` may be empty, but a non-empty random salt is recommended. The size must
-     *      be at least 1. Follows the async call forms; `hkdfSync` blocks.
-     *      @param algoName the digest algorithm name
-     *      @param password the input keying material
-     *      @param salt the extract salt
-     *      @param info the context and application specific information
-     *      @param size the number of bytes to derive
-     *      @return returns the derived key
-     *
-     */
-    function hkdfSync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Class_Buffer;
+    function hkdf(algoName: string, password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, info: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Derives key material from a secret with HKDF (RFC 5869)
@@ -1193,7 +1174,26 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function hkdfAsync(algoName: string, password: Class_Buffer | string, salt: Class_Buffer | string, info: Class_Buffer | string, size: number): Promise<Class_Buffer>;
+    function hkdfSync(algoName: string, password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, info: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, size: number): Class_Buffer;
+
+    /**
+     * @description Derives key material from a secret with HKDF (RFC 5869)
+     *
+     *      HKDF is not a password hash: `password` must already be a high-entropy secret,
+     *      for example the output of an ECDH exchange. It extracts a pseudorandom key with
+     *      the salt and then expands it to `size` bytes bound to `info`; use a different
+     *      `info` for every purpose and never reuse one output for two purposes. `salt` and
+     *      `info` may be empty, but a non-empty random salt is recommended. The size must
+     *      be at least 1. Follows the async call forms; `hkdfSync` blocks.
+     *      @param algoName the digest algorithm name
+     *      @param password the input keying material
+     *      @param salt the extract salt
+     *      @param info the context and application specific information
+     *      @param size the number of bytes to derive
+     *      @return returns the derived key
+     *
+     */
+    function hkdfAsync(algoName: string, password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, info: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, size: number): Promise<Class_Buffer>;
 
     /**
      * @description Derives a key from a password with PBKDF2
@@ -1226,42 +1226,9 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function pbkdf2(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Class_Buffer;
+    function pbkdf2(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, iterations: number, size: number, algoName: string): Class_Buffer;
 
-    function pbkdf2(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Derives a key from a password with PBKDF2
-     *
-     *      PBKDF2 applies the digest many times over the password and the salt; the
-     *      iteration count is the cost. The salt must be random, unique per password and at
-     *      least 16 bytes, and it must be stored with the derived key, as must the iteration
-     *      count and the digest name - without them the key cannot be reproduced. There is
-     *      no built-in cost bound: choose an iteration count that keeps one derivation
-     *      around 100 ms on the target hardware. Both the iteration count and the size must
-     *      be at least 1. Follows the async call forms; `pbkdf2Sync` blocks.
-     *
-     *      Example: the RFC 6070 vector and a salted derivation:
-     *      ```JavaScript
-     *      const crypto = require('crypto');
-     *
-     *      console.log(crypto.pbkdf2Sync('password', 'salt', 1, 20, 'sha1').toString('hex'));
-     *      // 0c60c80f961f0e71f3a9b524af6012062fe037a6
-     *
-     *      const salt = crypto.randomBytes(16);
-     *      const key = crypto.pbkdf2Sync('secret password', salt, 210000, 32, 'sha256');
-     *      console.log(key.length); // 32
-     *      ```
-     *
-     *      @param password the password to derive from
-     *      @param salt the random salt
-     *      @param iterations the iteration count
-     *      @param size the number of bytes to derive
-     *      @param algoName the digest algorithm name
-     *      @return returns the derived key
-     *
-     */
-    function pbkdf2Sync(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Class_Buffer;
+    function pbkdf2(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Derives a key from a password with PBKDF2
@@ -1294,7 +1261,40 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function pbkdf2Async(password: Class_Buffer | string, salt: Class_Buffer | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
+    function pbkdf2Sync(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, iterations: number, size: number, algoName: string): Class_Buffer;
+
+    /**
+     * @description Derives a key from a password with PBKDF2
+     *
+     *      PBKDF2 applies the digest many times over the password and the salt; the
+     *      iteration count is the cost. The salt must be random, unique per password and at
+     *      least 16 bytes, and it must be stored with the derived key, as must the iteration
+     *      count and the digest name - without them the key cannot be reproduced. There is
+     *      no built-in cost bound: choose an iteration count that keeps one derivation
+     *      around 100 ms on the target hardware. Both the iteration count and the size must
+     *      be at least 1. Follows the async call forms; `pbkdf2Sync` blocks.
+     *
+     *      Example: the RFC 6070 vector and a salted derivation:
+     *      ```JavaScript
+     *      const crypto = require('crypto');
+     *
+     *      console.log(crypto.pbkdf2Sync('password', 'salt', 1, 20, 'sha1').toString('hex'));
+     *      // 0c60c80f961f0e71f3a9b524af6012062fe037a6
+     *
+     *      const salt = crypto.randomBytes(16);
+     *      const key = crypto.pbkdf2Sync('secret password', salt, 210000, 32, 'sha256');
+     *      console.log(key.length); // 32
+     *      ```
+     *
+     *      @param password the password to derive from
+     *      @param salt the random salt
+     *      @param iterations the iteration count
+     *      @param size the number of bytes to derive
+     *      @param algoName the digest algorithm name
+     *      @return returns the derived key
+     *
+     */
+    function pbkdf2Async(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, iterations: number, size: number, algoName: string): Promise<Class_Buffer>;
 
     /**
      * @description Derives a key from a password with scrypt
@@ -1335,16 +1335,16 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+    function scrypt(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, options?: {
         N?: number;
         r?: number;
         p?: number;
         maxmem?: number;
     }): Class_Buffer;
 
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function scrypt(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
-    function scrypt(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options: {
+    function scrypt(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, options: {
         N?: number;
         r?: number;
         p?: number;
@@ -1390,7 +1390,7 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function scryptSync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+    function scryptSync(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, options?: {
         N?: number;
         r?: number;
         p?: number;
@@ -1436,7 +1436,7 @@ declare module 'crypto' {
      *      @return returns the derived key
      *
      */
-    function scryptAsync(password: Class_Buffer | string, salt: Class_Buffer | string, keylen: number, options?: {
+    function scryptAsync(password: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, salt: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, keylen: number, options?: {
         N?: number;
         r?: number;
         p?: number;
@@ -1459,17 +1459,17 @@ declare module 'crypto' {
      *
      */
     function privateDecrypt(privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Decrypts data with a private key given as raw key material
@@ -1481,7 +1481,7 @@ declare module 'crypto' {
      *      @return returns the decrypted data
      *
      */
-    function privateDecrypt(privateKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function privateDecrypt(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with the private key (RSA signature-style operation)
@@ -1498,17 +1498,17 @@ declare module 'crypto' {
      *
      */
     function privateEncrypt(privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with a private key given as raw key material
@@ -1520,7 +1520,7 @@ declare module 'crypto' {
      *      @return returns the encrypted data
      *
      */
-    function privateEncrypt(privateKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function privateEncrypt(privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Decrypts data that was encrypted with the matching private key
@@ -1536,17 +1536,17 @@ declare module 'crypto' {
      *
      */
     function publicDecrypt(publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Decrypts data with a public key given as raw key material
@@ -1558,7 +1558,7 @@ declare module 'crypto' {
      *      @return returns the decrypted data
      *
      */
-    function publicDecrypt(publicKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function publicDecrypt(publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with the public key so that only the private key can decrypt it
@@ -1599,17 +1599,17 @@ declare module 'crypto' {
      *
      */
     function publicEncrypt(publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         padding?: number;
         oaepHash?: string;
-        oaepLabel?: Class_Buffer | ArrayBuffer | string;
-    }, buffer: Class_Buffer | string): Class_Buffer;
+        oaepLabel?: Class_Buffer | ArrayBufferView | ArrayBufferLike | ArrayBuffer | string;
+    }, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Encrypts data with a public key given as raw key material
@@ -1621,7 +1621,7 @@ declare module 'crypto' {
      *      @return returns the encrypted data
      *
      */
-    function publicEncrypt(publicKey: Class_Buffer | Class_KeyObject | string, buffer: Class_Buffer | string): Class_Buffer;
+    function publicEncrypt(publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, buffer: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Class_Buffer;
 
     /**
      * @description Computes the signature of data in one shot
@@ -1660,11 +1660,11 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function sign(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function sign(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -1673,11 +1673,11 @@ declare module 'crypto' {
         saltLength?: number;
     }): Class_Buffer;
 
-    function sign(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function sign(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -1723,11 +1723,11 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function signSync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function signSync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -1773,11 +1773,11 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function signAsync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function signAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
@@ -1797,22 +1797,9 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function sign(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
 
-    function sign(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Computes a signature with a key given as raw key material
-     *
-     *      The key is used directly; dsaEncoding, padding and saltLength take their
-     *      defaults.
-     *      @param algorithm the digest algorithm name
-     *      @param data the data to sign
-     *      @param key the private key
-     *      @return returns the signature
-     *
-     */
-    function signSync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function sign(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Computes a signature with a key given as raw key material
@@ -1825,7 +1812,20 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function signAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function signSync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
+
+    /**
+     * @description Computes a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data to sign
+     *      @param key the private key
+     *      @return returns the signature
+     *
+     */
+    function signAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -1843,31 +1843,31 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verify(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function verify(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string): boolean;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function verify(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function verify(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -1885,18 +1885,18 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifySync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function verifySync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string): boolean;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies the signature of data in one shot
@@ -1914,18 +1914,18 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function verifyAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         dsaEncoding?: string;
         padding?: number;
         saltLength?: number;
-    }, signature: Class_Buffer | string): Promise<boolean>;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a signature with a key given as raw key material
@@ -1939,23 +1939,9 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+    function verify(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function verify(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Verifies a signature with a key given as raw key material
-     *
-     *      The key is used directly; dsaEncoding, padding and saltLength take their
-     *      defaults.
-     *      @param algorithm the digest algorithm name
-     *      @param data the data that was signed
-     *      @param key the public key
-     *      @param signature the signature to verify
-     *      @return returns true when the signature is valid
-     *
-     */
-    function verifySync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+    function verify(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies a signature with a key given as raw key material
@@ -1969,7 +1955,21 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function verifyAsync(algorithm: any, data: Class_Buffer | string, key: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function verifySync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
+
+    /**
+     * @description Verifies a signature with a key given as raw key material
+     *
+     *      The key is used directly; dsaEncoding, padding and saltLength take their
+     *      defaults.
+     *      @param algorithm the digest algorithm name
+     *      @param data the data that was signed
+     *      @param key the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function verifyAsync(algorithm: any, data: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, key: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Compares two byte sequences in constant time
@@ -1998,7 +1998,7 @@ declare module 'crypto' {
      *      @return returns true when the bytes are equal
      *
      */
-    function timingSafeEqual(a: Class_Buffer | string, b: Class_Buffer | string): boolean;
+    function timingSafeEqual(a: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, b: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Signs a group of messages with a Bls12381G2 key using BBS
@@ -2015,30 +2015,30 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsSign(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Class_Buffer;
 
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsSign(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
@@ -2056,17 +2056,17 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSignSync(messages: (Class_Buffer | string)[], privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsSignSync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Class_Buffer;
 
     /**
@@ -2084,17 +2084,17 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSignAsync(messages: (Class_Buffer | string)[], privateKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsSignAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Promise<Class_Buffer>;
 
     /**
@@ -2106,20 +2106,9 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function bbsSign(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
 
-    function bbsSign(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Signs BBS messages with a key given as raw key material
-     *
-     *      The key is used directly and the suite/header take their defaults.
-     *      @param messages the messages to sign
-     *      @param privateKey the private key
-     *      @return returns the signature
-     *
-     */
-    function bbsSignSync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function bbsSign(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Signs BBS messages with a key given as raw key material
@@ -2130,7 +2119,18 @@ declare module 'crypto' {
      *      @return returns the signature
      *
      */
-    function bbsSignAsync(messages: (Class_Buffer | string)[], privateKey: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function bbsSignSync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
+
+    /**
+     * @description Signs BBS messages with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the messages to sign
+     *      @param privateKey the private key
+     *      @return returns the signature
+     *
+     */
+    function bbsSignAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], privateKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -2144,31 +2144,31 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, signature: Class_Buffer | string): boolean;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -2182,18 +2182,18 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifySync(messages: (Class_Buffer | string)[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, signature: Class_Buffer | string): boolean;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies a BBS signature over a group of messages
@@ -2207,18 +2207,18 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifyAsync(messages: (Class_Buffer | string)[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function bbsVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, signature: Class_Buffer | string): Promise<boolean>;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies BBS messages with a key given as raw key material
@@ -2230,21 +2230,9 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+    function bbsVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function bbsVerify(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Verifies BBS messages with a key given as raw key material
-     *
-     *      The key is used directly and the suite/header take their defaults.
-     *      @param messages the messages to verify
-     *      @param publicKey the public key
-     *      @param signature the signature to verify
-     *      @return returns true when the signature is valid
-     *
-     */
-    function bbsVerifySync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): boolean;
+    function bbsVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies BBS messages with a key given as raw key material
@@ -2256,7 +2244,19 @@ declare module 'crypto' {
      *      @return returns true when the signature is valid
      *
      */
-    function bbsVerifyAsync(messages: (Class_Buffer | string)[], publicKey: Class_Buffer | Class_KeyObject | string, signature: Class_Buffer | string): Promise<boolean>;
+    function bbsVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
+
+    /**
+     * @description Verifies BBS messages with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the messages to verify
+     *      @param publicKey the public key
+     *      @param signature the signature to verify
+     *      @return returns true when the signature is valid
+     *
+     */
+    function bbsVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Derives a selective-disclosure proof from a BBS signature
@@ -2273,30 +2273,30 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofGen(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Class_Buffer;
 
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofGen(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
@@ -2314,17 +2314,17 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGenSync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofGenSync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Class_Buffer;
 
     /**
@@ -2342,17 +2342,17 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGenAsync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofGenAsync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
     }): Promise<Class_Buffer>;
 
     /**
@@ -2366,22 +2366,9 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function proofGen(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
 
-    function proofGen(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description Derives a BBS proof with a key given as raw key material
-     *
-     *      The key is used directly and the suite/header take their defaults.
-     *      @param signature the BBS signature to derive from
-     *      @param messages the full signed message set
-     *      @param index the positions of the messages to reveal
-     *      @param publicKey the public key
-     *      @return returns the proof
-     *
-     */
-    function proofGenSync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Class_Buffer;
+    function proofGen(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description Derives a BBS proof with a key given as raw key material
@@ -2394,7 +2381,20 @@ declare module 'crypto' {
      *      @return returns the proof
      *
      */
-    function proofGenAsync(signature: Class_Buffer | string, messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string): Promise<Class_Buffer>;
+    function proofGenSync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Class_Buffer;
+
+    /**
+     * @description Derives a BBS proof with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param signature the BBS signature to derive from
+     *      @param messages the full signed message set
+     *      @param index the positions of the messages to reveal
+     *      @param publicKey the public key
+     *      @return returns the proof
+     *
+     */
+    function proofGenAsync(signature: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string): Promise<Class_Buffer>;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -2410,31 +2410,31 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, proof: Class_Buffer | string): boolean;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, proof: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -2450,18 +2450,18 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifySync(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, proof: Class_Buffer | string): boolean;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
     /**
      * @description Verifies a selective-disclosure BBS proof
@@ -2477,18 +2477,18 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifyAsync(messages: (Class_Buffer | string)[], index: number[], publicKey: {
-        key: Class_KeyObject | Class_Buffer | string | FIBJS.GeneralObject;
+    function proofVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: {
+        key: Class_KeyObject | Class_Buffer | ArrayBufferView | ArrayBufferLike | string | FIBJS.GeneralObject;
         format?: string;
         type?: string;
-        passphrase?: string | Class_Buffer;
+        passphrase?: string | Class_Buffer | ArrayBufferView | ArrayBufferLike;
         encoding?: string;
         namedCurve?: string;
         toX25519?: boolean;
         suite?: string;
-        header?: Class_Buffer;
-        proof_header?: Class_Buffer;
-    }, proof: Class_Buffer | string): Promise<boolean>;
+        header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+        proof_header?: Class_Buffer | ArrayBufferView | ArrayBufferLike;
+    }, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description Verifies a BBS proof with a key given as raw key material
@@ -2501,22 +2501,9 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): boolean;
+    function proofVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
 
-    function proofVerify(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description Verifies a BBS proof with a key given as raw key material
-     *
-     *      The key is used directly and the suite/header take their defaults.
-     *      @param messages the revealed messages, in the order of index
-     *      @param index the positions the revealed messages came from
-     *      @param publicKey the public key
-     *      @param proof the proof to verify
-     *      @return returns true when the proof is valid
-     *
-     */
-    function proofVerifySync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): boolean;
+    function proofVerify(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description Verifies a BBS proof with a key given as raw key material
@@ -2529,7 +2516,20 @@ declare module 'crypto' {
      *      @return returns true when the proof is valid
      *
      */
-    function proofVerifyAsync(messages: (Class_Buffer | string)[], index: number[], publicKey: Class_Buffer | Class_KeyObject | string, proof: Class_Buffer | string): Promise<boolean>;
+    function proofVerifySync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): boolean;
+
+    /**
+     * @description Verifies a BBS proof with a key given as raw key material
+     *
+     *      The key is used directly and the suite/header take their defaults.
+     *      @param messages the revealed messages, in the order of index
+     *      @param index the positions the revealed messages came from
+     *      @param publicKey the public key
+     *      @param proof the proof to verify
+     *      @return returns true when the proof is valid
+     *
+     */
+    function proofVerifyAsync(messages: (Class_Buffer | ArrayBufferView | ArrayBufferLike | string)[], index: number[], publicKey: Class_Buffer | ArrayBufferView | ArrayBufferLike | Class_KeyObject | string, proof: Class_Buffer | ArrayBufferView | ArrayBufferLike | string): Promise<boolean>;
 
     /**
      * @description The Web Crypto API entry point, see webcrypto
