@@ -249,8 +249,24 @@ elif [ "$OS" = "windows" ]; then
     # DM 跳过: Windows 上没有 DM 服务器
     echo "=== Note: DM not tested on Windows (no DM server available) ==="
 
-    # Windows ODBC 驱动由系统管理
-    export FIBJS_TEST_PSQL="psql://postgres:root@localhost:5432/test"
+    # psql:// 在 Windows 上走 ODBC, 需要 psqlODBC 驱动; PostgreSQL 安装包不带该驱动
+    psql_odbc_installed() {
+        powershell -NoProfile -Command \
+            "if (Test-Path 'HKLM:\SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers\PostgreSQL Unicode') { 'yes' }" \
+            2>/dev/null | grep -q yes
+    }
+
+    if ! psql_odbc_installed; then
+        echo "=== Installing PostgreSQL ODBC driver (psqlODBC) ==="
+        choco install psqlodbc -y --no-progress 2>/dev/null || true
+    fi
+
+    if psql_odbc_installed; then
+        export FIBJS_TEST_PSQL="psql://postgres:root@localhost:5432/test"
+    else
+        echo "WARNING: PostgreSQL ODBC driver not available, psql tests will be skipped"
+    fi
+
     export FIBJS_TEST_MYSQL="mysql://root:root_test@localhost:3306/test"
     # FIBJS_TEST_MSSQL 已在上方 MSSQL_READY=true 时设置
 

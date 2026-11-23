@@ -89,7 +89,29 @@ describe("db", () => {
             }
         }
 
+        // Replace the database part of the connection string, keeping the
+        // credentials and any query parameters:
+        // mssql://u:p@h:1433/test?x=y -> mssql://u:p@h:1433/master?x=y
+        var withDatabase = (dbname) => conn_str.replace(
+            /^([a-z][a-z0-9+.-]*:\/\/[^\/?#]*)(?:\/[^?#]*)?/i,
+            (m, base) => base + '/' + dbname);
+
+        // MSSQL opens the database named in the URL, so a fresh server fails
+        // with "Cannot open database \"test\"" before initDb() can run.
+        // Connect through master first to create the target database.
+        var initMssqlDb = () => {
+            var admin = db.open(withDatabase('master'));
+            try {
+                admin.execute(`IF DB_ID(N'${DBNAME}') IS NULL CREATE DATABASE [${DBNAME}]`);
+            } finally {
+                admin.close();
+            }
+        };
+
         before(() => {
+            if (type == 'mssql')
+                initMssqlDb();
+
             conn = db.open(conn_str);
             // conn.codec = 'gbk';
             initDb();
@@ -102,6 +124,10 @@ describe("db", () => {
         });
 
         after(() => {
+            // The before hook may have failed before conn was assigned.
+            if (!conn)
+                return;
+
             tables.forEach(t => {
                 try {
                     conn.execute('drop table ' + t);
@@ -1243,7 +1269,13 @@ describe("db", () => {
             case 'psql':
             case 'psql_kb':
                 it("PSQL auth failure exposes connection summaries", () => {
-                    var bad_conn_str = conn_str.replace(/:\/\/([^:]+):([^@]*)@/, '://$1:wrong_password@');
+                    // A wrong password is not enough: Homebrew PostgreSQL uses
+                    // trust auth for local connections, so every password is
+                    // accepted. An unknown role is rejected under both trust
+                    // and password authentication.
+                    var bad_conn_str = conn_str.replace(
+                        /^([a-z][a-z0-9+.-]*:\/\/)[^:@\/]+/i,
+                        (m, scheme) => scheme + 'fibjs_auth_failure');
 
                     assert.throws(() => {
                         db.open(bad_conn_str);
@@ -1255,9 +1287,8 @@ describe("db", () => {
                         // is redacted instead of being copied.
                         assert.ok(err.args);
                         assert.ok(err.args.host.length > 0);
-                        assert.ok(err.args.user.length > 0);
+                        assert.equal(err.args.user, 'fibjs_auth_failure');
                         assert.equal(err.args.password, '<redacted>');
-                        assert.ok(!JSON.stringify(err.args).includes('wrong_password'));
                         return true;
                     });
                 });
