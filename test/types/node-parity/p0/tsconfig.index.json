@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "CommonJS",
+        "moduleResolution": "Node10",
+        "lib": ["ES2022"],
+        "strict": false,
+        "noEmit": true,
+        "skipLibCheck": false,
+        "types": []
+    },
+    "files": ["../../../../npm/types/index.d.ts"]
+}

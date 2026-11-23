@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "CommonJS",
+        "moduleResolution": "Node10",
+        "lib": ["ES2022"],
+        "strict": true,
+        "noEmit": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "typeRoots": ["../../../../npm"],
+        "types": ["types"]
+    },
+    "files": [
+        "package-globals.ts",
+        "package-cjs.ts",
+        "package-node-prefix.ts",
+        "package-promises.ts"
+    ]
+}

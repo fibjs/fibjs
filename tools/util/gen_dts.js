@@ -3165,13 +3165,20 @@ function gen_fibjs_import_dts({
 }
 
 /**
- * 
+ * Reference every corpus file from the bridge.
+ *
+ * The file list is read from disk instead of a set collected during generation:
+ * the `.promises` files are written directly by `buildPromiseModuleDeclare`,
+ * and a hand-written or future file must not need a second registration point.
+ * Referencing every interface also keeps classes that no module happens to
+ * mention (the `PerformanceMark` family, for example) visible to the global
+ * layer.
+ *
  * @param {{
- *  allModuleNames: Set<string>
- * }} param0 
+ *  DTS_DIST_DIR: string
+ * }} param0
  */
 function gen_bridge_dts({
-    allModuleNames,
     DTS_DIST_DIR
 }) {
     const basedir = path.resolve(DTS_DIST_DIR, './_import');
@@ -3182,10 +3189,20 @@ function gen_bridge_dts({
     const tripleSlashDirectives = [];
     const topDeclarition = dom.create.module('@fibjs/types/bridge');
 
-    Array.from(allModuleNames).forEach(moduleName => {
-        tripleSlashDirectives.push(
-            dom.create.tripleSlashReferencePathDirective(`../module/${moduleName}.d.ts`)
-        )
+    ['interface', 'module'].forEach(category => {
+        const dir = path.resolve(DTS_DIST_DIR, category);
+
+        if (!fs.existsSync(dir))
+            return;
+
+        fs.readdirSync(dir)
+            .filter(f => f.endsWith('.d.ts'))
+            .sort()
+            .forEach(f => {
+                tripleSlashDirectives.push(
+                    dom.create.tripleSlashReferencePathDirective(`../${category}/${f}`)
+                );
+            });
     });
 
     const bridgeDeclaration = dom.emit(topDeclarition, {
@@ -3224,8 +3241,8 @@ module.exports = function gen_dts(defs, { DTS_DIST_DIR }) {
     console.log(`   📦 Generating fibjs import definitions...`);
     gen_fibjs_import_dts({ DTS_DIST_DIR, mapDefs, allInterfacesNames, allModuleNames });
 
-    console.log(`   🌉 Generating bridge definitions for ${allModuleNames.size} modules...`);
-    gen_bridge_dts({ allModuleNames, DTS_DIST_DIR });
+    console.log(`   🌉 Generating bridge references for the whole corpus...`);
+    gen_bridge_dts({ DTS_DIST_DIR });
 
     console.log(`   ✅ TypeScript definitions saved to ${path.basename(DTS_DIST_DIR)}/`);
 }

@@ -61,6 +61,11 @@ try {
             noEmit: true,
             skipLibCheck: false,
             types: [],
+            // The corpus is checked in the same environment `--check` gives a
+            // fibjs program: ES only. Without this, lib.dom joins the program
+            // and its URL/Blob/Event/... declarations collide with the
+            // `_builtin/globals.d.ts` twins (TS2320/TS2403/TS2430/TS6200).
+            lib: ['es2020'],
         },
         include: [path.join(dtsDir, '**/*.d.ts').replace(/\\/g, '/')],
     }, null, 2));

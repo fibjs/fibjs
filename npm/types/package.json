@@ -3,6 +3,12 @@
     "version": "0.33.0-dev",
     "description": "types for fibjs runtime",
     "types": "index.d.ts",
+    "files": [
+        "index.d.ts",
+        "test.d.ts",
+        "dts/**/*.d.ts",
+        "README.md"
+    ],
     "author": "richardo2016@gmail.com",
     "license": "ISC",
     "bugs": {

@@ -137,6 +137,13 @@ console.log('\n📝 Generating TypeScript definitions...');
 const DTS_DIST_DIR = path.resolve(__dirname, `../npm/types/dts/`);
 require('fs').mkdirSync(DTS_DIST_DIR, { recursive: true });
 gen_dts(resolvedDefs, { DTS_DIST_DIR });
+
+// The global layer and the `fibjs:`/`node:` aliases are part of the corpus,
+// not a `--check`-only overlay: the published @fibjs/types and the embedded
+// checker must see the same files.
+console.log('\n🧩 Generating package-level globals and module aliases...');
+var compat_stats = require('./util/gen_compat_types').generate(DTS_DIST_DIR);
+console.log(`✅ package-level types generated (${compat_stats.globals} globals, ${compat_stats.aliases} aliases)`);
 console.log('✅ TypeScript definitions generated');
 
 // The `--check` built-in types and the `--man` pages are two views of the
