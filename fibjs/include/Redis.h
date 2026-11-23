@@ -47,9 +47,9 @@ public:
     virtual result_t set(Union_set_key key, Union_set_value value, int64_t ttl);
     virtual result_t setNX(Union_setNX_key key, Union_setNX_value value, int64_t ttl);
     virtual result_t setXX(Union_setXX_key key, Union_setXX_value value, int64_t ttl);
-    virtual result_t mset(v8::Local<v8::Object> kvs);
+    virtual result_t mset(KVMap& kvs);
     virtual result_t mset(OptArgs kvs);
-    virtual result_t msetNX(v8::Local<v8::Object> kvs);
+    virtual result_t msetNX(KVMap& kvs);
     virtual result_t msetNX(OptArgs kvs);
     virtual result_t append(Union_append_key key, Union_append_value value, int32_t& retVal);
     virtual result_t setRange(Union_setRange_key key, int32_t offset, Union_setRange_value value, int32_t& retVal);
@@ -75,17 +75,17 @@ public:
     virtual result_t rename(Union_rename_key key, Union_rename_newkey newkey);
     virtual result_t renameNX(Union_renameNX_key key, Union_renameNX_newkey newkey, bool& retVal);
     virtual result_t sub(Union_sub_channel channel, v8::Local<v8::Function> func);
-    virtual result_t sub(v8::Local<v8::Object> map);
+    virtual result_t sub(EventMap& map);
     virtual result_t unsub(Union_unsub_channel channel);
     virtual result_t unsub(Union_unsub_channel channel, v8::Local<v8::Function> func);
     virtual result_t unsub(v8::Local<v8::Array> channels);
-    virtual result_t unsub(v8::Local<v8::Object> map);
+    virtual result_t unsub(EventMap& map);
     virtual result_t psub(exlib::string pattern, v8::Local<v8::Function> func);
-    virtual result_t psub(v8::Local<v8::Object> map);
+    virtual result_t psub(EventMap& map);
     virtual result_t unpsub(exlib::string pattern);
     virtual result_t unpsub(exlib::string pattern, v8::Local<v8::Function> func);
     virtual result_t unpsub(v8::Local<v8::Array> patterns);
-    virtual result_t unpsub(v8::Local<v8::Object> map);
+    virtual result_t unpsub(EventMap& map);
     virtual result_t pub(Union_pub_channel channel, Union_pub_message message, int32_t& retVal);
     virtual result_t getHash(Union_getHash_key key, obj_ptr<RedisHash_base>& retVal);
     virtual result_t getList(Union_getList_key key, obj_ptr<RedisList_base>& retVal);
@@ -161,28 +161,20 @@ public:
             return result_t();
         }
 
-        result_t add(v8::Local<v8::Object> kvs)
+        result_t add(KVMap& kvs)
         {
-            if (kvs->IsArray())
-                return result_t::invalid_arg();
-
-            v8::Local<v8::Context> context;
-            if (!kvs->GetCreationContext().ToLocal(&context))
-                context = Isolate::current(kvs)->context();
-
-            JSArray keys = kvs->GetPropertyNames(context);
-
-            result_t hr;
-            int32_t i;
-
-            for (i = 0; i < (int32_t)keys->Length(); i++) {
-                JSValue v = keys->Get(context, i);
-
-                hr = add(v);
+            for (auto& item : kvs) {
+                result_t hr = add(item.first);
                 if (hr.failed())
                     return hr;
 
-                hr = add(JSValue(kvs->Get(context, v)));
+                if (auto value = std::get_if<exlib::string>(&item.second))
+                    hr = add(*value);
+                else if (auto value = std::get_if<obj_ptr<Buffer_base>>(&item.second))
+                    hr = add((*value).get());
+                else
+                    return result_t::bad_vartype();
+
                 if (hr.failed())
                     return hr;
             }
@@ -559,7 +551,7 @@ public:
 
 public:
     result_t _single(exlib::string key, v8::Local<v8::Function> func, int32_t cmd);
-    result_t _map(v8::Local<v8::Object>& map, int32_t cmd);
+    result_t _map(EventMap& map, int32_t cmd);
     result_t unsub(v8::Local<v8::Array>& channels, int32_t cmd);
     result_t unsub(exlib::string key, int32_t cmd);
 

@@ -36,9 +36,9 @@ result_t URLSearchParams_base::_new(Union_URLSearchParams_init init, obj_ptr<URL
         return params->parse(str);
     }
 
-    if (std::holds_alternative<v8::Local<v8::Object>>(init)) {
+    if (std::holds_alternative<ValueMap>(init)) {
         retVal = new URLSearchParams();
-        return retVal->append(std::get<v8::Local<v8::Object>>(init));
+        return retVal->append(std::get<ValueMap>(init));
     }
 
     if (std::holds_alternative<v8::Local<v8::Array>>(init)) {

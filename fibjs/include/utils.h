@@ -108,6 +108,8 @@ typedef int32_t SOCKET;
 
 #include "date.h"
 #include "Variant.h"
+#include "OrderedMap.h"
+#include "HandlerMap.h"
 
 #ifdef _DEBUG
 #undef _DEBUG
@@ -562,7 +564,7 @@ public:                                                                         
     {                                                                                         \
         return object_base::on(ev, func, retVal);                                             \
     }                                                                                         \
-    virtual result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)             \
+    virtual result_t on(EventMap& map, v8::Local<v8::Object>& retVal)             \
     {                                                                                         \
         return object_base::on(map, retVal);                                                  \
     }                                                                                         \
@@ -571,7 +573,7 @@ public:                                                                         
     {                                                                                         \
         return object_base::prependListener(ev, func, retVal);                                \
     }                                                                                         \
-    virtual result_t prependListener(v8::Local<v8::Object> map,                               \
+    virtual result_t prependListener(EventMap& map,                               \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::prependListener(map, retVal);                                     \
@@ -581,7 +583,7 @@ public:                                                                         
     {                                                                                         \
         return object_base::on(ev, func, retVal);                                             \
     }                                                                                         \
-    virtual result_t addListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)    \
+    virtual result_t addListener(EventMap& map, v8::Local<v8::Object>& retVal)    \
     {                                                                                         \
         return object_base::on(map, retVal);                                                  \
     }                                                                                         \
@@ -595,7 +597,7 @@ public:                                                                         
     {                                                                                         \
         return object_base::prependOnceListener(ev, func, retVal);                            \
     }                                                                                         \
-    virtual result_t prependOnceListener(v8::Local<v8::Object> map,                           \
+    virtual result_t prependOnceListener(EventMap& map,                           \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::prependOnceListener(map, retVal);                                 \
@@ -605,7 +607,7 @@ public:                                                                         
     {                                                                                         \
         return object_base::once(ev, func, retVal);                                           \
     }                                                                                         \
-    virtual result_t once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)           \
+    virtual result_t once(EventMap& map, v8::Local<v8::Object>& retVal)           \
     {                                                                                         \
         return object_base::once(map, retVal);                                                \
     }                                                                                         \
@@ -618,7 +620,7 @@ public:                                                                         
     {                                                                                         \
         return object_base::off(ev, retVal);                                                  \
     }                                                                                         \
-    virtual result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)            \
+    virtual result_t off(EventMap& map, v8::Local<v8::Object>& retVal)            \
     {                                                                                         \
         return object_base::off(map, retVal);                                                 \
     }                                                                                         \
@@ -631,7 +633,7 @@ public:                                                                         
     {                                                                                         \
         return object_base::off(ev, retVal);                                                  \
     }                                                                                         \
-    virtual result_t removeListener(v8::Local<v8::Object> map,                                \
+    virtual result_t removeListener(EventMap& map,                                \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::off(map, retVal);                                                 \
@@ -1244,6 +1246,48 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::
     return result_t();
 }
 
+// A typed IDL map is an ordered plain-object dictionary. It is converted with
+// the same recursion as std::vector<T>: every property value goes through the
+// GetArgumentValue overload of the map's value type, so a union value keeps
+// its std::variant conversion and a nested map recurses into this overload.
+template <typename T>
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v,
+    OrderedMap<T>& vr, bool bStrict = false)
+{
+    if (v.IsEmpty() || !IsJSObject(v))
+        return result_t::type_mismatch();
+
+    v8::Local<v8::Object> obj = v.As<v8::Object>();
+    v8::Local<v8::Context> context;
+    if (!obj->GetCreationContext().ToLocal(&context))
+        context = isolate->context();
+
+    JSArray keys = obj->GetPropertyNames(context);
+    int32_t len = keys->Length();
+    OrderedMap<T> r;
+
+    for (int32_t i = 0; i < len; i++) {
+        JSValue key = keys->Get(context, i);
+        if (key.IsEmpty())
+            return result_t(CALL_E_JAVASCRIPT);
+
+        JSValue value = obj->Get(context, key);
+        if (value.IsEmpty())
+            return result_t(CALL_E_JAVASCRIPT);
+
+        T item;
+        result_t hr = GetArgumentValue(isolate, value, item, false);
+        if (hr.failed())
+            return hr;
+
+        r.set(isolate->toString(key), std::move(item));
+    }
+
+    vr = std::move(r);
+
+    return result_t();
+}
+
 // A parameter-position union (`Buffer|String`, an IDL `A|B`) converts to one
 // std::variant: the alternatives are tried in declaration order within the
 // same pass (the whole variant chain runs the strict pass first, then the
@@ -1254,12 +1298,18 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::
 // converters declared earlier in this header.
 template <std::size_t I, typename... Ts>
 bool tryVariantAlternative(Isolate* isolate, v8::Local<v8::Value> v,
-    std::variant<Ts...>& n, bool bStrict, result_t& hr)
+    std::variant<Ts...>& n, bool bStrict, result_t& hr, bool& fatal)
 {
     std::variant_alternative_t<I, std::variant<Ts...>> value;
     hr = GetArgumentValue(isolate, v, value, bStrict);
-    if (hr.failed())
+    if (hr.failed()) {
+        // A JavaScript exception is not an overload mismatch: trying another
+        // alternative would swallow the pending exception (a throwing getter
+        // reads as an empty handle on the next conversion).
+        if (hr.is(CALL_E_JAVASCRIPT))
+            fatal = true;
         return false;
+    }
 
     n = std::move(value);
     return true;
@@ -1271,10 +1321,12 @@ result_t getVariantValue(Isolate* isolate, v8::Local<v8::Value> v,
 {
     result_t hr(CALL_E_TYPEMISMATCH);
     bool done = false;
+    bool fatal = false;
 
     (void)std::initializer_list<bool>{
-        (done ? false
-              : (done = tryVariantAlternative<Is>(isolate, v, n, bStrict, hr)))...
+        (done || fatal
+                ? false
+                : (done = tryVariantAlternative<Is>(isolate, v, n, bStrict, hr, fatal)))...
     };
 
     return done ? result_t() : hr;
@@ -1445,6 +1497,21 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::variant<Ts...>
     return std::visit([isolate](auto& value) -> v8::Local<v8::Value> {
         return GetReturnValue(isolate, value);
     }, v);
+}
+
+template <typename T>
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, OrderedMap<T>& map)
+{
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
+
+    if (map.null_prototype())
+        obj->SetPrototype(context, v8::Null(isolate->m_isolate)).FromMaybe(false);
+
+    for (auto& item : map)
+        obj->Set(context, isolate->NewString(item.first), GetReturnValue(isolate, item.second)).IsJust();
+
+    return obj;
 }
 
 // Render a bounded, secret-free summary of a value for error diagnostics.

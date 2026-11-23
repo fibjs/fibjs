@@ -75,7 +75,7 @@ result_t X509CertificateRequest::load_csr(Buffer_base* csr)
 }
 
 template <typename Options>
-static result_t get_opt(const Options& options, NObject* subject,
+static result_t get_opt(const Options& options, StringMap* subject,
     obj_ptr<KeyObject>& key, X509NamePointer& name, const EVP_MD*& md_)
 {
     result_t hr;
@@ -90,15 +90,11 @@ static result_t get_opt(const Options& options, NObject* subject,
 
     name = X509_NAME_new();
     if (subject) {
-        // NObject keeps the insertion order in `m_values`; iterate that instead
-        // of the key index, whose unordered order would scramble the subject.
-        for (auto& item : subject->m_values) {
-            Variant& value = item.m_val;
-            if (value.type() != Variant::VT_String)
-                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_TYPE").with_message("subject value must be a string");
-
-            if (X509_NAME_add_entry_by_txt(name, item.m_pos->first.c_str(), MBSTRING_ASC,
-                    (unsigned char*)value.string().c_str(), -1, -1, 0)
+        // OrderedMap keeps the property order of the JS dictionary, which is
+        // the order the subject entries must be written in.
+        for (auto& item : *subject) {
+            if (X509_NAME_add_entry_by_txt(name, item.first.c_str(), MBSTRING_ASC,
+                    (unsigned char*)item.second.c_str(), -1, -1, 0)
                 != 1)
                 return openssl_error();
         }
@@ -124,7 +120,7 @@ result_t X509CertificateRequest::create(CertificateRequestOptions* options)
     X509NamePointer name;
     const EVP_MD* md;
     result_t hr = get_opt(*options,
-        options->subject.has_value() ? options->subject.value().get() : nullptr,
+        options->subject.has_value() ? &options->subject.value() : nullptr,
         key, name, md);
     if (hr.failed())
         return hr;
@@ -309,7 +305,7 @@ result_t X509CertificateRequest::issue(CertificateIssueOptions* options, obj_ptr
     X509NamePointer name;
     const EVP_MD* md;
     result_t hr = get_opt(*options,
-        options->issuer.has_value() ? options->issuer.value().get() : nullptr,
+        options->issuer.has_value() ? &options->issuer.value() : nullptr,
         key, name, md);
     if (hr.failed())
         return hr;

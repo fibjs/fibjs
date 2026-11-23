@@ -24,20 +24,8 @@ result_t rtc_base::startServer(RTCServerOptions* options)
     std::vector<std::pair<std::string, std::string>> credentials_;
 
     if (options && options->credentials.has_value()) {
-        Isolate* isolate = Isolate::current();
-        v8::Local<v8::Object> credentials = options->credentials.value();
-        v8::Local<v8::Array> keys = credentials->GetPropertyNames(isolate->context()).ToLocalChecked();
-        for (uint32_t i = 0; i < keys->Length(); i++) {
-            v8::Local<v8::Value> key = keys->Get(isolate->context(), i).ToLocalChecked();
-            v8::Local<v8::Value> value = credentials->Get(isolate->context(), key).ToLocalChecked();
-
-            exlib::string username;
-            exlib::string password;
-            GetArgumentValue(isolate, key, username);
-            GetArgumentValue(isolate, value, password);
-
-            credentials_.push_back(std::make_pair(username, password));
-        }
+        for (auto& item : options->credentials.value())
+            credentials_.push_back(std::make_pair(item.first, item.second));
 
         for (auto& [username, password] : credentials_) {
             juice_server_credentials cred = {};

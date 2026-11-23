@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 
 namespace fibjs {
 
@@ -32,7 +34,7 @@ class http_base : public object_base {
     DECLARE_CLASS(http_base);
 
 public:
-    using Union_createServer_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Object>, exlib::string, v8::Local<v8::Function>>;
+    using Union_createServer_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, HandlerMap, exlib::string, v8::Local<v8::Function>>;
     using Union_createServer_options = std::variant<v8::Local<v8::Object>, obj_ptr<SecureContext_base>>;
     using Union_fetch_request = std::variant<obj_ptr<HttpRequest_base>, exlib::string>;
 
@@ -40,7 +42,7 @@ public:
     // http_base
     static result_t createServer(Union_createServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal);
     static result_t createServer(Union_createServer_options options, Union_createServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal);
-    static result_t get_STATUS_CODES(v8::Local<v8::Object>& retVal);
+    static result_t get_STATUS_CODES(StringMap& retVal);
     static result_t get_METHODS(std::vector<exlib::string>& retVal);
     static result_t get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal);
     static result_t get_keepAlive(bool& retVal);
@@ -107,7 +109,7 @@ public:
     static result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpRequest_base>& retVal);
     static result_t head(exlib::string url, v8::Local<v8::Object> opts, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
     static result_t head(exlib::string url, v8::Local<v8::Function> callback, obj_ptr<HttpRequest_base>& retVal);
-    static result_t setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Local<v8::Function>& retVal);
+    static result_t setGlobalProxyFromEnv(StringMap& proxyEnv, v8::Local<v8::Function>& retVal);
     static result_t fetch(Union_fetch_request request, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncHandle ac);
     static result_t validateHeaderName(v8::Local<v8::Value> name);
     static result_t validateHeaderValue(exlib::string name, v8::Local<v8::Value> value);
@@ -296,7 +298,7 @@ inline void http_base::s_static_createServer(const v8::FunctionCallbackInfo<v8::
 
 inline void http_base::s_static_get_STATUS_CODES(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    StringMap vr;
 
     METHOD_ENTER();
 
@@ -1117,7 +1119,7 @@ inline void http_base::s_static_setGlobalProxyFromEnv(const v8::FunctionCallback
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "proxyEnv");
+    OPT_ARG_NAMED(StringMap, 0, StringMap(), "proxyEnv");
 
     hr = setGlobalProxyFromEnv(v0, vr);
 

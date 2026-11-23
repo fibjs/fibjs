@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include <boost/preprocessor.hpp>
 #include "ifs/WASISocketOption.h"
 
@@ -62,8 +64,8 @@ public:
 public:
     exlib::string version{};
     std::optional<std::vector<v8::Local<v8::Value>>> args;
-    std::optional<v8::Local<v8::Object>> env;
-    std::optional<v8::Local<v8::Object>> preopens;
+    std::optional<ValueMap> env;
+    std::optional<StringMap> preopens;
     std::optional<std::vector<obj_ptr<WASISocketOption>>> sockets;
     std::optional<int32_t> stdin_ = 0;
     std::optional<int32_t> stdout_ = 1;

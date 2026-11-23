@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 
 namespace fibjs {
 
@@ -25,13 +27,13 @@ public:
 
 public:
     // SandBox_base
-    static result_t _new(v8::Local<v8::Object> mods, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Object> global, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, v8::Local<v8::Object> global, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(ValueMap& mods, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(ValueMap& mods, v8::Local<v8::Function> require, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(ValueMap& mods, v8::Local<v8::Object> global, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(ValueMap& mods, v8::Local<v8::Function> require, v8::Local<v8::Object> global, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t addBuiltinModules() = 0;
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod) = 0;
-    virtual result_t add(v8::Local<v8::Object> mods) = 0;
+    virtual result_t add(ValueMap& mods) = 0;
     virtual result_t addScript(exlib::string srcname, Union_addScript_script script, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t remove(exlib::string id) = 0;
     virtual result_t has(exlib::string id, bool& retVal) = 0;
@@ -43,7 +45,7 @@ public:
     virtual result_t import(exlib::string id, exlib::string base, v8::Local<v8::Promise>& retVal) = 0;
     virtual result_t setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler) = 0;
     virtual result_t get_global(v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t get_modules(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t get_modules(ValueMap& retVal) = 0;
 
 public:
     static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -118,27 +120,27 @@ inline void SandBox_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "mods");
+    OPT_ARG_NAMED(ValueMap, 0, ValueMap(), "mods");
 
     hr = _new(v0, vr, args.This());
 
     METHOD_OVER_NAMED(2, 2, "require");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "mods");
+    ARG_NAMED(ValueMap, 0, "mods");
     ARG_NAMED(v8::Local<v8::Function>, 1, "require");
 
     hr = _new(v0, v1, vr, args.This());
 
     METHOD_OVER_NAMED(2, 2, "global");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "mods");
+    ARG_NAMED(ValueMap, 0, "mods");
     ARG_NAMED(v8::Local<v8::Object>, 1, "global");
 
     hr = _new(v0, v1, vr, args.This());
 
     METHOD_OVER_NAMED(3, 3, "global");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "mods");
+    ARG_NAMED(ValueMap, 0, "mods");
     ARG_NAMED(v8::Local<v8::Function>, 1, "require");
     ARG_NAMED(v8::Local<v8::Object>, 2, "global");
 
@@ -155,7 +157,7 @@ inline result_t SandBox_base::load(v8::Local<v8::Value> v, obj_ptr<SandBox_base>
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "mods");
+    OPT_ARG_NAMED(ValueMap, 0, ValueMap(), "mods");
 
     hr = _new(v0, vr, args.This());
 
@@ -188,7 +190,7 @@ inline void SandBox_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER_NAMED(1, 1, "mods");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "mods");
+    ARG_NAMED(ValueMap, 0, "mods");
 
     hr = pInst->add(v0);
 
@@ -364,7 +366,7 @@ inline void SandBox_base::s_get_global(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void SandBox_base::s_get_modules(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    ValueMap vr;
 
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();

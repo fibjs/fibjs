@@ -72,8 +72,8 @@ public:
     result_t set_http_proxy(exlib::string newVal);
     result_t get_https_proxy(exlib::string& retVal);
     result_t set_https_proxy(exlib::string newVal);
-    virtual result_t get_proxyEnv(v8::Local<v8::Object>& retVal);
-    virtual result_t set_proxyEnv(v8::Local<v8::Object> newVal);
+    virtual result_t get_proxyEnv(StringMap& retVal);
+    virtual result_t set_proxyEnv(StringMap& newVal);
     virtual result_t get_maxSockets(int32_t& retVal);
     virtual result_t set_maxSockets(int32_t newVal);
     virtual result_t get_maxTotalSockets(int32_t& retVal);
@@ -84,8 +84,8 @@ public:
     virtual result_t set_defaultPort(int32_t newVal);
     virtual result_t get_protocol(exlib::string& retVal);
     virtual result_t set_protocol(exlib::string newVal);
-    virtual result_t get_freeSockets(v8::Local<v8::Object>& retVal);
-    virtual result_t get_sockets(v8::Local<v8::Object>& retVal);
+    virtual result_t get_freeSockets(ValueMap& retVal);
+    virtual result_t get_sockets(ValueMap& retVal);
     virtual result_t get_totalSocketCount(int32_t& retVal);
     virtual result_t getName(v8::Local<v8::Object> options, exlib::string& retVal);
     virtual result_t destroy();

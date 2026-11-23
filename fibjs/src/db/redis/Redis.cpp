@@ -331,7 +331,7 @@ result_t Redis::setXX(Union_setXX_key key, Union_setXX_value value, int64_t ttl)
         return doCommand("SET", key, value, "XX", v);
 }
 
-result_t Redis::mset(v8::Local<v8::Object> kvs)
+result_t Redis::mset(KVMap& kvs)
 {
     Variant v;
     return doCommand("MSET", kvs, v);
@@ -343,7 +343,7 @@ result_t Redis::mset(OptArgs kvs)
     return doCommand("MSET", kvs, v);
 }
 
-result_t Redis::msetNX(v8::Local<v8::Object> kvs)
+result_t Redis::msetNX(KVMap& kvs)
 {
     Variant v;
     return doCommand("MSETNX", kvs, v);

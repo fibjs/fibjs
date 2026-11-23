@@ -67,7 +67,7 @@ result_t net_base::setDefaultAutoSelectFamilyAttemptTimeout(int32_t milliseconds
     return result_t();
 }
 
-result_t net_base::info(v8::Local<v8::Object>& retVal)
+result_t net_base::info(ValueMap& retVal)
 {
     return os_base::networkInterfaces(retVal);
 }

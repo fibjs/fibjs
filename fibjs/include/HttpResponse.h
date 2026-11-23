@@ -92,20 +92,20 @@ public:
     virtual result_t hasHeader(exlib::string name, bool& retVal);
     virtual result_t firstHeader(exlib::string name, exlib::string& retVal);
     virtual result_t allHeader(exlib::string name, obj_ptr<NObject>& retVal);
-    virtual result_t appendHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal);
+    virtual result_t appendHeader(HeaderMap& map, obj_ptr<HttpMessage_base>& retVal);
     virtual result_t appendHeader(Headers_base* headers, obj_ptr<HttpMessage_base>& retVal);
     virtual result_t appendHeader(exlib::string name, v8::Local<v8::Array> values, obj_ptr<HttpMessage_base>& retVal);
     virtual result_t appendHeader(exlib::string name, Variant value, obj_ptr<HttpMessage_base>& retVal);
-    virtual result_t setHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal);
+    virtual result_t setHeader(HeaderMap& map, obj_ptr<HttpMessage_base>& retVal);
     virtual result_t setHeader(Headers_base* headers, obj_ptr<HttpMessage_base>& retVal);
     virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values, obj_ptr<HttpMessage_base>& retVal);
     virtual result_t setHeader(exlib::string name, Variant value, obj_ptr<HttpMessage_base>& retVal);
     virtual result_t removeHeader(exlib::string name);
     virtual result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal);
-    virtual result_t getHeaders(obj_ptr<NObject>& retVal);
+    virtual result_t getHeaders(HeaderMap& retVal);
     virtual result_t get_headersSent(bool& retVal);
     virtual result_t get_trailers(obj_ptr<Headers_base>& retVal);
-    virtual result_t addTrailers(v8::Local<v8::Object> headers);
+    virtual result_t addTrailers(HeaderMap& headers);
 
 public:
     // HttpResponse_base
@@ -118,8 +118,8 @@ public:
     virtual result_t get_status(int32_t& retVal);
     virtual result_t set_status(int32_t newVal);
     virtual result_t get_ok(bool& retVal);
-    virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
-    virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal);
+    virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, HeaderMap& headers, obj_ptr<HttpResponse_base>& retVal);
+    virtual result_t writeHead(int32_t statusCode, HeaderMap& headers, obj_ptr<HttpResponse_base>& retVal);
     virtual result_t get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal);
     virtual result_t addCookie(Union_addCookie_cookie cookie);
     virtual result_t redirect(exlib::string url);

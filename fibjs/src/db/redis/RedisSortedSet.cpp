@@ -10,25 +10,16 @@
 
 namespace fibjs {
 
-result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t& retVal)
+result_t RedisSortedSet::add(StringMap& sms, int32_t& retVal)
 {
-    if (sms->IsArray())
-        return result_t::invalid_arg();
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Array> mss = v8::Array::New(isolate->m_isolate);
 
-    v8::Local<v8::Context> context;
-    if (!sms->GetCreationContext().ToLocal(&context))
-        context = holder()->context();
-
-    JSArray keys = sms->GetPropertyNames(context);
-    v8::Local<v8::Array> mss = v8::Array::New(holder()->m_isolate);
-
-    int32_t i, n = 0;
-
-    for (i = 0; i < (int32_t)keys->Length(); i++) {
-        JSValue v = keys->Get(context, i);
-
-        mss->Set(context, n++, JSValue(sms->Get(context, v))).IsJust();
-        mss->Set(context, n++, v).IsJust();
+    int32_t n = 0;
+    for (auto& item : sms) {
+        mss->Set(context, n++, isolate->NewString(item.second)).IsJust();
+        mss->Set(context, n++, isolate->NewString(item.first)).IsJust();
     }
 
     return m_rdb->doCommand("ZADD", m_key, mss, retVal);

@@ -94,35 +94,21 @@ result_t Redis::unpsub(exlib::string pattern, v8::Local<v8::Function> func)
     return _single(pattern, func, PUNSUBSCRIBE);
 }
 
-result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
+result_t Redis::_map(EventMap& map, int32_t cmd)
 {
     if (!m_subMode)
         m_subMode = 1;
 
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    JSArray channels = map->GetPropertyNames(context);
-    int32_t sz = channels->Length();
-    int32_t i;
     v8::Local<v8::Array> subs = v8::Array::New(isolate->m_isolate);
     int32_t count = 0;
 
-    for (i = 0; i < sz; i++) {
-        JSValue channel = channels->Get(context, i);
-        exlib::string s;
+    for (auto& item : map) {
+        exlib::string s = s_cmd[cmd][1] + item.first;
 
-        GetArgumentValue(isolate, channel, s);
-        s = s_cmd[cmd][1] + s;
-
-        JSValue value = map->Get(context, channel);
-
-        if (!value->IsFunction())
-            return result_t::invalid_arg();
-
-        v8::Local<v8::Function> func = value.As<v8::Function>();
-
-        if ((cmd & 1) ? unregsub(s, func) : regsub(s, func))
-            subs->Set(context, count++, channel).IsJust();
+        if ((cmd & 1) ? unregsub(s, item.second) : regsub(s, item.second))
+            subs->Set(context, count++, isolate->NewString(item.first)).IsJust();
     }
 
     if (!count)
@@ -132,22 +118,22 @@ result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
     return doCommand(s_cmd[cmd][0], subs, v);
 }
 
-result_t Redis::sub(v8::Local<v8::Object> map)
+result_t Redis::sub(EventMap& map)
 {
     return _map(map, SUBSCRIBE);
 }
 
-result_t Redis::psub(v8::Local<v8::Object> map)
+result_t Redis::psub(EventMap& map)
 {
     return _map(map, PSUBSCRIBE);
 }
 
-result_t Redis::unsub(v8::Local<v8::Object> map)
+result_t Redis::unsub(EventMap& map)
 {
     return _map(map, UNSUBSCRIBE);
 }
 
-result_t Redis::unpsub(v8::Local<v8::Object> map)
+result_t Redis::unpsub(EventMap& map)
 {
     return _map(map, PUNSUBSCRIBE);
 }

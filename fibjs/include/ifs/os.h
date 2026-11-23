@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 
 namespace fibjs {
 
@@ -124,7 +126,7 @@ public:
     static result_t cpuNumbers(int32_t& retVal);
     static result_t tmpdir(exlib::string& retVal);
     static result_t userInfo(v8::Local<v8::Object> options, obj_ptr<UserInfoType>& retVal);
-    static result_t networkInterfaces(v8::Local<v8::Object>& retVal);
+    static result_t networkInterfaces(ValueMap& retVal);
     static result_t platform(exlib::string& retVal);
     static result_t time(exlib::string tmString, date_t& retVal);
     static result_t dateAdd(date_t d, int32_t num, exlib::string part, date_t& retVal);
@@ -485,7 +487,7 @@ inline void os_base::s_static_userInfo(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void os_base::s_static_networkInterfaces(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    ValueMap vr;
 
     METHOD_ENTER();
 

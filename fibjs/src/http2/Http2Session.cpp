@@ -8,6 +8,7 @@
 #include "object.h"
 #include "Http2Session.h"
 #include "Http2Stream.h"
+#include "HeaderMapUtil.h"
 #include "Buffer.h"
 #include "Fiber.h"
 #include "ifs/TLSSocket.h"
@@ -722,7 +723,7 @@ result_t Http2Session::get_socket(obj_ptr<Stream_base>& retVal)
 
 // -- methods --
 
-result_t Http2Session::request(v8::Local<v8::Object> headers,
+result_t Http2Session::request(HeaderMap& headers,
     v8::Local<v8::Object> options, obj_ptr<Http2Stream_base>& retVal)
 {
     if (m_is_server)
@@ -731,12 +732,6 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
     if (m_destroyed || m_closed)
         return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ERR_HTTP2_INVALID_SESSION").with_message("Http2Session: session is closed.");
 
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Array> keys = headers->GetOwnPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
-    uint32_t nheaders = keys.IsEmpty() ? 0 : keys->Length();
-
     // Separate pseudo-headers from regular headers (pseudo must come first per RFC 7540)
     std::vector<exlib::string> pseudo_names, pseudo_values;
     std::vector<exlib::string> regular_names, regular_values;
@@ -744,16 +739,7 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
     bool has_scheme = false, has_authority = false, has_method = false, has_path = false;
     exlib::string method;
 
-    for (uint32_t i = 0; i < nheaders; i++) {
-        v8::Local<v8::Value> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>());
-        v8::Local<v8::Value> val = headers->Get(context, key).FromMaybe(v8::Local<v8::Value>());
-
-        v8::String::Utf8Value key_str(isolate->m_isolate, key);
-        v8::String::Utf8Value val_str(isolate->m_isolate, val);
-
-        exlib::string k(*key_str, key_str.length());
-        exlib::string v(*val_str, val_str.length());
-
+    auto add_header = [&](const exlib::string& k, const exlib::string& v) {
         if (k == ":scheme")
             has_scheme = true;
         else if (k == ":authority")
@@ -771,7 +757,9 @@ result_t Http2Session::request(v8::Local<v8::Object> headers,
             regular_names.push_back(k);
             regular_values.push_back(v);
         }
-    }
+    };
+
+    for_each_header_value(headers, add_header);
 
     // Auto-fill missing pseudo-headers
     if (!has_method) {

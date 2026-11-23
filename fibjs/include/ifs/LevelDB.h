@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include <boost/preprocessor.hpp>
 
 namespace fibjs {
@@ -37,7 +39,7 @@ public:
     virtual result_t get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal) = 0;
     virtual result_t set(Union_set_key key, Union_set_value value, AsyncHandle ac) = 0;
-    virtual result_t mset(v8::Local<v8::Object> map) = 0;
+    virtual result_t mset(KVMap& map) = 0;
     virtual result_t mremove(v8::Local<v8::Array> keys) = 0;
     virtual result_t remove(Union_remove_key key, AsyncHandle ac) = 0;
     virtual result_t firstKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac) = 0;
@@ -210,7 +212,7 @@ inline void LevelDB_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(KVMap, 0, "map");
 
     hr = pInst->mset(v0);
 

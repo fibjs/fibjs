@@ -36,7 +36,7 @@ result_t object_base::on(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, 
     return JSTrigger(this).on(ev, func, retVal);
 }
 
-result_t object_base::on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+result_t object_base::on(EventMap& map, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).on(map, retVal);
 }
@@ -51,7 +51,7 @@ result_t object_base::prependListener(v8::Local<v8::Value> ev, v8::Local<v8::Fun
     return JSTrigger(this).prependListener(ev, func, retVal);
 }
 
-result_t object_base::prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+result_t object_base::prependListener(EventMap& map, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).prependListener(map, retVal);
 }
@@ -61,7 +61,7 @@ result_t object_base::once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func
     return JSTrigger(this).once(ev, func, retVal);
 }
 
-result_t object_base::once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+result_t object_base::once(EventMap& map, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).once(map, retVal);
 }
@@ -71,7 +71,7 @@ result_t object_base::prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8:
     return JSTrigger(this).prependOnceListener(ev, func, retVal);
 }
 
-result_t object_base::prependOnceListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+result_t object_base::prependOnceListener(EventMap& map, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).prependOnceListener(map, retVal);
 }
@@ -86,7 +86,7 @@ result_t object_base::off(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal
     return JSTrigger(this).off(ev, retVal);
 }
 
-result_t object_base::off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+result_t object_base::off(EventMap& map, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).off(map, retVal);
 }
@@ -399,25 +399,13 @@ result_t JSTrigger::removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Funct
     return result_t();
 }
 
-result_t JSTrigger::_map(v8::Local<v8::Object> m,
+result_t JSTrigger::_map(EventMap& m,
     result_t (JSTrigger::*fn)(v8::Local<v8::Value>, v8::Local<v8::Function>, v8::Local<v8::Object>&),
     v8::Local<v8::Object>& retVal)
 {
-    JSArray ks = m->GetPropertyNames(context);
-    int32_t len = ks->Length();
-    int32_t i;
-
-    for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(context, i);
-
-        if (!k->IsNumber()) {
-            JSValue v = m->Get(context, k);
-
-            if (v->IsFunction())
-                (this->*fn)(k, v8::Local<v8::Function>::Cast(v), retVal);
-            else
-                return result_t::bad_vartype();
-        }
+    for (auto& item : m) {
+        v8::Local<v8::Value> k = NewString(item.first);
+        (this->*fn)(k, item.second, retVal);
     }
 
     retVal = o;
@@ -873,7 +861,7 @@ void JSTrigger::s_on(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(EventMap, 0);
 
     hr = JSTrigger(args).on(v0, vr);
 
@@ -912,7 +900,7 @@ void JSTrigger::s_prependListener(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(EventMap, 0);
 
     hr = JSTrigger(args).prependListener(v0, vr);
 
@@ -942,7 +930,7 @@ void JSTrigger::s_once(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(EventMap, 0);
 
     hr = JSTrigger(args).once(v0, vr);
 
@@ -964,7 +952,7 @@ void JSTrigger::s_prependOnceListener(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(EventMap, 0);
 
     hr = JSTrigger(args).prependOnceListener(v0, vr);
 
@@ -986,7 +974,7 @@ void JSTrigger::s_off(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(EventMap, 0);
 
     hr = JSTrigger(args).off(v0, vr);
 

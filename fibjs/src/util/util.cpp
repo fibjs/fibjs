@@ -104,24 +104,22 @@ result_t util_base::inherits(v8::Local<v8::Value> constructor,
     return result_t();
 }
 
-result_t util_base::parseEnv(exlib::string content, v8::Local<v8::Object>& retVal)
+result_t util_base::parseEnv(exlib::string content, StringMap& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> result = v8::Object::New(isolate->m_isolate);
+    StringMap map;
     dotenv_parser::store_t store;
 
-    result->SetPrototype(context, v8::Null(isolate->m_isolate)).FromMaybe(false);
+    // parseEnv is specified as a null-prototype dictionary; the flag survives
+    // until GetReturnValue builds the JS object.
+    map.set_null_prototype();
+
     dotenv_parser::parse_content(std::string_view(content.c_str(), content.length()), store);
 
-    for (const auto& entry : store) {
-        result->Set(context,
-            isolate->NewString(entry.first.c_str(), (int32_t)entry.first.length()),
-            isolate->NewString(entry.second.c_str(), (int32_t)entry.second.length()))
-            .IsJust();
-    }
+    for (const auto& entry : store)
+        map.set(exlib::string(entry.first.c_str(), entry.first.length()),
+            exlib::string(entry.second.c_str(), entry.second.length()));
 
-    retVal = result;
+    retVal = std::move(map);
     return result_t();
 }
 

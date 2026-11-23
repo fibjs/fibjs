@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 
 namespace fibjs {
 
@@ -72,9 +74,9 @@ public:
     virtual result_t set(Union_set_key key, Union_set_value value, int64_t ttl) = 0;
     virtual result_t setNX(Union_setNX_key key, Union_setNX_value value, int64_t ttl) = 0;
     virtual result_t setXX(Union_setXX_key key, Union_setXX_value value, int64_t ttl) = 0;
-    virtual result_t mset(v8::Local<v8::Object> kvs) = 0;
+    virtual result_t mset(KVMap& kvs) = 0;
     virtual result_t mset(OptArgs kvs) = 0;
-    virtual result_t msetNX(v8::Local<v8::Object> kvs) = 0;
+    virtual result_t msetNX(KVMap& kvs) = 0;
     virtual result_t msetNX(OptArgs kvs) = 0;
     virtual result_t append(Union_append_key key, Union_append_value value, int32_t& retVal) = 0;
     virtual result_t setRange(Union_setRange_key key, int32_t offset, Union_setRange_value value, int32_t& retVal) = 0;
@@ -100,17 +102,17 @@ public:
     virtual result_t rename(Union_rename_key key, Union_rename_newkey newkey) = 0;
     virtual result_t renameNX(Union_renameNX_key key, Union_renameNX_newkey newkey, bool& retVal) = 0;
     virtual result_t sub(Union_sub_channel channel, v8::Local<v8::Function> func) = 0;
-    virtual result_t sub(v8::Local<v8::Object> map) = 0;
+    virtual result_t sub(EventMap& map) = 0;
     virtual result_t unsub(Union_unsub_channel channel) = 0;
     virtual result_t unsub(Union_unsub_channel channel, v8::Local<v8::Function> func) = 0;
     virtual result_t unsub(v8::Local<v8::Array> channels) = 0;
-    virtual result_t unsub(v8::Local<v8::Object> map) = 0;
+    virtual result_t unsub(EventMap& map) = 0;
     virtual result_t psub(exlib::string pattern, v8::Local<v8::Function> func) = 0;
-    virtual result_t psub(v8::Local<v8::Object> map) = 0;
+    virtual result_t psub(EventMap& map) = 0;
     virtual result_t unpsub(exlib::string pattern) = 0;
     virtual result_t unpsub(exlib::string pattern, v8::Local<v8::Function> func) = 0;
     virtual result_t unpsub(v8::Local<v8::Array> patterns) = 0;
-    virtual result_t unpsub(v8::Local<v8::Object> map) = 0;
+    virtual result_t unpsub(EventMap& map) = 0;
     virtual result_t pub(Union_pub_channel channel, Union_pub_message message, int32_t& retVal) = 0;
     virtual result_t getHash(Union_getHash_key key, obj_ptr<RedisHash_base>& retVal) = 0;
     virtual result_t getList(Union_getList_key key, obj_ptr<RedisList_base>& retVal) = 0;
@@ -314,7 +316,7 @@ inline void Redis_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER_NAMED(1, 1, "kvs");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "kvs");
+    ARG_NAMED(KVMap, 0, "kvs");
 
     hr = pInst->mset(v0);
 
@@ -334,7 +336,7 @@ inline void Redis_base::s_msetNX(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER_NAMED(1, 1, "kvs");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "kvs");
+    ARG_NAMED(KVMap, 0, "kvs");
 
     hr = pInst->msetNX(v0);
 
@@ -723,7 +725,7 @@ inline void Redis_base::s_sub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(EventMap, 0, "map");
 
     hr = pInst->sub(v0);
 
@@ -756,7 +758,7 @@ inline void Redis_base::s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(EventMap, 0, "map");
 
     hr = pInst->unsub(v0);
 
@@ -777,7 +779,7 @@ inline void Redis_base::s_psub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(EventMap, 0, "map");
 
     hr = pInst->psub(v0);
 
@@ -810,7 +812,7 @@ inline void Redis_base::s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(EventMap, 0, "map");
 
     hr = pInst->unpsub(v0);
 

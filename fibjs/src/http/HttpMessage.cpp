@@ -863,7 +863,7 @@ result_t HttpMessage::allHeader(exlib::string name, obj_ptr<NObject>& retVal)
     return m_headers->all(name, retVal);
 }
 
-result_t HttpMessage::appendHeader(v8::Local<v8::Object> map)
+result_t HttpMessage::appendHeader(HeaderMap& map)
 {
     return m_headers->append(map);
 }
@@ -890,7 +890,7 @@ result_t HttpMessage::appendHeader(exlib::string name, v8::Local<v8::Array> valu
     return m_headers->append(name, values);
 }
 
-result_t HttpMessage::setHeader(v8::Local<v8::Object> map)
+result_t HttpMessage::setHeader(HeaderMap& map)
 {
     return m_headers->set(map);
 }
@@ -935,9 +935,31 @@ result_t HttpMessage::getHeader(exlib::string name, v8::Local<v8::Value>& retVal
     return result_t();
 }
 
-result_t HttpMessage::getHeaders(obj_ptr<NObject>& retVal)
+result_t HttpMessage::getHeaders(HeaderMap& retVal)
 {
-    return m_headers->all("", retVal);
+    HeaderMap map;
+
+    // headers is a string-only collection, so every entry is one string; a
+    // repeated name becomes a String[] value, the same shape the former
+    // multi-value NObject produced.
+    for (auto& item : m_headers->m_map) {
+        exlib::string value = item.second.string();
+        HeaderMapValue* existing = map.find(item.first);
+
+        if (!existing)
+            map.set(item.first, HeaderMapValue(value));
+        else if (auto values_ptr = std::get_if<std::vector<exlib::string>>(existing))
+            values_ptr->push_back(value);
+        else {
+            std::vector<exlib::string> values;
+            values.push_back(std::get<exlib::string>(*existing));
+            values.push_back(value);
+            *existing = std::move(values);
+        }
+    }
+
+    retVal = std::move(map);
+    return result_t();
 }
 
 result_t HttpMessage::get_headersSent(bool& retVal)
@@ -954,7 +976,7 @@ result_t HttpMessage::get_trailers(obj_ptr<Headers_base>& retVal)
     return result_t();
 }
 
-result_t HttpMessage::addTrailers(v8::Local<v8::Object> headers)
+result_t HttpMessage::addTrailers(HeaderMap& headers)
 {
     if (!m_trailers)
         m_trailers = new Headers();

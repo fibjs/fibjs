@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 
 namespace fibjs {
 
@@ -31,7 +33,7 @@ public:
     static result_t format(OptArgs args, exlib::string& retVal);
     static result_t formatWithOptions(v8::Local<v8::Object> options, v8::Local<v8::Value> fmt, OptArgs args, exlib::string& retVal);
     static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
-    static result_t parseEnv(exlib::string content, v8::Local<v8::Object>& retVal);
+    static result_t parseEnv(exlib::string content, StringMap& retVal);
     static result_t inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> options, exlib::string& retVal);
     static result_t styleText(std::vector<exlib::string>& format, exlib::string text, exlib::string& retVal);
     static result_t styleText(exlib::string format, exlib::string text, exlib::string& retVal);
@@ -378,7 +380,7 @@ inline void util_base::s_static_inherits(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void util_base::s_static_parseEnv(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    StringMap vr;
 
     METHOD_ENTER();
 

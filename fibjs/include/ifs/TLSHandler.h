@@ -23,7 +23,7 @@ class TLSHandler_base : public Handler_base {
     DECLARE_CLASS(TLSHandler_base);
 
 public:
-    using Union_TLSHandler_handler = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Object>, exlib::string, v8::Local<v8::Function>>;
+    using Union_TLSHandler_handler = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, HandlerMap, exlib::string, v8::Local<v8::Function>>;
 
 public:
     // TLSHandler_base

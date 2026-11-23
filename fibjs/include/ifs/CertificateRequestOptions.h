@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include <boost/preprocessor.hpp>
 #include "ifs/KeyObject.h"
 #include "ifs/Buffer.h"
@@ -30,7 +32,7 @@ public:
     std::optional<exlib::string> encoding = "utf8";
     std::optional<exlib::string> namedCurve;
     std::optional<bool> toX25519 = false;
-    std::optional<obj_ptr<NObject>> subject;
+    std::optional<StringMap> subject;
     std::optional<exlib::string> hashAlgorithm;
 };
 }

@@ -367,7 +367,6 @@ public:
     exlib::spinlock m_perfLock;
 
     obj_ptr<HttpClient> m_httpclient;
-    v8::Global<v8::Object> STATUS_CODES;
 
     v8::Global<v8::Array> m_argv;
 

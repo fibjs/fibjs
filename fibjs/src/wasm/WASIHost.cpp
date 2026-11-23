@@ -1652,45 +1652,21 @@ static result_t read_options(WASIHostOptions* options, std::vector<exlib::string
     }
 
     if (options->env.has_value()) {
-        v8::Local<v8::Object> object = options->env.value();
-        v8::Local<v8::Array> names;
-        if (object->GetPropertyNames(context).ToLocal(&names)) {
-            for (uint32_t i = 0; i < names->Length(); i++) {
-                v8::Local<v8::Value> key_value;
-                v8::Local<v8::Value> value;
-                exlib::string key;
-                exlib::string text;
-                if (!names->Get(context, i).ToLocal(&key_value)
-                    || !object->Get(context, key_value).ToLocal(&value)
-                    || !read_js_string(context, key_value, key))
-                    continue;
-                // Node drops entries whose value is undefined.
-                if (value->IsUndefined())
-                    continue;
-                if (!read_js_string(context, value, text))
-                    continue;
-                env.push_back(key + "=" + text);
-            }
+        for (auto& item : options->env.value()) {
+            // Node drops undefined values and renders every other value with
+            // its string form (the legacy read_js_string behavior).
+            if (item.second->IsUndefined())
+                continue;
+
+            exlib::string text;
+            if (read_js_string(context, item.second, text))
+                env.push_back(item.first + "=" + text);
         }
     }
 
     if (options->preopens.has_value()) {
-        v8::Local<v8::Object> object = options->preopens.value();
-        v8::Local<v8::Array> names;
-        if (object->GetPropertyNames(context).ToLocal(&names)) {
-            for (uint32_t i = 0; i < names->Length(); i++) {
-                v8::Local<v8::Value> key_value;
-                v8::Local<v8::Value> value;
-                exlib::string guest;
-                exlib::string host;
-                if (!names->Get(context, i).ToLocal(&key_value)
-                    || !object->Get(context, key_value).ToLocal(&value)
-                    || !read_js_string(context, key_value, guest)
-                    || !read_js_string(context, value, host))
-                    continue;
-                preopens.emplace_back(guest, host);
-            }
-        }
+        for (auto& item : options->preopens.value())
+            preopens.emplace_back(item.first, item.second);
     }
 
     return result_t();

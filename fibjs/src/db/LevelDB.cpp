@@ -261,7 +261,7 @@ result_t LevelDB::set(Union_set_key key, Union_set_value value, AsyncHandle ac)
     return result_t();
 }
 
-result_t LevelDB::mset(v8::Local<v8::Object> map)
+result_t LevelDB::mset(KVMap& map)
 {
     if (!db())
         return db_closed();
@@ -269,23 +269,16 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
     leveldb::WriteBatch batch;
     leveldb::WriteBatch* batch_ = m_batch ? m_batch : &batch;
 
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-    JSArray ks = map->GetPropertyNames(context);
-    int32_t len = ks->Length();
-    int32_t i;
-    result_t hr;
-
-    for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(context, i);
-        exlib::string key(isolate->toString(k));
-
+    for (auto& item : map) {
         exlib::string value1;
-        hr = getValue(JSValue(map->Get(context, k)), value1);
-        if (hr.failed())
-            return hr;
+        if (auto value = std::get_if<exlib::string>(&item.second))
+            value1 = *value;
+        else if (auto value = std::get_if<obj_ptr<Buffer_base>>(&item.second))
+            (*value)->toString(value1);
+        else
+            return result_t::bad_vartype();
 
-        batch_->Put(leveldb::Slice(key.c_str(), key.length()),
+        batch_->Put(leveldb::Slice(item.first.c_str(), item.first.length()),
             leveldb::Slice(value1.c_str(), value1.length()));
     }
 

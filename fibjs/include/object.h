@@ -229,17 +229,17 @@ public:
 public:
     // Event
     result_t on(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
-    result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
+    result_t on(EventMap& map, v8::Local<v8::Object>& retVal);
     result_t addEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
     result_t prependListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
-    result_t prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
+    result_t prependListener(EventMap& map, v8::Local<v8::Object>& retVal);
     result_t once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
-    result_t once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
+    result_t once(EventMap& map, v8::Local<v8::Object>& retVal);
     result_t prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
-    result_t prependOnceListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
+    result_t prependOnceListener(EventMap& map, v8::Local<v8::Object>& retVal);
     result_t off(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t off(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal);
-    result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
+    result_t off(EventMap& map, v8::Local<v8::Object>& retVal);
     result_t removeEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
     result_t removeAllListeners(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal);
     result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal);

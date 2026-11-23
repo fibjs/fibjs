@@ -20,25 +20,25 @@
 
 namespace fibjs {
 
-result_t SandBox_base::_new(v8::Local<v8::Object> mods, obj_ptr<SandBox_base>& retVal,
+result_t SandBox_base::_new(ValueMap& mods, obj_ptr<SandBox_base>& retVal,
     v8::Local<v8::Object> This)
 {
     return _new(mods, v8::Local<v8::Function>(), v8::Local<v8::Object>(), retVal, This);
 }
 
-result_t SandBox_base::_new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require,
+result_t SandBox_base::_new(ValueMap& mods, v8::Local<v8::Function> require,
     obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This)
 {
     return _new(mods, require, v8::Local<v8::Object>(), retVal, This);
 }
 
-result_t SandBox_base::_new(v8::Local<v8::Object> mods, v8::Local<v8::Object> global,
+result_t SandBox_base::_new(ValueMap& mods, v8::Local<v8::Object> global,
     obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This)
 {
     return _new(mods, v8::Local<v8::Function>(), global, retVal, This);
 }
 
-result_t SandBox_base::_new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require,
+result_t SandBox_base::_new(ValueMap& mods, v8::Local<v8::Function> require,
     v8::Local<v8::Object> global, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<SandBox> sbox = new SandBox();
@@ -276,26 +276,10 @@ result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
     return result_t();
 }
 
-result_t SandBox::add(v8::Local<v8::Object> mods)
+result_t SandBox::add(ValueMap& mods)
 {
-    v8::Local<v8::Context> context;
-    if (!mods->GetCreationContext().ToLocal(&context))
-        context = holder()->context();
-
-    JSArray ks = mods->GetPropertyNames(context);
-    int32_t len = ks->Length();
-    int32_t i;
-    result_t hr;
-
-    Isolate* isolate = holder();
-
-    for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(context, i);
-        v8::Local<v8::Value> v = mods->Get(context, k).FromMaybe(v8::Local<v8::Value>());
-        if (v.IsEmpty())
-            return result_t(CALL_E_JAVASCRIPT);
-
-        hr = add(isolate->toString(k), v);
+    for (auto& item : mods) {
+        result_t hr = add(item.first, item.second);
         if (hr.failed())
             return hr;
     }
@@ -394,11 +378,10 @@ result_t SandBox::get_global(v8::Local<v8::Object>& retVal)
     return result_t();
 }
 
-result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
+result_t SandBox::get_modules(ValueMap& retVal)
 {
     Isolate* isolate = holder();
-
-    retVal = v8::Object::New(isolate->m_isolate);
+    ValueMap map;
 
     v8::Local<v8::Object> ms = mods();
 
@@ -416,9 +399,12 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
         if (mod.IsEmpty() || !mod->IsObject())
             continue;
 
-        retVal->Set(context, k, JSValue(mod.As<v8::Object>()->Get(context, mgetter))).IsJust();
+        JSValue exports = JSValue(mod.As<v8::Object>()->Get(context, mgetter));
+        if (!exports.IsEmpty())
+            map.set(isolate->toString(k), exports);
     }
 
+    retVal = std::move(map);
     return result_t();
 }
 

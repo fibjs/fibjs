@@ -57,28 +57,28 @@ public:
 public:
     // Routing_base
     virtual result_t append(Routing_base* route, obj_ptr<Routing_base>& retVal);
-    virtual result_t append(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    virtual result_t append(HandlerMap& map, obj_ptr<Routing_base>& retVal);
     virtual result_t append(exlib::string pattern, Union_append_hdlr hdlr, obj_ptr<Routing_base>& retVal);
     virtual result_t append(exlib::string method, exlib::string pattern, Union_append_hdlr hdlr, obj_ptr<Routing_base>& retVal);
-    virtual result_t _host(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    virtual result_t _host(HandlerMap& map, obj_ptr<Routing_base>& retVal);
     virtual result_t _host(exlib::string pattern, Union_host_hdlr hdlr, obj_ptr<Routing_base>& retVal);
-    virtual result_t all(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    virtual result_t all(HandlerMap& map, obj_ptr<Routing_base>& retVal);
     virtual result_t all(exlib::string pattern, Union_all_hdlr hdlr, obj_ptr<Routing_base>& retVal);
-    virtual result_t get(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    virtual result_t get(HandlerMap& map, obj_ptr<Routing_base>& retVal);
     virtual result_t get(exlib::string pattern, Union_get_hdlr hdlr, obj_ptr<Routing_base>& retVal);
-    virtual result_t post(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    virtual result_t post(HandlerMap& map, obj_ptr<Routing_base>& retVal);
     virtual result_t post(exlib::string pattern, Union_post_hdlr hdlr, obj_ptr<Routing_base>& retVal);
-    virtual result_t del(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    virtual result_t del(HandlerMap& map, obj_ptr<Routing_base>& retVal);
     virtual result_t del(exlib::string pattern, Union_del_hdlr hdlr, obj_ptr<Routing_base>& retVal);
-    virtual result_t put(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    virtual result_t put(HandlerMap& map, obj_ptr<Routing_base>& retVal);
     virtual result_t put(exlib::string pattern, Union_put_hdlr hdlr, obj_ptr<Routing_base>& retVal);
-    virtual result_t patch(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    virtual result_t patch(HandlerMap& map, obj_ptr<Routing_base>& retVal);
     virtual result_t patch(exlib::string pattern, Union_patch_hdlr hdlr, obj_ptr<Routing_base>& retVal);
-    virtual result_t find(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    virtual result_t find(HandlerMap& map, obj_ptr<Routing_base>& retVal);
     virtual result_t find(exlib::string pattern, Union_find_hdlr hdlr, obj_ptr<Routing_base>& retVal);
 
 public:
-    result_t _append(exlib::string method, v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal);
+    result_t _append(exlib::string method, HandlerMap& map, obj_ptr<Routing_base>& retVal);
     static exlib::string host2RegExp(exlib::string pattern, route_info* info = NULL);
     static exlib::string path2RegExp(exlib::string pattern, route_info* info = NULL);
 

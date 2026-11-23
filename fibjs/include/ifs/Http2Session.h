@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include "ifs/EventEmitter.h"
 
 namespace fibjs {
@@ -96,7 +98,7 @@ public:
     virtual result_t get_closed(bool& retVal) = 0;
     virtual result_t get_alpnProtocol(exlib::string& retVal) = 0;
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal) = 0;
-    virtual result_t request(v8::Local<v8::Object> headers, v8::Local<v8::Object> options, obj_ptr<Http2Stream_base>& retVal) = 0;
+    virtual result_t request(HeaderMap& headers, v8::Local<v8::Object> options, obj_ptr<Http2Stream_base>& retVal) = 0;
     virtual result_t goaway(int32_t code, int32_t lastStreamId) = 0;
     virtual result_t ping(int32_t& retVal, AsyncHandle ac) = 0;
     virtual result_t settings(v8::Local<v8::Object> settings) = 0;
@@ -271,7 +273,7 @@ inline void Http2Session_base::s_request(const v8::FunctionCallbackInfo<v8::Valu
 
     METHOD_OVER_NAMED(2, 1, "headers");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "headers");
+    ARG_NAMED(HeaderMap, 0, "headers");
     OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
     hr = pInst->request(v0, v1, vr);

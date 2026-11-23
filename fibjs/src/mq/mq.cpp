@@ -49,7 +49,7 @@ result_t Handler_base::_new(std::vector<obj_ptr<Handler_base>>& hdlrs, obj_ptr<H
     return result_t();
 }
 
-result_t Handler_base::_new(v8::Local<v8::Object> map, obj_ptr<Handler_base>& retVal,
+result_t Handler_base::_new(HandlerMap& map, obj_ptr<Handler_base>& retVal,
     v8::Local<v8::Object> This)
 {
     obj_ptr<Routing_base> routing;

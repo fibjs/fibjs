@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 
 namespace fibjs {
 
@@ -29,7 +31,7 @@ class net_base : public object_base {
 
 public:
     using Union_connect_options = std::variant<v8::Local<v8::Object>, exlib::string, int32_t>;
-    using Union_createServer_listener = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Object>, exlib::string, v8::Local<v8::Function>>;
+    using Union_createServer_listener = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, HandlerMap, exlib::string, v8::Local<v8::Function>>;
 
 public:
     enum {
@@ -43,7 +45,7 @@ public:
     // net_base
     static result_t get_use_uv_socket(bool& retVal);
     static result_t set_use_uv_socket(bool newVal);
-    static result_t info(v8::Local<v8::Object>& retVal);
+    static result_t info(ValueMap& retVal);
     static result_t resolve(exlib::string name, int32_t family, exlib::string& retVal, AsyncHandle ac);
     static result_t ip(exlib::string name, exlib::string& retVal, AsyncHandle ac);
     static result_t ipv6(exlib::string name, exlib::string& retVal, AsyncHandle ac);
@@ -198,7 +200,7 @@ inline void net_base::s_static_set_use_uv_socket(const v8::FunctionCallbackInfo<
 
 inline void net_base::s_static_info(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    ValueMap vr;
 
     METHOD_ENTER();
 

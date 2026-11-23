@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include "ifs/Stream.h"
 
 namespace fibjs {
@@ -27,9 +29,9 @@ public:
     virtual result_t get_closed(bool& retVal) = 0;
     virtual result_t get_destroyed(bool& retVal) = 0;
     virtual result_t get_headers(obj_ptr<NObject>& retVal) = 0;
-    virtual result_t respond(v8::Local<v8::Object> headers) = 0;
-    virtual result_t additionalHeaders(v8::Local<v8::Object> headers) = 0;
-    virtual result_t sendTrailers(v8::Local<v8::Object> headers) = 0;
+    virtual result_t respond(HeaderMap& headers) = 0;
+    virtual result_t additionalHeaders(HeaderMap& headers) = 0;
+    virtual result_t sendTrailers(HeaderMap& headers) = 0;
     virtual result_t rstStream(int32_t code) = 0;
 
 public:
@@ -152,7 +154,7 @@ inline void Http2Stream_base::s_respond(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate), "headers");
+    OPT_ARG_NAMED(HeaderMap, 0, HeaderMap(), "headers");
 
     hr = pInst->respond(v0);
 
@@ -166,7 +168,7 @@ inline void Http2Stream_base::s_additionalHeaders(const v8::FunctionCallbackInfo
 
     METHOD_OVER_NAMED(1, 1, "headers");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "headers");
+    ARG_NAMED(HeaderMap, 0, "headers");
 
     hr = pInst->additionalHeaders(v0);
 
@@ -180,7 +182,7 @@ inline void Http2Stream_base::s_sendTrailers(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER_NAMED(1, 1, "headers");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "headers");
+    ARG_NAMED(HeaderMap, 0, "headers");
 
     hr = pInst->sendTrailers(v0);
 

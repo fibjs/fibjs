@@ -25,7 +25,7 @@ class mq_base : public object_base {
     DECLARE_CLASS(mq_base);
 
 public:
-    using Union_invoke_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Object>, exlib::string, v8::Local<v8::Function>>;
+    using Union_invoke_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, HandlerMap, exlib::string, v8::Local<v8::Function>>;
 
 public:
     // mq_base

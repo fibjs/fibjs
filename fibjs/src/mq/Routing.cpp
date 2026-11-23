@@ -77,7 +77,7 @@ static void set_named_param(NArray* list, const exlib::string& name, Variant val
     list->add(name, value);
 }
 
-result_t Routing_base::_new(v8::Local<v8::Object> map,
+result_t Routing_base::_new(HandlerMap& map,
     obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Routing> r = new Routing();
@@ -86,7 +86,7 @@ result_t Routing_base::_new(v8::Local<v8::Object> map,
     return r->append(map, retVal);
 }
 
-result_t Routing_base::_new(exlib::string method, v8::Local<v8::Object> map,
+result_t Routing_base::_new(exlib::string method, HandlerMap& map,
     obj_ptr<Routing_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Routing> r = new Routing();
@@ -227,30 +227,33 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_ARG_VALUE").with_message("Routing: unknown routing: " + value);
 }
 
-result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
+result_t Routing::_append(exlib::string method, HandlerMap& map,
     obj_ptr<Routing_base>& retVal)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-    JSArray ks = map->GetPropertyNames(context);
-    int32_t len = ks->Length();
-    int32_t i;
-    result_t hr;
-
-    for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(context, i);
-        v8::Local<v8::Value> v = map->Get(context, k).FromMaybe(v8::Local<v8::Value>());
-        if (v.IsEmpty())
-            return result_t(CALL_E_JAVASCRIPT);
-
+    for (auto& item : map) {
         obj_ptr<Handler_base> hdlr;
-        obj_ptr<Routing_base> r;
 
-        hr = GetArgumentValue(isolate, v, hdlr);
+        result_t hr = std::visit([&](auto&& value) -> result_t {
+            using T = std::decay_t<decltype(value)>;
+
+            if constexpr (std::is_same_v<T, obj_ptr<Handler_base>>) {
+                hdlr = value;
+                return result_t();
+            } else if constexpr (std::is_same_v<T, std::shared_ptr<HandlerMap>>) {
+                return Handler_base::_new(*value, hdlr);
+            } else if constexpr (std::is_same_v<T, exlib::string>) {
+                Isolate* isolate = Isolate::current();
+                return Handler_base::load(isolate->NewString(value), hdlr);
+            } else
+                return Handler_base::load(value, hdlr);
+        }, item.second);
         if (hr.failed())
             return hr;
 
-        append(method, isolate->toString(k), hdlr, r);
+        obj_ptr<Routing_base> r;
+        hr = append(method, item.first, hdlr, r);
+        if (hr.failed())
+            return hr;
     }
 
     retVal = this;
@@ -486,7 +489,7 @@ result_t Routing::append(Routing_base* route, obj_ptr<Routing_base>& retVal)
     return result_t();
 }
 
-result_t Routing::append(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+result_t Routing::append(HandlerMap& map, obj_ptr<Routing_base>& retVal)
 {
     return _append("*", map, retVal);
 }
@@ -497,7 +500,7 @@ result_t Routing::append(exlib::string pattern, Union_append_hdlr hdlr,
     return append("*", pattern, hdlr, retVal);
 }
 
-result_t Routing::_host(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+result_t Routing::_host(HandlerMap& map, obj_ptr<Routing_base>& retVal)
 {
     return _append("HOST", map, retVal);
 }
@@ -507,7 +510,7 @@ result_t Routing::_host(exlib::string pattern, Union_host_hdlr hdlr, obj_ptr<Rou
     return append("HOST", pattern, hdlr, retVal);
 }
 
-result_t Routing::all(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+result_t Routing::all(HandlerMap& map, obj_ptr<Routing_base>& retVal)
 {
     return _append("*", map, retVal);
 }
@@ -518,7 +521,7 @@ result_t Routing::all(exlib::string pattern, Union_all_hdlr hdlr,
     return append("*", pattern, hdlr, retVal);
 }
 
-result_t Routing::get(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+result_t Routing::get(HandlerMap& map, obj_ptr<Routing_base>& retVal)
 {
     return _append("GET", map, retVal);
 }
@@ -529,7 +532,7 @@ result_t Routing::get(exlib::string pattern, Union_get_hdlr hdlr,
     return append("GET", pattern, hdlr, retVal);
 }
 
-result_t Routing::post(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+result_t Routing::post(HandlerMap& map, obj_ptr<Routing_base>& retVal)
 {
     return _append("POST", map, retVal);
 }
@@ -539,7 +542,7 @@ result_t Routing::post(exlib::string pattern, Union_post_hdlr hdlr, obj_ptr<Rout
     return append("POST", pattern, hdlr, retVal);
 }
 
-result_t Routing::del(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+result_t Routing::del(HandlerMap& map, obj_ptr<Routing_base>& retVal)
 {
     return _append("DELETE", map, retVal);
 }
@@ -550,7 +553,7 @@ result_t Routing::del(exlib::string pattern, Union_del_hdlr hdlr,
     return append("DELETE", pattern, hdlr, retVal);
 }
 
-result_t Routing::put(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+result_t Routing::put(HandlerMap& map, obj_ptr<Routing_base>& retVal)
 {
     return _append("PUT", map, retVal);
 }
@@ -561,7 +564,7 @@ result_t Routing::put(exlib::string pattern, Union_put_hdlr hdlr,
     return append("PUT", pattern, hdlr, retVal);
 }
 
-result_t Routing::patch(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+result_t Routing::patch(HandlerMap& map, obj_ptr<Routing_base>& retVal)
 {
     return _append("PATCH", map, retVal);
 }
@@ -572,7 +575,7 @@ result_t Routing::patch(exlib::string pattern, Union_patch_hdlr hdlr,
     return append("PATCH", pattern, hdlr, retVal);
 }
 
-result_t Routing::find(v8::Local<v8::Object> map, obj_ptr<Routing_base>& retVal)
+result_t Routing::find(HandlerMap& map, obj_ptr<Routing_base>& retVal)
 {
     return _append("FIND", map, retVal);
 }

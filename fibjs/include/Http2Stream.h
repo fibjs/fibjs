@@ -33,9 +33,9 @@ public:
     virtual result_t get_closed(bool& retVal);
     virtual result_t get_destroyed(bool& retVal);
     virtual result_t get_headers(obj_ptr<NObject>& retVal);
-    virtual result_t respond(v8::Local<v8::Object> headers);
-    virtual result_t additionalHeaders(v8::Local<v8::Object> headers);
-    virtual result_t sendTrailers(v8::Local<v8::Object> headers);
+    virtual result_t respond(HeaderMap& headers);
+    virtual result_t additionalHeaders(HeaderMap& headers);
+    virtual result_t sendTrailers(HeaderMap& headers);
     virtual result_t rstStream(int32_t code);
 
 public:

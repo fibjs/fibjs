@@ -530,7 +530,7 @@ result_t HttpRequest::allHeader(exlib::string name, obj_ptr<NObject>& retVal)
     return m_message->allHeader(name, retVal);
 }
 
-result_t HttpRequest::appendHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal)
+result_t HttpRequest::appendHeader(HeaderMap& map, obj_ptr<HttpMessage_base>& retVal)
 {
     retVal = this;
     return m_message->appendHeader(map);
@@ -559,7 +559,7 @@ result_t HttpRequest::appendHeader(exlib::string name, v8::Local<v8::Array> valu
     return m_message->appendHeader(name, values);
 }
 
-result_t HttpRequest::setHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal)
+result_t HttpRequest::setHeader(HeaderMap& map, obj_ptr<HttpMessage_base>& retVal)
 {
     retVal = this;
     return m_message->setHeader(map);
@@ -593,7 +593,7 @@ result_t HttpRequest::getHeader(exlib::string name, v8::Local<v8::Value>& retVal
     return m_message->getHeader(name, retVal);
 }
 
-result_t HttpRequest::getHeaders(obj_ptr<NObject>& retVal)
+result_t HttpRequest::getHeaders(HeaderMap& retVal)
 {
     return m_message->getHeaders(retVal);
 }
@@ -608,7 +608,7 @@ result_t HttpRequest::get_trailers(obj_ptr<Headers_base>& retVal)
     return m_message->get_trailers(retVal);
 }
 
-result_t HttpRequest::addTrailers(v8::Local<v8::Object> headers)
+result_t HttpRequest::addTrailers(HeaderMap& headers)
 {
     return m_message->addTrailers(headers);
 }

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ifs/Headers.h"
+#include "HeaderMapUtil.h"
 #include "HttpCollectionTmpl.h"
 
 namespace fibjs {
@@ -20,6 +21,11 @@ public:
         // Fetch API spec: header names must always be stored lowercase
         m_lowercase_keys = true;
     }
+
+    // append(HeaderMap&) below hides the base overloads; keep them visible for
+    // append_string() and callers that pass a single name.
+    using HttpCollectionTmpl<Headers_base>::append;
+    using HttpCollectionTmpl<Headers_base>::set;
 
 public:
     result_t get(exlib::string name, Variant& retVal)
@@ -58,6 +64,28 @@ public:
         m_map.insert(m_map.end(), _init->m_map.begin(), _init->m_map.end());
 
         return result_t();
+    }
+
+    // Typed IDL HeaderMap input. Values are converted by the same rules as the
+    // single-name append: an array appends one line per element and a scalar is
+    // stored as its Variant (Headers itself stringifies on write).
+    result_t append(HeaderMap& map)
+    {
+        result_t hr;
+
+        for_each_header_value(map, [&](const exlib::string& name, const exlib::string& value) {
+            if (hr.ok())
+                hr = HttpCollectionTmpl<Headers_base>::append(name, Variant(value));
+        });
+
+        return hr;
+    }
+
+    result_t set(HeaderMap& map)
+    {
+        for (auto& item : map)
+            remove(item.first);
+        return append(map);
     }
 
 public:

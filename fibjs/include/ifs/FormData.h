@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include "ifs/HttpCollection.h"
 
 namespace fibjs {
@@ -24,8 +26,8 @@ class FormData_base : public HttpCollection_base {
     DECLARE_CLASS(FormData_base);
 
 public:
-    using Union_FormData_init = std::variant<v8::Local<v8::Object>, obj_ptr<FormData_base>, exlib::string>;
-    using Union_FormData_init_load = std::variant<v8::Local<v8::Object>, exlib::string>;
+    using Union_FormData_init = std::variant<ValueMap, obj_ptr<FormData_base>, exlib::string>;
+    using Union_FormData_init_load = std::variant<ValueMap, exlib::string>;
     static result_t _new(Union_FormData_init_load init, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>())
     {
         return std::visit([&](auto&& v) -> result_t { return _new(Union_FormData_init(v), retVal, This); }, init);
@@ -165,7 +167,7 @@ inline void FormData_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(ValueMap, 0, "map");
 
     hr = pInst->append(v0);
 
@@ -207,7 +209,7 @@ inline void FormData_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(ValueMap, 0, "map");
 
     hr = pInst->set(v0);
 

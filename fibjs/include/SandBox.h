@@ -26,7 +26,7 @@ public:
     // SandBox_base
     virtual result_t addBuiltinModules();
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod);
-    virtual result_t add(v8::Local<v8::Object> mods);
+    virtual result_t add(ValueMap& mods);
     virtual result_t addScript(exlib::string srcname, Union_addScript_script script, v8::Local<v8::Value>& retVal);
     result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal);
     result_t addScript(exlib::string srcname, exlib::string script, v8::Local<v8::Value>& retVal);
@@ -40,7 +40,7 @@ public:
     virtual result_t import(exlib::string id, exlib::string base, v8::Local<v8::Promise>& retVal);
     virtual result_t setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler);
     virtual result_t get_global(v8::Local<v8::Object>& retVal);
-    virtual result_t get_modules(v8::Local<v8::Object>& retVal);
+    virtual result_t get_modules(ValueMap& retVal);
 
 public:
     v8::Local<v8::Object> mods()

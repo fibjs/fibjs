@@ -24,22 +24,22 @@ public:
     static result_t get_defaultMaxListeners(int32_t& retVal);
     static result_t set_defaultMaxListeners(int32_t newVal);
     virtual result_t on(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t on(EventMap& map, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t addListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t addListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t addListener(EventMap& map, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t addEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t prependListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t prependListener(EventMap& map, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t once(EventMap& map, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t prependOnceListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t prependOnceListener(EventMap& map, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t off(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t off(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t off(EventMap& map, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t removeListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t removeListener(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t removeListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t removeListener(EventMap& map, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t removeEventListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t removeAllListeners(v8::Local<v8::Value> ev, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal) = 0;
@@ -209,7 +209,7 @@ inline void EventEmitter_base::s_on(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(EventMap, 0, "map");
 
     hr = pInst->on(v0, vr);
 
@@ -232,7 +232,7 @@ inline void EventEmitter_base::s_addListener(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(EventMap, 0, "map");
 
     hr = pInst->addListener(v0, vr);
 
@@ -273,7 +273,7 @@ inline void EventEmitter_base::s_prependListener(const v8::FunctionCallbackInfo<
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(EventMap, 0, "map");
 
     hr = pInst->prependListener(v0, vr);
 
@@ -296,7 +296,7 @@ inline void EventEmitter_base::s_once(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(EventMap, 0, "map");
 
     hr = pInst->once(v0, vr);
 
@@ -319,7 +319,7 @@ inline void EventEmitter_base::s_prependOnceListener(const v8::FunctionCallbackI
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(EventMap, 0, "map");
 
     hr = pInst->prependOnceListener(v0, vr);
 
@@ -348,7 +348,7 @@ inline void EventEmitter_base::s_off(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(EventMap, 0, "map");
 
     hr = pInst->off(v0, vr);
 
@@ -377,7 +377,7 @@ inline void EventEmitter_base::s_removeListener(const v8::FunctionCallbackInfo<v
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(EventMap, 0, "map");
 
     hr = pInst->removeListener(v0, vr);
 

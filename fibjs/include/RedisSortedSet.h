@@ -37,7 +37,7 @@ public:
 
 public:
     // RedisSortedSet_base
-    virtual result_t add(v8::Local<v8::Object> sms, int32_t& retVal);
+    virtual result_t add(StringMap& sms, int32_t& retVal);
     virtual result_t add(OptArgs sms, int32_t& retVal);
     virtual result_t score(Union_score_member member, obj_ptr<Buffer_base>& retVal);
     virtual result_t incr(Union_incr_member member, int64_t num, obj_ptr<Buffer_base>& retVal);

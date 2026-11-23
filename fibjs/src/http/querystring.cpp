@@ -50,42 +50,28 @@ result_t querystring_base::parse(exlib::string str, exlib::string sep,
     return result_t();
 }
 
-result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string sep,
+result_t querystring_base::stringify(ValueMap& obj, exlib::string sep,
     exlib::string eq, v8::Local<v8::Object> opt,
     exlib::string& retVal)
 {
     StringBuffer bufs;
 
-    v8::Local<v8::Context> context;
-    if (!obj->GetCreationContext().ToLocal(&context))
-        context = Isolate::current()->context();
-    Isolate* isolate = Isolate::current(context);
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
 
-    JSArray ks = obj->GetPropertyNames(context);
-    int32_t len = ks->Length();
-    int32_t i;
-    result_t hr;
+    for (auto& item : obj) {
+        exlib::string strKey = item.first, strValue;
+        v8::Local<v8::Value> v = item.second;
 
-    for (i = 0; i < len; i++) {
-        exlib::string strKey, strValue, str;
-        v8::Local<v8::Array> vs;
-        JSValue k = ks->Get(context, i);
-        v8::Local<v8::Value> v = obj->Get(context, k).FromMaybe(v8::Local<v8::Value>());
-        if (v.IsEmpty())
-            return result_t(CALL_E_JAVASCRIPT);
-
-        GetArgumentValue(isolate, k, strKey);
         encoding_base::encodeURIComponent(strKey, true, strKey);
 
-        hr = GetArgumentValue(isolate, v, vs, true);
-        if (hr.ok()) {
-            int32_t len1 = vs->Length();
-            int32_t i1;
+        if (v->IsArray()) {
+            v8::Local<v8::Array> vs = v.As<v8::Array>();
+            int32_t len = vs->Length();
 
-            for (i1 = 0; i1 < len1; i1++) {
+            for (int32_t i = 0; i < len; i++) {
                 // node renders every value through its string form
-                strValue = isolate->toString(JSValue(vs->Get(context, i1)));
-
+                strValue = isolate->toString(JSValue(vs->Get(context, i)));
                 encoding_base::encodeURIComponent(strValue, true, strValue);
 
                 if (bufs.size() > 0)
@@ -97,7 +83,6 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
             }
         } else {
             strValue = isolate->toString(v);
-
             encoding_base::encodeURIComponent(strValue, true, strValue);
 
             if (bufs.size() > 0)

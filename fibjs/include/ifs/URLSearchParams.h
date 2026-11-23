@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include "ifs/HttpCollection.h"
 
 namespace fibjs {
@@ -22,8 +24,8 @@ class URLSearchParams_base : public HttpCollection_base {
     DECLARE_CLASS(URLSearchParams_base);
 
 public:
-    using Union_URLSearchParams_init = std::variant<v8::Local<v8::Object>, v8::Local<v8::Array>, obj_ptr<URLSearchParams_base>, exlib::string, Variant>;
-    using Union_URLSearchParams_init_load = std::variant<v8::Local<v8::Object>, v8::Local<v8::Array>, exlib::string, Variant>;
+    using Union_URLSearchParams_init = std::variant<ValueMap, v8::Local<v8::Array>, obj_ptr<URLSearchParams_base>, exlib::string, Variant>;
+    using Union_URLSearchParams_init_load = std::variant<ValueMap, v8::Local<v8::Array>, exlib::string, Variant>;
     static result_t _new(Union_URLSearchParams_init_load init, obj_ptr<URLSearchParams_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>())
     {
         return std::visit([&](auto&& v) -> result_t { return _new(Union_URLSearchParams_init(v), retVal, This); }, init);

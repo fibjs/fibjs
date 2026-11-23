@@ -24,7 +24,7 @@ class TLSServer_base : public TcpServer_base {
     DECLARE_CLASS(TLSServer_base);
 
 public:
-    using Union_TLSServer_listener = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Object>, exlib::string, v8::Local<v8::Function>>;
+    using Union_TLSServer_listener = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, HandlerMap, exlib::string, v8::Local<v8::Function>>;
 
 public:
     // TLSServer_base

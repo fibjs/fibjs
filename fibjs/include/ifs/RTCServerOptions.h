@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include <boost/preprocessor.hpp>
 
 namespace fibjs {
@@ -21,7 +23,7 @@ public:
     LOAD_OPTIONS(RTCServerOptions, (credentials)(maxAllocations)(maxPeers)(bindAddress)(port)(relayPortRangeBegin)(relayPortRangeEnd));
 
 public:
-    std::optional<v8::Local<v8::Object>> credentials;
+    std::optional<StringMap> credentials;
     std::optional<int32_t> maxAllocations = 0;
     std::optional<int32_t> maxPeers = 0;
     std::optional<exlib::string> bindAddress;

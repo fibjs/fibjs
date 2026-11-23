@@ -34,7 +34,7 @@ result_t FormData_base::_new(Union_FormData_init init, obj_ptr<FormData_base>& r
     }
 
     retVal = new FormData();
-    return retVal->append(std::get<v8::Local<v8::Object>>(init));
+    return retVal->append(std::get<ValueMap>(init));
 }
 
 result_t FormData_base::_new(Buffer_base* init, exlib::string boundary, obj_ptr<FormData_base>& retVal, v8::Local<v8::Object> This)

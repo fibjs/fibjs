@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include <boost/preprocessor.hpp>
 #include "ifs/Headers.h"
 
@@ -24,6 +26,6 @@ public:
 public:
     std::optional<int32_t> status;
     std::optional<exlib::string> statusText;
-    std::optional<std::variant<obj_ptr<Headers_base>, obj_ptr<NObject>>> headers;
+    std::optional<std::variant<obj_ptr<Headers_base>, HeaderMap>> headers;
 };
 }

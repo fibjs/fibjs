@@ -8,11 +8,33 @@
 #include "object.h"
 #include "Http2Stream.h"
 #include "Http2Session.h"
+#include "HeaderMapUtil.h"
 #include "Buffer.h"
 #include "Fiber.h"
 #include <nghttp2/nghttp2.h>
 
 namespace fibjs {
+
+// Convert the typed header map to nghttp2's name/value vector. The caller
+// owns the two string buffers until submit_headers()/submit_request() returns;
+// nghttp2_nv only holds pointers into them.
+static void append_header_map(HeaderMap& headers, std::vector<nghttp2_nv>& nva,
+    std::vector<exlib::string>& name_bufs, std::vector<exlib::string>& value_bufs)
+{
+    auto append = [&](const exlib::string& name, const exlib::string& value) {
+        name_bufs.push_back(name);
+        value_bufs.push_back(value);
+
+        nghttp2_nv nv = {
+            (uint8_t*)name_bufs.back().c_str(), (uint8_t*)value_bufs.back().c_str(),
+            name_bufs.back().length(), value_bufs.back().length(),
+            NGHTTP2_NV_FLAG_NO_COPY_NAME | NGHTTP2_NV_FLAG_NO_COPY_VALUE
+        };
+        nva.push_back(nv);
+    };
+
+    for_each_header_value(headers, append);
+}
 
 result_t Http2Stream::get_id(int32_t& retVal)
 {
@@ -41,7 +63,7 @@ result_t Http2Stream::get_headers(obj_ptr<NObject>& retVal)
     return result_t();
 }
 
-result_t Http2Stream::respond(v8::Local<v8::Object> headers)
+result_t Http2Stream::respond(HeaderMap& headers)
 {
     if (m_closed || m_destroyed)
         return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ERR_HTTP2_INVALID_STREAM").with_message("Http2Stream: stream is closed.");
@@ -49,31 +71,15 @@ result_t Http2Stream::respond(v8::Local<v8::Object> headers)
     if (!m_session || !m_session->m_nghttp2)
         return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ERR_HTTP2_INVALID_SESSION").with_message("Http2Stream: session is destroyed.");
 
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    // Convert headers object to nghttp2_nv array
-    v8::Local<v8::Array> keys = headers->GetOwnPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
-    uint32_t nheaders = keys.IsEmpty() ? 0 : keys->Length();
-
     std::vector<nghttp2_nv> nva;
     std::vector<exlib::string> name_bufs;
     std::vector<exlib::string> value_bufs;
-    name_bufs.reserve(nheaders + 1);
-    value_bufs.reserve(nheaders + 1);
+    name_bufs.reserve(headers.size() + 1);
+    value_bufs.reserve(headers.size() + 1);
 
-    // Ensure :status is included
-    bool has_status = false;
-    for (uint32_t i = 0; i < nheaders; i++) {
-        v8::Local<v8::Value> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>());
-        v8::String::Utf8Value key_str(isolate->m_isolate, key);
-        if (strcmp(*key_str, ":status") == 0) {
-            has_status = true;
-            break;
-        }
-    }
-
-    if (!has_status) {
+    // Ensure :status is included. The typed map is searched directly; the
+    // converted nghttp2 vector is then built in insertion order.
+    if (!headers.has(":status")) {
         name_bufs.push_back(":status");
         value_bufs.push_back("200");
         nghttp2_nv nv = {
@@ -84,23 +90,7 @@ result_t Http2Stream::respond(v8::Local<v8::Object> headers)
         nva.push_back(nv);
     }
 
-    for (uint32_t i = 0; i < nheaders; i++) {
-        v8::Local<v8::Value> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>());
-        v8::Local<v8::Value> val = headers->Get(context, key).FromMaybe(v8::Local<v8::Value>());
-
-        v8::String::Utf8Value key_str(isolate->m_isolate, key);
-        v8::String::Utf8Value val_str(isolate->m_isolate, val);
-
-        name_bufs.push_back(exlib::string(*key_str, key_str.length()));
-        value_bufs.push_back(exlib::string(*val_str, val_str.length()));
-
-        nghttp2_nv nv = {
-            (uint8_t*)name_bufs.back().c_str(), (uint8_t*)value_bufs.back().c_str(),
-            name_bufs.back().length(), value_bufs.back().length(),
-            NGHTTP2_NV_FLAG_NO_COPY_NAME | NGHTTP2_NV_FLAG_NO_COPY_VALUE
-        };
-        nva.push_back(nv);
-    }
+    append_header_map(headers, nva, name_bufs, value_bufs);
 
     nghttp2_data_provider data_prd;
     data_prd.source.ptr = this;
@@ -114,41 +104,18 @@ result_t Http2Stream::respond(v8::Local<v8::Object> headers)
     return result_t();
 }
 
-result_t Http2Stream::additionalHeaders(v8::Local<v8::Object> headers)
+result_t Http2Stream::additionalHeaders(HeaderMap& headers)
 {
     if (m_closed || m_destroyed)
         return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ERR_HTTP2_INVALID_STREAM").with_message("Http2Stream: stream is closed.");
 
-    // Submit additional 1xx informational headers
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Array> keys = headers->GetOwnPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
-    uint32_t nheaders = keys.IsEmpty() ? 0 : keys->Length();
-
     std::vector<nghttp2_nv> nva;
     std::vector<exlib::string> name_bufs;
     std::vector<exlib::string> value_bufs;
-    name_bufs.reserve(nheaders);
-    value_bufs.reserve(nheaders);
+    name_bufs.reserve(headers.size());
+    value_bufs.reserve(headers.size());
 
-    for (uint32_t i = 0; i < nheaders; i++) {
-        v8::Local<v8::Value> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>());
-        v8::Local<v8::Value> val = headers->Get(context, key).FromMaybe(v8::Local<v8::Value>());
-
-        v8::String::Utf8Value key_str(isolate->m_isolate, key);
-        v8::String::Utf8Value val_str(isolate->m_isolate, val);
-
-        name_bufs.push_back(exlib::string(*key_str, key_str.length()));
-        value_bufs.push_back(exlib::string(*val_str, val_str.length()));
-
-        nghttp2_nv nv = {
-            (uint8_t*)name_bufs.back().c_str(), (uint8_t*)value_bufs.back().c_str(),
-            name_bufs.back().length(), value_bufs.back().length(),
-            NGHTTP2_NV_FLAG_NO_COPY_NAME | NGHTTP2_NV_FLAG_NO_COPY_VALUE
-        };
-        nva.push_back(nv);
-    }
+    append_header_map(headers, nva, name_bufs, value_bufs);
 
     int rv = m_session->m_nghttp2.submit_headers(m_stream_id, nva.data(), nva.size());
     if (rv < 0)
@@ -158,40 +125,18 @@ result_t Http2Stream::additionalHeaders(v8::Local<v8::Object> headers)
     return result_t();
 }
 
-result_t Http2Stream::sendTrailers(v8::Local<v8::Object> headers)
+result_t Http2Stream::sendTrailers(HeaderMap& headers)
 {
     if (m_closed || m_destroyed)
         return result_t::make(CALL_E_CLOSED).with_type_name(errtype::kError).with_code("ERR_HTTP2_INVALID_STREAM").with_message("Http2Stream: stream is closed.");
 
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Array> keys = headers->GetOwnPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
-    uint32_t nheaders = keys.IsEmpty() ? 0 : keys->Length();
-
     std::vector<nghttp2_nv> nva;
     std::vector<exlib::string> name_bufs;
     std::vector<exlib::string> value_bufs;
-    name_bufs.reserve(nheaders);
-    value_bufs.reserve(nheaders);
+    name_bufs.reserve(headers.size());
+    value_bufs.reserve(headers.size());
 
-    for (uint32_t i = 0; i < nheaders; i++) {
-        v8::Local<v8::Value> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>());
-        v8::Local<v8::Value> val = headers->Get(context, key).FromMaybe(v8::Local<v8::Value>());
-
-        v8::String::Utf8Value key_str(isolate->m_isolate, key);
-        v8::String::Utf8Value val_str(isolate->m_isolate, val);
-
-        name_bufs.push_back(exlib::string(*key_str, key_str.length()));
-        value_bufs.push_back(exlib::string(*val_str, val_str.length()));
-
-        nghttp2_nv nv = {
-            (uint8_t*)name_bufs.back().c_str(), (uint8_t*)value_bufs.back().c_str(),
-            name_bufs.back().length(), value_bufs.back().length(),
-            NGHTTP2_NV_FLAG_NO_COPY_NAME | NGHTTP2_NV_FLAG_NO_COPY_VALUE
-        };
-        nva.push_back(nv);
-    }
+    append_header_map(headers, nva, name_bufs, value_bufs);
 
     int rv = m_session->m_nghttp2.submit_trailer(m_stream_id, nva.data(), nva.size());
     if (rv != 0)

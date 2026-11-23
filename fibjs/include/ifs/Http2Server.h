@@ -24,7 +24,7 @@ class Http2Server_base : public TcpServer_base {
     DECLARE_CLASS(Http2Server_base);
 
 public:
-    using Union_Http2Server_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, v8::Local<v8::Object>, exlib::string, v8::Local<v8::Function>>;
+    using Union_Http2Server_hdlr = std::variant<obj_ptr<Handler_base>, std::vector<obj_ptr<Handler_base>>, HandlerMap, exlib::string, v8::Local<v8::Function>>;
 
 public:
     // Http2Server_base

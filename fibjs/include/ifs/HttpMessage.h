@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include "ifs/Message.h"
 
 namespace fibjs {
@@ -45,20 +47,20 @@ public:
     virtual result_t hasHeader(exlib::string name, bool& retVal) = 0;
     virtual result_t firstHeader(exlib::string name, exlib::string& retVal) = 0;
     virtual result_t allHeader(exlib::string name, obj_ptr<NObject>& retVal) = 0;
-    virtual result_t appendHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal) = 0;
+    virtual result_t appendHeader(HeaderMap& map, obj_ptr<HttpMessage_base>& retVal) = 0;
     virtual result_t appendHeader(Headers_base* headers, obj_ptr<HttpMessage_base>& retVal) = 0;
     virtual result_t appendHeader(exlib::string name, v8::Local<v8::Array> values, obj_ptr<HttpMessage_base>& retVal) = 0;
     virtual result_t appendHeader(exlib::string name, Variant value, obj_ptr<HttpMessage_base>& retVal) = 0;
-    virtual result_t setHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal) = 0;
+    virtual result_t setHeader(HeaderMap& map, obj_ptr<HttpMessage_base>& retVal) = 0;
     virtual result_t setHeader(Headers_base* headers, obj_ptr<HttpMessage_base>& retVal) = 0;
     virtual result_t setHeader(exlib::string name, v8::Local<v8::Array> values, obj_ptr<HttpMessage_base>& retVal) = 0;
     virtual result_t setHeader(exlib::string name, Variant value, obj_ptr<HttpMessage_base>& retVal) = 0;
     virtual result_t removeHeader(exlib::string name) = 0;
     virtual result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t getHeaders(obj_ptr<NObject>& retVal) = 0;
+    virtual result_t getHeaders(HeaderMap& retVal) = 0;
     virtual result_t get_headersSent(bool& retVal) = 0;
     virtual result_t get_trailers(obj_ptr<Headers_base>& retVal) = 0;
-    virtual result_t addTrailers(v8::Local<v8::Object> headers) = 0;
+    virtual result_t addTrailers(HeaderMap& headers) = 0;
     virtual result_t formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac) = 0;
 
 public:
@@ -433,7 +435,7 @@ inline void HttpMessage_base::s_appendHeader(const v8::FunctionCallbackInfo<v8::
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(HeaderMap, 0, "map");
 
     hr = pInst->appendHeader(v0, vr);
 
@@ -469,7 +471,7 @@ inline void HttpMessage_base::s_setHeader(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(HeaderMap, 0, "map");
 
     hr = pInst->setHeader(v0, vr);
 
@@ -528,7 +530,7 @@ inline void HttpMessage_base::s_getHeader(const v8::FunctionCallbackInfo<v8::Val
 
 inline void HttpMessage_base::s_getHeaders(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<NObject> vr;
+    HeaderMap vr;
 
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
@@ -575,7 +577,7 @@ inline void HttpMessage_base::s_addTrailers(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER_NAMED(1, 1, "headers");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "headers");
+    ARG_NAMED(HeaderMap, 0, "headers");
 
     hr = pInst->addTrailers(v0);
 

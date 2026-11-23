@@ -39,7 +39,7 @@ public:
     // RedisHash_base
     virtual result_t set(Union_set_field field, Union_set_value value);
     virtual result_t setNX(Union_setNX_field field, Union_setNX_value value);
-    virtual result_t mset(v8::Local<v8::Object> kvs);
+    virtual result_t mset(KVMap& kvs);
     virtual result_t mset(OptArgs kvs);
     virtual result_t get(Union_get_field field, obj_ptr<Buffer_base>& retVal);
     virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<NArray>& retVal);

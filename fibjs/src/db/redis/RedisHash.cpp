@@ -22,7 +22,7 @@ result_t RedisHash::setNX(Union_setNX_field field, Union_setNX_value value)
     return m_rdb->doCommand("HSETNX", m_key, field, value, v);
 }
 
-result_t RedisHash::mset(v8::Local<v8::Object> kvs)
+result_t RedisHash::mset(KVMap& kvs)
 {
     Variant v;
     return m_rdb->doCommand("HMSET", m_key, kvs, v);

@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include "ifs/HttpCollection.h"
 
 namespace fibjs {
@@ -22,8 +24,8 @@ class Headers_base : public HttpCollection_base {
     DECLARE_CLASS(Headers_base);
 
 public:
-    using Union_Headers_init = std::variant<v8::Local<v8::Object>, v8::Local<v8::Array>, obj_ptr<Headers_base>>;
-    using Union_Headers_init_load = std::variant<v8::Local<v8::Object>, v8::Local<v8::Array>>;
+    using Union_Headers_init = std::variant<HeaderMap, v8::Local<v8::Array>, obj_ptr<Headers_base>>;
+    using Union_Headers_init_load = std::variant<HeaderMap, v8::Local<v8::Array>>;
     static result_t _new(Union_Headers_init_load init, obj_ptr<Headers_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>())
     {
         return std::visit([&](auto&& v) -> result_t { return _new(Union_Headers_init(v), retVal, This); }, init);

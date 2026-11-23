@@ -187,9 +187,9 @@ result_t http_base::set_maxFreeSockets(int32_t newVal)
     return get_httpClient()->set_maxFreeSockets(newVal);
 }
 
-result_t http_base::setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Local<v8::Function>& retVal)
+result_t http_base::setGlobalProxyFromEnv(StringMap& proxyEnv, v8::Local<v8::Function>& retVal)
 {
-    Isolate* isolate = Isolate::current(proxyEnv);
+    Isolate* isolate = Isolate::current();
     HttpClient* hc = get_httpClient(isolate);
 
     // Save current proxy settings for restore function
@@ -198,8 +198,7 @@ result_t http_base::setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Lo
     hc->get_https_proxy(old_https_proxy);
     old_no_proxy = hc->m_no_proxy;
 
-    v8::Local<v8::Array> keys = proxyEnv->GetOwnPropertyNames(isolate->context()).FromMaybe(v8::Local<v8::Array>());
-    bool useEnv = keys.IsEmpty() || keys->Length() == 0;
+    bool useEnv = proxyEnv.empty();
 
     exlib::string http_proxy, https_proxy, no_proxy;
 
@@ -238,12 +237,13 @@ result_t http_base::setGlobalProxyFromEnv(v8::Local<v8::Object> proxyEnv, v8::Lo
                 no_proxy = buf;
         }
     } else {
-        // Read from provided proxyEnv object
+        // Reuse the client setter so the lowercase-wins and missing-key rules
+        // stay in one place; read the applied values back for the restore
+        // function.
         result_t hr = hc->set_proxyEnv(proxyEnv);
         if (hr.failed())
             return hr;
 
-        // Get the values that were set
         hc->get_http_proxy(http_proxy);
         hc->get_https_proxy(https_proxy);
         no_proxy = hc->m_no_proxy;

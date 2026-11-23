@@ -99,7 +99,7 @@ public:
     result_t prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev);
     void spliceOne(v8::Local<v8::Array> esa, int32_t index);
     result_t removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, v8::Local<v8::Value> ev);
-    result_t _map(v8::Local<v8::Object> m,
+    result_t _map(EventMap& m,
         result_t (JSTrigger::*fn)(v8::Local<v8::Value>, v8::Local<v8::Function>, v8::Local<v8::Object>&),
         v8::Local<v8::Object>& retVal);
 
@@ -116,7 +116,7 @@ public:
         return on(static_cast<v8::Local<v8::Value>>(NewString(ev)), func, retVal);
     }
 
-    result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+    result_t on(EventMap& map, v8::Local<v8::Object>& retVal)
     {
         return _map(map, &JSTrigger::on, retVal);
     }
@@ -128,7 +128,7 @@ public:
         return result_t();
     }
 
-    result_t prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+    result_t prependListener(EventMap& map, v8::Local<v8::Object>& retVal)
     {
         return _map(map, &JSTrigger::prependListener, retVal);
     }
@@ -136,7 +136,7 @@ public:
     static void _onceWrap(const v8::FunctionCallbackInfo<v8::Value>& args);
     result_t once(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
 
-    result_t once(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+    result_t once(EventMap& map, v8::Local<v8::Object>& retVal)
     {
         return _map(map, &JSTrigger::once, retVal);
     }
@@ -145,7 +145,7 @@ public:
         v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
     result_t prependOnceListener(v8::Local<v8::Value> ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
 
-    result_t prependOnceListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+    result_t prependOnceListener(EventMap& map, v8::Local<v8::Object>& retVal)
     {
         return _map(map, &JSTrigger::prependOnceListener, retVal);
     }
@@ -163,7 +163,7 @@ public:
         return off(static_cast<v8::Local<v8::Value>>(NewString(ev)), retVal);
     }
 
-    result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
+    result_t off(EventMap& map, v8::Local<v8::Object>& retVal)
     {
         return _map(map, &JSTrigger::off, retVal);
     }

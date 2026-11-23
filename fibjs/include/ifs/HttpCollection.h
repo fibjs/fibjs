@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 
 namespace fibjs {
 
@@ -32,10 +34,10 @@ public:
     virtual result_t get(exlib::string name, Variant& retVal) = 0;
     virtual result_t all(exlib::string name, obj_ptr<NObject>& retVal) = 0;
     virtual result_t getAll(exlib::string name, obj_ptr<NArray>& retVal) = 0;
-    virtual result_t append(v8::Local<v8::Object> map) = 0;
+    virtual result_t append(ValueMap& map) = 0;
     virtual result_t append(exlib::string name, Union_append_value value) = 0;
     virtual result_t append(v8::Local<v8::Array> entries) = 0;
-    virtual result_t set(v8::Local<v8::Object> map) = 0;
+    virtual result_t set(ValueMap& map) = 0;
     virtual result_t set(exlib::string name, Union_set_value value) = 0;
     virtual result_t remove(exlib::string name) = 0;
     virtual result_t _delete(exlib::string name) = 0;
@@ -224,7 +226,7 @@ inline void HttpCollection_base::s_append(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(ValueMap, 0, "map");
 
     hr = pInst->append(v0);
 
@@ -251,7 +253,7 @@ inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER_NAMED(1, 1, "map");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "map");
+    ARG_NAMED(ValueMap, 0, "map");
 
     hr = pInst->set(v0);
 

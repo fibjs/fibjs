@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 
 namespace fibjs {
 
@@ -33,7 +35,7 @@ public:
     // RedisHash_base
     virtual result_t set(Union_set_field field, Union_set_value value) = 0;
     virtual result_t setNX(Union_setNX_field field, Union_setNX_value value) = 0;
-    virtual result_t mset(v8::Local<v8::Object> kvs) = 0;
+    virtual result_t mset(KVMap& kvs) = 0;
     virtual result_t mset(OptArgs kvs) = 0;
     virtual result_t get(Union_get_field field, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t mget(v8::Local<v8::Array> fields, obj_ptr<NArray>& retVal) = 0;
@@ -139,7 +141,7 @@ inline void RedisHash_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     METHOD_OVER_NAMED(1, 1, "kvs");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "kvs");
+    ARG_NAMED(KVMap, 0, "kvs");
 
     hr = pInst->mset(v0);
 

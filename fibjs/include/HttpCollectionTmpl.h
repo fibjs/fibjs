@@ -122,30 +122,14 @@ public:
         return result_t();
     }
 
-    result_t append(v8::Local<v8::Object> map)
+    result_t append(ValueMap& map)
     {
-        Isolate* isolate = Isolate::current(map);
-
-        v8::Local<v8::Context> context;
-        if (!map->GetCreationContext().ToLocal(&context))
-            context = isolate->context();
-
-        JSArray ks = map->GetPropertyNames(context);
-        int32_t len = ks->Length();
-        int32_t i;
-
-        for (i = 0; i < len; i++) {
-            JSValue k = ks->Get(context, i);
-            JSValue v = map->Get(context, k);
-
-            if (v.IsEmpty())
-                return result_t(CALL_E_JAVASCRIPT);
-
+        for (auto& item : map) {
             result_t hr;
-            if (v->IsArray())
-                hr = append(isolate->toString(k), v.As<v8::Array>());
+            if (item.second->IsArray())
+                hr = append(item.first, item.second.As<v8::Array>());
             else
-                hr = append(isolate->toString(k), (Variant)v);
+                hr = append(item.first, Variant(item.second));
 
             if (hr.failed())
                 return hr;
@@ -222,29 +206,17 @@ public:
         return append(name, std::get<Variant>(value));
     }
 
-    result_t set(v8::Local<v8::Object> map)
+    result_t set(ValueMap& map)
     {
-        Isolate* isolate = Isolate::current(map);
-
-        v8::Local<v8::Context> context;
-        if (!map->GetCreationContext().ToLocal(&context))
-            context = isolate->context();
-
-        JSArray ks = map->GetPropertyNames(context);
-        int32_t len = ks->Length();
-        int32_t i;
-
-        for (i = 0; i < len; i++) {
-            JSValue k = ks->Get(context, i);
-            JSValue v = map->Get(context, k);
-
-            if (v.IsEmpty())
-                return result_t(CALL_E_JAVASCRIPT);
-
-            if (v->IsArray())
-                set(isolate->toString(k), v.As<v8::Array>());
+        for (auto& item : map) {
+            result_t hr;
+            if (item.second->IsArray())
+                hr = set(item.first, item.second.As<v8::Array>());
             else
-                set(isolate->toString(k), (Variant)v);
+                hr = set(item.first, Variant(item.second));
+
+            if (hr.failed())
+                return hr;
         }
 
         return result_t();

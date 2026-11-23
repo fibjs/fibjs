@@ -29,14 +29,9 @@ static result_t normalize_response_headers(HttpResponseOptions* options)
         return result_t();
 
     auto& headers = options->headers.value();
-    if (std::holds_alternative<obj_ptr<NObject>>(headers)) {
-        v8::Local<v8::Object> map;
-        result_t hr = std::get<obj_ptr<NObject>>(headers)->valueOf(map);
-        if (hr.failed())
-            return hr;
-
+    if (auto map = std::get_if<HeaderMap>(&headers)) {
         obj_ptr<Headers> hdrs = new Headers();
-        hr = hdrs->append(map);
+        result_t hr = hdrs->append(*map);
         if (hr.failed())
             return hr;
 
@@ -352,7 +347,7 @@ result_t HttpResponse::allHeader(exlib::string name, obj_ptr<NObject>& retVal)
     return m_message->allHeader(name, retVal);
 }
 
-result_t HttpResponse::appendHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal)
+result_t HttpResponse::appendHeader(HeaderMap& map, obj_ptr<HttpMessage_base>& retVal)
 {
     retVal = this;
     return m_message->appendHeader(map);
@@ -376,7 +371,7 @@ result_t HttpResponse::appendHeader(exlib::string name, v8::Local<v8::Array> val
     return m_message->appendHeader(name, values);
 }
 
-result_t HttpResponse::setHeader(v8::Local<v8::Object> map, obj_ptr<HttpMessage_base>& retVal)
+result_t HttpResponse::setHeader(HeaderMap& map, obj_ptr<HttpMessage_base>& retVal)
 {
     retVal = this;
     return m_message->setHeader(map);
@@ -410,7 +405,7 @@ result_t HttpResponse::getHeader(exlib::string name, v8::Local<v8::Value>& retVa
     return m_message->getHeader(name, retVal);
 }
 
-result_t HttpResponse::getHeaders(obj_ptr<NObject>& retVal)
+result_t HttpResponse::getHeaders(HeaderMap& retVal)
 {
     return m_message->getHeaders(retVal);
 }
@@ -425,7 +420,7 @@ result_t HttpResponse::get_trailers(obj_ptr<Headers_base>& retVal)
     return m_message->get_trailers(retVal);
 }
 
-result_t HttpResponse::addTrailers(v8::Local<v8::Object> headers)
+result_t HttpResponse::addTrailers(HeaderMap& headers)
 {
     return m_message->addTrailers(headers);
 }
@@ -560,23 +555,14 @@ public:
     }
 } s_init_status_line;
 
-result_t http_base::get_STATUS_CODES(v8::Local<v8::Object>& retVal)
+result_t http_base::get_STATUS_CODES(StringMap& retVal)
 {
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-    int32_t i;
+    StringMap map;
 
-    if (!isolate->STATUS_CODES.IsEmpty()) {
-        retVal = isolate->STATUS_CODES.Get(isolate->m_isolate);
-        return result_t();
-    }
+    for (int32_t i = 0; i < RESPONSE_CODES; i++)
+        map.set(exlib::string(status_lines[i] + 1, 3), exlib::string(status_lines[i] + 5));
 
-    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    for (i = 0; i < RESPONSE_CODES; i++)
-        o->Set(context, isolate->NewString(status_lines[i] + 1, 3), isolate->NewString(status_lines[i] + 5)).IsJust();
-
-    isolate->STATUS_CODES.Reset(isolate->m_isolate, o);
-    retVal = o;
+    retVal = std::move(map);
 
     return result_t();
 }
@@ -790,7 +776,7 @@ result_t HttpResponse::get_ok(bool& retVal)
     return result_t();
 }
 
-result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage, HeaderMap& headers, obj_ptr<HttpResponse_base>& retVal)
 {
     set_statusCode(statusCode);
     set_statusMessage(statusMessage);
@@ -799,7 +785,7 @@ result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage
     return result_t();
 }
 
-result_t HttpResponse::writeHead(int32_t statusCode, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal)
+result_t HttpResponse::writeHead(int32_t statusCode, HeaderMap& headers, obj_ptr<HttpResponse_base>& retVal)
 {
     set_statusCode(statusCode);
     m_message->appendHeader(headers);

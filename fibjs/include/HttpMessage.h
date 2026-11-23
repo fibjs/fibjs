@@ -69,20 +69,20 @@ public:
     result_t hasHeader(exlib::string name, bool& retVal);
     result_t firstHeader(exlib::string name, exlib::string& retVal);
     result_t allHeader(exlib::string name, obj_ptr<NObject>& retVal);
-    result_t appendHeader(v8::Local<v8::Object> map);
+    result_t appendHeader(HeaderMap& map);
     result_t appendHeader(Headers_base* headers);
     result_t appendHeader(exlib::string name, v8::Local<v8::Array> values);
     result_t appendHeader(exlib::string name, Variant value);
-    result_t setHeader(v8::Local<v8::Object> map);
+    result_t setHeader(HeaderMap& map);
     result_t setHeader(Headers_base* headers);
     result_t setHeader(exlib::string name, v8::Local<v8::Array> values);
     result_t setHeader(exlib::string name, Variant value);
     result_t removeHeader(exlib::string name);
     result_t getHeader(exlib::string name, v8::Local<v8::Value>& retVal);
-    result_t getHeaders(obj_ptr<NObject>& retVal);
+    result_t getHeaders(HeaderMap& retVal);
     result_t get_headersSent(bool& retVal);
     result_t get_trailers(obj_ptr<Headers_base>& retVal);
-    result_t addTrailers(v8::Local<v8::Object> headers);
+    result_t addTrailers(HeaderMap& headers);
     result_t get_stream(obj_ptr<Stream_base>& retVal);
 
     result_t clear();

@@ -290,7 +290,7 @@ public:
     virtual result_t get_closed(bool& retVal);
     virtual result_t get_alpnProtocol(exlib::string& retVal);
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal);
-    virtual result_t request(v8::Local<v8::Object> headers, v8::Local<v8::Object> options, obj_ptr<Http2Stream_base>& retVal);
+    virtual result_t request(HeaderMap& headers, v8::Local<v8::Object> options, obj_ptr<Http2Stream_base>& retVal);
     virtual result_t goaway(int32_t code, int32_t lastStreamId);
 
     // Pure C++ request interface (no V8 access needed, safe for async threads)

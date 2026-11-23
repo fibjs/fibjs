@@ -377,7 +377,12 @@ result_t HttpClient::init(v8::Local<v8::Object> options)
     Isolate* isolate = Isolate::current(options);
     v8::Local<v8::Value> v = options->Get(isolate->context(), isolate->NewString("proxyEnv")).FromMaybe(v8::Local<v8::Value>());
     if (!v.IsEmpty() && v->IsObject()) {
-        hr = set_proxyEnv(v8::Local<v8::Object>::Cast(v));
+        StringMap proxyEnv;
+        hr = GetArgumentValue(isolate, v, proxyEnv);
+        if (hr.failed())
+            return hr;
+
+        hr = set_proxyEnv(proxyEnv);
         if (hr.failed())
             return hr;
     }
@@ -695,78 +700,46 @@ result_t HttpClient::set_https_proxy(exlib::string newVal)
     return result_t();
 }
 
-result_t HttpClient::get_proxyEnv(v8::Local<v8::Object>& retVal)
+result_t HttpClient::get_proxyEnv(StringMap& retVal)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    retVal = v8::Object::New(isolate->m_isolate);
+    StringMap r;
 
     if (!m_http_proxy.empty())
-        retVal->Set(context, isolate->NewString("http_proxy"),
-                  isolate->NewString(m_http_proxy))
-            .IsJust();
+        r.set("http_proxy", m_http_proxy);
 
     if (!m_https_proxy.empty())
-        retVal->Set(context, isolate->NewString("https_proxy"),
-                  isolate->NewString(m_https_proxy))
-            .IsJust();
+        r.set("https_proxy", m_https_proxy);
 
     if (!m_no_proxy.empty())
-        retVal->Set(context, isolate->NewString("no_proxy"),
-                  isolate->NewString(m_no_proxy))
-            .IsJust();
+        r.set("no_proxy", m_no_proxy);
+
+    retVal = std::move(r);
 
     return result_t();
 }
 
-result_t HttpClient::set_proxyEnv(v8::Local<v8::Object> newVal)
+result_t HttpClient::set_proxyEnv(StringMap& newVal)
 {
-    result_t hr;
-    exlib::string http_proxy, https_proxy, no_proxy;
-
     // Check lowercase variants first (higher priority)
-    hr = GetConfigValue(newVal, "http_proxy", http_proxy);
-    if (hr.is_param_missing()) {
-        // Try uppercase variant
-        hr = GetConfigValue(newVal, "HTTP_PROXY", http_proxy);
-    }
-    if (hr.ok() || hr.is_param_missing()) {
-        if (hr.ok()) {
-            hr = set_http_proxy(http_proxy);
-            if (hr.failed())
-                return hr;
-        }
-    } else {
-        return hr;
+    auto find = [&](const char* lower, const char* upper) -> const exlib::string* {
+        const exlib::string* value = newVal.find(lower);
+        return value ? value : newVal.find(upper);
+    };
+
+    if (auto value = find("http_proxy", "HTTP_PROXY")) {
+        result_t hr = set_http_proxy(*value);
+        if (hr.failed())
+            return hr;
     }
 
-    hr = GetConfigValue(newVal, "https_proxy", https_proxy);
-    if (hr.is_param_missing()) {
-        // Try uppercase variant
-        hr = GetConfigValue(newVal, "HTTPS_PROXY", https_proxy);
-    }
-    if (hr.ok() || hr.is_param_missing()) {
-        if (hr.ok()) {
-            hr = set_https_proxy(https_proxy);
-            if (hr.failed())
-                return hr;
-        }
-    } else {
-        return hr;
+    if (auto value = find("https_proxy", "HTTPS_PROXY")) {
+        result_t hr = set_https_proxy(*value);
+        if (hr.failed())
+            return hr;
     }
 
-    hr = GetConfigValue(newVal, "no_proxy", no_proxy);
-    if (hr.is_param_missing()) {
-        // Try uppercase variant
-        hr = GetConfigValue(newVal, "NO_PROXY", no_proxy);
-    }
-    if (hr.ok() || hr.is_param_missing()) {
-        if (hr.ok())
-            m_no_proxy = no_proxy;
-    } else {
-        return hr;
-    }
+    if (auto value = find("no_proxy", "NO_PROXY"))
+        m_no_proxy = *value;
 
     return result_t();
 }
@@ -868,17 +841,15 @@ result_t HttpClient::set_protocol(exlib::string newVal)
     return result_t();
 }
 
-result_t HttpClient::get_freeSockets(v8::Local<v8::Object>& retVal)
+result_t HttpClient::get_freeSockets(ValueMap& retVal)
 {
-    Isolate* isolate = holder();
-    retVal = v8::Object::New(isolate->m_isolate);
+    retVal = ValueMap();
     return result_t();
 }
 
-result_t HttpClient::get_sockets(v8::Local<v8::Object>& retVal)
+result_t HttpClient::get_sockets(ValueMap& retVal)
 {
-    Isolate* isolate = holder();
-    retVal = v8::Object::New(isolate->m_isolate);
+    retVal = ValueMap();
     return result_t();
 }
 

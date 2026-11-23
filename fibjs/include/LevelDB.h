@@ -31,7 +31,7 @@ public:
     virtual result_t get(Union_get_key key, obj_ptr<Buffer_base>& retVal, AsyncHandle ac);
     virtual result_t mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal);
     virtual result_t set(Union_set_key key, Union_set_value value, AsyncHandle ac);
-    virtual result_t mset(v8::Local<v8::Object> map);
+    virtual result_t mset(KVMap& map);
     virtual result_t mremove(v8::Local<v8::Array> keys);
     virtual result_t remove(Union_remove_key key, AsyncHandle ac);
     virtual result_t firstKey(obj_ptr<Buffer_base>& retVal, AsyncHandle ac);

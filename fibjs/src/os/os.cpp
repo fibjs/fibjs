@@ -260,7 +260,7 @@ result_t os_base::cpus(std::vector<obj_ptr<CpusType>>& retVal)
     return result_t();
 }
 
-result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
+result_t os_base::networkInterfaces(ValueMap& retVal)
 {
     int32_t ifs = 0;
     uv_interface_address_t* interfaces;
@@ -271,19 +271,17 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
-    retVal = v8::Object::New(isolate->m_isolate);
+    ValueMap map;
 
     for (int32_t i = 0; i < ifs;) {
-        char* if_name = interfaces[i].name;
+        const char* if_name = interfaces[i].name;
+        exlib::string if_key(if_name);
         v8::Local<v8::Array> ret;
-        v8::Local<v8::Value> v;
-        v8::Local<v8::String> name, family;
+        v8::Local<v8::Value>* existing = map.find(if_key);
+        v8::Local<v8::String> family;
 
-        name = isolate->NewString(if_name);
-
-        v = retVal->Get(context, name).FromMaybe(v8::Local<v8::Value>());
-        if (!v.IsEmpty() && !v->IsUndefined())
-            ret = v.As<v8::Array>();
+        if (existing && !existing->IsEmpty() && (*existing)->IsArray())
+            ret = existing->As<v8::Array>();
         else
             ret = v8::Array::New(isolate->m_isolate);
 
@@ -329,11 +327,12 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
             i++;
         }
 
-        retVal->Set(context, name, ret).IsJust();
+        map.set(if_key, ret);
     }
 
     uv_free_interface_addresses(interfaces, ifs);
 
+    retVal = std::move(map);
     return result_t();
 }
 

@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include "ifs/EventEmitter.h"
 
 namespace fibjs {
@@ -60,8 +62,8 @@ public:
     virtual result_t set_userAgent(exlib::string newVal) = 0;
     virtual result_t get_poolTimeout(int32_t& retVal) = 0;
     virtual result_t set_poolTimeout(int32_t newVal) = 0;
-    virtual result_t get_proxyEnv(v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t set_proxyEnv(v8::Local<v8::Object> newVal) = 0;
+    virtual result_t get_proxyEnv(StringMap& retVal) = 0;
+    virtual result_t set_proxyEnv(StringMap& newVal) = 0;
     virtual result_t get_maxSockets(int32_t& retVal) = 0;
     virtual result_t set_maxSockets(int32_t newVal) = 0;
     virtual result_t get_maxTotalSockets(int32_t& retVal) = 0;
@@ -72,8 +74,8 @@ public:
     virtual result_t set_defaultPort(int32_t newVal) = 0;
     virtual result_t get_protocol(exlib::string& retVal) = 0;
     virtual result_t set_protocol(exlib::string newVal) = 0;
-    virtual result_t get_freeSockets(v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t get_sockets(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t get_freeSockets(ValueMap& retVal) = 0;
+    virtual result_t get_sockets(ValueMap& retVal) = 0;
     virtual result_t get_totalSocketCount(int32_t& retVal) = 0;
     virtual result_t getName(v8::Local<v8::Object> options, exlib::string& retVal) = 0;
     virtual result_t destroy() = 0;
@@ -650,7 +652,7 @@ inline void HttpClient_base::s_set_poolTimeout(const v8::FunctionCallbackInfo<v8
 
 inline void HttpClient_base::s_get_proxyEnv(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    StringMap vr;
 
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
@@ -669,7 +671,7 @@ inline void HttpClient_base::s_set_proxyEnv(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 1);
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "proxyEnv");
+    ARG_NAMED(StringMap, 0, "proxyEnv");
 
     hr = pInst->set_proxyEnv(v0);
 
@@ -818,7 +820,7 @@ inline void HttpClient_base::s_set_protocol(const v8::FunctionCallbackInfo<v8::V
 
 inline void HttpClient_base::s_get_freeSockets(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    ValueMap vr;
 
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
@@ -832,7 +834,7 @@ inline void HttpClient_base::s_get_freeSockets(const v8::FunctionCallbackInfo<v8
 
 inline void HttpClient_base::s_get_sockets(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Object> vr;
+    ValueMap vr;
 
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();

@@ -37,7 +37,8 @@ result_t Headers_base::_new(Union_Headers_init init, obj_ptr<Headers_base>& retV
     }
 
     retVal = new Headers();
-    return retVal->append(std::get<v8::Local<v8::Object>>(init));
+    static_cast<Headers*>(retVal.get())->append(std::get<HeaderMap>(init));
+    return result_t();
 }
 
 }

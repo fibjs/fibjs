@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 #include "ifs/HttpMessage.h"
 
 namespace fibjs {
@@ -39,8 +41,8 @@ public:
     virtual result_t get_status(int32_t& retVal) = 0;
     virtual result_t set_status(int32_t newVal) = 0;
     virtual result_t get_ok(bool& retVal) = 0;
-    virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal) = 0;
-    virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal) = 0;
+    virtual result_t writeHead(int32_t statusCode, HeaderMap& headers, obj_ptr<HttpResponse_base>& retVal) = 0;
+    virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, HeaderMap& headers, obj_ptr<HttpResponse_base>& retVal) = 0;
     virtual result_t get_cookies(std::vector<obj_ptr<HttpCookie_base>>& retVal) = 0;
     virtual result_t addCookie(Union_addCookie_cookie cookie) = 0;
     virtual result_t redirect(exlib::string url) = 0;
@@ -304,7 +306,7 @@ inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Va
     METHOD_OVER_NAMED(2, 1, "statusCode");
 
     ARG_NAMED(int32_t, 0, "statusCode");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "headers");
+    OPT_ARG_NAMED(HeaderMap, 1, HeaderMap(), "headers");
 
     hr = pInst->writeHead(v0, v1, vr);
 
@@ -312,7 +314,7 @@ inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Va
 
     ARG_NAMED(int32_t, 0, "statusCode");
     ARG_NAMED(exlib::string, 1, "statusMessage");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "headers");
+    OPT_ARG_NAMED(HeaderMap, 2, HeaderMap(), "headers");
 
     hr = pInst->writeHead(v0, v1, v2, vr);
 

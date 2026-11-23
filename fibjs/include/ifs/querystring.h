@@ -12,6 +12,8 @@
  */
 
 #include "../object.h"
+#include "../OrderedMap.h"
+#include "ifs/MapTypes.h"
 
 namespace fibjs {
 
@@ -25,7 +27,7 @@ public:
     static result_t escape(exlib::string str, exlib::string& retVal);
     static result_t unescape(exlib::string str, exlib::string& retVal);
     static result_t parse(exlib::string str, exlib::string sep, exlib::string eq, v8::Local<v8::Object> opt, obj_ptr<HttpCollection_base>& retVal);
-    static result_t stringify(v8::Local<v8::Object> obj, exlib::string sep, exlib::string eq, v8::Local<v8::Object> opt, exlib::string& retVal);
+    static result_t stringify(ValueMap& obj, exlib::string sep, exlib::string eq, v8::Local<v8::Object> opt, exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -125,7 +127,7 @@ inline void querystring_base::s_static_stringify(const v8::FunctionCallbackInfo<
 
     METHOD_OVER_NAMED(4, 1, "obj");
 
-    ARG_NAMED(v8::Local<v8::Object>, 0, "obj");
+    ARG_NAMED(ValueMap, 0, "obj");
     OPT_ARG_NAMED(exlib::string, 1, "&", "sep");
     OPT_ARG_NAMED(exlib::string, 2, "=", "eq");
     OPT_ARG_NAMED(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate), "opt");

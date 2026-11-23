@@ -36,11 +36,11 @@ result_t vm_base::createContext(v8::Local<v8::Object> contextObject, v8::Local<v
         return result_t();
     }
 
-    Isolate* isolate = Isolate::current(contextObject);
     obj_ptr<SandBox_base> sbox;
 
+    ValueMap mods;
     retVal = contextObject;
-    return SandBox_base::_new(v8::Object::New(isolate->m_isolate), contextObject, sbox);
+    return SandBox_base::_new(mods, contextObject, sbox);
 }
 
 result_t vm_base::isContext(v8::Local<v8::Object> contextObject, bool& retVal)
