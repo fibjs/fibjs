@@ -24,7 +24,7 @@ class Service_base : public EventEmitter_base {
 
 public:
     // Service_base
-    static result_t _new(exlib::string name, v8::Local<v8::Function> worker, v8::Local<v8::Object> event, obj_ptr<Service_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string name, v8::Local<v8::Function> worker, EventMap& event, obj_ptr<Service_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t run(AsyncHandle ac) = 0;
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t set_name(exlib::string newVal) = 0;
@@ -112,7 +112,7 @@ inline void Service_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG_NAMED(exlib::string, 0, "name");
     ARG_NAMED(v8::Local<v8::Function>, 1, "worker");
-    OPT_ARG_NAMED(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate), "event");
+    OPT_ARG_NAMED(EventMap, 2, EventMap(), "event");
 
     hr = _new(v0, v1, v2, vr, args.This());
 

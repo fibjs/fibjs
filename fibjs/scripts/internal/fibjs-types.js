@@ -48800,7 +48800,7 @@ declare class Class_Service extends Class_EventEmitter {
      *      @param event map of event handlers to register, for example \`{ stop: fn }\`
      *
      */
-    constructor(name: string, worker: ()=>void, event?: FIBJS.GeneralObject);
+    constructor(name: string, worker: ()=>void, event?: FIBJS.EventMap);
 
     /**
      * @description Runs the service control dispatcher and blocks until the service stops
@@ -49101,7 +49101,7 @@ declare class Class_ServicePromise extends Class_EventEmitter {
      *      @param event map of event handlers to register, for example \`{ stop: fn }\`
      *
      */
-    constructor(name: string, worker: ()=>void, event?: FIBJS.GeneralObject);
+    constructor(name: string, worker: ()=>void, event?: FIBJS.EventMap);
 
     /**
      * @description Runs the service control dispatcher and blocks until the service stops

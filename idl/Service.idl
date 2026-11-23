@@ -115,7 +115,7 @@ interface Service : EventEmitter
      @param worker function executed when the service starts
      @param event map of event handlers to register, for example `{ stop: fn }`
      */
-    Service(String name, Function() worker, Object event = {});
+    Service(String name, Function() worker, EventMap event = {});
 
     /*! @brief Runs the service control dispatcher and blocks until the service stops
 
