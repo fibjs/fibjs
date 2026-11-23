@@ -258,7 +258,7 @@ interface HttpMessage : Message
      @param map specifies the key-value data dictionary to append
      @return returns the current message object
      */
-    HttpMessage appendHeader(Object map);
+    HttpMessage appendHeader(HeaderMap map);
 
     /*! @brief appends headers; appending data does not modify the headers of an existing key
 
@@ -315,7 +315,7 @@ interface HttpMessage : Message
      @param map specifies the key-value data dictionary to set
      @return returns the current message object
      */
-    HttpMessage setHeader(Object map);
+    HttpMessage setHeader(HeaderMap map);
 
     /*! @brief sets headers; setting data modifies the value of the key and clears the remaining headers with the same key
 
@@ -366,7 +366,7 @@ interface HttpMessage : Message
      several values maps to an array; the same shape as allHeader("").
      @return returns the key-value pairs of all headers
      */
-    NObject getHeaders();
+    HeaderMap getHeaders();
 
     /*! @brief queries whether the headers have been sent
 
@@ -401,7 +401,7 @@ interface HttpMessage : Message
      ```
      @param headers specifies the trailer headers to add
      */
-    addTrailers(Object headers);
+    addTrailers(HeaderMap headers);
 
     /*! @brief parses the message body into FormData according to Content-Type
 

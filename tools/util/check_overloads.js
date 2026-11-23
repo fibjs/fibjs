@@ -48,7 +48,7 @@
 // numbers, numeric strings, booleans, null (0) and Date objects. Arrays and
 // plain objects only convert when they carry a custom valueOf, which is not
 // modeled here (and would not reach an overload on purpose anyway).
-var { isUnion, splitUnion } = require('./type-utils');
+var { isUnion, splitUnion, isInlineMapType } = require('./type-utils');
 
 var NUMERIC = ['num', 'str', 'bool', 'null', 'date'];
 var NUM_OR_BIGINT = ['num', 'bigint'];
@@ -145,6 +145,8 @@ var STRICT_ACCEPTS = {
 };
 
 
+var namedMaps = {};
+
 function buildExtendOf(defs) {
     var extendOf = {};
     Object.keys(defs).forEach(function (n) {
@@ -167,6 +169,9 @@ function buildExtendOf(defs) {
 function accepts(type) {
     if (type === '...')
         return ['*'];
+
+    if (isInlineMapType(type) || namedMaps[type])
+        return ['plainobj'];
 
     // A union accepts the values of every alternative: the runtime tries them
     // in declaration order within one pass.
@@ -217,6 +222,9 @@ function elementSet(type) {
 function acceptsStrict(type) {
     if (type === '...')
         return ['*'];
+
+    if (isInlineMapType(type) || namedMaps[type])
+        return ['plainobj'];
 
     // the same union merge as accepts(), over the strict sets
     if (isUnion(type)) {
@@ -384,6 +392,12 @@ function signature(ps, argc, variadic) {
 }
 
 module.exports = function (defs) {
+    namedMaps = {};
+    Object.keys(defs || {}).forEach(function (name) {
+        if (defs[name].declare && defs[name].declare.type === 'map')
+            namedMaps[name] = true;
+    });
+
     var extendOf = buildExtendOf(defs);
     var problems = [];
     Object.keys(defs).forEach(function (name) {

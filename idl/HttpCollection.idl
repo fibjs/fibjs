@@ -187,7 +187,7 @@ interface HttpCollection : object
 
      @param map object whose properties are appended
      */
-    append(Object map);
+    append(ValueMap map);
 
     /*! @brief Appends one value, or every element of an array, for a name
 
@@ -244,7 +244,7 @@ interface HttpCollection : object
 
      @param map object whose properties are set
      */
-    set(Object map);
+    set(ValueMap map);
 
     /*! @brief Sets one value, or every element of an array, for a name
 

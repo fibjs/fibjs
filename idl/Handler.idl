@@ -98,7 +98,7 @@ interface Handler : object
 
      @param map initialization routing parameters
     */
-    Handler(Object map);
+    Handler(HandlerMap map);
 
     /*! @brief Creates a JavaScript message handler
 

@@ -150,7 +150,7 @@ interface Http2Server : TcpServer
      @param context SecureContext secure context
      @param hdlr the request handler, accepted for compatibility
     */
-    Http2Server(SecureContext context, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    Http2Server(SecureContext context, Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief creates an HTTP/2 server from a SecureContext and binds a port
 
@@ -162,7 +162,7 @@ interface Http2Server : TcpServer
      @param port listening port
      @param hdlr the request handler, accepted for compatibility
     */
-    Http2Server(SecureContext context, Integer port, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    Http2Server(SecureContext context, Integer port, Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief creates an HTTP/2 server from a SecureContext and binds an address and port
 
@@ -175,7 +175,7 @@ interface Http2Server : TcpServer
      @param port listening port
      @param hdlr the request handler, accepted for compatibility
     */
-    Http2Server(SecureContext context, String addr, Integer port, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    Http2Server(SecureContext context, String addr, Integer port, Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief creates an HTTP/2 server from tls.createSecureContext options, without binding a port
 
@@ -187,7 +187,7 @@ interface Http2Server : TcpServer
      @param options the options for creating the SecureContext
      @param hdlr the request handler, accepted for compatibility
     */
-    Http2Server(Object options, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    Http2Server(Object options, Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief queries the SecureContext used by this server
 

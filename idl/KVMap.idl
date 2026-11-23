@@ -1,0 +1,35 @@
+/*! @brief A plain-object dictionary of string or Buffer values, keyed by name
+
+ KVMap is the typed form of the batch key/value maps accepted by
+ `LevelDB#mset`, `Redis#mset/msetNX`, `RedisHash#mset` and
+ `RedisSortedSet#add`. It is a regular JavaScript object dictionary (not an ES
+ `Map`); the property names are keys, fields or members.
+
+ Values may be strings or Buffers. The command layer converts every value
+ through its JavaScript string form, so a Buffer is rendered as UTF-8 text and
+ a number is rejected; use the single-key set APIs when binary bytes must
+ round-trip exactly.
+
+ Example 1 — store a string and a Buffer in one batch:
+ ```JavaScript
+ const db = require('db');
+ const fs = require('fs');
+ const os = require('os');
+ const path = require('path');
+
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'leveldb-map-'));
+ const store = db.openLevelDB(dir);
+ store.mset({ text: 'hello', bin: Buffer.from('world') });
+
+ console.log(store.get('text').toString(), store.get('bin').toString()); // hello world
+ store.close();
+ fs.rm(dir, { recursive: true });
+ ```
+
+ Example 2 — a plain key/value object:
+ ```JavaScript
+ const kvs = { first: 'alice', last: Buffer.from('smith') };
+ console.log(Object.keys(kvs).length); // 2
+ ```
+*/
+map KVMap: String|Buffer;

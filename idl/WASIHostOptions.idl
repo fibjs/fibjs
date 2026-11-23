@@ -31,11 +31,11 @@ struct WASIHostOptions {
     /*! @brief guest argument vector without the program name */
     Value[] args;
 
-    /*! @brief guest environment map */
-    Object env;
+    /*! @brief guest environment map; undefined values are dropped and other values are stringified */
+    ValueMap env;
 
     /*! @brief map from guest path to host path */
-    Object preopens;
+    StringMap preopens;
 
     /*! @brief TCP listeners exposed as preopened socket descriptors */
     WASISocketOption[] sockets;

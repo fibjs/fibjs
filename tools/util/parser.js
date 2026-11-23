@@ -97,6 +97,7 @@ function parser_comment(comment) {
 module.exports = function (baseFolder, defs) {
   var defs1 = {};
   var collect = {};
+  var sources = {};
   
   const files = fs.readdirSync(baseFolder).sort();
   const idlFiles = files.filter(f => path.extname(f) === '.idl');
@@ -110,6 +111,14 @@ module.exports = function (baseFolder, defs) {
     } else if (path.extname(f) == '.idl') {
       f = path.join(baseFolder, f);
       var def = parser.parse(fs.readFileSync(f, 'utf8'));
+      var name = def.declare.name;
+
+      // One top-level declaration per file, and one definition per name: a
+      // duplicate would silently replace the earlier declaration (including a
+      // named map colliding with an interface) before any validator sees it.
+      if (sources[name])
+        throw new Error(`duplicate IDL declaration '${name}' in ${sources[name]} and ${f}`);
+      sources[name] = f;
 
       def.declare.doc = parser_comment(def.declare.comments);
       for (var m in def.members) {

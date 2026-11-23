@@ -30,8 +30,35 @@ function joinUnion(types) {
     return types.join('|');
 }
 
+/**
+ * @description Is the type an inline `Map<T>` plain-object dictionary?
+ */
+function isInlineMapType(type) {
+    return typeof type === 'string' && /^Map<.+>$/.test(type);
+}
+
+/**
+ * @description The value type of an inline `Map<T>`, or null.
+ */
+function mapValueType(type) {
+    if (!isInlineMapType(type))
+        return null;
+    return /^Map<(.+)>$/.exec(type)[1];
+}
+
+/**
+ * @description Is the type an inline map, or a named `map Name: ...;`
+ * declaration present in `namedMaps`?
+ */
+function isMapType(type, namedMaps) {
+    return isInlineMapType(type) || !!(namedMaps && namedMaps[type]);
+}
+
 module.exports = {
     isUnion,
     splitUnion,
     joinUnion,
+    isInlineMapType,
+    mapValueType,
+    isMapType,
 };

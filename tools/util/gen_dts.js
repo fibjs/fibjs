@@ -8,7 +8,7 @@
  */
 
 const dom = require('dts-dom')
-const { isUnion, splitUnion } = require('./type-utils');
+const { isUnion, splitUnion, isInlineMapType, mapValueType } = require('./type-utils');
 
 // dts-dom defaults to CRLF output (config.outputEol === '\r\n'), while the
 // repository pins LF through .gitattributes (`* text eol=lf`). Git then stores
@@ -307,7 +307,7 @@ function normalizeClazzName(interfaceName) {
 
 /** IDL class names that have a promise variant (own or inherited async member). */
 const PROMISE_VARIANT_CLASSES = new Set();
-
+const NAMED_MAP_NAMES = new Set();
 function promiseVariantName(interfaceName) {
     return `${normalizeClazzName(interfaceName)}Promise`;
 }
@@ -467,6 +467,29 @@ function generalTypeMap(dataType, {
         info.type = dom.create.union(types);
         if (auxRefs.length)
             info.auxRefs = auxRefs;
+        return info;
+    }
+
+    // `Map<T>` is a plain-object index signature. A named map is a reference
+    // to the interface generated in `_fibjs.d.ts`.
+    if (isInlineMapType(dataType)) {
+        const valueInfo = generalTypeMap(mapValueType(dataType), {
+            allInterfacesNames,
+            allModuleNames,
+            useRefInstance: true,
+            instanceFlavor,
+        });
+        info.type = dom.create.objectType([
+            dom.create.indexSignature('pattern', 'string', valueInfo.type || dom.type.any),
+        ]);
+        if (valueInfo.refType)
+            info.auxRefs = [{ refType: valueInfo.refType, name: mapValueType(dataType) }];
+        (valueInfo.auxRefs || []).forEach(aux => (info.auxRefs = info.auxRefs || []).push(aux));
+        return info;
+    }
+
+    if (NAMED_MAP_NAMES.has(dataType)) {
+        info.type = dom.create.namedTypeReference(`FIBJS.${dataType}`);
         return info;
     }
 
@@ -3042,7 +3065,10 @@ function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
  * }} param0 
  */
 function gen_fibjs_import_dts({
-    DTS_DIST_DIR
+    DTS_DIST_DIR,
+    mapDefs = {},
+    allInterfacesNames = new Set(),
+    allModuleNames = new Set(),
 }) {
     const basedir = path.resolve(DTS_DIST_DIR, './_import');
     if (!fs.existsSync(basedir)) {
@@ -3074,8 +3100,66 @@ function gen_fibjs_import_dts({
 
     topDeclarition.members.push(typeGeneralObject)
 
+    // Named maps are plain-object dictionaries. Their values may refer to
+    // native classes, so collect the interface triple-slash directives before
+    // emitting the namespace; TypeScript resolves the circular reference back
+    // to the class declarations.
+    const mapRefs = new Set();
+    function collectMapRefs(type) {
+        if (typeof type !== 'string')
+            return;
+        if (isUnion(type)) {
+            splitUnion(type).forEach(collectMapRefs);
+            return;
+        }
+        if (isInlineMapType(type)) {
+            collectMapRefs(mapValueType(type));
+            return;
+        }
+        if (type.slice(-2) === '[]') {
+            collectMapRefs(type.slice(0, -2));
+            return;
+        }
+        if (allInterfacesNames.has(type))
+            mapRefs.add(type);
+    }
+
+    Object.keys(mapDefs).forEach(name => {
+        const def = mapDefs[name];
+        collectMapRefs(def.valueType);
+
+        const mapInterface = dom.create.interface(name);
+        const valueOptions = {
+            allInterfacesNames,
+            allModuleNames,
+            useRefInstance: true,
+            instanceFlavor: 'both',
+        };
+
+        if (def.valueCallback) {
+            valueOptions.functionAlternative = mapCallbackShapeToDtsType(def.valueCallback, {
+                memberInfo: { name: 'value' },
+                memberHostName: name,
+                dtsUnitName: name,
+                allInterfacesNames,
+                allModuleNames,
+                addRefToTripleSlashDirectivesHost: function () { },
+                instanceFlavor: 'both',
+            });
+        }
+
+        const valueInfo = generalTypeMap(def.valueType, valueOptions);
+        mapInterface.members.push(dom.create.indexSignature('pattern', 'string', valueInfo.type || dom.type.any));
+        topDeclarition.members.push(mapInterface);
+    });
+
+    const tripleSlashDirectives = Array.from(mapRefs).map(name =>
+        dom.create.tripleSlashReferencePathDirective(`../interface/${name}.d.ts`)
+    );
+
     const commonDeclaration = dom.emit(topDeclarition, {
         rootFlags: dom.DeclarationFlags.None,
+        tripleSlashDirectives,
     });
     writeDtsFile(path.join(basedir, `_fibjs.d.ts`), commonDeclaration);
 }
@@ -3120,12 +3204,25 @@ module.exports = function gen_dts(defs, { DTS_DIST_DIR }) {
     const totalDefs = Object.keys(defs).length;
     console.log(`   🔷 Generating TypeScript definitions for ${totalDefs} declarations...`);
 
+    const mapDefs = {};
+    const classDefs = {};
+    Object.keys(defs).forEach(name => {
+        if (defs[name].declare.type === 'map')
+            mapDefs[name] = defs[name];
+        else
+            classDefs[name] = defs[name];
+    });
+
+    NAMED_MAP_NAMES.clear();
+    Object.keys(mapDefs).forEach(name => NAMED_MAP_NAMES.add(name));
+
     const {
         allModuleNames,
-    } = gen_dts_for_declare(defs, { DTS_DIST_DIR });
+        allInterfacesNames,
+    } = gen_dts_for_declare(classDefs, { DTS_DIST_DIR });
 
     console.log(`   📦 Generating fibjs import definitions...`);
-    gen_fibjs_import_dts({ DTS_DIST_DIR });
+    gen_fibjs_import_dts({ DTS_DIST_DIR, mapDefs, allInterfacesNames, allModuleNames });
 
     console.log(`   🌉 Generating bridge definitions for ${allModuleNames.size} modules...`);
     gen_bridge_dts({ allModuleNames, DTS_DIST_DIR });

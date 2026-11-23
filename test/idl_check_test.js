@@ -4,6 +4,7 @@
 //   tools/util/check_callback_shapes.js bare Function before Function(...)
 //   tools/util/check_unions.js         parameter-position unions (A|B)
 //   tools/util/check_struct_fields.js  defaulted records and required fields
+//   tools/util/check_map_types.js      inline/named maps and map alternatives
 //
 // They are pure functions of the parsed IDL (defs -> problems), so the cases
 // below feed them synthetic definitions. The last suite runs them over the
@@ -23,6 +24,7 @@ var check_callback_shapes = require('../tools/util/check_callback_shapes');
 var check_idl_docs = require('../tools/util/check_idl_docs');
 var check_variant_params = require('../tools/util/check_variant_params');
 var check_struct_fields = require('../tools/util/check_struct_fields');
+var check_map_types = require('../tools/util/check_map_types');
 
 function makeDef(members) {
     return {
@@ -431,14 +433,20 @@ try {
     // without them only the synthetic suites above can run
 }
 
-function parseIdl(text) {
+function parseIdlFiles(files) {
     var dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-idl-'));
     try {
-        fs.writeFileSync(path.join(dir, 'test.idl'), text);
+        Object.keys(files).forEach(function (name) {
+            fs.writeFileSync(path.join(dir, name), files[name]);
+        });
         return parser(dir);
     } finally {
         fs.rmSync(dir, { recursive: true, force: true });
     }
+}
+
+function parseIdl(text) {
+    return parseIdlFiles({ 'test.idl': text });
 }
 
 describe('check_variant_params', () => {
@@ -649,8 +657,85 @@ describe('IDL handler union', { skip: !parser }, () => {
     });
 });
 
+describe('IDL map types', { skip: !parser }, () => {
+    it('parses a named map with a callback value', () => {
+        var defs = parseIdl('map HandlerMap: Handler|Handler[]|HandlerMap|String|Function(Value req, ...params) => void;');
+        var map = defs.HandlerMap;
+
+        assert.equal(map.declare.type, 'map');
+        assert.equal(map.valueType, 'Handler|Handler[]|HandlerMap|String|Function');
+        assert.equal(map.valueCallback.ret, 'void');
+    });
+
+    it('parses inline maps in parameters, returns and nested values', () => {
+        var defs = parseIdl('interface Foo : object { Map<String> get(Map<Map<String>> opts); (Map<String> env) init(); };');
+        var foo = defs.Foo;
+
+        assert.equal(foo.members[0].type, 'Map<String>');
+        assert.equal(foo.members[0].params[0].type, 'Map<Map<String>>');
+        assert.equal(foo.members[1].type[0].type, 'Map<String>');
+    });
+
+    it('expands an inline map in the generated C++ and d.ts', () => {
+        var gen_code = require('../tools/util/gen_code');
+        var gen_dts = require('../tools/util/gen_dts');
+        var defs = parseIdl('interface Foo : object { Map<String> get(Map<String> env); };');
+        var root = fs.mkdtempSync(path.join(os.tmpdir(), 'fibjs-map-gen-'));
+
+        try {
+            var cpp = path.join(root, 'cpp');
+            fs.mkdirSync(cpp);
+            gen_code(defs, cpp);
+
+            var header = fs.readFileSync(path.join(cpp, 'Foo.h'), 'utf8');
+            assert.ok(header.includes('#include "../OrderedMap.h"'), header);
+            assert.ok(!header.includes('MapTypes.h'), header);
+            assert.ok(header.includes('OrderedMap<exlib::string>& env'), header);
+            assert.ok(header.includes('OrderedMap<exlib::string>& retVal'), header);
+
+            var dts = path.join(root, 'dts');
+            fs.mkdirSync(path.join(dts, 'interface'), { recursive: true });
+            fs.mkdirSync(path.join(dts, 'module'), { recursive: true });
+            gen_dts(defs, { DTS_DIST_DIR: dts });
+
+            var declaration = fs.readFileSync(path.join(dts, 'interface', 'Foo.d.ts'), 'utf8');
+            assert.ok(declaration.includes('[pattern: string]: string;'), declaration);
+            assert.ok(declaration.includes('get(env: {'), declaration);
+        } finally {
+            fs.rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    it('rejects unsafe inline map values', () => {
+        var defs = makeDef([
+            method('foo', [{ type: 'Map<String|String[]>' }]),
+        ]);
+
+        assert.equal(check_map_types(defs).length, 1);
+    });
+
+    it('rejects duplicate map alternatives', () => {
+        var defs = makeDef([
+            method('foo', [{ type: 'HandlerMap|StringMap' }]),
+        ]);
+        defs.HandlerMap = { declare: { name: 'HandlerMap', type: 'map' }, members: [], valueType: 'String' };
+        defs.StringMap = { declare: { name: 'StringMap', type: 'map' }, members: [], valueType: 'String' };
+
+        assert.equal(check_map_types(defs).length, 1);
+    });
+
+    it('rejects a named map that reuses another declaration name', () => {
+        assert.throws(function () {
+            parseIdlFiles({
+                'a.idl': 'interface Foo : object { void bar(); };',
+                'b.idl': 'map Foo: String;'
+            });
+        }, /duplicate IDL declaration 'Foo'/);
+    });
+});
+
 describe('IDL corpus', { skip: !parser }, () => {
-    it('passes the four idlc validators', () => {
+    it('passes the IDLC validators', () => {
         var defs = parser(path.resolve(__dirname, '../idl'));
 
         assert.ok(Object.keys(defs).length > 100, 'the corpus must parse');
@@ -658,6 +743,7 @@ describe('IDL corpus', { skip: !parser }, () => {
         assert.deepStrictEqual(check_overloads(defs), []);
         assert.deepStrictEqual(check_callback_shapes(defs), []);
         assert.deepStrictEqual(check_struct_fields(defs), []);
+        assert.deepStrictEqual(check_map_types(defs), []);
     });
 
     it('keeps every Value/Variant parameter on the reviewed whitelist', () => {

@@ -293,7 +293,7 @@ interface HttpClient : EventEmitter
      localhost, 127.0.0.1 and ::1 always bypass the proxy. Equivalent to the proxyEnv constructor
      option; see the module `setGlobalProxyFromEnv` for the matching env parser.
      */
-    Object proxyEnv;
+    StringMap proxyEnv;
 
     /*! @brief Queries and sets the maximum number of connections per host, default unlimited
 
@@ -335,14 +335,14 @@ interface HttpClient : EventEmitter
      Compatibility accessor: always returns an empty object because the internal
      pool is not exposed. Use `destroy()` to release the real pooled connections.
      */
-    readonly Object freeSockets;
+    readonly ValueMap freeSockets;
 
     /*! @brief Returns the map of connections in use keyed by host:port
 
      Compatibility accessor: always returns an empty object because the internal
      pool is not exposed.
      */
-    readonly Object sockets;
+    readonly ValueMap sockets;
 
     /*! @brief Returns the total number of connections in use across all hosts
 

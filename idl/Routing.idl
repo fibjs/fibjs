@@ -149,7 +149,7 @@ interface Routing : Handler
      ```
      @param map initialization routing parameters
     */
-    Routing(Object map = {});
+    Routing(HandlerMap map = {});
 
     /*! @brief Creates a message handler routing object with a method scope
 
@@ -182,7 +182,7 @@ interface Routing : Handler
      @param method the http request method to accept, "*" accepts all methods
      @param map initialization routing parameters
     */
-    Routing(String method, Object map);
+    Routing(String method, HandlerMap map);
 
     /*! @brief Adds rules from an existing routing object; the source routing is cleared after adding
 
@@ -220,7 +220,7 @@ interface Routing : Handler
      @param map routing parameters
      @return returns the routing object itself
     */
-    Routing append(Object map);
+    Routing append(HandlerMap map);
 
     /*! @brief Adds a routing rule
 
@@ -242,7 +242,7 @@ interface Routing : Handler
      @param hdlr the route handler
      @return returns the routing object itself
     */
-    Routing append(String pattern, Handler|Handler[]|Object|String|Function(Message req, ...params) => void hdlr);
+    Routing append(String pattern, Handler|Handler[]|HandlerMap|String|Function(Message req, ...params) => void hdlr);
 
     /*! @brief Adds a routing rule with a method scope
 
@@ -275,7 +275,7 @@ interface Routing : Handler
      @param hdlr the route handler
      @return returns the routing object itself
     */
-    Routing append(String method, String pattern, Handler|Handler[]|Object|String|Function(Message req, ...params) => void hdlr);
+    Routing append(String method, String pattern, Handler|Handler[]|HandlerMap|String|Function(Message req, ...params) => void hdlr);
 
     /*! @brief Adds a group of routing rules for http host names
 
@@ -287,7 +287,7 @@ interface Routing : Handler
      @param map routing parameters
      @return returns the routing object itself
     */
-    Routing host(Object map);
+    Routing host(HandlerMap map);
 
     /*! @brief Adds a routing rule that accepts http host names
 
@@ -322,7 +322,7 @@ interface Routing : Handler
      @param hdlr the route handler
      @return returns the routing object itself
     */
-    Routing host(String pattern, Handler|Handler[]|Object|String|Function(Message req, ...params) => void hdlr);
+    Routing host(String pattern, Handler|Handler[]|HandlerMap|String|Function(Message req, ...params) => void hdlr);
 
     /*! @brief Adds a group of routing rules that accept all http methods
 
@@ -333,7 +333,7 @@ interface Routing : Handler
      @param map routing parameters
      @return returns the routing object itself
     */
-    Routing all(Object map);
+    Routing all(HandlerMap map);
 
     /*! @brief Adds a routing rule that accepts all http methods
 
@@ -346,7 +346,7 @@ interface Routing : Handler
      @param hdlr the route handler
      @return returns the routing object itself
     */
-    Routing all(String pattern, Handler|Handler[]|Object|String|Function(Message req, ...params) => void hdlr);
+    Routing all(String pattern, Handler|Handler[]|HandlerMap|String|Function(Message req, ...params) => void hdlr);
 
     /*! @brief Adds a group of GET method routing rules
 
@@ -357,7 +357,7 @@ interface Routing : Handler
      @param map routing parameters
      @return returns the routing object itself
     */
-    Routing get(Object map);
+    Routing get(HandlerMap map);
 
     /*! @brief Adds a routing rule that accepts the http GET method
 
@@ -370,7 +370,7 @@ interface Routing : Handler
      @param hdlr the route handler
      @return returns the routing object itself
     */
-    Routing get(String pattern, Handler|Handler[]|Object|String|Function(Message req, ...params) => void hdlr);
+    Routing get(String pattern, Handler|Handler[]|HandlerMap|String|Function(Message req, ...params) => void hdlr);
 
     /*! @brief Adds a group of routing rules that accept the http POST method
 
@@ -381,7 +381,7 @@ interface Routing : Handler
      @param map routing parameters
      @return returns the routing object itself
     */
-    Routing post(Object map);
+    Routing post(HandlerMap map);
 
     /*! @brief Adds a routing rule that accepts the http POST method
 
@@ -393,7 +393,7 @@ interface Routing : Handler
      @param hdlr the route handler
      @return returns the routing object itself
     */
-    Routing post(String pattern, Handler|Handler[]|Object|String|Function(Message req, ...params) => void hdlr);
+    Routing post(String pattern, Handler|Handler[]|HandlerMap|String|Function(Message req, ...params) => void hdlr);
 
     /*! @brief Adds a group of routing rules that accept the http DELETE method
 
@@ -403,7 +403,7 @@ interface Routing : Handler
      @param map routing parameters
      @return returns the routing object itself
     */
-    Routing del(Object map);
+    Routing del(HandlerMap map);
 
     /*! @brief Adds a routing rule that accepts the http DELETE method
 
@@ -414,7 +414,7 @@ interface Routing : Handler
      @param hdlr the route handler
      @return returns the routing object itself
     */
-    Routing del(String pattern, Handler|Handler[]|Object|String|Function(Message req, ...params) => void hdlr);
+    Routing del(String pattern, Handler|Handler[]|HandlerMap|String|Function(Message req, ...params) => void hdlr);
 
     /*! @brief Adds a group of PUT method routing rules
 
@@ -424,7 +424,7 @@ interface Routing : Handler
      @param map routing parameters
      @return returns the routing object itself
     */
-    Routing put(Object map);
+    Routing put(HandlerMap map);
 
     /*! @brief Adds a routing rule that accepts the http PUT method
 
@@ -436,7 +436,7 @@ interface Routing : Handler
      @param hdlr the route handler
      @return returns the routing object itself
     */
-    Routing put(String pattern, Handler|Handler[]|Object|String|Function(Message req, ...params) => void hdlr);
+    Routing put(String pattern, Handler|Handler[]|HandlerMap|String|Function(Message req, ...params) => void hdlr);
 
     /*! @brief Adds a group of PATCH method routing rules
 
@@ -446,7 +446,7 @@ interface Routing : Handler
      @param map routing parameters
      @return returns the routing object itself
     */
-    Routing patch(Object map);
+    Routing patch(HandlerMap map);
 
     /*! @brief Adds a routing rule that accepts the http PATCH method
 
@@ -457,7 +457,7 @@ interface Routing : Handler
      @param hdlr the route handler
      @return returns the routing object itself
     */
-    Routing patch(String pattern, Handler|Handler[]|Object|String|Function(Message req, ...params) => void hdlr);
+    Routing patch(String pattern, Handler|Handler[]|HandlerMap|String|Function(Message req, ...params) => void hdlr);
 
     /*! @brief Adds a group of FIND method routing rules
 
@@ -468,7 +468,7 @@ interface Routing : Handler
      @param map routing parameters
      @return returns the routing object itself
     */
-    Routing find(Object map);
+    Routing find(HandlerMap map);
 
     /*! @brief Adds a routing rule that accepts the http FIND method
 
@@ -480,5 +480,5 @@ interface Routing : Handler
      @param hdlr the route handler
      @return returns the routing object itself
     */
-    Routing find(String pattern, Handler|Handler[]|Object|String|Function(Message req, ...params) => void hdlr);
+    Routing find(String pattern, Handler|Handler[]|HandlerMap|String|Function(Message req, ...params) => void hdlr);
 };

@@ -105,5 +105,6 @@ node tools/check_idl_examples.js --filter fs --json
 | `tools/util/check_overloads.js` | String 参数吞掉后续重载（shadowing） |
 | `tools/util/check_callback_shapes.js` | 裸 `Function` 抢在 `Function(...)` 之前 |
 | `tools/util/check_unions.js` | union 备选的顺序 / 重复 / 默认值可达性 |
+| `tools/util/check_map_types.js` | `Map<T>` / 命名 map 的值类型、递归、union 备选与重名冲突 |
 | `tools/util/check_variant_params.js` | `Value`/`Variant` 参数（含 union 内嵌）必须在 `tools/util/variant_params_whitelist.json` 中（每条附理由）；新增未登记即失败，条目悬空（stale）也失败；评审标准见 `plans/value-variant-union-2026-10-05.md` |
 | `tools/util/check_idl_docs.js` | X1–X10 文档门禁（`--changed`：改动过的定义必须达标） |

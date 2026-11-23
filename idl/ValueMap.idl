@@ -1,0 +1,34 @@
+/*! @brief A plain-object dictionary with arbitrary values, keyed by name
+
+ ValueMap is the typed form of dictionaries whose values have no single scalar
+ type: the module table of `SandBox`, the connection maps of
+ `HttpClient#freeSockets`/`HttpClient#sockets`, the dictionaries returned by
+ `os.networkInterfaces` and `net.info`, and the dictionary inputs of
+ `HttpCollection#append`, `HttpCollection#set`, `querystring.stringify` and the
+ `URLSearchParams`/`FormData` object constructors. It is a regular JavaScript
+ object dictionary (not an ES `Map`); the property names are module, field or
+ interface names. `util.pick` and `util.omit` stay plain objects because their
+ result can carry symbol keys, which a string-keyed map cannot represent.
+
+ ValueMap keeps the value as `any`; it is a migration aid for tables that mix
+ module objects, functions, strings, arrays and nested records. A dictionary
+ with a known value type should use `StringMap`, `HeaderMap`, `EventMap` or a
+ dedicated named map instead.
+
+ Example 1 — pick and omit fields:
+ ```JavaScript
+ const util = require('util');
+
+ const picked = util.pick({ a: 1, b: 2 }, 'a');
+ console.log(picked.a); // 1
+ ```
+
+ Example 2 — add modules to a sandbox:
+ ```JavaScript
+ const vm = require('vm');
+
+ const box = new vm.SandBox({ base: 40 });
+ console.log(typeof box.modules.base); // number
+ ```
+*/
+map ValueMap: Value;

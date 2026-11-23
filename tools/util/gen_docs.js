@@ -48,6 +48,17 @@ module.exports = function (defs, docsFolder) {
         }).join(' | ');
     }
 
+    // A named map is shown through its value type. The parser keeps a shaped
+    // Function in `valueCallback`, exactly like a parameter, so render the
+    // union the same way the signature does.
+    function formatMapValue(def) {
+        if (def.valueCallback)
+            return typeUtils.isUnion(def.valueType)
+                ? formatUnion(def.valueType, def.valueCallback)
+                : formatCallback(def.valueCallback);
+        return formatTypeName(def.valueType);
+    }
+
     function formatParam(p) {
         if (p.type === '...' || !p.type)
             return '...' + (p.name && p.name !== '...' ? p.name : '');
@@ -112,6 +123,9 @@ module.exports = function (defs, docsFolder) {
     function add_types() {
         for (var n in defs) {
             var def = defs[n];
+
+            if (def.declare.type === 'map')
+                def.mapValueText = formatMapValue(def);
 
             def.members.forEach(m => {
                 if (m.params) {

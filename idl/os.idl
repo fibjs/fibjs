@@ -381,7 +381,7 @@ module os
      ```
      @return returns the network interface information
     */
-    static Object networkInterfaces();
+    static ValueMap networkInterfaces();
 
     /*! @brief Queries the current platform name
 

@@ -137,7 +137,7 @@ interface FormData : HttpCollection
 
      @param init the fields: an object, another FormData or a urlencoded string
      */
-    FormData(Object|FormData|String init);
+    FormData(ValueMap|FormData|String init);
 
     /*! @brief Appends a Blob or File value under a name, keeping existing values
 

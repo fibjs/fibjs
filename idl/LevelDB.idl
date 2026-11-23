@@ -200,7 +200,7 @@ interface LevelDB : object
 
      @param map the key/value pairs to store, as property names and values
      */
-    mset(Object map);
+    mset(KVMap map);
 
     /*! @brief Removes several keys as one atomic batch
 

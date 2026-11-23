@@ -32,7 +32,7 @@
  */
 struct RTCServerOptions {
     /*! @brief object of 'username': 'password' pairs accepted by TURN */
-    Object credentials;
+    StringMap credentials;
 
     /*! @brief maximum number of TURN allocations, 0 for the library default */
     Integer maxAllocations = 0;

@@ -12,6 +12,6 @@ struct CertificateRequestOptions {
     String encoding = "utf8";
     String namedCurve;
     Boolean toX25519 = false;
-    NObject subject;
+    StringMap subject;
     String hashAlgorithm;
 };

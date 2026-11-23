@@ -242,7 +242,7 @@ interface Redis : object
 
      @param kvs the key/value pairs to set, as property names and values
      */
-    mset(Object kvs);
+    mset(KVMap kvs);
 
     /*! @brief Sets several key/value pairs at once from a flat argument list
 
@@ -265,7 +265,7 @@ interface Redis : object
 
      @param kvs the key/value pairs to set, as property names and values
      */
-    msetNX(Object kvs);
+    msetNX(KVMap kvs);
 
     /*! @brief Sets several key/value pairs from a flat list only when all the keys are missing
 
@@ -612,7 +612,7 @@ interface Redis : object
 
      @param map the channel/callback map
      */
-    sub(Object map);
+    sub(EventMap map);
 
     /*! @brief Removes every callback of a channel
 
@@ -651,7 +651,7 @@ interface Redis : object
 
      @param map the channel/callback map
      */
-    unsub(Object map);
+    unsub(EventMap map);
 
     /*! @brief Subscribes func to every channel matching a pattern
 
@@ -673,7 +673,7 @@ interface Redis : object
 
      @param map the pattern/callback map
      */
-    psub(Object map);
+    psub(EventMap map);
 
     /*! @brief Removes every callback of a pattern
 
@@ -710,7 +710,7 @@ interface Redis : object
 
      @param map the pattern/callback map
      */
-    unpsub(Object map);
+    unpsub(EventMap map);
 
     /*! @brief Event fired when the subscriber connection fails
 

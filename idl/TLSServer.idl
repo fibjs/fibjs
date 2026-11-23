@@ -121,7 +121,7 @@ interface TLSServer : TcpServer
      @param port specifies the listening port
      @param listener the connection handler
      */
-    TLSServer(SecureContext context, Integer port, Handler|Handler[]|Object|String|Function(TLSSocket socket) => void listener);
+    TLSServer(SecureContext context, Integer port, Handler|Handler[]|HandlerMap|String|Function(TLSSocket socket) => void listener);
 
     /*! @brief Creates a TLS server bound to the given address and port
 
@@ -132,7 +132,7 @@ interface TLSServer : TcpServer
      @param port specifies the listening port
      @param listener the connection handler
      */
-    TLSServer(SecureContext context, String addr, Integer port, Handler|Handler[]|Object|String|Function(TLSSocket socket) => void listener);
+    TLSServer(SecureContext context, String addr, Integer port, Handler|Handler[]|HandlerMap|String|Function(TLSSocket socket) => void listener);
 
     /*! @brief Creates a TLS server from an options object, binding when it carries a port
 
@@ -144,7 +144,7 @@ interface TLSServer : TcpServer
      @param options the options needed to create a secure context with tls.createSecureContext
      @param listener the connection handler
      */
-    TLSServer(Object options, Handler|Handler[]|Object|String|Function(TLSSocket socket) => void listener);
+    TLSServer(Object options, Handler|Handler[]|HandlerMap|String|Function(TLSSocket socket) => void listener);
 
     /*! @brief Creates a TLS server without binding a port; listen() must be called to start
 
@@ -154,7 +154,7 @@ interface TLSServer : TcpServer
      @param context specifies the secure context used to create TLSServer
      @param listener the connection handler
      */
-    TLSServer(SecureContext context, Handler|Handler[]|Object|String|Function(TLSSocket socket) => void listener);
+    TLSServer(SecureContext context, Handler|Handler[]|HandlerMap|String|Function(TLSSocket socket) => void listener);
 
     /*! @brief The SecureContext used by the server
 

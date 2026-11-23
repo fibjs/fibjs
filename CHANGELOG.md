@@ -70,6 +70,14 @@
     * db - `trans` returns the callback result, commits on any normal return
       (including `false`), rolls back only when the callback throws, and accepts
       `options.behavior` (`deferred`/`immediate`/`exclusive`) on SQLite.
+    * idl - typed plain-object dictionaries: inline `Map<T>` values become index
+      signatures and named `map Name: T;` declarations become reusable typed
+      dictionaries. `HandlerMap` replaces the untyped `Object` alternative in
+      every handler union accepted by `mq`, `net`, `tls`, `http` and `http2`,
+      including nested routing maps and handler arrays. `HeaderMap`, `EventMap`,
+      `StringMap`, `ValueMap` and `KVMap` now type the header, listener,
+      environment, module and batch key/value dictionaries of HTTP, EventEmitter,
+      process/util/os, Redis, LevelDB, SandBox, WASI and RTC.
 * **breaking** :
     * mq - a JavaScript handler function's return value is ignored; it is no
       longer converted to the next handler.

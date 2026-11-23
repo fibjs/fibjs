@@ -155,5 +155,5 @@ interface Chain : Handler
 
      @param hdlr the handler appended to the chain
     */
-    append(Handler|Handler[]|Object|String|Function(object req, ...params) => void hdlr);
+    append(Handler|Handler[]|HandlerMap|String|Function(object req, ...params) => void hdlr);
 };

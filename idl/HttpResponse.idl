@@ -176,7 +176,7 @@ interface HttpResponse : HttpMessage
      @param headers specifies the response headers to add to the response message
      @return returns the current response object
      */
-    HttpResponse writeHead(Integer statusCode, Object headers = {});
+    HttpResponse writeHead(Integer statusCode, HeaderMap headers = {});
 
     /*! @brief Sets the status code and reason phrase and appends response headers
 
@@ -187,7 +187,7 @@ interface HttpResponse : HttpMessage
      @param headers specifies the response headers to add to the response message
      @return returns the current response object
      */
-    HttpResponse writeHead(Integer statusCode, String statusMessage, Object headers = {});
+    HttpResponse writeHead(Integer statusCode, String statusMessage, HeaderMap headers = {});
 
     /*! @brief The Set-Cookie headers as an array of HttpCookie objects, read-only
 

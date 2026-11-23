@@ -78,6 +78,16 @@ if (unionProblems.length) {
 } else
     console.log('✅ No union type problems');
 
+console.log('\n🗺️  Checking map types...');
+var mapProblems = require('./util/check_map_types')(resolvedDefs);
+if (mapProblems.length) {
+    console.log(`   ❌ ${mapProblems.length} map type problem(s):`);
+    mapProblems.forEach((p) => {
+        console.log(`      ${p.def}${p.member ? '.' + p.member : ''}${p.slot ? ', parameter ' + (p.slot + 1) : ''}: ${p.message}`);
+    });
+} else
+    console.log('✅ No map type problems');
+
 // Value/Variant render as `any`, so a parameter declared with them gives up the
 // strictness a union would give. Every such position is a reviewed decision:
 // the whitelist carries the ones that keep the generic type, each with its
@@ -152,6 +162,12 @@ the runtime conversion's preference order, and an alternative that converts a
 value another one after it is meant to take makes that one unreachable. The
 narrowest conversion goes first: Buffer < String < Integer/Long/Number < Date <
 Boolean, with Value/Variant last (plans/idl-union-types-2026-10-02.md).`);
+
+if (mapProblems.length)
+    throw new Error(`${mapProblems.length} map type problem(s), listed above.
+An inline Map<T> only takes named types, named arrays or nested maps; unions and
+callback shapes belong to a named map. A named map is a plain-object dictionary,
+not a class, and must not share its name with an interface/module/struct.`);
 
 if (variantProblems.length)
     throw new Error(`${variantProblems.length} Value/Variant parameter problem(s), listed above. A

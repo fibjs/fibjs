@@ -104,7 +104,7 @@ iterable
      @param init the initial parameters: a query string, an object, an array of pairs, a
      container or an iterable of pairs
      */
-    URLSearchParams(Object|Array|URLSearchParams|String|Variant init);
+    URLSearchParams(ValueMap|Array|URLSearchParams|String|Variant init);
 
     /*! @brief The number of stored name/value pairs, read-only
 

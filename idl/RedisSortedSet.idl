@@ -116,7 +116,7 @@ interface RedisSortedSet : object
      @param sms the member/score pairs to add, as property names and values
      @return the number of new members added, updated members excluded
      */
-    Integer add(Object sms);
+    Integer add(StringMap sms);
 
     /*! @brief Adds members with their scores, or updates the scores of members present
 

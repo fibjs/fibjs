@@ -44,7 +44,7 @@
  * @returns {Array<{def: string, member: string, static: boolean, slot: number,
  *     alternatives: string[], kind: 'order' | 'duplicate' | 'shadow', message: string}>}
  */
-var { isUnion, splitUnion } = require('./type-utils');
+var { isUnion, splitUnion, isInlineMapType } = require('./type-utils');
 
 // value kinds a runtime conversion can accept
 var STR = 'string';
@@ -108,7 +108,10 @@ var TYPE_ACCEPTS = {
     'FileHandle': { strict: ['#FileHandle'], lenient: [NUM] },
 };
 
-function modelOf(type) {
+function modelOf(type, namedMaps) {
+    if (isInlineMapType(type) || (namedMaps && namedMaps[type]))
+        return TYPE_ACCEPTS.Object;
+
     if (TYPE_ACCEPTS[type])
         return TYPE_ACCEPTS[type];
 
@@ -117,7 +120,7 @@ function modelOf(type) {
     // own, in the lenient mode). The element kind keeps `Buffer[]` and
     // `String[]` apart in the shadow analysis.
     if (type.length > 2 && type.slice(-2) === '[]') {
-        var inner = modelOf(type.slice(0, -2));
+        var inner = modelOf(type.slice(0, -2), namedMaps);
         var kind = 'array<' + inner.strict.slice().sort().join('|') + '>';
 
         return { strict: [kind], lenient: [kind] };
@@ -176,6 +179,11 @@ function examplesFor(kinds) {
 
 module.exports = function (defs) {
     var problems = [];
+    var namedMaps = {};
+    Object.keys(defs || {}).forEach(function (name) {
+        if (defs[name].declare && defs[name].declare.type === 'map')
+            namedMaps[name] = true;
+    });
 
     Object.keys(defs).forEach(function (defName) {
         var def = defs[defName];
@@ -211,7 +219,9 @@ module.exports = function (defs) {
                     seen[alt] = true;
                 });
 
-                var models = alternatives.map(modelOf);
+                var models = alternatives.map(function (alt) {
+                    return modelOf(alt, namedMaps);
+                });
 
                 // the default value must be something one alternative can take:
                 // the generated stub passes the default through the same

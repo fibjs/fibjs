@@ -6,5 +6,5 @@
 struct HttpResponseOptions {
     Integer status;
     String statusText;
-    Headers|NObject headers;
+    Headers|HeaderMap headers;
 };

@@ -154,7 +154,7 @@ module net
      netmask. The call is synchronous and does not perform any lookup.
      @return returns the network interface information
     */
-    static Object info();
+    static ValueMap info();
 
     /*! @brief Queries the address of the given host name
 
@@ -364,7 +364,7 @@ module net
      @param listener the connection handler
      @return returns the TcpServer object
      */
-    static TcpServer createServer(TcpServerOptions options, Handler|Handler[]|Object|String|Function(Socket socket) => void listener);
+    static TcpServer createServer(TcpServerOptions options, Handler|Handler[]|HandlerMap|String|Function(Socket socket) => void listener);
 
     /*! @brief Creates a TCP server
 
@@ -374,7 +374,7 @@ module net
      @param listener the connection handler
      @return returns a TcpServer object not bound to a port; listen() must be called to start it
      */
-    static TcpServer createServer(Handler|Handler[]|Object|String|Function(Socket socket) => void listener);
+    static TcpServer createServer(Handler|Handler[]|HandlerMap|String|Function(Socket socket) => void listener);
 
     /*! @brief The alias of the UrlObject class, see UrlObject
 

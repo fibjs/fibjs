@@ -139,5 +139,5 @@ module querystring
      @param opt reserved for options; not supported and ignored
      @return the serialized query string
      */
-    static String stringify(Object obj, String sep = "&", String eq = "=", Object opt = {});
+    static String stringify(ValueMap obj, String sep = "&", String eq = "=", Object opt = {});
 };

@@ -125,7 +125,7 @@ interface HttpServer : TcpServer
      @param port specifies the port on which the http server listens
      @param hdlr the request handler
      */
-    HttpServer(Integer port, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    HttpServer(Integer port, Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Creates an HTTP server bound to an address and a port
 
@@ -137,7 +137,7 @@ interface HttpServer : TcpServer
      @param port specifies the port on which the http server listens
      @param hdlr the request handler
      */
-    HttpServer(String addr, Integer port, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    HttpServer(String addr, Integer port, Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Creates an HTTP server, taking the port from the address when it carries one
 
@@ -148,7 +148,7 @@ interface HttpServer : TcpServer
      @param addr the listening address, optionally with a :port suffix
      @param hdlr the request handler
      */
-    HttpServer(String addr, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    HttpServer(String addr, Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Creates an HTTP server without binding a port; listen() must be called to start
 
@@ -157,7 +157,7 @@ interface HttpServer : TcpServer
      after listen(): the port is already bound and start() throws error 20009.
      @param hdlr the request handler
      */
-    HttpServer(Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    HttpServer(Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Enables automatic CORS handling, including preflight requests
 

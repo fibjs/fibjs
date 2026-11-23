@@ -100,7 +100,7 @@ interface TcpServer : EventEmitter
     @param port specifies the tcp server listening port
     @param listener the connection handler
    */
-    TcpServer(Integer port, Handler|Handler[]|Object|String|Function(Socket socket) => void listener);
+    TcpServer(Integer port, Handler|Handler[]|HandlerMap|String|Function(Socket socket) => void listener);
 
     /*! @brief TcpServer constructor, binds the given address and port
 
@@ -112,7 +112,7 @@ interface TcpServer : EventEmitter
      @param port specifies the tcp server listening port
      @param listener the connection handler
    */
-    TcpServer(String addr, Integer port, Handler|Handler[]|Object|String|Function(Socket socket) => void listener);
+    TcpServer(String addr, Integer port, Handler|Handler[]|HandlerMap|String|Function(Socket socket) => void listener);
 
     /*! @brief TcpServer constructor, binds from an options object
 
@@ -131,7 +131,7 @@ interface TcpServer : EventEmitter
      @param options server options
      @param listener the connection handler
    */
-    TcpServer(TcpServerOptions options, Handler|Handler[]|Object|String|Function(Socket socket) => void listener);
+    TcpServer(TcpServerOptions options, Handler|Handler[]|HandlerMap|String|Function(Socket socket) => void listener);
 
     /*! @brief TcpServer constructor, binds a unix socket or Windows pipe
 
@@ -142,7 +142,7 @@ interface TcpServer : EventEmitter
     @param addr specifies the unix socket or Windows pipe server listening address
     @param listener the connection handler
    */
-    TcpServer(String addr, Handler|Handler[]|Object|String|Function(Socket socket) => void listener);
+    TcpServer(String addr, Handler|Handler[]|HandlerMap|String|Function(Socket socket) => void listener);
 
     /*! @brief TcpServer constructor, does not bind a port, listen() must be called to start
 
@@ -151,7 +151,7 @@ interface TcpServer : EventEmitter
     The listener forms are described on the port-only overload.
     @param listener the connection handler
    */
-    TcpServer(Handler|Handler[]|Object|String|Function(Socket socket) => void listener);
+    TcpServer(Handler|Handler[]|HandlerMap|String|Function(Socket socket) => void listener);
 
     /*! @brief Starts the current server
 

@@ -108,7 +108,7 @@ interface SandBox : object
 
      @param mods the module object dictionary to add
      */
-    SandBox(Object mods = {});
+    SandBox(ValueMap mods = {});
 
     /*! @brief Constructs a sandbox with a custom require function
 
@@ -120,7 +120,7 @@ interface SandBox : object
      @param mods the module object dictionary to add
      @param require a custom require function; when a module does not exist, the custom function is called first, and if it returns nothing the module is loaded from files
      */
-    SandBox(Object mods, Function(String id) => Value require);
+    SandBox(ValueMap mods, Function(String id) => Value require);
 
     /*! @brief Constructs a sandbox with an independent global object
 
@@ -132,7 +132,7 @@ interface SandBox : object
      @param mods the module object dictionary to add
      @param global the initial Global properties to set
      */
-    SandBox(Object mods, Object global);
+    SandBox(ValueMap mods, Object global);
 
     /*! @brief Constructs a sandbox with a custom require function and an independent global object
 
@@ -144,7 +144,7 @@ interface SandBox : object
      @param require a custom require function; when a module does not exist, the custom function is called first, and if it returns nothing the module is loaded from files
      @param global the initial Global properties to set
      */
-    SandBox(Object mods, Function(String id) => Value require, Object global);
+    SandBox(ValueMap mods, Function(String id) => Value require, Object global);
 
     /*! @brief Adds all built-in modules to the sandbox
 
@@ -183,7 +183,7 @@ interface SandBox : object
 
      @param mods the module object dictionary to add; added javascript modules are copied so that modifications made by the sandbox do not interfere with each other
      */
-    add(Object mods);
+    add(ValueMap mods);
 
     /*! @brief Adds a script module to the sandbox and returns its exports
 
@@ -337,5 +337,5 @@ interface SandBox : object
      from it does not remove the module from the sandbox. Use has and remove to change the
      registry.
      */
-    readonly Object modules;
+    readonly ValueMap modules;
 };

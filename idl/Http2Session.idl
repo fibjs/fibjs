@@ -240,7 +240,7 @@ interface Http2Session : EventEmitter
      @param options optional stream creation options; only endStream is used
      @return returns the Http2Stream of the new request
     */
-    Http2Stream request(Object headers, Object options = {});
+    Http2Stream request(HeaderMap headers, Object options = {});
 
     /*! @brief sends a GOAWAY frame to the peer
 
@@ -383,7 +383,7 @@ interface Http2Session : EventEmitter
      @param stream the newly created Http2Stream
      @param headers request headers object
     */
-    event stream(Http2Stream stream, Object headers);
+    event stream(Http2Stream stream, HeaderMap headers);
 
     /*! @brief emitted when the session receives a GOAWAY frame
 

@@ -1,0 +1,28 @@
+/*! @brief A plain-object dictionary of string values, keyed by name
+
+ StringMap is the typed form of the string dictionaries exposed and accepted by
+ the runtime: `http.STATUS_CODES`, `HttpClient#proxyEnv`, the `proxyEnv`
+ argument of `http.setGlobalProxyFromEnv` and the return value of
+ `util.parseEnv`. It is a regular JavaScript object dictionary (not an ES
+ `Map`); the property names are environment variable, status-code or option
+ names. `process.env` stays a plain object because it is a live view of the
+ operating system environment, not a snapshot dictionary.
+
+ The runtime reads a missing key as `undefined`, while the TypeScript index
+ signature is `string`; use `hasOwnProperty` or a truthiness check when a
+ missing entry must be distinguished from the empty string.
+
+ Example 1 — parse an environment file:
+ ```JavaScript
+ const util = require('util');
+
+ const env = util.parseEnv('A=1\nB="two words"');
+ console.log(env.A, env.B); // 1 two words
+ ```
+
+ Example 2 — read the process environment:
+ ```JavaScript
+ console.log(typeof process.env.PATH); // string
+ ```
+*/
+map StringMap: String;

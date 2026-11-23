@@ -32,6 +32,7 @@
 document
   = interface
   / structDecl
+  / mapDecl
 
 interface = head:declareHead
   body:interfaceBody _* ";" _* {
@@ -57,6 +58,32 @@ structDecl
       fields: fields || []
     }
   }
+
+// A named map is a plain JS object dictionary: `map HandlerMap: ...;`.
+// It is not a JS-visible class; gen_code expands it to its C++ map
+// representation and gen_dts emits a named index-signature interface.
+mapDecl
+  = comments:_* MapToken _* name:Identifier _* ":" _* value:fieldType _* ";" _* {
+      var vt = value.type;
+      var cb = value.callback;
+      // `fieldType` keeps a shaped Function in a side-car; a named map stores
+      // the value shape in `valueCallback` so the d.ts generator can render it.
+      if (vt && typeof vt === 'object') {
+        cb = vt.callback;
+        vt = vt.type;
+      }
+      return {
+        declare: {
+          comments: comments.join(""),
+          type: "map",
+          name: name,
+          extend: "object"
+        },
+        members: [],
+        valueType: vt,
+        valueCallback: cb
+      };
+    }
 
 // Top-level struct fields use `;` separators (the field shape is the same as
 // an inline parameter struct). The trailing `;` after the last field is
@@ -318,6 +345,7 @@ paramitem
 
 type
   = IteratorType
+  / MapType
   / Identifier
   / struct
 
@@ -391,6 +419,7 @@ fieldType
 fieldBase
   = CallbackType
   / paramStruct
+  / MapType
   / IteratorType
   / Identifier
 
@@ -417,6 +446,8 @@ unionTail
 unionUnit
   = IteratorType
   / ArrayUnit
+  / MapArrayUnit
+  / MapType
   / CallbackType
   / Identifier
 
@@ -426,6 +457,27 @@ ArrayUnit
   = name:Identifier _* "[" _* "]" {
       return name + '[]';
     }
+
+// A map array in a union (`Map<String>[]`): the C++ side is a vector of the
+// map's plain-object representation.
+MapArrayUnit
+  = value:MapType _* "[" _* "]" {
+      return value + '[]';
+    }
+
+// `Map<T>` is a plain JS object dictionary; T is a named type, a named type
+// array or a nested map (unions/shapes use a named map instead).
+MapType
+  = "Map" _* "<" _* value:MapValueType _* ">" {
+      return 'Map<' + value + '>';
+    }
+
+MapValueType
+  = MapType
+  / name:Identifier _* "[" _* "]" {
+      return name + '[]';
+    }
+  / Identifier
 
 // `extType` is the only way to reach `CallbackType`: it is used by `paramitem`
 // and by the method return position, so `prop` (which keeps `type`), `operator`
@@ -493,7 +545,7 @@ nextitem
   }
 
 itemtype
-  = _* type:(paramStruct / UnionType / Identifier) _* isarray1:("[" _* "]")? _* name:Identifier isarray2:("[" _* "]")? def:def? {
+  = _* type:(paramStruct / UnionType / MapType / Identifier) _* isarray1:("[" _* "]")? _* name:Identifier isarray2:("[" _* "]")? def:def? {
     var item = {
       type: type,
       name: name,
@@ -640,6 +692,7 @@ requiredToken   = "required" !IdentifierChar
 ModuleToken     = "module"
 InterfaceToken  = "interface"
 StructToken     = "struct"
+MapToken        = "map" !IdentifierChar
 StringToken     = "String"
 staticToken     = "static"
 eventToken      = "event"

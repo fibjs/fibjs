@@ -234,5 +234,5 @@ module mq
      @param hdlr the handler to run
      @param v specifies the message or object to process
     */
-    static invoke(Handler|Handler[]|Object|String|Function(object v, ...params) => void hdlr, object v) async;
+    static invoke(Handler|Handler[]|HandlerMap|String|Function(object v, ...params) => void hdlr, object v) async;
 };

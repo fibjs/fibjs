@@ -1,0 +1,39 @@
+/*! @brief A plain-object dictionary of handler forms, keyed by route pattern
+
+ HandlerMap is the typed form of the routing maps accepted by `mq.Routing`,
+ `mq.Handler`, `Chain.append`, `mq.invoke` and the server constructors. It is a
+ regular JavaScript object dictionary (not an ES `Map`); keys are match patterns
+ and values are handlers.
+
+ A value may be a Handler object, an array of handler forms (converted to a
+ Chain), a nested HandlerMap (converted to a nested Routing), a handler function
+ or a path/address string. JavaScript handler functions consume the message and
+ their return value is ignored.
+
+ Example 1 — a routing map with two handlers:
+ ```JavaScript
+ const mq = require('mq');
+
+ const app = new mq.Routing({
+     '/a': (req) => { },
+     '/b': (req) => { }
+ });
+ console.log(app.isRouting()); // true
+ ```
+
+ Example 2 — nested maps and handler arrays:
+ ```JavaScript
+ const mq = require('mq');
+
+ const app = new mq.Routing({
+     '/api': {
+         '/users': [
+             (req) => { },
+             (req) => { }
+         ]
+     }
+ });
+ console.log(app.isRouting()); // true
+ ```
+*/
+map HandlerMap: Handler|Array|HandlerMap|String|Function(Value req, ...params) => void;

@@ -108,7 +108,7 @@ interface Headers : HttpCollection
 
      @param init the initial fields: an object, an array of [name, value] pairs or another Headers
      */
-    Headers(Object|Array|Headers init);
+    Headers(HeaderMap|Array|Headers init);
 
     /*! @brief Returns every Set-Cookie value as a separate array element
 

@@ -105,7 +105,7 @@ declare namespace FIBJS_IDL {
         }[]
     }
 
-    export type IDeclareType = "interface" | "module" | "struct"
+    export type IDeclareType = "interface" | "module" | "struct" | "map"
 
     /**
     * @description the declaration of an IDL object
@@ -234,8 +234,17 @@ declare namespace FIBJS_IDL {
          * @description the basic description of the module
          */
         declare: IDeclare<T>
+        /**        * @description the value type of a named `map Name: T;` declaration;
+        * absent for interfaces, modules and structs. T is a `fieldType`, so it
+        * may be a union, an array or a shaped `Function(...)`.
+        */
+        valueType?: IIDLDataType | IIDLDataTuple
         /**
-         * @description the members, including properties, static properties, functions, etc.
+        * @description the inline callback shape carried by a named map value
+        * that ends in a shaped `Function(...)` alternative
+        */
+        valueCallback?: IIDLCallbackShape
+        /**         * @description the members, including properties, static properties, functions, etc.
          */
         members: IMember[]
         /**

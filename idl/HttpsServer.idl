@@ -132,7 +132,7 @@ interface HttpsServer : HttpServer
      @param port specifies the port on which the http server listens
      @param hdlr the request handler
      */
-    HttpsServer(SecureContext context, Integer port, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    HttpsServer(SecureContext context, Integer port, Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Creates an HTTPS server bound to an address and a port from a ready SecureContext
 
@@ -144,7 +144,7 @@ interface HttpsServer : HttpServer
      @param port specifies the port on which the http server listens
      @param hdlr the request handler
      */
-    HttpsServer(SecureContext context, String addr, Integer port, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    HttpsServer(SecureContext context, String addr, Integer port, Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Creates an HTTPS server from TLS options, binding immediately when a port is given
 
@@ -155,7 +155,7 @@ interface HttpsServer : HttpServer
      @param options the options needed to create a secure context with tls.createSecureContext
      @param hdlr the request handler
      */
-    HttpsServer(Object options, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    HttpsServer(Object options, Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief Creates an HTTPS server without binding a port; listen() must be called to start
 
@@ -165,7 +165,7 @@ interface HttpsServer : HttpServer
      @param context the SecureContext secure context
      @param hdlr the request handler
      */
-    HttpsServer(SecureContext context, Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    HttpsServer(SecureContext context, Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief The SecureContext used for the TLS handshake, read-only
 

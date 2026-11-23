@@ -12,6 +12,15 @@
 
 <%}%>
 
+<%if(declare.type === 'map'){%>
+
+## Value Type
+```JavaScript
+<%-mapValueText%>
+```
+
+<%}%>
+
 <%var last_member = '';
 
 function def_value(v, o)

@@ -1,0 +1,35 @@
+/*! @brief A plain-object dictionary of HTTP header values, keyed by header name
+
+ HeaderMap is the typed form of the header maps accepted by
+ `HttpMessage#appendHeader`, `HttpMessage#setHeader`, `HttpMessage#addTrailers`,
+ `HttpMessage#getHeaders`, `HttpResponse#writeHead`, `Http2Session#request`,
+ `Http2Stream#respond`, `Http2Stream#additionalHeaders` and
+ `Http2Stream#sendTrailers`. It is a regular
+ JavaScript object dictionary (not an ES `Map`); the property names are header
+ names.
+
+ A value may be a string, an array of strings, a number, a boolean or a Date.
+ The HTTP layer converts each value through its JavaScript string form, while
+ an array adds one header line per element. Header names keep the case rules of
+ the receiving collection, and a map entry replaces or appends the same way as
+ the corresponding single-name method.
+
+ Example 1 — a response header map:
+ ```JavaScript
+ const http = require('http');
+
+ const headers = new http.Headers({ 'Content-Type': 'text/plain', 'X-Count': 2 });
+ console.log(headers.get('content-type')); // text/plain
+ console.log(headers.get('x-count') !== null); // true
+ ```
+
+ Example 2 — several values for one name:
+ ```JavaScript
+ const http = require('http');
+
+ const headers = new http.Headers();
+ headers.append({ 'Set-Cookie': ['a=1', 'b=2'] });
+ console.log(headers.all('set-cookie').length); // 2
+ ```
+*/
+map HeaderMap: String|String[]|Number|Boolean|Date;

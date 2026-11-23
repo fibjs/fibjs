@@ -97,7 +97,7 @@ interface RedisHash : object
 
      @param kvs the field/value pairs to write, as property names and values
      */
-    mset(Object kvs);
+    mset(KVMap kvs);
 
     /*! @brief Stores several field/value pairs at once from a flat argument list
 

@@ -133,7 +133,7 @@ interface HttpHandler : Handler
 
      @param hdlr the request handler
     */
-    HttpHandler(Handler|Handler[]|Object|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
+    HttpHandler(Handler|Handler[]|HandlerMap|String|Function(HttpRequest req, HttpResponse res) => void hdlr);
 
     /*! @brief enables cross-origin requests
 

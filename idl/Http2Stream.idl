@@ -201,7 +201,7 @@ interface Http2Stream : Stream
 
      @param headers an object containing header name-value pairs
     */
-    respond(Object headers = {});
+    respond(HeaderMap headers = {});
 
     /*! @brief sends informational (1xx) headers to the peer (server stream)
 
@@ -214,7 +214,7 @@ interface Http2Stream : Stream
 
      @param headers an object containing header name-value pairs
     */
-    additionalHeaders(Object headers);
+    additionalHeaders(HeaderMap headers);
 
     /*! @brief sends trailing headers at the end of the stream (server stream)
 
@@ -266,7 +266,7 @@ interface Http2Stream : Stream
 
      @param headers an object containing trailing header name-value pairs
     */
-    sendTrailers(Object headers);
+    sendTrailers(HeaderMap headers);
 
     /*! @brief sends an RST_STREAM frame to cancel the stream
 
@@ -330,7 +330,7 @@ interface Http2Stream : Stream
 
      @param headers response headers object
     */
-    event headers(Object headers);
+    event headers(HeaderMap headers);
 
     /*! @brief emitted when a trailing header block is received
 
@@ -340,5 +340,5 @@ interface Http2Stream : Stream
 
      @param headers trailing headers object
     */
-    event trailers(Object headers);
+    event trailers(HeaderMap headers);
 };

@@ -112,7 +112,7 @@ interface TLSHandler : Handler
      @param context specifies the secure context used to create TLSHandler
      @param handler the connection handler
     */
-    TLSHandler(SecureContext context, Handler|Handler[]|Object|String|Function(TLSSocket socket) => void handler);
+    TLSHandler(SecureContext context, Handler|Handler[]|HandlerMap|String|Function(TLSSocket socket) => void handler);
 
     /*! @brief Creates a TLSHandler from the options of tls.createSecureContext
 
@@ -123,7 +123,7 @@ interface TLSHandler : Handler
      @param options the options needed to create a secure context with tls.createSecureContext
      @param handler the connection handler
     */
-    TLSHandler(Object options, Handler|Handler[]|Object|String|Function(TLSSocket socket) => void handler);
+    TLSHandler(Object options, Handler|Handler[]|HandlerMap|String|Function(TLSSocket socket) => void handler);
 
     /*! @brief The SecureContext used for the connections handled by this TLSHandler
 

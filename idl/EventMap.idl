@@ -1,0 +1,35 @@
+/*! @brief A plain-object dictionary of event listeners, keyed by event name
+
+ EventMap is the typed form of the listener maps accepted by
+ `EventEmitter#on/addListener/prependListener/once/prependOnceListener/off`
+ and `removeListener`, and by the map forms of the Redis subscription methods
+ (`Redis#sub/unsub/psub/unpsub`). It is a regular JavaScript object dictionary
+ (not an ES `Map`); the property names are event or channel names.
+
+ Every value must be a function. The map is processed in property order, and a
+ value that is not a function fails with an invalid-type error while entries
+ already processed stay registered. EventMap is input-only: read listeners
+ back with `listeners()`, `rawListeners()` or `listenerCount()`.
+
+ Example 1 — register several listeners at once:
+ ```JavaScript
+ const EventEmitter = require('events');
+
+ const emitter = new EventEmitter();
+ emitter.on({
+     connect: () => { },
+     close: () => { }
+ });
+ console.log(emitter.listenerCount('connect')); // 1
+ ```
+
+ Example 2 — one-shot listeners:
+ ```JavaScript
+ const EventEmitter = require('events');
+
+ const emitter = new EventEmitter();
+ emitter.once({ ready: () => { } });
+ console.log(emitter.listenerCount('ready')); // 1
+ ```
+*/
+map EventMap: Function(...args) => Value;
