@@ -16,14 +16,12 @@ const $ = child_process.sh;
 describe("selfzip", () => {
     var path_cnt = 0;
     var paths = [];
-    var inject;
 
     before(() => {
         try {
             fs.unlink(path.join(__dirname, '_helpers', "fib-inject", "addon", "fib-inject.node"));
         } catch (e) { }
         child_process.execFile(execPath, [path.join(__dirname, '_helpers', "fib-inject", "install.js")]);
-        inject = require('./_helpers/fib-inject').inject;
     });
 
     after(() => {
@@ -42,9 +40,28 @@ describe("selfzip", () => {
 
     function package(testPath, data) {
         fs.copyFile(execPath, testPath);
-        inject(testPath, 'APP', data, {
-            sentinelFuse: "FIBJS_FUSE_fe21d3488eb4cdf267e5ea624f2006ce"
-        });
+
+        // Inject in a fresh process.  selfzip runs in the same process as every
+        // other test file, and on 32-bit hosts that process can already be near
+        // the address-space limit: LIEF's whole-image temporaries then throw
+        // std::bad_alloc, which escapes the addon as an unhandled C++ exception
+        // and kills the whole run.  A fresh process has the room for them.
+        const payloadPath = testPath + '.payload';
+        fs.writeFile(payloadPath, data);
+        let code;
+        try {
+            code = child_process.run(execPath, [
+                path.join(__dirname, '_helpers', 'fib-inject', 'pack.js'),
+                testPath, payloadPath, "FIBJS_FUSE_fe21d3488eb4cdf267e5ea624f2006ce"
+            ]);
+        } finally {
+            try {
+                fs.unlink(payloadPath);
+            } catch (e) { }
+        }
+        if (code !== 0)
+            throw new Error(`fib-inject injection failed in a child process (exit=${code})`);
+
         if (process.platform === 'darwin')
             child_process.execFile('codesign', ['-s', '-', testPath]);
 
