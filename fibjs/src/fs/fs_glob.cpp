@@ -18,6 +18,8 @@
 #include <set>
 #include <algorithm>
 #include <vector>
+#include <memory>
+#include <unordered_map>
 #include "match/path_match.h"
 
 namespace fibjs {
@@ -67,30 +69,15 @@ struct GlobResult {
     }
 };
 
-// Helper function to normalize path separators for the current platform
-// Use path module's normalize function for better path handling
-static exlib::string normalizePath(const exlib::string& path)
-{
-    exlib::string normalized;
-    result_t hr = path_base::normalize(path, normalized);
-    return (hr.ok()) ? normalized : path;
-}
-
 // Helper function to check if a path should be ignored
-static bool shouldIgnore(const exlib::string& path, const std::vector<exlib::string>& excludePatterns)
+static bool shouldIgnore(const exlib::string& path, const std::vector<std::shared_ptr<MinimatchPattern>>& excludePatterns)
 {
     for (const auto& pattern : excludePatterns) {
-        if (matchesGlob(path, pattern, isWindows)) {
+        if (pattern->match(path)) {
             return true;
         }
     }
     return false;
-}
-
-// Helper function to check if a pattern contains **
-static bool hasRecursivePattern(const exlib::string& pattern)
-{
-    return pattern.find("**") != exlib::string::npos;
 }
 
 // Helper function to check if a pattern starts with ./
@@ -178,51 +165,6 @@ static exlib::string normalizePattern(const exlib::string& pattern)
     exlib::string normalized;
     result_t hr = path_base::normalize(pattern, normalized);
     return (hr.ok()) ? normalized : pattern;
-}
-
-// Helper function to check if path contains directories
-// Use path module's dirname function for better directory detection
-static bool hasDirectory(const exlib::string& pattern)
-{
-    if (pattern.empty()) {
-        return false;
-    }
-
-    // Use path module's dirname to check if pattern has directory components
-    exlib::string dirname;
-    result_t hr = path_base::dirname(pattern, dirname);
-    if (hr.ok()) {
-        // If dirname is not "." and not empty, then the pattern contains directories
-        return !dirname.empty() && dirname != ".";
-    }
-
-    // Fallback to manual check if path module fails
-#ifdef _WIN32
-    return pattern.find('/') != exlib::string::npos || pattern.find('\\') != exlib::string::npos;
-#else
-    return pattern.find('/') != exlib::string::npos;
-#endif
-}
-
-// Helper function to get directory part of a pattern
-// Use path module's dirname function for better accuracy
-static exlib::string getDirectoryPart(const exlib::string& pattern)
-{
-    exlib::string dirname;
-    result_t hr = path_base::dirname(pattern, dirname);
-    if (hr.ok() && !dirname.empty() && dirname != ".") {
-        return dirname;
-    }
-    return "";
-}
-
-// Helper function to get filename part of a pattern
-// Use path module's basename function for better accuracy
-static exlib::string getFilenamePart(const exlib::string& pattern)
-{
-    exlib::string basename;
-    result_t hr = path_base::basename(pattern, "", basename);
-    return (hr.ok()) ? basename : pattern;
 }
 
 // Helper function to split pattern into components
@@ -314,10 +256,62 @@ static void splitFirstPatternComponent(const exlib::string& remaining, exlib::st
     rest.clear();
 }
 
+// Compiled form of one glob invocation: the full pattern, its variants and
+// the exclude patterns are tokenized once instead of once per candidate path.
+// The same walk used to construct and tokenize the main pattern, every exclude
+// pattern and every recursion-pruning component for each directory entry.
+struct GlobMatchContext {
+    std::shared_ptr<MinimatchPattern> pattern;
+    // Non-null for a pattern that ends with a separator: only directories can
+    // match, and the trailing separator is not part of the pattern.
+    std::shared_ptr<MinimatchPattern> dir_pattern;
+    // Non-null for "prefix/**": every directory on the way can be a result.
+    std::shared_ptr<MinimatchPattern> prefix;
+    exlib::string prefix_text;
+    const std::vector<std::shared_ptr<MinimatchPattern>>* excludes = NULL;
+    // Component patterns used by canRecurseInto(); each distinct component is
+    // tokenized once for the whole walk.
+    std::unordered_map<exlib::string, std::shared_ptr<MinimatchPattern>> components;
+
+    const MinimatchPattern& component(const exlib::string& name)
+    {
+        auto it = components.find(name);
+        if (it != components.end())
+            return *it->second;
+
+        std::shared_ptr<MinimatchPattern> matcher = std::make_shared<MinimatchPattern>(name, isWindows);
+        const MinimatchPattern& ret = *matcher;
+        components.emplace(name, std::move(matcher));
+        return ret;
+    }
+};
+
+static GlobMatchContext make_match_context(const exlib::string& pattern,
+    const std::vector<std::shared_ptr<MinimatchPattern>>& excludes)
+{
+    GlobMatchContext ctx;
+    ctx.pattern = std::make_shared<MinimatchPattern>(pattern, isWindows);
+    ctx.excludes = &excludes;
+
+    if (endsWithPathSeparator(pattern)) {
+        exlib::string dir_pattern = removeTrailingPathSeparator(pattern);
+        ctx.dir_pattern = std::make_shared<MinimatchPattern>(dir_pattern, isWindows);
+    }
+
+    if (pattern.length() > 2 && pattern.substr(pattern.length() - 2) == "**"
+        && isPathSeparator(pattern[pattern.length() - 3])) {
+        ctx.prefix_text = pattern.substr(0, pattern.length() - 3);
+        ctx.prefix = std::make_shared<MinimatchPattern>(ctx.prefix_text, isWindows);
+    }
+
+    return ctx;
+}
+
 // Whether a match can still exist under a directory named entryName.
 // The first unconsumed pattern component must match the directory name,
 // or be ** (which matches any number of path segments).
-static bool canRecurseInto(const exlib::string& entryName, const exlib::string& remaining)
+static bool canRecurseInto(const exlib::string& entryName, const exlib::string& remaining,
+    GlobMatchContext& ctx)
 {
     if (remaining.empty())
         return false;
@@ -329,7 +323,7 @@ static bool canRecurseInto(const exlib::string& entryName, const exlib::string& 
     if (first == "**")
         return true;
 
-    return matchesGlob(entryName, first, isWindows);
+    return ctx.component(first).match(entryName);
 }
 
 // Simplified recursive function to walk directory tree and collect matching files
@@ -342,9 +336,8 @@ static bool canRecurseInto(const exlib::string& entryName, const exlib::string& 
 static void walkDirectorySimple(
     const exlib::string& basePath,
     const exlib::string& currentPath,
-    const exlib::string& pattern,
+    GlobMatchContext& ctx,
     const exlib::string& remaining,
-    const std::vector<exlib::string>& excludePatterns,
     std::set<GlobResult>& results,
     bool withFileTypes = false,
     int depth = 0,
@@ -355,41 +348,37 @@ static void walkDirectorySimple(
 
     // Special handling for patterns ending with "**"
     // When pattern ends with **, include directories that match the prefix
-    if (pattern.length() >= 2 && pattern.substr(pattern.length() - 2) == "**") {
-        // Check if we need to match a prefix pattern using path separator helper
-        if (pattern.length() > 2 && isPathSeparator(pattern[pattern.length() - 3])) {
-            // Pattern like "src/**" - extract prefix "src"
-            exlib::string prefix = pattern.substr(0, pattern.length() - 3);
+    if (ctx.prefix) {
+        const exlib::string& prefix = ctx.prefix_text;
 
-            // If current path matches prefix, include it in results
-            if (currentPath == prefix || (currentPath.empty() && prefix.empty()) || matchesGlob(currentPath, prefix, isWindows)) {
+        // If current path matches prefix, include it in results
+        if (currentPath == prefix || ctx.prefix->match(currentPath)) {
 
-                if (!shouldIgnore(currentPath.empty() ? "." : currentPath, excludePatterns)) {
-                    exlib::string resultPath = currentPath.empty() ? "." : currentPath;
-                    if (withFileTypes) {
-                        exlib::string name;
-                        exlib::string parent;
-                        if (!currentPath.empty()) {
-                            path_base::basename(currentPath, "", name);
-                            path_base::dirname(currentPath, parent);
-                            if (parent.empty())
-                                parent = basePath;
-                            else
-                                os_join(basePath, parent, parent);
-                        } else {
-                            path_base::basename(basePath, "", name);
-                            path_base::dirname(basePath, parent);
-                        }
-                        // For ** patterns, we know these are directories
-                        obj_ptr<DirEntry> dirent = createDirEntry(name, parent, UV_DIRENT_DIR);
-                        if (dirent) {
-                            results.insert(GlobResult(resultPath, dirent));
-                        } else {
-                            results.insert(GlobResult(resultPath));
-                        }
+            if (!shouldIgnore(currentPath.empty() ? "." : currentPath, *ctx.excludes)) {
+                exlib::string resultPath = currentPath.empty() ? "." : currentPath;
+                if (withFileTypes) {
+                    exlib::string name;
+                    exlib::string parent;
+                    if (!currentPath.empty()) {
+                        path_base::basename(currentPath, "", name);
+                        path_base::dirname(currentPath, parent);
+                        if (parent.empty())
+                            parent = basePath;
+                        else
+                            os_join(basePath, parent, parent);
+                    } else {
+                        path_base::basename(basePath, "", name);
+                        path_base::dirname(basePath, parent);
+                    }
+                    // For ** patterns, we know these are directories
+                    obj_ptr<DirEntry> dirent = createDirEntry(name, parent, UV_DIRENT_DIR);
+                    if (dirent) {
+                        results.insert(GlobResult(resultPath, dirent));
                     } else {
                         results.insert(GlobResult(resultPath));
                     }
+                } else {
+                    results.insert(GlobResult(resultPath));
                 }
             }
         }
@@ -416,18 +405,14 @@ static void walkDirectorySimple(
         if (currentPath.empty()) {
             relativePath = entryName;
         } else {
-            // Use path module's os_join for proper cross-platform path construction
+            // os_join already normalizes the result, so the extra
+            // path_base::normalize() pass this code used to run per directory
+            // entry was pure overhead.
             os_join(currentPath, entryName, relativePath);
-            // Normalize the result to ensure consistent path format
-            exlib::string normalized;
-            result_t hr = path_base::normalize(relativePath, normalized);
-            if (hr.ok()) {
-                relativePath = normalized;
-            }
         }
 
         // Skip if ignored
-        if (shouldIgnore(relativePath, excludePatterns)) {
+        if (shouldIgnore(relativePath, *ctx.excludes)) {
             continue;
         }
 
@@ -435,14 +420,13 @@ static void walkDirectorySimple(
         bool isMatch = false;
 
         // Special handling for patterns ending with path separator - only match directories
-        if (endsWithPathSeparator(pattern)) {
+        if (ctx.dir_pattern) {
             if (dirent.type == UV_DIRENT_DIR) {
-                exlib::string dirPattern = removeTrailingPathSeparator(pattern);
-                isMatch = matchesGlob(relativePath, dirPattern, isWindows);
+                isMatch = ctx.dir_pattern->match(relativePath);
             }
         } else {
             // Normal pattern matching
-            isMatch = matchesGlob(relativePath, pattern, isWindows);
+            isMatch = ctx.pattern->match(relativePath);
         }
 
         if (isMatch) {
@@ -468,7 +452,7 @@ static void walkDirectorySimple(
 
         // If it's a directory, continue walking when the pattern can still
         // match something below it.
-        if (dirent.type == UV_DIRENT_DIR && canRecurseInto(entryName, remaining)) {
+        if (dirent.type == UV_DIRENT_DIR && canRecurseInto(entryName, remaining, ctx)) {
             exlib::string nextRemaining = remaining;
             exlib::string first, rest;
 
@@ -476,7 +460,7 @@ static void walkDirectorySimple(
             if (first != "**")
                 nextRemaining = rest;
 
-            walkDirectorySimple(basePath, relativePath, pattern, nextRemaining, excludePatterns, results, withFileTypes, depth + 1, maxDepth);
+            walkDirectorySimple(basePath, relativePath, ctx, nextRemaining, results, withFileTypes, depth + 1, maxDepth);
         }
     }
 }
@@ -504,10 +488,14 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, GlobOptions* opts, 
     std::set<GlobResult> results;
     retVal = new NArray();
 
-    // Get exclude patterns from options
-    std::vector<exlib::string> excludePatterns;
+    // Tokenize the exclude patterns once for the whole call: they are tested
+    // against every directory entry of every pattern below.
+    std::vector<std::shared_ptr<MinimatchPattern>> excludeMatchers;
     if (_opts->exclude.has_value()) {
-        excludePatterns = _opts->exclude.value();
+        const std::vector<exlib::string>& excludePatterns = _opts->exclude.value();
+        excludeMatchers.reserve(excludePatterns.size());
+        for (const auto& exclude : excludePatterns)
+            excludeMatchers.push_back(std::make_shared<MinimatchPattern>(exclude, isWindows));
     }
 
     // Check if withFileTypes is enabled
@@ -655,7 +643,8 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, GlobOptions* opts, 
 
                 // Use temporary results set for this pattern
                 std::set<GlobResult> tempResults;
-                walkDirectorySimple(basePath, "", relativePattern, relativePattern, excludePatterns, tempResults, withFileTypes);
+                GlobMatchContext ctx = make_match_context(relativePattern, excludeMatchers);
+                walkDirectorySimple(basePath, "", ctx, relativePattern, tempResults, withFileTypes);
 
                 // Convert relative results to absolute using os_join
                 for (const auto& result : tempResults) {
@@ -681,7 +670,8 @@ result_t fs_base::glob(std::vector<exlib::string>& patterns, GlobOptions* opts, 
         }
 
         // Handle relative patterns
-        walkDirectorySimple(cwd, "", normalizedPattern, normalizedPattern, excludePatterns, results, withFileTypes);
+        GlobMatchContext ctx = make_match_context(normalizedPattern, excludeMatchers);
+        walkDirectorySimple(cwd, "", ctx, normalizedPattern, results, withFileTypes);
     }
 
     // Convert set to sorted array

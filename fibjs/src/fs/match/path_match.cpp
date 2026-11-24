@@ -9,6 +9,8 @@
 #include "ifs/path_win32.h"
 #include "ifs/path_posix.h"
 #include "path_match.h"
+#include "LruCache.h"
+#include <memory>
 
 namespace fibjs {
 
@@ -27,11 +29,39 @@ MinimatchPattern::MinimatchPattern(const std::string& pattern, bool isWindows)
     compiled_ = true;
 }
 
+// Compiled patterns are immutable, so the most recently used ones are kept in
+// an LRU: path.matchesGlob() is commonly called in a loop with the same
+// pattern, and tokenizing it on every call costs more than the match itself.
+// Callers that match many paths against one pattern should still compile it
+// once (MinimatchPattern is cheap to reuse); the cache mainly serves the
+// per-call API and short-lived patterns.
+static LruCache<std::shared_ptr<MinimatchPattern>>& pattern_cache()
+{
+    static LruCache<std::shared_ptr<MinimatchPattern>> s_cache(256, 0, 0);
+    return s_cache;
+}
+
 // Convenience function
 bool matchesGlob(std::string_view text, const std::string& pattern, bool isWindows)
 {
-    MinimatchPattern matcher(pattern, isWindows);
-    return matcher.match(text);
+    exlib::string key(pattern.data(), pattern.size());
+    // The platform flag is part of the key: the same text tokenizes and
+    // compares differently for POSIX and Windows separators/case rules.
+    key.push_back(isWindows ? '\x01' : '\x00');
+
+    std::shared_ptr<MinimatchPattern> matcher;
+    LruCache<std::shared_ptr<MinimatchPattern>>::Resolver resolver =
+        [](exlib::string& cached_key, std::shared_ptr<MinimatchPattern>& value) {
+            value = std::make_shared<MinimatchPattern>(
+                std::string(cached_key.data(), cached_key.size() - 1),
+                cached_key[cached_key.size() - 1] == '\x01');
+            return true;
+        };
+
+    if (!pattern_cache().lookup(key, matcher, resolver))
+        return false;
+
+    return matcher->match(text);
 }
 
 // Static utility method implementation
