@@ -20,6 +20,10 @@ namespace fibjs {
 class HttpClient_base;
 class ValueHolder;
 
+// Decode and normalize a URL path exactly once; shared by the request parser,
+// Routing and the static file handler.
+result_t canonicalize_request_path(const exlib::string& path, exlib::string& retVal);
+
 class HttpRequest : public HttpRequest_base {
 public:
     HttpRequest()
@@ -29,6 +33,9 @@ public:
         extMemory(4096);
     }
 
+public:
+    bool value_is_canonical() const { return m_valueCanonical; }
+    result_t set_canonical_value(exlib::string newVal);
 public:
     // Message_base
     virtual result_t get_sent(bool& retVal);
@@ -264,6 +271,7 @@ private:
     int32_t m_node_timeout = 0;
     bool m_has_node_timeout = false;
     bool m_destroyed = false;
+    bool m_valueCanonical = false;
 };
 
 } /* namespace fibjs */

@@ -9,6 +9,7 @@
 #include "Routing.h"
 #include "ifs/Message.h"
 #include "ifs/HttpRequest.h"
+#include "HttpRequest.h"
 #include "parse.h"
 #include "Url.h"
 #include "union_helpers.h"
@@ -126,9 +127,25 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     if (htmsg)
         htmsg->get_method(method);
 
+    // HttpRequest values are decoded and normalized once by the parser. A
+    // request built directly in C++/JS may still carry a raw path, so match
+    // against the same canonical form without changing the message until a
+    // rule actually needs to rewrite the remaining value.
+    HttpRequest* httpReq = dynamic_cast<HttpRequest*>(htmsg.get());
+    bool canonical = false;
+    exlib::string canonicalValue;
+
+    if (httpReq) {
+        if (httpReq->value_is_canonical()) {
+            canonicalValue = value;
+            canonical = true;
+        } else if (canonicalize_request_path(value, canonicalValue).ok())
+            canonical = true;
+    }
+
     for (i = (int32_t)m_array.size() - 1; i >= 0; i--) {
         obj_ptr<rule>& r = m_array[i];
-        exlib::string& test = value;
+        exlib::string test;
         bool isHost = false;
 
         if (htmsg) {
@@ -149,14 +166,23 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             } else {
                 if (r->m_method != "*" && qstricmp(method.c_str(), r->m_method.c_str()))
                     continue;
-            }
-        }
 
+                test = canonical ? canonicalValue : value;
+            }
+        } else
+            test = value;
         rc = pcre2_match(r->m_re, (PCRE2_SPTR)test.c_str(), test.length(),
             0, 0, match_data, NULL);
         if (rc > 0) {
             PCRE2_SIZE* ovector = pcre2_get_ovector_pointer(match_data);
             obj_ptr<NArray> list;
+
+            auto set_matched_value = [&](exlib::string v) {
+                if (canonical && httpReq)
+                    httpReq->set_canonical_value(v);
+                else
+                    msg->set_value(v);
+            };
 
             msg->get_params(list);
             list->resize(0);
@@ -181,15 +207,15 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 if (r->m_bSub) {
                     i = rc - 1;
                     if (!isHost)
-                        msg->set_value(test.substr(ovector[i * 2], ovector[i * 2 + 1] - ovector[i * 2]));
+                        set_matched_value(test.substr(ovector[i * 2], ovector[i * 2 + 1] - ovector[i * 2]));
                 } else {
                     if (levelCount[1] == 1) {
                         if (!isHost)
-                            msg->set_value(test.substr(ovector[2], ovector[3] - ovector[2]));
+                            set_matched_value(test.substr(ovector[2], ovector[3] - ovector[2]));
                         if (levelCount[2] > 0)
                             p = 2;
                     } else if (!isHost)
-                        msg->set_value("");
+                        set_matched_value("");
 
                     if (levelCount[p]) {
                         Variant vUndefined;
@@ -202,8 +228,14 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                                     name = &name_index->second;
 
                                 if (ovector[i * 2 + 1] - ovector[i * 2] > 0) {
+                                    exlib::string capture = test.substr(ovector[i * 2], ovector[i * 2 + 1] - ovector[i * 2]);
                                     exlib::string param_value;
-                                    Url::decodeURI(test.substr(ovector[i * 2], ovector[i * 2 + 1] - ovector[i * 2]), param_value);
+
+                                    if (canonical && !isHost)
+                                        param_value = capture;
+                                    else
+                                        Url::decodeURI(capture, param_value);
+
                                     list->append(param_value);
                                     if (name)
                                         set_named_param(list, *name, param_value);

@@ -22,8 +22,31 @@
 #include "Isolate.h"
 #include "ifs/Socket.h"
 #include "TLSSocket.h"
+#include "Url.h"
+#include "path.h"
 
 namespace fibjs {
+
+result_t canonicalize_request_path(const exlib::string& path, exlib::string& retVal)
+{
+    if (path.empty()) {
+        retVal.clear();
+        return result_t();
+    }
+
+    result_t hr;
+
+    Url::decodeURI(path, retVal);
+    if (retVal.find('\0') != exlib::string::npos
+        || qstrchr(retVal.c_str(), '\\'))
+        return result_t::make(CALL_E_INVALID_DATA)
+            .with_type_name(errtype::kTypeError)
+            .with_code("ERR_INVALID_ARG_VALUE")
+            .with_message("HttpRequest: invalid path.");
+
+    hr = path_posix_base::normalize(retVal, retVal);
+    return hr;
+}
 
 result_t HttpRequest_base::_new(obj_ptr<HttpRequest_base>& retVal, v8::Local<v8::Object> This)
 {
@@ -630,7 +653,17 @@ result_t HttpRequest::get_value(exlib::string& retVal)
 
 result_t HttpRequest::set_value(exlib::string newVal)
 {
+    m_valueCanonical = false;
     return m_message->set_value(newVal);
+}
+
+result_t HttpRequest::set_canonical_value(exlib::string newVal)
+{
+    m_valueCanonical = false;
+    result_t hr = m_message->set_value(newVal);
+    if (hr.ok())
+        m_valueCanonical = true;
+    return hr;
 }
 
 result_t HttpRequest::get_params(obj_ptr<NArray>& retVal)
@@ -889,6 +922,7 @@ result_t HttpRequest::clear()
     m_method.assign("GET", 3);
     m_address.assign("/", 1);
     m_queryString.clear();
+    m_valueCanonical = false;
 
     if (m_cookies)
         m_cookies.Release();
@@ -957,12 +991,24 @@ result_t HttpRequest::readFrom(Stream_base* stm, Options_Message_readFrom_option
             if (!p.getWord(addr, '?'))
                 return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("HttpRequest: bad address.");
 
+            exlib::string path;
             if (!qstricmp(addr.c_str(), "http://", 7)) {
                 const char* p = qstrchr(addr.c_str() + 7, '/');
                 if (p)
-                    m_pThis->m_message->set_value(p);
+                    path = p;
             } else
-                m_pThis->m_message->set_value(addr);
+                path = addr;
+
+            if (!path.empty()) {
+                exlib::string canonical;
+                hr = canonicalize_request_path(path, canonical);
+                if (hr.failed())
+                    return hr;
+
+                hr = m_pThis->set_canonical_value(canonical);
+                if (hr.failed())
+                    return hr;
+            }
 
             if (p.want('?'))
                 p.getWord(m_pThis->m_queryString);
@@ -975,6 +1021,9 @@ result_t HttpRequest::readFrom(Stream_base* stm, Options_Message_readFrom_option
             hr = m_pThis->set_protocol(p.now());
             if (hr.failed())
                 return hr;
+
+            // Only an HTTP/1.1 request may use the 100-continue handshake.
+            m_pThis->m_message->m_expectContinue = !qstricmp(p.now(), "HTTP/1.1");
 
             return m_pThis->m_message->readFrom(m_stm, next());
         }

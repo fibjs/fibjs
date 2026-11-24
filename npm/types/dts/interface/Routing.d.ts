@@ -24,10 +24,11 @@
  *    replaced by the last capture when the rule hands the rest of the path to a
  *    nested routing, by the single capture when the match has exactly one
  *    top-level group, and cleared otherwise.
- *  - **Ordering**: a rule added later is matched first, so add the general rule
- *    before the specific one when the specific one must win. append(route)
+ *  - **Ordering**: a rule added earlier is matched first, so add the specific
+ *    rule before the general one when the specific rule must win. append(route)
  *    copies the rules of another Routing with their relative order and empties
- *    the source.
+ *    the source; the transferred rules keep their order after the rules already
+ *    present, so the existing rules keep priority.
  *  - **Method and host**: the get/post/put/del/patch/find helpers (and the method
  *    argument of append) accept only the given http method, `"*"` accepts every
  *    method and `"host"` matches the Host header instead of the address; a host
@@ -98,10 +99,10 @@
  *  ```JavaScript
  *  const mq = require('mq');
  *
- *  // the rules added later are matched first
+ *  // the rules added earlier are matched first
  *  const app = new mq.Routing();
- *  app.get('/api/:name', (req, name) => console.log('param ' + name));
  *  app.get('/api/status', (req) => console.log('status'));
+ *  app.get('/api/:name', (req, name) => console.log('param ' + name));
  *
  *  const msg = new mq.Message();
  *  msg.value = '/api/status';
@@ -135,8 +136,8 @@ declare class Class_Routing extends Class_Handler {
      *      used as a value. An empty map (the default) builds a router without rules,
      *      to be filled with append and the method helpers. The related
      *      `Routing(method, map)` constructor scopes the same map to one http method.
-     *      The rules of a map keep their enumeration order and are matched from the
-     *      last to the first, like rules added one by one.
+     *      The rules of a map keep their enumeration order and are matched in that
+     *      order, like rules added one by one.
      *
      *      Example — a map plus a rule added afterwards:
      *      ```JavaScript
@@ -198,7 +199,8 @@ declare class Class_Routing extends Class_Handler {
      *      The rules of route are copied into this router with their relative order
      *      preserved and route is left empty, so appending the same object twice only
      *      transfers the rules once. As with every append form, the transferred rules
-     *      are matched before the rules already present in this router.
+     *      are matched after the rules already present in this router, so the existing
+     *      rules keep priority.
      *
      *      Example — merge a sub-router:
      *      ```JavaScript
@@ -224,8 +226,8 @@ declare class Class_Routing extends Class_Handler {
      *
      *      Every entry of map becomes a rule with the `"*"` method scope, exactly as
      *      if the entries were appended one by one with `append(pattern, hdlr)`; the
-     *      entries are matched from the last to the first of the enumeration. The
-     *      method-specific group helpers (get, post, del, put, patch, find, all) call
+     *      entries are matched in enumeration order. The method-specific group helpers
+     *      (get, post, del, put, patch, find, all) call
      *      this form with their method instead of `"*"`.
      *
      *      @param map routing parameters
@@ -249,7 +251,7 @@ declare class Class_Routing extends Class_Handler {
      *      - a routing map object, whose values are handlers in these same forms;
      *      - a path/address string.
      *      A handler that is itself a routing receives the remaining path in value.
-     *      The new rule is matched before the rules already present.
+     *      The new rule is matched after the rules already present.
      *
      *      @param pattern message match pattern
      *      @param hdlr the route handler
@@ -547,8 +549,8 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      used as a value. An empty map (the default) builds a router without rules,
      *      to be filled with append and the method helpers. The related
      *      `Routing(method, map)` constructor scopes the same map to one http method.
-     *      The rules of a map keep their enumeration order and are matched from the
-     *      last to the first, like rules added one by one.
+     *      The rules of a map keep their enumeration order and are matched in that
+     *      order, like rules added one by one.
      *
      *      Example — a map plus a rule added afterwards:
      *      ```JavaScript
@@ -610,7 +612,8 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      The rules of route are copied into this router with their relative order
      *      preserved and route is left empty, so appending the same object twice only
      *      transfers the rules once. As with every append form, the transferred rules
-     *      are matched before the rules already present in this router.
+     *      are matched after the rules already present in this router, so the existing
+     *      rules keep priority.
      *
      *      Example — merge a sub-router:
      *      ```JavaScript
@@ -636,8 +639,8 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *
      *      Every entry of map becomes a rule with the `"*"` method scope, exactly as
      *      if the entries were appended one by one with `append(pattern, hdlr)`; the
-     *      entries are matched from the last to the first of the enumeration. The
-     *      method-specific group helpers (get, post, del, put, patch, find, all) call
+     *      entries are matched in enumeration order. The method-specific group helpers
+     *      (get, post, del, put, patch, find, all) call
      *      this form with their method instead of `"*"`.
      *
      *      @param map routing parameters
@@ -661,7 +664,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      - a routing map object, whose values are handlers in these same forms;
      *      - a path/address string.
      *      A handler that is itself a routing receives the remaining path in value.
-     *      The new rule is matched before the rules already present.
+     *      The new rule is matched after the rules already present.
      *
      *      @param pattern message match pattern
      *      @param hdlr the route handler
