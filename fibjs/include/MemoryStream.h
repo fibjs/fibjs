@@ -20,11 +20,20 @@ public:
     class CloneStream : public AsyncStream<MemoryStream_base> {
     public:
         CloneStream(exlib::string buffer, date_t tm)
-            : m_buffer(buffer)
+            : m_buffer(std::move(buffer))
             , m_time(tm)
             , m_pos(0)
         {
             extMemory((int32_t)m_buffer.length());
+        }
+
+        // Share an existing buffer instead of copying it: the zip VFS keeps
+        // each entry's bytes in the cache and hands out a stream over them.
+        CloneStream(obj_ptr<Buffer_base> buffer, date_t tm)
+            : m_data(buffer)
+            , m_time(tm)
+            , m_pos(0)
+        {
         }
 
     public:
@@ -53,7 +62,14 @@ public:
         virtual result_t clear();
 
     private:
+        int64_t buffer_size() const
+        {
+            return m_data ? (int64_t)Buffer::Cast(m_data)->length() : (int64_t)m_buffer.length();
+        }
+
+    private:
         exlib::string m_buffer;
+        obj_ptr<Buffer_base> m_data;
         date_t m_time;
         int32_t m_pos;
     };

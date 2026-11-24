@@ -24,12 +24,22 @@ result_t MemoryStream::CloneStream::readBuffer(int32_t bytes,
     exlib::string strBuf;
 
     int32_t sz;
-    sz = (int32_t)m_buffer.length() - m_pos;
+    sz = (int32_t)buffer_size() - m_pos;
 
     if (bytes < 0 || bytes > sz)
         bytes = sz;
 
     if (bytes > 0) {
+        if (m_data) {
+            // The cached bytes stay where they are; the caller gets its own
+            // Buffer because a read result is writable from JavaScript.
+            Buffer* data = Buffer::Cast(m_data);
+
+            retVal = new Buffer(data->data() + m_pos, bytes);
+            m_pos += bytes;
+            return result_t();
+        }
+
         if (m_pos == 0 && bytes == sz) {
             strBuf = m_buffer;
             m_pos = (int32_t)m_buffer.length();
@@ -60,7 +70,7 @@ result_t MemoryStream::CloneStream::truncate(int64_t bytes, AsyncHandle ac)
 
 result_t MemoryStream::CloneStream::eof(bool& retVal)
 {
-    retVal = m_pos == (int32_t)m_buffer.length();
+    retVal = m_pos == (int32_t)buffer_size();
     return result_t();
 }
 
@@ -102,14 +112,14 @@ result_t MemoryStream::CloneStream::seek(int64_t offset, int32_t whence)
     else if (whence == fs_base::C_SEEK_CUR)
         m_pos += (int32_t)offset;
     else if (whence == fs_base::C_SEEK_END)
-        m_pos = (int32_t)offset + (int32_t)m_buffer.length();
+        m_pos = (int32_t)offset + (int32_t)buffer_size();
     else
         return result_t::invalid_arg();
 
     if (m_pos < 0)
         m_pos = 0;
-    else if (m_pos > (int32_t)m_buffer.length())
-        m_pos = (int32_t)m_buffer.length();
+    else if (m_pos > (int32_t)buffer_size())
+        m_pos = (int32_t)buffer_size();
 
     return result_t();
 }
@@ -128,7 +138,7 @@ result_t MemoryStream::CloneStream::rewind()
 
 result_t MemoryStream::CloneStream::size(int64_t& retVal)
 {
-    retVal = m_buffer.length();
+    retVal = buffer_size();
     return result_t();
 }
 
@@ -139,13 +149,17 @@ result_t MemoryStream::CloneStream::setTime(date_t d)
 
 result_t MemoryStream::CloneStream::clone(obj_ptr<MemoryStream_base>& retVal)
 {
-    retVal = new CloneStream(m_buffer, m_time);
+    if (m_data)
+        retVal = new CloneStream(m_data, m_time);
+    else
+        retVal = new CloneStream(m_buffer, m_time);
     return result_t();
 }
 
 result_t MemoryStream::CloneStream::clear()
 {
     rewind();
+    m_data.Release();
     m_buffer.clear();
 
     m_time.now();
