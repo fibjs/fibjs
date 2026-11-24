@@ -13,36 +13,70 @@
 #include "FileStream.h"
 #include "MemoryStream.h"
 #include "ZipFile.h"
+#include "LruCache.h"
 #include "AsyncUV.h"
-#include <list>
+#include <mutex>
 
 namespace fibjs {
 
+// Decompressed entries are kept in an LRU: one archive can serve a working set
+// that is much smaller than all of its members, and holding every inflated
+// member forever is the unbounded growth the file cache avoids too. The
+// directory index itself stays complete - it is small and lets stat answer
+// without reopening the archive - and never changes once the node is published.
+// No time-based expiry: an entry stays valid until the archive's mtime changes,
+// which replaces the whole node. A path-backed archive is never held in memory
+// as a whole: a cold read of one member opens the archive, reads the directory
+// and that member, and closes it again.
+#define ZIP_DATA_CACHE_SIZE 1024
+
 class cache_node : public obj_base {
 public:
-    void init(exlib::string name, std::vector<obj_ptr<ZipFile_base::ReadAllType>>& list, date_t date = INFINITY);
-    static cache_node* lookup(exlib::string name);
-    static void erase(exlib::string name);
+    enum lookup_result {
+        kNotFound,
+        kHit,
+        kNeedData
+    };
+
+    cache_node()
+        : m_data(ZIP_DATA_CACHE_SIZE, 0, 0)
+    {
+    }
 
 public:
-    exlib::string m_name;
+    void init(const exlib::string& name, std::unordered_map<exlib::string, ZipFile::index_entry>&& index,
+        int64_t mtime_ns, double size, date_t date = INFINITY);
+    lookup_result lookup(const exlib::string& member, bool with_data, obj_ptr<ZipFile_base::ReadAllType>& retVal);
+    result_t store(const exlib::string& member, Buffer_base* data, obj_ptr<ZipFile_base::ReadAllType>& retVal);
+    bool get_pos(const exlib::string& member, unz64_file_pos& pos);
+    static obj_ptr<cache_node> find(const exlib::string& name);
+    static void erase(const exlib::string& name);
+
+public:
     date_t m_date;
-    date_t m_mtime;
-    std::unordered_map<exlib::string, obj_ptr<ZipFile_base::ReadAllType>> m_map;
+    // Nanosecond mtime plus size identify the archive the index describes.
+    // Nanoseconds catch a rewrite within the same second that a coarse
+    // timestamp would have hidden; the size catches the rest.
+    int64_t m_mtime_ns = 0;
+    double m_size = 0;
+    std::mutex m_lock;
+    // Set only for an archive mounted from memory (fs.setZipFS): its bytes are
+    // pinned by the handle, so entries can be read from it directly.
+    obj_ptr<ZipFile> m_zfile;
+    std::unordered_map<exlib::string, ZipFile::index_entry> m_map;
+    LruCache<obj_ptr<Buffer_base>> m_data;
 };
 
 static std::unordered_map<exlib::string, obj_ptr<cache_node>> s_cache_map;
 static exlib::spinlock s_cachelock;
 
-void cache_node::erase(exlib::string name)
+void cache_node::erase(const exlib::string& name)
 {
     if (name.empty()) {
         s_cachelock.lock();
         s_cache_map.clear();
         s_cachelock.unlock();
     } else {
-        std::list<obj_ptr<cache_node>>::iterator it;
-
         exlib::string safe_name;
         path_base::normalize(name, safe_name);
 
@@ -52,37 +86,109 @@ void cache_node::erase(exlib::string name)
     }
 }
 
-cache_node* cache_node::lookup(exlib::string name)
+obj_ptr<cache_node> cache_node::find(const exlib::string& name)
 {
     std::unordered_map<exlib::string, obj_ptr<cache_node>>::iterator it;
-    cache_node* _node = NULL;
+    obj_ptr<cache_node> node;
 
     s_cachelock.lock();
     it = s_cache_map.find(name);
     if (it != s_cache_map.end())
-        _node = it->second;
+        node = it->second;
 
     s_cachelock.unlock();
 
-    return _node;
+    return node;
 }
 
-void cache_node::init(exlib::string name, std::vector<obj_ptr<ZipFile_base::ReadAllType>>& list, date_t date)
+void cache_node::init(const exlib::string& name, std::unordered_map<exlib::string, ZipFile::index_entry>&& index,
+    int64_t mtime_ns, double size, date_t date)
 {
-    m_name = name;
     m_date = date;
-    m_mtime.now();
+    m_mtime_ns = mtime_ns;
+    m_size = size;
+    m_map = std::move(index);
 
-    for (auto& zi : list) {
-        if (zi->date.empty())
-            zi->date = date;
-
-        m_map.insert_or_assign(zi->filename, zi);
-    }
-
+    // Publish only once the node is complete: a concurrent find() must never
+    // see a node whose index or identity is still being filled in.
     s_cachelock.lock();
     s_cache_map.insert_or_assign(name, this);
     s_cachelock.unlock();
+}
+
+static obj_ptr<ZipFile_base::ReadAllType> make_info(const exlib::string& member, const ZipFile::index_entry& index, Buffer_base* data)
+{
+    obj_ptr<ZipFile_base::ReadAllType> zi = new ZipFile_base::ReadAllType();
+
+    zi->filename = index.filename.empty() ? member : index.filename;
+    zi->date = index.date;
+    zi->compress_type = index.compress_type;
+    zi->compress_size = index.compress_size;
+    zi->file_size = index.file_size;
+    zi->password = index.password;
+    zi->data = data;
+
+    return zi;
+}
+
+cache_node::lookup_result cache_node::lookup(const exlib::string& member, bool with_data, obj_ptr<ZipFile_base::ReadAllType>& retVal)
+{
+    std::lock_guard<std::mutex> lock(m_lock);
+
+    std::unordered_map<exlib::string, ZipFile::index_entry>::iterator it = m_map.find(member);
+    if (it == m_map.end())
+        return kNotFound;
+
+    if (with_data) {
+        obj_ptr<Buffer_base> data;
+
+        // This cache never installs a resolver, so the plain lookup avoids the
+        // resolver copy and the wait path.
+        if (!m_data.lookup(member, data, false)) {
+            if (!m_zfile)
+                return kNeedData;
+
+            // In-memory archive: the ZipFile is stateful (the current entry),
+            // so the read is serialized by the same lock.
+            result_t hr = m_zfile->cc_read(member, "", data);
+            if (hr.failed())
+                return kNotFound;
+
+            m_data.set(member, data);
+        }
+
+        retVal = make_info(it->first, it->second, data);
+        return kHit;
+    }
+
+    retVal = make_info(it->first, it->second, NULL);
+    return kHit;
+}
+
+result_t cache_node::store(const exlib::string& member, Buffer_base* data, obj_ptr<ZipFile_base::ReadAllType>& retVal)
+{
+    std::lock_guard<std::mutex> lock(m_lock);
+
+    std::unordered_map<exlib::string, ZipFile::index_entry>::iterator it = m_map.find(member);
+    if (it == m_map.end())
+        return result_t(CALL_E_FILE_NOT_FOUND);
+
+    m_data.set(member, data);
+    retVal = make_info(it->first, it->second, data);
+
+    return result_t();
+}
+
+bool cache_node::get_pos(const exlib::string& member, unz64_file_pos& pos)
+{
+    std::lock_guard<std::mutex> lock(m_lock);
+
+    std::unordered_map<exlib::string, ZipFile::index_entry>::iterator it = m_map.find(member);
+    if (it == m_map.end())
+        return false;
+
+    pos = it->second.pos;
+    return true;
 }
 
 static result_t set_zip_fs(exlib::string fname, Buffer_base* data);
@@ -111,8 +217,14 @@ static result_t set_zip_fs(exlib::string fname, Buffer_base* data)
     if (hr.failed())
         return hr;
 
-    std::vector<obj_ptr<ZipFile_base::ReadAllType>> list;
-    hr = zfile->cc_readAll("", list);
+    ZipFile* zf = static_cast<ZipFile*>(ZipFile_base::getInstance(zfile.get()));
+    if (zf == NULL)
+        return result_t(CALL_E_INVALID_CALL);
+
+    // Parse the directory once: this validates the buffer at the call site (as
+    // before) and gives the mapping its metadata, without inflating entries.
+    std::unordered_map<exlib::string, ZipFile::index_entry> index;
+    hr = zf->get_index(index);
     if (hr.failed())
         return hr;
 
@@ -120,7 +232,11 @@ static result_t set_zip_fs(exlib::string fname, Buffer_base* data)
     path_base::normalize(fname, safe_name);
 
     _node = new cache_node();
-    _node->init(safe_name, list);
+    // Set the pinned handle before init publishes the node: a lookup that
+    // finds it must see an in-memory archive, not one that has to be opened
+    // by path.
+    _node->m_zfile = zf;
+    _node->init(safe_name, std::move(index), 0, 0);
 
     return result_t();
 }
@@ -132,17 +248,18 @@ result_t fs_base::clearZipFS(exlib::string fname)
 }
 
 // The mount lookup is a chain of synchronous-in-fiber steps (open -> stat ->
-// readAll -> zip open -> zip readAll). Under the handle protocol a chain that
-// reuses the continuation is expressed as a state machine whose steps borrow
-// the machine through next(state) tickets - the only shape that keeps exactly
-// one handle per event (plans/async-handle-protocol-minimal-2026-10-08.md 8.1 P3).
+// read). Under the handle protocol a chain that reuses the continuation is
+// expressed as a state machine whose steps borrow the machine through
+// next(state) tickets - the only shape that keeps exactly one handle per event
+// (plans/async-handle-protocol-minimal-2026-10-08.md 8.1 P3).
 class asyncResolveZipFile : public AsyncState {
 public:
-    asyncResolveZipFile(exlib::string zip_file, exlib::string member, bool bChanged, exlib::string member1,
-        obj_ptr<ZipFile_base::ReadAllType>& retVal, AsyncHandle ac)
+    asyncResolveZipFile(exlib::string zip_file, exlib::string member, bool with_data, bool bChanged,
+        exlib::string member1, obj_ptr<ZipFile_base::ReadAllType>& retVal, AsyncHandle ac)
         : AsyncState(ac)
         , m_zip_file(zip_file)
         , m_member(member)
+        , m_with_data(with_data)
         , m_bChanged(bChanged)
         , m_member1(member1)
         , m_retVal(retVal)
@@ -152,33 +269,29 @@ public:
 
     ON_STATE(asyncResolveZipFile, check_cache)
     {
-        m_node = cache_node::lookup(m_zip_file);
+        m_node = cache_node::find(m_zip_file);
         m_now.now();
 
-        if (m_node && (m_now.diff(m_node->m_date) > 3000)) {
-            m_after_open = refresh_done;
-            return next(open);
-        }
+        if (m_node && (m_now.diff(m_node->m_date) > 3000))
+            return next(stat_archive);
 
         return next(load);
     }
 
-    ON_STATE(asyncResolveZipFile, open)
+    ON_STATE(asyncResolveZipFile, stat_archive)
     {
-        return fs_base::openFile(m_zip_file, "r", m_zip_stream, next(stat));
-    }
-
-    ON_STATE(asyncResolveZipFile, stat)
-    {
-        return m_zip_stream->stat(m_stat, next(m_after_open));
+        return fs_base::stat(m_zip_file, m_stat, next(refresh_done));
     }
 
     ON_STATE(asyncResolveZipFile, refresh_done)
     {
-        date_t _mtime;
-        m_stat->get_mtime(_mtime);
+        int64_t _mtime_ns;
+        double _size;
 
-        if (_mtime.diff(m_node->m_mtime) != 0)
+        m_stat->get_mtimeNs(_mtime_ns);
+        m_stat->get_size(_size);
+
+        if (_mtime_ns != m_node->m_mtime_ns || _size != m_node->m_size)
             m_node.Release();
         else
             m_node->m_date = m_now;
@@ -188,84 +301,119 @@ public:
 
     ON_STATE(asyncResolveZipFile, load)
     {
-        if (m_node == NULL) {
-            if (m_zip_stream == NULL) {
-                m_after_open = read_zip;
-                return next(open);
-            }
-
-            return next(read_zip);
-        }
+        if (m_node == NULL)
+            return next(open);
 
         return next(lookup);
     }
 
-    ON_STATE(asyncResolveZipFile, read_zip)
+    ON_STATE(asyncResolveZipFile, open)
     {
-        return m_zip_stream->readAll(m_data, next(open_zip));
+        return fs_base::openFile(m_zip_file, "r", m_zip_stream, next(stat));
+    }
+
+    ON_STATE(asyncResolveZipFile, stat)
+    {
+        return fs_base::stat(m_zip_file, m_stat, next(open_zip));
     }
 
     ON_STATE(asyncResolveZipFile, open_zip)
     {
-        // An empty container (0-byte file, or a directory that opens but reads
-        // nothing) reports "no bytes" as CALL_RETURN_NULL, a *success* status.
-        // There is no data to hand to zip_base::open, whose Buffer form
-        // dereferences its argument; treat the container as unresolvable
-        // instead (the caller's literal-path probe then reports not-found).
-        if (n.is_return_null())
-            return next(result_t(CALL_E_FILE_NOT_FOUND));
+        m_zfile = new ZipFile(m_zip_stream.get(), "r", "utf-8");
+        m_validated = true;
 
-        return zip_base::open(m_data, "r", "utf-8", m_zfile, next(read_all));
-    }
+        int64_t _mtime_ns;
+        double _size;
 
-    ON_STATE(asyncResolveZipFile, read_all)
-    {
-        return m_zfile->readAll("", m_list, next(build_node));
-    }
+        m_stat->get_mtimeNs(_mtime_ns);
+        m_stat->get_size(_size);
 
-    ON_STATE(asyncResolveZipFile, build_node)
-    {
+        if (m_node && _mtime_ns == m_node->m_mtime_ns && _size == m_node->m_size) {
+            // The archive is the one the cached index describes.
+            m_node->m_date = m_now;
+            return next(lookup);
+        }
+
+        // Cold, or the archive changed: (re)build the index from this handle.
+        // Replacing the node also drops its decompressed entries.
+        std::unordered_map<exlib::string, ZipFile::index_entry> index;
+        result_t hr = m_zfile->get_index(index);
+        if (hr.failed())
+            return hr;
+
         m_node = new cache_node();
-        m_node->init(m_zip_file, m_list, m_now);
-        m_stat->get_mtime(m_node->m_mtime);
+        m_node->init(m_zip_file, std::move(index), _mtime_ns, _size, m_now);
 
         return next(lookup);
     }
 
     ON_STATE(asyncResolveZipFile, lookup)
     {
-        std::unordered_map<exlib::string, obj_ptr<ZipFile_base::ReadAllType>>::iterator it;
-
-        it = m_node->m_map.find(m_member);
+        cache_node::lookup_result lr = m_node->lookup(m_member, m_with_data, m_retVal);
 #ifdef _WIN32
-        if (m_bChanged && it == m_node->m_map.end())
-            it = m_node->m_map.find(m_member1);
+        if (lr == cache_node::kNotFound && m_bChanged) {
+            lr = m_node->lookup(m_member1, m_with_data, m_retVal);
+            if (lr != cache_node::kNotFound)
+                m_member = m_member1;
+        }
 #endif
 
-        if (it == m_node->m_map.end())
+        if (lr == cache_node::kNotFound) {
+            // A miss on a path-backed archive validates the file first: a
+            // member that was written since the index was built must be
+            // visible now, not after the 3s timer. A mounted archive is pinned
+            // and has no path to re-read.
+            if (!m_validated && !m_node->m_zfile)
+                return next(open);
+
+            return result_t(CALL_E_FILE_NOT_FOUND);
+        }
+
+        if (lr == cache_node::kNeedData) {
+            if (m_zip_stream)
+                return next(read_member);
+
+            return next(open);
+        }
+
+        return next();
+    }
+
+    ON_STATE(asyncResolveZipFile, read_member)
+    {
+        unz64_file_pos pos;
+
+        if (!m_node->get_pos(m_member, pos))
             return result_t(CALL_E_FILE_NOT_FOUND);
 
-        m_retVal = it->second;
+        obj_ptr<Buffer_base> data;
+        result_t hr = m_zfile->read_at(pos, m_member, "", data);
+        if (hr.failed())
+            return result_t(CALL_E_FILE_NOT_FOUND);
+
+        hr = m_node->store(m_member, data, m_retVal);
+        if (hr.failed())
+            return hr;
+
         return next();
     }
 
 private:
     exlib::string m_zip_file;
     exlib::string m_member;
+    bool m_with_data;
     bool m_bChanged;
     exlib::string m_member1;
     obj_ptr<ZipFile_base::ReadAllType>& m_retVal;
     obj_ptr<cache_node> m_node;
     obj_ptr<SeekableStream_base> m_zip_stream;
     obj_ptr<Stat_base> m_stat;
-    obj_ptr<Buffer_base> m_data;
-    obj_ptr<ZipFile_base> m_zfile;
-    std::vector<obj_ptr<ZipFile_base::ReadAllType>> m_list;
+    obj_ptr<ZipFile> m_zfile;
     date_t m_now;
-    result_t (*m_after_open)(AsyncState*, result_t) = nullptr;
+    bool m_validated = false;
 };
 
-static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile_base::ReadAllType>& retVal, AsyncHandle ac)
+static result_t resolve_zip_file(exlib::string fname, bool with_data, obj_ptr<ZipFile_base::ReadAllType>& retVal, AsyncHandle ac)
 {
     size_t pos = fname.find('$');
     if (pos != exlib::string::npos && fname[pos + 1] == PATH_SLASH) {
@@ -288,9 +436,9 @@ static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile_base::Read
                 }
         }
 
-        return (new asyncResolveZipFile(zip_file, member, bChanged, member1, retVal, std::move(ac)))->post(result_t());
+        return (new asyncResolveZipFile(zip_file, member, with_data, bChanged, member1, retVal, std::move(ac)))->post(result_t());
 #else
-        return (new asyncResolveZipFile(zip_file, member, false, exlib::string(), retVal, std::move(ac)))->post(result_t());
+        return (new asyncResolveZipFile(zip_file, member, with_data, false, exlib::string(), retVal, std::move(ac)))->post(result_t());
 #endif
     }
 
@@ -300,7 +448,7 @@ static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile_base::Read
 static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncHandle ac)
 {
     obj_ptr<ZipFile_base::ReadAllType> zi;
-    result_t hr = resolve_zip_file(path, zi, std::move(ac));
+    result_t hr = resolve_zip_file(path, false, zi, std::move(ac));
     if (hr.ok()) {
         obj_ptr<Stat> pStat = new Stat();
         pStat->init();
@@ -478,18 +626,16 @@ static result_t open_file_string(exlib::string fname, exlib::string flags,
     Isolate* isolate = ac.isolate();
 
     obj_ptr<ZipFile_base::ReadAllType> zi;
-    hr = resolve_zip_file(safe_name, zi, std::move(ac));
+    hr = resolve_zip_file(safe_name, true, zi, std::move(ac));
     if (hr.ok()) {
-        obj_ptr<Buffer_base> data;
-        exlib::string strData;
-        date_t _d;
+        // Share the cached entry bytes with the stream; the previous code
+        // copied them into a string and then again into the stream, so every
+        // fs.readFile of a zipped file moved its content three times.
+        obj_ptr<Buffer_base> data = zi->data;
+        if (!data)
+            data = new Buffer();
 
-        data = zi->data;
-        if (data)
-            data->toString(strData);
-
-        _d = zi->date;
-        retVal = new MemoryStream::CloneStream(strData, _d);
+        retVal = new MemoryStream::CloneStream(data, zi->date);
         return result_t();
     }
 

@@ -131979,9 +131979,10 @@ declare module 'xml' {
  *  Concepts:
  *
  *  - **Zip as a virtual file system**: \`fs.setZipFS(fname, data)\` parses the archive once and keeps
- *    its entries in memory under the normalized path fname; reads of \`fname + '$/' + entry\` are
- *    then served from that cache and do not touch a real file, so fname does not have to exist on
- *    disk. The mapping is not visible to directory APIs such as \`fs.readdir\` or \`fs.exists\`.
+ *    it under the normalized path fname; an entry is decompressed the first time it is read and
+ *    then served from that cache, and reads of \`fname + '$/' + entry\` do not touch a real file,
+ *    so fname does not have to exist on disk. The mapping is not visible to directory APIs such
+ *    as \`fs.readdir\` or \`fs.exists\`.
  *  - **The \`$\` suffix**: \`$\` must be immediately followed by \`/\`. \`/archive.zip$/dir/file.txt\`
  *    resolves to the member \`dir/file.txt\` of the archive mounted at \`/archive.zip\`; a path
  *    without the slash after \`$\` or the bare \`/archive.zip$/\` (empty member) falls back to the
@@ -131991,8 +131992,10 @@ declare module 'xml' {
  *  - **Lifecycle of mounted archives**: a mapping stays valid until \`clearZipFS(fname)\` removes one
  *    mapping or \`clearZipFS()\` removes all of them. The data is pinned at mount time, so rewriting
  *    the source file does not change what the mapping serves. A \`$\` path that was never mounted is
- *    resolved lazily from the real archive file, whose entries are re-checked at most once every
- *    3 seconds through its mtime.
+ *    resolved lazily from the real archive file: cached entries are re-checked at most once every
+ *    3 seconds through its mtime, while a member that is not in the cache validates the archive
+ *    before it is reported missing, so entries written since the index was built are visible
+ *    immediately.
  *  - **Memory and file archives**: \`open\` accepts a file path, the archive bytes as a Buffer or any
  *    SeekableStream (for example from \`fs.openFile\`); a Buffer source is read-only — writes to it
  *    fail, so writes ("w"/"a") need a path or a writable stream. Writes are completed by close,
