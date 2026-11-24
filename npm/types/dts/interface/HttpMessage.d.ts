@@ -26,10 +26,14 @@
  *    values, setHeader replaces every value of a key (an object argument only touches the keys it
  *    contains, a Headers argument replaces the whole set), removeHeader deletes the key.
  *  - **Protocol and persistence**: `protocol` is the HTTP version string; setting a version above
- *    1.0 turns `keepAlive` on and 1.0 turns it off, and appending or parsing a Connection:
- *    keep-alive / Connection: Upgrade header updates keepAlive / upgrade accordingly.
- *  - **Limits**: maxHeadersCount (default 128) and maxHeaderSize (default 8192 bytes for one
- *    header line) bound the parsed header block; maxChunkSize (default 2 MB) bounds one chunk of
+ *    1.0 turns `keepAlive` on and 1.0 turns it off, and appending, setting or parsing a Connection:
+ *    close / keep-alive / Upgrade header updates keepAlive / upgrade accordingly. The Connection
+ *    header is managed by the message rather than emitted as an ordinary header, so a handler that
+ *    calls setHeader('Connection', 'close') actually ends the connection. A 1xx interim response
+ *    (other than 101) on the client side is read and discarded, then the final response is returned;
+ *    a 101 ends HTTP framing so the socket can switch protocols.
+ *  - **Limits**: maxHeadersCount (default 128) and maxHeaderSize (default 8192 bytes for the
+ *    whole header block) bound the parsed header block; maxChunkSize (default 2 MB) bounds one chunk of
  *    a chunked body and maxBodySize (default 64 MB) bounds the whole body, both in megabytes
  *    (-1 disables the body limit, 0 reads no body). The http module exposes module-level
  *    counterparts for the client side.

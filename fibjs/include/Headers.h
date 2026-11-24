@@ -150,9 +150,19 @@ public:
                 || !qstricmp(n.c_str(), "connection"))
                 continue;
 
+            exlib::string name = n;
             exlib::string v = _pair.second.string();
 
-            cp(buf, sz, pos, n.c_str(), n.length());
+            // The public setters reject these characters; sanitize here as a
+            // last line of defence for values assembled through internal paths.
+            for (size_t j = 0; j < name.length(); j++)
+                if (name[j] == '\r' || name[j] == '\n' || name[j] == '\0')
+                    name[j] = ' ';
+            for (size_t j = 0; j < v.length(); j++)
+                if (v[j] == '\r' || v[j] == '\n' || v[j] == '\0')
+                    v[j] = ' ';
+
+            cp(buf, sz, pos, name.c_str(), name.length());
             cp(buf, sz, pos, ": ", 2);
             cp(buf, sz, pos, v.c_str(), v.length());
             cp(buf, sz, pos, "\r\n", 2);

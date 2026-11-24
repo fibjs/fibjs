@@ -26,6 +26,7 @@ public:
     HttpMessage(bool bResponse = false)
         : m_bResponse(bResponse)
         , m_bNoBody(false)
+        , m_expectContinue(false)
         , m_maxHeadersCount(128)
         , m_maxHeaderSize(8192)
         , m_maxChunkSize(2)
@@ -95,7 +96,7 @@ public:
 
 public:
     result_t send(Stream_base* stm, exlib::string& strCommand,
-        AsyncHandle ac);
+        AsyncHandle ac, bool content_length = true);
     result_t sendHeader(Stream_base* stm, exlib::string& strCommand, bool content_length,
         AsyncHandle ac);
     result_t readFrom(Stream_base* stm, AsyncHandle ac);
@@ -106,6 +107,8 @@ public:
     void appendHeader(const char* name, int32_t szName, const char* value,
         int32_t szValue);
     result_t appendHeader(exlib::string& strLine);
+    // Applies the keep-alive/upgrade semantics of a Connection header value.
+    void apply_connection_value(const exlib::string& value);
     size_t getData(char* buf, size_t sz, bool content_length);
 
     result_t allHeader(exlib::string name, obj_ptr<NArray>& retVal)
@@ -118,6 +121,7 @@ public:
     obj_ptr<Stream_base> m_socket;
     bool m_bResponse;
     bool m_bNoBody;
+    bool m_expectContinue;
     exlib::string m_protocol;
     bool m_keepAlive;
     bool m_upgrade;

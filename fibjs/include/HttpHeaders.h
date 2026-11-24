@@ -78,6 +78,21 @@ inline bool is_http_header_value(const char* s, size_t len)
     return true;
 }
 
+// Strips the optional whitespace (OWS, RFC 9110 5.6.3) that may surround the
+// elements of a header field value: SP and HTAB only, never CR/LF.
+inline void trim_ows(exlib::string& s)
+{
+    size_t b = 0;
+    size_t e = s.length();
+
+    while (b < e && (s[b] == ' ' || s[b] == '\t'))
+        b++;
+    while (e > b && (s[e - 1] == ' ' || s[e - 1] == '\t'))
+        e--;
+
+    s = s.substr(b, e - b);
+}
+
 // The string form of a value, the way Node.js prints it in the message: a
 // non-string is converted, so `null` and `1` appear as "null" and "1".
 inline exlib::string http_header_string(v8::Local<v8::Value> v, Isolate* isolate)

@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "HttpMessage.h"
+#include "HttpHeaders.h"
 #include "parse.h"
 #include "Buffer.h"
 #include "Blob.h"
@@ -16,8 +17,97 @@
 #include "ifs/URLSearchParams.h"
 #include "ifs/FormData.h"
 #include <string.h>
+#include <limits>
 
 namespace fibjs {
+
+static result_t check_header_pair(const exlib::string& name, const exlib::string& value)
+{
+    if (name.empty())
+        return result_t::invalid_arg();
+
+    for (size_t i = 0; i < name.length(); i++)
+        if (!is_http_token_char((uint8_t)name[i]))
+            return result_t::make(CALL_E_INVALID_DATA)
+                .with_type_name(errtype::kTypeError)
+                .with_code("ERR_INVALID_HEADER_NAME")
+                .with_message("HttpMessage: invalid header name.");
+
+    for (size_t i = 0; i < value.length(); i++)
+        if (value[i] == '\r' || value[i] == '\n' || value[i] == '\0')
+            return result_t::make(CALL_E_INVALID_DATA)
+                .with_type_name(errtype::kTypeError)
+                .with_code("ERR_INVALID_HEADER_VALUE")
+                .with_message("HttpMessage: invalid header value.");
+
+    return result_t();
+}
+
+static result_t check_header_variant(const exlib::string& name, Variant& value)
+{
+    exlib::string str;
+    value.toString(str);
+    return check_header_pair(name, str);
+}
+
+static result_t check_header_array(const exlib::string& name, v8::Local<v8::Array> values)
+{
+    Isolate* isolate = Isolate::current(values);
+    v8::Local<v8::Context> context = isolate->context();
+    int32_t len = values->Length();
+
+    for (int32_t i = 0; i < len; i++) {
+        v8::Local<v8::Value> item;
+        if (!values->Get(context, i).ToLocal(&item))
+            return result_t(CALL_E_JAVASCRIPT);
+
+        Variant v(item);
+        result_t hr = check_header_variant(name, v);
+        if (hr.failed())
+            return hr;
+    }
+
+    return result_t();
+}
+
+static result_t check_header_list(Headers* hdrs)
+{
+    for (size_t i = 0; i < hdrs->m_map.size(); i++) {
+        auto& it = hdrs->m_map[i];
+        exlib::string value = it.second.string();
+        result_t hr = check_header_pair(it.first, value);
+        if (hr.failed())
+            return hr;
+    }
+
+    return result_t();
+}
+
+static bool parse_content_length(const char* p, int64_t& len)
+{
+    const int64_t max = std::numeric_limits<int64_t>::max();
+    bool digits = false;
+
+    len = 0;
+
+    while (*p == ' ' || *p == '\t')
+        p++;
+
+    while (*p >= '0' && *p <= '9') {
+        int32_t d = *p - '0';
+        if (len > (max - d) / 10)
+            return false;
+
+        len = len * 10 + d;
+        digits = true;
+        p++;
+    }
+
+    while (*p == ' ' || *p == '\t')
+        p++;
+
+    return digits && *p == '\0';
+}
 
 static bool is_multipart_type(const exlib::string& type)
 {
@@ -411,13 +501,13 @@ result_t HttpMessage::formData(obj_ptr<FormData_base>& retVal, AsyncHandle ac)
 }
 
 result_t HttpMessage::send(Stream_base* stm, exlib::string& strCommand,
-    AsyncHandle ac)
+    AsyncHandle ac, bool content_length)
 {
     if (ac.isSync())
         return result_t::nosync();
 
     m_sent = true;
-    return (new asyncSendTo(this, stm, strCommand, std::move(ac)))->post(result_t());
+    return (new asyncSendTo(this, stm, strCommand, std::move(ac), false, content_length))->post(result_t());
 }
 
 result_t HttpMessage::sendHeader(Stream_base* stm, exlib::string& strCommand, bool content_length,
@@ -440,6 +530,8 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
             , m_pThis(pThis)
             , m_stm(stm)
             , m_headCount(0)
+            , m_headerSize(0)
+            , m_hasContentLength(false)
         {
             init(begin);
         }
@@ -452,13 +544,30 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
         ON_STATE(asyncReadHeader, header)
         {
             if (m_strLine.length() > 0) {
+                m_headerSize += (int64_t)m_strLine.length() + 2;
+                if (m_headerSize > (int64_t)m_pThis->m_maxHeaderSize)
+                    return result_t::make(CALL_E_OVERFLOW)
+                        .with_type_name(errtype::kError)
+                        .with_code("ERR_OUT_OF_RANGE")
+                        .with_message("HttpMessage: header block is too large.");
+
                 if (!qstricmp(m_strLine.c_str(), "content-length:", 15)) {
-                    m_pThis->m_contentLength = atoi(m_strLine.c_str() + 15);
+                    int64_t contentLength;
+
+                    if (m_hasContentLength || !parse_content_length(m_strLine.c_str() + 15, contentLength))
+                        return result_t::make(CALL_E_INVALID_DATA)
+                            .with_type_name(errtype::kError)
+                            .with_code("ERR_INVALID_STATE")
+                            .with_message(m_hasContentLength
+                                    ? "HttpMessage: duplicate content-length."
+                                    : "HttpMessage: invalid content-length.");
+
+                    m_hasContentLength = true;
+                    m_pThis->m_contentLength = contentLength;
 
                     if (!m_pThis->m_bNoBody
-                        && ((m_pThis->m_contentLength < 0)
-                            || (m_pThis->m_maxBodySize >= 0
-                                && m_pThis->m_contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024)))
+                        && (m_pThis->m_maxBodySize >= 0
+                            && contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024))
                         return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_message("HttpMessage: body is too huge.");
 
                     {
@@ -507,6 +616,8 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
         obj_ptr<SeekableStream_base> m_body;
         exlib::string m_strLine;
         int32_t m_headCount;
+        int64_t m_headerSize;
+        bool m_hasContentLength;
     };
 
     if (ac.isSync())
@@ -542,7 +653,7 @@ result_t HttpMessage::readBody(AsyncHandle ac)
             if (!m_pThis->m_bNoBody) {
                 if (m_pThis->m_bChunked) {
                     if (m_pThis->m_maxBodySize == 0)
-                        return next();
+                        return result_t::make(CALL_E_OVERFLOW).with_type_name(errtype::kRangeError).with_code("ERR_OUT_OF_RANGE").with_message("HttpMessage: body is too huge.");
 
                     if (m_pThis->m_contentLength > 0)
                         return result_t::invalid_data();
@@ -611,6 +722,24 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncHandle ac)
 
         ON_STATE(asyncReadFrom, read_body)
         {
+            if (m_pThis->m_expectContinue
+                && (m_pThis->m_bChunked || m_pThis->m_contentLength > 0)) {
+                exlib::string expect;
+
+                if (!m_pThis->firstHeader("Expect", expect).is_return_null()
+                    && qstristr(expect.c_str(), "100-continue")) {
+                    obj_ptr<Buffer_base> buf = new Buffer("HTTP/1.1 100 Continue\r\n\r\n", 25);
+                    bool retVal;
+
+                    return m_stm->write(buf, retVal, next(continue_sent));
+                }
+            }
+
+            return m_pThis->readBody(next());
+        }
+
+        ON_STATE(asyncReadFrom, continue_sent)
+        {
             return m_pThis->readBody(next());
         }
 
@@ -628,14 +757,23 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncHandle ac)
 void HttpMessage::appendHeader(const char* name, int32_t szName, const char* value,
     int32_t szValue)
 {
-    if (szName == 10 && !qstricmp(name, "connection", szName)) {
-        if (qstristr(value, "upgrade")) {
-            m_upgrade = true;
-            m_keepAlive = true;
-        } else
-            m_keepAlive = !!qstristr(value, "keep-alive");
-    } else
+    if (szName == 10 && !qstricmp(name, "connection", szName))
+        apply_connection_value(exlib::string(value, szValue));
+    else
         m_headers->append_string(name, szName, value, szValue);
+}
+
+// Connection is managed by the message rather than emitted as an ordinary
+// header, so a direct setHeader/appendHeader must update the keep-alive and
+// upgrade flags the same way an inbound Connection header does. Otherwise
+// setHeader('Connection', 'close') would be silently ignored.
+void HttpMessage::apply_connection_value(const exlib::string& value)
+{
+    if (qstristr(value.c_str(), "upgrade")) {
+        m_upgrade = true;
+        m_keepAlive = true;
+    } else
+        m_keepAlive = !!qstristr(value.c_str(), "keep-alive");
 }
 
 result_t HttpMessage::appendHeader(exlib::string& strLine)
@@ -865,12 +1003,26 @@ result_t HttpMessage::allHeader(exlib::string name, obj_ptr<NObject>& retVal)
 
 result_t HttpMessage::appendHeader(HeaderMap& map)
 {
+    result_t hr;
+
+    for_each_header_value(map, [&](const exlib::string& name, const exlib::string& value) {
+        if (hr.ok())
+            hr = check_header_pair(name, value);
+    });
+
+    if (hr.failed())
+        return hr;
+
     return m_headers->append(map);
 }
 
 result_t HttpMessage::appendHeader(Headers_base* headers)
 {
     Headers* hdrs = static_cast<Headers*>(headers);
+    result_t hr = check_header_list(hdrs);
+    if (hr.failed())
+        return hr;
+
     for (int32_t i = 0; i < (int32_t)hdrs->m_map.size(); i++) {
         auto& it = hdrs->m_map[i];
         exlib::string value = it.second.string();
@@ -882,32 +1034,112 @@ result_t HttpMessage::appendHeader(Headers_base* headers)
 
 result_t HttpMessage::appendHeader(exlib::string name, Variant value)
 {
+    result_t hr = check_header_variant(name, value);
+    if (hr.failed())
+        return hr;
+
+    if (!qstricmp(name.c_str(), "connection")) {
+        exlib::string str;
+        value.toString(str);
+        apply_connection_value(str);
+        return result_t();
+    }
+
     return m_headers->append(name, value);
 }
 
 result_t HttpMessage::appendHeader(exlib::string name, v8::Local<v8::Array> values)
 {
+    result_t hr = check_header_array(name, values);
+    if (hr.failed())
+        return hr;
+
+    if (!qstricmp(name.c_str(), "connection")) {
+        Isolate* isolate = Isolate::current(values);
+        v8::Local<v8::Context> context = isolate->context();
+        int32_t len = values->Length();
+
+        for (int32_t i = 0; i < len; i++) {
+            v8::Local<v8::Value> item;
+            if (!values->Get(context, i).ToLocal(&item))
+                return result_t(CALL_E_JAVASCRIPT);
+
+            Variant v(item);
+            exlib::string str;
+            v.toString(str);
+            apply_connection_value(str);
+        }
+        return result_t();
+    }
+
     return m_headers->append(name, values);
 }
 
 result_t HttpMessage::setHeader(HeaderMap& map)
 {
+    result_t hr;
+
+    for_each_header_value(map, [&](const exlib::string& name, const exlib::string& value) {
+        if (hr.ok())
+            hr = check_header_pair(name, value);
+    });
+
+    if (hr.failed())
+        return hr;
+
     return m_headers->set(map);
 }
 
 result_t HttpMessage::setHeader(Headers_base* headers)
 {
+    result_t hr = check_header_list(static_cast<Headers*>(headers));
+    if (hr.failed())
+        return hr;
+
     m_headers->clear();
     return m_headers->init(headers);
 }
 
 result_t HttpMessage::setHeader(exlib::string name, Variant value)
 {
+    result_t hr = check_header_variant(name, value);
+    if (hr.failed())
+        return hr;
+
+    if (!qstricmp(name.c_str(), "connection")) {
+        exlib::string str;
+        value.toString(str);
+        apply_connection_value(str);
+        return result_t();
+    }
+
     return m_headers->set(name, value);
 }
 
 result_t HttpMessage::setHeader(exlib::string name, v8::Local<v8::Array> values)
 {
+    result_t hr = check_header_array(name, values);
+    if (hr.failed())
+        return hr;
+
+    if (!qstricmp(name.c_str(), "connection")) {
+        Isolate* isolate = Isolate::current(values);
+        v8::Local<v8::Context> context = isolate->context();
+        int32_t len = values->Length();
+
+        for (int32_t i = 0; i < len; i++) {
+            v8::Local<v8::Value> item;
+            if (!values->Get(context, i).ToLocal(&item))
+                return result_t(CALL_E_JAVASCRIPT);
+
+            Variant v(item);
+            exlib::string str;
+            v.toString(str);
+            apply_connection_value(str);
+        }
+        return result_t();
+    }
+
     return m_headers->set(name, values);
 }
 
