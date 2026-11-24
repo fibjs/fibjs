@@ -3163,7 +3163,17 @@ describe("http", () => {
         });
 
         it("autoindex escapes names and links", () => {
-            var name = '<x & "y">.txt';
+            // <, > and " cannot appear in a Windows file name, so the fixture
+            // falls back to characters that are legal everywhere but still
+            // need HTML escaping and percent-encoding.
+            var win32 = process.platform === 'win32';
+            var name = win32 ? "x & 'y'.txt" : '<x & "y">.txt';
+            var escaped = win32
+                ? 'x &amp; &#39;y&#39;.txt'
+                : '&lt;x &amp; &quot;y&quot;&gt;.txt';
+            var encoded = win32
+                ? 'x%20%26%20%27y%27.txt'
+                : '%3Cx%20%26%20%22y%22%3E.txt';
             var file = path.join(baseFolder, 'http_autoindex', name);
             fs.writeFile(file, 'x');
 
@@ -3171,8 +3181,8 @@ describe("http", () => {
                 var rep = hfh_test("http_autoindex/");
                 var data = rep.text();
                 assert.equal(false, data.indexOf(name) >= 0);
-                assert.ok(data.indexOf('&lt;x &amp; &quot;y&quot;&gt;.txt') >= 0);
-                assert.ok(data.indexOf('%3Cx%20%26%20%22y%22%3E.txt') >= 0);
+                assert.ok(data.indexOf(escaped) >= 0);
+                assert.ok(data.indexOf(encoded) >= 0);
             } finally {
                 try { fs.unlink(file); } catch (e) { }
             }

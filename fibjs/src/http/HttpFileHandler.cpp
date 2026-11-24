@@ -341,6 +341,28 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             return next(result_t::return_null());
         }
 
+        // Reached when a request without a trailing slash failed to open.
+        // POSIX open(2) accepts an O_RDONLY directory fd and lets the stat
+        // state below answer 301, but Windows refuses a directory with
+        // ERROR_ACCESS_DENIED, so the directory has to be recognised from the
+        // open failure to keep the redirect behaviour the same on both.
+        ON_STATE(asyncInvoke, checkdir)
+        {
+            return fs_base::stat(m_url, m_stat, next(redirect));
+        }
+
+        ON_STATE(asyncInvoke, redirect)
+        {
+            bool isDir = false;
+            m_stat->isDirectory(isDir);
+
+            if (isDir)
+                return redirectToDirectory();
+
+            m_rep->set_statusCode(404);
+            return next(result_t::return_null());
+        }
+
         ON_STATE(asyncInvoke, autoindex)
         {
             m_path = m_url;
@@ -471,23 +493,8 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             bool isDir = false;
             m_stat->isDirectory(isDir);
 
-            if (isDir && !m_index) {
-                exlib::string location = m_value;
-                if (location.empty())
-                    location = "/";
-                else if (location[0] != '/')
-                    location = "/" + location;
-                if (location[location.length() - 1] != '/')
-                    location += "/";
-
-                exlib::string qs;
-                if (m_req->get_queryString(qs).ok() && !qs.empty())
-                    location += "?" + qs;
-
-                m_rep->set_statusCode(301);
-                m_rep->appendHeader("Location", location, hdrRet);
-                return next(result_t::return_null());
-            }
+            if (isDir && !m_index)
+                return redirectToDirectory();
 
             double sz;
             m_stat->get_size(sz);
@@ -589,14 +596,41 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             return next(result_t::return_null());
         }
 
+        result_t redirectToDirectory()
+        {
+            obj_ptr<HttpMessage_base> hdrRet;
+
+            exlib::string location = m_value;
+            if (location.empty())
+                location = "/";
+            else if (location[0] != '/')
+                location = "/" + location;
+            if (location[location.length() - 1] != '/')
+                location += "/";
+
+            exlib::string qs;
+            if (m_req->get_queryString(qs).ok() && !qs.empty())
+                location += "?" + qs;
+
+            m_rep->set_statusCode(301);
+            m_rep->appendHeader("Location", location, hdrRet);
+            return next(result_t::return_null());
+        }
+
         virtual result_t error(result_t v)
         {
             if (at(start)) {
                 if (m_index) {
+                    // A directory request (trailing slash) whose index.html is
+                    // missing: list it when autoindex is on, otherwise 404.
                     m_index = false;
 
                     if (m_autoIndex)
                         return next(autoindex);
+                } else {
+                    // A request without a trailing slash that failed to open
+                    // may still name a directory (see checkdir above).
+                    return next(checkdir);
                 }
             }
 
