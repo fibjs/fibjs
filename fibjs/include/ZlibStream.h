@@ -107,7 +107,9 @@ private:
 
             m_buffer = new Buffer((const char*)m_pThis->m_outBuffer, size);
             m_pThis->resetBuffer();
-            return m_stm->writeBuffer(m_buffer, this);
+            // Re-enter this state after the write through a ticket: passing
+            // `this` would dispatch into a machine that is already running.
+            return m_stm->writeBuffer(m_buffer, next(process));
         }
 
     private:

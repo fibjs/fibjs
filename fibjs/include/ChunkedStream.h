@@ -111,8 +111,11 @@ public:
                             p.string, p2, p.now(), p.left());
                     }
 
-                    // Read next trailer line
-                    return m_pThis->m_stm->readLine(64, m_strLine, this);
+                    // Read next trailer line: re-enter this state through a
+                    // ticket. Passing `this` would dispatch straight into a
+                    // machine that is already running (the phase lock rejects
+                    // a non-initial post()).
+                    return m_pThis->m_stm->readLine(64, m_strLine, next(chunk_end));
                 }
                 return next(result_t::return_null());
             }

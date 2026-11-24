@@ -431,7 +431,10 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_path = m_url;
             m_path += v.string();
 
-            return fs_base::stat(m_path, m_stat, this);
+            // Next directory entry: re-enter this state through a ticket.
+            // Passing `this` would dispatch straight into a machine that is
+            // already running (the phase lock rejects a non-initial post()).
+            return fs_base::stat(m_path, m_stat, next(list_stat));
         }
 
         ON_STATE(asyncInvoke, open)

@@ -604,7 +604,10 @@ result_t HttpMessage::readHeader(Stream_base* stm, AsyncHandle ac)
                 if (m_headCount > m_pThis->m_maxHeadersCount)
                     return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("HttpMessage: too many headers.");
 
-                return m_stm->readLine(m_pThis->m_maxHeaderSize, m_strLine, this);
+                // Next field line: re-enter this state through a ticket. Passing
+                // `this` would dispatch straight into a machine that is already
+                // running (the phase lock rejects a non-initial post()).
+                return m_stm->readLine(m_pThis->m_maxHeaderSize, m_strLine, next(header));
             }
 
             return next();

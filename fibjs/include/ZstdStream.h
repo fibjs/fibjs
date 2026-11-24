@@ -164,8 +164,10 @@ private:
 
             m_buffer = new Buffer((const char*)m_out.dst, (int32_t)m_out.pos);
             // Re-enter this state after the write: a flush or finish directive
-            // is only satisfied once the codec stops producing output.
-            return m_stm->writeBuffer(m_buffer, this);
+            // is only satisfied once the codec stops producing output. The
+            // ticket does the re-entry; passing `this` would dispatch into a
+            // machine that is already running.
+            return m_stm->writeBuffer(m_buffer, next(process));
         }
 
     private:

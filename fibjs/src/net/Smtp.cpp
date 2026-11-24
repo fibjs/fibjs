@@ -64,7 +64,10 @@ public:
             return recv_ok();
         }
 
-        return m_stmBuffered->readLine(SMTP_MAX_LINE, strLine, this);
+        // Multi-line reply: re-enter this state through a ticket. Passing `this`
+        // would dispatch straight into a machine that is already running (the
+        // phase lock rejects a non-initial post()).
+        return m_stmBuffered->readLine(SMTP_MAX_LINE, strLine, next(recv));
     }
 
     virtual result_t recv_ok()
