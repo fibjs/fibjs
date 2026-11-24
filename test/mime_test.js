@@ -40,6 +40,22 @@ describe('mime', function () {
         assert.equal(mime.getType('a'), 'application/a');
     });
 
+    it("addType is case-insensitive", function () {
+        mime.addType('MyExt', 'application/x-myext');
+        assert.equal(mime.getType('a.myext'), 'application/x-myext');
+        assert.equal(mime.getType('a.MYEXT'), 'application/x-myext');
+        assert.equal(mime.getType('MYEXT'), 'application/x-myext');
+    });
+
+    it("looks up every entry of the sorted table", function () {
+        assert.equal(mime.getType('a.vbox'), 'application/x-virtualbox-vbox');
+        assert.equal(mime.getType('a.vbox-extpack'), 'application/x-virtualbox-vbox-extpack');
+        assert.equal(mime.getType('a.x32'), 'application/x-authorware-bin');
+        assert.equal(mime.getType('a.x_t'), 'model/vnd.parasolid.transmit.text');
+        assert.equal(mime.getType('a.br'), 'application/x-brotli');
+        assert.equal(mime.getType('a.zst'), 'application/zstd');
+    });
+
     it("override type", function () {
         mime.addType('a', 'application/a1');
         assert.equal(mime.getType('a.a'), 'application/a1');

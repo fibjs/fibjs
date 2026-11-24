@@ -101,6 +101,7 @@ static const MimeType s_mimeTypes[] = {
     { "box", "application/vnd.previewsystems.box" },
     { "boz", "application/x-bzip2" },
     { "bpk", "application/octet-stream" },
+    { "br", "application/x-brotli" },
     { "bsp", "model/vnd.valve.source.compiled-map" },
     { "btif", "image/prs.btif" },
     { "buffer", "application/octet-stream" },
@@ -1042,8 +1043,8 @@ static const MimeType s_mimeTypes[] = {
     { "uvvz", "application/vnd.dece.zip" },
     { "uvx", "application/vnd.dece.unspecified" },
     { "uvz", "application/vnd.dece.zip" },
-    { "vbox-extpack", "application/x-virtualbox-vbox-extpack" },
     { "vbox", "application/x-virtualbox-vbox" },
+    { "vbox-extpack", "application/x-virtualbox-vbox-extpack" },
     { "vcard", "text/vcard" },
     { "vcd", "application/x-cdlink" },
     { "vcf", "text/x-vcard" },
@@ -1115,8 +1116,6 @@ static const MimeType s_mimeTypes[] = {
     { "wspolicy", "application/wspolicy+xml" },
     { "wtb", "application/vnd.webturbo" },
     { "wvx", "video/x-ms-wvx" },
-    { "x_b", "model/vnd.parasolid.transmit.binary" },
-    { "x_t", "model/vnd.parasolid.transmit.text" },
     { "x32", "application/x-authorware-bin" },
     { "x3d", "model/x3d+xml" },
     { "x3db", "model/x3d+fastinfoset" },
@@ -1124,6 +1123,8 @@ static const MimeType s_mimeTypes[] = {
     { "x3dv", "model/x3d-vrml" },
     { "x3dvz", "model/x3d+vrml" },
     { "x3dz", "model/x3d+xml" },
+    { "x_b", "model/vnd.parasolid.transmit.binary" },
+    { "x_t", "model/vnd.parasolid.transmit.text" },
     { "xaml", "application/xaml+xml" },
     { "xap", "application/x-silverlight-app" },
     { "xar", "application/vnd.xara" },
@@ -1200,11 +1201,21 @@ static const MimeType s_mimeTypes[] = {
     { "zip", "application/zip" },
     { "zir", "application/vnd.zul" },
     { "zirz", "application/vnd.zul" },
-    { "zmm", "application/vnd.handheld-entertainment+xml" }
+    { "zmm", "application/vnd.handheld-entertainment+xml" },
+    { "zst", "application/zstd" }
 };
 
 static exlib::spinlock s_lock;
 static std::unordered_map<exlib::string, exlib::string> s_mimes;
+
+static void lower_ascii(exlib::string& s)
+{
+    for (size_t i = 0; i < s.length(); i++) {
+        char c = s[i];
+        if (c >= 'A' && c <= 'Z')
+            s[i] = (char)(c - 'A' + 'a');
+    }
+}
 
 static int32_t mt_cmp(const void* p, const void* q)
 {
@@ -1223,6 +1234,8 @@ result_t mime_base::getType(exlib::string fname, exlib::string& retVal)
         ext = fname;
     else
         ext = ext.substr(1);
+
+    lower_ascii(ext);
 
     s_lock.lock();
     std::unordered_map<exlib::string, exlib::string>::iterator it = s_mimes.find(ext);
@@ -1259,6 +1272,8 @@ result_t mime_base::getType(exlib::string fname, exlib::string& retVal)
 
 result_t mime_base::addType(exlib::string ext, exlib::string type)
 {
+    lower_ascii(ext);
+
     s_lock.lock();
     s_mimes.insert_or_assign(ext, type);
     s_lock.unlock();

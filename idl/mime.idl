@@ -10,8 +10,8 @@ Concepts:
   Content-Type headers and by helpers such as http.fileHandler.
 - **Extension lookup**: getType applies path.extname to the argument; when there is no
   extension the whole argument is used, so `getType('html')` and `getType('a.html')` return
-  the same type. Built-in extensions are matched case-insensitively (`a.HTML` works), while
-  types registered with addType are matched exactly as they were registered.
+  the same type. Extensions and registered types are matched case-insensitively
+  (`a.HTML` and a registration made as `HTML` both work).
 - **Registry**: addType writes into a process-wide map that is consulted before the built-in
   table, so a registration is visible to every caller and can override a built-in type. Pass
   the extension without a leading dot; an extension registered as `.foo` only matches an
@@ -50,10 +50,9 @@ module mime
     /*! @brief Looks up the MIME type of a file name or extension
 
      The extension is taken from the last dot of the argument (path.extname); an argument
-     without a dot is treated as an extension itself. Built-in extensions are matched
-     without case sensitivity; extensions registered with addType are matched exactly. An
-     unknown extension returns `application/octet-stream`, and an empty name returns an
-     empty string.
+     without a dot is treated as an extension itself. Extensions are matched without case
+     sensitivity, including those registered with addType. An unknown extension returns
+     `application/octet-stream`, and an empty name returns an empty string.
 
      Example — look up a name and a bare extension:
      ```JavaScript
@@ -70,10 +69,10 @@ module mime
 
     /*! @brief Registers a MIME type for an extension in the process-wide registry
 
-     The extension is stored exactly as given and is looked up before the built-in table,
-     which allows a built-in type to be overridden for the rest of the process. Register the
-     extension without a leading dot; no dot is added or removed. The registration is shared
-     by all callers in the process and is not persisted.
+     The extension is lowercased and stored in the process-wide registry, then looked up
+     before the built-in table, which allows a built-in type to be overridden for the rest
+     of the process. Register the extension without a leading dot; no dot is added or
+     removed. The registration is shared by all callers in the process and is not persisted.
 
      @param ext extension to register, without a leading dot
      @param type MIME type returned for the extension
