@@ -11,7 +11,9 @@
 #include "XmlDocument.h"
 #include "parse.h"
 #include "XmlNodeList.h"
+#include "LruCache.h"
 #include <vector>
+#include <memory>
 
 namespace fibjs {
 
@@ -757,6 +759,31 @@ static bool parseSelectors(const exlib::string& input, SelectorList& selectorLis
     return !selectorList.selectors.empty();
 }
 
+// Parsed selector lists are immutable, so repeated queries with the same
+// selector are served from a small LRU. This matters when a selector is reused
+// in a loop and for :has(), whose inner selector used to be parsed again for
+// every element tested. The cache holds the parsed form only; matching never
+// mutates it, so one list can serve any document.
+static std::shared_ptr<SelectorList> get_parsed_selectors(const exlib::string& selector)
+{
+    static LruCache<std::shared_ptr<SelectorList>> s_cache(256, 0, 0);
+
+    std::shared_ptr<SelectorList> list;
+    LruCache<std::shared_ptr<SelectorList>>::Resolver resolver =
+        [](exlib::string& cached_key, std::shared_ptr<SelectorList>& value) {
+            std::shared_ptr<SelectorList> parsed = std::make_shared<SelectorList>();
+            if (!parseSelectors(cached_key, *parsed))
+                return false;
+            value = std::move(parsed);
+            return true;
+        };
+
+    if (!s_cache.lookup(selector, list, resolver))
+        return NULL;
+
+    return list;
+}
+
 // Check if element matches a simple selector
 static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& selector, bool isXml)
 {
@@ -1374,9 +1401,9 @@ static bool matchesSimpleSelector(XmlElement* element, const SimpleSelector& sel
                     }
                 } else {
                     // No leading combinator, try to parse as normal complex selector
-                    SelectorList hasSelectorList;
-                    if (parseSelectors(comp.hasContent, hasSelectorList)) {
-                        for (const auto& complexSel : hasSelectorList.selectors) {
+                    std::shared_ptr<SelectorList> hasSelectorList = get_parsed_selectors(comp.hasContent);
+                    if (hasSelectorList) {
+                        for (const auto& complexSel : hasSelectorList->selectors) {
                             if (complexSel.selectors.empty())
                                 continue;
 
@@ -1721,13 +1748,13 @@ result_t XmlElement::matches(exlib::string selectors, bool& retVal)
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_SELECTOR").with_message("SyntaxError: Failed to execute 'matches': The provided selector is empty.");
     }
 
-    SelectorList selectorList;
-    if (!parseSelectors(selectors, selectorList)) {
+    std::shared_ptr<SelectorList> selectorList = get_parsed_selectors(selectors);
+    if (!selectorList) {
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_SELECTOR").with_message("SyntaxError: Failed to execute 'matches': The provided selector is invalid.");
     }
 
     // Check if the element matches any of the selectors
-    for (const auto& complexSelector : selectorList.selectors) {
+    for (const auto& complexSelector : selectorList->selectors) {
         if (matchesComplexSelector(this, complexSelector, m_isXml)) {
             retVal = true;
             return result_t(); // Element matches the selector
@@ -1744,8 +1771,8 @@ result_t XmlElement::closest(exlib::string selectors, obj_ptr<XmlElement_base>& 
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_SELECTOR").with_message("SyntaxError: Failed to execute 'closest': The provided selector is empty.");
     }
 
-    SelectorList selectorList;
-    if (!parseSelectors(selectors, selectorList)) {
+    std::shared_ptr<SelectorList> selectorList = get_parsed_selectors(selectors);
+    if (!selectorList) {
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_SELECTOR").with_message("SyntaxError: Failed to execute 'closest': The provided selector is invalid.");
     }
 
@@ -1753,7 +1780,7 @@ result_t XmlElement::closest(exlib::string selectors, obj_ptr<XmlElement_base>& 
     XmlElement* current = this;
     while (current) {
         // Check if current element matches any of the selectors
-        for (const auto& complexSelector : selectorList.selectors) {
+        for (const auto& complexSelector : selectorList->selectors) {
             if (matchesComplexSelector(current, complexSelector, m_isXml)) {
                 retVal = current;
                 return result_t();
@@ -1781,14 +1808,14 @@ result_t XmlElement::querySelectorImpl(exlib::string selectors, bool includeRoot
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_SELECTOR").with_message("SyntaxError: Failed to execute 'querySelector': The provided selector is empty.");
     }
 
-    SelectorList selectorList;
-    if (!parseSelectors(selectors, selectorList)) {
+    std::shared_ptr<SelectorList> selectorList = get_parsed_selectors(selectors);
+    if (!selectorList) {
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_SELECTOR").with_message("SyntaxError: Failed to execute 'querySelector': The provided selector is invalid.");
     }
 
     obj_ptr<XmlNodeList> results = new XmlNodeList(NULL);
-    if (!queryByIndex(this, selectorList, results, true, m_isXml, includeRoot))
-        queryElements(this, selectorList, results, true, m_isXml, includeRoot);
+    if (!queryByIndex(this, *selectorList, results, true, m_isXml, includeRoot))
+        queryElements(this, *selectorList, results, true, m_isXml, includeRoot);
 
     if (results->m_childs.size() > 0) {
         XmlNodeImpl* firstMatch = results->m_childs[0];
@@ -1813,14 +1840,14 @@ result_t XmlElement::querySelectorAllImpl(exlib::string selectors, bool includeR
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_SELECTOR").with_message("SyntaxError: Failed to execute 'querySelectorAll': The provided selector is empty.");
     }
 
-    SelectorList selectorList;
-    if (!parseSelectors(selectors, selectorList)) {
+    std::shared_ptr<SelectorList> selectorList = get_parsed_selectors(selectors);
+    if (!selectorList) {
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kSyntaxError).with_code("ERR_INVALID_SELECTOR").with_message("SyntaxError: Failed to execute 'querySelectorAll': The provided selector is invalid.");
     }
 
     obj_ptr<XmlNodeList> results = new XmlNodeList(NULL);
-    if (!queryByIndex(this, selectorList, results, false, m_isXml, includeRoot))
-        queryElements(this, selectorList, results, false, m_isXml, includeRoot);
+    if (!queryByIndex(this, *selectorList, results, false, m_isXml, includeRoot))
+        queryElements(this, *selectorList, results, false, m_isXml, includeRoot);
 
     retVal = results;
     return result_t();
