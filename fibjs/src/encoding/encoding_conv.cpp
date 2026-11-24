@@ -8,9 +8,121 @@
 #include "object.h"
 #include "encoding_conv.h"
 #include "ifs/encoding.h"
+#include "LruCache.h"
+#include <memory>
+#include <mutex>
 #include <unicode/include/unicode/ucnv.h>
 
 namespace fibjs {
+
+// ucnv_convert() opens and closes both converters on every call. The converters
+// are immutable for a charset (only their state changes), so a charset used in
+// a loop can reuse the pair instead of paying the setup twice per operation.
+// A converter is stateful and not thread-safe, so every entry carries its own
+// lock: different charsets convert in parallel, the same charset serializes.
+struct IcuConverters {
+    exlib::spinlock lock;
+    UConverter* utf8 = NULL;
+    UConverter* charset = NULL;
+
+    ~IcuConverters()
+    {
+        if (utf8)
+            ucnv_close(utf8);
+        if (charset)
+            ucnv_close(charset);
+    }
+};
+
+static std::shared_ptr<IcuConverters> get_converters(const exlib::string& charset)
+{
+    static LruCache<std::shared_ptr<IcuConverters>> s_cache(32, 0, 0);
+
+    std::shared_ptr<IcuConverters> converters;
+    LruCache<std::shared_ptr<IcuConverters>>::Resolver resolver =
+        [](exlib::string& name, std::shared_ptr<IcuConverters>& value) {
+            std::shared_ptr<IcuConverters> c = std::make_shared<IcuConverters>();
+            UErrorCode err = U_ZERO_ERROR;
+
+            c->utf8 = ucnv_open("utf-8", &err);
+            if (U_FAILURE(err) || !c->utf8)
+                return false;
+
+            err = U_ZERO_ERROR;
+            c->charset = ucnv_open(name.c_str(), &err);
+            if (U_FAILURE(err) || !c->charset)
+                return false;
+
+            value = std::move(c);
+            return true;
+        };
+
+    if (!s_cache.lookup(charset, converters, resolver))
+        return NULL;
+
+    return converters;
+}
+
+// One conversion pass of ucnv_convert(), over the reused converter pair.
+// The caller must hold entry.lock. Returns -1 on a conversion error.
+static int32_t icu_convert(IcuConverters& entry, bool encode, char* target,
+    int32_t targetCapacity, const char* source, int32_t sourceLength, UErrorCode& err)
+{
+    UConverter* in = encode ? entry.utf8 : entry.charset;
+    UConverter* out = encode ? entry.charset : entry.utf8;
+
+    ucnv_reset(in);
+    ucnv_reset(out);
+
+    UChar pivotBuffer[1024];
+    UChar* pivot = pivotBuffer;
+    UChar* pivot2 = pivotBuffer;
+
+    const char* sourceLimit = source + sourceLength;
+    int32_t targetLength = 0;
+
+    if (source == sourceLimit)
+        return 0;
+
+    if (targetCapacity > 0) {
+        char* myTarget = target;
+        char* targetLimit = target + targetCapacity;
+
+        ucnv_convertEx(out, in, &myTarget, targetLimit,
+            &source, sourceLimit, pivotBuffer, &pivot, &pivot2,
+            pivotBuffer + 1024, false, true, &err);
+        if (U_FAILURE(err) && err != U_BUFFER_OVERFLOW_ERROR)
+            return -1;
+        targetLength = (int32_t)(myTarget - target);
+    }
+
+    // Same two-phase logic as ICU's ucnv_internalConvert(): when the caller
+    // only wants the size (capacity 0) or the buffer overflowed, count the
+    // remaining output in chunks.
+    if (err == U_BUFFER_OVERFLOW_ERROR || targetCapacity == 0) {
+        char targetBuffer[1024];
+
+        do {
+            err = U_ZERO_ERROR;
+            char* myTarget = targetBuffer;
+            char* targetLimit = targetBuffer + 1024;
+            ucnv_convertEx(out, in, &myTarget, targetLimit,
+                &source, sourceLimit, pivotBuffer, &pivot, &pivot2,
+                pivotBuffer + 1024, false, true, &err);
+            targetLength += (int32_t)(myTarget - targetBuffer);
+        } while (err == U_BUFFER_OVERFLOW_ERROR);
+
+        if (U_FAILURE(err))
+            return -1;
+    }
+
+    return targetLength;
+}
+
+static result_t encoding_error(const exlib::string& charset)
+{
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_UNKNOWN_ENCODING").with_format("encoding: Unknown charset: '%s'.", charset.c_str());
+}
 
 encoding_conv::encoding_conv()
 {
@@ -47,18 +159,30 @@ result_t encoding_conv::encode(exlib::string data, exlib::string& retVal)
     if (ucs_encode(data, retVal).ok())
         return result_t();
 
-    int32_t _sz;
+    std::shared_ptr<IcuConverters> converters = get_converters(m_charset);
+    if (!converters)
+        return encoding_error(m_charset);
+
+    std::lock_guard<exlib::spinlock> lock(converters->lock);
+
+    int32_t sourceLength = (int32_t)data.length();
     UErrorCode errorCode = U_ZERO_ERROR;
 
-    _sz = ucnv_convert(m_charset.c_str(), "utf-8", NULL, 0, data.c_str(), data.length(), &errorCode);
-    if (_sz) {
-        retVal.resize(_sz);
-        errorCode = U_ZERO_ERROR;
-        ucnv_convert(m_charset.c_str(), "utf-8", retVal.data(), _sz, data.c_str(), data.length(), &errorCode);
-        return result_t();
-    }
+    int32_t _sz = icu_convert(*converters, true, NULL, 0, data.c_str(), sourceLength, errorCode);
+    if (_sz <= 0)
+        return encoding_error(m_charset);
 
-    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_UNKNOWN_ENCODING").with_format("encoding: Unknown charset: '%s'.", m_charset.c_str());
+    retVal.resize(_sz);
+
+    errorCode = U_ZERO_ERROR;
+    int32_t written = icu_convert(*converters, true, retVal.data(), _sz, data.c_str(), sourceLength, errorCode);
+    if (written < 0)
+        return encoding_error(m_charset);
+
+    if (written != _sz)
+        retVal.resize(written);
+
+    return result_t();
 }
 
 result_t encoding_conv::encode(exlib::string data, obj_ptr<Buffer_base>& retVal)
@@ -84,25 +208,33 @@ result_t encoding_conv::decode(const char* data, size_t sz, exlib::string& retVa
     if (ucs_decode(data, sz, retVal).ok())
         return result_t();
 
-    int32_t _sz;
+    std::shared_ptr<IcuConverters> converters = get_converters(m_charset);
+    if (!converters)
+        return encoding_error(m_charset);
+
+    std::lock_guard<exlib::spinlock> lock(converters->lock);
+
     UErrorCode errorCode = U_ZERO_ERROR;
+    int32_t _sz = icu_convert(*converters, false, NULL, 0, data, (int32_t)sz, errorCode);
+    if (_sz <= 0)
+        return encoding_error(m_charset);
 
-    _sz = ucnv_convert("utf-8", m_charset.c_str(), NULL, 0, data, sz, &errorCode);
-    if (_sz) {
-        // Convert into a separate buffer first: data may point into retVal
-        // (callers decode in place, e.g. XmlDocument loading a Buffer), and
-        // resizing retVal would release the memory the input lives in.
-        exlib::string strBuf;
-        strBuf.resize(_sz);
+    // Convert into a separate buffer first: data may point into retVal
+    // (callers decode in place, e.g. XmlDocument loading a Buffer), and
+    // resizing retVal would release the memory the input lives in.
+    exlib::string strBuf;
+    strBuf.resize(_sz);
 
-        errorCode = U_ZERO_ERROR;
-        ucnv_convert("utf-8", m_charset.c_str(), strBuf.data(), _sz, data, sz, &errorCode);
+    errorCode = U_ZERO_ERROR;
+    int32_t written = icu_convert(*converters, false, strBuf.data(), _sz, data, (int32_t)sz, errorCode);
+    if (written < 0)
+        return encoding_error(m_charset);
 
-        retVal.assign(std::move(strBuf));
-        return result_t();
-    }
+    if (written != _sz)
+        strBuf.resize(written);
 
-    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_UNKNOWN_ENCODING").with_format("encoding: Unknown charset: '%s'.", m_charset.c_str());
+    retVal.assign(std::move(strBuf));
+    return result_t();
 }
 
 result_t encoding_conv::decode(const exlib::string& data, exlib::string& retVal)
@@ -121,17 +253,30 @@ bool encoding_conv::is_encoding(exlib::string charset)
     if (is_ucs_encoding(charset))
         return true;
 
+    // Answering the question costs an ICU converter open/close, and callers
+    // ask it on the way into the actual conversion (Buffer.from/toString and
+    // Buffer.byteLength validate a non-native codec before converting), so a
+    // repeated label would pay that setup twice per operation. The set of
+    // labels ICU knows is fixed for the life of the process, so both positive
+    // and negative answers can be kept; the LRU bounds user-supplied labels.
+    static LruCache<bool> s_cache(256, 0, 0);
+
+    bool known;
+    if (s_cache.lookup(charset, known, false))
+        return known;
+
     const char* normalized = normalizeEncoding(charset);
     const char* name = normalized ? normalized : charset.c_str();
 
     UErrorCode err = U_ZERO_ERROR;
     UConverter* icu_ec = ucnv_open(name, &err);
-    if (icu_ec) {
-        ucnv_close(icu_ec);
-        return true;
-    }
+    known = icu_ec != NULL;
 
-    return false;
+    if (icu_ec)
+        ucnv_close(icu_ec);
+
+    s_cache.set(charset, known);
+    return known;
 }
 
 bool encoding_conv::resolve(const exlib::string& label, exlib::string& canonicalName)
