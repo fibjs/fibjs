@@ -1239,6 +1239,17 @@ result_t mime_base::getType(exlib::string fname, exlib::string& retVal)
 
         if (!pMimeType)
             pMimeType = &s_defType;
+        else {
+            // Remember built-in resolutions: getType() runs once per static
+            // file request, and the binary search (plus the separate custom
+            // map update path) is repeated for every hit. The key space here
+            // is bounded by the table above, so this cannot grow with input.
+            // emplace, not insert_or_assign: a concurrent addType() for the
+            // same extension must keep winning.
+            s_lock.lock();
+            s_mimes.emplace(ext, pMimeType->type);
+            s_lock.unlock();
+        }
 
         retVal = pMimeType->type;
     }
