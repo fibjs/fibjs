@@ -17,6 +17,12 @@
 #include "ifs/zlib.h"
 #include "ifs/console.h"
 #include "union_helpers.h"
+#include "utils.h"
+#include "Isolate.h"
+
+#include <stdlib.h>
+#include <string>
+#include <vector>
 
 namespace fibjs {
 
@@ -587,6 +593,173 @@ static int32_t mt_cmp(const void* p, const void* q)
     return qstricmp(*(const char**)p, *(const char**)q);
 }
 
+// Below 1 KiB the gzip container plus the extra response header cost more than
+// the bytes saved; above 1 MiB compressing every response is too expensive for
+// the event-loop thread. Static assets above the cap should be pre-compressed.
+static const int64_t kMinEncodeSize = 1024;
+static const int64_t kMaxEncodeSize = 1024 * 1024;
+
+static void trim_ascii(std::string& s)
+{
+    size_t b = 0;
+    size_t e = s.size();
+
+    while (b < e && (s[b] == ' ' || s[b] == '\t'))
+        b++;
+    while (e > b && (s[e - 1] == ' ' || s[e - 1] == '\t'))
+        e--;
+
+    s = s.substr(b, e - b);
+}
+
+// Parses the ";q=..." parameters of one Accept-Encoding element. An absent
+// value counts as 0, which is what "q=" begins to mean for a refusal.
+static bool q_is_zero(const std::string& params)
+{
+    size_t pos = 0;
+
+    while (pos <= params.size()) {
+        size_t semi = params.find(';', pos);
+        std::string item = params.substr(pos,
+            semi == std::string::npos ? std::string::npos : semi - pos);
+        size_t eq = item.find('=');
+
+        if (eq != std::string::npos) {
+            std::string key = item.substr(0, eq);
+            trim_ascii(key);
+
+            if (!qstricmp(key.c_str(), "q")) {
+                std::string val = item.substr(eq + 1);
+                trim_ascii(val);
+                return val.empty() || atof(val.c_str()) <= 0;
+            }
+        }
+
+        if (semi == std::string::npos)
+            break;
+        pos = semi + 1;
+    }
+
+    return false;
+}
+
+// Finds one coding token in Accept-Encoding. `zero` reports q=0, which means
+// the client explicitly refuses that coding.
+static bool find_coding(const std::string& header, const char* coding, bool& zero)
+{
+    size_t pos = 0;
+
+    while (pos <= header.size()) {
+        size_t comma = header.find(',', pos);
+        std::string item = header.substr(pos,
+            comma == std::string::npos ? std::string::npos : comma - pos);
+        size_t semi = item.find(';');
+        std::string name = item.substr(0, semi);
+        trim_ascii(name);
+
+        if (!qstricmp(name.c_str(), coding)) {
+            zero = semi != std::string::npos && q_is_zero(item.substr(semi + 1));
+            return true;
+        }
+
+        if (comma == std::string::npos)
+            break;
+        pos = comma + 1;
+    }
+
+    return false;
+}
+
+// Prefers gzip, falls back to deflate. q=0 excludes a coding and '*' covers
+// the codings that were not listed explicitly.
+static int32_t select_encoding(const exlib::string& hdr)
+{
+    std::string header(hdr.c_str(), hdr.length());
+    bool gzip_zero = false;
+    bool deflate_zero = false;
+    bool star_zero = false;
+
+    bool has_gzip = find_coding(header, "gzip", gzip_zero);
+    if (!has_gzip)
+        has_gzip = find_coding(header, "x-gzip", gzip_zero);
+    bool has_deflate = find_coding(header, "deflate", deflate_zero);
+    bool has_star = find_coding(header, "*", star_zero);
+
+    bool star_allows = has_star && !star_zero;
+    bool gzip_allowed = has_gzip ? !gzip_zero : star_allows;
+    bool deflate_allowed = has_deflate ? !deflate_zero : star_allows;
+
+    if (gzip_allowed)
+        return 1;
+    if (deflate_allowed)
+        return 2;
+    return 0;
+}
+
+// Returns true when the response carries a media type that benefits from a
+// content coding. Parameters such as "; charset=utf-8" are stripped first so
+// "<type>; charset=..." matches the same table entry as "<type>".
+static bool is_compressible_type(HttpMessage_base* rep)
+{
+    exlib::string hdr;
+
+    if (rep->firstHeader("Content-Type", hdr).is_return_null())
+        return false;
+
+    std::string contentType(hdr.c_str(), hdr.length());
+    size_t semi = contentType.find(';');
+    if (semi != std::string::npos)
+        contentType = contentType.substr(0, semi);
+    trim_ascii(contentType);
+
+    const char* pKey = contentType.c_str();
+
+    return !qstricmp(contentType.c_str(), "text/", 5)
+        || bsearch(&pKey, &s_zipTypes, ARRAYSIZE(s_zipTypes),
+               sizeof(pKey), mt_cmp)
+            != NULL;
+}
+
+static void append_vary(HttpMessage_base* rep, const char* token,
+    obj_ptr<HttpMessage_base>& hdrRet)
+{
+    obj_ptr<NObject> values;
+
+    if (rep->allHeader("Vary", values).ok() && values) {
+        NArray* list = static_cast<NArray*>(values.get());
+        int32_t len = list->length();
+
+        for (int32_t i = 0; i < len; i++) {
+            Variant v;
+            list->_indexed_getter(i, v);
+
+            if (qstristr(v.string().c_str(), token))
+                return;
+        }
+    }
+
+    rep->appendHeader("Vary", token, hdrRet);
+}
+
+static void append_vary_accept_encoding(HttpMessage_base* rep,
+    obj_ptr<HttpMessage_base>& hdrRet)
+{
+    append_vary(rep, "Accept-Encoding", hdrRet);
+}
+
+static bool origin_allowed(const std::vector<exlib::string>& origins,
+    const exlib::string& origin)
+{
+    if (origins.empty())
+        return true;
+
+    for (auto& allowed : origins)
+        if (allowed == "*" || !qstricmp(allowed.c_str(), origin.c_str()))
+            return true;
+
+    return false;
+}
+
 result_t HttpHandler_base::_new(Union_HttpHandler_hdlr hdlr, obj_ptr<HttpHandler_base>& retVal,
     v8::Local<v8::Object> This)
 {
@@ -606,6 +779,7 @@ result_t HttpHandler_base::_new(Union_HttpHandler_hdlr hdlr, obj_ptr<HttpHandler
 
 HttpHandler::HttpHandler()
     : m_crossDomain(false)
+    , m_allowCredentials(false)
     , m_maxHeadersCount(128)
     , m_maxHeaderSize(8192)
     , m_maxBodySize(64)
@@ -631,6 +805,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             , m_pThis(pThis)
             , m_stm(stm)
             , m_options(false)
+            , m_head(false)
         {
             m_stmBuffered = new BufferedStream(stm);
             m_stmBuffered->set_EOL("\r\n");
@@ -654,6 +829,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 return next(result_t::return_null());
 
             m_options = false;
+            m_head = false;
 
             m_zip.Release();
             m_body.Release();
@@ -680,28 +856,61 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_req->get_keepAlive(bKeepAlive);
             m_rep->set_keepAlive(bKeepAlive);
 
+            // RFC 9112: an HTTP/1.1 request without Host cannot be routed and
+            // is answered with 400 instead of reaching the handler.
+            if (!qstricmp(str.c_str(), "http/1.1")) {
+                bool hasHost = false;
+                m_req->hasHeader("Host", hasHost);
+
+                if (!hasHost) {
+                    m_rep->clear();
+                    m_rep->set_protocol(str);
+                    m_rep->set_keepAlive(false);
+                    m_rep->set_statusCode(400);
+                    return next(send);
+                }
+            }
+
             m_d.now();
 
             if (m_pThis->m_crossDomain) {
-                m_req->get_address(str);
-
                 exlib::string origin;
 
                 if (!m_req->firstHeader("origin", origin).is_return_null()) {
-                    m_rep->setHeader("Access-Control-Allow-Credentials", "true", hdrRet);
-                    m_rep->setHeader("Access-Control-Allow-Origin", origin, hdrRet);
+                    if (origin_allowed(m_pThis->m_allowOrigins, origin)) {
+                        m_rep->setHeader("Access-Control-Allow-Origin", origin, hdrRet);
+                        if (m_pThis->m_allowCredentials)
+                            m_rep->setHeader("Access-Control-Allow-Credentials", "true", hdrRet);
+                        append_vary(m_rep, "Origin", hdrRet);
 
-                    m_req->get_method(str);
+                        m_req->get_method(str);
 
-                    if (!qstricmp(str.c_str(), "options")) {
-                        m_options = true;
+                        if (!qstricmp(str.c_str(), "options")) {
+                            m_options = true;
 
-                        m_rep->setHeader("Access-Control-Allow-Methods", "*", hdrRet);
-                        m_rep->setHeader("Access-Control-Allow-Headers",
-                            m_pThis->m_allowHeaders, hdrRet);
-                        m_rep->setHeader("Access-Control-Max-Age", "1728000", hdrRet);
+                            exlib::string reqMethod;
+                            if (!m_req->firstHeader("Access-Control-Request-Method", reqMethod).is_return_null()
+                                && !reqMethod.empty())
+                                m_rep->setHeader("Access-Control-Allow-Methods", reqMethod, hdrRet);
+                            else
+                                m_rep->setHeader("Access-Control-Allow-Methods", "*", hdrRet);
 
-                        return next(send);
+                            m_rep->setHeader("Access-Control-Allow-Headers",
+                                m_pThis->m_allowHeaders, hdrRet);
+                            m_rep->setHeader("Access-Control-Max-Age", "1728000", hdrRet);
+
+                            append_vary(m_rep, "Access-Control-Request-Method", hdrRet);
+                            append_vary(m_rep, "Access-Control-Request-Headers", hdrRet);
+
+                            return next(send);
+                        }
+                    } else {
+                        m_req->get_method(str);
+
+                        if (!qstricmp(str.c_str(), "options")) {
+                            m_options = true;
+                            return next(send);
+                        }
                     }
                 }
             }
@@ -729,72 +938,83 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             m_rep->get_statusCode(s);
             if (s == 200 && !m_options) {
+                bool hasExpires = false;
+
                 m_rep->hasHeader("Last-Modified", t);
-                if (!t && (m_rep->firstHeader("Cache-Control", str).is_return_null())) {
+                m_rep->hasHeader("Expires", hasExpires);
+                if (!t && !hasExpires
+                    && (m_rep->firstHeader("Cache-Control", str).is_return_null())) {
                     m_rep->appendHeader("Cache-Control", "no-cache, no-store", hdrRet);
-                    m_rep->appendHeader("Expires", "-1", hdrRet);
+                    m_rep->appendHeader("Expires", "Thu, 01 Jan 1970 00:00:00 GMT", hdrRet);
                 }
             }
 
-            m_req->get_method(str);
-            bool headOnly = !qstricmp(str.c_str(), "head");
-
-            if (headOnly) {
-                m_rep->set_keepAlive(false);
-
-                return m_rep.As<HttpResponse>()->sendHeader(m_stm, true, next(end));
+            if (m_rep->firstHeader("Date", str).is_return_null()) {
+                exlib::string dateStr;
+                d.toGMTString(dateStr);
+                m_rep->appendHeader("Date", dateStr, hdrRet);
             }
+
+            m_req->get_method(str);
+            m_head = !qstricmp(str.c_str(), "head");
 
             int64_t len;
 
             m_rep->get_length(len);
 
-            if (m_pThis->m_enableEncoding && len > 128 && len < 1024 * 1024 * 64) {
+            // A 206 response carries a byte range of the unencoded file;
+            // applying a content coding to that range would invalidate
+            // Content-Range, so range responses are never compressed.
+            exlib::string cacheControl;
+            bool noTransform = !m_rep->firstHeader("Cache-Control", cacheControl).is_return_null()
+                && qstristr(cacheControl.c_str(), "no-transform");
+
+            if (m_pThis->m_enableEncoding && s != 206 && !noTransform
+                && len >= kMinEncodeSize && len <= kMaxEncodeSize
+                && is_compressible_type(m_rep)) {
                 exlib::string hdr;
 
-                if (!m_req->firstHeader("Accept-Encoding", hdr).is_return_null()) {
-                    int32_t type = 0;
+                if (m_rep->firstHeader("Content-Encoding", hdr)
+                        .is_return_null()) {
+                    // The representation varies with Accept-Encoding even
+                    // when this particular client gets the identity form.
+                    append_vary_accept_encoding(m_rep, hdrRet);
 
-                    if (qstristr(hdr.c_str(), "gzip"))
-                        type = 1;
-                    else if (qstristr(hdr.c_str(), "deflate"))
-                        type = 2;
+                    if (!m_req->firstHeader("Accept-Encoding", hdr).is_return_null()) {
+                        int32_t type = select_encoding(hdr);
 
-                    if (type != 0) {
-                        if (!m_rep->firstHeader("Content-Type", hdr).is_return_null()) {
-                            const char* pKey = hdr.c_str();
-                            if (qstricmp(hdr.c_str(), "text/", 5)
-                                && !bsearch(&pKey, &s_zipTypes, ARRAYSIZE(s_zipTypes),
-                                    sizeof(pKey), mt_cmp))
-                                type = 0;
-                        } else
-                            type = 0;
-                    }
+                        if (type != 0) {
+                            m_rep->appendHeader("Content-Encoding",
+                                type == 1 ? "gzip" : "deflate", hdrRet);
 
-                    if (type != 0) {
-                        if (!m_rep->firstHeader("Content-Encoding", hdr).is_return_null())
-                            type = 0;
-                    }
+                            if (!m_rep->get_body(m_body).is_return_null() && m_body) {
+                                obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(m_body);
+                                if (!seekable)
+                                    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("HttpHandler: response body must be seekable for compression.");
+                                seekable->rewind();
 
-                    if (type != 0) {
-                        m_rep->appendHeader("Content-Encoding", type == 1 ? "gzip" : "deflate", hdrRet);
+                                m_zip = new MemoryStream();
 
-                        if (!m_rep->get_body(m_body).is_return_null() && m_body) {
-                            obj_ptr<SeekableStream_base> seekable = SeekableStream_base::getInstance(m_body);
-                            if (!seekable)
-                                return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("HttpHandler: response body must be seekable for compression.");
-                            seekable->rewind();
-
-                            m_zip = new MemoryStream();
-
-                            if (type == 1)
-                                return zlib_base::gzipTo(m_body, m_zip, next(zip));
-                            else
-                                return zlib_base::deflateTo(m_body, m_zip, -1, next(zip));
+                                if (type == 1)
+                                    return zlib_base::gzipTo(m_body, m_zip, next(zip));
+                                else
+                                    return zlib_base::deflateTo(m_body, m_zip, -1, next(zip));
+                            }
                         }
                     }
                 }
+            } else if (m_pThis->m_enableEncoding
+                && (s == 206 || s == 304)
+                && is_compressible_type(m_rep)) {
+                // A 206 body or a 304 has no payload of its own, but the
+                // representation it refers to still varies with the request's
+                // Accept-Encoding. Emit Vary so a shared cache keeps the
+                // encoded and identity variants apart.
+                append_vary_accept_encoding(m_rep, hdrRet);
             }
+
+            if (m_head)
+                return m_rep.As<HttpResponse>()->sendHeader(m_stm, true, next(end));
 
             return m_rep->sendTo(m_stm, nullptr, next(end));
         }
@@ -802,6 +1022,10 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         ON_STATE(asyncInvoke, zip)
         {
             m_rep->set_body(m_zip);
+
+            if (m_head)
+                return m_rep.As<HttpResponse>()->sendHeader(m_stm, true, next(end));
+
             return m_rep->sendTo(m_stm, nullptr, next(end));
         }
 
@@ -811,9 +1035,25 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_rep->get_body(m_body);
 
             if (!m_body)
-                return next(read);
+                return next(loop);
 
-            return m_body->close(next(read));
+            return m_body->close(next(loop));
+        }
+
+        ON_STATE(asyncInvoke, loop)
+        {
+            // RFC 9112 9.3 / 9.6: after a 101 the connection switches to the
+            // new protocol, so HTTP framing stops and the socket is handed over
+            // rather than being read as another request. A Connection: close
+            // response likewise ends the loop.
+            bool upgrade = false;
+            m_rep->get_upgrade(upgrade);
+            if (upgrade) {
+                m_rep->set_keepAlive(false);
+                return next(result_t::return_null());
+            }
+
+            return next(read);
         }
 
         virtual result_t error(result_t v)
@@ -824,6 +1064,22 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_req->set_lastError(err);
                 errorLog("HttpHandler: " + err);
 
+                exlib::string proto;
+                bool keepAlive;
+                bool sent;
+
+                m_rep->get_sent(sent);
+                if (sent) {
+                    m_rep->set_keepAlive(false);
+                    return next(result_t::return_null());
+                }
+
+                m_req->get_protocol(proto);
+                m_req->get_keepAlive(keepAlive);
+
+                m_rep->clear();
+                m_rep->set_protocol(proto);
+                m_rep->set_keepAlive(keepAlive);
                 m_rep->set_statusCode(500);
                 return result_t();
             }
@@ -832,11 +1088,36 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 if (v.is(CALL_E_CLOSED))
                     return next(result_t::return_null());
 
+                int32_t status = 400;
+                const ErrorPayload* payload = v.payload();
+
+                if (payload) {
+                    if (payload->message.find("body is too huge") != exlib::string::npos)
+                        status = 413;
+                    else if (payload->message.find("too many headers") != exlib::string::npos
+                        || payload->message.find("header block is too large") != exlib::string::npos
+                        // BufferedStream::readLine reports an oversized single
+                        // header line with this message; it is still a header
+                        // limit, so answer 431 rather than a generic 400.
+                        || payload->message.find("input data too long") != exlib::string::npos)
+                        status = 431;
+                }
+
                 m_rep->set_keepAlive(false);
-                m_rep->set_statusCode(400);
+                m_rep->set_statusCode(status);
+                if (status == 431)
+                    m_rep->set_statusMessage("Request Header Fields Too Large");
                 next(send);
                 m_d.now();
                 return result_t();
+            }
+
+            // A failure while compressing or sending cannot be turned into a
+            // normal response once headers may have been selected; close the
+            // connection instead of leaving the peer with a half response.
+            if (at(send) || at(zip)) {
+                m_rep->set_keepAlive(false);
+                return next(result_t::return_null());
             }
 
             return next(result_t::return_null());
@@ -852,6 +1133,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         obj_ptr<Stream_base> m_body;
         date_t m_d;
         bool m_options;
+        bool m_head;
     };
 
     if (ac.isSync())
@@ -870,10 +1152,42 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     return (new asyncInvoke(this, stm, std::move(ac)))->post(result_t());
 }
 
-result_t HttpHandler::enableCrossOrigin(exlib::string allowHeaders)
+result_t HttpHandler::enableCrossOrigin(exlib::string allowHeaders, v8::Local<v8::Object> options)
 {
     m_crossDomain = true;
     m_allowHeaders = allowHeaders;
+    m_allowOrigins.clear();
+    m_allowCredentials = false;
+
+    if (!options.IsEmpty()) {
+        bool credentials = false;
+        if (GetConfigValue(options, "credentials", credentials).ok())
+            m_allowCredentials = credentials;
+
+        v8::Local<v8::Value> originsVal;
+        if (GetConfigValue(options, "origins", originsVal).ok() && !originsVal.IsEmpty()) {
+            Isolate* isolate = Isolate::current(options);
+            v8::Local<v8::Context> context = isolate->context();
+
+            auto add_origin = [&](v8::Local<v8::Value> v) {
+                if (v->IsString())
+                    m_allowOrigins.push_back(isolate->toString(v));
+            };
+
+            if (originsVal->IsArray()) {
+                v8::Local<v8::Array> origins = originsVal.As<v8::Array>();
+                uint32_t len = origins->Length();
+
+                for (uint32_t i = 0; i < len; i++) {
+                    v8::Local<v8::Value> v;
+                    if (origins->Get(context, i).ToLocal(&v))
+                        add_origin(v);
+                }
+            } else
+                add_origin(originsVal);
+        }
+    }
+
     return result_t();
 }
 

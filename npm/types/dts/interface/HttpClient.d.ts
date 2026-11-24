@@ -174,7 +174,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      - enableEncoding: specifies whether to enable the automatic decompression feature (default true)
      *      - enableH2: specifies whether to enable HTTP/2 automatic upgrade (default true)
      *      - maxHeadersCount: specifies the maximum number of request headers (default 128)
-     *      - maxHeaderSize: specifies the maximum request header size in bytes (default 8192)
+     *      - maxHeaderSize: specifies the maximum response header block size in bytes (default 8192)
      *      - maxChunkSize: specifies the maximum chunk size in MB (default 2)
      *      - maxBodySize: specifies the maximum body size in MB (default -1, no limit)
      *      - userAgent: specifies the browser identifier (default 'curl/8.14.1')
@@ -280,7 +280,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
     maxHeadersCount: number;
 
     /**
-     * @description Queries and sets the maximum request header size in bytes, default 8192
+     * @description Queries and sets the maximum response header block size in bytes, default 8192
      *
      *      A response whose headers exceed the limit is rejected.
      *
@@ -1495,7 +1495,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      - enableEncoding: specifies whether to enable the automatic decompression feature (default true)
      *      - enableH2: specifies whether to enable HTTP/2 automatic upgrade (default true)
      *      - maxHeadersCount: specifies the maximum number of request headers (default 128)
-     *      - maxHeaderSize: specifies the maximum request header size in bytes (default 8192)
+     *      - maxHeaderSize: specifies the maximum response header block size in bytes (default 8192)
      *      - maxChunkSize: specifies the maximum chunk size in MB (default 2)
      *      - maxBodySize: specifies the maximum body size in MB (default -1, no limit)
      *      - userAgent: specifies the browser identifier (default 'curl/8.14.1')
@@ -1601,7 +1601,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     maxHeadersCount: number;
 
     /**
-     * @description Queries and sets the maximum request header size in bytes, default 8192
+     * @description Queries and sets the maximum response header block size in bytes, default 8192
      *
      *      A response whose headers exceed the limit is rejected.
      *

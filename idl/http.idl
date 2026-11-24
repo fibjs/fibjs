@@ -54,7 +54,7 @@
  - **Compression**: with `enableEncoding` enabled (the default) the client sends
    `Accept-Encoding: gzip, deflate` and transparently decompresses gzip/deflate response bodies,
    removing the `Content-Encoding` and `Content-Length` headers. Set it to false to receive the
-   compressed bytes. `fileHandler` can serve pre-compressed `file.ext.gz` files directly.
+   compressed bytes.
  - **Cookies**: a client with `enableCookie` enabled (the default) stores the `Set-Cookie` headers
    of every response in its `cookies` list and sends the matching cookies back on later requests
    to the same domain and path; cookies marked `secure` are only sent over HTTPS.
@@ -187,8 +187,8 @@
    A body that exceeds `maxBodySize` fails with ERR_INVALID_STATE.
  - `http.cookies`, the module properties and the module-level request functions all operate on one
    hidden global client, so `http.cookies` only contains the cookies collected through them.
- - `fileHandler` generates `Cache-Control`, `Last-Modified` and the gzip variants of files when
-   asked to; see its own documentation for the options.
+ - `fileHandler` generates `Cache-Control` and `Last-Modified` headers when asked to; see its
+   own documentation for the options.
 */
 module http
 {
@@ -413,9 +413,9 @@ module http
      */
     static Integer maxHeadersCount;
 
-    /*! @brief Queries and sets the maximum request header size in bytes, default 8192
+    /*! @brief Queries and sets the maximum response header block size in bytes, default 8192
 
-     A request whose headers exceed the limit is rejected.
+     A response whose header block exceeds the limit is rejected.
      */
     static Integer maxHeaderSize;
 
@@ -457,8 +457,7 @@ module http
 
     /*! @brief Creates an http static file handler to respond to http messages with static files
 
-     fileHandler supports gzip pre-compression: when the request accepts gzip encoding and a filename.ext.gz file exists at the same path, this file is returned directly,
-     thus avoiding server load caused by repeated compression. Directory requests serve
+     fileHandler serves static files from a directory. Directory requests serve
      index.html when it exists, and `autoIndex` additionally allows listing the directory when
      no index file is found.
      @param root file root path
@@ -468,9 +467,6 @@ module http
     static Handler fileHandler(String root, Boolean autoIndex = false);
 
     /*! @brief Creates an http static file handler to respond to http messages with static files
-
-     fileHandler supports gzip pre-compression: when the request accepts gzip encoding and a filename.ext.gz file exists at the same path, this file is returned directly,
-     thus avoiding server load caused by repeated compression.
 
      Meanings of the options fields:
      - autoIndex: Boolean, whether browsing directory files is supported, default false, not supported

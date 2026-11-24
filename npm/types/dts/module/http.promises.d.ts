@@ -309,9 +309,9 @@ declare module 'http/promises' {
     var maxHeadersCount: number;
 
     /**
-     * @description Queries and sets the maximum request header size in bytes, default 8192
+     * @description Queries and sets the maximum response header block size in bytes, default 8192
      *
-     *      A request whose headers exceed the limit is rejected.
+     *      A response whose header block exceeds the limit is rejected.
      *
      */
     var maxHeaderSize: number;
@@ -365,8 +365,7 @@ declare module 'http/promises' {
     /**
      * @description Creates an http static file handler to respond to http messages with static files
      *
-     *      fileHandler supports gzip pre-compression: when the request accepts gzip encoding and a filename.ext.gz file exists at the same path, this file is returned directly,
-     *      thus avoiding server load caused by repeated compression. Directory requests serve
+     *      fileHandler serves static files from a directory. Directory requests serve
      *      index.html when it exists, and `autoIndex` additionally allows listing the directory when
      *      no index file is found.
      *      @param root file root path
@@ -378,9 +377,6 @@ declare module 'http/promises' {
 
     /**
      * @description Creates an http static file handler to respond to http messages with static files
-     *
-     *      fileHandler supports gzip pre-compression: when the request accepts gzip encoding and a filename.ext.gz file exists at the same path, this file is returned directly,
-     *      thus avoiding server load caused by repeated compression.
      *
      *      Meanings of the options fields:
      *      - autoIndex: Boolean, whether browsing directory files is supported, default false, not supported

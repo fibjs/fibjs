@@ -9,6 +9,8 @@
 
 #include "ifs/HttpHandler.h"
 
+#include <vector>
+
 namespace fibjs {
 
 class HttpHandler : public HttpHandler_base {
@@ -25,7 +27,7 @@ public:
 
 public:
     // HttpHandler_base
-    virtual result_t enableCrossOrigin(exlib::string allowHeaders);
+    virtual result_t enableCrossOrigin(exlib::string allowHeaders, v8::Local<v8::Object> options);
     virtual result_t get_maxHeadersCount(int32_t& retVal);
     virtual result_t set_maxHeadersCount(int32_t newVal);
     virtual result_t get_maxHeaderSize(int32_t& retVal);
@@ -44,6 +46,8 @@ private:
 
     bool m_crossDomain;
     exlib::string m_allowHeaders;
+    std::vector<exlib::string> m_allowOrigins;
+    bool m_allowCredentials;
     int32_t m_maxHeadersCount;
     int32_t m_maxHeaderSize;
     int32_t m_maxBodySize;

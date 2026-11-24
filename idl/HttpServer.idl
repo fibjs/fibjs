@@ -17,24 +17,26 @@
    is ignored, and `(req) => res.write('ok')` is valid. End the reply with res.end()
    (or req.response.end()).
  - **Lifecycle**: each accepted connection runs a parse-invoke-send loop, and the parsed
-   request and its response are reused across keep-alive requests. An exception thrown by
-   the handler is caught, logged as `HttpHandler: <error>` and answered with an empty 500;
-   a request that cannot be parsed (bad request line, header or body above a limit) is
-   answered with 400 and the connection is closed. There is no built-in 404: an untouched
-   response is a 200 with an empty body.
+   request and its response are reused across keep-alive requests. An HTTP/1.1 request
+   without Host is rejected with 400, and `Expect: 100-continue` receives the interim 100
+   response before the body is read. An exception thrown by the handler is caught, logged
+   as `HttpHandler: <error>` and answered with an empty 500; a request that cannot be
+   parsed is answered with 400 and the connection is closed. A request over a header limit
+   is answered with 431 and one over the body limit with 413. There is no built-in 404: an
+   untouched response is a 200 with an empty body.
  - **Automatic headers**: a Server header is added unless the handler set one (serverName,
-   default `fibjs/<version>`), a plain 200 without Last-Modified or Cache-Control gets
-   `Cache-Control: no-cache, no-store` and `Expires: -1`, and a HEAD request receives
-   headers only. There is no automatic Date header.
- - **CORS**: enableCrossOrigin serves the CORS protocol for every handler: a request with
-   an Origin header gets Access-Control-Allow-Credentials and
-   Access-Control-Allow-Origin, and an OPTIONS preflight is answered directly with
-   Allow-Methods `*`, the configured Allow-Headers and Max-Age 1728000, without invoking
-   the handler.
+   default `fibjs/<version>`), a Date header is always added, a plain 200 without
+   Last-Modified, Cache-Control or Expires gets `Cache-Control: no-cache, no-store` and a
+   past `Expires` date, and a HEAD request receives headers only.
+ - **CORS**: enableCrossOrigin serves the CORS protocol for every handler. A request with
+   an Origin header that passes the configured origins allowlist gets
+   Access-Control-Allow-Origin and Vary: Origin; Access-Control-Allow-Credentials is
+   sent only when explicitly enabled, and an OPTIONS preflight is answered directly with
+   Allow-Methods echoing Access-Control-Request-Method, the configured Allow-Headers and
+   Max-Age 1728000, without invoking the handler.
  - **Limits and compression**: maxHeadersCount, maxHeaderSize and maxBodySize bound the
-   parsed request (a request over a limit is answered with 400); enableEncoding
-   compresses eligible text replies transparently when the client accepts gzip or
-   deflate.
+   parsed request (431 for headers, 413 for the body); enableEncoding compresses eligible
+   text replies transparently when the client accepts gzip or deflate.
  - **Handler forms**: the handler receives a single request object (see above), the response is
    reached through `req.response`, and the TcpServer events are forwarded.
 
@@ -161,62 +163,72 @@ interface HttpServer : TcpServer
 
     /*! @brief Enables automatic CORS handling, including preflight requests
 
-     Turns on the embedded handler's CORS mode: requests carrying an Origin header get
-     Access-Control-Allow-Credentials: true and Access-Control-Allow-Origin echoing the
-     origin, and an OPTIONS preflight is answered directly (200) with
-     Access-Control-Allow-Methods: *, Access-Control-Allow-Headers set to allowHeaders
-     and Access-Control-Max-Age: 1728000, without invoking the handler.
+     Turns on the embedded handler's CORS mode. Requests carrying an Origin header are
+     matched against options.origins (a string or array; `*` matches any; omitted means
+     reflect any origin for compatibility) and, when allowed, receive
+     Access-Control-Allow-Origin plus Vary: Origin. Access-Control-Allow-Credentials is
+     sent only when options.credentials is true. An OPTIONS preflight is answered directly
+     (200) with Access-Control-Allow-Methods echoing Access-Control-Request-Method (or
+     `*` when absent), Access-Control-Allow-Headers set to allowHeaders and
+     Access-Control-Max-Age: 1728000, without invoking the handler. A disallowed origin
+     receives no CORS headers.
 
-     Example — answer a preflight:
+     Example — answer a preflight for a trusted origin:
      ```JavaScript
      const http = require('http');
 
      const server = new http.Server(0, (req) => { req.response.write('cors'); });
-     server.enableCrossOrigin('X-Custom');
+     server.enableCrossOrigin('X-Custom', { origins: ['http://example.com'] });
      server.start();
      const port = server.socket.localPort;
 
      const res = http.requestSync('OPTIONS', 'http://127.0.0.1:' + port + '/', {
-         headers: { Origin: 'http://example.com' }
+         headers: {
+             Origin: 'http://example.com',
+             'Access-Control-Request-Method': 'POST'
+         }
      });
      console.log(res.statusCode); // 200
      console.log(res.firstHeader('Access-Control-Allow-Origin')); // http://example.com
+     console.log(res.firstHeader('Access-Control-Allow-Methods')); // POST
      console.log(res.firstHeader('Access-Control-Allow-Headers')); // X-Custom
 
      server.stop();
      ```
      @param allowHeaders specifies the accepted http header fields
+     @param options CORS options: origins (String or String[]) and credentials (Boolean, default false)
      */
-    enableCrossOrigin(String allowHeaders = "Content-Type");
+    enableCrossOrigin(String allowHeaders = "Content-Type", Object options = {});
 
     /*! @brief Queries and sets the maximum number of request headers, default 128
 
      Applied when each request is parsed; a request with more header lines is answered
-     with 400 and the connection is closed. A negative value throws a RangeError (20006).
+     with 431 and the connection is closed. A negative value throws a RangeError (20006).
      */
     Integer maxHeadersCount;
 
-    /*! @brief Queries and sets the maximum length of one header line in bytes, default 8192
+    /*! @brief Queries and sets the maximum length of the header block in bytes, default 8192
 
-     A longer line makes the parser fail and the request is answered with 400; a negative
-     value throws a RangeError (20006).
+     A larger header block makes the parser fail and the request is answered with 431; a
+     negative value throws a RangeError (20006).
      */
     Integer maxHeaderSize;
 
     /*! @brief Queries and sets the maximum request body size in MB, default 64
 
      A Content-Length or chunked body larger than this is rejected while parsing and the
-     request is answered with 400; -1 disables the limit and 0 refuses every body.
+     request is answered with 413; -1 disables the limit and 0 refuses every body.
      */
     Integer maxBodySize;
 
     /*! @brief Enables automatic response compression, disabled by default
 
-     When on, a reply larger than 128 bytes and smaller than 64 MB is compressed with
-     gzip or deflate when the client sent a matching Accept-Encoding and the
-     Content-Type is text/* or a known compressible type; the handler adds
-     Content-Encoding and replaces the body with the compressed one. An existing
-     Content-Encoding disables it.
+     When on, a reply between 1 KB and 1 MB is compressed with gzip or deflate
+     when the client sent a matching Accept-Encoding and the Content-Type is
+     text/* or a known compressible type; the handler adds Content-Encoding
+     and Vary: Accept-Encoding and replaces the body with the compressed one.
+     An existing Content-Encoding disables it, and a 206 response is never
+     compressed.
      */
     Boolean enableEncoding;
 

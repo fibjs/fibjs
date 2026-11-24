@@ -18,11 +18,13 @@
    stream) and serves it until the connection closes: read a request, invoke
    the wrapped handler, send the response, then repeat while keep-alive is on.
    The 500 response on a handler error and the 400 response on a malformed
-   request are produced by this class.
+   request are produced by this class. An HTTP/1.1 request without Host is
+   rejected with 400, and an `Expect: 100-continue` request receives the
+   interim 100 response before its body is read.
  - **Limits**: maxHeadersCount (number of header fields), maxHeaderSize (bytes
    of the header block) and maxBodySize (MB of the body) guard the request
-   parser; a request over any of them is answered with 400 Bad Request and the
-   connection is closed.
+   parser; a request over a header limit is answered with 431 and a request
+   over the body limit with 413, then the connection is closed.
  - **Response options**: enableEncoding compresses a suitable response when the
    request accepts gzip/deflate, serverName sets the Server header, and
    enableCrossOrigin answers the CORS preflight and adds the CORS headers.
@@ -85,7 +87,7 @@
 
  const handler = new http.Handler((req, res) => {
      res.setHeader('Content-Type', 'text/plain');
-     res.write('x'.repeat(200));
+     res.write('x'.repeat(2048));
  });
  handler.enableEncoding = true;
 
@@ -101,7 +103,7 @@
  const headEnd = text.indexOf('\r\n\r\n', text.indexOf('\r\n\r\n') + 4);
  const head = text.slice(text.indexOf('\r\n\r\n') + 4, headEnd);
  console.log(head.indexOf('Content-Encoding: gzip') >= 0); // true
- console.log(zlib.gunzipSync(raw.slice(headEnd + 4)).length); // 200
+ console.log(zlib.gunzipSync(raw.slice(headEnd + 4)).length); // 2048
  ```
 
  Notes:
@@ -137,14 +139,25 @@ interface HttpHandler : Handler
 
     /*! @brief enables cross-origin requests
 
-     Turns the handler into a CORS endpoint: when a request carries an Origin
-     header, the response receives Access-Control-Allow-Credentials: true and
-     Access-Control-Allow-Origin set to that origin, and an OPTIONS preflight
-     is answered by the handler itself with Access-Control-Allow-Methods: *,
+     Turns the handler into a CORS endpoint. When a request carries an Origin
+     header, the origin is matched against the origins option and, when it is
+     allowed, the response receives Access-Control-Allow-Origin set to that
+     origin plus Vary: Origin. Access-Control-Allow-Credentials: true is sent
+     only when options.credentials is true; it is off by default because
+     credentials must never be enabled implicitly. An OPTIONS preflight is
+     answered by the handler itself with Access-Control-Allow-Methods echoing
+     Access-Control-Request-Method (or `*` when that header is absent),
      Access-Control-Max-Age: 1728000 and Access-Control-Allow-Headers set to
      allowHeaders. The wrapped handler is not called for the preflight.
 
-     Example — answer a preflight for a custom header:
+     options.origins accepts a string or an array of strings; a value of `*`
+     matches any origin. When origins is omitted every origin is reflected,
+     which keeps the historical behaviour and is suitable only for public
+     endpoints. An origin that is not allowed receives no CORS headers; the
+     request is still passed to the wrapped handler (a preflight is answered
+     without the CORS headers).
+
+     Example — answer a preflight for one trusted origin:
      ```JavaScript
      const http = require('http');
      const io = require('io');
@@ -152,12 +165,16 @@ interface HttpHandler : Handler
      const handler = new http.Handler((req, res) => {
          res.write('body');
      });
-     handler.enableCrossOrigin('Content-Type, X-Token');
+     handler.enableCrossOrigin('Content-Type, X-Token', {
+         origins: ['http://app.example.com'],
+         credentials: true
+     });
 
      // the preflight request is answered by the handler itself
      const stm = new io.MemoryStream();
      stm.write(Buffer.from('OPTIONS /submit HTTP/1.1\r\nHost: example.com\r\n' +
-         'Origin: http://app.example.com\r\nConnection: close\r\n\r\n'));
+         'Origin: http://app.example.com\r\n' +
+         'Access-Control-Request-Method: POST\r\nConnection: close\r\n\r\n'));
      stm.rewind();
      handler.invoke(stm);
 
@@ -167,17 +184,19 @@ interface HttpHandler : Handler
      const headers = 'Access-Control-Allow-Headers: Content-Type, X-Token';
      console.log(response.indexOf(origin) >= 0); // true
      console.log(response.indexOf(headers) >= 0); // true
+     console.log(response.indexOf('Vary: Origin') >= 0); // true
      ```
      @param allowHeaders specifies the accepted http header fields
+     @param options CORS options: origins (String or String[]) and credentials (Boolean, default false)
     */
-    enableCrossOrigin(String allowHeaders = "Content-Type");
+    enableCrossOrigin(String allowHeaders = "Content-Type", Object options = {});
 
     /*! @brief queries and sets the maximum number of request headers, default is 128
 
      The limit counts the header fields of one request; a request with more
-     fields is answered with 400 Bad Request and the connection is closed.
-     Clients that send many cookies or a long header set may need a larger
-     value; lower it to reject abusive requests early.
+     fields is answered with 431 Request Header Fields Too Large and the
+     connection is closed. Clients that send many cookies or a long header set
+     may need a larger value; lower it to reject abusive requests early.
 
      Example — the limit is enforced by the parser:
      ```JavaScript
@@ -195,7 +214,7 @@ interface HttpHandler : Handler
 
      stm.rewind();
      const text = stm.readAll().toString();
-     console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('400 Bad Request') >= 0); // true
+     console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('431 Request Header Fields Too Large') >= 0); // true
      ```
     */
     Integer maxHeadersCount;
@@ -203,9 +222,11 @@ interface HttpHandler : Handler
     /*! @brief queries and sets the maximum request header length, default is 8192
 
      The limit is the size in bytes of the whole header block of one request; a
-     request whose header block is larger is answered with 400 Bad Request and
-     the connection is closed. It bounds the memory a single request can use
-     for its headers independently of the field count.
+     request whose header block is larger is answered with 431 Request Header
+     Fields Too Large and the connection is closed. It bounds the memory a
+     single request can use for its headers independently of the field count.
+     The count includes each field line and its CRLF terminator; one individual
+     line is also bounded by the same value.
 
      Example — a header block over the limit is rejected:
      ```JavaScript
@@ -221,7 +242,7 @@ interface HttpHandler : Handler
 
      stm.rewind();
      const text = stm.readAll().toString();
-     console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('400 Bad Request') >= 0); // true
+     console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('431 Request Header Fields Too Large') >= 0); // true
      ```
     */
     Integer maxHeaderSize;
@@ -229,7 +250,7 @@ interface HttpHandler : Handler
     /*! @brief queries and sets the maximum body size in MB, default is 64
 
      The limit is expressed in megabytes and applies to the request body; a
-     body over it is answered with 400 Bad Request and the connection is
+     body over it is answered with 413 Content Too Large and the connection is
      closed. Raise it for upload endpoints, or lower it when the body is known
      to be small.
 
@@ -250,20 +271,22 @@ interface HttpHandler : Handler
      stm.rewind();
      const text = stm.readAll().toString();
      const response = text.slice(text.indexOf('\r\n\r\n') + 4 + body.length);
-     console.log(response.indexOf('400 Bad Request') >= 0); // true
+     console.log(response.indexOf('413 Request Entity Too Large') >= 0); // true
      ```
     */
     Integer maxBodySize;
 
-    /*! @brief switch for the automatic decompression feature, disabled by default
+    /*! @brief switch for the automatic compression feature, disabled by default
 
-     When enabled, a response whose body is longer than 128 bytes and shorter
-     than 64 MB is compressed with gzip or deflate when the request advertises
-     it through Accept-Encoding and the response has a compressible content
-     type (text/* or one of the known document, script and archive types); the
+     When enabled, a response whose body is between 1 KB and 1 MB is
+     compressed with gzip or deflate when the request advertises it through
+     Accept-Encoding and the response has a compressible content type (text/*
+     or one of the known document, script and archive types). The
      Content-Encoding header is added and an existing one disables the
-     compression. The body must be seekable, which the standard response body
-     is.
+     compression. A 206 response is never compressed, and an eligible response
+     as well as a compressible 206 or 304 carries Vary: Accept-Encoding. A q=0
+     parameter excludes a coding, so "gzip;q=0, deflate" selects deflate. The
+     body must be seekable, which the standard response body is.
 
      Example — gzip an accepted response:
      ```JavaScript
@@ -273,7 +296,7 @@ interface HttpHandler : Handler
 
      const handler = new http.Handler((req, res) => {
          res.setHeader('Content-Type', 'text/plain');
-         res.write('x'.repeat(200));
+         res.write('x'.repeat(2048));
      });
      handler.enableEncoding = true;
 
@@ -289,7 +312,7 @@ interface HttpHandler : Handler
      const headEnd = text.indexOf('\r\n\r\n', text.indexOf('\r\n\r\n') + 4);
      const head = text.slice(text.indexOf('\r\n\r\n') + 4, headEnd);
      console.log(head.indexOf('Content-Encoding: deflate') >= 0); // true
-     console.log(zlib.inflateSync(raw.slice(headEnd + 4)).length); // 200
+     console.log(zlib.inflateSync(raw.slice(headEnd + 4)).length); // 2048
      ```
     */
     Boolean enableEncoding;

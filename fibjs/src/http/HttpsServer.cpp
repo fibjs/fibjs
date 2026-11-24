@@ -191,9 +191,9 @@ result_t HttpsServer::set_handler(Handler_base* newVal)
     return m_handler->set_handler(newVal);
 }
 
-result_t HttpsServer::enableCrossOrigin(exlib::string allowHeaders)
+result_t HttpsServer::enableCrossOrigin(exlib::string allowHeaders, v8::Local<v8::Object> options)
 {
-    return m_handler->enableCrossOrigin(allowHeaders);
+    return m_handler->enableCrossOrigin(allowHeaders, options);
 }
 
 result_t HttpsServer::get_maxHeadersCount(int32_t& retVal)

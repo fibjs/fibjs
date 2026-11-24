@@ -31,7 +31,7 @@ public:
     static result_t _new(exlib::string addr, int32_t port, Union_HttpServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, Union_HttpServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Union_HttpServer_hdlr hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t enableCrossOrigin(exlib::string allowHeaders) = 0;
+    virtual result_t enableCrossOrigin(exlib::string allowHeaders, v8::Local<v8::Object> options) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
     virtual result_t get_maxHeaderSize(int32_t& retVal) = 0;
@@ -154,11 +154,12 @@ inline void HttpServer_base::s_enableCrossOrigin(const v8::FunctionCallbackInfo<
     METHOD_INSTANCE(HttpServer_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 0);
+    METHOD_OVER(2, 0);
 
     OPT_ARG_NAMED(exlib::string, 0, "Content-Type", "allowHeaders");
+    OPT_ARG_NAMED(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate), "options");
 
-    hr = pInst->enableCrossOrigin(v0);
+    hr = pInst->enableCrossOrigin(v0, v1);
 
     METHOD_VOID();
 }

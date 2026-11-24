@@ -24170,7 +24170,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
      *      - enableEncoding: specifies whether to enable the automatic decompression feature (default true)
      *      - enableH2: specifies whether to enable HTTP/2 automatic upgrade (default true)
      *      - maxHeadersCount: specifies the maximum number of request headers (default 128)
-     *      - maxHeaderSize: specifies the maximum request header size in bytes (default 8192)
+     *      - maxHeaderSize: specifies the maximum response header block size in bytes (default 8192)
      *      - maxChunkSize: specifies the maximum chunk size in MB (default 2)
      *      - maxBodySize: specifies the maximum body size in MB (default -1, no limit)
      *      - userAgent: specifies the browser identifier (default 'curl/8.14.1')
@@ -24276,7 +24276,7 @@ declare class Class_HttpClient extends Class_EventEmitter {
     maxHeadersCount: number;
 
     /**
-     * @description Queries and sets the maximum request header size in bytes, default 8192
+     * @description Queries and sets the maximum response header block size in bytes, default 8192
      *
      *      A response whose headers exceed the limit is rejected.
      *
@@ -25491,7 +25491,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
      *      - enableEncoding: specifies whether to enable the automatic decompression feature (default true)
      *      - enableH2: specifies whether to enable HTTP/2 automatic upgrade (default true)
      *      - maxHeadersCount: specifies the maximum number of request headers (default 128)
-     *      - maxHeaderSize: specifies the maximum request header size in bytes (default 8192)
+     *      - maxHeaderSize: specifies the maximum response header block size in bytes (default 8192)
      *      - maxChunkSize: specifies the maximum chunk size in MB (default 2)
      *      - maxBodySize: specifies the maximum body size in MB (default -1, no limit)
      *      - userAgent: specifies the browser identifier (default 'curl/8.14.1')
@@ -25597,7 +25597,7 @@ declare class Class_HttpClientPromise extends Class_EventEmitter {
     maxHeadersCount: number;
 
     /**
-     * @description Queries and sets the maximum request header size in bytes, default 8192
+     * @description Queries and sets the maximum response header block size in bytes, default 8192
      *
      *      A response whose headers exceed the limit is rejected.
      *
@@ -27506,11 +27506,13 @@ declare class Class_HttpCookie extends Class_object {
  *    stream) and serves it until the connection closes: read a request, invoke
  *    the wrapped handler, send the response, then repeat while keep-alive is on.
  *    The 500 response on a handler error and the 400 response on a malformed
- *    request are produced by this class.
+ *    request are produced by this class. An HTTP/1.1 request without Host is
+ *    rejected with 400, and an \`Expect: 100-continue\` request receives the
+ *    interim 100 response before its body is read.
  *  - **Limits**: maxHeadersCount (number of header fields), maxHeaderSize (bytes
  *    of the header block) and maxBodySize (MB of the body) guard the request
- *    parser; a request over any of them is answered with 400 Bad Request and the
- *    connection is closed.
+ *    parser; a request over a header limit is answered with 431 and a request
+ *    over the body limit with 413, then the connection is closed.
  *  - **Response options**: enableEncoding compresses a suitable response when the
  *    request accepts gzip/deflate, serverName sets the Server header, and
  *    enableCrossOrigin answers the CORS preflight and adds the CORS headers.
@@ -27573,7 +27575,7 @@ declare class Class_HttpCookie extends Class_object {
  *
  *  const handler = new http.Handler((req, res) => {
  *      res.setHeader('Content-Type', 'text/plain');
- *      res.write('x'.repeat(200));
+ *      res.write('x'.repeat(2048));
  *  });
  *  handler.enableEncoding = true;
  *
@@ -27589,7 +27591,7 @@ declare class Class_HttpCookie extends Class_object {
  *  const headEnd = text.indexOf('\\r\\n\\r\\n', text.indexOf('\\r\\n\\r\\n') + 4);
  *  const head = text.slice(text.indexOf('\\r\\n\\r\\n') + 4, headEnd);
  *  console.log(head.indexOf('Content-Encoding: gzip') >= 0); // true
- *  console.log(zlib.gunzipSync(raw.slice(headEnd + 4)).length); // 200
+ *  console.log(zlib.gunzipSync(raw.slice(headEnd + 4)).length); // 2048
  *  \`\`\`
  *
  *  Notes:
@@ -27628,14 +27630,25 @@ declare class Class_HttpHandler extends Class_Handler {
     /**
      * @description enables cross-origin requests
      *
-     *      Turns the handler into a CORS endpoint: when a request carries an Origin
-     *      header, the response receives Access-Control-Allow-Credentials: true and
-     *      Access-Control-Allow-Origin set to that origin, and an OPTIONS preflight
-     *      is answered by the handler itself with Access-Control-Allow-Methods: *,
+     *      Turns the handler into a CORS endpoint. When a request carries an Origin
+     *      header, the origin is matched against the origins option and, when it is
+     *      allowed, the response receives Access-Control-Allow-Origin set to that
+     *      origin plus Vary: Origin. Access-Control-Allow-Credentials: true is sent
+     *      only when options.credentials is true; it is off by default because
+     *      credentials must never be enabled implicitly. An OPTIONS preflight is
+     *      answered by the handler itself with Access-Control-Allow-Methods echoing
+     *      Access-Control-Request-Method (or \`*\` when that header is absent),
      *      Access-Control-Max-Age: 1728000 and Access-Control-Allow-Headers set to
      *      allowHeaders. The wrapped handler is not called for the preflight.
      *
-     *      Example — answer a preflight for a custom header:
+     *      options.origins accepts a string or an array of strings; a value of \`*\`
+     *      matches any origin. When origins is omitted every origin is reflected,
+     *      which keeps the historical behaviour and is suitable only for public
+     *      endpoints. An origin that is not allowed receives no CORS headers; the
+     *      request is still passed to the wrapped handler (a preflight is answered
+     *      without the CORS headers).
+     *
+     *      Example — answer a preflight for one trusted origin:
      *      \`\`\`JavaScript
      *      const http = require('http');
      *      const io = require('io');
@@ -27643,12 +27656,16 @@ declare class Class_HttpHandler extends Class_Handler {
      *      const handler = new http.Handler((req, res) => {
      *          res.write('body');
      *      });
-     *      handler.enableCrossOrigin('Content-Type, X-Token');
+     *      handler.enableCrossOrigin('Content-Type, X-Token', {
+     *          origins: ['http://app.example.com'],
+     *          credentials: true
+     *      });
      *
      *      // the preflight request is answered by the handler itself
      *      const stm = new io.MemoryStream();
      *      stm.write(Buffer.from('OPTIONS /submit HTTP/1.1\\r\\nHost: example.com\\r\\n' +
-     *          'Origin: http://app.example.com\\r\\nConnection: close\\r\\n\\r\\n'));
+     *          'Origin: http://app.example.com\\r\\n' +
+     *          'Access-Control-Request-Method: POST\\r\\nConnection: close\\r\\n\\r\\n'));
      *      stm.rewind();
      *      handler.invoke(stm);
      *
@@ -27658,19 +27675,21 @@ declare class Class_HttpHandler extends Class_Handler {
      *      const headers = 'Access-Control-Allow-Headers: Content-Type, X-Token';
      *      console.log(response.indexOf(origin) >= 0); // true
      *      console.log(response.indexOf(headers) >= 0); // true
+     *      console.log(response.indexOf('Vary: Origin') >= 0); // true
      *      \`\`\`
      *      @param allowHeaders specifies the accepted http header fields
+     *      @param options CORS options: origins (String or String[]) and credentials (Boolean, default false)
      *
      */
-    enableCrossOrigin(allowHeaders?: string): void;
+    enableCrossOrigin(allowHeaders?: string, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description queries and sets the maximum number of request headers, default is 128
      *
      *      The limit counts the header fields of one request; a request with more
-     *      fields is answered with 400 Bad Request and the connection is closed.
-     *      Clients that send many cookies or a long header set may need a larger
-     *      value; lower it to reject abusive requests early.
+     *      fields is answered with 431 Request Header Fields Too Large and the
+     *      connection is closed. Clients that send many cookies or a long header set
+     *      may need a larger value; lower it to reject abusive requests early.
      *
      *      Example — the limit is enforced by the parser:
      *      \`\`\`JavaScript
@@ -27688,7 +27707,7 @@ declare class Class_HttpHandler extends Class_Handler {
      *
      *      stm.rewind();
      *      const text = stm.readAll().toString();
-     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('400 Bad Request') >= 0); // true
+     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('431 Request Header Fields Too Large') >= 0); // true
      *      \`\`\`
      *
      */
@@ -27698,9 +27717,11 @@ declare class Class_HttpHandler extends Class_Handler {
      * @description queries and sets the maximum request header length, default is 8192
      *
      *      The limit is the size in bytes of the whole header block of one request; a
-     *      request whose header block is larger is answered with 400 Bad Request and
-     *      the connection is closed. It bounds the memory a single request can use
-     *      for its headers independently of the field count.
+     *      request whose header block is larger is answered with 431 Request Header
+     *      Fields Too Large and the connection is closed. It bounds the memory a
+     *      single request can use for its headers independently of the field count.
+     *      The count includes each field line and its CRLF terminator; one individual
+     *      line is also bounded by the same value.
      *
      *      Example — a header block over the limit is rejected:
      *      \`\`\`JavaScript
@@ -27716,7 +27737,7 @@ declare class Class_HttpHandler extends Class_Handler {
      *
      *      stm.rewind();
      *      const text = stm.readAll().toString();
-     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('400 Bad Request') >= 0); // true
+     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('431 Request Header Fields Too Large') >= 0); // true
      *      \`\`\`
      *
      */
@@ -27726,7 +27747,7 @@ declare class Class_HttpHandler extends Class_Handler {
      * @description queries and sets the maximum body size in MB, default is 64
      *
      *      The limit is expressed in megabytes and applies to the request body; a
-     *      body over it is answered with 400 Bad Request and the connection is
+     *      body over it is answered with 413 Content Too Large and the connection is
      *      closed. Raise it for upload endpoints, or lower it when the body is known
      *      to be small.
      *
@@ -27747,22 +27768,24 @@ declare class Class_HttpHandler extends Class_Handler {
      *      stm.rewind();
      *      const text = stm.readAll().toString();
      *      const response = text.slice(text.indexOf('\\r\\n\\r\\n') + 4 + body.length);
-     *      console.log(response.indexOf('400 Bad Request') >= 0); // true
+     *      console.log(response.indexOf('413 Request Entity Too Large') >= 0); // true
      *      \`\`\`
      *
      */
     maxBodySize: number;
 
     /**
-     * @description switch for the automatic decompression feature, disabled by default
+     * @description switch for the automatic compression feature, disabled by default
      *
-     *      When enabled, a response whose body is longer than 128 bytes and shorter
-     *      than 64 MB is compressed with gzip or deflate when the request advertises
-     *      it through Accept-Encoding and the response has a compressible content
-     *      type (text/* or one of the known document, script and archive types); the
+     *      When enabled, a response whose body is between 1 KB and 1 MB is
+     *      compressed with gzip or deflate when the request advertises it through
+     *      Accept-Encoding and the response has a compressible content type (text/*
+     *      or one of the known document, script and archive types). The
      *      Content-Encoding header is added and an existing one disables the
-     *      compression. The body must be seekable, which the standard response body
-     *      is.
+     *      compression. A 206 response is never compressed, and an eligible response
+     *      as well as a compressible 206 or 304 carries Vary: Accept-Encoding. A q=0
+     *      parameter excludes a coding, so "gzip;q=0, deflate" selects deflate. The
+     *      body must be seekable, which the standard response body is.
      *
      *      Example — gzip an accepted response:
      *      \`\`\`JavaScript
@@ -27772,7 +27795,7 @@ declare class Class_HttpHandler extends Class_Handler {
      *
      *      const handler = new http.Handler((req, res) => {
      *          res.setHeader('Content-Type', 'text/plain');
-     *          res.write('x'.repeat(200));
+     *          res.write('x'.repeat(2048));
      *      });
      *      handler.enableEncoding = true;
      *
@@ -27788,7 +27811,7 @@ declare class Class_HttpHandler extends Class_Handler {
      *      const headEnd = text.indexOf('\\r\\n\\r\\n', text.indexOf('\\r\\n\\r\\n') + 4);
      *      const head = text.slice(text.indexOf('\\r\\n\\r\\n') + 4, headEnd);
      *      console.log(head.indexOf('Content-Encoding: deflate') >= 0); // true
-     *      console.log(zlib.inflateSync(raw.slice(headEnd + 4)).length); // 200
+     *      console.log(zlib.inflateSync(raw.slice(headEnd + 4)).length); // 2048
      *      \`\`\`
      *
      */
@@ -27891,14 +27914,25 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
     /**
      * @description enables cross-origin requests
      *
-     *      Turns the handler into a CORS endpoint: when a request carries an Origin
-     *      header, the response receives Access-Control-Allow-Credentials: true and
-     *      Access-Control-Allow-Origin set to that origin, and an OPTIONS preflight
-     *      is answered by the handler itself with Access-Control-Allow-Methods: *,
+     *      Turns the handler into a CORS endpoint. When a request carries an Origin
+     *      header, the origin is matched against the origins option and, when it is
+     *      allowed, the response receives Access-Control-Allow-Origin set to that
+     *      origin plus Vary: Origin. Access-Control-Allow-Credentials: true is sent
+     *      only when options.credentials is true; it is off by default because
+     *      credentials must never be enabled implicitly. An OPTIONS preflight is
+     *      answered by the handler itself with Access-Control-Allow-Methods echoing
+     *      Access-Control-Request-Method (or \`*\` when that header is absent),
      *      Access-Control-Max-Age: 1728000 and Access-Control-Allow-Headers set to
      *      allowHeaders. The wrapped handler is not called for the preflight.
      *
-     *      Example — answer a preflight for a custom header:
+     *      options.origins accepts a string or an array of strings; a value of \`*\`
+     *      matches any origin. When origins is omitted every origin is reflected,
+     *      which keeps the historical behaviour and is suitable only for public
+     *      endpoints. An origin that is not allowed receives no CORS headers; the
+     *      request is still passed to the wrapped handler (a preflight is answered
+     *      without the CORS headers).
+     *
+     *      Example — answer a preflight for one trusted origin:
      *      \`\`\`JavaScript
      *      const http = require('http');
      *      const io = require('io');
@@ -27906,12 +27940,16 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
      *      const handler = new http.Handler((req, res) => {
      *          res.write('body');
      *      });
-     *      handler.enableCrossOrigin('Content-Type, X-Token');
+     *      handler.enableCrossOrigin('Content-Type, X-Token', {
+     *          origins: ['http://app.example.com'],
+     *          credentials: true
+     *      });
      *
      *      // the preflight request is answered by the handler itself
      *      const stm = new io.MemoryStream();
      *      stm.write(Buffer.from('OPTIONS /submit HTTP/1.1\\r\\nHost: example.com\\r\\n' +
-     *          'Origin: http://app.example.com\\r\\nConnection: close\\r\\n\\r\\n'));
+     *          'Origin: http://app.example.com\\r\\n' +
+     *          'Access-Control-Request-Method: POST\\r\\nConnection: close\\r\\n\\r\\n'));
      *      stm.rewind();
      *      handler.invoke(stm);
      *
@@ -27921,19 +27959,21 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
      *      const headers = 'Access-Control-Allow-Headers: Content-Type, X-Token';
      *      console.log(response.indexOf(origin) >= 0); // true
      *      console.log(response.indexOf(headers) >= 0); // true
+     *      console.log(response.indexOf('Vary: Origin') >= 0); // true
      *      \`\`\`
      *      @param allowHeaders specifies the accepted http header fields
+     *      @param options CORS options: origins (String or String[]) and credentials (Boolean, default false)
      *
      */
-    enableCrossOrigin(allowHeaders?: string): void;
+    enableCrossOrigin(allowHeaders?: string, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description queries and sets the maximum number of request headers, default is 128
      *
      *      The limit counts the header fields of one request; a request with more
-     *      fields is answered with 400 Bad Request and the connection is closed.
-     *      Clients that send many cookies or a long header set may need a larger
-     *      value; lower it to reject abusive requests early.
+     *      fields is answered with 431 Request Header Fields Too Large and the
+     *      connection is closed. Clients that send many cookies or a long header set
+     *      may need a larger value; lower it to reject abusive requests early.
      *
      *      Example — the limit is enforced by the parser:
      *      \`\`\`JavaScript
@@ -27951,7 +27991,7 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
      *
      *      stm.rewind();
      *      const text = stm.readAll().toString();
-     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('400 Bad Request') >= 0); // true
+     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('431 Request Header Fields Too Large') >= 0); // true
      *      \`\`\`
      *
      */
@@ -27961,9 +28001,11 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
      * @description queries and sets the maximum request header length, default is 8192
      *
      *      The limit is the size in bytes of the whole header block of one request; a
-     *      request whose header block is larger is answered with 400 Bad Request and
-     *      the connection is closed. It bounds the memory a single request can use
-     *      for its headers independently of the field count.
+     *      request whose header block is larger is answered with 431 Request Header
+     *      Fields Too Large and the connection is closed. It bounds the memory a
+     *      single request can use for its headers independently of the field count.
+     *      The count includes each field line and its CRLF terminator; one individual
+     *      line is also bounded by the same value.
      *
      *      Example — a header block over the limit is rejected:
      *      \`\`\`JavaScript
@@ -27979,7 +28021,7 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
      *
      *      stm.rewind();
      *      const text = stm.readAll().toString();
-     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('400 Bad Request') >= 0); // true
+     *      console.log(text.slice(text.indexOf('HTTP/1.1 ')).indexOf('431 Request Header Fields Too Large') >= 0); // true
      *      \`\`\`
      *
      */
@@ -27989,7 +28031,7 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
      * @description queries and sets the maximum body size in MB, default is 64
      *
      *      The limit is expressed in megabytes and applies to the request body; a
-     *      body over it is answered with 400 Bad Request and the connection is
+     *      body over it is answered with 413 Content Too Large and the connection is
      *      closed. Raise it for upload endpoints, or lower it when the body is known
      *      to be small.
      *
@@ -28010,22 +28052,24 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
      *      stm.rewind();
      *      const text = stm.readAll().toString();
      *      const response = text.slice(text.indexOf('\\r\\n\\r\\n') + 4 + body.length);
-     *      console.log(response.indexOf('400 Bad Request') >= 0); // true
+     *      console.log(response.indexOf('413 Request Entity Too Large') >= 0); // true
      *      \`\`\`
      *
      */
     maxBodySize: number;
 
     /**
-     * @description switch for the automatic decompression feature, disabled by default
+     * @description switch for the automatic compression feature, disabled by default
      *
-     *      When enabled, a response whose body is longer than 128 bytes and shorter
-     *      than 64 MB is compressed with gzip or deflate when the request advertises
-     *      it through Accept-Encoding and the response has a compressible content
-     *      type (text/* or one of the known document, script and archive types); the
+     *      When enabled, a response whose body is between 1 KB and 1 MB is
+     *      compressed with gzip or deflate when the request advertises it through
+     *      Accept-Encoding and the response has a compressible content type (text/*
+     *      or one of the known document, script and archive types). The
      *      Content-Encoding header is added and an existing one disables the
-     *      compression. The body must be seekable, which the standard response body
-     *      is.
+     *      compression. A 206 response is never compressed, and an eligible response
+     *      as well as a compressible 206 or 304 carries Vary: Accept-Encoding. A q=0
+     *      parameter excludes a coding, so "gzip;q=0, deflate" selects deflate. The
+     *      body must be seekable, which the standard response body is.
      *
      *      Example — gzip an accepted response:
      *      \`\`\`JavaScript
@@ -28035,7 +28079,7 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
      *
      *      const handler = new http.Handler((req, res) => {
      *          res.setHeader('Content-Type', 'text/plain');
-     *          res.write('x'.repeat(200));
+     *          res.write('x'.repeat(2048));
      *      });
      *      handler.enableEncoding = true;
      *
@@ -28051,7 +28095,7 @@ declare class Class_HttpHandlerPromise extends Class_HandlerPromise {
      *      const headEnd = text.indexOf('\\r\\n\\r\\n', text.indexOf('\\r\\n\\r\\n') + 4);
      *      const head = text.slice(text.indexOf('\\r\\n\\r\\n') + 4, headEnd);
      *      console.log(head.indexOf('Content-Encoding: deflate') >= 0); // true
-     *      console.log(zlib.inflateSync(raw.slice(headEnd + 4)).length); // 200
+     *      console.log(zlib.inflateSync(raw.slice(headEnd + 4)).length); // 2048
      *      \`\`\`
      *
      */
@@ -28151,10 +28195,14 @@ declare namespace Class_HttpHandler {
  *    values, setHeader replaces every value of a key (an object argument only touches the keys it
  *    contains, a Headers argument replaces the whole set), removeHeader deletes the key.
  *  - **Protocol and persistence**: \`protocol\` is the HTTP version string; setting a version above
- *    1.0 turns \`keepAlive\` on and 1.0 turns it off, and appending or parsing a Connection:
- *    keep-alive / Connection: Upgrade header updates keepAlive / upgrade accordingly.
- *  - **Limits**: maxHeadersCount (default 128) and maxHeaderSize (default 8192 bytes for one
- *    header line) bound the parsed header block; maxChunkSize (default 2 MB) bounds one chunk of
+ *    1.0 turns \`keepAlive\` on and 1.0 turns it off, and appending, setting or parsing a Connection:
+ *    close / keep-alive / Upgrade header updates keepAlive / upgrade accordingly. The Connection
+ *    header is managed by the message rather than emitted as an ordinary header, so a handler that
+ *    calls setHeader('Connection', 'close') actually ends the connection. A 1xx interim response
+ *    (other than 101) on the client side is read and discarded, then the final response is returned;
+ *    a 101 ends HTTP framing so the socket can switch protocols.
+ *  - **Limits**: maxHeadersCount (default 128) and maxHeaderSize (default 8192 bytes for the
+ *    whole header block) bound the parsed header block; maxChunkSize (default 2 MB) bounds one chunk of
  *    a chunked body and maxBodySize (default 64 MB) bounds the whole body, both in megabytes
  *    (-1 disables the body limit, 0 reads no body). The http module exposes module-level
  *    counterparts for the client side.
@@ -30174,8 +30222,9 @@ declare namespace Class_HttpRequest {
  *    response; nothing is sent while the handler runs and the whole reply is serialized when
  *    the handler returns (or when send/sendTo is called explicitly), at which point
  *    headersSent becomes true. The default is a 200 with an empty body; a plain 200 without
- *    Last-Modified or Cache-Control also receives Cache-Control: no-cache, no-store and
- *    Expires: -1 from the http handler.
+ *    Last-Modified, Cache-Control or Expires also receives Cache-Control: no-cache, no-store
+ *    and Expires: Thu, 01 Jan 1970 00:00:00 GMT from the http handler. A handler-set Expires
+ *    (or Cache-Control) suppresses both defaults.
  *  - **Status**: statusCode and status are the same numeric value, statusMessage and
  *    statusText are the same reason phrase. An empty statusMessage lets the writer use the
  *    standard phrase of the code (200 becomes "200 OK"); a custom one is written verbatim
@@ -31085,24 +31134,26 @@ declare namespace Class_HttpResponse {
  *    is ignored, and \`(req) => res.write('ok')\` is valid. End the reply with res.end()
  *    (or req.response.end()).
  *  - **Lifecycle**: each accepted connection runs a parse-invoke-send loop, and the parsed
- *    request and its response are reused across keep-alive requests. An exception thrown by
- *    the handler is caught, logged as \`HttpHandler: <error>\` and answered with an empty 500;
- *    a request that cannot be parsed (bad request line, header or body above a limit) is
- *    answered with 400 and the connection is closed. There is no built-in 404: an untouched
- *    response is a 200 with an empty body.
+ *    request and its response are reused across keep-alive requests. An HTTP/1.1 request
+ *    without Host is rejected with 400, and \`Expect: 100-continue\` receives the interim 100
+ *    response before the body is read. An exception thrown by the handler is caught, logged
+ *    as \`HttpHandler: <error>\` and answered with an empty 500; a request that cannot be
+ *    parsed is answered with 400 and the connection is closed. A request over a header limit
+ *    is answered with 431 and one over the body limit with 413. There is no built-in 404: an
+ *    untouched response is a 200 with an empty body.
  *  - **Automatic headers**: a Server header is added unless the handler set one (serverName,
- *    default \`fibjs/<version>\`), a plain 200 without Last-Modified or Cache-Control gets
- *    \`Cache-Control: no-cache, no-store\` and \`Expires: -1\`, and a HEAD request receives
- *    headers only. There is no automatic Date header.
- *  - **CORS**: enableCrossOrigin serves the CORS protocol for every handler: a request with
- *    an Origin header gets Access-Control-Allow-Credentials and
- *    Access-Control-Allow-Origin, and an OPTIONS preflight is answered directly with
- *    Allow-Methods \`*\`, the configured Allow-Headers and Max-Age 1728000, without invoking
- *    the handler.
+ *    default \`fibjs/<version>\`), a Date header is always added, a plain 200 without
+ *    Last-Modified, Cache-Control or Expires gets \`Cache-Control: no-cache, no-store\` and a
+ *    past \`Expires\` date, and a HEAD request receives headers only.
+ *  - **CORS**: enableCrossOrigin serves the CORS protocol for every handler. A request with
+ *    an Origin header that passes the configured origins allowlist gets
+ *    Access-Control-Allow-Origin and Vary: Origin; Access-Control-Allow-Credentials is
+ *    sent only when explicitly enabled, and an OPTIONS preflight is answered directly with
+ *    Allow-Methods echoing Access-Control-Request-Method, the configured Allow-Headers and
+ *    Max-Age 1728000, without invoking the handler.
  *  - **Limits and compression**: maxHeadersCount, maxHeaderSize and maxBodySize bound the
- *    parsed request (a request over a limit is answered with 400); enableEncoding
- *    compresses eligible text replies transparently when the client accepts gzip or
- *    deflate.
+ *    parsed request (431 for headers, 413 for the body); enableEncoding compresses eligible
+ *    text replies transparently when the client accepts gzip or deflate.
  *  - **Handler forms**: the handler receives a single request object (see above), the response is
  *    reached through \`req.response\`, and the TcpServer events are forwarded.
  *
@@ -31238,49 +31289,58 @@ declare class Class_HttpServer extends Class_TcpServer {
     /**
      * @description Enables automatic CORS handling, including preflight requests
      *
-     *      Turns on the embedded handler's CORS mode: requests carrying an Origin header get
-     *      Access-Control-Allow-Credentials: true and Access-Control-Allow-Origin echoing the
-     *      origin, and an OPTIONS preflight is answered directly (200) with
-     *      Access-Control-Allow-Methods: *, Access-Control-Allow-Headers set to allowHeaders
-     *      and Access-Control-Max-Age: 1728000, without invoking the handler.
+     *      Turns on the embedded handler's CORS mode. Requests carrying an Origin header are
+     *      matched against options.origins (a string or array; \`*\` matches any; omitted means
+     *      reflect any origin for compatibility) and, when allowed, receive
+     *      Access-Control-Allow-Origin plus Vary: Origin. Access-Control-Allow-Credentials is
+     *      sent only when options.credentials is true. An OPTIONS preflight is answered directly
+     *      (200) with Access-Control-Allow-Methods echoing Access-Control-Request-Method (or
+     *      \`*\` when absent), Access-Control-Allow-Headers set to allowHeaders and
+     *      Access-Control-Max-Age: 1728000, without invoking the handler. A disallowed origin
+     *      receives no CORS headers.
      *
-     *      Example — answer a preflight:
+     *      Example — answer a preflight for a trusted origin:
      *      \`\`\`JavaScript
      *      const http = require('http');
      *
      *      const server = new http.Server(0, (req) => { req.response.write('cors'); });
-     *      server.enableCrossOrigin('X-Custom');
+     *      server.enableCrossOrigin('X-Custom', { origins: ['http://example.com'] });
      *      server.start();
      *      const port = server.socket.localPort;
      *
      *      const res = http.requestSync('OPTIONS', 'http://127.0.0.1:' + port + '/', {
-     *          headers: { Origin: 'http://example.com' }
+     *          headers: {
+     *              Origin: 'http://example.com',
+     *              'Access-Control-Request-Method': 'POST'
+     *          }
      *      });
      *      console.log(res.statusCode); // 200
      *      console.log(res.firstHeader('Access-Control-Allow-Origin')); // http://example.com
+     *      console.log(res.firstHeader('Access-Control-Allow-Methods')); // POST
      *      console.log(res.firstHeader('Access-Control-Allow-Headers')); // X-Custom
      *
      *      server.stop();
      *      \`\`\`
      *      @param allowHeaders specifies the accepted http header fields
+     *      @param options CORS options: origins (String or String[]) and credentials (Boolean, default false)
      *
      */
-    enableCrossOrigin(allowHeaders?: string): void;
+    enableCrossOrigin(allowHeaders?: string, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Queries and sets the maximum number of request headers, default 128
      *
      *      Applied when each request is parsed; a request with more header lines is answered
-     *      with 400 and the connection is closed. A negative value throws a RangeError (20006).
+     *      with 431 and the connection is closed. A negative value throws a RangeError (20006).
      *
      */
     maxHeadersCount: number;
 
     /**
-     * @description Queries and sets the maximum length of one header line in bytes, default 8192
+     * @description Queries and sets the maximum length of the header block in bytes, default 8192
      *
-     *      A longer line makes the parser fail and the request is answered with 400; a negative
-     *      value throws a RangeError (20006).
+     *      A larger header block makes the parser fail and the request is answered with 431; a
+     *      negative value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -31289,7 +31349,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      * @description Queries and sets the maximum request body size in MB, default 64
      *
      *      A Content-Length or chunked body larger than this is rejected while parsing and the
-     *      request is answered with 400; -1 disables the limit and 0 refuses every body.
+     *      request is answered with 413; -1 disables the limit and 0 refuses every body.
      *
      */
     maxBodySize: number;
@@ -31297,11 +31357,12 @@ declare class Class_HttpServer extends Class_TcpServer {
     /**
      * @description Enables automatic response compression, disabled by default
      *
-     *      When on, a reply larger than 128 bytes and smaller than 64 MB is compressed with
-     *      gzip or deflate when the client sent a matching Accept-Encoding and the
-     *      Content-Type is text/* or a known compressible type; the handler adds
-     *      Content-Encoding and replaces the body with the compressed one. An existing
-     *      Content-Encoding disables it.
+     *      When on, a reply between 1 KB and 1 MB is compressed with gzip or deflate
+     *      when the client sent a matching Accept-Encoding and the Content-Type is
+     *      text/* or a known compressible type; the handler adds Content-Encoding
+     *      and Vary: Accept-Encoding and replaces the body with the compressed one.
+     *      An existing Content-Encoding disables it, and a 206 response is never
+     *      compressed.
      *
      */
     enableEncoding: boolean;
@@ -31398,49 +31459,58 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
     /**
      * @description Enables automatic CORS handling, including preflight requests
      *
-     *      Turns on the embedded handler's CORS mode: requests carrying an Origin header get
-     *      Access-Control-Allow-Credentials: true and Access-Control-Allow-Origin echoing the
-     *      origin, and an OPTIONS preflight is answered directly (200) with
-     *      Access-Control-Allow-Methods: *, Access-Control-Allow-Headers set to allowHeaders
-     *      and Access-Control-Max-Age: 1728000, without invoking the handler.
+     *      Turns on the embedded handler's CORS mode. Requests carrying an Origin header are
+     *      matched against options.origins (a string or array; \`*\` matches any; omitted means
+     *      reflect any origin for compatibility) and, when allowed, receive
+     *      Access-Control-Allow-Origin plus Vary: Origin. Access-Control-Allow-Credentials is
+     *      sent only when options.credentials is true. An OPTIONS preflight is answered directly
+     *      (200) with Access-Control-Allow-Methods echoing Access-Control-Request-Method (or
+     *      \`*\` when absent), Access-Control-Allow-Headers set to allowHeaders and
+     *      Access-Control-Max-Age: 1728000, without invoking the handler. A disallowed origin
+     *      receives no CORS headers.
      *
-     *      Example — answer a preflight:
+     *      Example — answer a preflight for a trusted origin:
      *      \`\`\`JavaScript
      *      const http = require('http');
      *
      *      const server = new http.Server(0, (req) => { req.response.write('cors'); });
-     *      server.enableCrossOrigin('X-Custom');
+     *      server.enableCrossOrigin('X-Custom', { origins: ['http://example.com'] });
      *      server.start();
      *      const port = server.socket.localPort;
      *
      *      const res = http.requestSync('OPTIONS', 'http://127.0.0.1:' + port + '/', {
-     *          headers: { Origin: 'http://example.com' }
+     *          headers: {
+     *              Origin: 'http://example.com',
+     *              'Access-Control-Request-Method': 'POST'
+     *          }
      *      });
      *      console.log(res.statusCode); // 200
      *      console.log(res.firstHeader('Access-Control-Allow-Origin')); // http://example.com
+     *      console.log(res.firstHeader('Access-Control-Allow-Methods')); // POST
      *      console.log(res.firstHeader('Access-Control-Allow-Headers')); // X-Custom
      *
      *      server.stop();
      *      \`\`\`
      *      @param allowHeaders specifies the accepted http header fields
+     *      @param options CORS options: origins (String or String[]) and credentials (Boolean, default false)
      *
      */
-    enableCrossOrigin(allowHeaders?: string): void;
+    enableCrossOrigin(allowHeaders?: string, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description Queries and sets the maximum number of request headers, default 128
      *
      *      Applied when each request is parsed; a request with more header lines is answered
-     *      with 400 and the connection is closed. A negative value throws a RangeError (20006).
+     *      with 431 and the connection is closed. A negative value throws a RangeError (20006).
      *
      */
     maxHeadersCount: number;
 
     /**
-     * @description Queries and sets the maximum length of one header line in bytes, default 8192
+     * @description Queries and sets the maximum length of the header block in bytes, default 8192
      *
-     *      A longer line makes the parser fail and the request is answered with 400; a negative
-     *      value throws a RangeError (20006).
+     *      A larger header block makes the parser fail and the request is answered with 431; a
+     *      negative value throws a RangeError (20006).
      *
      */
     maxHeaderSize: number;
@@ -31449,7 +31519,7 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
      * @description Queries and sets the maximum request body size in MB, default 64
      *
      *      A Content-Length or chunked body larger than this is rejected while parsing and the
-     *      request is answered with 400; -1 disables the limit and 0 refuses every body.
+     *      request is answered with 413; -1 disables the limit and 0 refuses every body.
      *
      */
     maxBodySize: number;
@@ -31457,11 +31527,12 @@ declare class Class_HttpServerPromise extends Class_TcpServerPromise {
     /**
      * @description Enables automatic response compression, disabled by default
      *
-     *      When on, a reply larger than 128 bytes and smaller than 64 MB is compressed with
-     *      gzip or deflate when the client sent a matching Accept-Encoding and the
-     *      Content-Type is text/* or a known compressible type; the handler adds
-     *      Content-Encoding and replaces the body with the compressed one. An existing
-     *      Content-Encoding disables it.
+     *      When on, a reply between 1 KB and 1 MB is compressed with gzip or deflate
+     *      when the client sent a matching Accept-Encoding and the Content-Type is
+     *      text/* or a known compressible type; the handler adds Content-Encoding
+     *      and Vary: Accept-Encoding and replaces the body with the compressed one.
+     *      An existing Content-Encoding disables it, and a 206 response is never
+     *      compressed.
      *
      */
     enableEncoding: boolean;
@@ -44921,10 +44992,11 @@ declare class Class_RedisSortedSet extends Class_object {
  *    replaced by the last capture when the rule hands the rest of the path to a
  *    nested routing, by the single capture when the match has exactly one
  *    top-level group, and cleared otherwise.
- *  - **Ordering**: a rule added later is matched first, so add the general rule
- *    before the specific one when the specific one must win. append(route)
+ *  - **Ordering**: a rule added earlier is matched first, so add the specific
+ *    rule before the general one when the specific rule must win. append(route)
  *    copies the rules of another Routing with their relative order and empties
- *    the source.
+ *    the source; the transferred rules keep their order after the rules already
+ *    present, so the existing rules keep priority.
  *  - **Method and host**: the get/post/put/del/patch/find helpers (and the method
  *    argument of append) accept only the given http method, \`"*"\` accepts every
  *    method and \`"host"\` matches the Host header instead of the address; a host
@@ -44995,10 +45067,10 @@ declare class Class_RedisSortedSet extends Class_object {
  *  \`\`\`JavaScript
  *  const mq = require('mq');
  *
- *  // the rules added later are matched first
+ *  // the rules added earlier are matched first
  *  const app = new mq.Routing();
- *  app.get('/api/:name', (req, name) => console.log('param ' + name));
  *  app.get('/api/status', (req) => console.log('status'));
+ *  app.get('/api/:name', (req, name) => console.log('param ' + name));
  *
  *  const msg = new mq.Message();
  *  msg.value = '/api/status';
@@ -45032,8 +45104,8 @@ declare class Class_Routing extends Class_Handler {
      *      used as a value. An empty map (the default) builds a router without rules,
      *      to be filled with append and the method helpers. The related
      *      \`Routing(method, map)\` constructor scopes the same map to one http method.
-     *      The rules of a map keep their enumeration order and are matched from the
-     *      last to the first, like rules added one by one.
+     *      The rules of a map keep their enumeration order and are matched in that
+     *      order, like rules added one by one.
      *
      *      Example — a map plus a rule added afterwards:
      *      \`\`\`JavaScript
@@ -45095,7 +45167,8 @@ declare class Class_Routing extends Class_Handler {
      *      The rules of route are copied into this router with their relative order
      *      preserved and route is left empty, so appending the same object twice only
      *      transfers the rules once. As with every append form, the transferred rules
-     *      are matched before the rules already present in this router.
+     *      are matched after the rules already present in this router, so the existing
+     *      rules keep priority.
      *
      *      Example — merge a sub-router:
      *      \`\`\`JavaScript
@@ -45121,8 +45194,8 @@ declare class Class_Routing extends Class_Handler {
      *
      *      Every entry of map becomes a rule with the \`"*"\` method scope, exactly as
      *      if the entries were appended one by one with \`append(pattern, hdlr)\`; the
-     *      entries are matched from the last to the first of the enumeration. The
-     *      method-specific group helpers (get, post, del, put, patch, find, all) call
+     *      entries are matched in enumeration order. The method-specific group helpers
+     *      (get, post, del, put, patch, find, all) call
      *      this form with their method instead of \`"*"\`.
      *
      *      @param map routing parameters
@@ -45146,7 +45219,7 @@ declare class Class_Routing extends Class_Handler {
      *      - a routing map object, whose values are handlers in these same forms;
      *      - a path/address string.
      *      A handler that is itself a routing receives the remaining path in value.
-     *      The new rule is matched before the rules already present.
+     *      The new rule is matched after the rules already present.
      *
      *      @param pattern message match pattern
      *      @param hdlr the route handler
@@ -45444,8 +45517,8 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      used as a value. An empty map (the default) builds a router without rules,
      *      to be filled with append and the method helpers. The related
      *      \`Routing(method, map)\` constructor scopes the same map to one http method.
-     *      The rules of a map keep their enumeration order and are matched from the
-     *      last to the first, like rules added one by one.
+     *      The rules of a map keep their enumeration order and are matched in that
+     *      order, like rules added one by one.
      *
      *      Example — a map plus a rule added afterwards:
      *      \`\`\`JavaScript
@@ -45507,7 +45580,8 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      The rules of route are copied into this router with their relative order
      *      preserved and route is left empty, so appending the same object twice only
      *      transfers the rules once. As with every append form, the transferred rules
-     *      are matched before the rules already present in this router.
+     *      are matched after the rules already present in this router, so the existing
+     *      rules keep priority.
      *
      *      Example — merge a sub-router:
      *      \`\`\`JavaScript
@@ -45533,8 +45607,8 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *
      *      Every entry of map becomes a rule with the \`"*"\` method scope, exactly as
      *      if the entries were appended one by one with \`append(pattern, hdlr)\`; the
-     *      entries are matched from the last to the first of the enumeration. The
-     *      method-specific group helpers (get, post, del, put, patch, find, all) call
+     *      entries are matched in enumeration order. The method-specific group helpers
+     *      (get, post, del, put, patch, find, all) call
      *      this form with their method instead of \`"*"\`.
      *
      *      @param map routing parameters
@@ -45558,7 +45632,7 @@ declare class Class_RoutingPromise extends Class_HandlerPromise {
      *      - a routing map object, whose values are handlers in these same forms;
      *      - a path/address string.
      *      A handler that is itself a routing receives the remaining path in value.
-     *      The new rule is matched before the rules already present.
+     *      The new rule is matched after the rules already present.
      *
      *      @param pattern message match pattern
      *      @param hdlr the route handler
@@ -105785,7 +105859,7 @@ declare module 'hex' {
  *  - **Compression**: with \`enableEncoding\` enabled (the default) the client sends
  *    \`Accept-Encoding: gzip, deflate\` and transparently decompresses gzip/deflate response bodies,
  *    removing the \`Content-Encoding\` and \`Content-Length\` headers. Set it to false to receive the
- *    compressed bytes. \`fileHandler\` can serve pre-compressed \`file.ext.gz\` files directly.
+ *    compressed bytes.
  *  - **Cookies**: a client with \`enableCookie\` enabled (the default) stores the \`Set-Cookie\` headers
  *    of every response in its \`cookies\` list and sends the matching cookies back on later requests
  *    to the same domain and path; cookies marked \`secure\` are only sent over HTTPS.
@@ -105918,8 +105992,8 @@ declare module 'hex' {
  *    A body that exceeds \`maxBodySize\` fails with ERR_INVALID_STATE.
  *  - \`http.cookies\`, the module properties and the module-level request functions all operate on one
  *    hidden global client, so \`http.cookies\` only contains the cookies collected through them.
- *  - \`fileHandler\` generates \`Cache-Control\`, \`Last-Modified\` and the gzip variants of files when
- *    asked to; see its own documentation for the options.
+ *  - \`fileHandler\` generates \`Cache-Control\` and \`Last-Modified\` headers when asked to; see its
+ *    own documentation for the options.
  *
  */
 declare module 'http' {
@@ -106217,9 +106291,9 @@ declare module 'http' {
     var maxHeadersCount: number;
 
     /**
-     * @description Queries and sets the maximum request header size in bytes, default 8192
+     * @description Queries and sets the maximum response header block size in bytes, default 8192
      *
-     *      A request whose headers exceed the limit is rejected.
+     *      A response whose header block exceeds the limit is rejected.
      *
      */
     var maxHeaderSize: number;
@@ -106273,8 +106347,7 @@ declare module 'http' {
     /**
      * @description Creates an http static file handler to respond to http messages with static files
      *
-     *      fileHandler supports gzip pre-compression: when the request accepts gzip encoding and a filename.ext.gz file exists at the same path, this file is returned directly,
-     *      thus avoiding server load caused by repeated compression. Directory requests serve
+     *      fileHandler serves static files from a directory. Directory requests serve
      *      index.html when it exists, and \`autoIndex\` additionally allows listing the directory when
      *      no index file is found.
      *      @param root file root path
@@ -106286,9 +106359,6 @@ declare module 'http' {
 
     /**
      * @description Creates an http static file handler to respond to http messages with static files
-     *
-     *      fileHandler supports gzip pre-compression: when the request accepts gzip encoding and a filename.ext.gz file exists at the same path, this file is returned directly,
-     *      thus avoiding server load caused by repeated compression.
      *
      *      Meanings of the options fields:
      *      - autoIndex: Boolean, whether browsing directory files is supported, default false, not supported
@@ -108044,9 +108114,9 @@ declare module 'http/promises' {
     var maxHeadersCount: number;
 
     /**
-     * @description Queries and sets the maximum request header size in bytes, default 8192
+     * @description Queries and sets the maximum response header block size in bytes, default 8192
      *
-     *      A request whose headers exceed the limit is rejected.
+     *      A response whose header block exceeds the limit is rejected.
      *
      */
     var maxHeaderSize: number;
@@ -108100,8 +108170,7 @@ declare module 'http/promises' {
     /**
      * @description Creates an http static file handler to respond to http messages with static files
      *
-     *      fileHandler supports gzip pre-compression: when the request accepts gzip encoding and a filename.ext.gz file exists at the same path, this file is returned directly,
-     *      thus avoiding server load caused by repeated compression. Directory requests serve
+     *      fileHandler serves static files from a directory. Directory requests serve
      *      index.html when it exists, and \`autoIndex\` additionally allows listing the directory when
      *      no index file is found.
      *      @param root file root path
@@ -108113,9 +108182,6 @@ declare module 'http/promises' {
 
     /**
      * @description Creates an http static file handler to respond to http messages with static files
-     *
-     *      fileHandler supports gzip pre-compression: when the request accepts gzip encoding and a filename.ext.gz file exists at the same path, this file is returned directly,
-     *      thus avoiding server load caused by repeated compression.
      *
      *      Meanings of the options fields:
      *      - autoIndex: Boolean, whether browsing directory files is supported, default false, not supported
@@ -112502,8 +112568,8 @@ declare module 'json' {
  *   Content-Type headers and by helpers such as http.fileHandler.
  * - **Extension lookup**: getType applies path.extname to the argument; when there is no
  *   extension the whole argument is used, so \`getType('html')\` and \`getType('a.html')\` return
- *   the same type. Built-in extensions are matched case-insensitively (\`a.HTML\` works), while
- *   types registered with addType are matched exactly as they were registered.
+ *   the same type. Extensions and registered types are matched case-insensitively
+ *   (\`a.HTML\` and a registration made as \`HTML\` both work).
  * - **Registry**: addType writes into a process-wide map that is consulted before the built-in
  *   table, so a registration is visible to every caller and can override a built-in type. Pass
  *   the extension without a leading dot; an extension registered as \`.foo\` only matches an
@@ -112543,10 +112609,9 @@ declare module 'mime' {
      * @description Looks up the MIME type of a file name or extension
      *
      *      The extension is taken from the last dot of the argument (path.extname); an argument
-     *      without a dot is treated as an extension itself. Built-in extensions are matched
-     *      without case sensitivity; extensions registered with addType are matched exactly. An
-     *      unknown extension returns \`application/octet-stream\`, and an empty name returns an
-     *      empty string.
+     *      without a dot is treated as an extension itself. Extensions are matched without case
+     *      sensitivity, including those registered with addType. An unknown extension returns
+     *      \`application/octet-stream\`, and an empty name returns an empty string.
      *
      *      Example — look up a name and a bare extension:
      *      \`\`\`JavaScript
@@ -112565,10 +112630,10 @@ declare module 'mime' {
     /**
      * @description Registers a MIME type for an extension in the process-wide registry
      *
-     *      The extension is stored exactly as given and is looked up before the built-in table,
-     *      which allows a built-in type to be overridden for the rest of the process. Register the
-     *      extension without a leading dot; no dot is added or removed. The registration is shared
-     *      by all callers in the process and is not persisted.
+     *      The extension is lowercased and stored in the process-wide registry, then looked up
+     *      before the built-in table, which allows a built-in type to be overridden for the rest
+     *      of the process. Register the extension without a leading dot; no dot is added or
+     *      removed. The registration is shared by all callers in the process and is not persisted.
      *
      *      @param ext extension to register, without a leading dot
      *      @param type MIME type returned for the extension
