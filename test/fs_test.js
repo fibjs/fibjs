@@ -1514,6 +1514,31 @@ describe('fs', () => {
         test_zip(2, first_test_n);
     });
 
+    it("zip folder miss revalidates", () => {
+        var archive = path.join(__dirname, 'unzip_test_miss.zip' + vmid);
+
+        function save_zip(entries) {
+            var zipfile = zip.open(archive, "w");
+            entries.forEach(entry => zipfile.write(new Buffer(entry[1]), entry[0]));
+            zipfile.close();
+        }
+
+        save_zip([['a.txt', 'old-a']]);
+        assert.equal(fs.readTextFile(archive + '$/a.txt'), 'old-a');
+
+        save_zip([['a.txt', 'new-a'], ['b.txt', 'new-b']]);
+
+        // a cached hit stays stale until the 3s re-check ...
+        assert.equal(fs.readTextFile(archive + '$/a.txt'), 'old-a');
+
+        // ... but a miss validates the archive, so a new member is visible
+        // immediately, and the rebuilt index serves the new generation
+        assert.equal(fs.readTextFile(archive + '$/b.txt'), 'new-b');
+        assert.equal(fs.readTextFile(archive + '$/a.txt'), 'new-a');
+
+        fs.unlink(archive);
+    });
+
     it("zip data", () => {
         function save_zip(n) {
             var stream = new io.MemoryStream();

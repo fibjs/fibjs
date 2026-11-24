@@ -279,5 +279,84 @@ describe("zip", () => {
     it("bugfix: read from empty file", () => {
         zip.open(new io.MemoryStream());
     });
+
+    it("long entry name", () => {
+        var archive = path.join(__dirname, 'unzip_test_longname.zip' + vmid);
+        var name = 'a'.repeat(300) + '.txt';
+
+        var zf = zip.open(archive, 'w');
+        zf.write(new Buffer('long name'), name);
+        zf.close();
+
+        zf = zip.open(archive);
+        assert.equal(zf.namelist()[0], name);
+        assert.equal(zf.infolist()[0].filename, name);
+        assert.equal(zf.getinfo(name).filename, name);
+        assert.equal(zf.read(name).toString(), 'long name');
+        zf.close();
+
+        fs.unlink(archive);
+    });
+
+    it("empty entry", () => {
+        var archive = path.join(__dirname, 'unzip_test_emptyentry.zip' + vmid);
+
+        var zf = zip.open(archive, 'w');
+        zf.write(new Buffer(0), 'empty.txt');
+        zf.close();
+
+        zf = zip.open(archive);
+        assert.equal(zf.read('empty.txt').length, 0);
+        assert.equal(zf.readAll()[0].data.length, 0);
+        zf.close();
+
+        fs.unlink(archive);
+    });
+
+    it("lookup entries after the first one", () => {
+        var archive = path.join(__dirname, 'unzip_test_lookup.zip' + vmid);
+
+        var zf = zip.open(archive, 'w');
+        for (var i = 0; i < 50; i++)
+            zf.write(new Buffer('data-' + i), 'f' + i + '.txt');
+        zf.close();
+
+        zf = zip.open(archive);
+        // each read locates an entry by name; the last one used to cost a
+        // full central-directory scan per lookup
+        for (var i = 49; i >= 0; i--)
+            assert.equal(zf.read('f' + i + '.txt').toString(), 'data-' + i);
+        assert.equal(zf.getinfo('f49.txt').file_size, 'data-49'.length);
+        zf.close();
+
+        fs.unlink(archive);
+    });
+
+    it("mounted archive reads past the entry cache", () => {
+        // more entries than the decompressed-entry LRU holds, so the first
+        // ones are evicted and must be read from the pinned archive again
+        var total = 1500;
+        var mount = '/unzip_test_cache.zip' + vmid;
+        var ms = new io.MemoryStream();
+        var zf = zip.open(ms, 'w');
+
+        for (var i = 0; i < total; i++)
+            zf.write(new Buffer('v' + i), 'f' + i + '.txt');
+        zf.close();
+
+        ms.rewind();
+        fs.setZipFS(mount, ms.readAll());
+
+        try {
+            for (var i = 0; i < total; i++)
+                assert.equal(fs.readTextFile(mount + '$/f' + i + '.txt'), 'v' + i);
+
+            assert.equal(fs.readTextFile(mount + '$/f0.txt'), 'v0');
+            assert.equal(fs.stat(mount + '$/f0.txt').size, 'v0'.length);
+        } finally {
+            fs.clearZipFS(mount);
+            ms.close();
+        }
+    });
 });
 
